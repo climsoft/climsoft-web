@@ -1,0 +1,70 @@
+:host {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-toolbar {
+  position: sticky;
+  /* For macOS/iOS Safari */
+  position: -webkit-sticky;
+  /* Sets the sticky toolbar to be on top */
+  top: 0;
+  /* Ensure that your app's content doesn't overlap the toolbar */
+  z-index: 1000;
+
+  background: #3f51b5;
+  color: #fff;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+
+
+.nav-container{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.nav-header {
+  margin: 0px;
+  height: 63px;
+  display: flex;
+  align-items: center; /* Align vertical */
+  padding-left: 8px;
+}
+
+.nav-content{
+    flex: 1 1 auto;  
+}
+
+.nav-content mat-card mat-card-content{
+    padding-left: 8px;
+    padding-bottom: 8px;
+}
+
+.nav-link {
+  display: flex;
+  flex-direction: row;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+
+.nav-name {
+  margin-left: 5px;
+  margin-right: 5px;
+  display: flex;
+  justify-content: center; /* Align horizontal */
+  align-items: center; /* Align vertical */
+}
+
+.nav-spacer {
+  flex: 1 1 auto;
+}

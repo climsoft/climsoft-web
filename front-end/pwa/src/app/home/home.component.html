@@ -1,0 +1,76 @@
+<mat-sidenav-container class="container-fluid h-100">
+  <mat-sidenav class="app-side-nav">
+    <div class="nav-container">
+      <h2 class="nav-header">Climsoft</h2>
+      <mat-divider></mat-divider>
+      <div class="nav-content">
+        <mat-card class="g-main-card-content">
+          <mat-card-content>
+            <mat-nav-list>
+              <div mat-list-item *ngFor="let nav of featuresNavItems">
+                <!-- for menus that have sub menus -->
+                <a
+                  *ngIf="nav.children.length > 0"
+                  class="nav-link"
+                  [matMenuTriggerFor]="navSubMenu"
+                >
+                  <mat-icon>{{ nav.icon }}</mat-icon>
+                  <span class="nav-name">{{ nav.name }}</span>
+                  <span class="nav-spacer"></span>
+                  <mat-icon >chevron_right</mat-icon>
+        
+                  <mat-menu #navSubMenu="matMenu" xPosition="before" yPosition="above">
+                    <a
+                      mat-menu-item
+                      *ngFor="let subNav of nav.children"
+                      (click)="onFeatureClick(subNav.featureTitle, subNav.url)"
+                      >{{ subNav.name }}</a
+                    >
+                  </mat-menu>
+                </a>
+        
+                <!-- for menus that don't have sub menus -->
+                <a   
+                  *ngIf="nav.children.length === 0"
+                  class="nav-link"
+                  (click)="onFeatureClick(nav.featureTitle, nav.url)"
+                >
+                  <mat-icon>{{ nav.icon }}</mat-icon>
+                  <span class="nav-name">{{ nav.name }}</span>
+                  <span class="nav-spacer"></span>
+                </a>
+              </div>
+            </mat-nav-list>
+          </mat-card-content>
+         
+        </mat-card>
+      </div>
+     
+     
+    </div>  
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <mat-toolbar class="app-toolbar">
+      <button mat-icon-button (click)="toggleFeaturesNav()">
+        <mat-icon>menu</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        *ngIf="launchedAsSubComponent"
+        mat-icon-button
+        (click)="onBackClick()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <span>{{ componentTitle }}</span>
+      <span class="toolbar-spacer"></span>
+      <button mat-icon-button class="toolbar-icon">
+        <mat-icon>settings</mat-icon>
+      </button>
+      <button mat-icon-button class="toolbar-icon">
+        <mat-icon>person</mat-icon>
+      </button>
+    </mat-toolbar>
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

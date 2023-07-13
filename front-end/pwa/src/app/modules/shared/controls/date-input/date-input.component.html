@@ -1,0 +1,9 @@
+<label for="dateSelection">{{ controlLabel }}</label>
+<input
+  class="form-control"
+  id="dateSelection"
+  type="date"
+  [max]="maxDate"
+  [value]="value"
+  (input)="onInputEntry($any($event.target).value)"
+/>

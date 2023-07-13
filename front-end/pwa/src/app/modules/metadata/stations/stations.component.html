@@ -1,0 +1,30 @@
+<div class="container-fluid">
+    <div class="card">
+      <div class="card-header">
+        <div class="row align-items-center">
+          <div class="col">All Stations</div>
+        </div>
+      </div>
+  
+      <div class="card-body">
+        <app-data-list-view
+          [dataSource]="stations"
+          [bodyMembers]="['id', 'name']"
+          [actions]="[
+            {
+              actionName: 'Edit',
+              actionCssClassName: 'btn-outline-primary',
+              actionIconCssClassName: 'bi-pen'
+            },
+            {
+              actionName: 'Links',
+              actionCssClassName: 'btn-outline-info',
+              actionIconCssClassName: 'bi-info'
+            }
+          ]"
+          (dataActionClicked)="onStationClick($event)"
+        ></app-data-list-view>
+      </div>
+    </div>
+  </div>
+  
