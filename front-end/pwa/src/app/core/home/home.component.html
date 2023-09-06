@@ -1,0 +1,26 @@
+<div class="container-fluid">
+  <div class="row flex-nowrap">
+    <div class="col-auto px-0" [ngClass]="{'nav-open': bOpenSideNav,'nav-close': !bOpenSideNav}">
+      <div>
+        <div id="sidebar-nav" class="list-group border-0 rounded-0 text-sm-start min-vh-100">
+          <a href="#" class="list-group-item border-end-0 d-inline-block text-truncate"
+            ><span>Item</span> </a>
+          (more nav items) ...
+        </div>
+      </div>
+    </div>
+    <div class="col ps-md-2 pt-2">
+      <button href="#" (click)="bOpenSideNav = !bOpenSideNav" 
+        class="border rounded-3 p-1 text-decoration-none">
+        <i class="bi bi-list bi-lg py-2 p-1"></i>Menu
+      </button>
+      <div class="row">
+        <div class="col-12">
+          Content area...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
