@@ -19,9 +19,7 @@
 }
 
 .nav-brand {
-  font-weight: 600;
   font-size: 1.15rem;
-  padding: 1.15rem 1.5rem; 
 }
 
 .nav-bar-toggle {
@@ -32,6 +30,11 @@
 .nav-avatar {
   width: 40px;
   height: 40px;
+}
+
+.nav-bar-user-title{
+  text-decoration: none;
+  cursor: pointer;
 }
 
 

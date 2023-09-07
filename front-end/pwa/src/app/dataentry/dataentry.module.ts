@@ -14,6 +14,8 @@ import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { ValueFlagEntryComponent } from './controls/value-flag-entry/value-flag-entry.component';
 
 import { FormsInputComponent } from './controls/forms-input/forms-input.component';
+import { FormSelectionComponent } from './form-selection/form-selection.component';
+import { StationSelectionComponent } from './station-selection/station-selection.component';
 //------------------------------------
 
 
@@ -24,7 +26,9 @@ import { FormsInputComponent } from './controls/forms-input/forms-input.componen
     FormEntryComponent,
     ValueFlagEntryComponent,
     ImportEntryComponent,
-    FormsInputComponent
+    FormsInputComponent,
+    FormSelectionComponent,
+    StationSelectionComponent
   ],
   imports: [
     DataEntryRoutingModule,

@@ -1,40 +1,28 @@
 <div class="container-fluid h-100 p-1">
-  <div class="card h-100">
-    <div class="card-header">
-      <div class="row align-items-center">
-        <div class="col">All Entry Forms</div>
-        <div class="col d-flex justify-content-end">
-          <button
-            type="button"
-            class="btn btn-outline-primary btn-sm"
-            (click)="onNewForm()"
-          >
-            New Form
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <div class="card-body">
-      <app-data-list-view
-        [numbered]="true"
-        [dataSource]="entryDataSources"
-        [headerMembers]="['name']"
-        [bodyMembers]="['description']"
-        [actions]="[
-          {
-            actionName: 'Edit',
-            actionCssClassName: 'btn-outline-primary',
-            actionIconCssClassName: 'bi-pen'
-          },
-          {
-            actionName: 'Delete',
-            actionCssClassName: 'btn-outline-danger',
-            actionIconCssClassName: 'bi-trash'
-          }
-        ]"
-        (dataActionClicked)="onFormClicked($event)"
-      ></app-data-list-view>
+  <div class="row d-flex justify-content-between align-items-center mb-3">
+    <div class="col">
+      <h4 class="fw-normal component-h1">Entry Forms</h4>
+    </div>
+    <div class="col text-end">
+      <button type="button" class="btn btn-primary btn-sm" (click)="onNewForm()">
+        New Form
+      </button>
     </div>
   </div>
+
+  <app-data-list-view [numbered]="true" [dataSource]="entryDataSources" [headerMembers]="['name']"
+    [bodyMembers]="['description']" [actions]="[
+    {
+      actionName: 'Edit',
+      actionCssClassName: 'btn-outline-primary',
+      actionIconCssClassName: 'bi-pen'
+    },
+    {
+      actionName: 'Delete',
+      actionCssClassName: 'btn-outline-danger',
+      actionIconCssClassName: 'bi-trash'
+    }
+  ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view>
+
 </div>

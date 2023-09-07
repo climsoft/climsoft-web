@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Station } from '../../shared/models/station.model';
 import { EntryForm } from '../../shared/models/entryform.model';
 import { EntryData } from '../../shared/models/entrydata.model';
@@ -34,25 +34,23 @@ export class FormEntryComponent implements OnInit {
   entryDataItems: EntryData[] = [];
 
 
-  constructor(private viewDataService: PagesDataService, private repo: RepoService, private router: Router) {
-
-    if(1==1){
-      return;
-    }
+  constructor(private repo: RepoService, private route: ActivatedRoute) {
 
     this.dataSelectorsValues = this.getNewInitialDataSelector();
-    //todo. stations should be loaded based on user permisions
-    this.dataSelectorsValues.stationId = this.repo.getStations()[0].id;
-    //todo. data source should be loaded based on station metadata
-    const dataSource = this.repo.getDataSource(this.repo.getDataSources(1)[0].id)
-    this.dataSelectorsValues.dataSourceId = dataSource.id;
-    this.setFormSelectorsAndControl( JSON.parse(dataSource.extraMetadata))
-    this.getEntryData();
+
 
   }
 
   ngOnInit(): void {
+    this.dataSelectorsValues.stationId = this.route.snapshot.params['stationid'];
+    this.dataSelectorsValues.dataSourceId = this.route.snapshot.params['datasourceid'];
+
+    //todo. data source should be loaded based on station metadata
+    const dataSource = this.repo.getDataSource(this.repo.getDataSources(1)[0].id)
+    this.setFormSelectorsAndControl(JSON.parse(dataSource.extraMetadata))
+    this.getEntryData();
   }
+
 
   private getNewInitialDataSelector(): DataSelectorsValues {
     return {
@@ -64,7 +62,7 @@ export class FormEntryComponent implements OnInit {
   }
 
   private setFormSelectorsAndControl(entryForm: EntryForm) {
-  
+
     this.dataSelectorsValues.entryForm = entryForm;
 
     if (entryForm.entrySelectors.includes('elementId')) {
@@ -101,8 +99,6 @@ export class FormEntryComponent implements OnInit {
   }
 
 
-
-
   private getEntryData(): void {
     //get the data based on the station, data source and selectors
     this.entryDataItems = this.repo.getEntryDataItems(this.dataSelectorsValues);;
@@ -113,11 +109,11 @@ export class FormEntryComponent implements OnInit {
     this.dataSelectorsValues = this.getNewInitialDataSelector();
     this.dataSelectorsValues.stationId = stationId;
 
-      //todo. data source should be loaded based on station metadata
+    //todo. data source should be loaded based on station metadata
     const dataSource = this.repo.getDataSource(this.repo.getDataSources(1)[0].id)
     this.dataSelectorsValues.dataSourceId = dataSource.id;
 
-  
+
     this.setFormSelectorsAndControl(JSON.parse(dataSource.extraMetadata))
     this.getEntryData();
   }
@@ -125,7 +121,7 @@ export class FormEntryComponent implements OnInit {
   public onFormChange(dataSourceId: number): void {
 
     //store old station id
-    const stationId : string = this.dataSelectorsValues.stationId;
+    const stationId: string = this.dataSelectorsValues.stationId;
 
     //reset the data selector values 
     this.dataSelectorsValues = this.getNewInitialDataSelector();

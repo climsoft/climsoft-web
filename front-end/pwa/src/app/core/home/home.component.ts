@@ -1,9 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatSidenav } from '@angular/material/sidenav';
-import { Router, NavigationEnd, NavigationExtras, Navigation } from '@angular/router';
-import { Location } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/shared/services/viewport.service';
-import { PagesDataService } from 'src/app/shared/services/pages-data.service';
+
 
 @Component({
   selector: 'app-home',
@@ -31,12 +28,12 @@ export class HomeComponent implements OnInit {
       children: [
         {
           name: 'Forms',
-          url: '/formentry',
+          url: '/station-selection',
           featureTitle: 'Data Entry'
         },
         {
           name: 'Import',
-          url: '/importentry',
+          url: '/import-entry',
           featureTitle: 'Import Data'
         }
       ]
@@ -71,18 +68,17 @@ export class HomeComponent implements OnInit {
 
   ]
 
-  constructor(private viewPort: ViewportService,private viewDataService: PagesDataService, private router: Router, private location: Location) {
-  }
+  constructor(private viewPort: ViewportService) {
 
-  ngOnInit(): void {
-  }
-
-  ngAfterViewInit(): void {
     this.viewPort.viewPortSize.subscribe((viewPortSize) => {
       this.bOpenSideNav = viewPortSize === ViewPortSize.Large;
     });
 
   }
+
+  ngOnInit() {
+  }
+
 
 
 

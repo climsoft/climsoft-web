@@ -4,31 +4,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 //--------------------------------
 
-//------- material modules -------
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatListModule } from '@angular/material/list';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
-import { MatCardModule } from '@angular/material/card';
-import { MatStepperModule } from '@angular/material/stepper';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-//--------------------------------
-
 //------- ngx-bootstrap modules -------
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { CollapseModule } from 'ngx-bootstrap/collapse';
-
-import { AccordionModule } from 'ngx-bootstrap/accordion';
 //--------------------------------
 
 //------- third party modules -------
@@ -38,8 +16,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
-import { SelectorInputComponent } from './controls/selector-input/selector-input.component';
-import { PaginatorComponent } from './controls/paginator/paginator.component';
+import { SelectorInputComponent } from './controls/selector-input/selector-input.component'; 
 import { HourInputComponent } from './controls/hour-input/hour-input.component';
 import { StationInputComponent } from './controls/station-input/station-input.component';
 import { YearInputComponent } from './controls/year-input/year-input.component';
@@ -62,26 +39,7 @@ const thirdPartyModules = [
   NgSelectModule
 ]
 
-const materialModules = [
-  MatIconModule,
-  MatButtonModule,
-  MatListModule,
-  MatFormFieldModule,
-  MatRadioModule,
-  MatGridListModule,
-  MatSelectModule,
-  MatInputModule,
-  MatTableModule,
-  MatCardModule,
-  MatStepperModule,
-  MatTabsModule,
-  MatDividerModule,
-  MatMenuModule,
-  MatExpansionModule,
-  MatDatepickerModule,
-  MatNativeDateModule
 
-];
 //--------------------------------
 
 const controlsComponents = [
@@ -96,7 +54,7 @@ const controlsComponents = [
 
   StationInputComponent,
   ElementInputComponent,
-  PaginatorComponent,
+  
 
   DataListViewComponent,
 
@@ -110,26 +68,22 @@ const controlsComponents = [
   imports: [
     ...angularModules,
     ...thirdPartyModules,
-    ...materialModules,
 
     BsDropdownModule.forRoot(),
     CollapseModule.forRoot(),
 
-    AccordionModule.forRoot(),
   ],
   providers: [
 
   ],
   exports: [
     ...angularModules,
-    ...thirdPartyModules,
-    ...materialModules,
+    ...thirdPartyModules, 
     ...controlsComponents,
 
     BsDropdownModule,
     CollapseModule,
     
-    AccordionModule,
   ]
 })
 export class SharedModule { }

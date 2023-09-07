@@ -1,0 +1,16 @@
+<div class="container-fluid">
+    <div class="row d-flex justify-content-between align-items-center mb-2">
+        <div class="col">
+            <h4 class="fw-normal component-h1">Select Station</h4>
+        </div>
+    </div>
+
+    <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
+      {
+        actionName: 'Select',
+        actionCssClassName: 'btn-outline-primary',
+        actionIconCssClassName: ''
+      }
+    ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view>
+
+</div>

@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
+import { StationSelectionComponent } from './station-selection/station-selection.component';
+import { FormSelectionComponent } from './form-selection/form-selection.component';
 
 
 const routes: Routes = [
@@ -13,22 +15,24 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'formentry',
+        redirectTo: 'station-selection',
         pathMatch: 'full',
-      },      
+      },   
       {
-        path: 'formentry',
-        component: FormEntryComponent,
-        data: {
-          subComponent: true
-        }
+        path: 'station-selection',
+        component: StationSelectionComponent
+      }, 
+      {
+        path: 'form-selection/:stationid',
+        component: FormSelectionComponent
+      },     
+      {
+        path: 'form-entry/:stationid/:datasourceid',
+        component: FormEntryComponent
       },
       {
-        path: 'importentry',
-        component: ImportEntryComponent,
-        data: {
-          title: 'Import Data'
-        }
+        path: 'import-entry',
+        component: ImportEntryComponent
       }
     ]
   }

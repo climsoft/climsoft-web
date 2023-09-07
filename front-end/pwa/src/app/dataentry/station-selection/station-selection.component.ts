@@ -1,19 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { RepoService } from '../../shared/services/repo.service';
 import { Station } from '../../shared/models/station.model';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 
 @Component({
-  selector: 'app-stations',
-  templateUrl: './stations.component.html',
-  styleUrls: ['./stations.component.scss']
+  selector: 'app-station-selection',
+  templateUrl: './station-selection.component.html',
+  styleUrls: ['./station-selection.component.scss']
 })
-export class StationsComponent implements OnInit {
-
+export class StationSelectionComponent {
   stations!: Station[];
 
-  constructor(private repo: RepoService, private router: Router) {
+  constructor(private repo: RepoService, private router: Router, private route: ActivatedRoute) {
 
     this.stations = [
       { id: '1', name: 'JKIA Airport' },
@@ -27,17 +26,9 @@ export class StationsComponent implements OnInit {
   }
 
   public onStationClick(dataClicked: DataClicked) {
-    if (dataClicked.actionName === 'Entry') {
-      this.router.navigate(
-        ['dataentry', 'forms'],
-        { state: { viewTitle: 'Form Entry', subView: true, stationData: dataClicked.dataSourceItem } });
-
-    } else if (dataClicked.actionName === 'View') {
-
-    }
-
+    this.router.navigate(['form-selection', dataClicked.dataSourceItem['id']], {relativeTo: this.route.parent});
   }
 
-  public newStationClick(): void{}
+
 
 }

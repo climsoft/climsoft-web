@@ -2,9 +2,6 @@
 // theme used by ng-select
 @import "~@ng-select/ng-select/themes/default.theme.css";
 
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 /* Importing Bootstrap SCSS file. */
 @import "./node_modules/bootstrap/scss/bootstrap";
 
@@ -13,3 +10,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* Importing Bootstrap Icons CSS file. */
 @import "./node_modules/bootstrap-icons/font/bootstrap-icons";
+
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f5f7fb }
+
+.component-h1{
+    font-size: 1.3125rem;
+}
