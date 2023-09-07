@@ -14,27 +14,29 @@ export class HomeComponent implements OnInit {
 
   public bOpenSideNav: boolean = false;
 
-  @ViewChild(MatSidenav) sideNav!: MatSidenav;
-  public componentTitle: string = "";
-  public launchedAsSubComponent: boolean = false;
-  public activeParentFeatureName: string = "";
-  public activeFeatureName: string = "";
-
   //holds the features navigation items
   public featuresNavItems: any[] = [
     {
+      name: 'Dashboard',
+      url: '/dashboard',
+      icon: 'bi bi-sliders',
+      open: false,
+      children: []
+    },
+    {
       name: 'Data Entry',
       url: '/dataentry',
-      icon: 'edit_note',
+      icon: 'bi bi-file-earmark-text',
+      open: false,
       children: [
         {
           name: 'Forms',
-          url: '/dataentry/formentry',
+          url: '/formentry',
           featureTitle: 'Data Entry'
         },
         {
           name: 'Import',
-          url: '/dataentry/importentry',
+          url: '/importentry',
           featureTitle: 'Import Data'
         }
       ]
@@ -43,16 +45,17 @@ export class HomeComponent implements OnInit {
     {
       name: 'Metadata',
       url: '/metadata',
-      icon: 'sticky_note_2',
+      icon: 'bi bi-chat-dots',
+      open: false,
       children: [
         {
           name: 'Stations',
-          url: '',
+          url: '/stations',
           featureTitle: 'Stations'
         },
         {
           name: 'Forms',
-          url: '/metadata/forms',
+          url: '/forms',
           featureTitle: 'Entry Forms'
         }
       ]
@@ -60,7 +63,8 @@ export class HomeComponent implements OnInit {
     {
       name: 'User Management',
       url: '/usermanagement',
-      icon: 'how_to_reg',
+      icon: 'bi bi-people',
+      open: false,
       children: []
     }
 
@@ -68,20 +72,6 @@ export class HomeComponent implements OnInit {
   ]
 
   constructor(private viewPort: ViewportService,private viewDataService: PagesDataService, private router: Router, private location: Location) {
-
-    this.viewDataService.loadedViewNavigationData.subscribe( (state)=>{
-      if (state['viewTitle']) {
-        this.componentTitle = state['viewTitle'];
-      }
-  
-      if (state['subView']) {
-        this.launchedAsSubComponent = state['subView'];
-      } else {
-        this.launchedAsSubComponent = false;
-      }
-    } );
-
-
   }
 
   ngOnInit(): void {
@@ -89,37 +79,11 @@ export class HomeComponent implements OnInit {
 
   ngAfterViewInit(): void {
     this.viewPort.viewPortSize.subscribe((viewPortSize) => {
-      if (viewPortSize === ViewPortSize.Small) {
-        this.sideNav.mode = 'over';
-        this.sideNav.close();
-      } else {
-        this.sideNav.mode = 'side';
-        this.sideNav.open();
-      }
+      this.bOpenSideNav = viewPortSize === ViewPortSize.Large;
     });
 
   }
 
-  public toggleFeaturesNav(): void {
-    if (this.sideNav.opened) {
-      this.sideNav.close();
-    } else {
-      this.sideNav.open();
-    }
-  }
-
-
-  public onFeatureClick(featureTitle: string, url: string): void {
-    if (this.sideNav.mode === 'over') {
-      this.sideNav.close();
-    }
-    this.router.navigate([url], { state: { viewTitle: featureTitle } });
-    //todo. loop through to get the active features and highlight accordingly
-  }
-
-  public onBackClick(): void {
-    this.location.back();
-  }
 
 
 

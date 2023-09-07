@@ -35,6 +35,11 @@ export class FormEntryComponent implements OnInit {
 
 
   constructor(private viewDataService: PagesDataService, private repo: RepoService, private router: Router) {
+
+    if(1==1){
+      return;
+    }
+
     this.dataSelectorsValues = this.getNewInitialDataSelector();
     //todo. stations should be loaded based on user permisions
     this.dataSelectorsValues.stationId = this.repo.getStations()[0].id;

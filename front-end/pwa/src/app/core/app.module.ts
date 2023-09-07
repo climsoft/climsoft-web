@@ -16,13 +16,17 @@ import { HomeComponent } from './home/home.component';
 
 //--------------------------------------------
 
+
+
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HomeComponent,
+    DashboardComponent,
 
   ],
   imports: [
@@ -32,6 +36,8 @@ import { MatSidenavModule } from '@angular/material/sidenav';
     SharedModule,
     MetadataModule,
     DataEntryModule,
+
+ 
 
     MatToolbarModule,
     MatSidenavModule,

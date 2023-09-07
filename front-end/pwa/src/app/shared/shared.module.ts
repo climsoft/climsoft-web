@@ -24,6 +24,13 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 //--------------------------------
 
+//------- ngx-bootstrap modules -------
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { CollapseModule } from 'ngx-bootstrap/collapse';
+
+import { AccordionModule } from 'ngx-bootstrap/accordion';
+//--------------------------------
+
 //------- third party modules -------
 import { NgSelectModule } from '@ng-select/ng-select';
 //--------------------------------
@@ -104,6 +111,11 @@ const controlsComponents = [
     ...angularModules,
     ...thirdPartyModules,
     ...materialModules,
+
+    BsDropdownModule.forRoot(),
+    CollapseModule.forRoot(),
+
+    AccordionModule.forRoot(),
   ],
   providers: [
 
@@ -112,7 +124,12 @@ const controlsComponents = [
     ...angularModules,
     ...thirdPartyModules,
     ...materialModules,
-    ...controlsComponents
+    ...controlsComponents,
+
+    BsDropdownModule,
+    CollapseModule,
+    
+    AccordionModule,
   ]
 })
 export class SharedModule { }

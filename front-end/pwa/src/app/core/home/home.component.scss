@@ -8,76 +8,33 @@
   flex-direction: column;
 }
 
-.nav-open {
+.nav-container-open {
   visibility: visible;
   width: auto;
 }
 
-.nav-close {
+.nav-container-close {
   visibility: hidden;
   width: 0px; 
 }
 
-.app-toolbar {
-  position: sticky;
-  /* For macOS/iOS Safari */
-  position: -webkit-sticky;
-  /* Sets the sticky toolbar to be on top */
-  top: 0;
-  /* Ensure that your app's content doesn't overlap the toolbar */
-  z-index: 1000;
-
-  background: #3f51b5;
-  color: #fff;
+.nav-brand {
+  font-weight: 600;
+  font-size: 1.15rem;
+  padding: 1.15rem 1.5rem; 
 }
 
-.toolbar-spacer {
-  flex: 1 1 auto;
-}
-
-
-
-.nav-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.nav-header {
-  margin: 0px;
-  height: 63px;
-  display: flex;
-  align-items: center;
-  /* Align vertical */
-  padding-left: 8px;
-}
-
-.nav-content {
-  flex: 1 1 auto;
-}
-
-.nav-content mat-card mat-card-content {
-  padding-left: 8px;
-  padding-bottom: 8px;
-}
-
-.nav-link {
-  display: flex;
-  flex-direction: row;
+.nav-bar-toggle {
   cursor: pointer;
-  margin-bottom: 16px;
+  font-size: 2.1875rem;
 }
 
-.nav-name {
-  margin-left: 5px;
-  margin-right: 5px;
-  display: flex;
-  justify-content: center;
-  /* Align horizontal */
-  align-items: center;
-  /* Align vertical */
+.nav-avatar {
+  width: 40px;
+  height: 40px;
 }
 
-.nav-spacer {
-  flex: 1 1 auto;
-}
+
+
+
+
