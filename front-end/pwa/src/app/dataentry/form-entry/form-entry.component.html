@@ -1,0 +1,80 @@
+<div class="row d-flex justify-content-between align-items-center mb-2">
+  <div class="col">
+    <h4 class="fw-normal component-h1">Data Entry</h4>
+  </div>
+</div>
+
+<div class="card  bg-transparent">
+  <div class="card-header">station name - form name - data entry</div>
+  <div class="card-body">
+    <!-- entry selectors -->
+    <div class="card mb-2 ">
+      <div class="card-header">Entry Selectors</div>
+      <div class="card-body">
+        <div class="row g-2">
+          <div class="col-sm-auto mb-2" *ngIf="dataSelectorsValues.elementId > -1">
+            <app-element-input [controlLabel]="'Element'" [value]="dataSelectorsValues.elementId"
+              (valueChange)="onElementChange($event)"></app-element-input>
+          </div>
+
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.year > -1">
+            <app-year-input [value]="dataSelectorsValues.year" (valueChange)="onYearChange($event)"></app-year-input>
+          </div>
+
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.month > -1">
+            <app-month-input [value]="dataSelectorsValues.month"
+              (valueChange)="onMonthChange($event)"></app-month-input>
+          </div>
+
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.day > -1">
+            <app-day-input [year]="dataSelectorsValues.year" [month]="dataSelectorsValues.month"
+              [value]="dataSelectorsValues.day" (valueChange)="onDayChange($event)"></app-day-input>
+          </div>
+
+          <div class="col-sm-auto mb-2" *ngIf="useDatePickerControl">
+            <app-date-input [controlLabel]="'Date'" [value]="defaultDatePickerDate"
+              (valueChange)="onDateChange($event)"></app-date-input>
+          </div>
+
+          <div class="col-sm-auto mb-2" *ngIf="this.dataSelectorsValues.hour > -1">
+            <app-hour-input [controlLabel]="'Hour'" [value]="dataSelectorsValues.hour"
+              [onlyIncludeIds]="dataSelectorsValues.entryForm.hours"
+              (valueChange)="onHourChange($event)"></app-hour-input>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- entry fields -->
+    <div class="card mb-2 ">
+      <div class="card-header">Entry Fields</div>
+      <div class="card-body">
+        <!-- grid entry -->
+        <app-data-grid-entry *ngIf="entryControl === 'grid'" [entryDataItems]="entryDataItems">
+        </app-data-grid-entry>
+        <!-- ----------- -->
+        <!-- value flag entry -->
+        <app-value-flag-entry *ngIf="entryControl === 'vf'" [entryDataItems]="entryDataItems"
+          [dataSelectorsValues]="dataSelectorsValues">
+        </app-value-flag-entry>
+        <!-- ----------- -->
+      </div>
+    </div>
+  </div>
+
+  <div class="card-footer">
+    <div class="row g-2">
+      <div class="col-auto">
+        <button type="button" class="btn btn-primary" (click)="onSave()">
+          Save
+        </button>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-danger">Delete</button>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-outline-secondary">Clear</button>
+      </div>
+    </div>
+  </div>
+</div>

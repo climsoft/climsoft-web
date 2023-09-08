@@ -1,0 +1,18 @@
+<div class="container-fluid h-100 p-1">
+
+    <div class="row d-flex justify-content-between align-items-center mb-2">
+      <div class="col">
+        <h4 class="fw-normal component-h1">Select Form</h4>
+      </div>
+    </div>
+  
+    <app-data-list-view [numbered]="true" [dataSource]="entryDataSources" [headerMembers]="['name']"
+      [bodyMembers]="['description']" [actions]="[
+      {
+        actionName: 'Select',
+        actionCssClassName: 'btn-outline-primary',
+        actionIconCssClassName: 'bi-pen'
+      },
+    ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view>
+  
+  </div>

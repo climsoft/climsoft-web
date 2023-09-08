@@ -1,0 +1,81 @@
+<div class="container-fluid">
+  <div class="row">
+    <!-- navigation bar content-->
+    <div class="col-auto p-0 min-vh-100 nav-container"
+      [ngClass]="{'nav-container-open': bOpenSideNav,'nav-container-close': !bOpenSideNav}">
+
+      <div class="card min-vh-100 p-3"> 
+        <div class="list-group list-group-flush">
+
+          <!-- climsoft banner section -->
+          <a routerLink="/" class="list-group-item list-group-item-action px-0 fw-bold nav-brand">Climsoft</a>
+  
+          <!-- login user section -->
+          <div class="list-group-item px-0">
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0">
+                <img src="assets/avatar.jpg" class="img-fluid rounded me-2 nav-avatar" alt="Patrick">
+              </div>
+              <div class="flex-grow-1">
+                <div dropdown class="dropdown">
+                  <div dropdownToggle class="dropdown-toggle nav-bar-user-title">
+                    Patrick Munyoki
+                  </div>
+                  <div *dropdownMenu class="dropdown-menu" role="menu">
+                    <a class="dropdown-item" href="#"><i class="bi bi-person" data-feather="user"></i> Profile</a>
+                    <a class="dropdown-item" href="#"><i class="bi bi-pie-chart" data-feather="pie-chart"></i>
+                      Analytics</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings & Privacy</a>
+                    <a class="dropdown-item" href="#"><i class="bi bi-question-circle"></i> Help Center</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Log out</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <!-- menu iems section -->
+          <div class="list-group-item list-group-item-action px-0" *ngFor="let nav of featuresNavItems">
+            <div class="list-group list-group-flush p-0 m-0">
+              <a class="list-group-item list-group-item-action border-0 p-0  d-flex justify-content-between"
+                [routerLink]="nav.children.length === 0? nav.url: null" (click)="nav.open = !nav.open">
+                <span>
+                  <i [class]="nav.icon"></i> {{ nav.name}}
+                </span>
+                <i *ngIf="nav.children.length > 0" class="bi bi-chevron-down"></i>
+              </a>
+  
+              <!-- sub menus -->
+              <div *ngIf="nav.children.length > 0" class="list-group-item list-group list-group-flush p-0"
+                [collapse]="!nav.open" [isAnimated]="true">
+                <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
+                  [routerLink]="nav.url + subNav.url">
+                  <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- end -->
+        </div>
+      </div>
+     
+    </div>
+
+    <!-- main content -->
+    <div class="col ps-md-2 pt-2 d-flex flex-column">
+      <!-- nav bar icon -->
+      <div (click)="bOpenSideNav = !bOpenSideNav" class="nav-bar-toggle flex-shrink-0">
+        <i class="bi bi-list bi-lg py-2 p-1 nav-bar-toggle"></i>
+      </div>
+      <!-- content -->
+      <div class="row flex-grow-1">
+        <div class="col-12">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+      <!-- end -->
+    </div>
+  </div>
+</div>

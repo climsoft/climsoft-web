@@ -1,0 +1,51 @@
+<div
+  class="list-group list-group-numbered list-group-flush p-0"
+  [class.list-group-numbered]="numbered"
+>
+  <div
+    *ngFor="let dataSourceItem of dataSource"
+    class="list-group-item list-group-item-action px-0"
+    [class.d-flex]="numbered"
+  >
+    <div class="container-fluid p-0">
+      <div class="row p-0 m-0">
+        <div class="col-lg-10 p-0">
+          <div class="d-flex flex-column h-100">
+            <div *ngIf="headerMembers" class="fw-normal">
+              {{ getDataSourceItemHeaderContent(dataSourceItem) }}
+            </div>
+            <div
+              *ngIf="bodyMembers"
+              class="fw-light"
+              [ngClass]="{
+                'd-flex': !headerMembers,
+                'h-100': !headerMembers,
+                'align-items-center': !headerMembers
+              }"
+            >
+              {{ getDataSourceItemBodyContent(dataSourceItem) }}
+            </div>
+          </div>
+        </div>
+        <div *ngIf="actions" class="col mt-1 p-0">
+          <div class="d-flex justify-content-end">
+            <button
+              *ngFor="let action of actions"
+              type="button"
+              [ngClass]="['btn', 'btn-sm', 'ms-2', action.actionCssClassName]"
+              (click)="
+                onDataActionClicked({
+                  actionName: action.actionName,
+                  dataSourceItem: dataSourceItem
+                })
+              "
+            >
+              <i [ngClass]="['bi', action.actionIconCssClassName]"></i
+              >{{ action.actionName }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
