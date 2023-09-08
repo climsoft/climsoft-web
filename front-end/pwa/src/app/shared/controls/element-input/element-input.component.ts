@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { Element } from '../../models/element.model';
+import { Element } from '../../../core/models/element.model';
 import { RepoService } from '../../services/repo.service';
 
 @Component({

@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EntryForm } from '../../shared/models/entryform.model';
+import { EntryForm } from '../../core/models/entryform.model';
 import { RepoService } from '../../shared/services/repo.service';
-import { EntryDataSource } from '../../shared/models/entrydatasource.model';
+import { EntryDataSource } from '../../core/models/entrydatasource.model';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 
 @Component({

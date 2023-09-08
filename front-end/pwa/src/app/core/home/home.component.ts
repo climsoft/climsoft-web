@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ViewPortSize, ViewportService } from 'src/app/shared/services/viewport.service';
+import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
 
 
 @Component({

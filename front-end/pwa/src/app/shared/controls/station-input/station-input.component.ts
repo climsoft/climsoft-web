@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { RepoService } from '../../services/repo.service';
-import { Station } from '../../models/station.model';
+import { Station } from '../../../core/models/station.model';
 
 @Component({
   selector: 'app-station-input',

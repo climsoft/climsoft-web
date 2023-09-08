@@ -1,3 +1,3 @@
-import { EntryData } from "../../shared/models/entrydata.model";
+import { EntryData } from "../../core/models/entrydata.model";
 
 

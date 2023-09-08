@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { LocalStorageService } from './local-storage.service';
-import { EntryForm } from '../models/entryform.model';
-import { EntryDataSource } from '../models/entrydatasource.model';
-import { EntryData } from '../models/entrydata.model';
+import { EntryForm } from '../../core/models/entryform.model';
+import { EntryDataSource } from '../../core/models/entrydatasource.model';
+import { EntryData } from '../../core/models/entrydata.model';
 import { DataSelectorsValues } from '../../dataentry/form-entry/form-entry.component';
-import { Element } from '../models/element.model';
-import { Station } from '../models/station.model';
+import { Element } from '../../core/models/element.model';
+import { Station } from '../../core/models/station.model';
 
 @Injectable({
   providedIn: 'root'

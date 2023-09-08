@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { RepoService } from '../../shared/services/repo.service';
-import { EntryForm } from '../../shared/models/entryform.model';
-import { Element } from '../../shared/models/element.model';
+import { EntryForm } from '../../core/models/entryform.model';
+import { Element } from '../../core/models/element.model';
 import { DateUtils } from '../../shared/utils/date-utils';
-import { EntryDataSource } from '../../shared/models/entrydatasource.model';
+import { EntryDataSource } from '../../core/models/entrydatasource.model';
 import { PagesDataService } from '../../shared/services/pages-data.service';
 
 @Component({

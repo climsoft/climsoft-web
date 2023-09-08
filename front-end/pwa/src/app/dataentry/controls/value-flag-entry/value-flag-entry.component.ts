@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { EntryData } from 'src/app/shared/models/entrydata.model';
+import { EntryData } from 'src/app/core/models/entrydata.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { RepoService } from 'src/app/shared/services/repo.service';
 import { DateUtils } from 'src/app/shared/utils/date-utils';

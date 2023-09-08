@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { EntryDataSource } from 'src/app/shared/models/entrydatasource.model';
+import { EntryDataSource } from 'src/app/core/models/entrydatasource.model';
 import { RepoService } from 'src/app/shared/services/repo.service';
 
 

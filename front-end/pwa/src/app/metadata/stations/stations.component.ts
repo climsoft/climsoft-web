@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RepoService } from '../../shared/services/repo.service';
-import { Station } from '../../shared/models/station.model';
+import { Station } from '../../core/models/station.model';
 import { Router } from '@angular/router';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 

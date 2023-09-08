@@ -1,6 +1,6 @@
 import { Component, Input, ViewChild, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { EntryData } from 'src/app/shared/models/entrydata.model';
-import { EntryForm } from 'src/app/shared/models/entryform.model';
+import { EntryData } from 'src/app/core/models/entrydata.model';
+import { EntryForm } from 'src/app/core/models/entryform.model';
 //import { AgGridAngular } from 'ag-grid-angular';
 
 //import { CellValueChangedEvent, ColDef } from 'ag-grid-community';

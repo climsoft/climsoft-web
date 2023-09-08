@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Station } from '../../shared/models/station.model';
-import { EntryForm } from '../../shared/models/entryform.model';
-import { EntryData } from '../../shared/models/entrydata.model';
+import { Station } from '../../core/models/station.model';
+import { EntryForm } from '../../core/models/entryform.model';
+import { EntryData } from '../../core/models/entrydata.model';
 import { RepoService } from '../../shared/services/repo.service';
-import { Element } from '../../shared/models/element.model';
+import { Element } from '../../core/models/element.model';
 import { PagesDataService } from '../../shared/services/pages-data.service';
-import { EntryDataSource } from '../../shared/models/entrydatasource.model';
+import { EntryDataSource } from '../../core/models/entrydatasource.model';
 import { DateUtils } from '../../shared/utils/date-utils';
 
 export interface DataSelectorsValues {
@@ -99,44 +99,7 @@ export class FormEntryComponent implements OnInit {
   }
 
 
-  private getEntryData(): void {
-    //get the data based on the station, data source and selectors
-    this.entryDataItems = this.repo.getEntryDataItems(this.dataSelectorsValues);;
-  }
-
-  public onStationChange(stationId: string): void {
-
-    this.dataSelectorsValues = this.getNewInitialDataSelector();
-    this.dataSelectorsValues.stationId = stationId;
-
-    //todo. data source should be loaded based on station metadata
-    const dataSource = this.repo.getDataSource(this.repo.getDataSources(1)[0].id)
-    this.dataSelectorsValues.dataSourceId = dataSource.id;
-
-
-    this.setFormSelectorsAndControl(JSON.parse(dataSource.extraMetadata))
-    this.getEntryData();
-  }
-
-  public onFormChange(dataSourceId: number): void {
-
-    //store old station id
-    const stationId: string = this.dataSelectorsValues.stationId;
-
-    //reset the data selector values 
-    this.dataSelectorsValues = this.getNewInitialDataSelector();
-
-    //restore the station id
-    this.dataSelectorsValues.stationId = stationId;
-
-    //set new data source id
-    this.dataSelectorsValues.dataSourceId = dataSourceId;
-
-    //set the form selectors and control
-    this.setFormSelectorsAndControl(JSON.parse(this.repo.getDataSource(dataSourceId).extraMetadata))
-
-    this.getEntryData();
-  }
+ 
 
   public onElementChange(elementId: number): void {
     this.dataSelectorsValues.elementId = elementId;
@@ -171,6 +134,10 @@ export class FormEntryComponent implements OnInit {
     this.getEntryData();
   }
 
+  public onClear(): void {
+    this.entryDataItems = [];
+  }
+
   public onSave(): void {
     console.log("new values", this.entryDataItems)
     this.repo.saveEntryData(this.entryDataItems);
@@ -180,7 +147,10 @@ export class FormEntryComponent implements OnInit {
 
   }
 
-  public onClear(): void {
-    this.entryDataItems = [];
+  private getEntryData(): void {
+    //get the data based on the station, data source and selectors
+    this.entryDataItems = this.repo.getEntryDataItems(this.dataSelectorsValues);;
   }
+
+
 }
