@@ -1,5 +1,5 @@
 import { Component, Input, ViewChild, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { EntryData } from 'src/app/core/models/entrydata.model';
+import { Observation } from 'src/app/core/models/observation.model';
 import { EntryForm } from 'src/app/core/models/entryform.model';
 //import { AgGridAngular } from 'ag-grid-angular';
 
@@ -15,13 +15,13 @@ import { EntryForm } from 'src/app/core/models/entryform.model';
 export class DataGridEntryComponent implements OnInit, OnChanges {
 
   @Input() entryForm!: EntryForm;
-  @Input() entryDataItems!: EntryData[];
+  @Input() entryDataItems!: Observation[];
 
   rowDefinition: string = "";
   columnDefinition: string = "";
   columnNames!: string[];
   rowNames!: string[];
-  newDataItems!: EntryData[];
+  newDataItems!: Observation[];
 
   //agrid inputs
   // For accessing the Grid's API

@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { RepoService } from '../../shared/services/repo.service';
 import { EntryForm } from '../../core/models/entryform.model';
-import { Element } from '../../core/models/element.model';
 import { DateUtils } from '../../shared/utils/date-utils';
-import { EntryDataSource } from '../../core/models/entrydatasource.model';
-import { PagesDataService } from '../../shared/services/pages-data.service';
+import { Source } from '../../core/models/source.model';
+import { ActivatedRoute } from '@angular/router';
+import { SourcesService } from 'src/app/core/services/sources.service';
 
 @Component({
   selector: 'app-form-builder',
@@ -13,7 +12,7 @@ import { PagesDataService } from '../../shared/services/pages-data.service';
   styleUrls: ['./form-builder.component.scss']
 })
 export class FormBuilderComponent implements OnInit {
-  entryDataSource: EntryDataSource;
+  source!: Source;
 
   allEntrySelectors: { [key: string]: any }[] = [{ id: 'year', name: 'Year' }, { id: "month", name: 'Month' }, { id: 'day', name: 'Day' }, { id: 'hour', name: 'Hour' }, { id: 'elementId', name: 'Element' }];;
   allEntryFields: { [key: string]: any }[] = [];
@@ -26,21 +25,35 @@ export class FormBuilderComponent implements OnInit {
   formDescription: string = '';
   errorMessage: string = '';
 
-  constructor(private viewDataService: PagesDataService, public repo: RepoService, private location: Location) {
+  constructor(private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
+  }
 
-    this.entryDataSource = this.viewDataService.getViewNavigationData()['dataSourceData'];
+  ngOnInit(): void {
+    const sourceId = this.route.snapshot.params['sourceid'];
 
-    if (this.entryDataSource) {
+    if (sourceId) {
+      this.sourceService.getSource(sourceId).subscribe((data) => {
+        this.setControlValues(data);
+      });
+    } else {
+      this.setControlValues();
+    }
+  }
+
+  private setControlValues(source?: Source) {
+
+    if (source) {
+      this.source = source;
       //get selection from data source
-      this.formName = this.entryDataSource.name;
-      this.formDescription = this.entryDataSource.description;
-      const entryForm: EntryForm = this.getEntryForm(this.entryDataSource.extraMetadata);
+      this.formName = this.source.name;
+      this.formDescription = this.source.description;
+      const entryForm: EntryForm = this.getEntryForm(this.source.extraMetadata);
       this.selectedEntrySelectorIds = entryForm.entrySelectors;
       this.selectedElementIds = entryForm.elements;
       this.selectedHourIds = entryForm.hours;
     } else {
       //create new entry data source
-      this.entryDataSource = { id: 0, name: '', description: '', acquisitionTypeId: 1, extraMetadata: '' }
+      this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' }
       //set entry selectors initial defaults
       this.selectedEntrySelectorIds = this.allEntrySelectors.slice(0, 4).map(item => item['id']);
       this.selectedHourIds = DateUtils.getHours().map(item => item['id']);
@@ -48,10 +61,6 @@ export class FormBuilderComponent implements OnInit {
 
     //set the control and the fields
     this.setEntryFieldsAndControl();
-
-  }
-
-  ngOnInit(): void {
   }
 
   getEntryForm(entryFormJsonString: string): EntryForm {
@@ -81,10 +90,11 @@ export class FormBuilderComponent implements OnInit {
     this.allEntryFields = [...this.allEntrySelectors];
 
     //remove selected entry selectors from the list of selectable entry fields
-    this.allEntryFields = this.allEntryFields.filter(item => !this.selectedEntrySelectorIds.includes(item['id']));
+    //do not allow year and month as entry fields
+    this.allEntryFields = this.allEntryFields.filter(item => !this.selectedEntrySelectorIds.includes(item['id']) && item['id'] !== 'year' && item['id'] !== 'month');
 
     //set the new entry fields as the selected ones
-    this.selectedEntryFieldIds =this.allEntryFields.map(item => item['id']);
+    this.selectedEntryFieldIds = this.allEntryFields.map(item => item['id']);
 
     //set entry control
     this.setEntryControl();
@@ -131,33 +141,35 @@ export class FormBuilderComponent implements OnInit {
       this.errorMessage = 'Select hours';
     }
 
-    this.entryDataSource.acquisitionTypeId = 1;
-    this.entryDataSource.name = this.formName;
-    this.entryDataSource.description = this.formDescription;
-    
+    this.source.sourceTypeId = 1; 
+    this.source.name = this.formName;
+    this.source.description = this.formDescription;
+
     const entryForm: EntryForm = this.getEntryForm('');
     entryForm.entrySelectors = this.selectedEntrySelectorIds;
     entryForm.entryFields = this.selectedEntryFieldIds;
     entryForm.entryControl = this.selectedEntryControlId;
     entryForm.elements = this.selectedElementIds;
     entryForm.hours = this.selectedHourIds;
-    
-    this.entryDataSource.extraMetadata = JSON.stringify(entryForm);
 
-    //console.log("data source: ", this.entryDataSource);
+    this.source.extraMetadata = JSON.stringify(entryForm);
 
-    //todo. this will eventually be through subscription
-    this.repo.saveDataSource(this.entryDataSource);
-
-    //this should always just navigate back
-    this.location.back();
+    if(this.source.id === 0){
+      this.sourceService.createSource(this.source).subscribe((data) => {
+        this.location.back();
+      });
+    }else{
+      this.sourceService.updateSource(this.source).subscribe((data) => {
+        this.location.back();
+      });
+    }
+  
 
   }
 
   onCancel(): void {
     this.location.back();
   }
-
 
   entrySelectorsValid(): boolean {
     //must be a minimum of 4 and maximum of 5

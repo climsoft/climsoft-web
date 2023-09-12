@@ -1,15 +1,16 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { EntryData } from 'src/app/core/models/entrydata.model';
+import { Observation } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { RepoService } from 'src/app/shared/services/repo.service';
 import { DateUtils } from 'src/app/shared/utils/date-utils';
 import { ArrayUtils } from 'src/app/shared/utils/array-utils';
+import { EntryForm } from 'src/app/core/models/entryform.model';
 
 
 export interface ControlDefinition {
   id: number;
   label: string;
-  entryData?: EntryData;
+  entryData?: Observation;
   errorMessage: string;
 }
 
@@ -24,9 +25,9 @@ export interface ControlDefinition {
 })
 export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
-  @Input() entryDataItems!: EntryData[];
-  @Input() dataSelectorsValues!: DataSelectorsValues;
-  //entryForm!: EntryForm;
+  @Input() observations!: Observation[];
+  @Input() dataSelectors!: DataSelectorsValues;
+  @Input() formMetadata!: EntryForm;
 
   //entry controls definitions
   entryControlsDefs: ControlDefinition[] = [];
@@ -39,27 +40,27 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //get control definitions
-    if (this.dataSelectorsValues.entryForm.entryFields[0] === "elementId") {
+    if (this.formMetadata.entryFields[0] === "elementId") {
       //create controls definitions the selected elements only
       //note, its not expected that all elements in the database will be set as entry fields. 
       //That should be regarded as an error in form builder design.
       //So always assume that elements selected are provided
-      this.entryControlsDefs = this.getNewControlDefs(this.repo.getElements(this.dataSelectorsValues.entryForm.elements), "id", "name")
-    } else if (this.dataSelectorsValues.entryForm.entryFields[0] === "day") {
+      this.entryControlsDefs = this.getNewControlDefs(this.repo.getElements(this.formMetadata.elements), "id", "name")
+    } else if (this.formMetadata.entryFields[0] === "day") {
       //create controls definitions days of the month only
       //note, there is no days selection in the form builder
-      this.entryControlsDefs = this.getNewControlDefs(DateUtils.getDaysInMonthList(this.dataSelectorsValues.year, this.dataSelectorsValues.month), "id", "name")
-    } else if (this.dataSelectorsValues.entryForm.entryFields[0] === "hour") {
+      this.entryControlsDefs = this.getNewControlDefs(DateUtils.getDaysInMonthList(this.dataSelectors.year, this.dataSelectors.month), "id", "name")
+    } else if (this.formMetadata.entryFields[0] === "hour") {
       //create control definitions hours
       //note there is always hours selection in the form builder
-      this.entryControlsDefs = this.getNewControlDefs(this.dataSelectorsValues.entryForm.hours.length > 0 ? DateUtils.getHours(this.dataSelectorsValues.entryForm.hours) : DateUtils.getHours(), "id", "name")
+      this.entryControlsDefs = this.getNewControlDefs(this.formMetadata.hours.length > 0 ? DateUtils.getHours(this.formMetadata.hours) : DateUtils.getHours(), "id", "name")
     } else {
       //Not supported yet
       this.entryControlsDefs = [];
     }
 
     //set control definitions entry data from the loaded data
-    this.setControlDefinitionsEntryData(this.entryControlsDefs, this.entryDataItems, this.dataSelectorsValues.entryForm.entryFields[0]);
+    this.setControlDefinitionsEntryData(this.entryControlsDefs, this.observations, this.formMetadata.entryFields[0]);
 
   }
 
@@ -73,7 +74,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     return controlDefs;
   }
 
-  private setControlDefinitionsEntryData(entryControlsDefs: ControlDefinition[], entryDataItems: EntryData[], entryDataField: string): void {
+  private setControlDefinitionsEntryData(entryControlsDefs: ControlDefinition[], entryDataItems: Observation[], entryDataField: string): void {
     //set control definitions entry data from the loaded data
     for (const controlDef of entryControlsDefs) {
       //get the entry data to be used by the control definition if it exists
@@ -97,12 +98,12 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       return;
     }
 
-   //extract the value from the flag and nullify any empty flag entry
+    //extract the value from the flag and nullify any empty flag entry
     const numberPatternRegExp: RegExp = /[+-]?\d+(\.\d+)?/; // Regular expression to match numbers with optional decimal points
     const matches: RegExpMatchArray | null = controlNewValueFlag.match(numberPatternRegExp);
     let extractedNumber: number | null = matches ? Number(matches[0]) : null;
     let extractedString: string | null = controlNewValueFlag.replace(numberPatternRegExp, "").trim();
-    extractedString = extractedString !== null && extractedString.length === 0 ? null: extractedString
+    extractedString = extractedString !== null && extractedString.length === 0 ? null : extractedString
 
     //if number input then validate
     if (extractedNumber !== null) {
@@ -119,7 +120,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     if (!controlDef.entryData) {
       //push the new data to the array
       controlDef.entryData = this.getNewEntryData(controlDef);
-      this.entryDataItems.push(controlDef.entryData);
+      this.observations.push(controlDef.entryData);
     }
 
     //set the value and flag
@@ -130,62 +131,51 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   }
 
-  private getNewEntryData(controlDef: ControlDefinition): EntryData {
+  private getNewEntryData(controlDef: ControlDefinition): Observation {
     //create new entr data
-    const entryData: EntryData = { stationId: '0', dataSourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: '', qcStatus: 0, changesLog: '' };
+    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: new Date(), value: null, flag: '', qcStatus: 0, period: 0 };
 
     //set data source
-    entryData.dataSourceId = this.dataSelectorsValues.dataSourceId;
-    entryData.stationId = this.dataSelectorsValues.stationId;
+    entryData.sourceId = this.dataSelectors.sourceId;
+    entryData.stationId = this.dataSelectors.stationId;
 
     //set entry selector value
-    if (this.dataSelectorsValues.elementId > 0) {
-      entryData.elementId = this.dataSelectorsValues.elementId;
+    if (this.dataSelectors.elementId > 0) {
+      entryData.elementId = this.dataSelectors.elementId;
     }
 
     let datetimeVars: [number, number, number, number] = [-1, -1, -1, -1];
-    if (this.dataSelectorsValues.year > 0) {
-      datetimeVars[0] = this.dataSelectorsValues.year;
+
+    datetimeVars[0] = this.dataSelectors.year;
+    datetimeVars[1] = this.dataSelectors.month;
+
+    if (this.dataSelectors.day > 0) {
+      datetimeVars[2] = this.dataSelectors.day;
     }
 
-    if (this.dataSelectorsValues.month > 0) {
-      datetimeVars[1] = this.dataSelectorsValues.month;
-    }
-
-    if (this.dataSelectorsValues.day > 0) {
-      datetimeVars[2] = this.dataSelectorsValues.day;
-    }
-
-    if (this.dataSelectorsValues.hour > -1) {
-      datetimeVars[3] = this.dataSelectorsValues.hour;
+    if (this.dataSelectors.hour > -1) {
+      datetimeVars[3] = this.dataSelectors.hour;
     }
 
 
     //set entry field
-    if (this.dataSelectorsValues.entryForm.entryFields[0] === "elementId") {
+    if (this.formMetadata.entryFields[0] === "elementId") {
       entryData.elementId = controlDef.id;
-    } else if (this.dataSelectorsValues.entryForm.entryFields[0] === "day") {
+    } else if (this.formMetadata.entryFields[0] === "day") {
       datetimeVars[2] = controlDef.id;
-    } else if (this.dataSelectorsValues.entryForm.entryFields[0] === "hour") {
+    } else if (this.formMetadata.entryFields[0] === "hour") {
       datetimeVars[3] = controlDef.id;
     } else {
       //Not supported yet
     }
 
+    //set date from date time variables. year-month-day hour. JS months are 0 based
+    entryData.datetime = new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0, 0);
 
-    //set date from dateTime variables
-    //year-month-day hour
-    entryData.datetime = datetimeVars[0] + "-" +
-      this.zeroPrefixedPeriod(datetimeVars[1]) + "-" +
-      this.zeroPrefixedPeriod(datetimeVars[2]) + " " +
-      this.zeroPrefixedPeriod(datetimeVars[3]) + ":00:00";;
-
-
+    console.log('entry data', entryData);
     return entryData;
   }
 
-  private zeroPrefixedPeriod(period: number): string {
-    return period < 10 ? "0" + period : period.toString();
-  }
+
 
 }

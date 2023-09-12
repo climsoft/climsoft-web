@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("web_sources")
-export class SourceEntity {
+@Entity("web_source_types")
+export class SourceTypeEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
@@ -10,11 +10,5 @@ export class SourceEntity {
 
     @Column()
     description: string;
-
-    @Column('json', { nullable: true })
-    extraMetadata: string;
-
-    @Column()
-    sourceTypeId: number;
 
 }

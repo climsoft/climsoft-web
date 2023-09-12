@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { EntryDataSource } from 'src/app/core/models/entrydatasource.model';
+import { Source } from 'src/app/core/models/source.model';
 import { RepoService } from 'src/app/shared/services/repo.service';
 
 
@@ -13,7 +13,7 @@ export class FormsInputComponent  implements OnInit, OnChanges {
   @Input() multiple: boolean = false;
   @Input() value!: any;
   @Output() valueChange = new EventEmitter<any>();
-  dataSources: EntryDataSource[];
+  dataSources: Source[];
 
 
   constructor(private repo: RepoService) {

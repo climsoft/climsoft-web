@@ -1,6 +1,12 @@
 <div class="container-fluid h-100 p-1">
-  <div class="card h-100">
-    <div class="card-header">Form Metadata</div>
+
+  <div class="row d-flex justify-content-between align-items-center mb-2">
+    <div class="col">
+        <h4 class="fw-normal component-h1">Form Metadata</h4>
+    </div>
+</div>
+
+  <div class="card border-0">   
     <div class="card-body">
       <!--form name -->
       <div class="mb-3">
@@ -86,28 +92,31 @@
       <div class="mb-3" style="color: red;">
         {{ errorMessage }}
       </div>
-    </div>
-    <div class="card-footer">
-      <div class="row">
+
+      <div>
+        <div class="row">
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="onSave()"
+            >
+              Save
+            </button>
+           
+        </div>
         <div class="col-auto">
           <button
             type="button"
-            class="btn btn-primary"
-            (click)="onSave()"
+            class="btn btn-secondary"
+            (click)="onCancel()"
           >
-            Save
+            Cancel
           </button>
-         
       </div>
-      <div class="col-auto">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="onCancel()"
-        >
-          Cancel
-        </button>
+      </div>
     </div>
+
     </div>
-  </div>
+   
 </div>
