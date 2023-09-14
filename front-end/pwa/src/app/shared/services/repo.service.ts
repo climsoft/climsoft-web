@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { LocalStorageService } from './local-storage.service';
 import { EntryForm } from '../../core/models/entryform.model';
-import { EntryDataSource } from '../../core/models/entrydatasource.model';
-import { EntryData } from '../../core/models/entrydata.model';
+import { Source } from '../../core/models/source.model';
+import { Observation } from '../../core/models/observation.model';
 import { DataSelectorsValues } from '../../dataentry/form-entry/form-entry.component';
 import { Element } from '../../core/models/element.model';
 import { Station } from '../../core/models/station.model';
@@ -15,15 +15,15 @@ export class RepoService {
   constructor(public localStorage: LocalStorageService) { }
 
 
-  private saveDataSources(dataSources: EntryDataSource[]): boolean {
+  private saveDataSources(dataSources: Source[]): boolean {
     this.localStorage.setItem("data_sources", JSON.stringify(dataSources));
     return true;
   }
 
 
   //todo. this will be be done at the back end
-  public saveDataSource(newDataSource: EntryDataSource): boolean {
-    let dataSources: EntryDataSource[] = this.getDataSources();
+  public saveDataSource(newDataSource: Source): boolean {
+    let dataSources: Source[] = this.getDataSources();
     //let dataSources: EntryDataSource[] = [];
 
     if (newDataSource.id <= 0) {
@@ -41,18 +41,18 @@ export class RepoService {
   }
 
 
-  public getDataSources(acquisitionTypeId?: number): EntryDataSource[] {
+  public getDataSources(acquisitionTypeId?: number): Source[] {
     const str: string | null = this.localStorage.getItem("data_sources");
-    const dataSources: EntryDataSource[] = str ? JSON.parse(str) : [];
+    const dataSources: Source[] = str ? JSON.parse(str) : [];
 
     if (acquisitionTypeId) {
-      return dataSources.filter(dataSource => dataSource.acquisitionTypeId === acquisitionTypeId);
+      return dataSources.filter(dataSource => dataSource.sourceTypeId === acquisitionTypeId);
     }
     return dataSources;
   }
 
   public deleteDataSource(dataSourceId: number): boolean {
-    const dataSources: EntryDataSource[] = this.getDataSources();
+    const dataSources: Source[] = this.getDataSources();
     const index = dataSources.findIndex(dataSource => dataSource.id === dataSourceId);
 
     if (index !== -1) {
@@ -63,9 +63,9 @@ export class RepoService {
     return false;
   }
 
-  public getDataSource(id: number): EntryDataSource {
-    let dataSource!: EntryDataSource;
-    let dataSources: EntryDataSource[] = this.getDataSources();
+  public getDataSource(id: number): Source {
+    let dataSource!: Source;
+    let dataSources: Source[] = this.getDataSources();
     dataSources.forEach(element => {
       if (element.id === id) {
         dataSource = element;
@@ -90,44 +90,45 @@ export class RepoService {
 
 
 
-  public getEntryDataItems(dataSelectorValues: DataSelectorsValues): EntryData[] {
+  public getEntryDataItems(dataSelectorValues: DataSelectorsValues): Observation[] {
 
-    let allEntryDataItems: EntryData[] = this.getSavedEntryDataItems();
-    let entryDataItems: EntryData[] = [];
+    let allEntryDataItems: Observation[] = this.getSavedEntryDataItems();
+    let entryDataItems: Observation[] = [];
 
     //todo. the below filter will happen at the server level
     for (const entryData of allEntryDataItems) {
 
-      if (dataSelectorValues.dataSourceId > 0 && dataSelectorValues.dataSourceId !== entryData.dataSourceId) {
+      if (dataSelectorValues.sourceId && dataSelectorValues.sourceId !== entryData.sourceId) {
         continue;
       }
 
-      if (dataSelectorValues.stationId != '0' && dataSelectorValues.stationId !== entryData.stationId) {
+      if (dataSelectorValues.stationId && dataSelectorValues.stationId !== entryData.stationId) {
         continue;
       }
 
-      if (dataSelectorValues.elementId > 0 && entryData.elementId !== dataSelectorValues.elementId) {
+      if (dataSelectorValues.elementId && entryData.elementId !== dataSelectorValues.elementId) {
         continue;
       }
 
-      const date: Date = new Date(entryData.datetime);
-      if (dataSelectorValues.year > 0 && date.getFullYear() !== dataSelectorValues.year) {
+      //const date: Date = new Date(entryData.datetime);
+      const date: Date = entryData.datetime;
+      if (dataSelectorValues.year && date.getFullYear() !== dataSelectorValues.year) {
         continue;
       }
 
-      if (dataSelectorValues.month > 0 && date.getMonth() + 1 !== dataSelectorValues.month) {
+      if (dataSelectorValues.month  && date.getMonth() + 1 !== dataSelectorValues.month) {
         continue;
       }
 
-      if (dataSelectorValues.day > 0 && date.getDate() !== dataSelectorValues.day) {
+      if (dataSelectorValues.day  && date.getDate() !== dataSelectorValues.day) {
         continue;
       }
 
-      if (dataSelectorValues.hour > -1 && date.getHours() !== dataSelectorValues.hour) {
+      if (dataSelectorValues.hour && date.getHours() !== dataSelectorValues.hour) {
         continue;
       }
 
-      entryDataItems.push(entryData);
+      //entryDataItems.push(entryData);
 
     }
 
@@ -135,8 +136,8 @@ export class RepoService {
 
   }
 
-  private getSavedEntryDataItems(): EntryData[] {
-    let entryDataItems: EntryData[] = []
+  private getSavedEntryDataItems(): Observation[] {
+    let entryDataItems: Observation[] = []
     let str: any = this.localStorage.getItem("entry_data_items");
     if (str) {
       entryDataItems = JSON.parse(str)
@@ -144,10 +145,10 @@ export class RepoService {
     return entryDataItems;
   }
 
-  public saveEntryData(entryData: EntryData[]): boolean {
+  public saveEntryData(entryData: Observation[]): boolean {
     //todo. this will also be done at the server level
     //let entryDataItems: EntryData[] = this.getSavedEntryDataItems();
-    let entryDataItems: EntryData[] = [];
+    let entryDataItems: Observation[] = [];
 
     //todo. check for uniqueness from the local data as well
     entryDataItems.push(...entryData);

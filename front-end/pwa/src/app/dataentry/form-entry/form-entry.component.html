@@ -4,31 +4,33 @@
   </div>
 </div>
 
-<div class="card  bg-transparent">
-  <div class="card-header">station name - form name - data entry</div>
+<div class="card  ">
+ 
   <div class="card-body">
+    <div class="card-title fw-light">{{formName}} data entry for {{stationName}}</div>
     <!-- entry selectors -->
     <div class="card mb-2 ">
-      <div class="card-header">Entry Selectors</div>
+      
       <div class="card-body">
+        <div class="card-title fw-light">Entry Selectors</div>
         <div class="row g-2">
-          <div class="col-sm-auto mb-2" *ngIf="dataSelectorsValues.elementId > -1">
-            <app-element-input [controlLabel]="'Element'" [value]="dataSelectorsValues.elementId"
+          <div class="col-sm-auto mb-2" *ngIf="dataSelectors.elementId > 0">
+            <app-element-input [controlLabel]="'Element'" [value]="dataSelectors.elementId"
               (valueChange)="onElementChange($event)"></app-element-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.year > -1">
-            <app-year-input [value]="dataSelectorsValues.year" (valueChange)="onYearChange($event)"></app-year-input>
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.year > 0">
+            <app-year-input [value]="dataSelectors.year" (valueChange)="onYearChange($event)"></app-year-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.month > -1">
-            <app-month-input [value]="dataSelectorsValues.month"
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.month > 0">
+            <app-month-input [value]="dataSelectors.month"
               (valueChange)="onMonthChange($event)"></app-month-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectorsValues.day > -1">
-            <app-day-input [year]="dataSelectorsValues.year" [month]="dataSelectorsValues.month"
-              [value]="dataSelectorsValues.day" (valueChange)="onDayChange($event)"></app-day-input>
+          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl  && dataSelectors.day > 0">
+            <app-day-input [year]="dataSelectors.year" [month]="dataSelectors.month"
+              [value]="dataSelectors.day" (valueChange)="onDayChange($event)"></app-day-input>
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="useDatePickerControl">
@@ -36,9 +38,9 @@
               (valueChange)="onDateChange($event)"></app-date-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="this.dataSelectorsValues.hour > -1">
-            <app-hour-input [controlLabel]="'Hour'" [value]="dataSelectorsValues.hour"
-              [onlyIncludeIds]="dataSelectorsValues.entryForm.hours"
+          <div class="col-sm-auto mb-2" *ngIf="this.dataSelectors.hour > -1">
+            <app-hour-input [controlLabel]="'Hour'" [value]="dataSelectors.hour"
+              [onlyIncludeIds]="formMetadata.hours"
               (valueChange)="onHourChange($event)"></app-hour-input>
           </div>
         </div>
@@ -47,22 +49,21 @@
 
     <!-- entry fields -->
     <div class="card mb-2 ">
-      <div class="card-header">Entry Fields</div>
+      
       <div class="card-body">
+        <div class="card-title fw-light">Entry Fields</div>
         <!-- grid entry -->
-        <app-data-grid-entry *ngIf="entryControl === 'grid'" [entryDataItems]="entryDataItems">
+        <app-data-grid-entry *ngIf="entryControl === 'grid'" >
         </app-data-grid-entry>
         <!-- ----------- -->
         <!-- value flag entry -->
-        <app-value-flag-entry *ngIf="entryControl === 'vf'" [entryDataItems]="entryDataItems"
-          [dataSelectorsValues]="dataSelectorsValues">
+        <app-value-flag-entry *ngIf="entryControl === 'vf'" [dataSelectors]="dataSelectors"
+          [formMetadata]="formMetadata" [observations]="observations">
         </app-value-flag-entry>
         <!-- ----------- -->
       </div>
     </div>
-  </div>
 
-  <div class="card-footer">
     <div class="row g-2">
       <div class="col-auto">
         <button type="button" class="btn btn-primary" (click)="onSave()">
@@ -77,4 +78,6 @@
       </div>
     </div>
   </div>
+
+  
 </div>

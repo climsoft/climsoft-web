@@ -25,11 +25,12 @@ const routes: Routes = [
         }
       },
       {
-        path: 'formbuilder',
-        component: FormBuilderComponent, 
-        data: {
-          subComponent: true
-        }
+        path: 'form-builder',
+        component: FormBuilderComponent
+      },
+      {
+        path: 'form-builder/:sourceid',
+        component: FormBuilderComponent
       },
       {
         path: 'stations',

@@ -8,21 +8,19 @@ import { StationDto } from './dto/station.dto';
 export class StationsService {
 
     constructor(@InjectRepository(Station) private readonly stationRepo: Repository<Station>,
-    ) {}
+    ) { }
 
-    findAll() {
+    find() {
         return this.stationRepo.find();
     }
 
     async findOne(id: string) {
-        const station = await this.stationRepo.findOne({
-            where: {
-                id: id,
-            },
+        const station = await this.stationRepo.findOneBy({
+            id: id,
         });
 
         if (!station) {
-            throw new NotFoundException(`Coffee #${id} not found`);
+            throw new NotFoundException(`Station #${id} not found`);
         }
         return station;
     }
@@ -36,10 +34,10 @@ export class StationsService {
 
     async update(id: string, stationDto: StationDto) {
         const station = await this.stationRepo.preload({
-            ...stationDto,
+            id, ...stationDto,
         });
         if (!station) {
-            throw new NotFoundException(`Coffee #${id} not found`);
+            throw new NotFoundException(`Station #${id} not found`);
         }
         return this.stationRepo.save(station);
     }
