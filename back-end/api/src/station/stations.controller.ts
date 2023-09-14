@@ -11,20 +11,18 @@ export class StationsController {
   constructor(private readonly stationsService: StationsService) { }
 
   @Get()
-  findAll(@Query() paginationQuery: PaginationQueryDto) {
+  find() {
     // const { limit, offset } = paginationQuery;
-    return this.stationsService.findAll();
+    return this.stationsService.find();
   }
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    console.log(typeof id);
     return this.stationsService.findOne('' + id);
   }
 
   @Post()
   create(@Body() stationDto: StationDto) {
-    //console.log(createCoffeeDto instanceof CreateCoffeeDto);
     return this.stationsService.create(stationDto);
   }
 

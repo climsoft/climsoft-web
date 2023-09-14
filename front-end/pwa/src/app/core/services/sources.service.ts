@@ -1,54 +1,51 @@
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { Observation } from '../models/observation.model';
-import { SelectObservation } from '../models/select-observation.model';
+import { Source } from '../models/source.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ObservationsService {
+export class SourcesService {
 
-  endPointUrl: string = " http://localhost:3000/observations";
+  endPointUrl: string = " http://localhost:3000/sources";
 
   constructor(private http: HttpClient) { }
 
-
-  getObservations(selectObservation: SelectObservation): Observable<Observation[]> {
-
-    const obsParams: { [key:string]: any } = {};
-
-    for (const key in selectObservation) {
-      if (selectObservation.hasOwnProperty(key)) {
-        const value = selectObservation[key as keyof SelectObservation];
-        if (value !== undefined) {
-          obsParams[key] = value; 
-        }
-      }
-    }
-
-    //console.log('observation params', obsParams);   
-
-    return this.http.get<Observation[]>(this.endPointUrl, { params: obsParams })
+  getSources(sourceTypeId: number): Observable<Source[]> { 
+    return this.http.get<Source[]>(this.endPointUrl,{params: new HttpParams().set('sourceTypeId', sourceTypeId)})
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  saveObservations(observations: Observation[]): Observable<Observation[]> {
-    return this.http.post<Observation[]>(this.endPointUrl, observations)
+  getSource(sourceId: number): Observable<Source> { 
+    return this.http.get<Source>(this.endPointUrl,{params: new HttpParams().set('sourceId', sourceId)})
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteObservations(ids: number[]): Observable<Observation[]> {
+  createSource(source: Source): Observable<Source> {
+    return this.http.post<Source>(this.endPointUrl, source)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  updateSource(source: Source): Observable<Source> {
+    const url = `${this.endPointUrl}/${source.id}`; 
+    return this.http.patch<Source>(url, source)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  deleteSource(id: number): Observable<Source> {
     //todo use json as body of ids?
-    //const url = `${this.endPointUrl}/${id}`; 
-    const url = '';
-    return this.http.delete<Observation[]>(url)
+    const url = `${this.endPointUrl}/${id}`; 
+    return this.http.delete<Source>(url)
       .pipe(
         catchError(this.handleError)
       );
@@ -67,6 +64,5 @@ export class ObservationsService {
     // Return an observable with a user-facing error message.
     return throwError(() => new Error('Something bad happened; please try again later.'));
   }
-
 
 }

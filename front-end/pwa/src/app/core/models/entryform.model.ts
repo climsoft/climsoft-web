@@ -1,7 +1,7 @@
 export  interface EntryForm{
 
     //defines the entry selectors used by the form to get data
-    //allowed values; station, element, year, month, day, hour e.
+    //allowed values, array of ; element, year, month, day, hour e.
     entrySelectors: string[];
 
     //defines the entry fields used by the form to display data

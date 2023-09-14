@@ -1,7 +1,7 @@
-export interface EntryDataSource {
+export interface Source {
     id: number;
     name: string;
     description: string;
-    acquisitionTypeId: number;
     extraMetadata: string; //json
+    sourceTypeId: 1 | 2 | 3; //types allowed
 }

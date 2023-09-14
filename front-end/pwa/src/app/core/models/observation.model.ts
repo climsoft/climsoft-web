@@ -1,14 +1,15 @@
-export interface EntryData {
+export interface Observation {
     stationId: string;
     elementId: number;
-    dataSourceId: number;
+    sourceId: number;
     level: string;
-    datetime: string;
-    value: number | null; 
-    flag: string | null;    
-    //status of quality check.
-    //0 is no QC. If QC > 0 if QC has been done.
-    qcStatus: number| null;
+    datetime: Date; 
+    period: number; 
+    value: number | null;  
+    flag: string | null;
+    qcStatus: number;
+    entryUser?: number
+    entryDateTime?: Date;
 
     //json array string.
     //sample structure.
@@ -28,7 +29,7 @@ export interface EntryData {
     //     } 
     // ]  
 
-    changesLog: string; //json string
+    //changesLog: string; //json string
 
 
 
