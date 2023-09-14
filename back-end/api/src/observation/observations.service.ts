@@ -71,10 +71,7 @@ export class ObservationsService {
                 sourceId: observationDto.sourceId,
                 level: observationDto.level,
                 datetime: observationDto.datetime,
-            });
-
-            console.log('queried: ', observationDto);
-           
+            });           
 
             //if not create new one
             if (!observationEntity) {
@@ -85,12 +82,10 @@ export class ObservationsService {
                     level: observationDto.level,
                     datetime: observationDto.datetime,
                 });
-
-                console.log('new observation', observationEntity);
-            }else{
-                console.log('found: ', observationEntity); 
             }
 
+            //update fields
+            //todo. also make a log of what changed
             observationEntity.period = observationDto.period;
             observationEntity.value = observationDto.value;
             observationEntity.flag = observationDto.flag;
@@ -101,14 +96,14 @@ export class ObservationsService {
             obsEntitiesArray.push(observationEntity)
         }
 
-        //save observations
+        //save all observations
         return this.observationRepo.save(obsEntitiesArray);
     }
 
-    async update(id: string, stationDto: CreateObservationDto) {
+    async update(id: string, obsDto: CreateObservationDto) {
         const station = await this.observationRepo.preload({
           
-            ...stationDto,
+            ...obsDto,
         });
         if (!station) {
             throw new NotFoundException(`Coffee #${id} not found`);
@@ -117,8 +112,8 @@ export class ObservationsService {
     }
 
     async remove(id: string) {
-        //const station = await this.findOne(id);
-        //return this.stationRepo.remove(station);
+        //const obs = await this.findOne(id);
+        //return this.observationRepo.remove(obs);
         return "";
     }
 }

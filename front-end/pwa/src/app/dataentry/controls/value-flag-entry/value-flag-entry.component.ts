@@ -133,7 +133,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private getNewEntryData(controlDef: ControlDefinition): Observation {
     //create new entr data
-    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: new Date(), value: null, flag: '', qcStatus: 0, period: 0 };
+    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: new Date(), value: null, flag: null, qcStatus: 0, period: 0 };
 
     //set data source
     entryData.sourceId = this.dataSelectors.sourceId;
