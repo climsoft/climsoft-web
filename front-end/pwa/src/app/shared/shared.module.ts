@@ -25,6 +25,7 @@ import { DayInputComponent } from './controls/day-input/day-input.component';
 import { ElementInputComponent } from './controls/element-input/element-input.component';
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
 import { HttpClientModule } from '@angular/common/http';
+import { NumberInputComponent } from './controls/number-input/number-input.component';
 
 //--------------------------------
 
@@ -44,6 +45,7 @@ const thirdPartyModules = [
 
 const controlsComponents = [
   TextInputComponent,
+  NumberInputComponent,
   SelectorInputComponent,
   DateInputComponent,
 
@@ -63,7 +65,7 @@ const controlsComponents = [
 
 @NgModule({
   declarations: [
-    ...controlsComponents
+    ...controlsComponents,
   ],
   imports: [
     ...angularModules,

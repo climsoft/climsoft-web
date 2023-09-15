@@ -9,27 +9,28 @@ export class ObservationsController {
 
   @Get()
   find(@Query() selectObsevationQuery: SelectObservationDTO) {
-    return this.observationsService.findAll(selectObsevationQuery);
+    return this.observationsService.find(selectObsevationQuery);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    //return this.observationsService.findOne(id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   //return this.observationsService.findOne(id);
+  // }
 
   @Post()
-  create(@Body() observationDto: CreateObservationDto[]) {
-    return this.observationsService.save(observationDto);
+  create(@Body() observationDtos: CreateObservationDto[]) {
+    console.log('dtos', observationDtos);
+    return this.observationsService.save(observationDtos);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() observationDto: CreateObservationDto) {
-    return this.observationsService.update(id, observationDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() observationDto: CreateObservationDto) {
+  //   return this.observationsService.update(id, observationDto);
+  // }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.observationsService.remove(id);
-  }
+  // @Delete(':id')
+  // remove(@Param('id') id: string) {
+  //   return this.observationsService.remove(id);
+  // }
 
 }

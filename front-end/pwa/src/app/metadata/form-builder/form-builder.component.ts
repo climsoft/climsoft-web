@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { EntryForm } from '../../core/models/entryform.model';
-import { DateUtils } from '../../shared/utils/date-utils';
+import { DateUtils } from '../../shared/utils/date.utils';
 import { Source } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';

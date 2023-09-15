@@ -11,7 +11,7 @@ export class ObservationsService {
     constructor(@InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
     ) { }
 
-    findAll(selectObsevationDto: SelectObservationDTO) {
+    find(selectObsevationDto: SelectObservationDTO) {
         const selectOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationId) {
@@ -35,18 +35,10 @@ export class ObservationsService {
 
         if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day && selectObsevationDto.hour !== undefined) {
             selectOptions.datetime = new Date(selectObsevationDto.year, selectObsevationDto.month - 1, selectObsevationDto.day, selectObsevationDto.hour, 0, 0, 0);
-
             return;
         }
-
         //todo construct other date filters
-
-
     }
-
-
-
-
     async findOne( keys: {stationId: string, elementId: number, sourceId: number, level: string, datetime: Date}) {
         const observation = await this.observationRepo.findOneBy({
            ...keys,
@@ -70,7 +62,7 @@ export class ObservationsService {
                 elementId: observationDto.elementId,
                 sourceId: observationDto.sourceId,
                 level: observationDto.level,
-                datetime: observationDto.datetime,
+                datetime: new Date(observationDto.datetime),
             });           
 
             //if not create new one
@@ -80,7 +72,7 @@ export class ObservationsService {
                     elementId: observationDto.elementId,
                     sourceId: observationDto.sourceId,
                     level: observationDto.level,
-                    datetime: observationDto.datetime,
+                    datetime: new Date(observationDto.datetime),
                 });
             }
 
@@ -91,6 +83,8 @@ export class ObservationsService {
             observationEntity.flag = observationDto.flag;
             observationEntity.qcStatus = observationDto.qcStatus;              
             observationEntity.entryUser = 1; 
+
+            console.log('Adding', observationEntity);
 
             //add it to array for saving
             obsEntitiesArray.push(observationEntity)

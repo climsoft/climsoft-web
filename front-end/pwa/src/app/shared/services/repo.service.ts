@@ -157,18 +157,6 @@ export class RepoService {
 
   }
 
-  public getElements(elementIds?: number[]): Element[] {
-    const allElements: Element[] = [
-      { id: 1, name: 'Minimum Temperature' },
-      { id: 2, name: 'Maximum Temperature' },
-      { id: 3, name: 'Rainfall' },
-      { id: 4, name: 'Humidity' }
-    ];
-
-    const elements = elementIds ? allElements.filter(obj => elementIds.includes(obj.id)) : allElements;
-    return elements;
-  }
-
   public getStations(stationIds?: string[]): Station[] {
     const allStations: Station[] = [
       { id: '1', name: 'JKIA Airport' },

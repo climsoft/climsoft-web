@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ArrayUtils } from '../../utils/array-utils';
+import { ArrayUtils } from '../../utils/array.utils';
 
 
 //Supports single and multiple selection when in UNEDITABLE mode.
@@ -42,14 +42,21 @@ export class SelectorInputComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+
+    if(!this.dataSource || !this.valueMember){
+      return
+    }
+
     if ('value' in changes && this.value !== undefined && this.valueMember !== undefined) {
+      console.log('selector value', this.value);
+      
       //set the selected object
       const newSelectedObject = ArrayUtils.findDataItems(this.dataSource,  Array.isArray(this.value) ? this.value : [this.value ], this.valueMember);
       if ( !this.multiple && newSelectedObject.length >0  ) {
         this.selectedObject = newSelectedObject[0];       
       } else if (this.multiple && !this.editable) {
         //multiple selection is only supported in uneditable mode
-        this.selectedObject = newSelectedObject;
+        this.selectedObject = newSelectedObject; 
       }
     }
   }
@@ -69,7 +76,6 @@ export class SelectorInputComponent implements OnInit, OnChanges {
     }
 
     this.valueChange.emit(this.value);
-    //console.log("selector value", this.value);
   }
 
 

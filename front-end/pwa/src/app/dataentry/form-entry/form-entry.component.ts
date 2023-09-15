@@ -29,7 +29,7 @@ export class FormEntryComponent implements OnInit {
   useDatePickerControl: boolean = false;
   defaultDatePickerDate!: string;
   entryControl!: string;
-  observations: Observation[] = [];
+  observations!: Observation[];
 
   stationName!: string;
   formName!: string;
@@ -56,46 +56,11 @@ export class FormEntryComponent implements OnInit {
       this.formName = data.name;
       //first set up the controls. this will set the form selectors 
       this.setFormSelectorsAndControl(JSON.parse(data.extraMetadata));
-      this.getEntryData();
+      //the load the existing observation data
+      this.getObservationData();
 
     });
 
-  }
-
-  private getEntryData(): void {
-    //get the data based on the station, data source and selectors
-    //this.entryDataItems = this.repo.getEntryDataItems(this.dataSelectorsValues);
-
-    const select: SelectObservation = {};
-
-    select.stationId = this.dataSelectors.stationId;
-    select.sourceId = this.dataSelectors.sourceId;
-
-    if (this.dataSelectors.elementId > 0) {
-      select.elementId = this.dataSelectors.elementId;
-    }
-
-    if (this.dataSelectors.year > 0) {
-      select.year = this.dataSelectors.year;
-    }
-
-    if (this.dataSelectors.month > 0) {
-      select.month = this.dataSelectors.month;
-    }
-
-    if (this.dataSelectors.day > 0) {
-      select.day = this.dataSelectors.day;
-    }
-
-    if (this.dataSelectors.hour > -1) {
-      select.hour = this.dataSelectors.hour;
-    }
-
-    console.log("selections", select);
-    this.observationService.getObservations(select).subscribe((data) => {
-      console.log("Response", data);
-      this.observations = data;
-    });
   }
 
   private setFormSelectorsAndControl(entryForm: EntryForm) {
@@ -136,24 +101,59 @@ export class FormEntryComponent implements OnInit {
     this.entryControl = entryForm.entryControl;
   }
 
-  public onElementChange(elementId: number): void {
-    this.dataSelectors.elementId = elementId;
-    this.getEntryData();
+  private getObservationData(): void {
+    //get the data based on the station, data source and selectors
+    const select: SelectObservation = {};
+
+    select.stationId = this.dataSelectors.stationId;
+    select.sourceId = this.dataSelectors.sourceId;
+
+    if (this.dataSelectors.elementId > 0) {
+      select.elementId = this.dataSelectors.elementId;
+    }
+
+    if (this.dataSelectors.year > 0) {
+      select.year = this.dataSelectors.year;
+    }
+
+    if (this.dataSelectors.month > 0) {
+      select.month = this.dataSelectors.month;
+    }
+
+    if (this.dataSelectors.day > 0) {
+      select.day = this.dataSelectors.day;
+    }
+
+    if (this.dataSelectors.hour > -1) {
+      select.hour = this.dataSelectors.hour;
+    }
+
+    console.log("selections", select);
+    this.observationService.getObservations(select).subscribe((data) => {
+      console.log("Response", data);
+      this.observations = data;
+    });
   }
 
-  public onYearChange(year: any): void {
-    this.dataSelectors.year = year.id;
-    this.getEntryData();
+
+  public onElementChange(elementIdSelected: any): void {
+    this.dataSelectors.elementId = elementIdSelected;
+    this.getObservationData();
   }
 
-  public onMonthChange(month: any): void {
-    this.dataSelectors.month = month.id;
-    this.getEntryData();
+  public onYearChange(yearInput: any): void {
+    this.dataSelectors.year = yearInput.id;
+    this.getObservationData();
   }
 
-  public onDayChange(day: any): void {
-    this.dataSelectors.day = day.id;
-    this.getEntryData();
+  public onMonthChange(monthSelected: any): void {
+    this.dataSelectors.month = monthSelected.id;
+    this.getObservationData();
+  }
+
+  public onDayChange(daySelected: any): void {
+    this.dataSelectors.day = daySelected.id;
+    this.getObservationData();
   }
 
   public onDateChange(dateInput: string): void {
@@ -161,12 +161,12 @@ export class FormEntryComponent implements OnInit {
     this.dataSelectors.year = date.getFullYear();
     this.dataSelectors.month = date.getMonth() + 1;
     this.dataSelectors.day = date.getDate();
-    this.getEntryData();
+    this.getObservationData();
   }
 
   public onHourChange(hourInput: number): void {
     this.dataSelectors.hour = hourInput;
-    this.getEntryData();
+    this.getObservationData();
   }
 
   public onClear(): void {
@@ -176,14 +176,9 @@ export class FormEntryComponent implements OnInit {
   public onSave(): void {
     console.log("saved values", this.observations)
     this.observationService.saveObservations(this.observations).subscribe((data) => {
-      this.getEntryData();
-    })
+      this.getObservationData();
+    });
   }
-
-  public onDelete(): void {
-
-  }
-
 
 
 
