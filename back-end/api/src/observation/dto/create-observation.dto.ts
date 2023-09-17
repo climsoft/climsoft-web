@@ -14,7 +14,7 @@ export class CreateObservationDto {
     @IsString()
     level: string;
   
-    //@IsDate()
+  
     datetime: string;
    
     @IsNumber()

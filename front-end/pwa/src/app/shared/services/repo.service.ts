@@ -111,7 +111,7 @@ export class RepoService {
       }
 
       //const date: Date = new Date(entryData.datetime);
-      const date: Date = entryData.datetime;
+      const date: Date = new Date() //= entryData.datetime;
       if (dataSelectorValues.year && date.getFullYear() !== dataSelectorValues.year) {
         continue;
       }

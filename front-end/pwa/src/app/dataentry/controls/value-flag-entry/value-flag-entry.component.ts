@@ -195,7 +195,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private getNewEntryData(controlDef: ControlDefinition): Observation {
     //create new entr data
-    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: new Date(), value: null, flag: null, qcStatus: 0, period: 0 };
+    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0 };
 
     //set data source
     entryData.sourceId = this.dataSelectors.sourceId;
@@ -231,8 +231,8 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       //Not supported yet
     }
 
-    //set date from date time variables. year-month-day hour. JS months are 0 based
-    entryData.datetime = new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0, 0);
+    //set date from date time variables. year-month-day hour. JS months are 0 based 
+    entryData.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1],datetimeVars[2],datetimeVars[3],0,0) ;
 
     //console.log('entry data', entryData);
     return entryData;

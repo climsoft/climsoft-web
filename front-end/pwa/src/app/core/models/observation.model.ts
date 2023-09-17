@@ -3,7 +3,7 @@ export interface Observation {
     elementId: number;
     sourceId: number;
     level: string;
-    datetime: Date; 
+    datetime: string; 
     period: number; 
     value: number | null;  
     flag: string | null;

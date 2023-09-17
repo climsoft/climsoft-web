@@ -19,7 +19,7 @@ export class ObservationsController {
 
   @Post()
   create(@Body() observationDtos: CreateObservationDto[]) {
-    console.log('dtos', observationDtos);
+    //console.log('dtos', observationDtos);
     return this.observationsService.save(observationDtos);
   }
 

@@ -4,6 +4,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { ObservationEntity } from './observation.entity';
 import { CreateObservationDto } from './dto/create-observation.dto';
 import { SelectObservationDTO } from './dto/select-observation.dto';
+import { DateUtils } from 'src/shared/date.utils';
 
 @Injectable()
 export class ObservationsService {
@@ -11,7 +12,7 @@ export class ObservationsService {
     constructor(@InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
     ) { }
 
-    find(selectObsevationDto: SelectObservationDTO) {
+   async find(selectObsevationDto: SelectObservationDTO) {
         const selectOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationId) {
@@ -34,22 +35,23 @@ export class ObservationsService {
     private setDateFilter(selectObsevationDto: SelectObservationDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
 
         if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day && selectObsevationDto.hour !== undefined) {
-            selectOptions.datetime = new Date(selectObsevationDto.year, selectObsevationDto.month - 1, selectObsevationDto.day, selectObsevationDto.hour, 0, 0, 0);
+            selectOptions.datetime = DateUtils.getDateInSQLFormat(selectObsevationDto.year,selectObsevationDto.month,selectObsevationDto.day,selectObsevationDto.hour,0,0) ;
             return;
         }
         //todo construct other date filters
     }
-    async findOne( keys: {stationId: string, elementId: number, sourceId: number, level: string, datetime: Date}) {
-        const observation = await this.observationRepo.findOneBy({
-           ...keys,
-        });
 
-        if (!observation) {
-            throw new NotFoundException(`observation #${keys} not found`);
-        }
+    // async findOne( keys: {stationId: string, elementId: number, sourceId: number, level: string, datetime: string}) {
+    //     const observation = await this.observationRepo.findOneBy({
+    //        ...keys,
+    //     });
 
-        return observation;
-    }
+    //     if (!observation) {
+    //         throw new NotFoundException(`observation #${keys} not found`);
+    //     }
+
+    //     return observation;
+    // }
 
     async save(createObservationDtoArray: CreateObservationDto[]) {
        
@@ -61,8 +63,8 @@ export class ObservationsService {
                 stationId: observationDto.stationId,
                 elementId: observationDto.elementId,
                 sourceId: observationDto.sourceId,
-                level: observationDto.level,
-                datetime: new Date(observationDto.datetime),
+                level: observationDto.level, 
+                datetime: observationDto.datetime,
             });           
 
             //if not create new one
@@ -72,7 +74,7 @@ export class ObservationsService {
                     elementId: observationDto.elementId,
                     sourceId: observationDto.sourceId,
                     level: observationDto.level,
-                    datetime: new Date(observationDto.datetime),
+                    datetime: observationDto.datetime,
                 });
             }
 
@@ -84,7 +86,7 @@ export class ObservationsService {
             observationEntity.qcStatus = observationDto.qcStatus;              
             observationEntity.entryUser = 1; 
 
-            console.log('Adding', observationEntity);
+            //console.log('Adding', observationEntity);
 
             //add it to array for saving
             obsEntitiesArray.push(observationEntity)

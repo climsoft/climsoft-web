@@ -1,3 +1,4 @@
+import { DateTimeColumn } from "src/shared/date-time-column.transformer";
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("web_observations")
@@ -15,8 +16,8 @@ export class ObservationEntity {
   @PrimaryColumn()
   level: string;
 
-  @PrimaryColumn()
-  datetime: Date;
+  @PrimaryColumn({ type: 'datetime', transformer: new DateTimeColumn() })
+  datetime: string;
 
   @Column()
   period: number;
@@ -33,7 +34,7 @@ export class ObservationEntity {
   @Column()
   entryUser: number
 
-  @CreateDateColumn({type: 'datetime'})
+  @CreateDateColumn({ type: 'datetime' })
   entryDateTime?: Date;
 
 }
