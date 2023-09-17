@@ -34,7 +34,10 @@ export class ObservationEntity {
   @Column()
   entryUser: number
 
-  @CreateDateColumn({ type: 'datetime' })
-  entryDateTime?: Date;
+  //todo. for consistency in date time storage. This should be set within the system instead of relying on typeorm
+  // for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
+  //we also need the transformer to yeild consistent results
+  @CreateDateColumn({ type: 'datetime', transformer: new DateTimeColumn() })
+  entryDateTime: string;
 
 }

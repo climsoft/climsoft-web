@@ -4,28 +4,28 @@ export class CreateObservationDto {
 
     @IsString()
     stationId: string;
-  
+
     @IsNumber()
     elementId: number;
-  
+
     @IsNumber()
     sourceId: number;
-  
+
     @IsString()
     level: string;
-  
-  
+
+    @IsDate()
     datetime: string;
-   
+
     @IsNumber()
     period: number;
 
     @IsNumber()
     value: number;
-  
+
     @IsString()
     flag: string;
-  
+
     @IsNumber()
     qcStatus: number;
 
