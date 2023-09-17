@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { EntryForm } from '../../core/models/entryform.model';
 import { Observation } from '../../core/models/observation.model';
@@ -34,7 +35,7 @@ export class FormEntryComponent implements OnInit {
   stationName!: string;
   formName!: string;
 
-  constructor(private sourcesService: SourcesService, private stationsService: StationsService, private observationService: ObservationsService, private route: ActivatedRoute) {
+  constructor(private sourcesService: SourcesService, private stationsService: StationsService, private observationService: ObservationsService, private route: ActivatedRoute,private location: Location) {
   }
 
   ngOnInit(): void {
@@ -156,7 +157,7 @@ export class FormEntryComponent implements OnInit {
     this.getObservationData();
   }
 
-  public onDateChange(dateInput: string): void {
+   onDateChange(dateInput: string): void {
     const date = new Date(dateInput);
     this.dataSelectors.year = date.getFullYear();
     this.dataSelectors.month = date.getMonth() + 1;
@@ -164,16 +165,16 @@ export class FormEntryComponent implements OnInit {
     this.getObservationData();
   }
 
-  public onHourChange(hourInput: number): void {
+   onHourChange(hourInput: number): void {
     this.dataSelectors.hour = hourInput;
     this.getObservationData();
   }
 
-  public onClear(): void {
-    this.observations = [];
+  onCancel(): void {
+    this.location.back();
   }
 
-  public onSave(): void {
+   onSave(): void {
     console.log("saved values", this.observations)
     this.observationService.saveObservations(this.observations).subscribe((data) => {
       this.getObservationData();

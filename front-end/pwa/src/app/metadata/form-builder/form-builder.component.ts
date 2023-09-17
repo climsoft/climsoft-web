@@ -171,6 +171,14 @@ export class FormBuilderComponent implements OnInit {
     this.location.back();
   }
 
+  onDelete(): void {
+      //todo. prompt for confirmation first
+      this.sourceService.deleteSource(this.source.id).subscribe((data) => {
+        this.location.back();
+      });
+   
+  }
+
   entrySelectorsValid(): boolean {
     //must be a minimum of 4 and maximum of 5
     return this.selectedEntrySelectorIds.length >= 3 && this.selectedEntrySelectorIds.length <= 4;

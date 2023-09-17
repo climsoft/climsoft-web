@@ -26,6 +26,7 @@ import { ElementInputComponent } from './controls/element-input/element-input.co
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
 import { HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
+import { TableViewComponent } from './controls/table-view/table-view.component';
 
 //--------------------------------
 
@@ -59,6 +60,7 @@ const controlsComponents = [
   
 
   DataListViewComponent,
+  TableViewComponent,
 
 
 ];

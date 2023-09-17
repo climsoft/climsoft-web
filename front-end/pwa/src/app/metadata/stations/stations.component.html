@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="row d-flex justify-content-between align-items-center mb-3">
     <div class="col">
-      <h4 class="fw-normal component-h1">Stations</h4>
+      <h4 class="fw-normal component-h1">Stations Metadata</h4>
     </div>
     <div class="col text-end">
       <button type="button" class="btn btn-primary btn-sm" (click)="newStationClick()">
@@ -9,7 +9,7 @@
       </button>
     </div>
   </div>
-
+<!-- 
   <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
     {
       actionName: 'Edit',
@@ -21,6 +21,13 @@
       actionCssClassName: 'btn-outline-info',
       actionIconCssClassName: 'bi-info'
     }
-  ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view>
+  ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view> -->
+
+  <div class="card" >
+    <div class="card-body">
+      <div class="card-title">Stations</div>
+      <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"   [rowData]="stations" (rowDataClicked)="onStationClick($event)"></app-table-view>
+    </div>
+  </div>
 
 </div>

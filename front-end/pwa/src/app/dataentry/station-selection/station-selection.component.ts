@@ -3,6 +3,7 @@ import { RepoService } from '../../shared/services/repo.service';
 import { Station } from '../../core/models/station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
+import { StationsService } from 'src/app/core/services/stations.service';
 
 @Component({
   selector: 'app-station-selection',
@@ -12,21 +13,19 @@ import { DataClicked } from '../../shared/controls/data-list-view/data-list-view
 export class StationSelectionComponent {
   stations!: Station[];
 
-  constructor(private repo: RepoService, private router: Router, private route: ActivatedRoute) {
+  constructor(private stationsService: StationsService, private router: Router, private route: ActivatedRoute) {
 
-    this.stations = [
-      { id: '1', name: 'JKIA Airport' },
-      { id: '2', name: 'KMD Headquarters' },
-      { id: '3', name: 'ICPAC Main' },
-      { id: '4', name: 'KALRO Machakos' }];
+    this.stationsService.getStations().subscribe(data => {
+      this.stations = data;
+    });
 
   }
 
   ngOnInit(): void {
   }
 
-  public onStationClick(dataClicked: DataClicked) {
-    this.router.navigate(['form-selection', dataClicked.dataSourceItem['id']], {relativeTo: this.route.parent});
+  public onStationClick(dataClicked: { [key: string]: any }) {
+    this.router.navigate(['form-selection', dataClicked['id']], {relativeTo: this.route.parent});
   }
 
 

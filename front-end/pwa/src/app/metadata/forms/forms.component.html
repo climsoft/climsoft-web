@@ -2,7 +2,7 @@
 
   <div class="row d-flex justify-content-between align-items-center mb-3">
     <div class="col">
-      <h4 class="fw-normal component-h1">Entry Forms</h4>
+      <h4 class="fw-normal component-h1">Entry Forms Metadata</h4>
     </div>
     <div class="col text-end">
       <button type="button" class="btn btn-primary btn-sm" (click)="onNewForm()">
@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  <app-data-list-view [numbered]="true" [dataSource]="sources" [headerMembers]="['name']"
+  <!-- <app-data-list-view [numbered]="true" [dataSource]="sources" [headerMembers]="['name']"
     [bodyMembers]="['description']" [actions]="[
     {
       actionName: 'Edit',
@@ -23,6 +23,13 @@
       actionCssClassName: 'btn-outline-danger',
       actionIconCssClassName: 'bi-trash'
     }
-  ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view>
+  ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view> -->
+
+  <div class="card" >
+    <div class="card-body">
+      <div class="card-title">Data entry forms</div>
+      <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"   [rowData]="sources" (rowDataClicked)="onFormClicked($event)"></app-table-view>
+    </div>
+  </div>
 
 </div>
