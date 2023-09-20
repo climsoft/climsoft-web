@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { DateUtils } from '../../utils/date-utils';
+import { DateUtils } from '../../utils/date.utils';
 
 @Component({
   selector: 'app-hour-input',

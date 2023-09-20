@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { EntryForm } from '../../core/models/entryform.model';
-import { RepoService } from '../../shared/services/repo.service';
 import { Source } from '../../core/models/source.model';
-import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 import { SourcesService } from 'src/app/core/services/sources.service';
+import { StationsService } from 'src/app/core/services/stations.service';
 
 @Component({
   selector: 'app-form-selection',
@@ -13,14 +11,19 @@ import { SourcesService } from 'src/app/core/services/sources.service';
 })
 export class FormSelectionComponent implements OnInit {
   stationId: number = 0;
+  stationName: string ='';
   sources: Source[] = [];
 
-  constructor(private sourcesService: SourcesService, private route: ActivatedRoute, private router: Router) {
+  constructor( private stationsService: StationsService,private sourcesService: SourcesService, private route: ActivatedRoute, private router: Router) {
   }
 
   ngOnInit(): void {
 
     this.stationId = this.route.snapshot.params['stationid'];
+
+    this.stationsService.getStation( this.stationId).subscribe((data) => {
+      this.stationName = `${data.id} - ${data.name}`;
+    });
 
     //todo. later get forms assigned to this station only
     //get data sources of type forms
@@ -30,8 +33,9 @@ export class FormSelectionComponent implements OnInit {
 
   }
 
-  onFormClicked(dataClicked: DataClicked): void {
-    this.router.navigate(['form-entry', this.stationId, dataClicked.dataSourceItem['id']], { relativeTo: this.route.parent });
+  onFormClicked(dataClicked:  { [key: string]: any }): void {
+    console.log('row clicked',dataClicked)
+    this.router.navigate(['form-entry', this.stationId, dataClicked['id']], { relativeTo: this.route.parent });
 
   }
 

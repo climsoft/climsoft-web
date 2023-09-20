@@ -1,5 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { RepoService } from '../../services/repo.service';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
 import { Station } from '../../../core/models/station.model';
 
 @Component({
@@ -12,10 +11,10 @@ export class StationInputComponent implements OnInit, OnChanges {
   @Input() multiple: boolean = false;
   @Input() value!: any;
   @Output() valueChange = new EventEmitter<any>();
-  stations: Station[];
+  stations!: Station[];
 
-  constructor(private repo: RepoService) {
-    this.stations = this.repo.getStations();
+  constructor() {
+    //this.stations = this.repo.getStations();
   }
 
   ngOnInit(): void {

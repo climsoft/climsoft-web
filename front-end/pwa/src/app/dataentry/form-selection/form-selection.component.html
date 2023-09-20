@@ -6,13 +6,19 @@
       </div>
     </div>
   
-    <app-data-list-view [numbered]="true" [dataSource]="sources" [headerMembers]="['name']"
+    <!-- <app-data-list-view [numbered]="true" [dataSource]="sources" [headerMembers]="['name']"
       [bodyMembers]="['description']" [actions]="[
       {
         actionName: 'Select',
         actionCssClassName: 'btn-outline-primary',
         actionIconCssClassName: 'bi-pen'
       },
-    ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view>
+    ]" (dataActionClicked)="onFormClicked($event)"></app-data-list-view> -->
+    <div class="card" >
+      <div class="card-body">
+        <div class="card-title">Data entry forms for: {{ stationName }}</div>
+        <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"   [rowData]="sources" (rowDataClicked)="onFormClicked($event)"></app-table-view>
+      </div>
+    </div>
   
   </div>

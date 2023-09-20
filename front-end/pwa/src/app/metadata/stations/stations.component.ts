@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { RepoService } from '../../shared/services/repo.service';
+import { Component, OnInit } from '@angular/core'; 
 import { Station } from '../../core/models/station.model';
-import { Router } from '@angular/router';
-import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
+import { Router } from '@angular/router'; 
+import { StationsService } from 'src/app/core/services/stations.service';
 
 @Component({
   selector: 'app-stations',
@@ -13,31 +12,24 @@ export class StationsComponent implements OnInit {
 
   stations!: Station[];
 
-  constructor(private repo: RepoService, private router: Router) {
+  constructor(private stationsService: StationsService,  private router: Router) {
 
-    this.stations = [
-      { id: '1', name: 'JKIA Airport' },
-      { id: '2', name: 'KMD Headquarters' },
-      { id: '3', name: 'ICPAC Main' },
-      { id: '4', name: 'KALRO Machakos' }];
+    this.stationsService.getStations().subscribe(data => {
+      this.stations = data;
+    });
+
 
   }
 
   ngOnInit(): void {
   }
 
-  public onStationClick(dataClicked: DataClicked) {
-    if (dataClicked.actionName === 'Entry') {
-      this.router.navigate(
-        ['dataentry', 'forms'],
-        { state: { viewTitle: 'Form Entry', subView: true, stationData: dataClicked.dataSourceItem } });
-
-    } else if (dataClicked.actionName === 'View') {
-
-    }
-
+  public onStationClick(dataClicked: { [key: string]: any }) {
+    // this.router.navigate(
+    //   ['dataentry', 'forms'],
+    //   { state: { viewTitle: 'Form Entry', subView: true, stationData: dataClicked } });
   }
 
-  public newStationClick(): void{}
+  public newStationClick(): void { }
 
 }

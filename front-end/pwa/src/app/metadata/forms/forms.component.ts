@@ -27,18 +27,8 @@ export class FormsComponent implements OnInit {
     });
   }
 
-  onFormClicked(dataClicked: DataClicked): void {
-    if (dataClicked.actionName === 'Edit') {
-      this.router.navigate(['form-builder', dataClicked.dataSourceItem['id']], { relativeTo: this.route.parent });
-    } else if (dataClicked.actionName === 'Delete') {
-      //todo. prompt for confirmation first
-      this.sourceService.deleteSource(dataClicked.dataSourceItem['id']).subscribe((data) => {
-        //reload sources
-        this.loadSources();
-      });
-
-    }
-
+  onFormClicked(dataClicked: { [key: string]: any }): void {
+    this.router.navigate(['form-builder', dataClicked['id']], { relativeTo: this.route.parent });
   }
 
   onNewForm() {

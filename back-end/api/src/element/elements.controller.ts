@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ElementsService } from './elements.service';
 
 @Controller('elements')
@@ -6,9 +6,10 @@ export class ElementsController {
     constructor(private readonly elementsService: ElementsService) { }
 
     @Get()
-    findAll() {
-      // const { limit, offset } = paginationQuery;
-      return this.elementsService.findAll();
+    find(@Query('ids') ids: number[]) {
+      return this.elementsService.find(ids);
     }
+
+   
 
 }

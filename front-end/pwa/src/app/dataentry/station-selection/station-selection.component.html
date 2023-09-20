@@ -5,12 +5,20 @@
         </div>
     </div>
 
-    <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
+    <!-- <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
       {
         actionName: 'Select',
         actionCssClassName: 'btn-outline-primary',
         actionIconCssClassName: ''
       }
-    ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view>
+    ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view> -->
+
+    <div class="card" >
+      <div class="card-body">
+        <div class="card-title">Stations</div>
+        <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"   [rowData]="stations" (rowDataClicked)="onStationClick($event)"></app-table-view>
+      </div>
+    </div>
+
 
 </div>

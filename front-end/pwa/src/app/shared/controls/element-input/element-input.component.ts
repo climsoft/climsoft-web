@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { Element } from '../../../core/models/element.model';
-import { RepoService } from '../../services/repo.service';
+import { ElementsService } from 'src/app/core/services/elements.service';
 
 @Component({
   selector: 'app-element-input',
@@ -11,13 +11,15 @@ export class ElementInputComponent implements OnInit, OnChanges {
 
   @Input() controlLabel: string = 'Element';
   @Input() multiple: boolean = false;
+  @Input() ids!: number[];
   @Input() value!: any;
   @Output() valueChange = new EventEmitter<any>();
-  elements: Element[];
+  elements!: Element[];
 
+  selectedValue!: any;
+  bIgnoreNgChanges: boolean= false;
 
-  constructor(private repo: RepoService) {
-    this.elements = this.repo.getElements();
+  constructor(private elementsSevice: ElementsService) {
   }
 
   ngOnInit(): void {
@@ -25,10 +27,23 @@ export class ElementInputComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
+    if(this.bIgnoreNgChanges){
+      this.bIgnoreNgChanges = false;
+      return;
+    }
+
+    this.elementsSevice.getElements(this.ids).subscribe(data => {
+      this.elements = data;
+      this.selectedValue = this.value;
+    });
+
   }
 
   onChange(change: any) {
-    this.valueChange.emit(change);
+    this.bIgnoreNgChanges = true;//todo. added because thng changes was being raised when same value is raised uoutside this component
+    this.value = change;
+    this.selectedValue = change;
+    this.valueChange.emit(change);   
   }
 
 }

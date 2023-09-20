@@ -20,7 +20,7 @@ import { ObservationModule } from './observation/observation.module';
       database: 'mariadb_climsoft_db_v4', // name of our database,
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: true, // your entities will be synced with the database(recommended: disable in prod)
-      timezone: 'Z', //todo. do more research about it. It affects how dates are saved in the database
+     // timezone: 'Z', //todo. do more research about it. It affects how dates are saved in the database
     }),  
 
   ],

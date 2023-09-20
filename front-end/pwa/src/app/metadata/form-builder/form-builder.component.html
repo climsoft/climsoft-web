@@ -2,121 +2,90 @@
 
   <div class="row d-flex justify-content-between align-items-center mb-2">
     <div class="col">
-        <h4 class="fw-normal component-h1">Form Metadata</h4>
+      <h4 class="fw-normal component-h1">Form Metadata</h4>
     </div>
-</div>
+  </div>
 
-  <div class="card border-0">   
+  <div class="card border-0">
     <div class="card-body">
       <!--form name -->
       <div class="mb-3">
-        <app-text-input
-          [controlLabel]="'Form Name'"
-          [(value)]="formName"
-        >
+        <app-text-input [controlLabel]="'Form Name'" [(value)]="formName">
         </app-text-input>
       </div>
       <!--------->
 
       <!--form description -->
       <div class="mb-3">
-        <app-text-input
-          [controlLabel]="'Form Description'"
-          [(value)]="formDescription"
-        >
+        <app-text-input [controlLabel]="'Form Description'" [(value)]="formDescription">
         </app-text-input>
       </div>
       <!--------->
 
       <!--entry selectors-->
       <div class="mb-3">
-        <app-selector-input
-          [controlLabel]="'Entry Selectors (Minimum 3 and maximum 4)'"
-          [dataSource]="allEntrySelectors"
-          [valueMember]="'id'"
-          [displayMember]="'name'"
-          [multiple]="true"
-          [(value)]="selectedEntrySelectorIds"
-          (valueChange)="setEntryFieldsAndControl()"
-        ></app-selector-input>
+        <app-selector-input [controlLabel]="'Entry Selectors (Minimum 3 and maximum 4)'"
+          [dataSource]="allEntrySelectors" [valueMember]="'id'" [displayMember]="'name'" [multiple]="true"
+          [(value)]="selectedEntrySelectorIds" (valueChange)="setEntryFieldsAndControl()"></app-selector-input>
       </div>
       <!--------->
 
       <!--entry fields-->
       <div class="mb-3">
-        <app-selector-input
-          [controlLabel]="'Entry Fields (Minimum 1 and maximum 2)'"
-          [dataSource]="allEntryFields"
-          [valueMember]="'id'"
-          [displayMember]="'name'"
-          [multiple]="true"
-          [(value)]="selectedEntryFieldIds"
-          (valueChange)="setEntryControl()"
-        ></app-selector-input>
+        <app-selector-input [controlLabel]="'Entry Fields (Minimum 1 and maximum 2)'" [dataSource]="allEntryFields"
+          [valueMember]="'id'" [displayMember]="'name'" [multiple]="true" [(value)]="selectedEntryFieldIds"
+          (valueChange)="setEntryControl()"></app-selector-input>
       </div>
       <!--------->
 
       <!--entry control -->
       <div class="mb-3">
-        <app-text-input
-          [controlLabel]="'Entry Control'"
-          [disabled]="true"
-          [value]="selectedEntryControlId === 'vf' ? 'Value Flag' : 'Grid'"
-        >
+        <app-text-input [controlLabel]="'Entry Control'" [disabled]="true"
+          [value]="selectedEntryControlId === 'vf' ? 'Value Flag' : 'Grid'">
         </app-text-input>
       </div>
       <!--------->
 
       <!--elements-->
       <div class="mb-3">
-        <app-element-input
-          [controlLabel]="'Elements'"
-          [multiple]="true"
-          [(value)]="selectedElementIds"
-        ></app-element-input>
+        <app-element-input [controlLabel]="'Elements'" [multiple]="true"
+          [(value)]="selectedElementIds"></app-element-input>
       </div>
       <!--------->
 
       <!--hours-->
       <div class="mb-3">
-        <app-hour-input
-          [controlLabel]="'Hours'"
-          [multiple]="true"
-          [(value)]="selectedHourIds"
-        ></app-hour-input>
+        <app-hour-input [controlLabel]="'Hours'" [multiple]="true" [(value)]="selectedHourIds"></app-hour-input>
       </div>
       <!--------->
 
-      
+
       <!-- todo. link the error to individual controls -->
       <div class="mb-3" style="color: red;">
         {{ errorMessage }}
       </div>
 
       <div>
-        <div class="row">
+        <div class="row g-2">
           <div class="col-auto">
-            <button
-              type="button"
-              class="btn btn-primary"
-              (click)="onSave()"
-            >
+            <button type="button" class="btn btn-primary" (click)="onSave()">
               Save
             </button>
-           
+
+          </div>
+          <div class="col-auto">
+            <button *ngIf="source && source.id > 0" type="button" class="btn btn-danger" (click)="onDelete()">
+              Delete
+            </button>
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+              Cancel
+            </button>
+          </div>
         </div>
-        <div class="col-auto">
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="onCancel()"
-          >
-            Cancel
-          </button>
       </div>
-      </div>
-    </div>
 
     </div>
-   
-</div>
+
+  </div>

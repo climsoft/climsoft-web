@@ -13,7 +13,7 @@ export class TextInputComponent implements OnInit, OnChanges {
   @Input() hintMessage: string = '';
   @Input() errorMessage: string = '';
   @Input() value: string = '';
-  @Output() valueChange = new EventEmitter<string>();
+  @Output() valueChange = new EventEmitter<string >();
 
 
   constructor() {

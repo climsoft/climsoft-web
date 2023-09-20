@@ -5,10 +5,11 @@ export  interface EntryForm{
     entrySelectors: string[];
 
     //defines the entry fields used by the form to display data
+    //can only contain elementId, day or hour
     entryFields: string[];
 
     //control to be used for entry fields in data entry and data display
-    entryControl: string;
+    entryControl: 'vf' | 'grid';
 
     //elements ids allowed to be recorded by the form
     elements: number[];
