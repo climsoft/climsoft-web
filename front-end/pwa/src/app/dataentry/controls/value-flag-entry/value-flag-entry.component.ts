@@ -33,7 +33,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   @Input() observations!: Observation[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
-  @Output() valueChange = new EventEmitter< 'valid_value' | 'invalid_value'>();
+  @Output() valueChange = new EventEmitter<'valid_value' | 'invalid_value'>();
 
   //entry controls definitions
   entryControlsDefs: ControlDefinition[] = [];
@@ -165,7 +165,10 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       const observation = observationDict[controlDef.id];
       if (observation) {
         controlDef.entryData = observation;
-        controlDef.displayedValueFlag = this.getValueFlagForDisplay(observation.value, this.getFlagName(observation.flag));
+
+        //scale the value for display
+        const value = observation.value === null ? null : this.getScaledValue(observation.elementId, observation.value);
+        controlDef.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(observation.flag));
       }
     }
   }
@@ -176,9 +179,9 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   onInputEntry(controlDef: ControlDefinition, valueFlagInput: string): void {
 
     let validationResults: [boolean, string];
-    let observationData: Observation;
+    let observation: Observation;
     let bNewObservationEntry: boolean = false;
-    const extractedValueFlag: [number | null, string | null] = [null, null];
+   
 
     //clear any existing error message
     controlDef.errorMessage = ''
@@ -196,32 +199,31 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
     //extract and set the value and flag
     const extractedNumberString = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
-    extractedValueFlag[0] = extractedNumberString[0];
-    extractedValueFlag[1] = extractedNumberString[1];
+    const value: number | null = extractedNumberString[0];
+    const flagName: string | null = extractedNumberString[1] ===null ? null : extractedNumberString[1].toUpperCase();  
 
 
     //if there was no existing data then create new entry data and push it to the entry data arrays 
     if (controlDef.entryData) {
-      observationData = controlDef.entryData;
+      observation = controlDef.entryData;
     } else {
-      observationData = this.getNewEntryData(controlDef);
+      observation = this.getNewEntryData(controlDef);
       bNewObservationEntry = true;
     }
 
     //if value input then do QC
-    if (extractedValueFlag[0] !== null) {
-      validationResults = this.validateAndQCValue(observationData.elementId, extractedValueFlag[0]);
+    if (value !== null) {
+      validationResults = this.validateAndQCValue(observation.elementId, value);
       if (!validationResults[0]) {
         controlDef.errorMessage = validationResults[1]; //set returned error message
-        this.valueChange.emit('invalid_value'); 
+        this.valueChange.emit('invalid_value');
         return;
       }
     }
 
     //if flag input then validate
-    if (extractedValueFlag[1] !== null) {
-      extractedValueFlag[1] = extractedValueFlag[1].toUpperCase();
-      validationResults = this.validateAndQCFlag(extractedValueFlag[1]);
+    if (flagName !== null) { 
+      validationResults = this.validateAndQCFlag(value, flagName);
       if (!validationResults[0]) {
         controlDef.errorMessage = validationResults[1]; //set returned error message 
         this.valueChange.emit('invalid_value');
@@ -230,15 +232,16 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     }
 
     //set the value and flag
-    observationData.value = extractedValueFlag[0];
-    observationData.flag = this.getFlagId(extractedValueFlag[1]);
-    controlDef.entryData = observationData;
+    observation.value = value === null ? null : this.getUnScaledValue(observation.elementId, value);
+    observation.flag = this.getFlagId(flagName);
+    controlDef.entryData = observation;
 
-    controlDef.displayedValueFlag = this.getValueFlagForDisplay(observationData.value, extractedValueFlag[1]);
+    //scale the value for display
+    controlDef.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
 
     //if observation is new then add it to observations array
     if (bNewObservationEntry) {
-      this.observations.push(observationData);
+      this.observations.push(observation);
       console.log('new data added', controlDef.entryData);
     }
 
@@ -320,25 +323,34 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     }
 
     //transform the value to actual scale to validate the limits
-    value = value * element.entryScaleFactor;
+    value = this.getUnScaledValue(elementId, value);
 
     //console.log('transformed value: ', value, ' scale', element.entryScaleFactor);
 
     if (value < element.lowerLimit) {
-      return [false, `Value less than lower limit ${element.lowerLimit === 0 ? 0 : element.lowerLimit / element.entryScaleFactor}`]
+      return [false, `Value less than lower limit ${element.lowerLimit * element.entryScaleFactor}`]
     }
 
     if (value > element.upperLimit) {
-      return [false, `Value higher than upper limit ${element.upperLimit === 0 ? 0 : element.upperLimit / element.entryScaleFactor}`];
+      return [false, `Value higher than upper limit ${element.upperLimit * element.entryScaleFactor}`];
     }
 
     return [true, ''];
 
   }
 
-  private validateAndQCFlag(flagName: string): [boolean, string] {
+  private validateAndQCFlag(value: number | null, flagName: string): [boolean, string] {
     const flagFound = this.flags.find(flag => flag.name == flagName);
-    return flagFound ? [true, ''] : [false, 'Invalid Flag']
+
+    if (!flagFound) {
+      return [false, 'Invalid Flag'];
+    }
+
+    if (value !== null && flagFound.name === 'M') {
+      return [false, 'Invalid Flag, M is used for missing value ONLY'];
+    }
+
+    return [true, ''];
   }
 
   private getValueFlagForDisplay(value: number | null, flag: string | null): string {
@@ -350,6 +362,20 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     const flagStr = flag !== null ? flag : '';
 
     return valueStr + flagStr;
+  }
+
+  private getScaledValue(elementId: number, unscaledValue: number): number {
+
+    const element = this.elements.find(data => data.id === elementId);
+
+    return element ? unscaledValue * element.entryScaleFactor : 0;
+  }
+
+
+  private getUnScaledValue(elementId: number, scaledValue: number): number {
+    const element = this.elements.find(data => data.id === elementId);
+    console.log('unscaled value: ' , element && element.entryScaleFactor !== 0 ? scaledValue * element.entryScaleFactor : 0);
+    return element && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : 0;
   }
 
 
