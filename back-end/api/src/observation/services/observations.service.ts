@@ -141,8 +141,13 @@ export class ObservationsService {
 
 
     private getNewLog(observationEntity: ObservationEntity): string {
+
+        //todo. left here. log shouldnot be added if nothing has been changed
+        //observation entity should not be updated as well if nothing has been changed
+        //so create another function that does this.
+
         const logs: ObservationLogDto[] = !observationEntity.log ? [] : JSON.parse(observationEntity.log);
-        logs.push( {
+        const log: ObservationLogDto = {
             period: observationEntity.period,
             value: observationEntity.value,
             flag: observationEntity.flag,
@@ -150,7 +155,8 @@ export class ObservationsService {
             entryUser: observationEntity.entryUser,
             entryDateTime: observationEntity.entryDateTime,
             comment: observationEntity.comment
-        });
+        };
+        logs.push(log );
         return JSON.stringify(logs);
     }
 
