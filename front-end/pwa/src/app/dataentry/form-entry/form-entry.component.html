@@ -1,8 +1,3 @@
-<div class="row d-flex justify-content-between align-items-center mb-2">
-  <div class="col">
-    <h4 class="fw-normal component-h1">Data Entry</h4>
-  </div>
-</div>
 
 <div class="card  ">
 
@@ -16,7 +11,7 @@
         <div class="row g-2">
           <div class="col-sm-auto mb-2" *ngIf="dataSelectors.elementId > 0">
             <app-element-input [controlLabel]="'Element'" [value]="dataSelectors.elementId"
-              (valueIdChange)="onElementChange($event)"></app-element-input>
+              (valueChange)="onElementChange($event)"></app-element-input>
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.year > 0">
@@ -51,12 +46,13 @@
 
       <div class="card-body">
         <div class="card-title fw-light">Entry Fields</div>
+        
         <!-- grid entry -->
         <app-data-grid-entry *ngIf="entryControl === 'grid'"></app-data-grid-entry>
         <!-- ----------- -->
         <!-- value flag entry -->
         <app-value-flag-entry *ngIf="entryControl === 'vf'" [dataSelectors]="dataSelectors"
-          [formMetadata]="formMetadata" [observations]="observations">
+          [formMetadata]="formMetadata" [observations]="observations" (valueChange)="onValueFlagEntryChange($event)">
         </app-value-flag-entry>
         <!-- ----------- -->
       </div>
@@ -64,12 +60,12 @@
 
     <div class="row g-2">
       <div class="col-auto">
-        <button type="button" class="btn btn-primary" (click)="onSave()">
+        <button type="button" class="btn btn-primary" (click)="onSave()" [disabled]="!bEnableSave">
           Save
         </button>
       </div>
       <div class="col-auto">
-        <button type="button" class="btn btn-outline-secondary"  (click)="onCancel()">Cancel</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">Cancel</button>
       </div>
     </div>
   </div>

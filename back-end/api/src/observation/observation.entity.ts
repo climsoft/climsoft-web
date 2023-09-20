@@ -26,7 +26,7 @@ export class ObservationEntity {
   value: number;
 
   @Column({ nullable: true })
-  flag: string;
+  flag: number;
 
   @Column()
   qcStatus: number;

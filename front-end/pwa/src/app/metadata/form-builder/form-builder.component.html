@@ -74,7 +74,7 @@
 
           </div>
           <div class="col-auto">
-            <button *ngIf="source.id > 0" type="button" class="btn btn-danger" (click)="onDelete()">
+            <button *ngIf="source && source.id > 0" type="button" class="btn btn-danger" (click)="onDelete()">
               Delete
             </button>
           </div>

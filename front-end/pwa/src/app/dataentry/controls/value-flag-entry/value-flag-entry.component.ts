@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { Observation } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
@@ -7,6 +7,8 @@ import { EntryForm } from 'src/app/core/models/entryform.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { Element } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { Flag } from 'src/app/core/models/Flag.model';
+import { FlagsService } from 'src/app/core/services/flags.service';
 
 
 export interface ControlDefinition {
@@ -31,15 +33,23 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   @Input() observations!: Observation[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
+  @Output() valueChange = new EventEmitter< 'valid_value' | 'invalid_value'>();
 
   //entry controls definitions
   entryControlsDefs: ControlDefinition[] = [];
 
   private elements!: Element[];
+  private flags!: Flag[];
 
-  constructor(private elementsService: ElementsService) { }
+  constructor(private elementsService: ElementsService, private flagsService: FlagsService) {
+    this.flagsService.getFlags().subscribe(data => {
+      this.flags = data;
+    });
+
+  }
 
   ngOnInit(): void {
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -81,25 +91,32 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private setupControl() {
     //get control definitions
-    if (this.formMetadata.entryFields[0] === "elementId") {
-      //create controls definitions the selected elements only
-      this.entryControlsDefs = this.getNewControlDefs(this.elements, "id", "name"); 
-    } else if (this.formMetadata.entryFields[0] === "day") {
-      //create controls definitions days of the month only
-      //note, there is no days selection in the form builder
-      this.entryControlsDefs = this.getNewControlDefs(DateUtils.getDaysInMonthList(this.dataSelectors.year, this.dataSelectors.month), "id", "name");
-    } else if (this.formMetadata.entryFields[0] === "hour") {
-      //create control definitions hours
-      //note there is always hours selection in the form builder
-      this.entryControlsDefs = this.getNewControlDefs(this.formMetadata.hours.length > 0 ? DateUtils.getHours(this.formMetadata.hours) : DateUtils.getHours(), "id", "name");
-    } else {
-      //Not supported
-      //todo. display error in set up
-      this.entryControlsDefs = [];
+    const entryField = this.formMetadata.entryFields[0];
+
+    switch (entryField) {
+      case "elementId":
+        //create controls definitions the selected elements only
+        this.entryControlsDefs = this.getNewControlDefs(this.elements, "id", "abbreviation");
+        break;
+      case "day":
+        //create controls definitions days of the month only
+        //note, there is no days selection in the form builder
+        this.entryControlsDefs = this.getNewControlDefs(DateUtils.getDaysInMonthList(this.dataSelectors.year, this.dataSelectors.month), "id", "name");
+        break;
+      case "hour":
+        //create control definitions hours
+        //note there is always hours selection in the form builder
+        this.entryControlsDefs = this.getNewControlDefs(this.formMetadata.hours.length > 0 ? DateUtils.getHours(this.formMetadata.hours) : DateUtils.getHours(), "id", "name");
+        break;
+      default:
+        //Not supported
+        //todo. display error in set up
+        this.entryControlsDefs = [];
+        break;
     }
 
     //set control definitions entry data from the loaded data
-    this.setControlDefinitionsEntryData(this.entryControlsDefs, this.observations, this.formMetadata.entryFields[0]);
+    this.setControlDefinitionsEntryData(this.entryControlsDefs, this.observations, entryField);
   }
 
 
@@ -107,24 +124,53 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   private getNewControlDefs(entryFieldItems: any[], valueProperty: string, displayProperty: string): ControlDefinition[] {
     let controlDefs: ControlDefinition[] = [];
     for (const item of entryFieldItems) {
-      controlDefs.push({ id: item[valueProperty], label: item[displayProperty], entryData: undefined, displayedValueFlag: '', errorMessage: '' })
+      controlDefs.push({ id: item[valueProperty], label: item[displayProperty], displayedValueFlag: '', errorMessage: '' })
     }
-    return controlDefs; 
+    return controlDefs;
   }
 
-  private setControlDefinitionsEntryData(entryControlsDefs: ControlDefinition[], observations: Observation[], observationProperty: string): void {
-    //set control definitions entry data from the loaded data
+  private setControlDefinitionsEntryData(entryControlsDefs: ControlDefinition[], observations: Observation[], entryField: string): void {
+    // Create a dictionary to store observations using the entry field value as the key for faster lookups
+    const observationDict: { [key: number]: Observation } = {};
+
+    for (const observation of observations) {
+      let key: number | undefined;
+
+      switch (entryField) {
+        case "elementId":
+          key = observation.elementId;
+          break;
+        case "day":
+          key = DateUtils.getDayFromSQLDate(observation.datetime);
+          break;
+        case "hour":
+          key = DateUtils.getHourFromSQLDate(observation.datetime);
+          break;
+        default:
+          // Handle unsupported entryField or other cases
+          break;
+      }
+
+      if (key !== undefined) {
+        observationDict[key] = observation;
+      }
+    }
+
+    //console.log('transformed observations', observationDict);
+
+    // Set control definitions entry data and displayed value flag
+    let flagName: string;
     for (const controlDef of entryControlsDefs) {
-      //get the entry data to be used by the control definition if it exists
-      const entryData = ArrayUtils.findDataItem(observations, controlDef.id, observationProperty);
-      controlDef.entryData = entryData;
-      console.log('entry data found',      controlDef.entryData  )
-      //if observation data exists then set displayed value flag
-      if (controlDef.entryData) {
-        controlDef.displayedValueFlag = this.getDisplayableValueFlag(controlDef.entryData.value, controlDef.entryData.flag);
+      //look for the observation using the control id (entry field value).
+      const observation = observationDict[controlDef.id];
+      if (observation) {
+        controlDef.entryData = observation;
+        controlDef.displayedValueFlag = this.getValueFlagForDisplay(observation.value, this.getFlagName(observation.flag));
       }
     }
   }
+
+
 
 
   onInputEntry(controlDef: ControlDefinition, valueFlagInput: string): void {
@@ -143,6 +189,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //check validation results
     if (!validationResults[0]) {
       controlDef.errorMessage = validationResults[1]; //set returned error message 
+      this.valueChange.emit('invalid_value');
       return;
     }
 
@@ -154,19 +201,19 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
 
     //if there was no existing data then create new entry data and push it to the entry data arrays 
-    console.log('checking entry data is new ', controlDef.entryData);
     if (controlDef.entryData) {
-      observationData=  controlDef.entryData ;     
-    }else{
+      observationData = controlDef.entryData;
+    } else {
       observationData = this.getNewEntryData(controlDef);
       bNewObservationEntry = true;
     }
 
     //if value input then do QC
     if (extractedValueFlag[0] !== null) {
-      validationResults = this.validateAndNotifyQC(observationData.elementId, extractedValueFlag[0]);
+      validationResults = this.validateAndQCValue(observationData.elementId, extractedValueFlag[0]);
       if (!validationResults[0]) {
-        controlDef.errorMessage = validationResults[1]; //set returned error message 
+        controlDef.errorMessage = validationResults[1]; //set returned error message
+        this.valueChange.emit('invalid_value'); 
         return;
       }
     }
@@ -174,22 +221,28 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //if flag input then validate
     if (extractedValueFlag[1] !== null) {
       extractedValueFlag[1] = extractedValueFlag[1].toUpperCase();
-
-      //todo. validate the flag
+      validationResults = this.validateAndQCFlag(extractedValueFlag[1]);
+      if (!validationResults[0]) {
+        controlDef.errorMessage = validationResults[1]; //set returned error message 
+        this.valueChange.emit('invalid_value');
+        return;
+      }
     }
 
-    //set the value and flag then add it to array of observations if its a new entry
+    //set the value and flag
     observationData.value = extractedValueFlag[0];
-    observationData.flag = extractedValueFlag[1];
+    observationData.flag = this.getFlagId(extractedValueFlag[1]);
     controlDef.entryData = observationData;
-    controlDef.displayedValueFlag = this.getDisplayableValueFlag(observationData.value, observationData.flag);
-    console.log('data is new ', bNewObservationEntry);
+
+    controlDef.displayedValueFlag = this.getValueFlagForDisplay(observationData.value, extractedValueFlag[1]);
+
+    //if observation is new then add it to observations array
     if (bNewObservationEntry) {
       this.observations.push(observationData);
-      console.log('new data', controlDef.entryData);
+      console.log('new data added', controlDef.entryData);
     }
 
-    
+    this.valueChange.emit('valid_value');
 
   }
 
@@ -232,14 +285,14 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     }
 
     //set date from date time variables. year-month-day hour. JS months are 0 based 
-    entryData.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1],datetimeVars[2],datetimeVars[3],0,0) ;
+    entryData.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
 
     //console.log('entry data', entryData);
     return entryData;
   }
 
   //returns validation status and error message
-  private validateValueFlagInput(valueFlagInput: string,): [boolean, string] {
+  private validateValueFlagInput(valueFlagInput: string): [boolean, string] {
 
     if (StringUtils.isNullOrEmpty(valueFlagInput, false)) {
       return [true, ''];
@@ -259,7 +312,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   }
 
-  private validateAndNotifyQC(elementId: number, value: number): [boolean, string] {
+  private validateAndQCValue(elementId: number, value: number): [boolean, string] {
     const element = this.elements.find(data => data.id === elementId);
 
     if (!element) {
@@ -283,19 +336,33 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   }
 
-  private getDisplayableValueFlag(value: number | null, flag: string | null): string {
-    let str = '';
-    if (value !== null) {
-      str = value + '';
-    }
-
-    if (flag !== null) {
-      str = str + flag;
-    }
-
-    return str;
-
+  private validateAndQCFlag(flagName: string): [boolean, string] {
+    const flagFound = this.flags.find(flag => flag.name == flagName);
+    return flagFound ? [true, ''] : [false, 'Invalid Flag']
   }
+
+  private getValueFlagForDisplay(value: number | null, flag: string | null): string {
+    if (value === null && flag === null) {
+      return '';
+    }
+
+    const valueStr = value !== null ? value.toString() : '';
+    const flagStr = flag !== null ? flag : '';
+
+    return valueStr + flagStr;
+  }
+
+
+  private getFlagId(name: string | null): number | null {
+    const flag = name !== null ? this.flags.find((flag) => flag.name === name) : null;
+    return flag ? flag.id : null;
+  }
+
+  private getFlagName(id: number | null): string | null {
+    const flag = id !== null ? this.flags.find((flag) => flag.id === id) : null;
+    return flag ? flag.name : null;
+  }
+
 
 
 

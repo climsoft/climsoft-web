@@ -23,8 +23,8 @@ export class CreateObservationDto {
     @IsNumber()
     value: number;
 
-    @IsString()
-    flag: string;
+    @IsNumber()
+    flag: number;
 
     @IsNumber()
     qcStatus: number;

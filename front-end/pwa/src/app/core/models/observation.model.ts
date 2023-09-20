@@ -6,7 +6,7 @@ export interface Observation {
     datetime: string; 
     period: number; 
     value: number | null;  
-    flag: string | null;
+    flag: number | null; //todo. rename this to flag Id
     qcStatus: number;
     entryUser?: number
     entryDateTime?: Date;
@@ -30,8 +30,5 @@ export interface Observation {
     // ]  
 
     //changesLog: string; //json string
-
-
-
 
 }

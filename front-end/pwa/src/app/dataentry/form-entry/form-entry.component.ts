@@ -7,6 +7,7 @@ import { ObservationsService } from 'src/app/core/services/observations.service'
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { SelectObservation } from 'src/app/core/models/select-observation.model';
 import { StationsService } from 'src/app/core/services/stations.service';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
 export interface DataSelectorsValues {
   stationId: string;
@@ -34,8 +35,16 @@ export class FormEntryComponent implements OnInit {
 
   stationName!: string;
   formName!: string;
+  bEnableSave: boolean = false;
 
-  constructor(private sourcesService: SourcesService, private stationsService: StationsService, private observationService: ObservationsService, private route: ActivatedRoute,private location: Location) {
+  constructor(private sourcesService: SourcesService,
+    private stationsService: StationsService,
+    private observationService: ObservationsService,
+    private pagesDataService: PagesDataService,
+    private route: ActivatedRoute,
+    private location: Location) {
+
+    this.pagesDataService.setPageHeader('Data Entry');
   }
 
   ngOnInit(): void {
@@ -130,6 +139,7 @@ export class FormEntryComponent implements OnInit {
     }
 
     console.log("selections", select);
+    this.bEnableSave = false;
     this.observationService.getObservations(select).subscribe((data) => {
       console.log("Response", data);
       this.observations = data;
@@ -157,7 +167,7 @@ export class FormEntryComponent implements OnInit {
     this.getObservationData();
   }
 
-   onDateChange(dateInput: string): void {
+  onDateChange(dateInput: string): void {
     const date = new Date(dateInput);
     this.dataSelectors.year = date.getFullYear();
     this.dataSelectors.month = date.getMonth() + 1;
@@ -165,19 +175,28 @@ export class FormEntryComponent implements OnInit {
     this.getObservationData();
   }
 
-   onHourChange(hourInput: number): void {
+  onHourChange(hourInput: number): void {
     this.dataSelectors.hour = hourInput;
     this.getObservationData();
+  }
+
+  onValueFlagEntryChange(validity: 'valid_value' | 'invalid_value') {
+    this.bEnableSave = validity === 'valid_value';
   }
 
   onCancel(): void {
     this.location.back();
   }
 
-   onSave(): void {
+  onSave(): void {
     console.log("saved values", this.observations)
     this.observationService.saveObservations(this.observations).subscribe((data) => {
       this.getObservationData();
+      this.pagesDataService.showToast({
+        title: 'observations',
+        message: `${this.observations.length} observation${this.observations.length === 1 ? '' : 's'} saved`,
+        type: 'success'
+      });
     });
   }
 

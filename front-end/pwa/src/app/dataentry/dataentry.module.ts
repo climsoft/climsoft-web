@@ -11,9 +11,7 @@ import { SharedModule } from '../shared/shared.module';
 import { DataGridEntryComponent } from './controls/data-grid-entry/data-grid-entry.component';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
-import { ValueFlagEntryComponent } from './controls/value-flag-entry/value-flag-entry.component';
-
-import { FormsInputComponent } from './controls/forms-input/forms-input.component';
+import { ValueFlagEntryComponent } from './controls/value-flag-entry/value-flag-entry.component'; 
 import { FormSelectionComponent } from './form-selection/form-selection.component';
 import { StationSelectionComponent } from './station-selection/station-selection.component';
 //------------------------------------
@@ -25,8 +23,7 @@ import { StationSelectionComponent } from './station-selection/station-selection
     DataGridEntryComponent,
     FormEntryComponent,
     ValueFlagEntryComponent,
-    ImportEntryComponent,
-    FormsInputComponent,
+    ImportEntryComponent, 
     FormSelectionComponent,
     StationSelectionComponent
   ],

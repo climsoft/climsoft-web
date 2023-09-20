@@ -5,7 +5,7 @@ import { SelectObservationDTO } from './dto/select-observation.dto';
 
 @Controller('observations')
 export class ObservationsController {
-    constructor(private readonly observationsService: ObservationsService) { }
+  constructor(private readonly observationsService: ObservationsService) { }
 
   @Get()
   find(@Query() selectObsevationQuery: SelectObservationDTO) {

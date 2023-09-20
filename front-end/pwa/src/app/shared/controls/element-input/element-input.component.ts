@@ -17,6 +17,7 @@ export class ElementInputComponent implements OnInit, OnChanges {
   elements!: Element[];
 
   selectedValue!: any;
+  bIgnoreNgChanges: boolean= false;
 
   constructor(private elementsSevice: ElementsService) {
   }
@@ -26,7 +27,10 @@ export class ElementInputComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    console.log('selector loading elements');
+    if(this.bIgnoreNgChanges){
+      this.bIgnoreNgChanges = false;
+      return;
+    }
 
     this.elementsSevice.getElements(this.ids).subscribe(data => {
       this.elements = data;
@@ -36,9 +40,10 @@ export class ElementInputComponent implements OnInit, OnChanges {
   }
 
   onChange(change: any) {
+    this.bIgnoreNgChanges = true;//todo. added because thng changes was being raised when same value is raised uoutside this component
     this.value = change;
     this.selectedValue = change;
-    this.valueChange.emit(change);
+    this.valueChange.emit(change);   
   }
 
 }
