@@ -19,6 +19,14 @@ export class StringUtils {
         return regex.test(input);
     }
 
+    static doesNotContainNumericCharacters(inputString: string): boolean {
+        // Use a regular expression to check if the string contains only non-numeric characters
+        const regex = /^[^0-9]*$/;
+
+        // Test the input string against the regular expression
+        return regex.test(inputString);
+    }
+
     static containsStringBetweenNumbers(input: string): boolean {
         // Define a regular expression pattern to match digits followed by a letter, followed by digits
         const pattern = /\d+[A-Za-z]+\d+/;

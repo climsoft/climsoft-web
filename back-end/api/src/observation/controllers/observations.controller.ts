@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ObservationsService } from './observations.service';
-import { CreateObservationDto } from './dto/create-observation.dto';
-import { SelectObservationDTO } from './dto/select-observation.dto';
+import { ObservationsService } from '../services/observations.service';
+import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { SelectObservationDTO } from '../dtos/select-observation.dto';
 
 @Controller('observations')
 export class ObservationsController {

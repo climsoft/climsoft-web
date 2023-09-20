@@ -189,7 +189,7 @@ export class FormEntryComponent implements OnInit {
   }
 
   onSave(): void {
-    console.log("saved values", this.observations)
+    console.log("saved values", this.observations);
     this.observationService.saveObservations(this.observations).subscribe((data) => {
       this.getObservationData();
       this.pagesDataService.showToast({

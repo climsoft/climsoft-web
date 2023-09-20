@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
-import { ObservationEntity } from './observation.entity';
-import { CreateObservationDto } from './dto/create-observation.dto';
-import { SelectObservationDTO } from './dto/select-observation.dto';
+import { ObservationEntity } from '../entities/observation.entity';
+import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { DateUtils } from 'src/shared/date.utils';
+import { ObservationLogDto } from '../dtos/observation-log.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -56,7 +57,7 @@ export class ObservationsService {
             return;
         }
 
-        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.hour !== undefined) {            
+        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.hour !== undefined) {
             const lastDay: number = DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month - 1);
             const allDays: string[] = [];
             for (let day = 1; day <= lastDay; day++) {
@@ -122,14 +123,13 @@ export class ObservationsService {
             }
 
             //update fields
-            //todo. also make a log of what changed
             observationEntity.period = observationDto.period;
             observationEntity.value = observationDto.value;
             observationEntity.flag = observationDto.flag;
             observationEntity.qcStatus = observationDto.qcStatus;
+            observationEntity.comment = observationDto.comment;
             observationEntity.entryUser = 1;
-
-            //console.log('Adding', observationEntity);
+            observationEntity.log = this.getNewLog(observationEntity);
 
             //add it to array for saving
             obsEntitiesArray.push(observationEntity)
@@ -139,20 +139,34 @@ export class ObservationsService {
         return this.observationRepo.save(obsEntitiesArray);
     }
 
-    async update(id: string, obsDto: CreateObservationDto) {
-        const station = await this.observationRepo.preload({
 
-            ...obsDto,
+    private getNewLog(observationEntity: ObservationEntity): string {
+        const logs: ObservationLogDto[] = !observationEntity.log ? [] : JSON.parse(observationEntity.log);
+        logs.push( {
+            period: observationEntity.period,
+            value: observationEntity.value,
+            flag: observationEntity.flag,
+            qcStatus: observationEntity.qcStatus,
+            entryUser: observationEntity.entryUser,
+            entryDateTime: observationEntity.entryDateTime,
+            comment: observationEntity.comment
         });
-        if (!station) {
-            throw new NotFoundException(`Coffee #${id} not found`);
-        }
-        return this.observationRepo.save(station);
+        return JSON.stringify(logs);
     }
 
-    async remove(id: string) {
-        //const obs = await this.findOne(id);
-        //return this.observationRepo.remove(obs);
-        return "";
-    }
+    // async update(id: string, obsDto: CreateObservationDto) {
+    //     const station = await this.observationRepo.preload({
+    //         ...obsDto,
+    //     });
+    //     if (!station) {
+    //         throw new NotFoundException(`Observation #${id} not found`);
+    //     }
+    //     return this.observationRepo.save(station);
+    // }
+
+    // async remove(id: string) {
+    //     //const obs = await this.findOne(id);
+    //     //return this.observationRepo.remove(obs);
+    //     return "";
+    // }
 }

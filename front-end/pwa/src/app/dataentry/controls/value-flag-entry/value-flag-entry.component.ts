@@ -9,13 +9,15 @@ import { Element } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Flag } from 'src/app/core/models/Flag.model';
 import { FlagsService } from 'src/app/core/services/flags.service';
+import { ObservationLog } from 'src/app/core/models/observation-log.model';
 
 
 export interface ControlDefinition {
   id: number;
   label: string;
   entryData?: Observation;
-  displayedValueFlag: string,
+  entryStatus: 'new' | 'update';
+  displayedValueFlag: string;
   errorMessage: string;
 }
 
@@ -124,7 +126,13 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   private getNewControlDefs(entryFieldItems: any[], valueProperty: string, displayProperty: string): ControlDefinition[] {
     let controlDefs: ControlDefinition[] = [];
     for (const item of entryFieldItems) {
-      controlDefs.push({ id: item[valueProperty], label: item[displayProperty], displayedValueFlag: '', errorMessage: '' })
+      controlDefs.push({
+        id: item[valueProperty],
+        label: item[displayProperty],
+        entryStatus: 'new',
+        displayedValueFlag: '',
+        errorMessage: ''
+      })
     }
     return controlDefs;
   }
@@ -180,8 +188,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
     let validationResults: [boolean, string];
     let observation: Observation;
-    let bNewObservationEntry: boolean = false;
-   
+    let observationNew: boolean=false;
 
     //clear any existing error message
     controlDef.errorMessage = ''
@@ -200,7 +207,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //extract and set the value and flag
     const extractedNumberString = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
     const value: number | null = extractedNumberString[0];
-    const flagName: string | null = extractedNumberString[1] ===null ? null : extractedNumberString[1].toUpperCase();  
+    const flagName: string | null = extractedNumberString[1] === null ? null : extractedNumberString[1].toUpperCase();
 
 
     //if there was no existing data then create new entry data and push it to the entry data arrays 
@@ -208,7 +215,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       observation = controlDef.entryData;
     } else {
       observation = this.getNewEntryData(controlDef);
-      bNewObservationEntry = true;
+      observationNew = true;
     }
 
     //if value input then do QC
@@ -222,7 +229,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     }
 
     //if flag input then validate
-    if (flagName !== null) { 
+    if (flagName !== null) {
       validationResults = this.validateAndQCFlag(value, flagName);
       if (!validationResults[0]) {
         controlDef.errorMessage = validationResults[1]; //set returned error message 
@@ -234,16 +241,21 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //set the value and flag
     observation.value = value === null ? null : this.getUnScaledValue(observation.elementId, value);
     observation.flag = this.getFlagId(flagName);
+    
+  
+
+    //attach the updated observation to the control definition
     controlDef.entryData = observation;
 
     //scale the value for display
     controlDef.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
 
-    //if observation is new then add it to observations array
-    if (bNewObservationEntry) {
-      this.observations.push(observation);
-      console.log('new data added', controlDef.entryData);
-    }
+      //if observation is new then add it to observations array
+      if (observationNew) {
+        this.observations.push(observation);
+      }
+
+    console.log('data changes', controlDef.entryData);
 
     this.valueChange.emit('valid_value');
 
@@ -251,7 +263,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private getNewEntryData(controlDef: ControlDefinition): Observation {
     //create new entr data
-    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0 };
+    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null };
 
     //set data source
     entryData.sourceId = this.dataSelectors.sourceId;
@@ -275,7 +287,6 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       datetimeVars[3] = this.dataSelectors.hour;
     }
 
-
     //set entry field
     if (this.formMetadata.entryFields[0] === "elementId") {
       entryData.elementId = controlDef.id;
@@ -287,7 +298,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       //Not supported yet
     }
 
-    //set date from date time variables. year-month-day hour. JS months are 0 based 
+    //set datetime from date time variables. year-month-day hour. JS months are 0 based 
     entryData.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
 
     //console.log('entry data', entryData);
@@ -304,6 +315,11 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //check for white spaces.
     if (StringUtils.isNullOrEmpty(valueFlagInput, true)) {
       return [false, 'Empty spaces not allowed'];
+    }
+
+    //check if its all string. Applies when its flag M entered
+    if (StringUtils.doesNotContainNumericCharacters(valueFlagInput)) {
+      return [true, ''];
     }
 
     //check for correct input format
@@ -368,16 +384,14 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
     const element = this.elements.find(data => data.id === elementId);
 
+    //return element ? parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
     return element ? unscaledValue * element.entryScaleFactor : 0;
   }
 
-
   private getUnScaledValue(elementId: number, scaledValue: number): number {
     const element = this.elements.find(data => data.id === elementId);
-    console.log('unscaled value: ' , element && element.entryScaleFactor !== 0 ? scaledValue * element.entryScaleFactor : 0);
     return element && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : 0;
   }
-
 
   private getFlagId(name: string | null): number | null {
     const flag = name !== null ? this.flags.find((flag) => flag.name === name) : null;
@@ -389,7 +403,17 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     return flag ? flag.name : null;
   }
 
+  // private getNewLog(observation: Observation): string {
 
+  //   let logs: ObservationLog[] = [];
+  //   if (observation.log !== null) {
+  //     logs = JSON.parse(observation.log);
+  //   }
+
+  //   logs.push({ ...observation, comment: 'first entry' });
+  //   return JSON.stringify(logs);
+
+  // }
 
 
 }

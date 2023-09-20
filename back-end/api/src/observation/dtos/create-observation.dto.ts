@@ -1,4 +1,4 @@
-import { IsDate, IsNumber, IsString, isNumber } from 'class-validator';
+import { IsDate, IsNumber, IsString } from 'class-validator';
 
 export class CreateObservationDto {
 
@@ -21,12 +21,16 @@ export class CreateObservationDto {
     period: number;
 
     @IsNumber()
-    value: number;
+    //@IsOptional()//todo research about it when you enable validations for number or null values
+    value: number | null;
 
     @IsNumber()
-    flag: number;
+    flag: number | null;
 
     @IsNumber()
     qcStatus: number;
+
+    @IsString()
+    comment: string | null;
 
 }
