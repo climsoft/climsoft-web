@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -156,7 +156,7 @@ export class ObservationsService {
             entryDateTime: observationEntity.entryDateTime,
             comment: observationEntity.comment
         };
-        logs.push(log );
+        logs.push(log);
         return JSON.stringify(logs);
     }
 
