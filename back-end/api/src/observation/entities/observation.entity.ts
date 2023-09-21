@@ -37,10 +37,11 @@ export class ObservationEntity {
   @Column({ type: 'int' })
   entryUser: number;
 
-  //todo. for consistency in date time storage. This should be set within the system instead of relying on typeorm
+  //for consistency in date time storage. This will be set at application level instead of relying on typeorm and database
   //for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
   //we also need the transformer to yeild consistent results
-  @CreateDateColumn({ type: 'datetime', transformer: new DateTimeColumn() })
+  //there cpuld also be inconsistency if typeorm ended up using different timezone
+  @Column({ type: 'datetime', transformer: new DateTimeColumn() })
   entryDateTime: string;
 
   @Column({ type: 'json', nullable: true })

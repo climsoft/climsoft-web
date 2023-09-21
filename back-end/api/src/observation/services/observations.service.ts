@@ -99,66 +99,105 @@ export class ObservationsService {
 
     async save(createObservationDtoArray: CreateObservationDto[]) {
 
-        const obsEntitiesArray: ObservationEntity[] = [];
+        const obsEntities: ObservationEntity[] = [];
 
-        for (const observationDto of createObservationDtoArray) {
+        for (const createObservationDto of createObservationDtoArray) {
             //get if it existing
             let observationEntity = await this.observationRepo.findOneBy({
-                stationId: observationDto.stationId,
-                elementId: observationDto.elementId,
-                sourceId: observationDto.sourceId,
-                level: observationDto.level,
-                datetime: observationDto.datetime,
+                stationId: createObservationDto.stationId,
+                elementId: createObservationDto.elementId,
+                sourceId: createObservationDto.sourceId,
+                level: createObservationDto.level,
+                datetime: createObservationDto.datetime,
             });
 
-            //if not create new one
-            if (!observationEntity) {
+           
+            if (observationEntity) {
+                 //if exists compare changes excluding entryDatetime. Important to bexclude entryDatetime
+                const oldChanges: ObservationLogDto = {
+                    period: observationEntity.period,
+                    value: observationEntity.value,
+                    flag: observationEntity.flag,
+                    qcStatus: observationEntity.qcStatus,
+                    entryUser: observationEntity.entryUser,
+                    comment: observationEntity.comment
+                };
+                const newChanges: ObservationLogDto = {
+                    period: createObservationDto.period,
+                    value: createObservationDto.value,
+                    flag: createObservationDto.flag,
+                    qcStatus: createObservationDto.qcStatus,
+                    entryUser: 2,
+                    comment: createObservationDto.comment
+                };
+
+                 //if not create new one
+                //if no changes then no need to add in the list of saving
+                if ( this.areObservationChangesEqual(oldChanges, newChanges)) {
+                    continue;
+                }
+
+            } else {
+
                 observationEntity = this.observationRepo.create({
-                    stationId: observationDto.stationId,
-                    elementId: observationDto.elementId,
-                    sourceId: observationDto.sourceId,
-                    level: observationDto.level,
-                    datetime: observationDto.datetime,
+                    stationId: createObservationDto.stationId,
+                    elementId: createObservationDto.elementId,
+                    sourceId: createObservationDto.sourceId,
+                    level: createObservationDto.level,
+                    datetime: createObservationDto.datetime
                 });
+
             }
 
-            //update fields
-            observationEntity.period = observationDto.period;
-            observationEntity.value = observationDto.value;
-            observationEntity.flag = observationDto.flag;
-            observationEntity.qcStatus = observationDto.qcStatus;
-            observationEntity.comment = observationDto.comment;
-            observationEntity.entryUser = 1;
-            observationEntity.log = this.getNewLog(observationEntity);
+            //update entry fields
+            observationEntity.period = createObservationDto.period;
+            observationEntity.value = createObservationDto.value;
+            observationEntity.flag = createObservationDto.flag;
+            observationEntity.qcStatus = createObservationDto.qcStatus;
+            observationEntity.comment = createObservationDto.comment;
+            observationEntity.entryUser = 2; 
+            observationEntity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
 
-            //add it to array for saving
-            obsEntitiesArray.push(observationEntity)
+            //create a new log from the updated fields
+            observationEntity.log  = this.getNewLog(observationEntity.log, {
+                period: observationEntity.period,
+                value: observationEntity.value,
+                flag: observationEntity.flag,
+                qcStatus: observationEntity.qcStatus,
+                entryUser: observationEntity.entryUser,
+                entryDateTime: observationEntity.entryDateTime,
+                comment: observationEntity.comment
+            });
+
+            
+            //console.log('saving', observationEntity)
+            obsEntities.push(observationEntity)
+
         }
 
         //save all observations
-        return this.observationRepo.save(obsEntitiesArray);
+        return this.observationRepo.save(obsEntities);
     }
 
 
-    private getNewLog(observationEntity: ObservationEntity): string {
-
-        //todo. left here. log shouldnot be added if nothing has been changed
-        //observation entity should not be updated as well if nothing has been changed
-        //so create another function that does this.
-
-        const logs: ObservationLogDto[] = !observationEntity.log ? [] : JSON.parse(observationEntity.log);
-        const log: ObservationLogDto = {
-            period: observationEntity.period,
-            value: observationEntity.value,
-            flag: observationEntity.flag,
-            qcStatus: observationEntity.qcStatus,
-            entryUser: observationEntity.entryUser,
-            entryDateTime: observationEntity.entryDateTime,
-            comment: observationEntity.comment
-        };
-        logs.push(log);
+    private getNewLog(currentLogs: string | null | undefined, newLog: ObservationLogDto): string {
+        const logs: ObservationLogDto[] = currentLogs ? JSON.parse(currentLogs) : [];
+        logs.push(newLog);
         return JSON.stringify(logs);
     }
+
+    private areObservationChangesEqual(log1: ObservationLogDto, log2: ObservationLogDto): boolean {
+        //console.log('log1 object', log1, 'log2 object', log2)
+        for (const key in log1) {
+            if (log1.hasOwnProperty(key)) {
+                if (log1[key as keyof ObservationLogDto] !== log2[key as keyof ObservationLogDto]) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 
     // async update(id: string, obsDto: CreateObservationDto) {
     //     const station = await this.observationRepo.preload({

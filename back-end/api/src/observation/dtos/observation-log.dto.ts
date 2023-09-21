@@ -17,7 +17,7 @@ export class ObservationLogDto {
     entryUser: number
 
     @IsDate()
-    entryDateTime: string;
+    entryDateTime?: string;
 
     @IsString()
     comment: string | null;

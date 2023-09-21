@@ -1,6 +1,25 @@
 <div class="row g-2">
   <div class="col-sm-auto mb-3" *ngFor="let item of entryControlsDefs">
-    <app-text-input [controlLabel]="item.label" [errorMessage]="item.errorMessage" [value]=" item.displayedValueFlag
+
+    <label [for]="item.label">{{ item.label }}</label>
+    <div class="input-group">
+      <input type="text" class="form-control form-control-sm" [id]="item.label"
+        (input)="onInputEntry(item, $any($event.target).value)" [value]="item.displayedValueFlag" autocomplete="off" />
+      <button class="btn btn-sm btn-outline-secondary" type="button">
+        <i class="bi bi-info"></i>
+      </button>
+    </div>
+
+    <div *ngIf="item.errorMessage" class="form-text" [class.text-danger]="item.errorMessage">
+      {{ item.errorMessage ? item.errorMessage : '' }}
+    </div>
+
+
+    <!-- <app-text-input [controlLabel]="item.label" [errorMessage]="item.errorMessage" [value]=" item.displayedValueFlag
       " (valueChange)="onInputEntry(item, $event)"></app-text-input>
+  </div> -->
+
+
+
+
   </div>
-</div>
