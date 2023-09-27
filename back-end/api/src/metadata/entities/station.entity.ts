@@ -66,5 +66,4 @@ export class StationEntity {
   @Column({ type: 'json', nullable: true })
   log: string | null;
 
-
 }

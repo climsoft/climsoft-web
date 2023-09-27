@@ -10,7 +10,7 @@ export class StationElementEntity {
     @PrimaryColumn({ type: 'int' })
     elementId: number;
 
-    @PrimaryColumn({ type: 'varchar'})
+    @PrimaryColumn({ type: 'varchar', default: 'unknown'})
     instrumentId: string; 
  
     @Column({ type: 'int' })
