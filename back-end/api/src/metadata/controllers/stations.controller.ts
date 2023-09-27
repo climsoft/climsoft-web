@@ -1,7 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, } from '@nestjs/common';
-import { StationsService } from './stations.service';
-import { PaginationQueryDto } from 'src/shared/dto/pagination-query.dto';
-import { StationDto } from './dto/station.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { StationsService } from '../services/stations.service';
+import { StationDto } from '../dtos/station.dto';
 
 
 

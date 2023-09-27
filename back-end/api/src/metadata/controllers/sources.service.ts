@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SourceEntity } from './entities/source.entity';
+import { SourceEntity } from '../entities/source.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm'; 
-import { CreateSourceDto } from './dto/create-source.dto';
+import { CreateSourceDto } from '../dtos/create-source.dto';
 
 @Injectable()
 export class SourcesService {

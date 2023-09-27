@@ -1,13 +1,54 @@
 <div class="row g-2">
-  <div class="col-sm-auto mb-3" *ngFor="let item of entryControlsDefs">
+  <div class="col-sm-auto mb-3"  [class.value-flag-control-sm]="useSmallVFControls" *ngFor="let item of entryControlsDefs">
 
-    <label [for]="item.label">{{ item.label }}</label>
+    <label [for]="item.label"  [class.value-flag-control-label-sm]="useSmallVFControls">{{ item.label }}</label>
     <div class="input-group">
-      <input type="text" class="form-control form-control-sm" [id]="item.label"
+      <input type="text" class="form-control form-control-sm" [class.text-success]="item.entryStatus === 'saved'" [id]="item.label"
         (input)="onInputEntry(item, $any($event.target).value)" [value]="item.displayedValueFlag" autocomplete="off" />
-      <button class="btn btn-sm btn-outline-secondary" type="button">
-        <i class="bi bi-info"></i>
-      </button>
+
+      <div *ngIf="item.entryData" dropdown [autoClose]="false">
+        <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary ">
+          <i class="bi bi-info"></i>
+        </button>
+        <div *dropdownMenu class="dropdown-menu shadow-sm p-3">
+
+          <div class="mb-3">
+            <app-text-input [controlLabel]="'New Comment'" 
+              (valueChange)="onCommentEntry(item, $event)"></app-text-input>
+          </div>
+
+          <div>
+            <div>History</div>
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Value</th>
+                  <th scope="col">Flag</th>
+                  <th scope="col">Period</th>
+                  <th scope="col">QC</th>
+                  <th scope="col">User</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Comment</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of getLogs(item.entryData) ">
+                  <td>{{ row.value }}</td>
+                  <td>{{ row.flag }}</td>
+                  <td>{{ row.period }}</td>
+                  <td>{{ row.qcStatus }}</td>
+                  <td>{{ row.entryUser }}</td>
+                  <td>{{ row.entryDateTime }}</td>
+                  <td>{{ row.comment }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+
+        </div>
+      </div>
+
     </div>
 
     <div *ngIf="item.errorMessage" class="form-text" [class.text-danger]="item.errorMessage">
@@ -16,10 +57,12 @@
 
 
     <!-- <app-text-input [controlLabel]="item.label" [errorMessage]="item.errorMessage" [value]=" item.displayedValueFlag
-      " (valueChange)="onInputEntry(item, $event)"></app-text-input>
-  </div> -->
-
-
+      " (valueChange)="onInputEntry(item, $event)"></app-text-input> -->
 
 
   </div>
+
+
+
+
+</div>

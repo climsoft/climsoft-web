@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Station } from './entities/station.entity';
-import { StationDto } from './dto/station.dto';
+import { StationEntity } from '../entities/station.entity';
+import { StationDto } from '../dtos/station.dto';
 
 @Injectable()
 export class StationsService {
 
-    constructor(@InjectRepository(Station) private readonly stationRepo: Repository<Station>,
+    constructor(@InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
     ) { }
 
     find() {

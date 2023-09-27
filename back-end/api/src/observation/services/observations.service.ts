@@ -4,7 +4,7 @@ import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
-import { DateUtils } from 'src/shared/date.utils';
+import { DateUtils } from 'src/shared/utils/date.utils';
 import { ObservationLogDto } from '../dtos/observation-log.dto';
 
 @Injectable()

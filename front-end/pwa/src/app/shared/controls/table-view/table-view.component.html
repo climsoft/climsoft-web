@@ -8,7 +8,5 @@
         <tr *ngFor="let row of rowData" (click)="onRowDataClicked(row)" style="cursor: pointer;">
             <td *ngFor="let col of columnData">{{ row[col.id] }}</td>
         </tr>
-
     </tbody>
-
 </table>

@@ -37,10 +37,11 @@ export class FormEntryComponent implements OnInit {
   formName!: string;
   bEnableSave: boolean = false;
 
-  constructor(private sourcesService: SourcesService,
+  constructor
+  ( private pagesDataService: PagesDataService,
+    private sourcesService: SourcesService,
     private stationsService: StationsService,
-    private observationService: ObservationsService,
-    private pagesDataService: PagesDataService,
+    private observationService: ObservationsService,   
     private route: ActivatedRoute,
     private location: Location) {
 
@@ -191,12 +192,13 @@ export class FormEntryComponent implements OnInit {
   onSave(): void {
     console.log("saved values", this.observations);
     this.observationService.saveObservations(this.observations).subscribe((data) => {
-      this.getObservationData();
+
       this.pagesDataService.showToast({
-        title: 'observations',
-        message: `${this.observations.length} observation${this.observations.length === 1 ? '' : 's'} saved`,
-        type: 'success'
+        title: 'observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
       });
+
+      this.getObservationData();
+
     });
   }
 
