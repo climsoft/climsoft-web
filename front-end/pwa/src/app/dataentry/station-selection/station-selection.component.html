@@ -16,7 +16,7 @@
     <div class="card" >
       <div class="card-body">
         <div class="card-title">Stations</div>
-        <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"   [rowData]="stations" (rowDataClicked)="onStationClick($event)"></app-table-view>
+        <app-table-view  [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"   [rowsData]="stations" (rowDataClicked)="onStationClick($event)"></app-table-view>
       </div>
     </div>
 

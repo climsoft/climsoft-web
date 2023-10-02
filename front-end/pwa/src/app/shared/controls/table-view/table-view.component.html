@@ -1,12 +1,12 @@
 <table class="table table-striped table-hover">
     <thead>
         <tr>
-            <th *ngFor="let col of columnData" scope="col">{{ col.name }}</th>
+            <th *ngFor="let col of columnsData" scope="col">{{ col.name }}</th>
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let row of rowData" (click)="onRowDataClicked(row)" style="cursor: pointer;">
-            <td *ngFor="let col of columnData">{{ row[col.id] }}</td>
+        <tr *ngFor="let row of rowsData" (click)="onRowDataClicked(row)" style="cursor: pointer;">
+            <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
         </tr>
     </tbody>
 </table>

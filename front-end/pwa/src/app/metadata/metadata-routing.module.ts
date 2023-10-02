@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { FormBuilderComponent } from './form-builder/form-builder.component';
 import { FormsComponent } from './forms/forms.component';
 import { StationsComponent } from './stations/stations.component';
+import { StationDetailComponent } from './station-detail/station-detail.component';
 
 
 const routes: Routes = [
@@ -35,7 +36,11 @@ const routes: Routes = [
       {
         path: 'stations',
         component: StationsComponent
-      }
+      },
+      {
+        path: 'station-detail/:stationid',
+        component: StationDetailComponent
+      },
     ]
   }
  

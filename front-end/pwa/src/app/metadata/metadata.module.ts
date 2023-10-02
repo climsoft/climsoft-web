@@ -5,6 +5,7 @@ import { MetadataRoutingModule } from './metadata-routing.module';
 import { FormsComponent } from './forms/forms.component';
 import { FormBuilderComponent } from './form-builder/form-builder.component';
 import { StationsComponent } from './stations/stations.component';
+import { StationDetailComponent } from './station-detail/station-detail.component';
 
 
 
@@ -12,7 +13,8 @@ import { StationsComponent } from './stations/stations.component';
   declarations: [
     FormsComponent,
     FormBuilderComponent,
-    StationsComponent    
+    StationsComponent,
+    StationDetailComponent    
   ],
   imports: [
     SharedModule,

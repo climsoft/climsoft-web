@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Source } from '../../core/models/source.model';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 import { SourcesService } from 'src/app/core/services/sources.service';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
 @Component({
   selector: 'app-forms',
@@ -13,7 +14,12 @@ export class FormsComponent implements OnInit {
 
   sources: Source[] = [];
 
-  constructor(private sourceService: SourcesService, private router: Router, private route: ActivatedRoute) {
+  constructor(
+    private pagesDataService: PagesDataService,
+    private sourceService: SourcesService,
+    private router: Router,
+    private route: ActivatedRoute) {
+    this.pagesDataService.setPageHeader('Forms Metadata');
     this.loadSources();
   }
 
@@ -27,8 +33,8 @@ export class FormsComponent implements OnInit {
     });
   }
 
-  onFormClicked(dataClicked: { [key: string]: any }): void {
-    this.router.navigate(['form-builder', dataClicked['id']], { relativeTo: this.route.parent });
+  onFormClicked(dataClicked: Source): void {
+    this.router.navigate(['form-builder', dataClicked.id], { relativeTo: this.route.parent });
   }
 
   onNewForm() {

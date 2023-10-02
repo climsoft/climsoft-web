@@ -17,7 +17,7 @@
     <div class="card" >
       <div class="card-body">
         <div class="card-title">Data entry forms for: {{ stationName }}</div>
-        <app-table-view  [columnData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"   [rowData]="sources" (rowDataClicked)="onFormClicked($event)"></app-table-view>
+        <app-table-view  [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"   [rowsData]="sources" (rowDataClicked)="onFormClicked($event)"></app-table-view>
       </div>
     </div>
   

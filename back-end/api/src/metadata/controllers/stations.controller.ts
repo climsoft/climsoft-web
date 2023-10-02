@@ -2,8 +2,6 @@ import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/commo
 import { StationsService } from '../services/stations.service';
 import { StationDto } from '../dtos/station.dto';
 
-
-
 @Controller('stations')
 export class StationsController {
 
@@ -12,6 +10,7 @@ export class StationsController {
   @Get()
   find() {
     // const { limit, offset } = paginationQuery;
+    console.log('getting stations');
     return this.stationsService.find();
   }
 

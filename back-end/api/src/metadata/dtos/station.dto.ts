@@ -2,5 +2,11 @@ import { IsString } from 'class-validator';
 
 export class StationDto {
     @IsString()
-    readonly name: string;
+    id: string;
+
+    @IsString()
+    name: string;
+
+    @IsString()
+    description: string;
 }

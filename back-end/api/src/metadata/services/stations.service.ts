@@ -34,7 +34,7 @@ export class StationsService {
 
     async update(id: string, stationDto: StationDto) {
         const station = await this.stationRepo.preload({
-            id, ...stationDto,
+             ...stationDto,
         });
         if (!station) {
             throw new NotFoundException(`Station #${id} not found`);

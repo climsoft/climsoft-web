@@ -33,9 +33,9 @@ export class FormSelectionComponent implements OnInit {
 
   }
 
-  onFormClicked(dataClicked:  { [key: string]: any }): void {
+  onFormClicked(dataClicked: Source): void {
     console.log('row clicked',dataClicked)
-    this.router.navigate(['form-entry', this.stationId, dataClicked['id']], { relativeTo: this.route.parent });
+    this.router.navigate(['form-entry', this.stationId, dataClicked.id], { relativeTo: this.route.parent });
 
   }
 

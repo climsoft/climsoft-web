@@ -22,8 +22,8 @@ export class StationSelectionComponent {
   ngOnInit(): void {
   }
 
-  public onStationClick(dataClicked: { [key: string]: any }) {
-    this.router.navigate(['form-selection', dataClicked['id']], {relativeTo: this.route.parent});
+  public onStationClick(station: Station ) {
+    this.router.navigate(['form-selection', station.id], {relativeTo: this.route.parent});
   }
 
 

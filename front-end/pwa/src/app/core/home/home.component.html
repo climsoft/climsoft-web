@@ -1,13 +1,22 @@
-<div class="vh-100 d-flex overflow-hidden">
+<div class="d-flex vh-100 overflow-hidden">
   <!-- Menu Content -->
-  <div class="flex-shrink-0 overflow-y-auto side-bar"
+  <div class="flex-shrink-0 overflow-y-auto  border-light shadow"
     [ngClass]="{'nav-container-open': bOpenSideNav,'nav-container-close': !bOpenSideNav}">
 
-    <div class="card h-100 p-3 rounded-0">
+    <div class="navbar sticky-top shadow bg-light p-0">
+      <div class="d-flex flex-row w-100 justify-content-between">
+        <div class="navbar-brand navbar-text px-3 ">Climsoft</div>
+        <div *ngIf="bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav"> <i class="bi bi-list nav-bar-toggle"></i></div>
+       
+      </div>    
+
+    </div>
+
+    <div class="card p-3 rounded-0 border-0">
       <div class="list-group list-group-flush">
 
         <!-- climsoft banner section -->
-        <a routerLink="/" class="list-group-item list-group-item-action px-0 fw-bold nav-brand">Climsoft</a>
+        <!-- <a routerLink="/" class="list-group-item list-group-item-action px-0 fw-bold nav-brand">Climsoft</a> -->
 
         <!-- login user section -->
         <div class="list-group-item px-0">
@@ -65,28 +74,30 @@
   <!-- Main Content -->
   <div class="flex-grow-1 overflow-y-auto">
     <!-- header content -->
-    <div class="navbar sticky-top shadow-sm bg-white py-0">
-
+    <div class="navbar bg-light sticky-top shadow p-1 mb-3">
       <div class="d-inline-flex">
-        <div (click)="bOpenSideNav = !bOpenSideNav"> <i class="bi bi-list bi-lg py-2 p-1 nav-bar-toggle"></i></div>
+        <div *ngIf="!bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav" > <i class="bi bi-list py-1 nav-bar-toggle"></i></div>
         <div class="navbar-brand navbar-text">{{pageHeaderName}}</div>
       </div>
 
-      <!-- toast container -->
-      <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
-        <div class="card-header">
-          {{ toast.title }}
+        <!-- toast container -->
+        <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
+          <div class="card-header">
+            {{ toast.title }}
+          </div>
+          <div class="card-body text-success">
+            {{ toast.message }}
+          </div>
         </div>
-        <div class="card-body text-success">
-          {{ toast.message }}
-        </div>
-      </div>
 
     </div>
 
     <!-- body content -->
-    <div class="container-fluid mt-2">
-      <router-outlet></router-outlet>
+    <div class="container-fluid ">
+      <div class="card border-0">
+        <router-outlet></router-outlet>
+      </div>    
+     
     </div>
   </div>
 </div>
