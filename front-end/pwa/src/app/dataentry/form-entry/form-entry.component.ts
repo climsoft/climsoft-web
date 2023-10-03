@@ -185,11 +185,11 @@ export class FormEntryComponent implements OnInit {
     this.bEnableSave = validity === 'valid_value';
   }
 
-  onCancel(): void {
+  onCancelClick(): void {
     this.location.back();
   }
 
-  onSave(): void {
+  onSaveClick(): void {
     console.log("saved values", this.observations);
     this.observationService.saveObservations(this.observations).subscribe((data) => {
 

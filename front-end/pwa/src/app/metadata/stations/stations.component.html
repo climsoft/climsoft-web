@@ -1,20 +1,19 @@
-
-<div class="card-header d-flex flex-row justify-content-between px-0 align-items-center">
-  <div>Showing Stations</div>
-  <div>
-    <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onNewStationClick()">
-      Search
-    </button>
-    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewStationClick()">
-      New Station
-    </button>
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between p-0 align-items-center">
+    <div class="fw-bold">Showing Stations</div>
+    <div class="mb-1">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+        Search
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewStationClick()">
+        New
+      </button>
+    </div>
   </div>
-</div>
 
   <div class="card-body px-0">
-   
-
     <app-table-view [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]" [rowsData]="stations"
       (rowDataClicked)="onEditStationClick($event)"></app-table-view>
   </div>
 
+</div>

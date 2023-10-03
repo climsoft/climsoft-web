@@ -31,11 +31,13 @@ export class StationsComponent implements OnInit {
   ngOnInit() {
   }
 
-  public onNewStationClick() {
+   onSearchClick() {}
+
+   onNewStationClick() {
     this.router.navigate(['station-detail','new'], { relativeTo: this.route.parent });
   }
 
-  public onEditStationClick(station: Station) {
+   onEditStationClick(station: Station) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
 

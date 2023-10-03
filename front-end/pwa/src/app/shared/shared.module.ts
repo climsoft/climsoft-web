@@ -4,19 +4,17 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 //--------------------------------
 
-//------- ngx-bootstrap modules -------
+//------- third party modules -------
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { CollapseModule } from 'ngx-bootstrap/collapse';
-//--------------------------------
-
-//------- third party modules -------
+import { AccordionModule } from 'ngx-bootstrap/accordion';
 import { NgSelectModule } from '@ng-select/ng-select';
 //--------------------------------
 
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
-import { SelectorInputComponent } from './controls/selector-input/selector-input.component'; 
+import { SelectorInputComponent } from './controls/selector-input/selector-input.component';
 import { HourInputComponent } from './controls/hour-input/hour-input.component';
 import { StationInputComponent } from './controls/station-input/station-input.component';
 import { YearInputComponent } from './controls/year-input/year-input.component';
@@ -37,11 +35,6 @@ const angularModules = [
   HttpClientModule,
 ];
 
-const thirdPartyModules = [
-  NgSelectModule
-]
-
-
 //--------------------------------
 
 const controlsComponents = [
@@ -54,10 +47,9 @@ const controlsComponents = [
   MonthInputComponent,
   DayInputComponent,
   HourInputComponent,
-
+ 
   StationInputComponent,
   ElementInputComponent,
-  
 
   DataListViewComponent,
   TableViewComponent,
@@ -71,10 +63,11 @@ const controlsComponents = [
   ],
   imports: [
     ...angularModules,
-    ...thirdPartyModules,
 
     BsDropdownModule.forRoot(),
     CollapseModule.forRoot(),
+    AccordionModule.forRoot(),
+    NgSelectModule,
 
   ],
   providers: [
@@ -82,12 +75,13 @@ const controlsComponents = [
   ],
   exports: [
     ...angularModules,
-    ...thirdPartyModules, 
     ...controlsComponents,
 
     BsDropdownModule,
     CollapseModule,
-    
+    AccordionModule,
+    NgSelectModule,
+
   ]
 })
 export class SharedModule { }

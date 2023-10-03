@@ -1,18 +1,58 @@
-<div class="card-body p-0">
+<div class="card border-0">
+    <div class="card-body p-0">
 
-    <div class="card-title fw-bold">station id</div>
+        <div class="card-title fw-bold">{{ station.id + ' - ' + station.name }}</div>
 
-    <div class="card border-0 px-0">
-        <div class="card-header px-0"><i class="bi bi-chevron-right"></i>Station characteristics</div>
+        <div class="card border-0">
+            <div class="card-header px-0 fw-bold cursor-pointer" (click)="showCharacteristics = !showCharacteristics">
+                <i class="me-1 bi"
+                    [ngClass]="{ 'bi-chevron-down':showCharacteristics, 'bi-chevron-right':!showCharacteristics }"></i>Characteristics
+            </div>
+            <div *ngIf="showCharacteristics" class="card-body">
+                <app-text-input [controlLabel]="'Id'" [value]="station.id"></app-text-input>
+                <app-text-input [controlLabel]="'Name'" [value]="station.name"></app-text-input>
+            </div>
+
+        </div>
+
+        <div class="card border-0">
+            <div class="card-header px-0 fw-bold cursor-pointer" (click)="showElements = !showElements">
+                <i class="me-1 bi"
+                    [ngClass]="{ 'bi-chevron-down':showElements, 'bi-chevron-right':!showElements }"></i>Elements
+            </div>
+            <div *ngIf="showElements" class="card-body">
+
+            </div>
+
+        </div>
+
+        <div class="card border-0">
+            <div class="card-header px-0 fw-bold cursor-pointer" (click)="showForms = !showForms">
+                <i class="me-1 bi" [ngClass]="{ 'bi-chevron-down':showForms, 'bi-chevron-right':!showForms }"></i>Forms
+            </div>
+            <div *ngIf="showForms" class="card-body">
+
+            </div>
+        </div>
+
+        <div class="card border-0">
+            <div class="card-header px-0 fw-bold cursor-pointer" (click)="showContacts = !showContacts">
+                <i class="me-1 bi"
+                    [ngClass]="{ 'bi-chevron-down':showContacts, 'bi-chevron-right':!showContacts }"></i>Contacts
+            </div>
+            <div *ngIf="showContacts" class="card-body">
+
+            </div>
+        </div>
 
     </div>
 
-    <div class="card border-0 px-0">
-        <div class="card-header px-0"><i class="bi bi-chevron-down"></i>Elements</div>
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+        <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()"
+            [disabled]="!bEnableSave">
+            Save
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
 
     </div>
-
-
-
-
 </div>
