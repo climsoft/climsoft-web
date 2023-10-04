@@ -6,8 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 //------- third party modules -------
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { CollapseModule } from 'ngx-bootstrap/collapse';
-import { AccordionModule } from 'ngx-bootstrap/accordion';
+import { CollapseModule } from 'ngx-bootstrap/collapse'; 
 import { NgSelectModule } from '@ng-select/ng-select';
 //--------------------------------
 
@@ -65,8 +64,7 @@ const controlsComponents = [
     ...angularModules,
 
     BsDropdownModule.forRoot(),
-    CollapseModule.forRoot(),
-    AccordionModule.forRoot(),
+    CollapseModule.forRoot(), 
     NgSelectModule,
 
   ],
@@ -78,8 +76,7 @@ const controlsComponents = [
     ...controlsComponents,
 
     BsDropdownModule,
-    CollapseModule,
-    AccordionModule,
+    CollapseModule, 
     NgSelectModule,
 
   ]

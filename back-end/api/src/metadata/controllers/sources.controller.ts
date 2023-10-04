@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { SourcesService } from './sources.service';
+import { SourcesService } from '../services/sources.service';
 import { CreateSourceDto } from '../dtos/create-source.dto';
 
 @Controller('sources')

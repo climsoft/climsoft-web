@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators'; 
 import { Station } from '../models/station.model';
+import { StationFormModel } from '../models/station-form.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,30 +21,25 @@ export class StationsService {
       );
   }
 
-  getStation(stationId: number): Observable<Station> { 
+  getStation(stationId: string): Observable<Station> { 
     const url = `${this.endPointUrl}/${stationId}`;
+    console.log(url)
     return this.http.get<Station>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  createStation(stationId: Station): Observable<Station> {
-    return this.http.post<Station>(this.endPointUrl, stationId)
+
+
+  save(station: Station): Observable<Station> {
+    return this.http.post<Station>(this.endPointUrl, station)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  updateStation(stationId: Station): Observable<Station> {
-    const url = `${this.endPointUrl}/${stationId.id}`; 
-    return this.http.patch<Station>(url, stationId)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  deleteStation(stationId: number): Observable<Station> {
+  delete(stationId: number): Observable<Station> {
     //todo use json as body of ids?
     const url = `${this.endPointUrl}/${stationId}`; 
     return this.http.delete<Station>(url)
@@ -51,6 +47,26 @@ export class StationsService {
         catchError(this.handleError)
       );
   }
+
+
+  getStationForms(stationId: string): Observable<StationFormModel[]> { 
+    const url = `${this.endPointUrl}/forms/${stationId}`;
+    return this.http.get<StationFormModel[]>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  saveStationForms(station: StationFormModel): Observable<StationFormModel> {
+    const url = `${this.endPointUrl}/forms`; 
+    return this.http.post<StationFormModel>(url, station)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+
+
 
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {

@@ -1,6 +1,6 @@
-import { IsString } from 'class-validator';
+import { IsString } from 'class-validator'; 
 
-export class StationDto {
+export class CreateStationDto {
     @IsString()
     id: string;
 
@@ -9,4 +9,5 @@ export class StationDto {
 
     @IsString()
     description: string;
+
 }

@@ -3,7 +3,7 @@ import { Observation } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
-import { EntryForm } from 'src/app/core/models/entryform.model';
+import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { Element } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';

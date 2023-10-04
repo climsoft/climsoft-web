@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { EntryForm } from '../../core/models/entryform.model';
+import { EntryForm } from '../../core/models/entry-form.model';
 import { Observation } from '../../core/models/observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { SourcesService } from 'src/app/core/services/sources.service';

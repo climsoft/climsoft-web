@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { StationFormModel } from 'src/app/core/models/station-form.model';
 import { Station } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations.service';
@@ -15,8 +16,9 @@ export class StationDetailComponent implements OnInit {
   showElements: boolean = false;
   showForms: boolean = false;
   showContacts: boolean = false;
-  bEnableSave: boolean = false;
+  bAllowSave: boolean = false;
   station!: Station;
+  forms!: StationFormModel[];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -35,6 +37,18 @@ export class StationDetailComponent implements OnInit {
     });
 
   }
+
+  loadForms(){
+
+    if(!this.forms){
+      console.log('loading forms')
+      this.stationsService.getStationForms(this.station .id).subscribe((data) => {
+        this.forms = data;
+      });
+    }
+
+  }
+
 
   onSaveClick(){
 

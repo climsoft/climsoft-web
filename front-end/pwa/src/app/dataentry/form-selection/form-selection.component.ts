@@ -10,18 +10,18 @@ import { StationsService } from 'src/app/core/services/stations.service';
   styleUrls: ['./form-selection.component.scss']
 })
 export class FormSelectionComponent implements OnInit {
-  stationId: number = 0;
-  stationName: string ='';
+  stationId: string = '';
+  stationName: string = '';
   sources: Source[] = [];
 
-  constructor( private stationsService: StationsService,private sourcesService: SourcesService, private route: ActivatedRoute, private router: Router) {
+  constructor(private stationsService: StationsService, private sourcesService: SourcesService, private route: ActivatedRoute, private router: Router) {
   }
 
   ngOnInit(): void {
 
     this.stationId = this.route.snapshot.params['stationid'];
 
-    this.stationsService.getStation( this.stationId).subscribe((data) => {
+    this.stationsService.getStation(this.stationId).subscribe((data) => {
       this.stationName = `${data.id} - ${data.name}`;
     });
 
@@ -34,7 +34,7 @@ export class FormSelectionComponent implements OnInit {
   }
 
   onFormClicked(dataClicked: Source): void {
-    console.log('row clicked',dataClicked)
+    console.log('row clicked', dataClicked)
     this.router.navigate(['form-entry', this.stationId, dataClicked.id], { relativeTo: this.route.parent });
 
   }

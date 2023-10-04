@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
-import { StationDto } from '../dtos/station.dto';
+import { CreateStationDto } from '../dtos/station.dto';
+import { CreateStationFormDto } from '../dtos/create-station-form.dto';
 
 @Controller('stations')
 export class StationsController {
@@ -8,30 +9,37 @@ export class StationsController {
   constructor(private readonly stationsService: StationsService) { }
 
   @Get()
-  find() {
+  findAll() {
     // const { limit, offset } = paginationQuery;
-    console.log('getting stations');
-    return this.stationsService.find();
+    return this.stationsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.stationsService.findOne('' + id);
+  findCharacteristics(@Param('id') id: string) {
+    console.log('chracteristics', id)
+    return this.stationsService.findOne(id);
+  }
+
+  @Get('forms/:id')
+  findForms(@Param('id') id: string) {
+    console.log('forms', id)
+    return this.stationsService.findForms(id);
   }
 
   @Post()
-  create(@Body() stationDto: StationDto) {
-    return this.stationsService.create(stationDto);
+  saveCharacteristics(@Body() stationDto: CreateStationDto) {
+    return this.stationsService.saveCharacteristics(stationDto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() stationDto: StationDto) {
-    return this.stationsService.update(id, stationDto);
+  @Post('forms')
+  saveForms(@Body() stationFormDtos: CreateStationFormDto[]) {
+    return this.stationsService.saveForms(stationFormDtos);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.stationsService.remove(id);
-  }
+
+  // @Delete(':id')
+  // removeStation(@Param('id') id: string) {
+  //   return this.stationsService.remove(id);
+  // }
 
 }

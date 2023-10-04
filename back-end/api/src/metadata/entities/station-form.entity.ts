@@ -1,8 +1,8 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_station_sources")
-export class StationSourceEntity {
+@Entity("web_station_forms")
+export class StationFormEntity {
 
     @PrimaryColumn({ type: 'varchar' })
     stationId: string;
@@ -23,3 +23,9 @@ export class StationSourceEntity {
     log: string | null;
 
 }
+
+export interface StationFormLogVo {
+    comment: string | null;
+    entryUser: number;
+    entryDateTime: string;  
+  }
