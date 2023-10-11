@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Source } from '../../core/models/source.model';
+import { SourceModel } from '../../core/models/source.model';
 import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -12,7 +12,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class FormsComponent implements OnInit {
 
-  sources: Source[] = [];
+  sources: SourceModel[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -33,7 +33,7 @@ export class FormsComponent implements OnInit {
     });
   }
 
-  onFormClicked(dataClicked: Source): void {
+  onFormClicked(dataClicked: SourceModel): void {
     this.router.navigate(['form-builder', dataClicked.id], { relativeTo: this.route.parent });
   }
 

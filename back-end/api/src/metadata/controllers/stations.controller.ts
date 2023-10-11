@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
-import { CreateStationDto } from '../dtos/station.dto';
+import { CreateStationDto } from '../dtos/create-station.dto';
 import { CreateStationFormDto } from '../dtos/create-station-form.dto';
 
 @Controller('stations')
@@ -20,20 +20,23 @@ export class StationsController {
     return this.stationsService.findOne(id);
   }
 
+  @Post()
+  saveCharacteristics(@Body() stationDto: CreateStationDto[]) {
+    return this.stationsService.save(stationDto);
+  }
+
+
   @Get('forms/:id')
   findForms(@Param('id') id: string) {
-    console.log('forms', id)
+    console.log('getting forms for ', id)
     return this.stationsService.findForms(id);
   }
 
-  @Post()
-  saveCharacteristics(@Body() stationDto: CreateStationDto) {
-    return this.stationsService.saveCharacteristics(stationDto);
-  }
 
-  @Post('forms')
-  saveForms(@Body() stationFormDtos: CreateStationFormDto[]) {
-    return this.stationsService.saveForms(stationFormDtos);
+  @Post('forms/:id')
+  saveForms(@Param('id') stationId: string, @Body() formIds: number[]) {
+    console.log('saving forms for ',stationId)
+    return this.stationsService.saveForms(stationId, formIds);
   }
 
 

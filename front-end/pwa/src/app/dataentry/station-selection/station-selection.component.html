@@ -1,24 +1,48 @@
-<div class="container-fluid">
-    <div class="row d-flex justify-content-between align-items-center mb-2">
-        <div class="col">
-            <h4 class="fw-normal component-h1">Select Station</h4>
-        </div>
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between p-0 align-items-center">
+    <div class="fw-bold">Showing Stations</div>
+    <div class="mb-1">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+        Search
+      </button>
     </div>
+  </div>
 
-    <!-- <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
-      {
-        actionName: 'Select',
-        actionCssClassName: 'btn-outline-primary',
-        actionIconCssClassName: ''
-      }
-    ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view> -->
+  <div class="card-body px-0">
+    <!-- <app-table-view [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]" [rowsData]="stations"
+      (rowDataClicked)="onStationClick($event)"></app-table-view> -->
 
-    <div class="card" >
-      <div class="card-body">
-        <div class="card-title">Stations</div>
-        <app-table-view  [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"   [rowsData]="stations" (rowDataClicked)="onStationClick($event)"></app-table-view>
-      </div>
-    </div>
 
+
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Id</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let row of stations">
+          <tr class="cursor-pointer" (click)="loadStationForms(row); row.selected = !row.selected;">
+            <td>
+              <i #icon class="me-1 bi"
+                [ngClass]="{ 'bi-chevron-down':row.selected, 'bi-chevron-right':!row.selected }"></i>
+            </td>
+            <td>{{ row.id}}</td>
+            <td>{{ row.name}}</td>
+            <td>
+              <app-table-view  *ngIf="row.selected && row.forms" [columnsData]="[ {id: 'sourceId', name: 'Form Id'}, {id: 'sourceName', name: 'Form Name'}, {id: 'sourceDescription', name: 'Form Description'} ]" [rowsData]="row.forms"
+                (rowDataClicked)="onFormClick($event)"></app-table-view>
+            </td>
+          </tr>
+        
+        </ng-container>
+
+
+      </tbody>
+    </table>
+
+  </div>
 
 </div>

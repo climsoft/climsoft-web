@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StationFormModel } from 'src/app/core/models/station-form.model';
-import { Station } from 'src/app/core/models/station.model';
+import { StationModel } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 
@@ -12,12 +12,12 @@ import { StationsService } from 'src/app/core/services/stations.service';
 })
 export class StationDetailComponent implements OnInit {
 
-  showCharacteristics: boolean =  true;
+  showCharacteristics: boolean = true;
   showElements: boolean = false;
   showForms: boolean = false;
   showContacts: boolean = false;
   bAllowSave: boolean = false;
-  station!: Station;
+  station!: StationModel;
   forms!: StationFormModel[];
 
   constructor(
@@ -38,24 +38,47 @@ export class StationDetailComponent implements OnInit {
 
   }
 
-  loadForms(){
+  loadForms(): void {
 
-    if(!this.forms){
-      console.log('loading forms')
-      this.stationsService.getStationForms(this.station .id).subscribe((data) => {
+    if (!this.forms) {
+      this.stationsService.getStationForms(this.station.id).subscribe((data) => {
         this.forms = data;
       });
     }
 
   }
 
+  getFormIds(): number[] {
+    return this.forms.map(form => form.sourceId) ?? [];
+  }
 
-  onSaveClick(){
+  onFormsSelected(selectedIds: number[]): void {
+
+    console.log('posting', selectedIds)
+    this.stationsService.saveStationForms(this.station.id, selectedIds).subscribe((data) => {
+      this.forms = data;
+    });
+
 
   }
 
-  onCancelClick(){
+  onFormDeleteClick(form: StationFormModel): void {
 
   }
+
+
+  onSaveClick(): void {
+
+  }
+
+  onCancelClick(): void {
+
+  }
+
+
+
+
+
+
 
 }

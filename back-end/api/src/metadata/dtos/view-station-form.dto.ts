@@ -1,4 +1,4 @@
-import { IsDate, IsJSON, IsNumber, IsString } from 'class-validator';
+import { IsDate, IsNumber, IsString } from 'class-validator';
 
 export class ViewStationFormDto {
 
@@ -13,17 +13,10 @@ export class ViewStationFormDto {
 
     @IsString()
     sourceDescription: string;
-
-    @IsString()
-    comment: string | null;
   
     @IsString()
-    entryUser: string;
+    entryUserId: string;
 
     @IsDate()
     entryDateTime: string;
-
-    @IsJSON()
-    log: string | null;
-
 }

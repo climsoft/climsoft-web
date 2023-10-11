@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { Source } from '../models/source.model';
+import { SourceModel } from '../models/source.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,39 +13,43 @@ export class SourcesService {
 
   constructor(private http: HttpClient) { }
 
-  getSources(sourceTypeId: number): Observable<Source[]> { 
-    return this.http.get<Source[]>(this.endPointUrl,{params: new HttpParams().set('sourceTypeId', sourceTypeId)})
+  getForms(): Observable<SourceModel[]> {
+    return this.getSources(1);
+  }
+  
+  getSources(sourceTypeId: number): Observable<SourceModel[]> {
+    return this.http.get<SourceModel[]>(this.endPointUrl, { params: new HttpParams().set('sourceTypeId', sourceTypeId) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  getSource(sourceId: number): Observable<Source> { 
-    return this.http.get<Source>(this.endPointUrl,{params: new HttpParams().set('sourceId', sourceId)})
+  getSource(sourceId: number): Observable<SourceModel> {
+    return this.http.get<SourceModel>(this.endPointUrl, { params: new HttpParams().set('sourceId', sourceId) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  createSource(source: Source): Observable<Source> {
-    return this.http.post<Source>(this.endPointUrl, source)
+  createSource(source: SourceModel): Observable<SourceModel> {
+    return this.http.post<SourceModel>(this.endPointUrl, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  updateSource(source: Source): Observable<Source> {
-    const url = `${this.endPointUrl}/${source.id}`; 
-    return this.http.patch<Source>(url, source)
+  updateSource(source: SourceModel): Observable<SourceModel> {
+    const url = `${this.endPointUrl}/${source.id}`;
+    return this.http.patch<SourceModel>(url, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteSource(id: number): Observable<Source> {
+  deleteSource(id: number): Observable<SourceModel> {
     //todo use json as body of ids?
-    const url = `${this.endPointUrl}/${id}`; 
-    return this.http.delete<Source>(url)
+    const url = `${this.endPointUrl}/${id}`;
+    return this.http.delete<SourceModel>(url)
       .pipe(
         catchError(this.handleError)
       );

@@ -24,6 +24,8 @@ import { DataListViewComponent } from './controls/data-list-view/data-list-view.
 import { HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
+import { DialogComponent } from './controls/dialog/dialog.component';
+import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 
 //--------------------------------
 
@@ -52,13 +54,16 @@ const controlsComponents = [
 
   DataListViewComponent,
   TableViewComponent,
-
+  DialogComponent,
+  FormSelectorDialogComponent,
 
 ];
 
 @NgModule({
   declarations: [
     ...controlsComponents,
+    
+    
   ],
   imports: [
     ...angularModules,

@@ -9,23 +9,10 @@ export class StationFormEntity {
 
     @PrimaryColumn({ type: 'int' })
     sourceId: number;
-
-    @Column({ type: 'varchar', nullable: true })
-    comment: string | null;
   
-    @Column({ type: 'int' })
-    entryUser: number;
+    @Column({ type: 'varchar' })
+    entryUserId: string;
 
     @Column({ type: 'datetime', transformer: new DateTimeColumn() })
     entryDateTime: string;
-
-    @Column({ type: 'json', nullable: true })
-    log: string | null;
-
 }
-
-export interface StationFormLogVo {
-    comment: string | null;
-    entryUser: number;
-    entryDateTime: string;  
-  }

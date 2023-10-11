@@ -1,0 +1,24 @@
+<!-- my-dialog.component.html -->
+<div *ngIf="open" class="dialog-overlay">
+    <div class="card m-3">
+        
+        <div class="card-header bg-transparent">
+            {{ title }}
+        </div>
+
+        <div class="card-body">
+            <ng-content></ng-content>
+        </div>
+
+        <div class="card-footer bg-transparent d-flex justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onCloseDialog('OK')">
+                {{okButtonLabel}}
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCloseDialog('CANCEL')">
+                {{cancelButtonLabel }}
+            </button>
+        </div>
+
+    </div>
+
+</div>

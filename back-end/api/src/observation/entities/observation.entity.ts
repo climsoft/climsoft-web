@@ -37,8 +37,8 @@ export class ObservationEntity {
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;
 
-  @Column({ type: 'int' })
-  entryUser: number;
+  @Column({ type: 'varchar' })
+  entryUserId: string;
 
   //for consistency in date time storage. This should be set at application level instead of relying on typeorm and database
   //for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
@@ -59,7 +59,6 @@ export interface ObservationLogVo {
   flag: number | null;
   qcStatus: number;
   comment: string | null;
-  entryUser: number;
+  entryUserId: string;
   entryDateTime: string;
- 
 }

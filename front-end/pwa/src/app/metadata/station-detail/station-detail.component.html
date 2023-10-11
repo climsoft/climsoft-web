@@ -13,6 +13,13 @@
                 <app-text-input [controlLabel]="'Name'" [value]="station.name"></app-text-input>
             </div>
 
+            <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+                <button type="button" class="btn btn-sm btn-outline-primary" (click)="onSaveClick()"
+                    [disabled]="!bAllowSave">
+                    Save
+                </button>
+            </div>
+
         </div>
 
         <div class="card border-0">
@@ -30,9 +37,21 @@
             <div class="card-header px-0 fw-bold cursor-pointer" (click)="showForms = !showForms; loadForms()">
                 <i class="me-1 bi" [ngClass]="{ 'bi-chevron-down':showForms, 'bi-chevron-right':!showForms }"></i>Forms
             </div>
-            <div *ngIf="showForms" class="card-body">
+            <div *ngIf="showForms" class="card-body px-0">
 
-                <!-- left here table for forms -->
+                <div class="d-flex justify-content-end px-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        (click)="dlgFormSelector.openDialog(getFormIds())">New</button>
+                    <app-form-selector-dialog #dlgFormSelector
+                        (ok)="onFormsSelected($event)"></app-form-selector-dialog>
+                </div>
+
+                <div class="px-3">
+                    <app-table-view
+                        [columnsData]="[ {id: 'sourceId', name: 'Id'}, {id: 'sourceName', name: 'Name'}, {id: 'sourceDescription', name: 'Description'}  ]"
+                        [rowsData]="forms" (rowDataClicked)="onFormDeleteClick($event)"></app-table-view>
+                </div>
+
 
             </div>
         </div>
@@ -49,12 +68,6 @@
 
     </div>
 
-    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()"
-            [disabled]="!bAllowSave">
-            Save
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
 
-    </div>
+
 </div>

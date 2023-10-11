@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { EntryForm } from '../../core/models/entry-form.model';
 import { DateUtils } from '../../shared/utils/date.utils';
-import { Source } from '../../core/models/source.model';
+import { SourceModel } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
 
@@ -12,7 +12,7 @@ import { SourcesService } from 'src/app/core/services/sources.service';
   styleUrls: ['./form-builder.component.scss']
 })
 export class FormBuilderComponent implements OnInit {
-  source!: Source;
+  source!: SourceModel;
 
   allEntrySelectors: { [key: string]: any }[] = [{ id: 'year', name: 'Year' }, { id: "month", name: 'Month' }, { id: 'day', name: 'Day' }, { id: 'hour', name: 'Hour' }, { id: 'elementId', name: 'Element' }];;
   allEntryFields: { [key: string]: any }[] = [];
@@ -40,7 +40,7 @@ export class FormBuilderComponent implements OnInit {
     }
   }
 
-  private setControlValues(source?: Source) {
+  private setControlValues(source?: SourceModel) {
 
     if (source) {
       this.source = source;

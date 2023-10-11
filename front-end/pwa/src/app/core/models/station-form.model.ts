@@ -3,8 +3,6 @@ export interface StationFormModel {
     sourceId: number;
     sourceName: string;
     sourceDescription: string;
-    comment: string | null;
-    entryUser: string;
+    entryUserId: string;
     entryDateTime: string;
-    log: string | null;
 }

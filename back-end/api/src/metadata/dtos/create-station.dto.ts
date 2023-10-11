@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator'; 
+import { IsString } from 'class-validator';
 
 export class CreateStationDto {
     @IsString()
@@ -10,4 +10,8 @@ export class CreateStationDto {
     @IsString()
     description: string;
 
+    @IsString()
+    comment: string | null;
+
 }
+

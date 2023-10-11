@@ -120,7 +120,7 @@ export class ObservationsService {
             flag: entity.flag,
             qcStatus: entity.qcStatus,
             comment: entity.comment,
-            entryUser: entity.entryUser,
+            entryUserId: entity.entryUserId,
             entryDateTime: entity.entryDateTime,
          
         };
@@ -133,7 +133,7 @@ export class ObservationsService {
             flag: dto.flag,
             qcStatus: dto.qcStatus,
             comment: dto.comment,
-            entryUser: 2, //todo. this will come from user session or token
+            entryUserId: '2', //todo. this will come from user session or token
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),           
         };
     }
@@ -144,7 +144,7 @@ export class ObservationsService {
         entity.flag = dto.flag;
         entity.qcStatus = dto.qcStatus;
         entity.comment = dto.comment;
-        entity.entryUser = 2;
+        entity.entryUserId = '2';
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
         entity.log = this.getNewLog(entity.log, this.getObservationLogFromEntity(entity));
     }

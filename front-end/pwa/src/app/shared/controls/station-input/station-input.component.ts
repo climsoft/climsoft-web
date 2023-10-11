@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
-import { Station } from '../../../core/models/station.model';
+import { StationModel } from '../../../core/models/station.model';
 
 @Component({
   selector: 'app-station-input',
@@ -11,7 +11,7 @@ export class StationInputComponent implements OnInit, OnChanges {
   @Input() multiple: boolean = false;
   @Input() value!: any;
   @Output() valueChange = new EventEmitter<any>();
-  stations!: Station[];
+  stations!: StationModel[];
 
   constructor() {
     //this.stations = this.repo.getStations();

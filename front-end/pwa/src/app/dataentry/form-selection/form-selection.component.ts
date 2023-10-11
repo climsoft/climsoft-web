@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Source } from '../../core/models/source.model';
+import { SourceModel } from '../../core/models/source.model';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 
@@ -12,7 +12,7 @@ import { StationsService } from 'src/app/core/services/stations.service';
 export class FormSelectionComponent implements OnInit {
   stationId: string = '';
   stationName: string = '';
-  sources: Source[] = [];
+  sources: SourceModel[] = [];
 
   constructor(private stationsService: StationsService, private sourcesService: SourcesService, private route: ActivatedRoute, private router: Router) {
   }
@@ -33,7 +33,7 @@ export class FormSelectionComponent implements OnInit {
 
   }
 
-  onFormClicked(dataClicked: Source): void {
+  onFormClicked(dataClicked: SourceModel): void {
     console.log('row clicked', dataClicked)
     this.router.navigate(['form-entry', this.stationId, dataClicked.id], { relativeTo: this.route.parent });
 

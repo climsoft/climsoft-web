@@ -5,7 +5,7 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngFor="let row of rowsData" (click)="onRowDataClicked(row)" style="cursor: pointer;">
+        <tr class="cursor-pointer" *ngFor="let row of rowsData" (click)="onRowDataClicked(row)">
             <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
         </tr>
     </tbody>

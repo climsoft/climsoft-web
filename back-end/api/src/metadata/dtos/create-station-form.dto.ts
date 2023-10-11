@@ -8,7 +8,4 @@ export class CreateStationFormDto {
     @IsNumber()
     sourceId: number;
 
-    @IsString()
-    comment: string | null;
-
 }

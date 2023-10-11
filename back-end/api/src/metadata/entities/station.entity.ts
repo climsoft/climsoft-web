@@ -12,7 +12,7 @@ export class StationEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  // @Column({ type: 'int', nullable: true })
+  // @Column({ type: 'int' })
   // stationType: number;
 
   // @Column({ type: 'int', nullable: true })
@@ -54,16 +54,24 @@ export class StationEntity {
   // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
   // statusChangeDate: string | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // comment: string | null;
+   @Column({ type: 'varchar', nullable: true })
+   comment: string | null;
 
-  // @Column({ type: 'int' })
-  // entryUser: number;
+   @Column({ type: 'varchar' })
+   entryUserId: string;
 
-  // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
-  // entryDateTime: string;
+   @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+   entryDateTime: string;
  
-  // @Column({ type: 'json', nullable: true })
-  // log: string | null;
+   @Column({ type: 'json', nullable: true })
+   log: string | null;
 
+}
+
+export interface StationLogVo {
+  name: string;
+  description: string;
+  comment: string | null;
+  entryUserId: string;
+  entryDateTime: string;  
 }

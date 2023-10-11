@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators'; 
-import { Station } from '../models/station.model';
+import { StationModel } from '../models/station.model';
 import { StationFormModel } from '../models/station-form.model';
 
 @Injectable({
@@ -14,17 +14,17 @@ export class StationsService {
 
   constructor(private http: HttpClient) { }
 
-  getStations(): Observable<Station[]> { 
-    return this.http.get<Station[]>(this.endPointUrl)
+  getStations(): Observable<StationModel[]> { 
+    return this.http.get<StationModel[]>(this.endPointUrl)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  getStation(stationId: string): Observable<Station> { 
+  getStation(stationId: string): Observable<StationModel> { 
     const url = `${this.endPointUrl}/${stationId}`;
     console.log(url)
-    return this.http.get<Station>(url)
+    return this.http.get<StationModel>(url)
       .pipe(
         catchError(this.handleError)
       );
@@ -32,17 +32,17 @@ export class StationsService {
 
 
 
-  save(station: Station): Observable<Station> {
-    return this.http.post<Station>(this.endPointUrl, station)
+  save(station: StationModel): Observable<StationModel> {
+    return this.http.post<StationModel>(this.endPointUrl, station)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  delete(stationId: number): Observable<Station> {
+  delete(stationId: number): Observable<StationModel> {
     //todo use json as body of ids?
     const url = `${this.endPointUrl}/${stationId}`; 
-    return this.http.delete<Station>(url)
+    return this.http.delete<StationModel>(url)
       .pipe(
         catchError(this.handleError)
       );
@@ -57,9 +57,9 @@ export class StationsService {
       );
   }
 
-  saveStationForms(station: StationFormModel): Observable<StationFormModel> {
-    const url = `${this.endPointUrl}/forms`; 
-    return this.http.post<StationFormModel>(url, station)
+  saveStationForms(stationId: string, formIds: number[]): Observable<StationFormModel[]> {
+    const url = `${this.endPointUrl}/forms/${stationId}`; 
+    return this.http.post<StationFormModel[]>(url, formIds)
       .pipe(
         catchError(this.handleError)
       );
