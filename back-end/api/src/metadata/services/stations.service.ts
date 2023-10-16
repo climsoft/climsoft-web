@@ -10,13 +10,19 @@ import { ViewStationFormDto } from '../dtos/view-station-form.dto';
 import { SourceEntity } from '../entities/source.entity';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { DateUtils } from 'src/shared/utils/date.utils';
+import { ViewStationElementDto } from '../dtos/view-station-element.dto';
+import { StationElementEntity } from '../entities/station-element.entity';
+import { ElementsService } from './elements.service';
+import { ElementEntity } from '../entities/element.entity';
 
 @Injectable()
 export class StationsService {
 
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
+        @InjectRepository(StationElementEntity) private readonly stationElementsRepo: Repository<StationElementEntity>,
         @InjectRepository(StationFormEntity) private readonly stationFormsRepo: Repository<StationFormEntity>,
+        private readonly elementsService: ElementsService,
         private readonly sourcesService: SourcesService,
     ) { }
 
@@ -98,10 +104,22 @@ export class StationsService {
     }
 
 
-    // async remove(id: string) {
-    //     const station = await this.findOne(id);
-    //     return this.stationRepo.remove(station);
-    // }
+    async findElements(stationId: string): Promise<ViewStationElementDto[]> {
+        const stationElements: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
+        const stationElementDetails: ElementEntity[] = await this.elementsService.find();
+
+        return stationElements.flatMap(form => {
+            const elementDetails: undefined | ElementEntity = stationElementDetails.find(fd => fd.id === form.elementId);
+            return elementDetails ? {
+                stationId: form.stationId,
+                elementId: form.elementId,
+                elementName: elementDetails.name,
+                elementDescription: elementDetails.description,
+                entryUserId: form.entryUserId, //todo. get user name
+                entryDateTime: form.entryDateTime
+            } : []; // No matching formDetails, return an empty array
+        });
+    }
 
 
     async findForms(stationId: string): Promise<ViewStationFormDto[]> {
@@ -115,7 +133,7 @@ export class StationsService {
                 sourceId: form.sourceId,
                 sourceName: formDetails.name,
                 sourceDescription: formDetails.description,
-                entryUserId: form.entryUserId + '', //todo. get user name
+                entryUserId: form.entryUserId, //todo. get user name
                 entryDateTime: form.entryDateTime
             } : []; // No matching formDetails, return an empty array
         });
@@ -127,7 +145,7 @@ export class StationsService {
         await this.stationFormsRepo.remove(existingStationForms);
 
         // Create and save new forms for the station
-        const stationFormEntities = formIds.map(formId => this.stationFormsRepo.create({ stationId: stationId, sourceId: formId,entryUserId: '2',entryDateTime: DateUtils.getTodayDateInSQLFormat() }));
+        const stationFormEntities = formIds.map(formId => this.stationFormsRepo.create({ stationId: stationId, sourceId: formId, entryUserId: '2', entryDateTime: DateUtils.getTodayDateInSQLFormat() }));
         await this.stationFormsRepo.save(stationFormEntities);
         return this.findForms(stationId);
     }

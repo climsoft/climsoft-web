@@ -1,10 +1,10 @@
-<table class="table table-striped table-hover">
+<table class="table table-striped table-hover  table-sm">
     <thead>
         <tr>
             <th *ngFor="let col of columnsData" scope="col">{{ col.name }}</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody class="table-group-divider">
         <tr class="cursor-pointer" *ngFor="let row of rowsData" (click)="onRowDataClicked(row)">
             <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
         </tr>

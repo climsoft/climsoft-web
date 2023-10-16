@@ -12,6 +12,7 @@ export interface FormSelection extends SourceModel {
   styleUrls: ['./form-selector-dialog.component.scss']
 })
 export class FormSelectorDialogComponent {
+ @Input() okButtonLabel: string = 'Add';
   @Output() ok = new EventEmitter<number[]>();
   open: boolean = false;
   forms!: FormSelection[];

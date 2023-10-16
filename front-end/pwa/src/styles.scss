@@ -18,14 +18,18 @@ body {
 
 body {
     margin: 0;
-   // font-family: Roboto, "Helvetica Neue", sans-serif;
+    // font-family: Roboto, "Helvetica Neue", sans-serif;
     font-family: arial, helvetica, verdana, sans-serif;
     //font-size: 0.75rem; //12px
-   // background-color: #f5f7fb
+    // background-color: #f5f7fb
 }
 
-.cursor-pointer{
+.cursor-pointer {
     cursor: pointer;
+}
+
+.table-group-divider {
+    border-top-color: #ddd;
 }
 
 

@@ -1,10 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { StationModel } from '../../core/models/station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormModel } from 'src/app/core/models/station-form.model';
-
 
 export interface StationView extends StationModel {
   forms?: StationFormModel[];
@@ -12,11 +11,12 @@ export interface StationView extends StationModel {
 }
 
 @Component({
-  selector: 'app-station-selection',
-  templateUrl: './station-selection.component.html',
-  styleUrls: ['./station-selection.component.scss']
+  selector: 'app-station-form-selection',
+  templateUrl: './station-form-selection.component.html',
+  styleUrls: ['./station-form-selection.component.scss']
 })
-export class StationSelectionComponent {
+export class StationFormSelectionComponent {
+
   stations!: StationView[];
 
   constructor(private pagesDataService: PagesDataService, private stationsService: StationsService, private router: Router, private route: ActivatedRoute) {
@@ -26,9 +26,6 @@ export class StationSelectionComponent {
       this.stations = data.map(station => ({ ...station, selected: false }));
     });
 
-  }
-
-  ngOnInit(): void {
   }
 
   public onSearchClick(): void {
@@ -47,7 +44,5 @@ export class StationSelectionComponent {
   public onFormClick(form: StationFormModel): void {
     this.router.navigate(['form-entry', form.stationId, form.sourceId], { relativeTo: this.route.parent });
   }
-
-
 
 }

@@ -29,7 +29,7 @@ export class HomeComponent implements OnInit {
       children: [
         {
           name: 'Forms',
-          url: '/station-selection',
+          url: '/station-form-selection',
           featureTitle: 'Data Entry'
         },
         {

@@ -1,27 +1,29 @@
-import { type } from "os";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("web_elements")
 export class ElementEntity {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: 'int' })
   id: number;
 
-  @Column()
+  @Column({ type: 'varchar' })
   name: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   abbreviation: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   description: string;
+  
+  @Column({ type: 'int' })
+  typeId: number;
 
-  @Column()
+  @Column({ type: 'int' })
   lowerLimit: number;
 
-  @Column()
+  @Column({ type: 'int' })
   upperLimit: number;
 
-  @Column( {type: 'float' , default: 1})
+  @Column({ type: 'float', default: 1 })
   entryScaleFactor: number;
 
   @Column()

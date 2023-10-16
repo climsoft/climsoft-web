@@ -16,7 +16,6 @@ export class StationsController {
 
   @Get(':id')
   findCharacteristics(@Param('id') id: string) {
-    console.log('chracteristics', id)
     return this.stationsService.findOne(id);
   }
 
@@ -25,17 +24,20 @@ export class StationsController {
     return this.stationsService.save(stationDto);
   }
 
+  
+  @Get('elements/:id')
+  findElements(@Param('id') id: string) {
+    return this.stationsService.findElements(id);
+  }
 
   @Get('forms/:id')
   findForms(@Param('id') id: string) {
-    console.log('getting forms for ', id)
     return this.stationsService.findForms(id);
   }
 
 
   @Post('forms/:id')
   saveForms(@Param('id') stationId: string, @Body() formIds: number[]) {
-    console.log('saving forms for ',stationId)
     return this.stationsService.saveForms(stationId, formIds);
   }
 

@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators'; 
 import { StationModel } from '../models/station.model';
 import { StationFormModel } from '../models/station-form.model';
+import { StationElementModel } from '../models/station-element.model';
 
 @Injectable({
   providedIn: 'root'
@@ -48,6 +49,14 @@ export class StationsService {
       );
   }
 
+
+  getStationElements(stationId: string): Observable<StationElementModel[]> { 
+    const url = `${this.endPointUrl}/elements/${stationId}`;
+    return this.http.get<StationElementModel[]>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
   getStationForms(stationId: string): Observable<StationFormModel[]> { 
     const url = `${this.endPointUrl}/forms/${stationId}`;
