@@ -9,10 +9,10 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let month of months"  class="cursor-pointer">
+            <tr *ngFor="let month of months" class="cursor-pointer">
                 <td>{{ month.monthName }}</td>
                 <td><app-number-input [(value)]="month.lowerLimit"></app-number-input></td>
-                <td> <app-number-input [(value)]="month.upperLimit"></app-number-input></td>
+                <td><app-number-input [(value)]="month.upperLimit"></app-number-input></td>
             </tr>
         </tbody>
     </table>

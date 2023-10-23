@@ -103,7 +103,6 @@ export class StationsService {
         return JSON.stringify(logs);
     }
 
-
     async findElements(stationId: string): Promise<ViewStationElementDto[]> {
         const stationElements: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const stationElementDetails: ElementEntity[] = await this.elementsService.find();
@@ -128,7 +127,7 @@ export class StationsService {
                 stationId: stationId,
                 elementId: In(elementIds),
             }
-        });
+        }); 
     
         // get existing element ids from the entities
         const existingElementIds = existingElements.map(element => element.elementId);

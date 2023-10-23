@@ -47,7 +47,7 @@ export class StationsController {
 
   @Post('element-limits/:id')
   saveElementLimits(@Param('id') stationId: string, @Body() elementIds: number[]) {
-    //todo
+    //todo. left here
     return this.stationsService.saveElements(stationId, elementIds);
   }
 
