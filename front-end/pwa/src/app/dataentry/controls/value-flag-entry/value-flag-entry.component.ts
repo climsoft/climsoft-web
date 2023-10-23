@@ -5,7 +5,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
-import { Element } from 'src/app/core/models/element.model';
+import { ElementModel } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Flag } from 'src/app/core/models/Flag.model';
 import { FlagsService } from 'src/app/core/services/flags.service';
@@ -43,7 +43,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   //entry controls definitions
   entryControlsDefs: ControlDefinition[] = [];
 
-  private elements!: Element[];
+  private elements!: ElementModel[];
   private flags!: Flag[];
 
   constructor(private viewPortService: ViewportService, private elementsService: ElementsService, private flagsService: FlagsService) {

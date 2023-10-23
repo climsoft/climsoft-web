@@ -1,4 +1,4 @@
-export interface Element {
+export interface ElementModel {
   id: number;
   name: string;
   abbreviation: string;

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { StationEntity, StationLogVo } from '../entities/station.entity';
 import { CreateStationDto } from '../dtos/create-station.dto';
 import { CreateStationFormDto } from '../dtos/create-station-form.dto';
@@ -121,6 +121,47 @@ export class StationsService {
         });
     }
 
+    async saveElements(stationId: string, elementIds: number[]): Promise<StationElementEntity[]> {
+        //fetch existing station elements
+        const existingElements = await this.stationElementsRepo.find({
+            where: {
+                stationId: stationId,
+                elementId: In(elementIds),
+            }
+        });
+    
+        // get existing element ids from the entities
+        const existingElementIds = existingElements.map(element => element.elementId);
+    
+        //save new station elements
+        const stationElementEntities: StationElementEntity[] = [];
+        for (const id of elementIds) {
+            if (!existingElementIds.includes(id)) {
+                stationElementEntities.push(this.stationElementsRepo.create({
+                    stationId: stationId,
+                    elementId: id,
+                    entryUserId: '2',
+                    entryDateTime: DateUtils.getTodayDateInSQLFormat()
+                }));
+            }
+        }
+    
+        return this.stationElementsRepo.save(stationElementEntities);
+    }
+
+    async deleteElements(stationId: string, elementIds: number[]): Promise<StationElementEntity[]> {
+         //fetch existing station elements
+         const existingElements = await this.stationElementsRepo.find({
+            where: {
+                stationId: stationId,
+                elementId: In(elementIds),
+            }
+        });
+
+        //then delete and return those deleted
+        return this.stationElementsRepo.remove(existingElements);
+    }
+    
 
     async findForms(stationId: string): Promise<ViewStationFormDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
@@ -140,17 +181,45 @@ export class StationsService {
     }
 
     async saveForms(stationId: string, formIds: number[]): Promise<StationFormEntity[]> {
-        // Delete all existing forms for the station
-        const existingStationForms = await this.stationFormsRepo.findBy({ stationId });
-        await this.stationFormsRepo.remove(existingStationForms);
-
-        // Create and save new forms for the station
-        const stationFormEntities = formIds.map(formId => this.stationFormsRepo.create({ stationId: stationId, sourceId: formId, entryUserId: '2', entryDateTime: DateUtils.getTodayDateInSQLFormat() }));
-        await this.stationFormsRepo.save(stationFormEntities);
-        return this.findForms(stationId);
+        //fetch existing station elements
+        const existingForms: StationFormEntity[] = await this.stationFormsRepo.find({
+            where: {
+                stationId: stationId,
+                sourceId: In(formIds),
+            }
+        });
+    
+        // get existing form ids from the entities
+        const existingFormIds = existingForms.map(form => form.sourceId);
+    
+        //save new station forms
+        const stationFormEntities: StationFormEntity[] = [];
+        for (const id of formIds) {
+            if (!existingFormIds.includes(id)) {
+                stationFormEntities.push(this.stationFormsRepo.create({
+                    stationId: stationId,
+                    sourceId: id,
+                    entryUserId: '2',
+                    entryDateTime: DateUtils.getTodayDateInSQLFormat()
+                }));
+            }
+        }
+    
+        return this.stationFormsRepo.save(stationFormEntities);
     }
 
+    async deleteForms(stationId: string, formIds: number[]): Promise<StationFormEntity[]> {
+        //fetch existing station forms
+        const existingForms = await this.stationFormsRepo.find({
+           where: {
+               stationId: stationId,
+               sourceId: In(formIds),
+           }
+       });
 
+       //then delete and return those deleted
+       return this.stationFormsRepo.remove(existingForms);
+   }
 
 
 

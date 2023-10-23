@@ -10,17 +10,27 @@ export class DialogComponent {
   @Input() title!: string;
   @Input() okButtonLabel: string = 'Ok';
   @Input() cancelButtonLabel: string = 'Cancel';
-  @Input() open: boolean = false; 
+  @Input() open: boolean = false;
   @Output() openChange = new EventEmitter<boolean>();
-  @Output() closed = new EventEmitter<'OK' | 'CANCEL'>();
+  @Output() okClick = new EventEmitter();
+  @Output() cancelClick = new EventEmitter();
 
-  openDialog(){
+  openDialog() {
     this.open = true;
   }
 
-  onCloseDialog(event: 'OK' | 'CANCEL'): void {   
+  onOkClick(): void {
+    this.onClose();
+    this.okClick.emit();
+  }
+
+  onCancelClick(): void {
+    this.onClose();
+    this.cancelClick.emit();
+  }
+
+  private onClose(): void {
     this.open = false;
     this.openChange.emit(this.open);
-    this.closed.emit(event);
   }
 }

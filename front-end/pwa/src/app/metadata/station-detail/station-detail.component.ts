@@ -36,25 +36,39 @@ export class StationDetailComponent implements OnInit {
 
   }
 
-
   loadElements(): void {
+    this.stationsService.getStationElements(this.station.id).subscribe((data) => {
+      this.elements = data;
+    });
+  }
 
-    if (!this.elements) {
-      this.stationsService.getStationElements(this.station.id).subscribe((data) => {
-        this.elements = data;
-      });
-    }
+  getElementIdsToExclude(): number[] {
+    return this.elements.map(element => element.elementId) ?? [];
+  }
 
+  onElementsSelected(selectedIds: number[]): void {
+    this.stationsService.saveStationElements(this.station.id, selectedIds).subscribe((data) => {
+      if (data.length > 0) {
+        this.pagesDataService.showToast({ title: 'Station Element', message: 'Element Added', type: 'success' });
+      }
+      this.loadElements();
+    });
+  }
+
+  onElementDeleted(elementId: string): void {
+    const elementIds: number[] = [Number(elementId)];
+    this.stationsService.deleteStationElements(this.station.id, elementIds).subscribe((data) => {
+      if (data.length > 0) {
+        this.pagesDataService.showToast({ title: 'Station Element', message: 'Element Deleted', type: 'success' });
+      }
+      this.loadElements();
+    });
   }
 
   loadForms(): void {
-
-    if (!this.forms) {
-      this.stationsService.getStationForms(this.station.id).subscribe((data) => {
-        this.forms = data;
-      });
-    }
-
+    this.stationsService.getStationForms(this.station.id).subscribe((data) => {
+      this.forms = data;
+    });
   }
 
   getFormIds(): number[] {
@@ -62,19 +76,23 @@ export class StationDetailComponent implements OnInit {
   }
 
   onFormsSelected(selectedIds: number[]): void {
-
-    console.log('posting', selectedIds)
     this.stationsService.saveStationForms(this.station.id, selectedIds).subscribe((data) => {
-      this.forms = data;
+      if (data.length > 0) {
+        this.pagesDataService.showToast({ title: 'Station Entry Form', message: 'Entry Form Added', type: 'success' });
+      }
+      this.loadForms();
     });
-
-
   }
 
-  onFormDeleteClick(form: StationFormModel): void {
-
+  onFormDeleted(formId: string): void {
+    const formIds: number[] = [Number(formId)];
+    this.stationsService.deleteStationForms(this.station.id, formIds).subscribe((data) => {
+      if (data.length > 0) {
+        this.pagesDataService.showToast({ title: 'Station Form', message: 'Form Deleted', type: 'success' });
+      }
+      this.loadForms();
+    });
   }
-
 
   onSaveClick(): void {
 

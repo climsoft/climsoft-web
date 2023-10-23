@@ -29,10 +29,15 @@
             <div *ngIf="elementsToggle.open" class="card-body  px-0">
 
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-1">Add</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
-                    <!-- <app-form-selector-dialog #dlgFormSelector [okButtonLabel]="'Save'"
-                    (ok)="onFormsSelected($event)"></app-form-selector-dialog> -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                        (click)="dlgElementAdd.openDialogWithExcludedElements( getElementIdsToExclude())">Add</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        (click)="dlgElementDelete.openDialog()">Delete</button>
+                    <app-elements-selector-dialog #dlgElementAdd [okButtonLabel]="'Save'"
+                        (ok)="onElementsSelected($event)"></app-elements-selector-dialog>
+                    <app-input-dialog #dlgElementDelete [title]="'Delete Element'" [inputLabel]="'Enter element id:'"
+                        (ok)="onElementDeleted($event)"></app-input-dialog>
+
                 </div>
 
                 <table class="table table-sm table-striped">
@@ -174,17 +179,22 @@
 
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-                        (click)="dlgFormSelector.openDialog(getFormIds())">Add</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+                        (click)="dlgFormAdd.openDialogWithExcludedForms(getFormIds())">Add</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        (click)="dlgFormDelete.openDialog()">Delete</button>
 
-                    <app-form-selector-dialog #dlgFormSelector [okButtonLabel]="'Save'"
+                    <app-form-selector-dialog #dlgFormAdd [okButtonLabel]="'Save'"
                         (ok)="onFormsSelected($event)"></app-form-selector-dialog>
+
+                    <app-input-dialog #dlgFormDelete [title]="'Delete Form'" [inputLabel]="'Enter form id:'"
+                        (ok)="onFormDeleted($event)"></app-input-dialog>
+
                 </div>
 
                 <div class="px-3">
-                    <app-table-view [clickable]="false" 
+                    <app-table-view [clickable]="false"
                         [columnsData]="[ {id: 'sourceId', name: 'Id'}, {id: 'sourceName', name: 'Name'}, {id: 'sourceDescription', name: 'Description'}  ]"
-                        [rowsData]="forms" (rowDataClicked)="onFormDeleteClick($event)"></app-table-view>
+                        [rowsData]="forms"></app-table-view>
                 </div>
 
 

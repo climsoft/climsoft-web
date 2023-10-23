@@ -25,8 +25,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
-import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
+import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
 
 //--------------------------------
 
@@ -56,15 +56,14 @@ const controlsComponents = [
   DataListViewComponent,
   TableViewComponent,
   DialogComponent,
-  FormSelectorDialogComponent,
+  InputDialogComponent,
   ToggleChevronComponent,
 
 ];
 
 @NgModule({
   declarations: [
-    ...controlsComponents,
-    
+    ...controlsComponents,    
     
   ],
   imports: [

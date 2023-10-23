@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { Element } from '../../../core/models/element.model';
+import { ElementModel } from '../../../core/models/element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
 @Component({
@@ -14,7 +14,7 @@ export class ElementInputComponent implements OnInit, OnChanges {
   @Input() ids!: number[];
   @Input() value!: any;
   @Output() valueChange = new EventEmitter<any>();
-  elements!: Element[];
+  elements!: ElementModel[];
 
   selectedValue!: any;
   bIgnoreNgChanges: boolean= false;

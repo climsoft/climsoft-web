@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Element } from '../models/element.model';
+import { ElementModel } from '../models/element.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +13,7 @@ export class ElementsService {
 
   constructor(private http: HttpClient) { }
 
-  getElements(elementIds?: number[]): Observable<Element[]> {
+  getElements(elementIds?: number[]): Observable<ElementModel[]> {
     
     const obsParams: { [key: string]: number[] } = {};
     if (elementIds) {
@@ -21,7 +21,7 @@ export class ElementsService {
     }
 
     //todo. load slected elements
-    return this.http.get<Element[]>(this.endPointUrl, { params: obsParams})
+    return this.http.get<ElementModel[]>(this.endPointUrl, { params: obsParams})
       .pipe(
         catchError(this.handleError)
       );
