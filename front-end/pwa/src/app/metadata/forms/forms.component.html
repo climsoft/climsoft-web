@@ -9,7 +9,7 @@
   </div>
 
   <div class="card-body px-0">
-    <app-table-view
+    <app-table-view [clickable] = "true"
       [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"
       [rowsData]="sources" (rowDataClicked)="onFormClicked($event)"></app-table-view>
   </div>

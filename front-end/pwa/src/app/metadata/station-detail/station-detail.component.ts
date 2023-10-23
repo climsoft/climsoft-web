@@ -6,9 +6,6 @@ import { StationModel } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 
-export interface ElementsView extends StationElementModel{
-  selected: boolean;
-}
 
 @Component({
   selector: 'app-station-detail',
@@ -17,13 +14,8 @@ export interface ElementsView extends StationElementModel{
 })
 export class StationDetailComponent implements OnInit {
 
-  showCharacteristics: boolean = true;
-  showElements: boolean = false;
-  showForms: boolean = false;
-  showContacts: boolean = false;
-  //bAllowSave: boolean = false;
   station!: StationModel;
-  elements!: ElementsView[];
+  elements!: StationElementModel[];
   forms!: StationFormModel[];
 
   constructor(
@@ -49,7 +41,7 @@ export class StationDetailComponent implements OnInit {
 
     if (!this.elements) {
       this.stationsService.getStationElements(this.station.id).subscribe((data) => {
-        this.elements = data.map(d => ({...d, selected: false}));;
+        this.elements = data;
       });
     }
 

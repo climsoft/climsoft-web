@@ -26,6 +26,7 @@ import { NumberInputComponent } from './controls/number-input/number-input.compo
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
+import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
 
 //--------------------------------
 
@@ -56,6 +57,7 @@ const controlsComponents = [
   TableViewComponent,
   DialogComponent,
   FormSelectorDialogComponent,
+  ToggleChevronComponent,
 
 ];
 

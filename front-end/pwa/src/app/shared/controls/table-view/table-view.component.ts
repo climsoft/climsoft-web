@@ -11,7 +11,7 @@ interface DataTableItem {
   styleUrls: ['./table-view.component.scss']
 })
 export class TableViewComponent<TData> implements OnInit, OnChanges {
-
+  @Input() clickable: boolean =false;
   @Input() columnsData!: { id: string, name: string }[];
   @Input() rowsData!: TData[];
   @Output() rowDataClicked = new EventEmitter<TData>();
