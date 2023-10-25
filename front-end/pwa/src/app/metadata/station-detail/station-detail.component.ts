@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
 import { StationElementModel } from 'src/app/core/models/station-element.model';
 import { StationFormModel } from 'src/app/core/models/station-form.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 
 @Component({
@@ -16,6 +18,7 @@ export class StationDetailComponent implements OnInit {
 
   station!: StationModel;
   elements!: StationElementModel[];
+  elementLimits!: StationElementLimitModel[];
   forms!: StationFormModel[];
 
   constructor(
@@ -36,6 +39,7 @@ export class StationDetailComponent implements OnInit {
 
   }
 
+  //------ elements -----
   loadElements(): void {
     this.stationsService.getStationElements(this.station.id).subscribe((data) => {
       this.elements = data;
@@ -49,22 +53,38 @@ export class StationDetailComponent implements OnInit {
   onElementsSelected(selectedIds: number[]): void {
     this.stationsService.saveStationElements(this.station.id, selectedIds).subscribe((data) => {
       if (data.length > 0) {
-        this.pagesDataService.showToast({ title: 'Station Element', message: 'Element Added', type: 'success' });
+        this.pagesDataService.showToast({ title: 'Station Element', message: 'Elements Added', type: 'success' });
       }
       this.loadElements();
     });
   }
 
   onElementDeleted(elementId: string): void {
-    const elementIds: number[] = [Number(elementId)];
-    this.stationsService.deleteStationElements(this.station.id, elementIds).subscribe((data) => {
-      if (data.length > 0) {
+    this.stationsService.deleteStationElement(this.station.id, Number(elementId)).subscribe((data) => {
+      if (data) {
         this.pagesDataService.showToast({ title: 'Station Element', message: 'Element Deleted', type: 'success' });
       }
       this.loadElements();
     });
   }
+  //-------------------
 
+  //------element limits----
+
+  getMonthName(monthId: number): string{
+    return DateUtils.getMonthName(monthId);
+  }
+
+  loadElementLimits(): void {
+    this.stationsService.getStationElementLimits(this.station.id).subscribe((data) => {
+      this.elementLimits = data;
+    });
+  }
+
+
+  //-------------------
+
+  //-------forms------------
   loadForms(): void {
     this.stationsService.getStationForms(this.station.id).subscribe((data) => {
       this.forms = data;
@@ -85,14 +105,14 @@ export class StationDetailComponent implements OnInit {
   }
 
   onFormDeleted(formId: string): void {
-    const formIds: number[] = [Number(formId)];
-    this.stationsService.deleteStationForms(this.station.id, formIds).subscribe((data) => {
-      if (data.length > 0) {
+    this.stationsService.deleteStationForm(this.station.id, Number(formId)).subscribe((data) => {
+      if (data) {
         this.pagesDataService.showToast({ title: 'Station Form', message: 'Form Deleted', type: 'success' });
       }
       this.loadForms();
     });
   }
+  //-------------------
 
   onSaveClick(): void {
 

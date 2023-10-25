@@ -67,13 +67,9 @@ export class StationsService {
       );
   }
 
-  deleteStationElements(stationId: string, elementIds: number[]): Observable<StationElementModel[]> {
-    const url = `${this.endPointUrl}/elements/${stationId}`; 
-    const httpOptions = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      body: elementIds
-    };
-    return this.http.delete<StationElementModel[]>(url, httpOptions)
+  deleteStationElement(stationId: string, elementId: number): Observable<StationElementModel> {
+    const url = `${this.endPointUrl}/elements/${stationId}/${elementId}`; 
+    return this.http.delete<StationElementModel>(url)
       .pipe(
         catchError(this.handleError)
       );
@@ -87,22 +83,17 @@ export class StationsService {
       );
   }
 
-
-  saveStationElementLimits(stationId: string, elementLimits: StationElementLimitModel[]): Observable<StationElementLimitModel[]> {
-    const url = `${this.endPointUrl}/element-limits/${stationId}`; 
-    return this.http.post<StationElementLimitModel[]>(url, elementLimits)
+  saveStationElementLimit(stationId: string, elementId:number, monthId: number , elementLimit: StationElementLimitModel): Observable<StationElementLimitModel[]> {
+    const url = `${this.endPointUrl}/element-limits/${stationId}/${elementId}/${monthId}`; 
+    return this.http.post<StationElementLimitModel[]>(url, elementLimit)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteStationElementLimits(stationId: string, elementLimits: StationElementLimitModel[]): Observable<StationElementLimitModel[]> {
-    const url = `${this.endPointUrl}/element-limits/${stationId}`; 
-    const httpOptions = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      body: elementLimits
-    };
-    return this.http.delete<StationElementLimitModel[]>(url, httpOptions)
+  deleteStationElementLimit(stationId: string, elementId: number, monthId: number): Observable<StationElementLimitModel> {
+    const url = `${this.endPointUrl}/element-limits/${stationId}/${elementId}/${monthId}`; 
+    return this.http.delete<StationElementLimitModel>(url)
       .pipe(
         catchError(this.handleError)
       );
@@ -124,19 +115,13 @@ export class StationsService {
       );
   }
 
-  deleteStationForms(stationId: string, formIds: number[]): Observable<StationFormModel[]> {
-    const url = `${this.endPointUrl}/forms/${stationId}`; 
-    const httpOptions = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
-      body: formIds
-    };
-    return this.http.delete<StationFormModel[]>(url, httpOptions)
+  deleteStationForm(stationId: string, formId: number): Observable<StationFormModel> {
+    const url = `${this.endPointUrl}/forms/${stationId}/${formId}`; 
+    return this.http.delete<StationFormModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
-
-
 
 
 

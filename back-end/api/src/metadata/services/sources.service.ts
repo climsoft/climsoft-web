@@ -11,10 +11,10 @@ export class SourcesService {
     ) { }
 
     findForms() {
-        return this.find(1);
+        return this.findSources(1);
     }
 
-    async find(sourceTypeId?: number) {
+    async findSources(sourceTypeId?: number) {
         let sources;
         if (sourceTypeId) {
             sources = await this.sourceRepo.find({
@@ -32,7 +32,7 @@ export class SourcesService {
         return sources;
     }
 
-    async findOne(id: number) {
+    async findSource(id: number) {
         const source = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -50,7 +50,7 @@ export class SourcesService {
         return this.sourceRepo.save(source);
     }
 
-    async update(id: number, sourceDto: CreateSourceDto) {
+    async updateSource(id: number, sourceDto: CreateSourceDto) {
         const source = await this.sourceRepo.preload({
             id, ...sourceDto,
         });
@@ -60,9 +60,8 @@ export class SourcesService {
         return this.sourceRepo.save(source);
     }
 
-    async delete(id: number) {
-        const station = await this.findOne(id);
-        return this.sourceRepo.remove(station);
-
+    async deleteSource(id: number) {
+        const source = await this.findSource(id);
+        return this.sourceRepo.remove(source);
     }
 }

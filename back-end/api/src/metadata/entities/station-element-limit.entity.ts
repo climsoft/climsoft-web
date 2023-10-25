@@ -31,3 +31,11 @@ export class StationElementLimitEntity {
     @Column({ type: 'json', nullable: true })
     log: string | null;
 }
+
+export interface StationElementLimitEntityLogVo {
+    lowerLimit: number;
+    upperLimit: number;
+    comment: string | null;
+    entryUserId: string;
+    entryDateTime: string;  
+  }

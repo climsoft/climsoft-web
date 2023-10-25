@@ -16,4 +16,10 @@ export class ObjectUtils {
         return true;
     }
 
+    static getJsonArray<T>(currentJsonArray: string | null | undefined, objectToAddToJsonArray: T): string {
+        const logs: T[] = currentJsonArray ? JSON.parse(currentJsonArray) : [];
+        logs.push(objectToAddToJsonArray);
+        return JSON.stringify(logs);
+    }
+
 }

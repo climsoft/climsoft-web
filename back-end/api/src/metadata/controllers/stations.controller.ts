@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { CreateStationDto } from '../dtos/create-station.dto';
-import { CreateStationFormDto } from '../dtos/create-station-form.dto';
+import { CreateStationElementLimitDto } from '../dtos/create-station-element-limit.dto';
 
 @Controller('stations')
 export class StationsController {
@@ -16,14 +16,15 @@ export class StationsController {
 
   @Get(':id')
   findCharacteristics(@Param('id') id: string) {
-    return this.stationsService.findOne(id);
+    return this.stationsService.findStation(id);
   }
 
   @Post()
   saveCharacteristics(@Body() stationDto: CreateStationDto[]) {
-    return this.stationsService.save(stationDto);
+    return this.stationsService.saveStations(stationDto);
   }
 
+  //--------- station elements ----------
   @Get('elements/:id')
   findElements(@Param('id') id: string) {
     return this.stationsService.findElements(id);
@@ -34,30 +35,39 @@ export class StationsController {
     return this.stationsService.saveElements(stationId, elementIds);
   }
 
-  @Delete('elements/:id')
-  deleteElements(@Param('id') stationId: string, @Body() elementIds: number[]) {
-    return this.stationsService.deleteElements(stationId, elementIds);
+  @Delete('elements/:stationId/:elementId')
+  deleteElement(@Param('stationId') stationId: string, @Param('elementId') elementId: number) {
+    return this.stationsService.deleteElement(stationId, elementId);
   }
+  //--------------------------
 
+  //--------- station element limits ----------
   @Get('element-limits/:id')
   findElementLimits(@Param('id') id: string) {
     //todo. left here
     return this.stationsService.findElements(id);
   }
 
-  @Post('element-limits/:id')
-  saveElementLimits(@Param('id') stationId: string, @Body() elementIds: number[]) {
-    //todo. left here
-    return this.stationsService.saveElements(stationId, elementIds);
+  @Post('element-limits/:stationId/:elementId/:monthId')
+  saveElementLimits(
+    @Param('stationId') stationId: string,
+    @Param('elementId') elementId: number,
+    @Param('monthId') monthId: number,
+    @Body() elementLimits: CreateStationElementLimitDto) {
+    return this.stationsService.saveElementLimit(stationId, elementId, monthId, elementLimits);
   }
 
-  @Delete('element-limits/:id')
-  deleteElementLimits(@Param('id') stationId: string, @Body() elementIds: number[]) {
-    //todo
-    return this.stationsService.deleteElements(stationId, elementIds);
+  @Delete('element-limits/:stationId/:elementId/:monthId')
+  deleteElementLimit(
+    @Param('stationId') stationId: string,
+    @Param('elementId') elementId: number,
+    @Param('monthId') monthId: number) {
+
+    return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
   }
+  //--------------------------
 
-
+  //--------- station forms ----------
   @Get('forms/:id')
   findForms(@Param('id') id: string) {
     return this.stationsService.findForms(id);
@@ -68,13 +78,10 @@ export class StationsController {
     return this.stationsService.saveForms(stationId, formIds);
   }
 
-  
-  @Delete('forms/:id')
-  deleteForms(@Param('id') stationId: string, @Body() formIds: number[]) {
-    return this.stationsService.deleteForms(stationId, formIds);
+  @Delete('forms/:stationId/:formId')
+  deleteForm(@Param('stationId') stationId: string, @Param('formId') formId: number) {
+    return this.stationsService.deleteForm(stationId, formId);
   }
-
-
-
+  //--------------------------
 
 }

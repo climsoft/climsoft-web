@@ -10,11 +10,11 @@ export class SourcesController {
     @Get()
     find(@Query() query: { [key: string]: number }) {
         if (query['sourceId']) {
-            return this.sourcesService.findOne(query['sourceId']);
+            return this.sourcesService.findSource(query['sourceId']);
         } else if (query['sourceTypeId']) {
-            return this.sourcesService.find(query['sourceTypeId']);
+            return this.sourcesService.findSources(query['sourceTypeId']);
         } else {
-            return this.sourcesService.find();
+            return this.sourcesService.findSources();
         }    
     }
 
@@ -25,12 +25,12 @@ export class SourcesController {
 
     @Patch(':id')
     update(@Param('id') id: number, @Body() createSourceDto: CreateSourceDto) {
-        return this.sourcesService.update(id, createSourceDto);
+        return this.sourcesService.updateSource(id, createSourceDto);
     }
 
     @Delete(':id')
     delete(@Param('id') id: number) {
-        return this.sourcesService.delete(id);
+        return this.sourcesService.deleteSource(id);
     }
 
 }

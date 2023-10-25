@@ -78,7 +78,7 @@
                                                     <div class="d-flex justify-content-between">
                                                         <app-toggle-chevron #elementInstrument
                                                             [clickable]='true'>Instruments</app-toggle-chevron>
-                                                        <div class="d-flex justify-content-end">
+                                                        <div class="d-flex justify-content-end" *ngIf="elementInstrument.open">
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-secondary me-1">Add</button>
                                                             <button type="button"
@@ -116,9 +116,9 @@
                                                     <div class="d-flex justify-content-between">
                                                         <app-toggle-chevron #elementLimits
                                                             [clickable]='true'>Limits</app-toggle-chevron>
-                                                        <div class="d-flex justify-content-end">
+                                                        <div class="d-flex justify-content-end"  *ngIf="elementLimits.open">
                                                             <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary me-1">Add</button>
+                                                                class="btn btn-sm btn-outline-secondary me-1">Edit</button>
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-secondary">Delete</button>
                                                         </div>

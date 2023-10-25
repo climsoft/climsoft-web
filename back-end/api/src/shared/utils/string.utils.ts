@@ -57,5 +57,4 @@ export class StringUtils {
         return num >= 0 && num <= 9 ? `0${num}` : num.toString();
     }
 
-
 }
