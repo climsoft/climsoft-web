@@ -42,19 +42,20 @@ export class StationsController {
   //--------------------------
 
   //--------- station element limits ----------
-  @Get('element-limits/:id')
-  findElementLimits(@Param('id') id: string) {
-    //todo. left here
-    return this.stationsService.findElements(id);
+  @Get('element-limits/:stationId/:elementId/')
+  findElementLimits(
+    @Param('stationId') stationId: string,
+    @Param('elementId') elementId: number) {
+    
+    return this.stationsService.findStationElementLimits(stationId, elementId);
   }
 
-  @Post('element-limits/:stationId/:elementId/:monthId')
+  @Post('element-limits/:stationId/:elementId')
   saveElementLimits(
     @Param('stationId') stationId: string,
     @Param('elementId') elementId: number,
-    @Param('monthId') monthId: number,
-    @Body() elementLimits: CreateStationElementLimitDto) {
-    return this.stationsService.saveElementLimit(stationId, elementId, monthId, elementLimits);
+    @Body() elementLimits: CreateStationElementLimitDto[]) {
+    return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
   }
 
   @Delete('element-limits/:stationId/:elementId/:monthId')

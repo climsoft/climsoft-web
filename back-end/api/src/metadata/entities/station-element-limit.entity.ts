@@ -10,18 +10,18 @@ export class StationElementLimitEntity {
     @PrimaryColumn({ type: 'int' })
     elementId: number;
 
-    @PrimaryColumn({ type: 'int'})
-    monthId: number; 
- 
-    @Column({ type: 'int' })
-    lowerLimit: number;
+    @PrimaryColumn({ type: 'int' })
+    monthId: number;
 
-    @Column({ type: 'int' })
-    upperLimit: number;
+    @Column({ type: 'int', nullable: true })
+    lowerLimit: number | null;
+
+    @Column({ type: 'int', nullable: true })
+    upperLimit: number | null;
 
     @Column({ type: 'varchar', nullable: true })
     comment: string | null;
-  
+
     @Column({ type: 'varchar' })
     entryUserId: string;
 
@@ -33,9 +33,9 @@ export class StationElementLimitEntity {
 }
 
 export interface StationElementLimitEntityLogVo {
-    lowerLimit: number;
-    upperLimit: number;
+    lowerLimit: number | null;
+    upperLimit: number | null;
     comment: string | null;
     entryUserId: string;
-    entryDateTime: string;  
-  }
+    entryDateTime: string;
+}

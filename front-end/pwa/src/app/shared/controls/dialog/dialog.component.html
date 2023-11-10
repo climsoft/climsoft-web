@@ -1,20 +1,20 @@
 <!-- my-dialog.component.html -->
 <div *ngIf="open" class="dialog-overlay">
-    <div class="card m-3">
+    <div class="card m-3 ">
         
         <div class="card-header bg-transparent">
             {{ title }}
         </div>
 
-        <div class="card-body">
+        <div class="card-body max-vh-50 overflow-auto">
             <ng-content></ng-content>
         </div>
 
         <div class="card-footer bg-transparent d-flex justify-content-end">
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onOkClick()">
+            <button *ngIf="okButtonLabel" type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onOkClick()">
                 {{okButtonLabel}}
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">
+            <button *ngIf="cancelButtonLabel" type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">
                 {{cancelButtonLabel }}
             </button>
         </div>

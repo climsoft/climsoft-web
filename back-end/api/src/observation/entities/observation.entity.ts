@@ -13,9 +13,6 @@ export class ObservationEntity {
   @PrimaryColumn({ type: 'int' })
   sourceId: number;
 
-  @PrimaryColumn({ type: 'varchar', default: 'unknown' })
-  instrumentId: string;
-
   @PrimaryColumn({ type: 'varchar' })
   level: string;
 

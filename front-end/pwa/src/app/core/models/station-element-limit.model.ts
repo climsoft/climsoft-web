@@ -1,7 +1,8 @@
 export interface StationElementLimitModel {
-    monthName?: string;
-    lowerLimit: number;
-    upperLimit: number;    
+    monthId: number;
+    lowerLimit: number | null;
+    upperLimit: number | null;
+    comment: string | null;
     entryUserId: string;
     entryDateTime: string;
     log: string | null;

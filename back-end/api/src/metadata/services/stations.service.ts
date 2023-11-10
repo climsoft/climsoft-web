@@ -56,6 +56,7 @@ export class StationsService {
                 const oldChanges: StationLogVo = this.getStationLogFromEntity(stationEntity);
                 const newChanges: StationLogVo = this.getStationLogFromDto(createStationDto);
 
+                //if no changes, then no need to save
                 if (ObjectUtils.areObjectsEqual<StationLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
                     continue;
                 }
@@ -105,9 +106,9 @@ export class StationsService {
         return JSON.stringify(logs);
     }
 
-     //---------------------------------------
+    //---------------------------------------
 
-     //--------------Station Elements--------------------
+    //--------------Station Elements--------------------
     async findElements(stationId: string): Promise<ViewStationElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const stationElementDetails: ElementEntity[] = await this.elementsService.find();
@@ -154,15 +155,15 @@ export class StationsService {
     }
 
     async deleteElement(stationId: string, elementId: number): Promise<StationElementEntity> {
-        const fetched = await this.stationElementsRepo.findOneBy({                stationId: stationId,                elementId: elementId });
-      
+        const fetched = await this.stationElementsRepo.findOneBy({ stationId: stationId, elementId: elementId });
+
         if (!fetched) {
             throw new NotFoundException(`Station Element #${stationId} - #${elementId}  not found`);
         }
         return this.stationElementsRepo.remove(fetched);
     }
 
-     //---------------------------------------
+    //---------------------------------------
 
     //--------------Station Element Limits--------------------
     async findStationElementLimit(stationId: string, elementId: number, monthId: number) {
@@ -179,40 +180,58 @@ export class StationsService {
     }
 
     async findStationElementLimits(stationId: string, elementId: number): Promise<ViewStationElementLimitDto[]> {
-        const stationElementLimits: StationElementLimitEntity[] = await this.stationElementLimitsRepo.findBy({ stationId: stationId, elementId: elementId });
-        return stationElementLimits.map(stationElementLimit => ( {...stationElementLimit}));     
-    }
+        return this.stationElementLimitsRepo.findBy({ stationId, elementId }).then(stationElementLimits =>
+          stationElementLimits.map(stationElementLimit => ({
+            monthId: stationElementLimit.monthId,
+            lowerLimit: stationElementLimit.lowerLimit,
+            upperLimit: stationElementLimit.upperLimit,
+            comment: stationElementLimit.comment,
+            entryUserId: stationElementLimit.entryUserId,
+            entryDateTime: stationElementLimit.entryDateTime,
+            log: stationElementLimit.log,
+          }))
+        );
+      }
+      
 
-    async saveElementLimit(stationId: string, elementId: number, monthId: number, createStationLimitsDtos: CreateStationElementLimitDto): Promise<StationElementLimitEntity> {
+    async saveElementLimit(stationId: string, elementId: number, createStationLimitsDtos: CreateStationElementLimitDto[]): Promise<StationElementLimitEntity[]> {
 
-        // Check if the entity exists
-        let elementLimitEntity = await this.stationElementLimitsRepo.findOneBy({
-            stationId: stationId,
-            elementId: elementId,
-            monthId: monthId,
-        });
+        const elementLimitEntities: StationElementLimitEntity[] = [];
 
-        if (elementLimitEntity) {
-            const oldChanges:StationElementLimitEntityLogVo = this.getStationElementLogFromEntity(elementLimitEntity);
-            const newChanges:StationElementLimitEntityLogVo = this.getStationElementLogFromDto(createStationLimitsDtos);
-
-            if (ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
-                return elementLimitEntity;
-            }
-        } else {
-            // If it doesn't exist, create the entity
-            elementLimitEntity = this.stationElementLimitsRepo.create({
+        for (const createStationLimitsDto of createStationLimitsDtos) {
+            // Check if the entity exists StationElementLimitEntity
+            let elementLimitEntity = await this.stationElementLimitsRepo.findOneBy({
                 stationId: stationId,
                 elementId: elementId,
-                monthId: monthId,
-                entryUserId: '2',
-                entryDateTime: DateUtils.getTodayDateInSQLFormat()
+                monthId: createStationLimitsDto.monthId,
             });
+
+            if (elementLimitEntity) {
+                const oldChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromEntity(elementLimitEntity);
+                const newChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromDto(createStationLimitsDto);
+
+                //if no changes, then no need to save
+                if (ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
+                    continue;
+                }
+            } else {
+                // If it doesn't exist, create the entity
+                elementLimitEntity = this.stationElementLimitsRepo.create({
+                    stationId: stationId,
+                    elementId: elementId,
+                    monthId: createStationLimitsDto.monthId,
+                    entryUserId: '2', //todo set the logged in user
+                    entryDateTime: DateUtils.getTodayDateInSQLFormat()
+                });
+            }
+
+            this.updateStationElementEntity(elementLimitEntity, createStationLimitsDto);
+            elementLimitEntities.push(elementLimitEntity);
+
         }
 
-        this.updateStationElementEntity(elementLimitEntity, createStationLimitsDtos);
 
-        return this.stationElementLimitsRepo.save(elementLimitEntity);
+        return this.stationElementLimitsRepo.save(elementLimitEntities);
 
     }
 
@@ -246,7 +265,7 @@ export class StationsService {
     }
 
     async deleteElementLimit(stationId: string, elementId: number, monthId: number): Promise<StationElementLimitEntity> {
-        const existingStationElementLimit = await this.findStationElementLimit( stationId, elementId,monthId );
+        const existingStationElementLimit = await this.findStationElementLimit(stationId, elementId, monthId);
         return this.stationElementLimitsRepo.remove(existingStationElementLimit);
     }
 
@@ -299,7 +318,7 @@ export class StationsService {
     }
 
     async deleteForm(stationId: string, formId: number): Promise<StationFormEntity> {
-        const fetched = await this.stationFormsRepo.findOneBy({stationId: stationId,sourceId: formId });
+        const fetched = await this.stationFormsRepo.findOneBy({ stationId: stationId, sourceId: formId });
 
         if (!fetched) {
             throw new NotFoundException(`Station Form #${stationId} - #${formId}  not found`);

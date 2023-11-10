@@ -71,14 +71,15 @@ export class StationDetailComponent implements OnInit {
 
   //------element limits----
 
-  getMonthName(monthId: number): string{
-    return DateUtils.getMonthName(monthId);
-  }
-
-  loadElementLimits(): void {
-    this.stationsService.getStationElementLimits(this.station.id).subscribe((data) => {
+  loadElementLimits(elementId: number): void {
+    this.stationsService.getStationElementLimits(this.station.id, elementId).subscribe((data) => {
+      console.log("station detalisl found limits", data);
       this.elementLimits = data;
     });
+  }
+
+  getMonthName(monthId: number): string {
+    return DateUtils.getMonthName(monthId)
   }
 
 

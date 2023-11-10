@@ -3,10 +3,13 @@ import { IsNumber, IsString } from 'class-validator';
 export class CreateStationElementLimitDto {
 
     @IsNumber()
-    lowerLimit: number;
+    monthId: number;
 
     @IsNumber()
-    upperLimit: number;
+    lowerLimit: number | null;
+
+    @IsNumber()
+    upperLimit: number | null;
 
     @IsString()
     comment: string | null;

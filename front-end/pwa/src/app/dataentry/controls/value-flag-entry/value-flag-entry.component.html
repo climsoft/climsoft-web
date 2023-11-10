@@ -1,7 +1,7 @@
 <div class="row g-2">
-  <div class="col-sm-auto mb-3"  [class.value-flag-control-sm]="useSmallVFControls" *ngFor="let item of entryControlsDefs">
+  <div class="col-sm-auto mb-3"  [class.form-control-max-w-sm]="useSmallVFControls" *ngFor="let item of entryControlsDefs">
 
-    <label [for]="item.label"  [class.value-flag-control-label-sm]="useSmallVFControls">{{ item.label }}</label>
+    <label [for]="item.label"  [class.form-control-label-sm]="useSmallVFControls">{{ item.label }}</label>
     <div class="input-group">
       <input type="text" class="form-control form-control-sm" [class.text-success]="item.entryStatus === 'saved'" [id]="item.label"
         (input)="onInputEntry(item, $any($event.target).value)" [value]="item.displayedValueFlag" autocomplete="off" />

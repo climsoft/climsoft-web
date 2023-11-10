@@ -13,20 +13,20 @@ export class ElementEntity {
 
   @Column({ type: 'varchar' })
   description: string;
-  
+
   @Column({ type: 'int' })
   typeId: number;
 
-  @Column({ type: 'int' })
-  lowerLimit: number;
+  @Column({ type: 'int', nullable: true })
+  lowerLimit: number | null;
 
-  @Column({ type: 'int' })
-  upperLimit: number;
+  @Column({ type: 'int', nullable: true })
+  upperLimit: number | null;
 
   @Column({ type: 'float', default: 1 })
   entryScaleFactor: number;
 
-  @Column()
+  @Column({ type: 'varchar', nullable: true  })
   units: string;
 
 }

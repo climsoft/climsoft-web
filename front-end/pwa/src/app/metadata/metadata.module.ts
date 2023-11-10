@@ -9,6 +9,7 @@ import { StationDetailComponent } from './station-detail/station-detail.componen
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
+import { ElementDetailComponent } from './element-detail/element-detail.component';
 
 const controlsComponents = [
   ElementsSelectorDialogComponent,
@@ -25,7 +26,8 @@ const controlsComponents = [
     FormBuilderComponent,
     StationsComponent,
     StationDetailComponent,
-    ElementsSelectorDialogComponent,    
+    ElementsSelectorDialogComponent,
+    ElementDetailComponent,    
   ],
   imports: [
     SharedModule,

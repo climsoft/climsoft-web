@@ -1,9 +1,9 @@
 <div class="d-flex vh-100 overflow-hidden">
   <!-- Menu Content -->
-  <div class="flex-shrink-0 overflow-y-auto  border-light shadow"
+  <div class="flex-shrink-0 overflow-y-auto  border-light shadow-sm"
     [ngClass]="{'nav-container-open': bOpenSideNav,'nav-container-close': !bOpenSideNav}">
 
-    <div class="navbar sticky-top shadow bg-light p-0">
+    <div class="navbar sticky-top shadow-sm bg-light p-0">
       <div class="d-flex flex-row w-100 justify-content-between">
         <div class="navbar-brand navbar-text px-3 ">Climsoft</div>
         <div *ngIf="bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav"> <i class="bi bi-list nav-bar-toggle"></i>
@@ -75,7 +75,7 @@
   <!-- Main Content -->
   <div class="flex-grow-1 overflow-y-auto">
     <!-- header content -->
-    <div class="navbar bg-light sticky-top shadow p-1 mb-3">
+    <div class="navbar bg-light sticky-top shadow-sm p-1 mb-3">
       <div class="d-inline-flex">
         <div *ngIf="!bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav"> <i
             class="bi bi-list py-1 nav-bar-toggle"></i></div>
