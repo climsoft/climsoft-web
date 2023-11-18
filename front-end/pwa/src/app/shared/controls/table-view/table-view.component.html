@@ -2,12 +2,12 @@
     <thead>
         <tr>
             <th *ngIf="clickable" style="width: 2%;"></th>
-            <th *ngFor="let col of columnsData" scope="col">{{ col.name }}</th>
+            <th *ngFor="let col of columnsData">{{ col.name }}</th>
         </tr>
     </thead>
     <tbody class="table-group-divider">
-        <tr *ngFor="let row of rowsData" (click)="onRowDataClicked(row)">
-            <td *ngIf="clickable" class="cursor-pointer"><i class="bi bi-arrow-right-short"></i></td>
+        <tr [class.cursor-pointer]="clickable" *ngFor="let row of rowsData" (click)="onRowDataClicked(row)">
+            <td *ngIf="clickable"><i class="bi bi-arrow-right-short"></i></td>
             <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
         </tr>
     </tbody>

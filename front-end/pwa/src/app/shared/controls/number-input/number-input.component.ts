@@ -14,7 +14,7 @@ export class NumberInputComponent implements OnInit, OnChanges {
   @Input() hintMessage: string = '';
   @Input() errorMessage: string = '';
   @Input() value!: number | null;
-  @Output() valueChange = new EventEmitter<number|null>();
+  @Output() valueChange = new EventEmitter<number | null>();
 
   constructor() {
   }
@@ -28,7 +28,7 @@ export class NumberInputComponent implements OnInit, OnChanges {
   onInputChange(value: string) {
     if (StringUtils.containsNumbersOnly(value)) {
       this.value = +value;
-    }else{
+    } else {
       this.value = null
     }
     this.valueChange.emit(this.value);

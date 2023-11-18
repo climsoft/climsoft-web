@@ -94,16 +94,12 @@ export class StationsService {
     }
 
     private updateStationEntity(entity: StationEntity, dto: CreateStationDto): void {
+        entity.name = dto.name;
+        entity.description = dto.description;
         entity.comment = dto.comment;
         entity.entryUserId = '2';
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
-        entity.log = this.getNewStationLog(entity.log, this.getStationLogFromEntity(entity));
-    }
-
-    private getNewStationLog(currentLogs: string | null | undefined, newLog: StationLogVo): string {
-        const logs: StationLogVo[] = currentLogs ? JSON.parse(currentLogs) : [];
-        logs.push(newLog);
-        return JSON.stringify(logs);
+        entity.log = ObjectUtils.getNewLog<StationLogVo>(entity.log, this.getStationLogFromEntity(entity));
     }
 
     //---------------------------------------
@@ -111,7 +107,7 @@ export class StationsService {
     //--------------Station Elements--------------------
     async findElements(stationId: string): Promise<ViewStationElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
-        const stationElementDetails: ElementEntity[] = await this.elementsService.find();
+        const stationElementDetails: ElementEntity[] = await this.elementsService.findElements();
 
         return stationElementEntities.flatMap(form => {
             const elementDetails: undefined | ElementEntity = stationElementDetails.find(fd => fd.id === form.elementId);

@@ -353,14 +353,18 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //transform the value to actual scale to validate the limits
     value = this.getUnScaledValue(elementId, value);
 
-    //console.log('transformed value: ', value, ' scale', element.entryScaleFactor);
+    let scaleFactor: number = 1;
 
-    if (value < element.lowerLimit) {
-      return [false, `Value less than lower limit ${element.lowerLimit * element.entryScaleFactor}`]
+    if(element.entryScaleFactor){
+      scaleFactor =element.entryScaleFactor;
     }
 
-    if (value > element.upperLimit) {
-      return [false, `Value higher than upper limit ${element.upperLimit * element.entryScaleFactor}`];
+    if ( element.lowerLimit && value < element.lowerLimit) { 
+      return [false, `Value less than lower limit ${element.lowerLimit * scaleFactor}`]
+    }
+
+    if ( element.upperLimit && value > element.upperLimit) {
+      return [false, `Value higher than upper limit ${element.upperLimit * scaleFactor}`];
     }
 
     return [true, ''];
@@ -397,12 +401,12 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     const element = this.elements.find(data => data.id === elementId);
 
     //return element ? parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
-    return element ? unscaledValue * element.entryScaleFactor : 0;
+    return element && element.entryScaleFactor ? unscaledValue * element.entryScaleFactor : unscaledValue;
   }
 
   private getUnScaledValue(elementId: number, scaledValue: number): number {
     const element = this.elements.find(data => data.id === elementId);
-    return element && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : 0;
+    return element && element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
   private getFlagId(name: string | null): number | null {

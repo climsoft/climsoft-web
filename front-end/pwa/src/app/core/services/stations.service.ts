@@ -32,8 +32,6 @@ export class StationsService {
       );
   }
 
-
-
   save(station: StationModel): Observable<StationModel> {
     return this.http.post<StationModel>(this.endPointUrl, station)
       .pipe(
@@ -42,14 +40,12 @@ export class StationsService {
   }
 
   delete(stationId: number): Observable<StationModel> {
-    //todo use json as body of ids?
     const url = `${this.endPointUrl}/${stationId}`;
     return this.http.delete<StationModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
-
 
   getStationElements(stationId: string): Observable<StationElementModel[]> {
     const url = `${this.endPointUrl}/elements/${stationId}`;
@@ -122,9 +118,6 @@ export class StationsService {
         catchError(this.handleError)
       );
   }
-
-
-
 
   //---todo. push to another class ----
   private handleError(error: HttpErrorResponse) {

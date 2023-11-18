@@ -190,11 +190,11 @@ export class FormEntryComponent implements OnInit {
   }
 
   onSaveClick(): void {
-    console.log("saved values", this.observations);
+    //console.log("saved values", this.observations);
     this.observationService.saveObservations(this.observations).subscribe((data) => {
 
       this.pagesDataService.showToast({
-        title: 'observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
+        title: 'Observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
       });
 
       this.getObservationData();

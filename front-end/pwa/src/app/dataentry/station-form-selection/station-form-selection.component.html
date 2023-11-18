@@ -20,18 +20,18 @@
         </thead>
         <tbody class="table-group-divider">
           <ng-container *ngFor="let row of stations">
-            <tr class="cursor-pointer" (click)="loadStationForms(row); row.selected = !row.selected;">
+            <tr class="cursor-pointer" (click)="loadStationForms(row); stationSelected.open = !stationSelected.open;">
               <td>
-                <i class="bi" [ngClass]="{ 'bi-chevron-down':row.selected, 'bi-chevron-right':!row.selected }"></i>
+                <app-toggle-chevron #stationSelected [clickable]="false"></app-toggle-chevron>
               </td>
               <td>{{ row.id}}</td>
               <td>{{ row.name}}</td>
             </tr>
   
-            <tr *ngIf="row.selected && row.forms">
+            <tr *ngIf="stationSelected.open && row.forms">
               <td></td>
               <td></td>
-              <td>
+              <td colspan="2">
                 <table class="table table-sm table-striped table-hover cursor-pointer">
                     <thead>
                         <tr><th>Forms</th></tr>
@@ -44,7 +44,7 @@
                                         <div><i class="bi bi-arrow-right-short"></i></div>
                                         <div>{{form.sourceName}}</div>
                                     </div>
-                                    <div>&nbsp;-&nbsp;</div>
+                                    <div class="ms-1 me-1">-</div>
                                     <div>{{form.sourceDescription}}</div>
                                 </div>
                                 
@@ -52,11 +52,6 @@
                         </tr>
                     </tbody>
                 </table>
-                <!-- <app-table-view [columnsData]="[ 
-                  {id: 'sourceName', name: 'Form Name'},
-                  {id: 'sourceDescription', name: 'Form Description'} ]" 
-                  [rowsData]="row.forms"
-                  (rowDataClicked)="onFormClick($event)"></app-table-view> -->
               </td>
   
             </tr>

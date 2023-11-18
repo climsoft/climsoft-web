@@ -13,11 +13,11 @@ export class ToggleChevronComponent {
 
   @Output() opened = new EventEmitter<void>();
 
-  constructor(){
+  constructor() {
     this.openChange.subscribe(data => {
       this.opened.emit();
     });
-      }
+  }
 
   onClick() {
     if (!this.clickable) {
@@ -26,6 +26,6 @@ export class ToggleChevronComponent {
     this.open = !this.open;
     this.openChange.emit(this.open);
 
-   
+
   }
 }

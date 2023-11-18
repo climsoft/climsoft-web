@@ -4,6 +4,8 @@ import { FormBuilderComponent } from './form-builder/form-builder.component';
 import { FormsComponent } from './forms/forms.component';
 import { StationsComponent } from './stations/stations.component';
 import { StationDetailComponent } from './station-detail/station-detail.component';
+import { ElementsComponent } from './elements/elements.component';
+import { ElementDetailComponent } from './element-detail/element-detail.component';
 
 
 const routes: Routes = [
@@ -40,6 +42,14 @@ const routes: Routes = [
       {
         path: 'station-detail/:stationid',
         component: StationDetailComponent
+      },
+      {
+        path: 'elements',
+        component: ElementsComponent
+      },
+      {
+        path: 'element-detail/:elementid',
+        component: ElementDetailComponent
       },
     ]
   }

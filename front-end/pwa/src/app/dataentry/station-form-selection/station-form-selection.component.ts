@@ -6,8 +6,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormModel } from 'src/app/core/models/station-form.model';
 
 export interface StationView extends StationModel {
-  forms?: StationFormModel[];
-  selected: boolean;
+  forms?: StationFormModel[]; 
 }
 
 @Component({
@@ -23,7 +22,7 @@ export class StationFormSelectionComponent {
     this.pagesDataService.setPageHeader('Select Station');
 
     this.stationsService.getStations().subscribe(data => {
-      this.stations = data.map(station => ({ ...station, selected: false }));
+      this.stations = data.map(station => ({ ...station}));
     });
 
   }

@@ -27,6 +27,29 @@ export class ElementsService {
       );
   }
 
+  getElement(elementId: string): Observable<ElementModel> {
+    const url = `${this.endPointUrl}/${elementId}`;
+    return this.http.get<ElementModel>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  save(element: ElementModel[]): Observable<ElementModel[]> {
+    return this.http.post<ElementModel[]>(this.endPointUrl, element)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  delete(elementId: number): Observable<ElementModel> {
+    const url = `${this.endPointUrl}/${elementId}`;
+    return this.http.delete<ElementModel>(url)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
 
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {
