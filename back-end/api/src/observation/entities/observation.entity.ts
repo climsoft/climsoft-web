@@ -19,7 +19,7 @@ export class ObservationEntity {
   @PrimaryColumn({ type: 'datetime', transformer: new DateTimeColumn() })
   datetime: string;
 
-  @Column({ type: 'int' })
+  @PrimaryColumn({ type: 'int' })
   period: number;
 
   @Column({ type: 'float', nullable: true })

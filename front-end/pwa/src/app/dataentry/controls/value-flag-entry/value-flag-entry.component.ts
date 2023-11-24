@@ -75,7 +75,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private loadElementsAndSetupControl() {
 
-    //determine which fields to sue for loading the elements used in this control
+    //determine which fields to use for loading the elements used in this control
     const elementsToSearch: number[] = [];
     if (this.dataSelectors.elementId > 0) {
       elementsToSearch.push(this.dataSelectors.elementId);
@@ -90,9 +90,11 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //that should be regarded as an error in form builder design.
     //so always assume that elements selected are provided
     //fetch the elements
+    console.log(elementsToSearch)
     this.elementsService.getElements(elementsToSearch).subscribe(data => {
       //set the elements
       this.elements = data;
+      console.log("elements added", this.elements)
       //set up the controls
       this.setupControl();
     });
