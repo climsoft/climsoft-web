@@ -4,19 +4,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 //--------------------------------
 
-//------- ngx-bootstrap modules -------
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { CollapseModule } from 'ngx-bootstrap/collapse';
-//--------------------------------
-
 //------- third party modules -------
+import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { CollapseModule } from 'ngx-bootstrap/collapse'; 
 import { NgSelectModule } from '@ng-select/ng-select';
 //--------------------------------
 
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
-import { SelectorInputComponent } from './controls/selector-input/selector-input.component'; 
+import { SelectorInputComponent } from './controls/selector-input/selector-input.component';
 import { HourInputComponent } from './controls/hour-input/hour-input.component';
 import { StationInputComponent } from './controls/station-input/station-input.component';
 import { YearInputComponent } from './controls/year-input/year-input.component';
@@ -27,6 +24,9 @@ import { DataListViewComponent } from './controls/data-list-view/data-list-view.
 import { HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
+import { DialogComponent } from './controls/dialog/dialog.component';
+import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
+import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
 
 //--------------------------------
 
@@ -36,11 +36,6 @@ const angularModules = [
   FormsModule,
   HttpClientModule,
 ];
-
-const thirdPartyModules = [
-  NgSelectModule
-]
-
 
 //--------------------------------
 
@@ -54,27 +49,29 @@ const controlsComponents = [
   MonthInputComponent,
   DayInputComponent,
   HourInputComponent,
-
+ 
   StationInputComponent,
   ElementInputComponent,
-  
 
   DataListViewComponent,
   TableViewComponent,
-
+  DialogComponent,
+  InputDialogComponent,
+  ToggleChevronComponent,
 
 ];
 
 @NgModule({
   declarations: [
-    ...controlsComponents,
+    ...controlsComponents,    
+    
   ],
   imports: [
     ...angularModules,
-    ...thirdPartyModules,
 
     BsDropdownModule.forRoot(),
-    CollapseModule.forRoot(),
+    CollapseModule.forRoot(), 
+    NgSelectModule,
 
   ],
   providers: [
@@ -82,12 +79,12 @@ const controlsComponents = [
   ],
   exports: [
     ...angularModules,
-    ...thirdPartyModules, 
     ...controlsComponents,
 
     BsDropdownModule,
-    CollapseModule,
-    
+    CollapseModule, 
+    NgSelectModule,
+
   ]
 })
 export class SharedModule { }

@@ -1,0 +1,23 @@
+<div *ngIf="element" class="card border-0">
+    <div class="card-body p-0">
+        <div class="card-title fw-bold">Showing element details</div>
+        <div>
+            <app-number-input [controlLabel]="'Id'" [value]="element.id" (valueChange)="onElementIdEntry($event)"></app-number-input>
+            <app-text-input [controlLabel]="'Name'" [(value)]="element.name"></app-text-input>
+            <app-text-input [controlLabel]="'Abbreviation'" [(value)]="element.abbreviation"></app-text-input>
+            <app-text-input [controlLabel]="'Description'" [(value)]="element.description"></app-text-input>
+            <app-number-input [controlLabel]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
+            <app-number-input [controlLabel]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
+            <app-number-input [controlLabel]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
+        </div>
+
+    </div>
+
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
+        <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+          Save 
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+      </div>
+
+</div>

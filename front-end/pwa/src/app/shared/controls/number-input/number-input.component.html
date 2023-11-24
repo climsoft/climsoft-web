@@ -1,10 +1,8 @@
-<label [for]="controlLabel">{{ controlLabel }}</label>
-<input
-  type="number"
-  class="form-control"
-  [id]="controlLabel"
-  [disabled]="disabled"
-  (input)="onInputChange($any($event.target).value)"
-  [value]="value"
-/>
-<div class="form-text"  [class.text-danger] = "errorMessage" >{{ errorMessage ? errorMessage : hintMessage }}</div>
+<label *ngIf="controlLabel" [for]="controlLabel">{{ controlLabel }}</label>
+<input *ngIf="controlLabel" type="number" class="form-control form-control-sm" [id]="controlLabel" [disabled]="disabled"
+  (input)="onInputChange($any($event.target).value)" [value]="value" autocomplete="off" />
+
+<input *ngIf="!controlLabel" type="number" class="form-control form-control-sm" [disabled]="disabled"
+  (input)="onInputChange($any($event.target).value)" [value]="value" autocomplete="off" />
+
+<div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage || hintMessage }}</div>

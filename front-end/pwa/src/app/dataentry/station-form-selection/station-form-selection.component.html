@@ -1,0 +1,67 @@
+<div class="card border-0">
+    <div class="card-header d-flex justify-content-between p-0 align-items-center">
+      <div class="fw-bold">Showing Stations</div>
+      <div class="mb-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+          Search
+        </button>
+      </div>
+    </div>
+  
+    <div class="card-body px-0">
+  
+      <table class="table table-striped table-sm">
+        <thead>
+          <tr>
+            <th style="width: 2%;"></th>
+            <th style="width: 10%;">Id</th>
+            <th style="width: 88%;">Name</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <ng-container *ngFor="let row of stations">
+            <tr class="cursor-pointer" (click)="loadStationForms(row); stationSelected.open = !stationSelected.open;">
+              <td>
+                <app-toggle-chevron #stationSelected [clickable]="false"></app-toggle-chevron>
+              </td>
+              <td>{{ row.id}}</td>
+              <td>{{ row.name}}</td>
+            </tr>
+  
+            <tr *ngIf="stationSelected.open && row.forms">
+              <td></td>
+              <td></td>
+              <td colspan="2">
+                <table class="table table-sm table-striped table-hover cursor-pointer">
+                    <thead>
+                        <tr><th>Forms</th></tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let form of row.forms" (click)="onFormClick(form)" >
+                            <td>
+                                <div class="d-flex flex-row">
+                                    <div class="d-flex flex-row">
+                                        <div><i class="bi bi-arrow-right-short"></i></div>
+                                        <div>{{form.sourceName}}</div>
+                                    </div>
+                                    <div class="ms-1 me-1">-</div>
+                                    <div>{{form.sourceDescription}}</div>
+                                </div>
+                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+              </td>
+  
+            </tr>
+  
+          </ng-container>
+  
+  
+        </tbody>
+      </table>
+  
+    </div>
+  
+  </div>

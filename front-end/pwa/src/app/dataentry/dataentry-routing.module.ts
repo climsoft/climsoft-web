@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
-import { StationSelectionComponent } from './station-selection/station-selection.component';
-import { FormSelectionComponent } from './form-selection/form-selection.component';
+import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
 
 
 const routes: Routes = [
@@ -19,12 +18,8 @@ const routes: Routes = [
         pathMatch: 'full',
       },   
       {
-        path: 'station-selection',
-        component: StationSelectionComponent
-      }, 
-      {
-        path: 'form-selection/:stationid',
-        component: FormSelectionComponent
+        path: 'station-form-selection',
+        component: StationFormSelectionComponent
       },     
       {
         path: 'form-entry/:stationid/:datasourceid',

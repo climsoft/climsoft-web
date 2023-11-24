@@ -3,20 +3,21 @@ import { Observation } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
-import { EntryForm } from 'src/app/core/models/entryform.model';
+import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
-import { Element } from 'src/app/core/models/element.model';
+import { ElementModel } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Flag } from 'src/app/core/models/Flag.model';
 import { FlagsService } from 'src/app/core/services/flags.service';
 import { ObservationLog } from 'src/app/core/models/observation-log.model';
+import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
 
 
 export interface ControlDefinition {
   id: number;
   label: string;
   entryData?: Observation;
-  entryStatus: 'new' | 'update';
+  entryStatus: 'saved' | 'unsaved';
   displayedValueFlag: string;
   errorMessage: string;
 }
@@ -37,13 +38,20 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
   @Input() formMetadata!: EntryForm;
   @Output() valueChange = new EventEmitter<'valid_value' | 'invalid_value'>();
 
+  useSmallVFControls: boolean = false;
+
   //entry controls definitions
   entryControlsDefs: ControlDefinition[] = [];
 
-  private elements!: Element[];
+  private elements!: ElementModel[];
   private flags!: Flag[];
 
-  constructor(private elementsService: ElementsService, private flagsService: FlagsService) {
+  constructor(private viewPortService: ViewportService, private elementsService: ElementsService, private flagsService: FlagsService) {
+
+    this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
+      this.useSmallVFControls = viewPortSize === ViewPortSize.Large;
+    });
+
     this.flagsService.getFlags().subscribe(data => {
       this.flags = data;
     });
@@ -67,7 +75,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   private loadElementsAndSetupControl() {
 
-    //determine which fields to sue for loading the elements used in this control
+    //determine which fields to use for loading the elements used in this control
     const elementsToSearch: number[] = [];
     if (this.dataSelectors.elementId > 0) {
       elementsToSearch.push(this.dataSelectors.elementId);
@@ -82,9 +90,11 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //that should be regarded as an error in form builder design.
     //so always assume that elements selected are provided
     //fetch the elements
+    console.log(elementsToSearch)
     this.elementsService.getElements(elementsToSearch).subscribe(data => {
       //set the elements
       this.elements = data;
+      console.log("elements added", this.elements)
       //set up the controls
       this.setupControl();
     });
@@ -129,7 +139,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
       controlDefs.push({
         id: item[valueProperty],
         label: item[displayProperty],
-        entryStatus: 'new',
+        entryStatus: 'unsaved',
         displayedValueFlag: '',
         errorMessage: ''
       })
@@ -166,8 +176,7 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
     //console.log('transformed observations', observationDict);
 
-    // Set control definitions entry data and displayed value flag
-    let flagName: string;
+    // Set control definitions entry data and displayed value flag 
     for (const controlDef of entryControlsDefs) {
       //look for the observation using the control id (entry field value).
       const observation = observationDict[controlDef.id];
@@ -176,19 +185,17 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
         //scale the value for display
         const value = observation.value === null ? null : this.getScaledValue(observation.elementId, observation.value);
+        controlDef.entryStatus = 'saved';
         controlDef.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(observation.flag));
       }
     }
   }
 
-
-
-
   onInputEntry(controlDef: ControlDefinition, valueFlagInput: string): void {
 
     let validationResults: [boolean, string];
     let observation: Observation;
-    let observationNew: boolean=false;
+    let observationNew: boolean = false;
 
     //clear any existing error message
     controlDef.errorMessage = ''
@@ -241,19 +248,18 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //set the value and flag
     observation.value = value === null ? null : this.getUnScaledValue(observation.elementId, value);
     observation.flag = this.getFlagId(flagName);
-    
-  
 
     //attach the updated observation to the control definition
     controlDef.entryData = observation;
 
     //scale the value for display
+    controlDef.entryStatus = 'unsaved';
     controlDef.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
 
-      //if observation is new then add it to observations array
-      if (observationNew) {
-        this.observations.push(observation);
-      }
+    //if observation is new then add it to observations array
+    if (observationNew) {
+      this.observations.push(observation);
+    }
 
     console.log('data changes', controlDef.entryData);
 
@@ -261,9 +267,17 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
 
   }
 
+  onCommentEntry(controlDef: ControlDefinition,comment: string){
+    if(controlDef.entryData){
+      controlDef.entryData.comment = comment;
+    }   
+    controlDef.entryStatus = 'unsaved';
+    this.valueChange.emit('valid_value');
+  }
+
   private getNewEntryData(controlDef: ControlDefinition): Observation {
     //create new entr data
-    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null };
+    const entryData: Observation = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null, log: null };
 
     //set data source
     entryData.sourceId = this.dataSelectors.sourceId;
@@ -341,14 +355,18 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     //transform the value to actual scale to validate the limits
     value = this.getUnScaledValue(elementId, value);
 
-    //console.log('transformed value: ', value, ' scale', element.entryScaleFactor);
+    let scaleFactor: number = 1;
 
-    if (value < element.lowerLimit) {
-      return [false, `Value less than lower limit ${element.lowerLimit * element.entryScaleFactor}`]
+    if(element.entryScaleFactor){
+      scaleFactor =element.entryScaleFactor;
     }
 
-    if (value > element.upperLimit) {
-      return [false, `Value higher than upper limit ${element.upperLimit * element.entryScaleFactor}`];
+    if ( element.lowerLimit && value < element.lowerLimit) { 
+      return [false, `Value less than lower limit ${element.lowerLimit * scaleFactor}`]
+    }
+
+    if ( element.upperLimit && value > element.upperLimit) {
+      return [false, `Value higher than upper limit ${element.upperLimit * scaleFactor}`];
     }
 
     return [true, ''];
@@ -385,12 +403,12 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     const element = this.elements.find(data => data.id === elementId);
 
     //return element ? parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
-    return element ? unscaledValue * element.entryScaleFactor : 0;
+    return element && element.entryScaleFactor ? unscaledValue * element.entryScaleFactor : unscaledValue;
   }
 
   private getUnScaledValue(elementId: number, scaledValue: number): number {
     const element = this.elements.find(data => data.id === elementId);
-    return element && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : 0;
+    return element && element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
   private getFlagId(name: string | null): number | null {
@@ -403,17 +421,11 @@ export class ValueFlagEntryComponent implements OnInit, OnChanges {
     return flag ? flag.name : null;
   }
 
-  // private getNewLog(observation: Observation): string {
+  getLogs(observation: Observation): ObservationLog[] {
+    return observation.log === null ? [] : JSON.parse(observation.log);
+  }
 
-  //   let logs: ObservationLog[] = [];
-  //   if (observation.log !== null) {
-  //     logs = JSON.parse(observation.log);
-  //   }
 
-  //   logs.push({ ...observation, comment: 'first entry' });
-  //   return JSON.stringify(logs);
-
-  // }
 
 
 }

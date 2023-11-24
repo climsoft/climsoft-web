@@ -7,14 +7,13 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
 })
 export class TextInputComponent implements OnInit, OnChanges {
 
-  @Input() controlLabel: string = "";
+  @Input() controlLabel: string = '';
   //@Input() multiple: boolean = false;  
   @Input() disabled: boolean = false;
   @Input() hintMessage: string = '';
   @Input() errorMessage: string = '';
   @Input() value: string = '';
   @Output() valueChange = new EventEmitter<string >();
-
 
   constructor() {
 

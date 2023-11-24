@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { StationsModule } from './station/stations.module';
-import { SourceModule } from './source/source.module';
-import { ElementsModule } from './element/elements.module';
+import { TypeOrmModule } from '@nestjs/typeorm'; 
 import { SharedModule } from './shared/shared.module';
 import { ObservationModule } from './observation/observation.module';
+import { FileController } from './file.controller';
+import { MetadataModule } from './metadata/metadata.module';
 
 @Module({
   imports: [
-    SharedModule, SourceModule, StationsModule, ElementsModule, ObservationModule,
+    SharedModule, MetadataModule, ObservationModule,
     TypeOrmModule.forRoot({
       type: 'mariadb', // type of our database
       host: 'localhost', // database host
@@ -21,10 +20,11 @@ import { ObservationModule } from './observation/observation.module';
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: true, // your entities will be synced with the database(recommended: disable in prod)
      // timezone: 'Z', //todo. do more research about it. It affects how dates are saved in the database
-    }),  
+    }),
+    MetadataModule,  
 
   ],
-  controllers: [AppController],
+  controllers: [AppController, FileController],
   providers: [AppService],
 })
 export class AppModule { }

@@ -12,8 +12,7 @@ import { DataGridEntryComponent } from './controls/data-grid-entry/data-grid-ent
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { ValueFlagEntryComponent } from './controls/value-flag-entry/value-flag-entry.component'; 
-import { FormSelectionComponent } from './form-selection/form-selection.component';
-import { StationSelectionComponent } from './station-selection/station-selection.component';
+import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
 //------------------------------------
 
 
@@ -24,8 +23,7 @@ import { StationSelectionComponent } from './station-selection/station-selection
     FormEntryComponent,
     ValueFlagEntryComponent,
     ImportEntryComponent, 
-    FormSelectionComponent,
-    StationSelectionComponent
+    StationFormSelectionComponent
   ],
   imports: [
     DataEntryRoutingModule,

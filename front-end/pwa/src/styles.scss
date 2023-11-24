@@ -1,4 +1,3 @@
-
 // theme used by ng-select
 @import "~@ng-select/ng-select/themes/default.theme.css";
 
@@ -12,9 +11,45 @@
 @import "./node_modules/bootstrap-icons/font/bootstrap-icons";
 
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f5f7fb }
-
-.component-h1{
-    font-size: 1.3125rem;
+html,
+body {
+    height: 100%;
 }
+
+body {
+    margin: 0;
+    // font-family: Roboto, "Helvetica Neue", sans-serif;
+    font-family: arial, helvetica, verdana, sans-serif;
+    //font-size: 0.75rem; //12px
+    // background-color: #f5f7fb
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.table-group-divider {
+    border-top-color: #ddd;
+}
+
+.form-control-max-w-sm{
+    max-width: 6.875rem;
+}
+
+.form-control-label-sm {
+    font-size: 0.875rem;
+}
+
+
+// h1 {
+//     font-size: 18px;
+//     line-height: 23px;
+//     font-weight: bold;
+
+//     margin-top: 20px;
+//     margin-bottom: 10px;
+// }
+
+// .component-h1 {
+//     //font-size: 1.3125rem;
+// }

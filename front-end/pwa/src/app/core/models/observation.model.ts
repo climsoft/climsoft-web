@@ -11,5 +11,5 @@ export interface Observation {
     comment: string | null;
     entryUser?: number;
     entryDateTime?: string;
-    log?: string | null; //json string
+    log: string | null; //json string
 }

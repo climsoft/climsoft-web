@@ -1,0 +1,20 @@
+<div class="card border-0">
+    <div class="card-header d-flex justify-content-between p-0 align-items-center">
+      <div class="fw-bold">Showing Elements</div>
+      <div class="mb-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+          Search
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewElementClick()">
+          New
+        </button>
+      </div>
+    </div>
+  
+    <div class="card-body px-0">
+      <app-table-view [clickable]="true"
+        [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'}, {id: 'abbreviation', name: 'Abbreviation'}, {id: 'description', name: 'Description'}   ]" [rowsData]="elements"
+        (rowDataClicked)="onEditElementClick($event)"></app-table-view>
+    </div>
+  
+  </div>

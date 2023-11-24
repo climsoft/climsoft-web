@@ -11,7 +11,7 @@ import { SelectObservation } from '../models/select-observation.model';
 })
 export class ObservationsService {
 
-  endPointUrl: string = " http://localhost:3000/observations";
+  endPointUrl: string = "http://localhost:3000/observations";
 
   constructor(private http: HttpClient) { }
 

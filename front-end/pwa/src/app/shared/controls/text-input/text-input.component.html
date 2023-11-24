@@ -1,7 +1,7 @@
 <label [for]="controlLabel">{{ controlLabel }}</label>
 <input
   type="text"
-  class="form-control"
+  class="form-control form-control-sm"
   [id]="controlLabel"
   [disabled]="disabled"
   (input)="onInputChange($any($event.target).value)"

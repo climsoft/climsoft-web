@@ -43,6 +43,19 @@ export class DateUtils {
         return Number(sqlDate.substring(11, 13));
     }
 
+    //monthId is 1 index based
+    static getMonthName(monthId: number): string {
+        const monthNames: string[] = [            'January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December'        ];
+    
+        if (monthId >= 1 && monthId <= 12) {
+            return monthNames[monthId - 1];
+        } else {
+            return 'Invalid Month';
+        }
+    }
+
+    
+
 }
 
 

@@ -1,38 +1,36 @@
-
-<div class="card  ">
-
-  <div class="card-body">
-    <div class="card-title fw-light">{{formName}} data entry for {{stationName}}</div>
+<div class="card border-0">
+  <div class="card-body p-0">
+    <div class="card-title fw-bold">{{formName}} data entry for {{stationName}}</div>
     <!-- entry selectors -->
-    <div class="card mb-2 ">
-
-      <div class="card-body">
-        <div class="card-title fw-light">Entry Selectors</div>
-        <div class="row g-2">
+    <div class="card mb-2 border-0 ">
+  
+      <div class="card-body p-0">
+        <div class="card-header mb-2 p-1 fw-bold">Entry Selectors</div>
+        <div class="row g-2 p-2">
           <div class="col-sm-auto mb-2" *ngIf="dataSelectors.elementId > 0">
             <app-element-input [controlLabel]="'Element'" [value]="dataSelectors.elementId"
               (valueChange)="onElementChange($event)"></app-element-input>
           </div>
-
+  
           <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.year > 0">
             <app-number-input [controlLabel]="'Year'" [value]="dataSelectors.year"
               (valueChange)="onYearChange($event)"></app-number-input>
           </div>
-
+  
           <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.month > 0">
             <app-month-input [value]="dataSelectors.month" (valueChange)="onMonthChange($event)"></app-month-input>
           </div>
-
+  
           <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl  && dataSelectors.day > 0">
             <app-day-input [year]="dataSelectors.year" [month]="dataSelectors.month" [value]="dataSelectors.day"
               (valueChange)="onDayChange($event)"></app-day-input>
           </div>
-
+  
           <div class="col-sm-auto mb-2" *ngIf="useDatePickerControl">
             <app-date-input [controlLabel]="'Date'" [value]="defaultDatePickerDate"
               (valueChange)="onDateChange($event)"></app-date-input>
           </div>
-
+  
           <div class="col-sm-auto mb-2" *ngIf="this.dataSelectors.hour > -1">
             <app-hour-input [controlLabel]="'Hour'" [value]="dataSelectors.hour" [onlyIncludeIds]="formMetadata.hours"
               (valueChange)="onHourChange($event)"></app-hour-input>
@@ -40,35 +38,35 @@
         </div>
       </div>
     </div>
-
+  
     <!-- entry fields -->
-    <div class="card mb-2 ">
-
-      <div class="card-body">
-        <div class="card-title fw-light">Entry Fields</div>
-        
-        <!-- grid entry -->
-        <app-data-grid-entry *ngIf="entryControl === 'grid'"></app-data-grid-entry>
-        <!-- ----------- -->
-        <!-- value flag entry -->
-        <app-value-flag-entry *ngIf="entryControl === 'vf'" [dataSelectors]="dataSelectors"
-          [formMetadata]="formMetadata" [observations]="observations" (valueChange)="onValueFlagEntryChange($event)">
-        </app-value-flag-entry>
-        <!-- ----------- -->
+    <div class="card mb-2 border-0">
+  
+      <div class="card-body p-0">
+        <div class="card-header mb-2 p-1 fw-bold">Entry Fields</div>
+        <div class="p-2">
+          <!-- grid entry -->
+          <app-data-grid-entry *ngIf="entryControl === 'grid'"></app-data-grid-entry>
+          <!-- ----------- -->
+          <!-- value flag entry -->
+          <app-value-flag-entry *ngIf="entryControl === 'vf'" [dataSelectors]="dataSelectors"
+            [formMetadata]="formMetadata" [observations]="observations" (valueChange)="onValueFlagEntryChange($event)">
+          </app-value-flag-entry>
+          <!-- ----------- -->
+        </div>
+  
+  
       </div>
     </div>
-
-    <div class="row g-2">
-      <div class="col-auto">
-        <button type="button" class="btn btn-primary" (click)="onSave()" [disabled]="!bEnableSave">
-          Save
-        </button>
-      </div>
-      <div class="col-auto">
-        <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">Cancel</button>
-      </div>
-    </div>
+  
+  
   </div>
-
+  
+  <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+      Save 
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+  </div>
 
 </div>

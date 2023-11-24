@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
-import { ObservationEntity } from '../entities/observation.entity';
+import { ObservationEntity, ObservationLogVo } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
-import { DateUtils } from 'src/shared/date.utils';
-import { ObservationLogDto } from '../dtos/observation-log.dto';
+import { DateUtils } from 'src/shared/utils/date.utils';
+import { ObjectUtils } from 'src/shared/utils/object.util';
 
 @Injectable()
 export class ObservationsService {
@@ -31,15 +31,6 @@ export class ObservationsService {
         this.setDateFilter(selectObsevationDto, selectOptions);
 
         return this.observationRepo.findBy(selectOptions);
-
-        // return this.observationRepo.find({
-        //     where: {
-        //         stationId : selectObsevationDto.stationId,
-        //         elementId : selectObsevationDto.elementId,
-        //         sourceId : selectObsevationDto.sourceId,
-        //         datetime: Between('2023-09-02 06:00:00','2023-09-03 06:00:00'),
-        //     },
-        //   });
     }
 
     private setDateFilter(selectObsevationDto: SelectObservationDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
@@ -81,98 +72,88 @@ export class ObservationsService {
             return;
         }
 
-        //console.log('date option',  selectOptions.datetime )
         //todo construct other date filters
     }
 
-    // async findOne( keys: {stationId: string, elementId: number, sourceId: number, level: string, datetime: string}) {
-    //     const observation = await this.observationRepo.findOneBy({
-    //        ...keys,
-    //     });
-
-    //     if (!observation) {
-    //         throw new NotFoundException(`observation #${keys} not found`);
-    //     }
-
-    //     return observation;
-    // }
 
     async save(createObservationDtoArray: CreateObservationDto[]) {
+        const obsEntities: ObservationEntity[] = [];
 
-        const obsEntitiesArray: ObservationEntity[] = [];
-
-        for (const observationDto of createObservationDtoArray) {
-            //get if it existing
+        for (const createObservationDto of createObservationDtoArray) {
             let observationEntity = await this.observationRepo.findOneBy({
-                stationId: observationDto.stationId,
-                elementId: observationDto.elementId,
-                sourceId: observationDto.sourceId,
-                level: observationDto.level,
-                datetime: observationDto.datetime,
+                stationId: createObservationDto.stationId,
+                elementId: createObservationDto.elementId,
+                sourceId: createObservationDto.sourceId,
+                level: createObservationDto.level,
+                datetime: createObservationDto.datetime,
             });
 
-            //if not create new one
-            if (!observationEntity) {
+            if (observationEntity) {
+                const oldChanges: ObservationLogVo = this.getObservationLogFromEntity(observationEntity);
+                const newChanges: ObservationLogVo = this.getObservationLogFromDto(createObservationDto);
+
+                if (ObjectUtils.areObjectsEqual<ObservationLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
+                    continue;
+                }
+            } else {
                 observationEntity = this.observationRepo.create({
-                    stationId: observationDto.stationId,
-                    elementId: observationDto.elementId,
-                    sourceId: observationDto.sourceId,
-                    level: observationDto.level,
-                    datetime: observationDto.datetime,
+                    stationId: createObservationDto.stationId,
+                    elementId: createObservationDto.elementId,
+                    sourceId: createObservationDto.sourceId,
+                    level: createObservationDto.level,
+                    datetime: createObservationDto.datetime,
                 });
             }
 
-            //update fields
-            observationEntity.period = observationDto.period;
-            observationEntity.value = observationDto.value;
-            observationEntity.flag = observationDto.flag;
-            observationEntity.qcStatus = observationDto.qcStatus;
-            observationEntity.comment = observationDto.comment;
-            observationEntity.entryUser = 1;
-            observationEntity.log = this.getNewLog(observationEntity);
-
-            //add it to array for saving
-            obsEntitiesArray.push(observationEntity)
+            this.updateObservationEntity(observationEntity, createObservationDto);
+            obsEntities.push(observationEntity);
         }
 
-        //save all observations
-        return this.observationRepo.save(obsEntitiesArray);
+        return this.observationRepo.save(obsEntities);
     }
 
 
-    private getNewLog(observationEntity: ObservationEntity): string {
-
-        //todo. left here. log shouldnot be added if nothing has been changed
-        //observation entity should not be updated as well if nothing has been changed
-        //so create another function that does this.
-
-        const logs: ObservationLogDto[] = !observationEntity.log ? [] : JSON.parse(observationEntity.log);
-        const log: ObservationLogDto = {
-            period: observationEntity.period,
-            value: observationEntity.value,
-            flag: observationEntity.flag,
-            qcStatus: observationEntity.qcStatus,
-            entryUser: observationEntity.entryUser,
-            entryDateTime: observationEntity.entryDateTime,
-            comment: observationEntity.comment
+    private getObservationLogFromEntity(entity: ObservationEntity): ObservationLogVo {
+        return {
+            period: entity.period,
+            value: entity.value,
+            flag: entity.flag,
+            qcStatus: entity.qcStatus,
+            comment: entity.comment,
+            entryUserId: entity.entryUserId,
+            entryDateTime: entity.entryDateTime,
+         
         };
-        logs.push(log);
+    }
+
+    private getObservationLogFromDto(dto: CreateObservationDto): ObservationLogVo {
+        return {
+            period: dto.period,
+            value: dto.value,
+            flag: dto.flag,
+            qcStatus: dto.qcStatus,
+            comment: dto.comment,
+            entryUserId: '2', //todo. this will come from user session or token
+            entryDateTime: DateUtils.getTodayDateInSQLFormat(),           
+        };
+    }
+
+    private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto): void {
+        entity.period = dto.period;
+        entity.value = dto.value;
+        entity.flag = dto.flag;
+        entity.qcStatus = dto.qcStatus;
+        entity.comment = dto.comment;
+        entity.entryUserId = '2';
+        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.log = this.getNewLog(entity.log, this.getObservationLogFromEntity(entity));
+    }
+
+    private getNewLog(currentLogs: string | null | undefined, newLog: ObservationLogVo): string {
+        const logs: ObservationLogVo[] = currentLogs ? JSON.parse(currentLogs) : [];
+        logs.push(newLog);
         return JSON.stringify(logs);
     }
 
-    // async update(id: string, obsDto: CreateObservationDto) {
-    //     const station = await this.observationRepo.preload({
-    //         ...obsDto,
-    //     });
-    //     if (!station) {
-    //         throw new NotFoundException(`Observation #${id} not found`);
-    //     }
-    //     return this.observationRepo.save(station);
-    // }
 
-    // async remove(id: string) {
-    //     //const obs = await this.findOne(id);
-    //     //return this.observationRepo.remove(obs);
-    //     return "";
-    // }
 }
