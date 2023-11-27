@@ -9,7 +9,7 @@ export  interface EntryForm{
     entryFields: string[];
 
     //control to be used for entry fields in data entry and data display
-    entryControl: 'vf' | 'grid';
+    entryControl: 'LIST' | 'TABLE';
 
     //elements ids allowed to be recorded by the form
     elements: number[];

@@ -2,12 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { EntryForm } from '../../core/models/entry-form.model';
-import { Observation } from '../../core/models/observation.model';
+import { ObservationModel } from '../../core/models/observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { SelectObservation } from 'src/app/core/models/select-observation.model';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { ControlDefinition } from '../controls/value-flag-input/value-flag-input.component';
+import { ElementsService } from 'src/app/core/services/elements.service';
+import { FlagsService } from 'src/app/core/services/flags.service';
+import { FlagModel } from 'src/app/core/models/Flag.model';
+import { ElementModel } from 'src/app/core/models/element.model';
 
 export interface DataSelectorsValues {
   stationId: string;
@@ -26,26 +31,36 @@ export interface DataSelectorsValues {
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit {
-  dataSelectors!: DataSelectorsValues;
-  formMetadata!: EntryForm;
-  useDatePickerControl: boolean = false;
-  defaultDatePickerDate!: string;
-  entryControl!: string;
-  observations!: Observation[];
+  public dataSelectors!: DataSelectorsValues;
+  public formMetadata!: EntryForm;
+  public useDatePickerControl: boolean = false;
+  public defaultDatePickerDate!: string;
+  public entryControl!: 'LIST' | 'TABLE';
+  public elements!: ElementModel[];
+  public observations!: ObservationModel[];
+  public newObservations!: ObservationModel[];
 
-  stationName!: string;
-  formName!: string;
-  bEnableSave: boolean = false;
+  public flags!: FlagModel[];
+
+  public stationName!: string;
+  public formName!: string;
+
 
   constructor
-  ( private pagesDataService: PagesDataService,
-    private sourcesService: SourcesService,
-    private stationsService: StationsService,
-    private observationService: ObservationsService,   
-    private route: ActivatedRoute,
-    private location: Location) {
+    (private pagesDataService: PagesDataService,
+      private sourcesService: SourcesService,
+      private stationsService: StationsService,
+      private elementsService: ElementsService,
+      private flagsService: FlagsService,
+      private observationService: ObservationsService,
+      private route: ActivatedRoute,
+      private location: Location) {
 
     this.pagesDataService.setPageHeader('Data Entry');
+
+    this.flagsService.getFlags().subscribe(data => {
+      this.flags = data;
+    });
   }
 
   ngOnInit(): void {
@@ -68,7 +83,7 @@ export class FormEntryComponent implements OnInit {
       //first set up the controls. this will set the form selectors 
       this.setFormSelectorsAndControl(JSON.parse(data.extraMetadata));
       //the load the existing observation data
-      this.getObservationData();
+      this.loadSelectedElementsAndObservations();
 
     });
 
@@ -112,7 +127,38 @@ export class FormEntryComponent implements OnInit {
     this.entryControl = entryForm.entryControl;
   }
 
+
+  private loadSelectedElementsAndObservations() {
+
+    this.elements = [];
+    this.observations = [];
+    this.newObservations = [];
+
+    //determine which fields to use for loading the elements used in this control
+    const elementsToSearch: number[] = [];
+    if (this.dataSelectors.elementId > 0) {
+      elementsToSearch.push(this.dataSelectors.elementId);
+    } else if (this.formMetadata.entryFields.includes("elementId")) {
+      elementsToSearch.push(...this.formMetadata.elements);
+    } else {
+      //todo. display error in set value flag set up
+      return;
+    }
+
+    //note, its not expected that all elements in the database will be set as entry fields. 
+    //that should be regarded as an error in form builder design.
+    //so always assume that elements selected are provided
+    //fetch the elements
+    this.elementsService.getElements(elementsToSearch).subscribe(data => {
+      //set the elements
+      this.elements = data;
+      this.getObservationData();
+    });
+
+  }
+
   private getObservationData(): void {
+
     //get the data based on the station, data source and selectors
     const select: SelectObservation = {};
 
@@ -139,33 +185,35 @@ export class FormEntryComponent implements OnInit {
       select.hour = this.dataSelectors.hour;
     }
 
-    console.log("selections", select);
-    this.bEnableSave = false;
     this.observationService.getObservations(select).subscribe((data) => {
-      console.log("Response", data);
+
+      // Todo. Create a deep copy of original observations as well 
+      // then compare them before saving to eliminate unchanged data
+
       this.observations = data;
+
+
     });
   }
 
-
   public onElementChange(elementIdSelected: any): void {
     this.dataSelectors.elementId = elementIdSelected;
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
   public onYearChange(yearInput: any): void {
     this.dataSelectors.year = yearInput.id;
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
   public onMonthChange(monthSelected: any): void {
     this.dataSelectors.month = monthSelected.id;
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
   public onDayChange(daySelected: any): void {
     this.dataSelectors.day = daySelected.id;
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
   onDateChange(dateInput: string): void {
@@ -173,35 +221,45 @@ export class FormEntryComponent implements OnInit {
     this.dataSelectors.year = date.getFullYear();
     this.dataSelectors.month = date.getMonth() + 1;
     this.dataSelectors.day = date.getDate();
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
   onHourChange(hourInput: number): void {
     this.dataSelectors.hour = hourInput;
-    this.getObservationData();
+    this.loadSelectedElementsAndObservations();
   }
 
-  onValueFlagEntryChange(validity: 'valid_value' | 'invalid_value') {
-    this.bEnableSave = validity === 'valid_value';
-  }
+  public onValueChange(newObservation: ObservationModel): void {
+    //TODO. add to the list of observations changed for later elimintation checking
+    // for instance if value was really changed or not
 
-  onCancelClick(): void {
-    this.location.back();
+    const index = this.newObservations.findIndex((data) => (data === newObservation))
+    if (index > -1) {
+      this.newObservations[index] = newObservation;
+    } else {
+      this.newObservations.push(newObservation);
+    }
+
   }
 
   onSaveClick(): void {
-    //console.log("saved values", this.observations);
-    this.observationService.saveObservations(this.observations).subscribe((data) => {
+
+    // Todo. check for truly changed observations
+
+    this.observationService.saveObservations(this.newObservations).subscribe((data) => {
 
       this.pagesDataService.showToast({
         title: 'Observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
       });
 
-      this.getObservationData();
+      this.loadSelectedElementsAndObservations();
 
     });
   }
 
+  onCancelClick(): void {
+    this.location.back();
+  }
 
 
 }

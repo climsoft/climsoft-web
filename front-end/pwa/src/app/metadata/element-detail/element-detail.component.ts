@@ -55,6 +55,8 @@ export class ElementDetailComponent implements OnInit {
         this.pagesDataService.showToast({
           title: 'Element Details', message: `${this.element.name} saved`, type: 'success'
         });
+
+        this.location.back();
       }
       
     });

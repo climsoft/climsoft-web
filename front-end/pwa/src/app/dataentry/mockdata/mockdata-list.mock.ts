@@ -1,3 +1,3 @@
-import { Observation } from "../../core/models/observation.model";
+import { ObservationModel } from "../../core/models/observation.model";
 
 
