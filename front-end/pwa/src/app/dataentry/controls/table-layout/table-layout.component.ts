@@ -124,10 +124,8 @@ export class TableLayoutComponent implements OnInit, OnChanges {
         controlDefs.push({
           rowId: row.id,
           colId: col.id,
-          entryData: this.formEntryService.getNewEntryData(
-            this.dataSelectors, this.formMetadata.entryFields, [row.id, col.id]),
-          newData: true,
-          userChange: false
+          entryData: this.formEntryService.getNewEntryDataDelete(
+            this.dataSelectors, this.formMetadata.entryFields, [row.id, col.id])
         });
       }
 
@@ -188,7 +186,6 @@ export class TableLayoutComponent implements OnInit, OnChanges {
         }
 
         controlDef.entryData = observation;
-        controlDef.newData = false;
       }
 
     }

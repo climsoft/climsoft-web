@@ -6,7 +6,7 @@ import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
-import { FormEntryService } from '../../form-entry/form-entry.service';
+import { FieldDefinition, FormEntryService } from '../../form-entry/form-entry.service';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
 
 
@@ -51,7 +51,7 @@ export class ListLayoutComponent implements OnInit, OnChanges {
       this.flags && this.flags.length > 0) {
 
       // Get the new definitions 
-      this.controlsDefinitions = this.createNewControlDefinitions(this.dataSelectors, this.elements,this.formMetadata, this.observations);
+      this.controlsDefinitions = this.createNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
       this.controlsDefinitionsChuncks = this.getControlDefinitionsChuncks(this.controlsDefinitions);
     }
 
@@ -60,68 +60,76 @@ export class ListLayoutComponent implements OnInit, OnChanges {
 
 
   private createNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): ControlDefinition[] {
-    let controlsDefinitions: ControlDefinition[] = [];
+
     //get entry field to use for control definitions
     const entryField: string = formMetadata.entryFields[0];
+    let fieldDefinitions: FieldDefinition[];
 
     switch (entryField) {
       case "elementId":
-        //create controls definitions for the selected elements only
-        controlsDefinitions = this.getNewControlDefs(dataSelectors,formMetadata.entryFields,elements, "id", "abbreviation");
+        //create field definitions for the selected elements only
+        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(elements, "id", "abbreviation")
         break;
       case "day":
-        //create controls definitions for days of the selected month only
+        //create field definitions for days of the selected month only
         //note, there is no days selection in the form builder
-        controlsDefinitions = this.getNewControlDefs(dataSelectors,formMetadata.entryFields,DateUtils.getDaysInMonthList(dataSelectors.year, dataSelectors.month), "id", "name");
+        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(DateUtils.getDaysInMonthList(dataSelectors.year, dataSelectors.month), "id", "name")
         break;
       case "hour":
-        //create control definitions for the selected hours only
+        //create field definitions for the selected hours only
         //note there is always hours selection in the form builder
-        controlsDefinitions = this.getNewControlDefs(dataSelectors,formMetadata.entryFields,formMetadata.hours.length > 0 ? DateUtils.getHours(formMetadata.hours) : DateUtils.getHours(), "id", "name");
+        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(formMetadata.hours.length > 0 ? DateUtils.getHours(formMetadata.hours) : DateUtils.getHours(), "id", "name")
         break;
       default:
         //Not supported
         //todo. display error in set up
-        break;
+        return [];
     }
 
-    //set control definitions entry data from the loaded data
-    this.setExistingObservationsToControlDefinitions(controlsDefinitions, observations);
+    //set control definitions 
+    const controlsDefinitions: ControlDefinition[] = this.formEntryService.getNewControlDefs1(
+      dataSelectors, { obsFieldProperty: entryField, obsFieldValues: fieldDefinitions.map(data => (data.id)) });
+
+      //set existing observations to the control definitions
+    this.formEntryService.setExistingObsToControlDefs(controlsDefinitions, observations);
+    
+    //set labels for the control definitions
+    this.setLabels(controlsDefinitions, fieldDefinitions, entryField)
+
     return controlsDefinitions;
   }
 
-  //gets an array of control definitions from the passed array
-  private getNewControlDefs( dataSelectors: DataSelectorsValues, formEntryFields: string[],entryFieldItems: any[], valueProperty: string, displayProperty: string): ControlDefinition[] {
 
-    const controlDefintions: ControlDefinition[] = [];
-    for (const item of entryFieldItems) {
-      controlDefintions.push({
-        label: item[displayProperty],
-        entryData: this.formEntryService.getNewEntryData(dataSelectors, formEntryFields, [item[valueProperty]]),
-        newData: true,
-        userChange: false,
-      });
-    }
-    return controlDefintions;
-  }
+  private setLabels(controlsDefinitions: ControlDefinition[], fieldDefinitions: FieldDefinition[], entryField: string) {
 
-  private setExistingObservationsToControlDefinitions(controlsDefintions: ControlDefinition[], observations: ObservationModel[]): void {
+    for (const controlDef of controlsDefinitions) {
+      let label: string = '';
+      for (const fieldDef of fieldDefinitions) {
 
-    for (const observation of observations) {
+        if (entryField === "elementId") {
+          if (controlDef.entryData.elementId == fieldDef.id) {
+            label = fieldDef.name;
+          }
+        } else if (entryField === "day") {
+          if (DateUtils.getDayFromSQLDate(controlDef.entryData.datetime) == fieldDef.id) {
+            label = fieldDef.name;
+          }
+        } else if (entryField === "hour") {
+          if (DateUtils.getHourFromSQLDate(controlDef.entryData.datetime) == fieldDef.id) {
+            label = fieldDef.name;
+          }
+        }
 
-      for (const controlDef of controlsDefintions) {
-
-        // Look for the observation element id and date time.
-        // The other criteria is taken care of by data selectors; station and source id
-
-        // Todo. confirm this check for duplicates. 
-        // For instance when level and period is not part of the data selector
-        if (controlDef.entryData.elementId === observation.elementId && controlDef.entryData.datetime === observation.datetime) {
-          controlDef.entryData = observation;
-          controlDef.newData = false;
+        if (label) {
+          break;
         }
 
       }
+
+      if (label) {
+        controlDef.label = label;
+      }
+
 
     }
 
