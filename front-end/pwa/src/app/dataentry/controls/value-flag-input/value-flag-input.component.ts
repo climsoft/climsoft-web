@@ -10,7 +10,7 @@ import { FormEntryService } from '../../form-entry/form-entry.service';
 
 export interface ControlDefinition {
   label?: string;
-  entryData: ObservationModel ;
+  entryData: ObservationModel;
   newData: boolean; // Todo. Remove this after form entry changes
   userChange: boolean; // Todo. Remove this after form entry changes
 }
@@ -43,7 +43,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (!this.elements || !this.flags || !this.controlDefinition || !this.controlDefinition.entryData) {
+    if (!this.elements || !this.flags || !this.controlDefinition) {
       return;
     }
 
@@ -61,10 +61,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   // Todo. This should be raised after focus lost or "OnLeave"
   public onInputEntry(valueFlagInput: string): void {
-
-    if(!this.controlDefinition.entryData){
-      return
-    }
 
     let validationResults: [boolean, string];
     let observation: ObservationModel;
@@ -231,9 +227,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
   public onCommentEntry(comment: string) {
-    if (this.controlDefinition.entryData) {
-      this.controlDefinition.entryData.comment = comment;
-    }
+    this.controlDefinition.entryData.comment = comment;
     this.controlDefinition.userChange = true;
 
     // todo. before emitting valid. check on the value validity

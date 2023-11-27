@@ -1,4 +1,4 @@
-<div *ngIf="controlDefinition && controlDefinition.entryData" [class.container-max-w-sm]="smallSize">
+<div *ngIf="controlDefinition" [class.container-max-w-sm]="smallSize">
 
     <div *ngIf="controlDefinition.label" [class.label-sm]="smallSize">
         {{ controlDefinition.label }}
@@ -9,7 +9,7 @@
             [class.text-success]="!controlDefinition.userChange " [value]="displayedValueFlag"
             (input)="onInputEntry($any($event.target).value)" />
 
-        <div *ngIf="controlDefinition.entryData" dropdown [autoClose]="false">
+        <div dropdown [autoClose]="false">
             <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary ">
                 <i class="bi bi-info"></i>
             </button>
