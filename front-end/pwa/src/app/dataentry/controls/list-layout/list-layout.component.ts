@@ -55,48 +55,28 @@ export class ListLayoutComponent implements OnInit, OnChanges {
       this.controlsDefinitionsChuncks = this.getControlDefinitionsChuncks(this.controlsDefinitions);
     }
 
-
   }
-
 
   private createNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): ControlDefinition[] {
 
     //get entry field to use for control definitions
     const entryField: string = formMetadata.entryFields[0];
-    let fieldDefinitions: FieldDefinition[];
-
-    switch (entryField) {
-      case "elementId":
-        //create field definitions for the selected elements only
-        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(elements, "id", "abbreviation")
-        break;
-      case "day":
-        //create field definitions for days of the selected month only
-        //note, there is no days selection in the form builder
-        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(DateUtils.getDaysInMonthList(dataSelectors.year, dataSelectors.month), "id", "name")
-        break;
-      case "hour":
-        //create field definitions for the selected hours only
-        //note there is always hours selection in the form builder
-        fieldDefinitions = this.formEntryService.getFieldDefinitionItems(formMetadata.hours.length > 0 ? DateUtils.getHours(formMetadata.hours) : DateUtils.getHours(), "id", "name")
-        break;
-      default:
-        //Not supported
-        //todo. display error in set up
-        return [];
-    }
+    const fieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
+      entryField,elements,dataSelectors.year, dataSelectors.month,formMetadata.hours
+    );
 
     //set control definitions 
-    const controlsDefinitions: ControlDefinition[] = this.formEntryService.getNewControlDefs1(
-      dataSelectors, { obsFieldProperty: entryField, obsFieldValues: fieldDefinitions.map(data => (data.id)) });
+    const obsFieldItems = { obsFieldProperty: entryField, obsFieldValues: fieldDefinitions.map(data => (data.id)) }
+    const controlDefinitions: ControlDefinition[] = this.formEntryService.getNewControlDefs1(
+      dataSelectors, obsFieldItems);
 
       //set existing observations to the control definitions
-    this.formEntryService.setExistingObsToControlDefs(controlsDefinitions, observations);
+    this.formEntryService.setExistingObsToControlDefs(controlDefinitions, observations);
     
     //set labels for the control definitions
-    this.setLabels(controlsDefinitions, fieldDefinitions, entryField)
+    this.setLabels(controlDefinitions, fieldDefinitions, entryField)
 
-    return controlsDefinitions;
+    return controlDefinitions;
   }
 
 

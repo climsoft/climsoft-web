@@ -29,6 +29,39 @@ export class FormEntryService {
     return fieldDefinitions;
   }
 
+  public getFieldDefinitions(
+    entryField: string,
+    elements: ElementModel[],
+    year: number, month: number,
+    hours: number[],
+  ): FieldDefinition[] {
+
+    let fieldDefinitions: FieldDefinition[];
+
+    switch (entryField) {
+      case "elementId":
+        //create field definitions for the selected elements only
+        fieldDefinitions = this.getFieldDefinitionItems(elements, "id", "abbreviation");
+        break;
+      case "day":
+        //create field definitions for days of the selected month only
+        //note, there is no days selection in the form builder
+        fieldDefinitions = this.getFieldDefinitionItems(DateUtils.getDaysInMonthList(year, month), "id", "name");
+        break;
+      case "hour":
+        //create field definitions for the selected hours only
+        //note there is always hours selection in the form builder
+        fieldDefinitions = this.getFieldDefinitionItems(hours.length > 0 ? DateUtils.getHours(hours) : DateUtils.getHours(), "id", "name");
+        break;
+      default:
+        //Not supported
+        //todo. display error in set up
+        return [];
+    }
+
+    return fieldDefinitions;
+  }
+
   //gets an array of control definitions from the passed array
   public getNewControlDefs(
     dataSelectors: DataSelectorsValues,
@@ -57,7 +90,7 @@ export class FormEntryService {
         // Todo. confirm this check for duplicates. 
         // For instance when level and period is not part of the data selector
         if (controlDefinition.entryData.elementId === observation.elementId && controlDefinition.entryData.datetime === observation.datetime) {
-          controlDefinition.entryData = observation; 
+          controlDefinition.entryData = observation;
         }
       }
 
@@ -69,28 +102,29 @@ export class FormEntryService {
 
   public getNewControlDefs1(
     dataSelectors: DataSelectorsValues,
-    obsFieldValues: { obsFieldProperty: string, obsFieldValues: number[] }
+    obsFieldItems: { obsFieldProperty: string, obsFieldValues: number[] }
   ): ControlDefinition[] {
 
     const controlDefinitions: ControlDefinition[][] = this.getNewControlDefs2(
-      dataSelectors, [obsFieldValues, undefined]
+      dataSelectors, [obsFieldItems]
     );
 
-    return controlDefinitions.flatMap(data => (data))
+    return controlDefinitions.flatMap(data => (data));
   }
 
   public getNewControlDefs2(
     dataSelectors: DataSelectorsValues,
     obsFieldItems: [
       { obsFieldProperty: string, obsFieldValues: number[] },
-      { obsFieldProperty: string, obsFieldValues: number[] } | undefined]
+      { obsFieldProperty: string, obsFieldValues: number[] }?]
   ): ControlDefinition[][] {
 
     const controlDefinitions: ControlDefinition[][] = [];
     let controlDef: ControlDefinition;
 
     const obsFieldproperty1 = obsFieldItems[0].obsFieldProperty;
-    if (obsFieldItems[1]) {
+
+    if ( obsFieldItems.length>1 && obsFieldItems[1]) {
 
       const obsFieldproperty2 = obsFieldItems[1].obsFieldProperty;
 
@@ -138,8 +172,8 @@ export class FormEntryService {
   }
 
   public getNewEntryData(dataSelectors: DataSelectorsValues,
-     entryFields: [{ obsFieldProperty: string, obsFieldValue: number },
-       { obsFieldproperty: string, obsFieldValue: number }?]): ObservationModel {
+    entryFields: [{ obsFieldProperty: string, obsFieldValue: number },
+      { obsFieldproperty: string, obsFieldValue: number }?]): ObservationModel {
     //create new entr data
     const entryData: ObservationModel = { stationId: '0', sourceId: 0, elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null, log: null };
 
@@ -275,7 +309,7 @@ export class FormEntryService {
         // Todo. confirm this check for duplicates. 
         // For instance when level and period is not part of the data selector
         if (controlDef.entryData.elementId === observation.elementId && controlDef.entryData.datetime === observation.datetime) {
-          controlDef.entryData = observation; 
+          controlDef.entryData = observation;
         }
 
       }
