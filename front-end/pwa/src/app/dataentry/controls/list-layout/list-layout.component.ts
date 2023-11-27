@@ -109,7 +109,6 @@ export class ListLayoutComponent implements OnInit, OnChanges {
 
     for (const observation of observations) {
 
-      // Set control definitions entry data and displayed value flag 
       for (const controlDef of controlsDefintions) {
 
         // Look for the observation element id and date time.
