@@ -1,0 +1,63 @@
+<div *ngIf="controlDefinition && controlDefinition.entryData" [class.container-max-w-sm]="smallSize">
+
+    <div *ngIf="controlDefinition.label" [class.label-sm]="smallSize">
+        {{ controlDefinition.label }}
+    </div>
+    <div class="input-group">
+        <input class="form-control form-control-sm" autocomplete="off" type="text"
+            [id]="controlDefinition.entryData.elementId + controlDefinition.entryData.datetime" 
+            [class.text-success]="!controlDefinition.userChange " [value]="displayedValueFlag"
+            (input)="onInputEntry($any($event.target).value)" />
+
+        <div *ngIf="controlDefinition.entryData" dropdown [autoClose]="false">
+            <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary ">
+                <i class="bi bi-info"></i>
+            </button>
+            <div *dropdownMenu class="dropdown-menu shadow-sm p-3">
+
+                <div class="mb-3">
+                    <app-text-input [controlLabel]="'New Comment'"
+                        (valueChange)="onCommentEntry( $event)"></app-text-input>
+                </div>
+
+                <div>
+                    <div>History</div>
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">Value</th>
+                                <th scope="col">Flag</th>
+                                <th scope="col">Period</th>
+                                <th scope="col">QC</th>
+                                <th scope="col">User</th>
+                                <th scope="col">Time</th>
+                                <th scope="col">Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of getLogs(controlDefinition.entryData) ">
+                                <td>{{ row.value }}</td>
+                                <td>{{ row.flag }}</td>
+                                <td>{{ row.period }}</td>
+                                <td>{{ row.qcStatus }}</td>
+                                <td>{{ row.entryUser }}</td>
+                                <td>{{ row.entryDateTime }}</td>
+                                <td>{{ row.comment }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    <div *ngIf="errorMessage" class="form-text text-danger">
+        {{ errorMessage }}
+    </div>
+
+
+
+</div>

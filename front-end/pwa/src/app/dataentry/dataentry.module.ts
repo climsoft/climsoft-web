@@ -3,32 +3,32 @@ import { NgModule } from '@angular/core';
 import { DataEntryRoutingModule } from './dataentry-routing.module';
 import { SharedModule } from '../shared/shared.module';
 
-//------- other packages modules  -------
-// import { AgGridModule } from 'ag-grid-angular';
-//--------------------------------
-
 //------- app forms components -------
-import { DataGridEntryComponent } from './controls/data-grid-entry/data-grid-entry.component';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
-import { ValueFlagEntryComponent } from './controls/value-flag-entry/value-flag-entry.component'; 
 import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
+import { TableLayoutComponent } from './controls/table-layout/table-layout.component';
+import { ListLayoutComponent } from './controls/list-layout/list-layout.component';
+import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-input.component';
 //------------------------------------
 
 
 @NgModule({
 
   declarations: [
-    DataGridEntryComponent,
-    FormEntryComponent,
-    ValueFlagEntryComponent,
     ImportEntryComponent, 
-    StationFormSelectionComponent
+
+    StationFormSelectionComponent,
+    FormEntryComponent,
+    TableLayoutComponent, 
+    ListLayoutComponent,
+     ValueFlagInputComponent,
+ 
+   
   ],
   imports: [
     DataEntryRoutingModule,
     SharedModule,
-    // AgGridModule
   ]
 })
 export class DataEntryModule { }

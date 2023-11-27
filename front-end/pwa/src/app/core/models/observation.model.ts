@@ -1,4 +1,4 @@
-export interface Observation {
+export interface ObservationModel {
     stationId: string;
     elementId: number;
     sourceId: number;

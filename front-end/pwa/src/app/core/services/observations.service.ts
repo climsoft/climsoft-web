@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { Observation } from '../models/observation.model';
+import { ObservationModel } from '../models/observation.model';
 import { SelectObservation } from '../models/select-observation.model';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class ObservationsService {
   constructor(private http: HttpClient) { }
 
 
-  getObservations(selectObservation: SelectObservation): Observable<Observation[]> {
+  getObservations(selectObservation: SelectObservation): Observable<ObservationModel[]> {
 
     const obsParams: { [key:string]: any } = {};
 
@@ -31,24 +31,24 @@ export class ObservationsService {
 
     //console.log('observation params', obsParams);   
 
-    return this.http.get<Observation[]>(this.endPointUrl, { params: obsParams })
+    return this.http.get<ObservationModel[]>(this.endPointUrl, { params: obsParams })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  saveObservations(observations: Observation[]): Observable<Observation[]> {
-    return this.http.post<Observation[]>(this.endPointUrl, observations)
+  saveObservations(observations: ObservationModel[]): Observable<ObservationModel[]> {
+    return this.http.post<ObservationModel[]>(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteObservations(ids: number[]): Observable<Observation[]> {
+  deleteObservations(ids: number[]): Observable<ObservationModel[]> {
     //todo use json as body of ids?
     //const url = `${this.endPointUrl}/${id}`; 
     const url = '';
-    return this.http.delete<Observation[]>(url)
+    return this.http.delete<ObservationModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );

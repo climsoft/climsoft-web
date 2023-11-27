@@ -41,7 +41,7 @@
       <!--entry control -->
       <div class="mb-3">
         <app-text-input [controlLabel]="'Entry Control'" [disabled]="true"
-          [value]="selectedEntryControlId === 'vf' ? 'Value Flag' : 'Grid'">
+          [value]="selectedEntryControlId === 'LIST' ? 'List' : 'Table'">
         </app-text-input>
       </div>
       <!--------->
@@ -65,25 +65,18 @@
         {{ errorMessage }}
       </div>
 
-      <div>
-        <div class="row g-2">
-          <div class="col-auto">
-            <button type="button" class="btn btn-primary" (click)="onSave()">
-              Save
-            </button>
+      <div class="d-flex flex-row justify-content-end">
+        <button type="button" class="me-1 btn btn-outline-primary" (click)="onSave()">
+          Save
+        </button>
+        <button *ngIf="source && source.id > 0" type="button" class="me-1 btn btn-outline-danger" (click)="onDelete()">
+          Delete
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
+          Cancel
+        </button>
 
-          </div>
-          <div class="col-auto">
-            <button *ngIf="source && source.id > 0" type="button" class="btn btn-danger" (click)="onDelete()">
-              Delete
-            </button>
-          </div>
-          <div class="col-auto">
-            <button type="button" class="btn btn-outline-secondary" (click)="onCancel()">
-              Cancel
-            </button>
-          </div>
-        </div>
+       
       </div>
 
     </div>

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { Flag } from '../models/Flag.model';
+import { FlagModel } from '../models/Flag.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +13,8 @@ export class FlagsService {
 
   constructor(private http: HttpClient) { }
 
-  getFlags(): Observable<Flag[]> { 
-    return this.http.get<Flag[]>(this.endPointUrl)
+  getFlags(): Observable<FlagModel[]> { 
+    return this.http.get<FlagModel[]>(this.endPointUrl)
       .pipe(
         catchError(this.handleError)
       );

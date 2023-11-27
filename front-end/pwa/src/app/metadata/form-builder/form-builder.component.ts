@@ -18,7 +18,7 @@ export class FormBuilderComponent implements OnInit {
   allEntryFields: { [key: string]: any }[] = [];
   selectedEntrySelectorIds: string[] = [];
   selectedEntryFieldIds: string[] = [];
-  selectedEntryControlId: 'vf'|'grid' = 'vf';
+  selectedEntryControlId: 'LIST'|'TABLE' = 'LIST';
   selectedElementIds: number[] = [];
   selectedHourIds: number[] = [];
   formName: string = '';
@@ -69,7 +69,7 @@ export class FormBuilderComponent implements OnInit {
       entryForm = {
         entrySelectors: [],
         entryFields: [],
-        entryControl: 'vf',
+        entryControl: 'LIST',
         elements: [],
         hours: [],
         scale: 0,
@@ -103,9 +103,9 @@ export class FormBuilderComponent implements OnInit {
 
   setEntryControl(): void {
     if (this.selectedEntryFieldIds.length === 1) {
-      this.selectedEntryControlId = 'vf';
+      this.selectedEntryControlId = 'LIST';
     } else if (this.selectedEntryFieldIds.length === 2) {
-      this.selectedEntryControlId = 'grid';
+      this.selectedEntryControlId = 'TABLE';
     }
   }
 

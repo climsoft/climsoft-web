@@ -3,11 +3,16 @@ import { StringUtils } from "./string.utils";
 export class DateUtils {
 
     //takes a 0 based index (month id) and returns the number of days in that month
-    static getDaysInMonthList(year: number, month: number): { [key: string]: any }[] {
+    static getDaysInMonthList(year: number, month: number, prefix?: string): { [key: string]: any }[] {
         const allDays: { [key: string]: any }[] = [];
         const lastDay: number = new Date(year, month, 0).getDate();
+
+        if (prefix === undefined) {
+            prefix = "Day "
+        }
+
         for (let i = 1; i <= lastDay; i++) {
-            allDays.push({ id: i, name: `Day ${i.toString().padStart(2, '0')}` });
+            allDays.push({ id: i, name: `${prefix}${i.toString().padStart(2, '0')}` });
         }
         return allDays;
     }
@@ -45,8 +50,8 @@ export class DateUtils {
 
     //monthId is 1 index based
     static getMonthName(monthId: number): string {
-        const monthNames: string[] = [            'January', 'February', 'March', 'April', 'May', 'June','July', 'August', 'September', 'October', 'November', 'December'        ];
-    
+        const monthNames: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
         if (monthId >= 1 && monthId <= 12) {
             return monthNames[monthId - 1];
         } else {
@@ -54,7 +59,7 @@ export class DateUtils {
         }
     }
 
-    
+
 
 }
 
