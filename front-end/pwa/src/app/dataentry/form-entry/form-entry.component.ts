@@ -138,7 +138,7 @@ export class FormEntryComponent implements OnInit {
     let elementsToSearch: number[] = [];
     if (this.dataSelectors.elementId > 0) {
       elementsToSearch.push(this.dataSelectors.elementId);
-    } else if (this.formMetadata.entryFields.includes("elementId")) {
+    } else if (this.formMetadata.fields.includes("ELEMENT")) {
       elementsToSearch.push(...this.formMetadata.elements);
     } else {
       //todo. display error in set value flag set up
