@@ -24,9 +24,9 @@ export class TableLayoutComponent implements OnInit, OnChanges {
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
-  public controlsDefinitions!: ControlDefinition[][] ;
+  public controlsDefinitions!: ControlDefinition[][];
   public rowFieldDefinitions!: FieldDefinition[];
-  public colFieldDefinitions!: FieldDefinition[] ;
+  public colFieldDefinitions!: FieldDefinition[];
 
 
   constructor(private formEntryService: FormEntryService) {
@@ -39,10 +39,16 @@ export class TableLayoutComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
+    console.log('form', this.formMetadata)
+    console.log('observations', this.observations)
+    console.log('elements', this.elements)
+    console.log('dataSelectors', this.dataSelectors)
+    
     //only proceed with seting up the control if all inputs have been set.
     if (this.observations && this.elements && this.elements.length > 0 &&
       this.dataSelectors && this.formMetadata && this.flags && this.flags.length > 0) {
-
+        
+        console.log('setting up')
 
       this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
 
@@ -54,10 +60,14 @@ export class TableLayoutComponent implements OnInit, OnChanges {
 
   private setUpNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
 
+    if (!(this.formMetadata.fields.length > 1 && this.formMetadata.fields[1])) {
+      return;
+    }
+
     //get entry field to use for control definitions
 
-    const entryFieldForRow = this.formMetadata.entryFields[0];
-    const entryFieldForColumn = this.formMetadata.entryFields[1];
+    const entryFieldForRow = this.formMetadata.fields[0];
+    const entryFieldForColumn = this.formMetadata.fields[1];
 
     const rowFieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
       entryFieldForRow, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
@@ -68,10 +78,10 @@ export class TableLayoutComponent implements OnInit, OnChanges {
     );
 
     //set control definitions 
-    const rowObsFieldItems = { obsFieldProperty: entryFieldForRow, obsFieldValues: rowFieldDefinitions.map(data => (data.id)) }
-    const colObsFieldItems = { obsFieldProperty: entryFieldForColumn, obsFieldValues: colFieldDefinitions.map(data => (data.id)) }
+    const rowObsFieldItems = { entryFieldProperty: entryFieldForRow, entryPropFieldValue: rowFieldDefinitions.map(data => (data.id)) }
+    const colObsFieldItems = { entryFieldProperty: entryFieldForColumn, entryPropFieldValue: colFieldDefinitions.map(data => (data.id)) }
 
-    const controlDefinitions: ControlDefinition[][] = this.formEntryService.getNewControlDefs2(
+    const controlDefinitions: ControlDefinition[][] = this.formEntryService.getControlDefsGrid(
       dataSelectors, [rowObsFieldItems, colObsFieldItems]);
 
     //set existing observations to the control definitions
@@ -80,11 +90,11 @@ export class TableLayoutComponent implements OnInit, OnChanges {
 
     this.rowFieldDefinitions = rowFieldDefinitions;
     this.colFieldDefinitions = colFieldDefinitions;
-    this.controlsDefinitions= controlDefinitions;
+    this.controlsDefinitions = controlDefinitions;
   }
 
 
-  public getControlDefinition(row: FieldDefinition, col: FieldDefinition): ControlDefinition{
+  public getControlDefinition(row: FieldDefinition, col: FieldDefinition): ControlDefinition {
     const rowIndex: number = this.rowFieldDefinitions.findIndex(data => (data === row));
     const colIndex: number = this.colFieldDefinitions.findIndex(data => (data === col));
     return this.controlsDefinitions[rowIndex][colIndex];

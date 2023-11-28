@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitte
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { EntryForm } from 'src/app/core/models/entry-form.model';
+import { EntryForm, FieldType } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
@@ -46,9 +46,10 @@ export class ListLayoutComponent implements OnInit, OnChanges {
 
     //only proceed with seting up the control if all inputs have been set.
     if (this.observations && this.elements && this.elements.length > 0 &&
-      this.dataSelectors &&
-      this.formMetadata &&
+      this.dataSelectors && this.formMetadata &&
       this.flags && this.flags.length > 0) {
+
+
 
       // Get the new definitions 
       this.controlsDefinitions = this.createNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
@@ -60,19 +61,22 @@ export class ListLayoutComponent implements OnInit, OnChanges {
   private createNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): ControlDefinition[] {
 
     //get entry field to use for control definitions
-    const entryField: string = formMetadata.entryFields[0];
+    const entryField = formMetadata.fields[0];
     const fieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
-      entryField,elements,dataSelectors.year, dataSelectors.month,formMetadata.hours
+      entryField, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
 
     //set control definitions 
-    const obsFieldItems = { obsFieldProperty: entryField, obsFieldValues: fieldDefinitions.map(data => (data.id)) }
-    const controlDefinitions: ControlDefinition[] = this.formEntryService.getNewControlDefs1(
+    const obsFieldItems = { entryFieldProperty: entryField, entryPropFieldValue: fieldDefinitions.map(data => (data.id)) }
+
+
+
+    const controlDefinitions: ControlDefinition[] = this.formEntryService.getControlDefsLinear(
       dataSelectors, obsFieldItems);
 
-      //set existing observations to the control definitions
+    //set existing observations to the control definitions
     this.formEntryService.setExistingObsToControlDefs(controlDefinitions, observations);
-    
+
     //set labels for the control definitions
     this.setLabels(controlDefinitions, fieldDefinitions, entryField)
 
@@ -80,40 +84,32 @@ export class ListLayoutComponent implements OnInit, OnChanges {
   }
 
 
-  private setLabels(controlsDefinitions: ControlDefinition[], fieldDefinitions: FieldDefinition[], entryField: string) {
+  private setLabels(controlsDefinitions: ControlDefinition[], fieldDefinitions: FieldDefinition[], entryField: FieldType) {
+    // Create a map for quick lookup
+    const fieldMap = new Map(fieldDefinitions.map(field => [field.id, field.name]));
 
     for (const controlDef of controlsDefinitions) {
-      let label: string = '';
-      for (const fieldDef of fieldDefinitions) {
+      let labelId: number | null = null;
 
-        if (entryField === "elementId") {
-          if (controlDef.entryData.elementId == fieldDef.id) {
-            label = fieldDef.name;
-          }
-        } else if (entryField === "day") {
-          if (DateUtils.getDayFromSQLDate(controlDef.entryData.datetime) == fieldDef.id) {
-            label = fieldDef.name;
-          }
-        } else if (entryField === "hour") {
-          if (DateUtils.getHourFromSQLDate(controlDef.entryData.datetime) == fieldDef.id) {
-            label = fieldDef.name;
-          }
-        }
-
-        if (label) {
+      switch (entryField) {
+        case "ELEMENT":
+          labelId = controlDef.entryData.elementId;
           break;
-        }
-
+        case "DAY":
+          labelId = DateUtils.getDayFromSQLDate(controlDef.entryData.datetime);
+          break;
+        case "HOUR":
+          labelId = DateUtils.getHourFromSQLDate(controlDef.entryData.datetime);
+          break;
       }
 
-      if (label) {
-        controlDef.label = label;
+      // Set the label if a matching field definition is found
+      if (labelId !== null && fieldMap.has(labelId)) {
+        controlDef.label = fieldMap.get(labelId);
       }
-
-
     }
-
   }
+
 
 
   public onValueChange(controlDefinition: ControlDefinition): void {
@@ -123,7 +119,7 @@ export class ListLayoutComponent implements OnInit, OnChanges {
 
   private getControlDefinitionsChuncks(controlsDefinitions: ControlDefinition[]): ControlDefinition[][] {
 
-    console.log("getting chunks")
+    //console.log("getting chunks")
 
     const chunks: ControlDefinition[][] = [];
     const chunkSize = 5;
