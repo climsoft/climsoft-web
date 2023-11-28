@@ -137,9 +137,9 @@ export class FormEntryComponent implements OnInit {
     //determine which fields to use for loading the elements used in this control
     let elementsToSearch: number[] = [];
     if (this.dataSelectors.elementId > 0) {
-      elementsToSearch = [this.dataSelectors.elementId];
-    } else if (this.formMetadata.fields.includes("ELEMENT")) {    
-      elementsToSearch = this.formMetadata.elements;
+      elementsToSearch.push(this.dataSelectors.elementId);
+    } else if (this.formMetadata.entryFields.includes("elementId")) {
+      elementsToSearch.push(...this.formMetadata.elements);
     } else {
       //todo. display error in set value flag set up
       return;
@@ -152,8 +152,6 @@ export class FormEntryComponent implements OnInit {
     this.elementsService.getElements(elementsToSearch).subscribe(data => {
       //set the elements
       this.elements = data;
-
-      console.log('elements found ', this.elements)
       this.getObservationData();
     });
 
