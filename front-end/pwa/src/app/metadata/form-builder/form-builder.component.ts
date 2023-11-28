@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { EntryForm } from '../../core/models/entry-form.model';
+import { FieldType, FieldsType, EntryForm, LayoutType, SelectorType, SelectorsType } from '../../core/models/entry-form.model';
 import { DateUtils } from '../../shared/utils/date.utils';
 import { SourceModel } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
@@ -12,100 +12,116 @@ import { SourcesService } from 'src/app/core/services/sources.service';
   styleUrls: ['./form-builder.component.scss']
 })
 export class FormBuilderComponent implements OnInit {
-  source!: SourceModel;
-
-  allEntrySelectors: { [key: string]: any }[] = [{ id: 'year', name: 'Year' }, { id: "month", name: 'Month' }, { id: 'day', name: 'Day' }, { id: 'hour', name: 'Hour' }, { id: 'elementId', name: 'Element' }];;
-  allEntryFields: { [key: string]: any }[] = [];
-  selectedEntrySelectorIds: string[] = [];
-  selectedEntryFieldIds: string[] = [];
-  selectedEntryControlId: 'LIST'|'TABLE' = 'LIST';
-  selectedElementIds: number[] = [];
-  selectedHourIds: number[] = [];
-  formName: string = '';
-  formDescription: string = '';
-  errorMessage: string = '';
+  public source!: SourceModel;
+  public formName: string = '';
+  public formDescription: string = '';
+  public possibleSelectors: SelectorType[] = ['ELEMENT', 'YEAR', 'MONTH', 'DAY', 'HOUR'];
+  public possibleFields: FieldsType | null = null;
+  public selectedSelectors: SelectorsType | null = null;
+  public selectedFields: FieldsType | null = null;
+  public selectedLayout: LayoutType | null = null;
+  public selectedElements: number[] = [];
+  public selectedHours: number[] = []
+  public errorMessage: string = '';
 
   constructor(private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['sourceid'];
-
     if (sourceId) {
+      // Todo. handle errors where the source is not found for the given id
       this.sourceService.getSource(sourceId).subscribe((data) => {
+
+        this.source = data;
         this.setControlValues(data);
       });
     } else {
-      this.setControlValues();
-    }
-  }
-
-  private setControlValues(source?: SourceModel) {
-
-    if (source) {
-      this.source = source;
-      //get selection from data source
-      this.formName = this.source.name;
-      this.formDescription = this.source.description;
-      const entryForm: EntryForm = this.getEntryForm(this.source.extraMetadata);
-      this.selectedEntrySelectorIds = entryForm.entrySelectors;
-      this.selectedElementIds = entryForm.elements;
-      this.selectedHourIds = entryForm.hours;
-    } else {
-      //create new entry data source
       this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' }
-      //set entry selectors initial defaults
-      this.selectedEntrySelectorIds = this.allEntrySelectors.slice(0, 4).map(item => item['id']);
-      this.selectedHourIds = DateUtils.getHours().map(item => item['id']);
+      this.selectedHours = DateUtils.getHours().map(item => item['id']);
     }
-
-    //set the control and the fields
-    this.setEntryFieldsAndControl();
   }
 
-  getEntryForm(entryFormJsonString: string): EntryForm {
-    let entryForm: EntryForm;
-    if (entryFormJsonString === undefined || entryFormJsonString === null || entryFormJsonString === '') {
-      entryForm = {
-        entrySelectors: [],
-        entryFields: [],
-        entryControl: 'LIST',
-        elements: [],
-        hours: [],
-        scale: 0,
-        formValidations: '',
-        samplePaperImage: '',
-      };
-    } else {
-      entryForm = JSON.parse(entryFormJsonString);
-    }
+  private setControlValues(source: SourceModel) {
+    this.formName = source.name;
+    this.formDescription = this.source.description;
 
-    return entryForm;
+    // Get form metadata
+    const entryForm: EntryForm = JSON.parse(this.source.extraMetadata);
+    this.selectedSelectors = entryForm.selectors;
+    //set possible fields so that selected fields can show up
+    this.possibleFields = entryForm.fields
+    this.selectedFields = entryForm.fields;
+    this.selectedLayout = entryForm.layout;
+    this.selectedElements = entryForm.elements;
+    this.selectedHours = entryForm.hours;
   }
 
-  //changes the possible selection of entry fields and entry control
-  setEntryFieldsAndControl(): void {
+  public onSelectorsSelected(newSelectedSelectors: SelectorType[]): void {
 
-    //reset the possible entry fields to all entry selectors
-    this.allEntryFields = [...this.allEntrySelectors];
+    //console.log('cycle', newSelectedSelectors);
+
+    //reset previous selected entry selectors and all entry fields
+    this.selectedSelectors = null;
+    this.possibleFields = null;
+    this.selectedFields = null;
+
+    if (!(newSelectedSelectors.length >= 3 && newSelectedSelectors.length <= 4)) {
+      return;
+    }
+
+    //set possible selectable selectors
+    if (newSelectedSelectors.length === 3) {
+      this.selectedSelectors = [newSelectedSelectors[0], newSelectedSelectors[1], newSelectedSelectors[2]];
+    } else if (newSelectedSelectors.length === 4) {
+      this.selectedSelectors = [newSelectedSelectors[0], newSelectedSelectors[1], newSelectedSelectors[2], newSelectedSelectors[3]];
+    }
 
     //remove selected entry selectors from the list of selectable entry fields
-    //do not allow year and month as entry fields
-    this.allEntryFields = this.allEntryFields.filter(item => !this.selectedEntrySelectorIds.includes(item['id']) && item['id'] !== 'year' && item['id'] !== 'month');
+    let allPossibleFields: FieldType[] = ['ELEMENT', 'DAY', 'HOUR'];
+    allPossibleFields = allPossibleFields.filter(item => !newSelectedSelectors.includes(item));
+    if (allPossibleFields.length == 1) {
+      this.possibleFields = [allPossibleFields[0]];
+    } else if (allPossibleFields.length == 2) {
+      this.possibleFields = [allPossibleFields[0], allPossibleFields[1]];
+    }
 
-    //set the new entry fields as the selected ones
-    this.selectedEntryFieldIds = this.allEntryFields.map(item => item['id']);
-
-    //set entry control
-    this.setEntryControl();
-
+    this.selectedLayout = this.getLayout(this.selectedSelectors,this.selectedFields);
   }
 
-  setEntryControl(): void {
-    if (this.selectedEntryFieldIds.length === 1) {
-      this.selectedEntryControlId = 'LIST';
-    } else if (this.selectedEntryFieldIds.length === 2) {
-      this.selectedEntryControlId = 'TABLE';
+  public onFieldsSelected(newSelectedFields: FieldType[]): void {
+
+    if (newSelectedFields.length === 1) {
+      this.selectedFields = [newSelectedFields[0]];
+    } else if (newSelectedFields.length === 2) {
+      this.selectedFields = [newSelectedFields[0], newSelectedFields[1]];
+    } else {
+      this.selectedFields = null;
+    }
+
+    this.selectedLayout = this.getLayout(this.selectedSelectors, this.selectedFields);
+  }
+
+
+  private getLayout(selectors: SelectorsType | null, fields: FieldsType | null): LayoutType | null {
+
+    if (!this.selectorsValid(selectors)) {
+      return null;
+    }
+
+    if (fields === null || !this.fieldsValid(selectors,fields)) {
+      return null;
+    }
+
+    // 1 field should give a linear layout
+    // 2 fields should give a grid layout
+    switch (fields.length) {
+      case 1:
+        return 'LINEAR';
+      case 2:
+        return 'GRID';
+      default:
+        return null;
     }
   }
 
@@ -121,47 +137,59 @@ export class FormBuilderComponent implements OnInit {
       return;
     }
 
-    if (!this.entrySelectorsValid()) {
+    if (this.selectedSelectors === null || !this.selectorsValid(this.selectedSelectors)) {
       this.errorMessage = 'Select valid entry selectors';
       return;
     }
 
-    if (!this.entryFieldsValid()) {
+    if (this.selectedFields === null || !this.fieldsValid(this.selectedSelectors, this.selectedFields)) {
       this.errorMessage = 'Select valid entry fields';
       return;
     }
 
-    if (this.selectedElementIds.length === 0) {
+    if (this.selectedLayout === null) {
+      this.errorMessage = 'Select layout';
+      return;
+    }
+
+    if (this.selectedElements.length === 0) {
       this.errorMessage = 'Select elements';
+      return;
     }
 
-    if (this.selectedHourIds.length === 0) {
+    if (this.selectedHours.length === 0) {
       this.errorMessage = 'Select hours';
+      return;
     }
 
-    this.source.sourceTypeId = 1; 
+    if (!this.source) {
+      this.errorMessage = 'Form not defined';
+      return;
+    }
+
+    this.source.sourceTypeId = 1;
     this.source.name = this.formName;
     this.source.description = this.formDescription;
 
-    const entryForm: EntryForm = this.getEntryForm('');
-    entryForm.entrySelectors = this.selectedEntrySelectorIds;
-    entryForm.entryFields = this.selectedEntryFieldIds;
-    entryForm.entryControl = this.selectedEntryControlId;
-    entryForm.elements = this.selectedElementIds;
-    entryForm.hours = this.selectedHourIds;
+    const entryForm: EntryForm = {
+      selectors: this.selectedSelectors,
+      fields: this.selectedFields, layout: this.selectedLayout,
+      elements: this.selectedElements, hours: this.selectedHours,
+      scale: true, validations: '', samplePaperImage: ''
+    };
 
     this.source.extraMetadata = JSON.stringify(entryForm);
 
-    if(this.source.id === 0){
+    if (this.source.id === 0) {
       this.sourceService.createSource(this.source).subscribe((data) => {
         this.location.back();
       });
-    }else{
+    } else {
       this.sourceService.updateSource(this.source).subscribe((data) => {
         this.location.back();
       });
     }
-  
+
 
   }
 
@@ -170,28 +198,26 @@ export class FormBuilderComponent implements OnInit {
   }
 
   onDelete(): void {
-      //todo. prompt for confirmation first
-      this.sourceService.deleteSource(this.source.id).subscribe((data) => {
-        this.location.back();
-      });
-   
+    //todo. prompt for confirmation first
+    this.sourceService.deleteSource(this.source.id).subscribe((data) => {
+      this.location.back();
+    });
+
   }
 
-  entrySelectorsValid(): boolean {
-    //must be a minimum of 4 and maximum of 5
-    return this.selectedEntrySelectorIds.length >= 3 && this.selectedEntrySelectorIds.length <= 4;
+  selectorsValid(possibleSelectors: SelectorsType | null): boolean {
+    // must be a minimum of 4 and maximum of 5 selectors
+    return possibleSelectors !== null && possibleSelectors.length >= 3 && possibleSelectors.length <= 4;
   }
 
-  entryFieldsValid(): boolean {
-    //must be a minimum of 1 or maximum of 2 depending on the selectors
-    if (this.selectedEntrySelectorIds.length === 4) {
-      return this.selectedEntryFieldIds.length === 1;
-    } else if (this.selectedEntrySelectorIds.length === 3) {
-      return this.selectedEntryFieldIds.length === 2;
-    } else {
-      return false;
-    }
+  fieldsValid(possibleSelectors: SelectorsType | null, possibleFields: FieldsType | null): boolean {
+    // 4 selectors should be accompanied by 1 field
+    // 3 selectors should be accompanied by 2 fields
+    return (possibleSelectors !== null && possibleFields !== null) &&
+      ((possibleSelectors.length === 4 && possibleFields.length === 1) ||
+        (possibleSelectors.length === 3 && possibleFields.length === 2));
   }
+
 
 
 
