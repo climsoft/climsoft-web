@@ -6,7 +6,7 @@ import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
-import { FormEntryService } from '../../form-entry/form-entry.service';
+import { FormEntryUtil } from '../../form-entry/form-entry.util';
 
 export interface ControlDefinition {
   label?: string;

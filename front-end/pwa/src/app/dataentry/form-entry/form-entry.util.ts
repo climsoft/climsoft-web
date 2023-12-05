@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from './form-entry.component';
@@ -15,13 +15,9 @@ export interface FieldDefinition {
 
 export interface EntryFieldItem { fieldProperty: FieldType, fieldValues: number[] }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class FormEntryService {
+export class FormEntryUtil {
 
-
-  public getEntryFieldDefs(entryField: FieldType, elements: ElementModel[], year: number, month: number, hours: number[],): [number, string][] {
+  public static getEntryFieldDefs(entryField: FieldType, elements: ElementModel[], year: number, month: number, hours: number[],): [number, string][] {
 
     let fieldDefs: [number, string][] = [];
 
@@ -48,21 +44,21 @@ export class FormEntryService {
     return fieldDefs;
   }
 
-  public getControlDefsLinear(dataSelectors: DataSelectorsValues, entryFieldItem: EntryFieldItem, observations: ObservationModel[]): ControlDefinition[] {
+  public static getControlDefsLinear(dataSelectors: DataSelectorsValues, entryFieldItem: EntryFieldItem, observations: ObservationModel[]): ControlDefinition[] {
 
     const controlDefs: ControlDefinition[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
 
-      const newEntryData: ObservationModel = this.getNewEntryData(dataSelectors, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
+      const newEntryData: ObservationModel = FormEntryUtil.getNewEntryData(dataSelectors, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
 
-      controlDefs.push({ entryData: this.getExistingObservationIfItExists(observations, newEntryData) });
+      controlDefs.push({ entryData: FormEntryUtil.getExistingObservationIfItExists(observations, newEntryData) });
 
     }
 
     return controlDefs;
   }
 
-  public getControlDefsGrid(dataSelectors: DataSelectorsValues, entryFieldItems: [EntryFieldItem, EntryFieldItem], observations: ObservationModel[]): ControlDefinition[][] {
+  public static getControlDefsGrid(dataSelectors: DataSelectorsValues, entryFieldItems: [EntryFieldItem, EntryFieldItem], observations: ObservationModel[]): ControlDefinition[][] {
 
     const controlDefs: ControlDefinition[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
@@ -83,7 +79,7 @@ export class FormEntryService {
   }
 
 
-  private getNewEntryData(dataSelectors: DataSelectorsValues,
+  private static getNewEntryData(dataSelectors: DataSelectorsValues,
     entryFields: [{ entryFieldProperty: FieldType, entryPropFieldValue: number }, { entryFieldProperty: FieldType, entryPropFieldValue: number }?]): ObservationModel {
     //create new entr data
     const entryData: ObservationModel = {
@@ -147,7 +143,7 @@ export class FormEntryService {
 
 
 
-  private getExistingObservationIfItExists(savedObservations: ObservationModel[], newEntryData: ObservationModel): ObservationModel {
+  private static getExistingObservationIfItExists(savedObservations: ObservationModel[], newEntryData: ObservationModel): ObservationModel {
     for (const savedObservation of savedObservations) {
 
       // Look for the observation element id and date time.
@@ -155,7 +151,13 @@ export class FormEntryService {
 
       // Todo. confirm this check for duplicates. 
       // For instance when level and period is not part of the data selector
-      if (newEntryData.elementId === savedObservation.elementId && newEntryData.datetime === savedObservation.datetime) {
+      if (
+        newEntryData.stationId === savedObservation.stationId && 
+        newEntryData.elementId === savedObservation.elementId && 
+        newEntryData.level === savedObservation.level &&
+        newEntryData.sourceId === savedObservation.sourceId &&       
+        newEntryData.datetime === savedObservation.datetime &&
+        newEntryData.period === savedObservation.period ) {
         return savedObservation;
       }
 

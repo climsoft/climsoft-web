@@ -5,15 +5,15 @@ import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
-import { EntryFieldItem, FormEntryService } from '../../form-entry/form-entry.service';
+import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
 
 
 @Component({
-  selector: 'app-table-layout',
-  templateUrl: './table-layout.component.html',
-  styleUrls: ['./table-layout.component.scss']
+  selector: 'app-grid-layout',
+  templateUrl: './grid-layout.component.html', 
+  styleUrls: ['./grid-layout.component.scss']
 })
-export class TableLayoutComponent implements OnInit, OnChanges {
+export class GridLayoutComponent implements OnInit, OnChanges {
   @Input() elements!: ElementModel[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
@@ -25,7 +25,7 @@ export class TableLayoutComponent implements OnInit, OnChanges {
   public colFieldDefinitions!: [number, string][];
   public controlsDefinitions!: ControlDefinition[][];
 
-  constructor(private formEntryService: FormEntryService) {
+  constructor() {
 
   }
 
@@ -59,17 +59,17 @@ export class TableLayoutComponent implements OnInit, OnChanges {
     const entryFieldForRow = this.formMetadata.fields[0];
     const entryFieldForColumn = this.formMetadata.fields[1];
 
-    const rowFieldDefs: [number, string][] = this.formEntryService.getEntryFieldDefs(
+    const rowFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
       entryFieldForRow, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
 
-    const colFieldDefs: [number, string][] = this.formEntryService.getEntryFieldDefs(
+    const colFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
       entryFieldForColumn, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
 
     const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }
     const colFieldItems: EntryFieldItem = { fieldProperty: entryFieldForColumn, fieldValues: colFieldDefs.map(data => (data[0])) }
-    const controlDefs: ControlDefinition[][] = this.formEntryService.getControlDefsGrid(dataSelectors, [rowFieldItems, colFieldItems], observations);
+    const controlDefs: ControlDefinition[][] = FormEntryUtil.getControlDefsGrid(dataSelectors, [rowFieldItems, colFieldItems], observations);
 
     this.rowFieldDefinitions = rowFieldDefs;
     this.colFieldDefinitions = colFieldDefs;

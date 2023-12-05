@@ -47,19 +47,19 @@
         <div class="card-header mb-2 p-1 fw-bold">Entries</div>
         <div class="p-2">
           <!-- list layout -->
-          <app-list-layout *ngIf="entryControl === 'LINEAR'" 
+          <app-linear-layout *ngIf="entryControl === 'LINEAR'" 
           [dataSelectors]="dataSelectors" [elements]="elements"
             [flags]="flags" [formMetadata]="formMetadata" [observations]="observations"
             (valueChange)="onValueChange($event)">
-          </app-list-layout>
+          </app-linear-layout>
           <!-- ----------- -->
 
           <!-- table layout -->
-            <app-table-layout *ngIf="entryControl === 'GRID'" 
+            <app-grid-layout *ngIf="entryControl === 'GRID'" 
             [dataSelectors]="dataSelectors" [elements]="elements"
             [flags]="flags" [formMetadata]="formMetadata" [observations]="observations"
             (valueChange)="onValueChange($event)">
-          </app-table-layout>
+          </app-grid-layout>
       
           <!-- ----------- -->
 

@@ -1,21 +1,20 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { EntryForm, FieldType } from 'src/app/core/models/entry-form.model';
+import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
-import { EntryFieldItem, FormEntryService } from '../../form-entry/form-entry.service';
+import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
 
 
 @Component({
-  selector: 'app-list-layout',
-  templateUrl: './list-layout.component.html',
-  styleUrls: ['./list-layout.component.scss']
+  selector: 'app-linear-layout',
+  templateUrl: './linear-layout.component.html',
+  styleUrls: ['./linear-layout.component.scss']
 })
-export class ListLayoutComponent implements OnInit, OnChanges {
+export class LnearLayoutComponent implements OnInit, OnChanges {
 
   @Input() elements!: ElementModel[];
   @Input() dataSelectors!: DataSelectorsValues;
@@ -29,8 +28,7 @@ export class ListLayoutComponent implements OnInit, OnChanges {
   public controlsDefinitions!: ControlDefinition[]; 
   public largeScreen: boolean = false;
 
-  constructor(private viewPortService: ViewportService,
-    private formEntryService: FormEntryService) {
+  constructor(private viewPortService: ViewportService) {
 
     this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
       this.largeScreen = viewPortSize === ViewPortSize.Large;
@@ -62,11 +60,11 @@ export class ListLayoutComponent implements OnInit, OnChanges {
 
     //get entry field to use for control definitions
     const entryField = formMetadata.fields[0];
-    const fieldDefinitions: [number, string][] = this.formEntryService.getEntryFieldDefs(
+    const fieldDefinitions: [number, string][] = FormEntryUtil.getEntryFieldDefs(
       entryField, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
-    const controlDefs: ControlDefinition[] = this.formEntryService.getControlDefsLinear(dataSelectors, entryFieldItems, observations);
+    const controlDefs: ControlDefinition[] = FormEntryUtil.getControlDefsLinear(dataSelectors, entryFieldItems, observations);
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChuncks(this.fieldDefinitions);
