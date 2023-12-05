@@ -6,13 +6,13 @@ import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
-import { FormEntryService } from '../../form-entry/form-entry.service';
+import { FormEntryUtil } from '../../form-entry/form-entry.util';
 
 export interface ControlDefinition {
   label?: string;
   entryData: ObservationModel;
-  newData: boolean; // Todo. Remove this after form entry changes
-  userChange: boolean; // Todo. Remove this after form entry changes
+  //newData: boolean; // Todo. Remove this after form entry changes
+  //userChange: boolean; // Todo. Remove this after form entry changes
 }
 
 
@@ -23,6 +23,8 @@ export interface ControlDefinition {
 })
 export class ValueFlagInputComponent implements OnInit, OnChanges {
 
+  @Input() id: string | number = '';
+  @Input() label: string = '';
   @Input() smallSize: boolean = false;
   @Input() elements!: ElementModel[];
   @Input() flags!: FlagModel[];
@@ -31,6 +33,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Output() validationChange = new EventEmitter<'VALID' | 'INVALID'>();
 
   displayedValueFlag!: string;
+  userChange: boolean = false;
   errorMessage!: string;
 
   constructor() {
@@ -112,9 +115,9 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     //attach the updated observation to the control definition
     this.controlDefinition.entryData = observation;
 
-    //scale the value for display
-    this.controlDefinition.userChange = true;
+    //scale the value for display 
     this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
+    this.userChange = true;
 
     // Emit data change event
     this.valueChange.emit(this.controlDefinition);
@@ -228,7 +231,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   public onCommentEntry(comment: string) {
     this.controlDefinition.entryData.comment = comment;
-    this.controlDefinition.userChange = true;
 
     // todo. before emitting valid. check on the value validity
     this.validationChange.emit('VALID');

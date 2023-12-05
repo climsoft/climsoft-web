@@ -12,8 +12,8 @@ export class TextInputComponent implements OnInit, OnChanges {
   @Input() disabled: boolean = false;
   @Input() hintMessage: string = '';
   @Input() errorMessage: string = '';
-  @Input() value: string = '';
-  @Output() valueChange = new EventEmitter<string >();
+  @Input() value: string | null = '';
+  @Output() valueChange = new EventEmitter<string>();
 
   constructor() {
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { EntryForm } from '../../core/models/entry-form.model';
+import { EntryForm, LayoutType } from '../../core/models/entry-form.model';
 import { ObservationModel } from '../../core/models/observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { SourcesService } from 'src/app/core/services/sources.service';
@@ -35,7 +35,7 @@ export class FormEntryComponent implements OnInit {
   public formMetadata!: EntryForm;
   public useDatePickerControl: boolean = false;
   public defaultDatePickerDate!: string;
-  public entryControl!: 'LIST' | 'TABLE';
+  public entryControl!: LayoutType;
   public elements!: ElementModel[];
   public observations!: ObservationModel[];
   public newObservations!: ObservationModel[];
@@ -94,37 +94,37 @@ export class FormEntryComponent implements OnInit {
     //set form metadata
     this.formMetadata = entryForm;
 
-    if (entryForm.entrySelectors.includes('elementId')) {
+    if (entryForm.selectors.includes('ELEMENT')) {
       this.dataSelectors.elementId = entryForm.elements[0];
     }
 
     const todayDate = new Date();
 
-    if (entryForm.entrySelectors.includes('year')) {
+    if (entryForm.selectors.includes('YEAR')) {
       this.dataSelectors.year = todayDate.getFullYear();
     }
 
-    if (entryForm.entrySelectors.includes('month')) {
+    if (entryForm.selectors.includes('MONTH')) {
       this.dataSelectors.month = todayDate.getMonth() + 1;
     }
 
-    if (entryForm.entrySelectors.includes('day')) {
+    if (entryForm.selectors.includes('DAY')) {
       this.dataSelectors.day = todayDate.getDate();
     }
 
-    if (entryForm.entrySelectors.includes('hour')) {
+    if (entryForm.selectors.includes('HOUR')) {
       this.dataSelectors.hour = entryForm.hours.length > 0 ? entryForm.hours[0] : 0;
     }
 
-    this.useDatePickerControl = entryForm.entrySelectors.includes('year') &&
-      entryForm.entrySelectors.includes('month') &&
-      entryForm.entrySelectors.includes('day');
+    this.useDatePickerControl = entryForm.selectors.includes('YEAR') &&
+      entryForm.selectors.includes('MONTH') &&
+      entryForm.selectors.includes('DAY');
 
     if (this.useDatePickerControl) {
       this.defaultDatePickerDate = todayDate.toISOString().slice(0, 10);
     }
 
-    this.entryControl = entryForm.entryControl;
+    this.entryControl = entryForm.layout;
   }
 
 
@@ -135,10 +135,10 @@ export class FormEntryComponent implements OnInit {
     this.newObservations = [];
 
     //determine which fields to use for loading the elements used in this control
-    const elementsToSearch: number[] = [];
+    let elementsToSearch: number[] = [];
     if (this.dataSelectors.elementId > 0) {
       elementsToSearch.push(this.dataSelectors.elementId);
-    } else if (this.formMetadata.entryFields.includes("elementId")) {
+    } else if (this.formMetadata.fields.includes("ELEMENT")) {
       elementsToSearch.push(...this.formMetadata.elements);
     } else {
       //todo. display error in set value flag set up
@@ -189,9 +189,7 @@ export class FormEntryComponent implements OnInit {
 
       // Todo. Create a deep copy of original observations as well 
       // then compare them before saving to eliminate unchanged data
-
       this.observations = data;
-
 
     });
   }

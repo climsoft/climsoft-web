@@ -1,0 +1,28 @@
+<table *ngIf="controlsDefinitions && controlsDefinitions.length >0" class="table table-sm table-striped">
+
+    <thead>
+        <tr>
+            <th>Days</th>
+            <th *ngFor="let col of colFieldDefinitions">{{col[1]}}</th>
+        </tr>
+    </thead>
+
+    <tbody class="table-group-divider">
+
+        <tr *ngFor="let row of rowFieldDefinitions">
+            <td>{{row[1]}}</td>
+            <td *ngFor="let col of colFieldDefinitions">
+                <div>
+                    <app-value-flag-input [smallSize]="true" [id]="row[0] +'-'+ col[0]" [elements]="elements"
+                        [flags]="flags" [controlDefinition]="getControlDef(row,col)"
+                        (valueChange)="onValueChange($event)"></app-value-flag-input>
+                </div>
+
+            </td>
+        </tr>
+
+    </tbody>
+
+
+
+</table>
