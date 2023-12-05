@@ -1,11 +1,10 @@
 <div *ngIf="controlDefinition" [class.container-max-w-sm]="smallSize">
 
-    <div *ngIf="controlDefinition.label" [class.label-sm]="smallSize">
-        {{ controlDefinition.label }}
+    <div *ngIf="label" [class.label-sm]="smallSize">
+        {{ label }}
     </div>
     <div class="input-group">
-        <input class="form-control form-control-sm" autocomplete="off" type="text"
-            [id]="controlDefinition.entryData.elementId + controlDefinition.entryData.datetime" 
+        <input class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
             [class.text-success]="!userChange " [value]="displayedValueFlag"
             (input)="onInputEntry($any($event.target).value)" />
 

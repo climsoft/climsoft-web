@@ -23,6 +23,8 @@ export interface ControlDefinition {
 })
 export class ValueFlagInputComponent implements OnInit, OnChanges {
 
+  @Input() id: string | number = '';
+  @Input() label: string = '';
   @Input() smallSize: boolean = false;
   @Input() elements!: ElementModel[];
   @Input() flags!: FlagModel[];
@@ -228,7 +230,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
   public onCommentEntry(comment: string) {
-    this.controlDefinition.entryData.comment = comment; 
+    this.controlDefinition.entryData.comment = comment;
 
     // todo. before emitting valid. check on the value validity
     this.validationChange.emit('VALID');

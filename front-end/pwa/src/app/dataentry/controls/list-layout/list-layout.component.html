@@ -1,17 +1,20 @@
-<!-- For large screens, use the grid system and
+<ng-container *ngIf="controlsDefinitions && controlsDefinitions.length>0">
+  <!-- For large screens, use the grid system and
     split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
-<div *ngIf="largeScreen && controlsDefinitionsChuncks" class="row g-2">
-  <div class="col" *ngFor="let chunkArray of controlsDefinitionsChuncks">
-    <div class="row mb-2" *ngFor="let controlDefinition of chunkArray">
-      <app-value-flag-input [smallSize]="true" [elements]="elements" [flags]="flags"
-        [controlDefinition]="controlDefinition" (valueChange)="onValueChange($event)"></app-value-flag-input>
+  <div *ngIf="largeScreen" class="row g-2">
+    <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks">
+      <div class="row mb-2" *ngFor="let fieldDef of chunkArray">
+        <app-value-flag-input [smallSize]="true" [id]="fieldDef[0]"  [label]="fieldDef[1]" [elements]="elements" [flags]="flags"
+          [controlDefinition]="getControlDef(fieldDef)" (valueChange)="onValueChange($event)"></app-value-flag-input>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- For small screens, just use a flex container that's a column -->
-<div *ngIf="!largeScreen && controlsDefinitions" class="d-flex flex-column">
-  <app-value-flag-input class="mb-2" *ngFor="let controlDefinition of controlsDefinitions" [smallSize]="false"
-    [elements]="elements" [flags]="flags" [controlDefinition]="controlDefinition"
-    (valueChange)="onValueChange($event)"></app-value-flag-input>
-</div>
+  <!-- For small screens, just use a flex container that's a column -->
+  <div *ngIf="!largeScreen" class="d-flex flex-column">
+    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" 
+     [smallSize]="false" [id]="fieldDef[0]"  [label]="fieldDef[1]"
+      [elements]="elements" [flags]="flags" [controlDefinition]="getControlDef(fieldDef)"
+      (valueChange)="onValueChange($event)"></app-value-flag-input>
+  </div>
+</ng-container>

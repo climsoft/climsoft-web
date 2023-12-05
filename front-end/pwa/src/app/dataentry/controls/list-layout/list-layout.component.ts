@@ -6,9 +6,8 @@ import { EntryForm, FieldType } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
-import { FieldDefinition, FormEntryService } from '../../form-entry/form-entry.service';
+import { EntryFieldItem, FormEntryService } from '../../form-entry/form-entry.service';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
-
 
 
 @Component({
@@ -25,8 +24,9 @@ export class ListLayoutComponent implements OnInit, OnChanges {
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
-  public controlsDefinitions!: ControlDefinition[];
-  public controlsDefinitionsChuncks!: ControlDefinition[][];
+  public fieldDefinitions!: [number, string][];
+  public fieldDefinitionsChunks!: [number, string][][];
+  public controlsDefinitions!: ControlDefinition[]; 
   public largeScreen: boolean = false;
 
   constructor(private viewPortService: ViewportService,
@@ -49,85 +49,52 @@ export class ListLayoutComponent implements OnInit, OnChanges {
       this.dataSelectors && this.formMetadata &&
       this.flags && this.flags.length > 0) {
 
-
-
       // Get the new definitions 
-      this.controlsDefinitions = this.createNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
-      this.controlsDefinitionsChuncks = this.getControlDefinitionsChuncks(this.controlsDefinitions);
+      this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
+
+    } else {
+      this.controlsDefinitions = [];
     }
 
   }
 
-  private createNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): ControlDefinition[] {
+  private setUpNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
 
     //get entry field to use for control definitions
     const entryField = formMetadata.fields[0];
-    const fieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
+    const fieldDefinitions: [number, string][] = this.formEntryService.getEntryFieldDefs(
       entryField, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
+    const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
+    const controlDefs: ControlDefinition[] = this.formEntryService.getControlDefsLinear(dataSelectors, entryFieldItems, observations);
 
-    //set control definitions 
-    const obsFieldItems = { entryFieldProperty: entryField, entryPropFieldValue: fieldDefinitions.map(data => (data.id)) }
+    this.fieldDefinitions = fieldDefinitions;
+    this.fieldDefinitionsChunks = this.getFieldDefsChuncks(this.fieldDefinitions);
+    this.controlsDefinitions = controlDefs;
+   
+  }
 
-
-
-    const controlDefinitions: ControlDefinition[] = this.formEntryService.getControlDefsLinear(
-      dataSelectors, obsFieldItems);
-
-    //set existing observations to the control definitions
-    this.formEntryService.setExistingObsToControlDefs(controlDefinitions, observations);
-
-    //set labels for the control definitions
-    this.setLabels(controlDefinitions, fieldDefinitions, entryField)
-
-    return controlDefinitions;
+  public getControlDef(fieldDef: [number, string]): ControlDefinition {
+    const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
+    return this.controlsDefinitions[index];
   }
 
 
-  private setLabels(controlsDefinitions: ControlDefinition[], fieldDefinitions: FieldDefinition[], entryField: FieldType) {
-    // Create a map for quick lookup
-    const fieldMap = new Map(fieldDefinitions.map(field => [field.id, field.name]));
-
-    for (const controlDef of controlsDefinitions) {
-      let labelId: number | null = null;
-
-      switch (entryField) {
-        case "ELEMENT":
-          labelId = controlDef.entryData.elementId;
-          break;
-        case "DAY":
-          labelId = DateUtils.getDayFromSQLDate(controlDef.entryData.datetime);
-          break;
-        case "HOUR":
-          labelId = DateUtils.getHourFromSQLDate(controlDef.entryData.datetime);
-          break;
-      }
-
-      // Set the label if a matching field definition is found
-      if (labelId !== null && fieldMap.has(labelId)) {
-        controlDef.label = fieldMap.get(labelId);
-      }
+  //todo. POush this to array utils
+  private getFieldDefsChuncks(fieldDefs: [number, string][]):  [number, string][][] {
+    const chunks: [number, string][][] = [];
+    const chunkSize: number = 5;
+    for (let i = 0; i < fieldDefs.length; i += chunkSize) {
+      chunks.push(fieldDefs.slice(i, i + chunkSize));
     }
+    return chunks;
   }
-
-
 
   public onValueChange(controlDefinition: ControlDefinition): void {
     this.valueChange.emit(controlDefinition.entryData);
   }
 
 
-  private getControlDefinitionsChuncks(controlsDefinitions: ControlDefinition[]): ControlDefinition[][] {
-
-    //console.log("getting chunks")
-
-    const chunks: ControlDefinition[][] = [];
-    const chunkSize = 5;
-    for (let i = 0; i < this.controlsDefinitions.length; i += chunkSize) {
-      chunks.push(controlsDefinitions.slice(i, i + chunkSize));
-    }
-    return chunks;
-  }
 
 
 }

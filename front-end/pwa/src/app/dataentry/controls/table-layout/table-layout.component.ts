@@ -1,14 +1,11 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
-import { FieldDefinition, FormEntryService } from '../../form-entry/form-entry.service';
-
-
+import { EntryFieldItem, FormEntryService } from '../../form-entry/form-entry.service';
 
 
 @Component({
@@ -24,10 +21,9 @@ export class TableLayoutComponent implements OnInit, OnChanges {
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
+  public rowFieldDefinitions!: [number, string][];
+  public colFieldDefinitions!: [number, string][];
   public controlsDefinitions!: ControlDefinition[][];
-  public rowFieldDefinitions!: FieldDefinition[];
-  public colFieldDefinitions!: FieldDefinition[];
-
 
   constructor(private formEntryService: FormEntryService) {
 
@@ -39,20 +35,14 @@ export class TableLayoutComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    console.log('form', this.formMetadata)
-    console.log('observations', this.observations)
-    console.log('elements', this.elements)
-    console.log('dataSelectors', this.dataSelectors)
-    
     //only proceed with seting up the control if all inputs have been set.
     if (this.observations && this.elements && this.elements.length > 0 &&
       this.dataSelectors && this.formMetadata && this.flags && this.flags.length > 0) {
-        
-        console.log('setting up')
 
       this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
 
-
+    } else {
+      this.controlsDefinitions = [];
     }
 
   }
@@ -69,36 +59,29 @@ export class TableLayoutComponent implements OnInit, OnChanges {
     const entryFieldForRow = this.formMetadata.fields[0];
     const entryFieldForColumn = this.formMetadata.fields[1];
 
-    const rowFieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
+    const rowFieldDefs: [number, string][] = this.formEntryService.getEntryFieldDefs(
       entryFieldForRow, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
 
-    const colFieldDefinitions: FieldDefinition[] = this.formEntryService.getFieldDefinitions(
+    const colFieldDefs: [number, string][] = this.formEntryService.getEntryFieldDefs(
       entryFieldForColumn, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
 
-    //set control definitions 
-    const rowObsFieldItems = { entryFieldProperty: entryFieldForRow, entryPropFieldValue: rowFieldDefinitions.map(data => (data.id)) }
-    const colObsFieldItems = { entryFieldProperty: entryFieldForColumn, entryPropFieldValue: colFieldDefinitions.map(data => (data.id)) }
+    const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }
+    const colFieldItems: EntryFieldItem = { fieldProperty: entryFieldForColumn, fieldValues: colFieldDefs.map(data => (data[0])) }
+    const controlDefs: ControlDefinition[][] = this.formEntryService.getControlDefsGrid(dataSelectors, [rowFieldItems, colFieldItems], observations);
 
-    const controlDefinitions: ControlDefinition[][] = this.formEntryService.getControlDefsGrid(
-      dataSelectors, [rowObsFieldItems, colObsFieldItems]);
-
-    //set existing observations to the control definitions
-    this.formEntryService.setExistingObsToControlDefs(controlDefinitions.flatMap(data => (data)), observations);
-
-
-    this.rowFieldDefinitions = rowFieldDefinitions;
-    this.colFieldDefinitions = colFieldDefinitions;
-    this.controlsDefinitions = controlDefinitions;
+    this.rowFieldDefinitions = rowFieldDefs;
+    this.colFieldDefinitions = colFieldDefs;
+    this.controlsDefinitions = controlDefs;
   }
 
-
-  public getControlDefinition(row: FieldDefinition, col: FieldDefinition): ControlDefinition {
-    const rowIndex: number = this.rowFieldDefinitions.findIndex(data => (data === row));
-    const colIndex: number = this.colFieldDefinitions.findIndex(data => (data === col));
+  public getControlDef(rowDef: [number, string], colDef: [number, string]): ControlDefinition {
+    const rowIndex: number = this.rowFieldDefinitions.findIndex(data => (data === rowDef));
+    const colIndex: number = this.colFieldDefinitions.findIndex(data => (data === colDef));
     return this.controlsDefinitions[rowIndex][colIndex];
   }
+
 
   //todo. do we really need the ControlDefinition or just the observation data? 
   public onValueChange(controlDefinition: ControlDefinition): void {
