@@ -16,15 +16,15 @@ import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-
 @NgModule({
 
   declarations: [
-    ImportEntryComponent, 
+    ImportEntryComponent,
 
     StationFormSelectionComponent,
     FormEntryComponent,
-    GridLayoutComponent, 
+    GridLayoutComponent,
     LnearLayoutComponent,
-     ValueFlagInputComponent,
- 
-   
+    ValueFlagInputComponent,
+
+
   ],
   imports: [
     DataEntryRoutingModule,

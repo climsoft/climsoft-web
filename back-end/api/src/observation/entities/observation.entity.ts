@@ -31,6 +31,9 @@ export class ObservationEntity {
   @Column({ type: 'int' })
   qcStatus: number;
 
+  @Column({ type: 'int', default: 0 })
+  final: 0 | 1; //todo. small int as type? indicates whether the record is uploaded
+
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;
 
@@ -55,6 +58,7 @@ export interface ObservationLogVo {
   value: number | null;
   flag: number | null;
   qcStatus: number;
+  final: 0 | 1;
   comment: string | null;
   entryUserId: string;
   entryDateTime: string;

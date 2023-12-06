@@ -1,11 +1,13 @@
-<div *ngIf="controlDefinition" [class.container-max-w-sm]="smallSize">
+<div *ngIf="observation" [class.container-max-w-sm]="smallSize">
 
     <div *ngIf="label" [class.label-sm]="smallSize">
         {{ label }}
     </div>
     <div class="input-group">
-        <input class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
+        <input #inputRef  class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
             [class.text-success]="!userChange " [value]="displayedValueFlag"
+          
+            (keydown.enter)="onEnterPressed()"
             (input)="onInputEntry($any($event.target).value)" />
 
         <div dropdown [autoClose]="false">
@@ -34,7 +36,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let row of getLogs(controlDefinition.entryData) ">
+                            <tr *ngFor="let row of getLogs(observation) ">
                                 <td>{{ row.value }}</td>
                                 <td>{{ row.flag }}</td>
                                 <td>{{ row.period }}</td>
