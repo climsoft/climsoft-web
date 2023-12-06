@@ -10,21 +10,23 @@ import { StationFormSelectionComponent } from './station-form-selection/station-
 import { GridLayoutComponent } from './controls/grid-layout/grid-layout.component';
 import { LnearLayoutComponent } from './controls/linear-layout/linear-layout.component';
 import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-input.component';
+import { SimulateTabOnEnterDirective } from './simulate-tab-on-enter.directive';
 //------------------------------------
 
 
 @NgModule({
 
   declarations: [
-    ImportEntryComponent, 
+    ImportEntryComponent,
 
     StationFormSelectionComponent,
     FormEntryComponent,
-    GridLayoutComponent, 
+    GridLayoutComponent,
     LnearLayoutComponent,
-     ValueFlagInputComponent,
- 
-   
+    ValueFlagInputComponent,
+    SimulateTabOnEnterDirective,
+
+
   ],
   imports: [
     DataEntryRoutingModule,

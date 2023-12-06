@@ -8,7 +8,6 @@ import { SourcesService } from 'src/app/core/services/sources.service';
 import { SelectObservation } from 'src/app/core/models/select-observation.model';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ControlDefinition } from '../controls/value-flag-input/value-flag-input.component';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { FlagsService } from 'src/app/core/services/flags.service';
 import { FlagModel } from 'src/app/core/models/Flag.model';

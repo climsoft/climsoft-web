@@ -1,15 +1,16 @@
-<div *ngIf="controlDefinition" [class.container-max-w-sm]="smallSize">
+<div *ngIf="observation" [class.container-max-w-sm]="smallSize">
 
     <div *ngIf="label" [class.label-sm]="smallSize">
         {{ label }}
     </div>
     <div class="input-group">
-        <input class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
-            [class.text-success]="!userChange " [value]="displayedValueFlag"
+        <input #inputRef  class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
+            [class.text-success]="!userChange " [value]="displayedValueFlag"          
+            simulateTabOnEnter
             (input)="onInputEntry($any($event.target).value)" />
 
         <div dropdown [autoClose]="false">
-            <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary ">
+            <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary btn-input-group">
                 <i class="bi bi-info"></i>
             </button>
             <div *dropdownMenu class="dropdown-menu shadow-sm p-3">
@@ -34,7 +35,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let row of getLogs(controlDefinition.entryData) ">
+                            <tr *ngFor="let row of getLogs(observation) ">
                                 <td>{{ row.value }}</td>
                                 <td>{{ row.flag }}</td>
                                 <td>{{ row.period }}</td>

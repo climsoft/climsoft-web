@@ -1,19 +1,9 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ObservationLog } from 'src/app/core/models/observation-log.model';
 import { ObservationModel } from 'src/app/core/models/observation.model';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { DataSelectorsValues } from '../../form-entry/form-entry.component';
-import { FormEntryUtil } from '../../form-entry/form-entry.util';
-
-export interface ControlDefinition {
-  label?: string;
-  entryData: ObservationModel;
-  //newData: boolean; // Todo. Remove this after form entry changes
-  //userChange: boolean; // Todo. Remove this after form entry changes
-}
 
 
 @Component({
@@ -22,19 +12,18 @@ export interface ControlDefinition {
   styleUrls: ['./value-flag-input.component.scss']
 })
 export class ValueFlagInputComponent implements OnInit, OnChanges {
+  @Input() public id: string | number = '';
+  @Input() public label: string = '';
+  @Input() public smallSize: boolean = false;
+  @Input() public elements!: ElementModel[];
+  @Input() public flags!: FlagModel[];
+  @Input() public observation!: ObservationModel;
+  @Output() public valueChange = new EventEmitter<ObservationModel>();
+  @Output() public validationChange = new EventEmitter<'VALID' | 'INVALID'>();
 
-  @Input() id: string | number = '';
-  @Input() label: string = '';
-  @Input() smallSize: boolean = false;
-  @Input() elements!: ElementModel[];
-  @Input() flags!: FlagModel[];
-  @Input() controlDefinition!: ControlDefinition;
-  @Output() valueChange = new EventEmitter<ControlDefinition>();
-  @Output() validationChange = new EventEmitter<'VALID' | 'INVALID'>();
-
-  displayedValueFlag!: string;
-  userChange: boolean = false;
-  errorMessage!: string;
+  protected displayedValueFlag!: string;
+  protected userChange: boolean = false;
+  protected errorMessage!: string;
 
   constructor() {
 
@@ -46,24 +35,22 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (!this.elements || !this.flags || !this.controlDefinition) {
+    if (!this.elements || !this.flags || !this.observation) {
       return;
     }
 
     //scale the value for display
-    let value: number | null = this.controlDefinition.entryData.value
+    let value: number | null = this.observation.value
 
     if (value !== null) {
-      value = this.getScaledValue(this.controlDefinition.entryData.elementId, value);
+      value = this.getScaledValue(this.observation.elementId, value);
     }
 
-    this.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(this.controlDefinition.entryData.flag));
+    this.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(this.observation.flag));
 
   }
 
-
-  // Todo. This should be raised after focus lost or "OnLeave"
-  public onInputEntry(valueFlagInput: string): void {
+  protected onInputEntry(valueFlagInput: string): void {
 
     let validationResults: [boolean, string];
     let observation: ObservationModel;
@@ -86,7 +73,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     const value: number | null = extractedNumberString[0];
     const flagName: string | null = extractedNumberString[1] === null ? null : extractedNumberString[1].toUpperCase();
 
-    observation = this.controlDefinition.entryData;
+    observation = this.observation;
 
     //if value input then do QC
     if (value !== null) {
@@ -113,14 +100,14 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     observation.flag = this.getFlagId(flagName);
 
     //attach the updated observation to the control definition
-    this.controlDefinition.entryData = observation;
+    this.observation = observation;
 
     //scale the value for display 
     this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
     this.userChange = true;
 
     // Emit data change event
-    this.valueChange.emit(this.controlDefinition);
+    this.valueChange.emit(this.observation);
     this.validationChange.emit('VALID');
 
   }
@@ -229,14 +216,14 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return flag ? flag.name : null;
   }
 
-  public onCommentEntry(comment: string) {
-    this.controlDefinition.entryData.comment = comment;
+  protected onCommentEntry(comment: string) {
+    this.observation.comment = comment;
 
     // todo. before emitting valid. check on the value validity
     this.validationChange.emit('VALID');
   }
 
-  getLogs(observation: ObservationModel): ObservationLog[] {
+  protected getLogs(observation: ObservationModel): ObservationLog[] {
     return observation.log === null ? [] : JSON.parse(observation.log);
   }
 

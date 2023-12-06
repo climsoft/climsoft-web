@@ -1,12 +1,12 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList } from '@angular/core';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
-import { ControlDefinition } from '../value-flag-input/value-flag-input.component';
 import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
+import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 
 @Component({
@@ -15,17 +15,16 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.se
   styleUrls: ['./linear-layout.component.scss']
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
-
   @Input() elements!: ElementModel[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
-  @Input() observations!: ObservationModel[];
+  @Input() dbObservations!: ObservationModel[];
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
   public fieldDefinitions!: [number, string][];
   public fieldDefinitionsChunks!: [number, string][][];
-  public controlsDefinitions!: ControlDefinition[]; 
+  public entryObservations!: ObservationModel[]; 
   public largeScreen: boolean = false;
 
   constructor(private viewPortService: ViewportService) {
@@ -43,15 +42,15 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (this.observations && this.elements && this.elements.length > 0 &&
+    if (this.dbObservations && this.elements && this.elements.length > 0 &&
       this.dataSelectors && this.formMetadata &&
       this.flags && this.flags.length > 0) {
 
       // Get the new definitions 
-      this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.observations);
+      this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
 
     } else {
-      this.controlsDefinitions = [];
+      this.entryObservations = [];
     }
 
   }
@@ -64,17 +63,17 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       entryField, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
-    const controlDefs: ControlDefinition[] = FormEntryUtil.getControlDefsLinear(dataSelectors, entryFieldItems, observations);
+    const controlDefs: ObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(dataSelectors, entryFieldItems, observations);
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChuncks(this.fieldDefinitions);
-    this.controlsDefinitions = controlDefs;
+    this.entryObservations = controlDefs;
    
   }
 
-  public getControlDef(fieldDef: [number, string]): ControlDefinition {
+  public getEntryObservation(fieldDef: [number, string]): ObservationModel {
     const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
-    return this.controlsDefinitions[index];
+    return this.entryObservations[index];
   }
 
 
@@ -88,9 +87,13 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     return chunks;
   }
 
-  public onValueChange(controlDefinition: ControlDefinition): void {
-    this.valueChange.emit(controlDefinition.entryData);
+  public onValueChange(entryObservation: ObservationModel): void {
+    this.valueChange.emit(entryObservation);
   }
+
+
+
+  
 
 
 

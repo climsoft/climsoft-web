@@ -4,14 +4,7 @@ import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from './form-entry.component';
 import { FieldType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { ControlDefinition } from '../controls/value-flag-input/value-flag-input.component';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
-
-
-export interface FieldDefinition {
-  id: number;
-  name: string;
-}
 
 export interface EntryFieldItem { fieldProperty: FieldType, fieldValues: number[] }
 
@@ -44,45 +37,48 @@ export class FormEntryUtil {
     return fieldDefs;
   }
 
-  public static getControlDefsLinear(dataSelectors: DataSelectorsValues, entryFieldItem: EntryFieldItem, observations: ObservationModel[]): ControlDefinition[] {
+  public static getEntryObservationsForLinearLayout(dataSelectors: DataSelectorsValues, entryFieldItem: EntryFieldItem, dbObservations: ObservationModel[]): ObservationModel[] {
 
-    const controlDefs: ControlDefinition[] = [];
+    const entryObservations: ObservationModel[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
 
-      const newEntryData: ObservationModel = FormEntryUtil.getNewEntryData(dataSelectors, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
+      const entryObservation: ObservationModel = FormEntryUtil.getEntryObservation(dataSelectors, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
 
-      controlDefs.push({ entryData: FormEntryUtil.getExistingObservationIfItExists(observations, newEntryData) });
+      entryObservations.push(FormEntryUtil.getExistingObservationIfItExists(dbObservations, entryObservation));
 
     }
 
-    return controlDefs;
+    return entryObservations;
   }
 
-  public static getControlDefsGrid(dataSelectors: DataSelectorsValues, entryFieldItems: [EntryFieldItem, EntryFieldItem], observations: ObservationModel[]): ControlDefinition[][] {
+  public static getEntryObservationsForGridLayout(dataSelectors: DataSelectorsValues, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: ObservationModel[]): ObservationModel[][] {
 
-    const controlDefs: ControlDefinition[][] = [];
+    const entryObservations: ObservationModel[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
-      const subArrControlDefs: ControlDefinition[] = [];
+      const subArrEntryObservations: ObservationModel[] = [];
       for (const secondFieldValue of entryFieldItems[1].fieldValues) {
-        const newEntryData: ObservationModel = this.getNewEntryData(dataSelectors,
+        const entryObservation: ObservationModel = this.getEntryObservation(dataSelectors,
           [{ entryFieldProperty: entryFieldItems[0].fieldProperty, entryPropFieldValue: firstFieldValue },
           { entryFieldProperty: entryFieldItems[1].fieldProperty, entryPropFieldValue: secondFieldValue }]);
 
-        subArrControlDefs.push({ entryData: this.getExistingObservationIfItExists(observations, newEntryData) });
+        subArrEntryObservations.push(this.getExistingObservationIfItExists(dbObservations, entryObservation));
       }
 
-      controlDefs.push(subArrControlDefs);
+      entryObservations.push(subArrEntryObservations);
 
     }
 
-    return controlDefs;
+    return entryObservations;
   }
 
 
-  private static getNewEntryData(dataSelectors: DataSelectorsValues,
-    entryFields: [{ entryFieldProperty: FieldType, entryPropFieldValue: number }, { entryFieldProperty: FieldType, entryPropFieldValue: number }?]): ObservationModel {
+  private static getEntryObservation(dataSelectors: DataSelectorsValues,
+    entryFields: [
+      { entryFieldProperty: FieldType, entryPropFieldValue: number },
+      { entryFieldProperty: FieldType, entryPropFieldValue: number }?
+    ]): ObservationModel {
     //create new entr data
-    const entryData: ObservationModel = {
+    const entryObservation: ObservationModel = {
       stationId: dataSelectors.stationId,
       sourceId: dataSelectors.sourceId,
       elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null, log: null
@@ -90,7 +86,7 @@ export class FormEntryUtil {
 
     //set other fields
     if (dataSelectors.elementId > 0) {
-      entryData.elementId = dataSelectors.elementId;
+      entryObservation.elementId = dataSelectors.elementId;
     }
 
     let datetimeVars: [number, number, number, number] = [-1, -1, -1, -1];
@@ -109,7 +105,7 @@ export class FormEntryUtil {
     //set entry field
     const firstEntryField = entryFields[0]
     if (firstEntryField.entryFieldProperty === 'ELEMENT') {
-      entryData.elementId = firstEntryField.entryPropFieldValue;
+      entryObservation.elementId = firstEntryField.entryPropFieldValue;
     } else if (firstEntryField.entryFieldProperty === 'DAY') {
       datetimeVars[2] = firstEntryField.entryPropFieldValue;
     } else if (firstEntryField.entryFieldProperty === 'HOUR') {
@@ -123,7 +119,7 @@ export class FormEntryUtil {
 
       const secondEntryField = entryFields[1];
       if (secondEntryField.entryFieldProperty === 'ELEMENT') {
-        entryData.elementId = secondEntryField.entryPropFieldValue;
+        entryObservation.elementId = secondEntryField.entryPropFieldValue;
       } else if (secondEntryField.entryFieldProperty === 'DAY') {
         datetimeVars[2] = secondEntryField.entryPropFieldValue;
       } else if (secondEntryField.entryFieldProperty === 'HOUR') {
@@ -136,34 +132,28 @@ export class FormEntryUtil {
     }
 
     //set datetime from date time variables. year-month-day hour. JS months are 0 based 
-    entryData.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
+    entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
 
-    return entryData;
+    return entryObservation;
   }
 
 
 
-  private static getExistingObservationIfItExists(savedObservations: ObservationModel[], newEntryData: ObservationModel): ObservationModel {
-    for (const savedObservation of savedObservations) {
-
+  private static getExistingObservationIfItExists(dbObservations: ObservationModel[], entryObservation: ObservationModel): ObservationModel {
+    for (const dbObservation of dbObservations) {
       // Look for the observation element id and date time.
-      // Todo. add station, source id, level and period
-
-      // Todo. confirm this check for duplicates. 
-      // For instance when level and period is not part of the data selector
       if (
-        newEntryData.stationId === savedObservation.stationId && 
-        newEntryData.elementId === savedObservation.elementId && 
-        newEntryData.level === savedObservation.level &&
-        newEntryData.sourceId === savedObservation.sourceId &&       
-        newEntryData.datetime === savedObservation.datetime &&
-        newEntryData.period === savedObservation.period ) {
-        return savedObservation;
+        entryObservation.stationId === dbObservation.stationId &&
+        entryObservation.elementId === dbObservation.elementId &&
+        entryObservation.sourceId === dbObservation.sourceId &&
+        entryObservation.level === dbObservation.level &&
+        entryObservation.datetime === dbObservation.datetime &&
+        entryObservation.period === dbObservation.period) {
+        return dbObservation;
       }
-
     }
 
-    return newEntryData;
+    return entryObservation;
 
   }
 

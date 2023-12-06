@@ -119,6 +119,7 @@ export class ObservationsService {
             value: entity.value,
             flag: entity.flag,
             qcStatus: entity.qcStatus,
+            final: entity.final,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
             entryDateTime: entity.entryDateTime,
@@ -132,6 +133,7 @@ export class ObservationsService {
             value: dto.value,
             flag: dto.flag,
             qcStatus: dto.qcStatus,
+            final: 0,//
             comment: dto.comment,
             entryUserId: '2', //todo. this will come from user session or token
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),           
