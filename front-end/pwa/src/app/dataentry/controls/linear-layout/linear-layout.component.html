@@ -5,7 +5,7 @@
     <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks">
       <div class="row mb-2" *ngFor="let fieldDef of chunkArray">
         <app-value-flag-input [smallSize]="true" [id]="fieldDef[0]"  [label]="fieldDef[1]" [elements]="elements" [flags]="flags"
-          [observation]="getEntryObservation(fieldDef)" (valueChange)="onValueChange($event)" (enterPressed)="focusNextInput(fieldDef)"></app-value-flag-input>
+          [observation]="getEntryObservation(fieldDef)" (valueChange)="onValueChange($event)"></app-value-flag-input>
       </div>
     </div>
   </div>
@@ -15,6 +15,6 @@
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" 
      [smallSize]="false" [id]="fieldDef[0]"  [label]="fieldDef[1]"
       [elements]="elements" [flags]="flags" [observation]="getEntryObservation(fieldDef)"
-      (valueChange)="onValueChange($event)" (enterPressed)="focusNextInput(fieldDef)"></app-value-flag-input>
+      (valueChange)="onValueChange($event)"></app-value-flag-input>
   </div>
 </ng-container>

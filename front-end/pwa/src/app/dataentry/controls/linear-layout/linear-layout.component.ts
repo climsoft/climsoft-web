@@ -15,8 +15,6 @@ import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.co
   styleUrls: ['./linear-layout.component.scss']
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
-  @ViewChildren(ValueFlagInputComponent) protected inputComponents!: QueryList<ValueFlagInputComponent>;
-
   @Input() elements!: ElementModel[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
@@ -94,13 +92,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   }
 
 
-  focusNextInput(currentFieldDef: [number, string]): void {
-    const currentIndex = this.fieldDefinitions.findIndex(def => def === currentFieldDef);
-    const nextIndex = (currentIndex + 1) % this.fieldDefinitions.length;
-    const nextInputComponent = this.inputComponents.toArray()[nextIndex];
-    
-    nextInputComponent.setFocus();
-  }
+
   
 
 

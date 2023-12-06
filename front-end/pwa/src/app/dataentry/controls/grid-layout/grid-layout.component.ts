@@ -13,7 +13,6 @@ import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.co
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
-  @ViewChildren(ValueFlagInputComponent) protected inputComponents!: QueryList<ValueFlagInputComponent>;
   @Input() elements!: ElementModel[];
   @Input() dataSelectors!: DataSelectorsValues;
   @Input() formMetadata!: EntryForm;
@@ -88,39 +87,6 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     if (entryObservation) {
       this.valueChange.emit(entryObservation);
     }
-  }
-
-  focusNextInput(rowDef: [number, string], colDef: [number, string]): void {
-    const currentRowIndex = this.rowFieldDefinitions.findIndex(def => def === rowDef);
-    const currentColIndex = this.colFieldDefinitions.findIndex(def => def === colDef);
-    let nextRowIndex = currentRowIndex + 1;
-    let nextColIndex = currentColIndex;
-
-    if(nextRowIndex >= this.rowFieldDefinitions.length ){
-      nextRowIndex = 0;
-      nextColIndex = currentColIndex + 1;
-    }
-
-    if(nextColIndex >= this.colFieldDefinitions.length ){
-      // Todo. change focus to the next control. Probably generate a tab event?
-      nextColIndex=0;
-
-    }
-
-
-
-    const components: ValueFlagInputComponent[] = this.inputComponents.toArray();
-
-    for(const component of  components){
-      if(component.observation === this.entryObservations[nextRowIndex][nextColIndex]){
-        component.setFocus();
-      }
-    }
-
-
-   // const nextInputComponent = this.inputComponents.toArray()[nextRowIndex];
-    
-   
   }
 
 }

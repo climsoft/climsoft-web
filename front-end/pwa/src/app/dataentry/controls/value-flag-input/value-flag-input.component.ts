@@ -12,8 +12,6 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./value-flag-input.component.scss']
 })
 export class ValueFlagInputComponent implements OnInit, OnChanges {
-
-  @ViewChild('inputRef') protected inputElement!: ElementRef<HTMLInputElement>;
   @Input() public id: string | number = '';
   @Input() public label: string = '';
   @Input() public smallSize: boolean = false;
@@ -22,7 +20,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public observation!: ObservationModel;
   @Output() public valueChange = new EventEmitter<ObservationModel>();
   @Output() public validationChange = new EventEmitter<'VALID' | 'INVALID'>();
-  @Output() public enterPressed = new EventEmitter<void>();
 
   protected displayedValueFlag!: string;
   protected userChange: boolean = false;
@@ -50,15 +47,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     }
 
     this.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(this.observation.flag));
-
-  }
-
-  public setFocus(): void {
-    this.inputElement.nativeElement.focus();
-  }
-
-  protected onEnterPressed(): void {
-    this.enterPressed.emit();
 
   }
 
