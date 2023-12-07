@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ObservationLog } from 'src/app/core/models/observation-log.model';

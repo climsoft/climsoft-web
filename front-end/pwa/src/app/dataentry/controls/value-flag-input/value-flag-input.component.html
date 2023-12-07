@@ -6,7 +6,7 @@
     <div class="input-group">
         <input #inputRef  class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
             [class.text-success]="!userChange " [value]="displayedValueFlag"          
-            simulateTabOnEnter
+            appSimulateTabOnEnter
             (input)="onInputEntry($any($event.target).value)" />
 
         <div dropdown [autoClose]="false">
