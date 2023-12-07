@@ -135,6 +135,12 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       return [false, 'Incorrect input format not allowed'];
     }
 
+    //check for any decimals
+    const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
+    if (splitNum !== null && String(splitNum).includes(".")) {
+      return [false, 'Decimals not allowed'];
+    }
+
     return [true, ''];
 
   }
