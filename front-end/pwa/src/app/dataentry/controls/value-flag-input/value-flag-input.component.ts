@@ -20,7 +20,6 @@ interface ValidationResponse {
 export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
-  @Input() public smallSize: boolean = false;
   @Input() public elements!: ElementModel[];
   @Input() public flags!: FlagModel[];
   @Input() public observation!: ObservationModel;

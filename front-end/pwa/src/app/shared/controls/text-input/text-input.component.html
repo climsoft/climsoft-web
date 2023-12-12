@@ -22,12 +22,9 @@
 
   <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
 
-  <div *ngIf="projectDropDownContentInternally && displayDropDown"
-    class="position-absolute w-100 overflow-auto shadow custom-drop-down">
+  <div *ngIf="displayDropDown" class="position-absolute min-w-100 overflow-auto custom-drop-down"
+    [style.max-height]="dropDownOptionMaxHeight+'px'">
     <ng-content></ng-content>
   </div>
-
-
-
 
 </div>

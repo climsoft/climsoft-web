@@ -81,7 +81,11 @@ export class FormEntryUtil {
     const entryObservation: ObservationModel = {
       stationId: dataSelectors.stationId,
       sourceId: dataSelectors.sourceId,
-      elementId: 0, level: 'surface', datetime: '', value: null, flag: null, qcStatus: 0, period: 0, comment: null, log: null
+      elementId: 0, level: 'surface',
+      datetime: '',
+      value: null, flag: null, qcStatus: 0,
+      period: dataSelectors.period,
+      comment: null, log: null
     };
 
     //set other fields

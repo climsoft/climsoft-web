@@ -28,6 +28,10 @@ export class ObservationsService {
             selectOptions.sourceId = selectObsevationDto.sourceId;
         }
 
+        if (selectObsevationDto.period) {
+            selectOptions.period = selectObsevationDto.period;
+        }
+
         this.setDateFilter(selectObsevationDto, selectOptions);
 
         return this.observationRepo.findBy(selectOptions);

@@ -29,9 +29,9 @@ export class SelectObservationDTO {
     @IsOptional()
     hour?: number;
 
-    @IsString()
+    @IsNumber()
     @IsOptional()
-    period: string;
+    period: number;
 
     @IsNumber()
     @IsOptional()

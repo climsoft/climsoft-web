@@ -21,10 +21,11 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
   // Todo, change this to a typed interface
-  public fieldDefinitions!: [number, string][];
-  public fieldDefinitionsChunks!: [number, string][][];
-  public entryObservations!: ObservationModel[];
-  public largeScreen: boolean = false;
+  protected fieldDefinitions!: [number, string][];
+  protected fieldDefinitionsChunks!: [number, string][][];
+  protected entryObservations!: ObservationModel[];
+  protected total: number = 0;
+  protected largeScreen: boolean = false;
 
   constructor(private viewPortService: ViewportService) {
     this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
@@ -62,10 +63,9 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
     this.entryObservations = controlDefs;
-
   }
 
-  public getEntryObservation(fieldDef: [number, string]): ObservationModel {
+  protected getEntryObservation(fieldDef: [number, string]): ObservationModel {
     const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
     return this.entryObservations[index];
   }
@@ -80,8 +80,19 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     return chunks;
   }
 
-  public onValueChange(entryObservation: ObservationModel): void {
+
+  protected onValueChange(entryObservation: ObservationModel): void {
     this.valueChange.emit(entryObservation);
+  }
+
+  protected onTotalInput(value: number | null): void {
+    if (!value) {
+      return;
+    }
+    //todo. think about the total
+    //should we have it displayed when the form is shown
+    //left here
+    this.total = value;
   }
 
 }

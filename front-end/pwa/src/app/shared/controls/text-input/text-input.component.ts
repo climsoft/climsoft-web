@@ -7,7 +7,7 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
 })
 export class TextInputComponent implements OnChanges {
   @Input() public includeDropDownOption: boolean = false;
-  @Input() public projectDropDownContentInternally: boolean = false;
+  @Input() public dropDownOptionMaxHeight: string = '200px';
   @Input() public includeCancelOption: boolean = false;
   @Input() public type: string = 'text';
   @Input() public id: string | number = '';
@@ -45,10 +45,7 @@ export class TextInputComponent implements OnChanges {
   }
 
   protected onDropDownOptionClick(): void {
-    if (this.projectDropDownContentInternally) {
-      this.showDropDown(!this.displayDropDown);
-    }
-
+    this.showDropDown(!this.displayDropDown);
     this.dropDownOptionClick.emit();
   }
 

@@ -1,19 +1,19 @@
 <div *ngIf="entryObservations && entryObservations.length > 0" class="row g-2">
-    <div class="col-auto d-flex flex-column">
-        <div  class="row me-2 mb-2 d-flex flex-grow-1 ">
+    <div class="col d-flex flex-column container-max-w-sm">
+        <div class="row me-2 mb-2 d-flex flex-grow-1 ">
             TODO
         </div>
         <div class="row me-2 mb-2 d-flex flex-grow-1  " *ngFor="let rowDef of rowFieldDefinitions">
             {{rowDef[1]}}
         </div>
     </div>
-    <div class="col-auto d-flex flex-column" *ngFor="let colDef of colFieldDefinitions">
+    <div class="col d-flex flex-column container-max-w-sm" *ngFor="let colDef of colFieldDefinitions">
         <div class="row mb-2 d-flex flex-grow-1 ">
             {{colDef[1]}}
         </div>
         <div class="row mb-2 d-flex flex-grow-1 " *ngFor="let rowDef of rowFieldDefinitions">
-            <app-value-flag-input [smallSize]="true" [id]="rowDef[0] +'-'+ colDef[0]" [elements]="elements"
-                [flags]="flags" [observation]="getEntryObservation(rowDef,colDef)"
+            <app-value-flag-input [id]="rowDef[0] +'-'+ colDef[0]" [elements]="elements" [flags]="flags"
+                [observation]="getEntryObservation(rowDef,colDef)"
                 (valueChange)="onValueChange($event)"></app-value-flag-input>
         </div>
     </div>
