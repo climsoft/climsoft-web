@@ -9,11 +9,11 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let form of elements" (click)="onElementClicked(form);" class="cursor-pointer">
-                <td>{{ form.id }}</td>
-                <td>{{ form.name }}</td>
-                <td>{{ form.description }}</td>
-                <td><input type="checkbox" class="form-check-input" [checked]="form.selected"></td>
+            <tr *ngFor="let element of elements" (click)="onElementClicked(element);" class="cursor-pointer">
+                <td>{{ element.id }}</td>
+                <td>{{ element.name }}</td>
+                <td>{{ element.description }}</td>
+                <td><input type="checkbox" class="form-check-input" [checked]="element.selected"></td>
             </tr>
         </tbody>
     </table>

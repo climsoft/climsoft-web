@@ -14,8 +14,7 @@ export class HourInputComponent implements OnInit, OnChanges {
   @Output() valueChange = new EventEmitter<any>();
   @Input() onlyIncludeIds!: number[];
 
-  hours!: { [key: string]: any }[];
-
+  protected hours!: { [key: string]: any }[];
 
   constructor() {
   }
@@ -26,7 +25,6 @@ export class HourInputComponent implements OnInit, OnChanges {
       this.hours = DateUtils.getHours();
     }
   }
-
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.onlyIncludeIds && this.onlyIncludeIds.length > 0) {

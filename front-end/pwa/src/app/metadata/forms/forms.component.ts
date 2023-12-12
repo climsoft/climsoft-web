@@ -34,11 +34,11 @@ export class FormsComponent implements OnInit {
   }
 
   onFormClicked(dataClicked: SourceModel): void {
-    this.router.navigate(['form-builder', dataClicked.id], { relativeTo: this.route.parent });
+    this.router.navigate(['form-detail', dataClicked.id], { relativeTo: this.route.parent });
   }
 
   onNewForm() {
-    this.router.navigate(['form-builder'], { relativeTo: this.route.parent });
+    this.router.navigate(['form-detail'], { relativeTo: this.route.parent });
   }
 
 

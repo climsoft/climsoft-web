@@ -13,7 +13,7 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.year > 0">
-            <app-number-input [controlLabel]="'Year'" [value]="dataSelectors.year"
+            <app-number-input [label]="'Year'" [value]="dataSelectors.year"
               (valueChange)="onYearChange($event)"></app-number-input>
           </div>
 

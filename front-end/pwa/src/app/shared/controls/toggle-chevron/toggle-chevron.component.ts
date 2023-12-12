@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+import { Component, Input, Output, EventEmitter, } from '@angular/core';
 
 @Component({
   selector: 'app-toggle-chevron',
@@ -6,26 +7,16 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   styleUrls: ['./toggle-chevron.component.scss']
 })
 export class ToggleChevronComponent {
-  @Input() clickable: boolean = false;
-  @Input() open: boolean = false;
-  //todo. deprecate this
-  @Output() openChange = new EventEmitter<boolean>();
-
-  @Output() opened = new EventEmitter<void>();
+  @Input() public open: boolean = false;
+  @Output() public opened = new EventEmitter<boolean>();
 
   constructor() {
-    this.openChange.subscribe(data => {
-      this.opened.emit();
-    });
   }
 
-  onClick() {
-    if (!this.clickable) {
-      return;
-    }
+  protected onClick(): void {
     this.open = !this.open;
-    this.openChange.emit(this.open);
-
-
+    this.opened.emit(this.open);
   }
+
+
 }

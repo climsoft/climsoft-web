@@ -2,13 +2,13 @@
     <div class="card-body p-0">
         <div class="card-title fw-bold">Showing element details</div>
         <div>
-            <app-number-input [controlLabel]="'Id'" [value]="element.id" (valueChange)="onElementIdEntry($event)"></app-number-input>
-            <app-text-input [controlLabel]="'Name'" [(value)]="element.name"></app-text-input>
-            <app-text-input [controlLabel]="'Abbreviation'" [(value)]="element.abbreviation"></app-text-input>
-            <app-text-input [controlLabel]="'Description'" [(value)]="element.description"></app-text-input>
-            <app-number-input [controlLabel]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
-            <app-number-input [controlLabel]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
-            <app-number-input [controlLabel]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
+            <app-number-input [label]="'Id'" [value]="element.id" (valueChange)="onElementIdEntry($event)"></app-number-input>
+            <app-text-input [label]="'Name'" [(value)]="element.name"></app-text-input>
+            <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation"></app-text-input>
+            <app-text-input [label]="'Description'" [(value)]="element.description"></app-text-input>
+            <app-number-input [label]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
+            <app-number-input [label]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
+            <app-number-input [label]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
         </div>
 
     </div>

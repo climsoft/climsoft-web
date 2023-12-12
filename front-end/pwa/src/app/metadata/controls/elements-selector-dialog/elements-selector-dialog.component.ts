@@ -12,31 +12,32 @@ export interface ElementSelection extends ElementModel {
   styleUrls: ['./elements-selector-dialog.component.scss']
 })
 export class ElementsSelectorDialogComponent {
-  @Input() title: string = 'Select Element';
-  @Input() okButtonLabel: string = 'Add';
-  @Output() ok = new EventEmitter<number[]>();
-  open: boolean = false;
-  elements!: ElementSelection[];
+  @Input() public title: string = 'Select Element';
+  @Input() public okButtonLabel: string = 'Add';
+  @Output() public ok = new EventEmitter<number[]>();
+
+  protected open: boolean = false;
+  protected elements!: ElementSelection[];
   private selectedIds!: number[];
-  private exludeIds!: number[];
+  private excludeIds!: number[];
 
   constructor(private readonly elementsService: ElementsService) { }
 
-  openDialog(): void {
+  public openDialog(): void {
     this.selectedIds = [];
-    this.exludeIds = [];
+    this.excludeIds = [];
     this.setupDialog()
   }
 
-  openDialogWithSelectedElements(selectedIds: number[]): void {
+  public openDialogWithSelectedElements(selectedIds: number[]): void {
     this.selectedIds = selectedIds;
-    this.exludeIds = [];
+    this.excludeIds = [];
     this.setupDialog();
   }
 
-  openDialogWithExcludedElements(exludeIds: number[]): void {
+  public openDialogWithExcludedElements(excludeIds: number[]): void {
     this.selectedIds = [];
-    this.exludeIds = exludeIds;
+    this.excludeIds = excludeIds;
     this.setupDialog();
   }
 
@@ -44,13 +45,13 @@ export class ElementsSelectorDialogComponent {
     this.open = true;
     this.elementsService.getElements().subscribe(data => {
       this.elements = data
-        .filter(element => !this.exludeIds.includes(element.id))
+        .filter(element => !this.excludeIds.includes(element.id))
         .map(element => ({ ...element, selected: this.selectedIds.includes(element.id) }));
     });
 
   }
 
-  onElementClicked(element: ElementSelection): void {
+  protected onElementClicked(element: ElementSelection): void {
     // Toggle element selection
     element.selected = !element.selected;
 
@@ -58,7 +59,7 @@ export class ElementsSelectorDialogComponent {
     this.selectedIds = this.elements.filter(f => f.selected).map(f => f.id);
   }
 
-  onOkClick(): void {
+  protected onOkClick(): void {
     // Emit the updated selectedIds
     this.ok.emit(this.selectedIds);
   }

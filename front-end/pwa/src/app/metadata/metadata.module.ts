@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
-import { FormsComponent } from './forms/forms.component';
-import { FormBuilderComponent } from './form-builder/form-builder.component';
+import { FormsComponent } from './forms/forms.component'; 
+import { FormDetailComponent } from './form-detail/form-detail.component';
 import { StationsComponent } from './stations/stations.component';
 import { StationDetailComponent } from './station-detail/station-detail.component';
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
@@ -11,6 +11,7 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ElementsComponent } from './elements/elements.component';
+
 
 const controlsComponents = [
   ElementsSelectorDialogComponent,
@@ -24,12 +25,12 @@ const controlsComponents = [
     ...controlsComponents,
 
     FormsComponent,
-    FormBuilderComponent,
+    FormDetailComponent,
     StationsComponent,
     StationDetailComponent,
     ElementsSelectorDialogComponent,
     ElementDetailComponent,
-    ElementsComponent,    
+    ElementsComponent, 
   ],
   imports: [
     SharedModule,

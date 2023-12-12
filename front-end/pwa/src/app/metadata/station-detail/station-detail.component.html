@@ -6,16 +6,15 @@
         <!-- characteristics -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
-                <app-toggle-chevron #characteristicsToggle [clickable]="true"
-                    [open]="true">Characteristics</app-toggle-chevron>
+                <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
             <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
                 </div>
 
-                <app-text-input [controlLabel]="'Id'" [value]="station.id"></app-text-input>
-                <app-text-input [controlLabel]="'Name'" [value]="station.name"></app-text-input>
+                <app-text-input [label]="'Id'" [value]="station.id"></app-text-input>
+                <app-text-input [label]="'Name'" [value]="station.name"></app-text-input>
             </div>
         </div>
         <!-- /end characteristics -->
@@ -23,8 +22,7 @@
         <!-- elements -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
-                <app-toggle-chevron #elementsToggle [clickable]="true"
-                    (opened)="loadElements();">Elements</app-toggle-chevron>
+                <app-toggle-chevron #elementsToggle (opened)="loadElements();">Elements</app-toggle-chevron>
             </div>
             <div *ngIf="elementsToggle.open" class="card-body  px-0">
 
@@ -53,7 +51,7 @@
                         <ng-container *ngFor="let element of elements">
                             <tr>
                                 <td>
-                                    <app-toggle-chevron #elementSelected [clickable]="true"></app-toggle-chevron>
+                                    <app-toggle-chevron #elementSelected></app-toggle-chevron>
                                 </td>
                                 <td>{{ element.elementId}}</td>
                                 <td>{{ element.elementName}}</td>
@@ -78,7 +76,7 @@
                                                 <td>
 
                                                     <div class="d-flex justify-content-between">
-                                                        <app-toggle-chevron #elementLimitsDisplay [clickable]="true"
+                                                        <app-toggle-chevron #elementLimitsDisplay
                                                             (opened)="loadElementLimits(element.elementId);">Limits</app-toggle-chevron>
                                                         <div class="d-flex justify-content-end"
                                                             *ngIf="elementLimitsDisplay.open">
@@ -105,7 +103,7 @@
                                                             <tr>
                                                                 <th>Month</th>
                                                                 <th>Lower Limit</th>
-                                                                <th>Upper Limit</th>                                                                
+                                                                <th>Upper Limit</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody class="table-group-divider">
@@ -124,8 +122,8 @@
                                             <tr>
                                                 <td>
                                                     <div class="d-flex justify-content-between">
-                                                        <app-toggle-chevron #elementInstrument
-                                                            [clickable]='true'>Instruments</app-toggle-chevron>
+                                                        <app-toggle-chevron
+                                                            #elementInstrument>Instruments</app-toggle-chevron>
                                                         <div class="d-flex justify-content-end"
                                                             *ngIf="elementInstrument.open">
                                                             <button type="button"
@@ -180,8 +178,7 @@
         <!-- forms -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
-                <app-toggle-chevron #formsToggle [clickable]="true"
-                    (openChange)="loadForms();">Forms</app-toggle-chevron>
+                <app-toggle-chevron #formsToggle (opened)="loadForms();">Forms</app-toggle-chevron>
             </div>
             <div *ngIf="formsToggle.open" class="card-body px-0">
 
@@ -200,7 +197,7 @@
                 </div>
 
                 <div class="px-3">
-                    <app-table-view [clickable]="false"
+                    <app-table-view
                         [columnsData]="[ {id: 'sourceId', name: 'Id'}, {id: 'sourceName', name: 'Name'}, {id: 'sourceDescription', name: 'Description'}  ]"
                         [rowsData]="forms"></app-table-view>
                 </div>
@@ -211,14 +208,14 @@
         <!-- end forms -->
 
         <!-- contacts -->
-        <div class="card border-0">
-            <div class="card-header px-0 fw-bold cursor-pointer" (click)="contactsToggle.open = !contactsToggle.open; ">
-                <app-toggle-chevron class="me-1" #contactsToggle></app-toggle-chevron>Contacts
+        <!-- <div class="card border-0">
+            <div class="card-header px-0 fw-bold cursor-pointer">
+                <app-toggle-chevron #contactsToggle>Contacts</app-toggle-chevron>
             </div>
-            <div *ngIf="contactsToggle" class="card-body">
+            <div *ngIf="contactsToggle.open" class="card-body">
 
             </div>
-        </div>
+        </div> -->
         <!-- end contacts -->
 
     </div>

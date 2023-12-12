@@ -5,28 +5,55 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
   templateUrl: './text-input.component.html',
   styleUrls: ['./text-input.component.scss']
 })
-export class TextInputComponent implements OnInit, OnChanges {
+export class TextInputComponent implements OnChanges {
+  @Input() public includeDropDownOption: boolean = false;
+  @Input() public projectDropDownContentInternally: boolean = false;
+  @Input() public includeCancelOption: boolean = false;
+  @Input() public type: string = 'text';
+  @Input() public id: string | number = '';
+  @Input() public label: string = '';
+  @Input() public disabled: boolean = false;
+  @Input() public hintMessage: string = '';
+  @Input() public errorMessage: string = '';
+  @Input() public value: string | number | null = '';
+  @Output() public valueChange = new EventEmitter<string>();
+  @Output() public inputClick = new EventEmitter<void>();
+  @Output() public dropDownOptionClick = new EventEmitter<void>();
 
-  @Input() controlLabel: string = '';
-  //@Input() multiple: boolean = false;  
-  @Input() disabled: boolean = false;
-  @Input() hintMessage: string = '';
-  @Input() errorMessage: string = '';
-  @Input() value: string | null = '';
-  @Output() valueChange = new EventEmitter<string>();
-
-  constructor() {
-
-  }
-
-  ngOnInit(): void {
-  }
+  protected userChange: boolean = false;
+  protected displayDropDown: boolean = false;
 
   ngOnChanges(changes: SimpleChanges): void {
   }
 
-  onInputChange(value: string) {
-    //console.log('Input Text:', value);
+  public showDropDown(showDropDrown: boolean) {
+    this.displayDropDown = showDropDrown;
+  }
+
+  protected onInputChange(value: string): void {
+    this.userChange = true;
+    this.value = value;
     this.valueChange.emit(value);
   }
+
+  protected onInputClick(): void {
+    this.inputClick.emit();
+  }
+
+  protected onCancelOptionClick(): void {
+    this.onInputChange('');
+  }
+
+  protected onDropDownOptionClick(): void {
+    if (this.projectDropDownContentInternally) {
+      this.showDropDown(!this.displayDropDown);
+    }
+
+    this.dropDownOptionClick.emit();
+  }
+
+  protected closeDropdown(): void {
+    this.showDropDown(false);
+  }
+
 }

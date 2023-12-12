@@ -20,6 +20,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
+  // Todo, change this to a typed interface
   public fieldDefinitions!: [number, string][];
   public fieldDefinitionsChunks!: [number, string][][];
   public entryObservations!: ObservationModel[];

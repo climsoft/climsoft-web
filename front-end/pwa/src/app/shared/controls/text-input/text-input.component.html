@@ -1,11 +1,33 @@
-<label [for]="controlLabel">{{ controlLabel }}</label>
-<input
-  type="text"
-  class="form-control form-control-sm"
-  [id]="controlLabel"
-  [disabled]="disabled"
-  (input)="onInputChange($any($event.target).value)"
-  [value]="value"
-  autocomplete="off"
-/>
-<div class="form-text"  [class.text-danger] = "errorMessage" >{{ errorMessage ? errorMessage : hintMessage }}</div>
+<div class="position-relative w-100" appCloseDropDown (closeDropdown)="closeDropdown()">
+  <label *ngIf="label" [for]="id? id:label">{{ label }}</label>
+  <div [class.input-group]="includeDropDownOption || includeCancelOption">
+
+    <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"
+      [disabled]="disabled" [class.text-success]="!userChange && !errorMessage"
+      [class.text-danger]="userChange && errorMessage" (click)="onInputClick()"
+      (input)="onInputChange($any($event.target).value)" [value]="value" appSimulateTabOnEnter />
+
+    <!-- btn-input-group class is needed to prevent tab selection on enter key press -->
+    <button *ngIf="includeDropDownOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+      (click)="onDropDownOptionClick()">
+      <app-toggle-chevron [open]="displayDropDown" />
+    </button>
+
+    <button *ngIf="includeCancelOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+      (click)="onCancelOptionClick()">
+      <i class="bi bi-x"></i>
+    </button>
+
+  </div>
+
+  <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
+
+  <div *ngIf="projectDropDownContentInternally && displayDropDown"
+    class="position-absolute w-100 overflow-auto shadow custom-drop-down">
+    <ng-content></ng-content>
+  </div>
+
+
+
+
+</div>

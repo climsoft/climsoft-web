@@ -1,8 +1,2 @@
-<label *ngIf="controlLabel" [for]="controlLabel">{{ controlLabel }}</label>
-<input *ngIf="controlLabel" type="number" class="form-control form-control-sm" [id]="controlLabel" [disabled]="disabled"
-  (input)="onInputChange($any($event.target).value)" [value]="value" autocomplete="off" />
-
-<input *ngIf="!controlLabel" type="number" class="form-control form-control-sm" [disabled]="disabled"
-  (input)="onInputChange($any($event.target).value)" [value]="value" autocomplete="off" />
-
-<div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage || hintMessage }}</div>
+<app-text-input [type]="'number'" [label]="label" [disabled]="disabled" [value]="value"
+  (valueChange)="onInputChange($event)"></app-text-input>

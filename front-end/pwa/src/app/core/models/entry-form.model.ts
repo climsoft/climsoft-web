@@ -1,6 +1,6 @@
 
-export type SelectorType = 'ELEMENT' | 'YEAR' |'MONTH'| 'DAY' | 'HOUR';
-export type SelectorsType = [SelectorType,SelectorType,SelectorType, SelectorType?];
+export type SelectorType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR';
+export type SelectorsType = [SelectorType, SelectorType, SelectorType, SelectorType?];
 
 export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type FieldsType = [FieldType, FieldType?];
@@ -27,12 +27,11 @@ export interface EntryForm {
     //hours allowed to be recorded by the form
     hours: number[];
 
-    //whether to scale the entry or not
-    scale: boolean;
+    //period for observation
+    period: number;
 
-    //whether user should type in observation total, mean or not
-    //allowed values; total, mean
-    validations: string;
+    //whether user should type in observation total
+    validateTotal: boolean;
 
     //sample paper
     samplePaperImage: string;

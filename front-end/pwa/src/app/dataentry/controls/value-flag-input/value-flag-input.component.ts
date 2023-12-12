@@ -6,6 +6,12 @@ import { ObservationModel } from 'src/app/core/models/observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 
+//validation interface local to this component only
+interface ValidationResponse {
+  isValid: boolean;
+  message: string;
+}
+
 @Component({
   selector: 'app-value-flag-input',
   templateUrl: './value-flag-input.component.html',
@@ -22,8 +28,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Output() public validationChange = new EventEmitter<'VALID' | 'INVALID'>();
 
   protected displayedValueFlag!: string;
-  protected userChange: boolean = false;
-  protected errorMessage!: string;
+  protected validationResults!: ValidationResponse;
 
   constructor() {
 
@@ -52,18 +57,14 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   protected onInputEntry(valueFlagInput: string): void {
 
-    let validationResults: [boolean, string];
-    let observation: ObservationModel;
+    
+    let observation: ObservationModel; 
 
-    //clear any existing error message
-    this.errorMessage = ''
-
-    //validate and extract the value and flag
-    validationResults = this.validateValueFlagInput(valueFlagInput)
+    //validate value flag
+    this.validationResults = this.validateValueFlagInput(valueFlagInput)
 
     //check validation results
-    if (!validationResults[0]) {
-      this.errorMessage = validationResults[1]; //set returned error message 
+    if (!this.validationResults.isValid) { 
       this.validationChange.emit('INVALID');
       return;
     }
@@ -77,9 +78,8 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //if value input then do QC
     if (value !== null) {
-      validationResults = this.validateAndQCValue(observation.elementId, value);
-      if (!validationResults[0]) {
-        this.errorMessage = validationResults[1]; //set returned error message
+      this.validationResults = this.validateAndQCValue(observation.elementId, value);
+      if (!this.validationResults.isValid) { 
         this.validationChange.emit('INVALID');
         return;
       }
@@ -87,9 +87,8 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //if flag input then validate
     if (flagName !== null) {
-      validationResults = this.validateAndQCFlag(value, flagName);
-      if (!validationResults[0]) {
-        this.errorMessage = validationResults[1]; //set returned error message 
+      this.validationResults = this.validateAndQCFlag(value, flagName);
+      if (!this.validationResults.isValid) { 
         this.validationChange.emit('INVALID');
         return;
       }
@@ -104,7 +103,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //scale the value for display 
     this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
-    this.userChange = true;
 
     // Emit data change event
     this.valueChange.emit(this.observation);
@@ -114,79 +112,77 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
 
   //returns validation status and error message
-  private validateValueFlagInput(valueFlagInput: string): [boolean, string] {
-
+  private validateValueFlagInput(valueFlagInput: string): ValidationResponse {
     if (StringUtils.isNullOrEmpty(valueFlagInput, false)) {
-      return [true, ''];
+      return { isValid: true, message: '' };
     }
-
-    //check for white spaces.
+  
+    // Check for white spaces.
     if (StringUtils.isNullOrEmpty(valueFlagInput, true)) {
-      return [false, 'Empty spaces not allowed'];
+      return { isValid: false, message: 'Empty spaces not allowed' };
     }
-
-    //check if its all string. Applies when its flag M entered
+  
+    // Check if it's all string. Applies when its flag M entered.
     if (StringUtils.doesNotContainNumericCharacters(valueFlagInput)) {
-      return [true, ''];
+      return { isValid: true, message: '' };
     }
-
-    //check for correct input format
+  
+    // Check for correct input format.
     if (!StringUtils.containsNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)) {
-      return [false, 'Incorrect input format not allowed'];
+      return { isValid: false, message: 'Incorrect input format not allowed' };
     }
-
-    //check for any decimals
+  
+    // Check for any decimals.
     const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
-    if (splitNum !== null && String(splitNum).includes(".")) {
-      return [false, 'Decimals not allowed'];
+    if (splitNum !== null && String(splitNum).includes('.')) {
+      return { isValid: false, message: 'Decimals not allowed' };
     }
-
-    return [true, ''];
-
+  
+    return { isValid: true, message: '' };
   }
-
-
-  private validateAndQCValue(elementId: number, value: number): [boolean, string] {
+  
+  private validateAndQCValue(elementId: number, value: number): ValidationResponse {
     const element = this.elements.find(data => data.id === elementId);
-
+  
     if (!element) {
-      return [false, 'Element NOT found'];
+      return { isValid: false, message: 'Element NOT found' };
     }
-
-    //transform the value to actual scale to validate the limits
+  
+    // Transform the value to actual scale to validate the limits
     value = this.getUnScaledValue(elementId, value);
-
+  
     let scaleFactor: number = 1;
-
+  
     if (element.entryScaleFactor) {
       scaleFactor = element.entryScaleFactor;
     }
-
+  
     if (element.lowerLimit && value < element.lowerLimit) {
-      return [false, `Value less than lower limit ${element.lowerLimit * scaleFactor}`]
+      return { isValid: false, message: `Value less than lower limit ${element.lowerLimit * scaleFactor}` };
     }
-
+  
     if (element.upperLimit && value > element.upperLimit) {
-      return [false, `Value higher than upper limit ${element.upperLimit * scaleFactor}`];
+      return { isValid: false, message: `Value higher than upper limit ${element.upperLimit * scaleFactor}` };
     }
-
-    return [true, ''];
-
+  
+    return { isValid: true, message: '' };
   }
+  
 
-  private validateAndQCFlag(value: number | null, flagName: string): [boolean, string] {
+  private validateAndQCFlag(value: number | null, flagName: string): ValidationResponse {
     const flagFound = this.flags.find(flag => flag.name == flagName);
-
+  
     if (!flagFound) {
-      return [false, 'Invalid Flag'];
+      return { isValid: false, message: 'Invalid Flag' };
     }
-
+  
     if (value !== null && flagFound.name === 'M') {
-      return [false, 'Invalid Flag, M is used for missing value ONLY'];
+      return { isValid: false, message: 'Invalid Flag, M is used for missing value ONLY' };
     }
-
-    return [true, ''];
+  
+    return { isValid: true, message: '' };
   }
+  
 
   private getValueFlagForDisplay(value: number | null, flag: string | null): string {
     if (value === null && flag === null) {
