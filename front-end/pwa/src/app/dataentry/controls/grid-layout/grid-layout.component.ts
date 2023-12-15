@@ -1,11 +1,10 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter,ViewChildren, QueryList } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model'; 
 import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
-import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 @Component({
   selector: 'app-grid-layout',
@@ -25,11 +24,9 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   public entryObservations!: ObservationModel[][];
 
   constructor() {
-
   }
 
   ngOnInit(): void {
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -38,7 +35,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     if (this.dbObservations && this.elements && this.elements.length > 0 &&
       this.dataSelectors && this.formMetadata && this.flags && this.flags.length > 0) {
 
-      this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
+      this.setup(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
 
     } else {
       this.entryObservations = [];
@@ -46,8 +43,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
   }
 
-
-  private setUpNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
+  private setup(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
 
     if (!(this.formMetadata.fields.length > 1 && this.formMetadata.fields[1])) {
       return;
@@ -81,8 +77,6 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     return this.entryObservations[rowIndex][colIndex];
   }
 
-
-  //todo. do we really need the ControlDefinition or just the observation data? 
   public onValueChange(entryObservation: ObservationModel): void {
     if (entryObservation) {
       this.valueChange.emit(entryObservation);

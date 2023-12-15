@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ObservationModel } from 'src/app/core/models/observation.model';
 import { DataSelectorsValues } from '../../form-entry/form-entry.component';
 import { EntryForm } from 'src/app/core/models/entry-form.model';
@@ -6,8 +6,6 @@ import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
-import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
-
 
 @Component({
   selector: 'app-linear-layout',
@@ -22,32 +20,30 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() flags!: FlagModel[];
   @Output() valueChange = new EventEmitter<ObservationModel>();
 
-  public fieldDefinitions!: [number, string][];
-  public fieldDefinitionsChunks!: [number, string][][];
-  public entryObservations!: ObservationModel[]; 
-  public largeScreen: boolean = false;
+  // Todo, change this to a typed interface
+  protected fieldDefinitions!: [number, string][];
+  protected fieldDefinitionsChunks!: [number, string][][];
+  protected entryObservations!: ObservationModel[];
+  protected total: number = 0;
+  protected largeScreen: boolean = false;
 
   constructor(private viewPortService: ViewportService) {
-
     this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
       this.largeScreen = viewPortSize === ViewPortSize.Large;
     });
-
   }
 
   ngOnInit(): void {
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
     //only proceed with seting up the control if all inputs have been set.
     if (this.dbObservations && this.elements && this.elements.length > 0 &&
       this.dataSelectors && this.formMetadata &&
       this.flags && this.flags.length > 0) {
 
       // Get the new definitions 
-      this.setUpNewControlDefinitions(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
+      this.setup(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
 
     } else {
       this.entryObservations = [];
@@ -55,8 +51,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
 
   }
 
-  private setUpNewControlDefinitions(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
-
+  private setup(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
     //get entry field to use for control definitions
     const entryField = formMetadata.fields[0];
     const fieldDefinitions: [number, string][] = FormEntryUtil.getEntryFieldDefs(
@@ -66,19 +61,17 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     const controlDefs: ObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(dataSelectors, entryFieldItems, observations);
 
     this.fieldDefinitions = fieldDefinitions;
-    this.fieldDefinitionsChunks = this.getFieldDefsChuncks(this.fieldDefinitions);
+    this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
     this.entryObservations = controlDefs;
-   
   }
 
-  public getEntryObservation(fieldDef: [number, string]): ObservationModel {
+  protected getEntryObservation(fieldDef: [number, string]): ObservationModel {
     const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
     return this.entryObservations[index];
   }
 
-
-  //todo. POush this to array utils
-  private getFieldDefsChuncks(fieldDefs: [number, string][]):  [number, string][][] {
+  //todo. Push this to array utils
+  private getFieldDefsChunks(fieldDefs: [number, string][]): [number, string][][] {
     const chunks: [number, string][][] = [];
     const chunkSize: number = 5;
     for (let i = 0; i < fieldDefs.length; i += chunkSize) {
@@ -87,15 +80,19 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     return chunks;
   }
 
-  public onValueChange(entryObservation: ObservationModel): void {
+
+  protected onValueChange(entryObservation: ObservationModel): void {
     this.valueChange.emit(entryObservation);
   }
 
-
-
-  
-
-
-
+  protected onTotalInput(value: number | null): void {
+    if (!value) {
+      return;
+    }
+    //todo. think about the total
+    //should we have it displayed when the form is shown
+    //left here
+    this.total = value;
+  }
 
 }

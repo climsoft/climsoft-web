@@ -1,7 +1,7 @@
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
 @Directive({
-  selector: '[simulateTabOnEnter]'
+  selector: '[appSimulateTabOnEnter]'
 })
 export class SimulateTabOnEnterDirective {
   constructor(private el: ElementRef) {}
@@ -14,12 +14,10 @@ export class SimulateTabOnEnterDirective {
     this.focusNextElement();
   }
 
- 
-
   private focusNextElement() {
     const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
     const elementsList = Array.from(document.querySelectorAll(focusableElements))
-      .filter(el => !el.classList.contains('btn-input-group')); // Exclude elements with a specific class
+      .filter(el => !el.classList.contains('btn-input-group')); // Exclude buttons that are part of an input
 
     const currentElementIndex = elementsList.findIndex(el => el === this.el.nativeElement);
     const nextElementIndex = (currentElementIndex + 1) % elementsList.length;

@@ -21,6 +21,7 @@ export interface DataSelectorsValues {
   month: number;
   day: number;
   hour: number;
+  period: number;
 }
 
 
@@ -70,8 +71,9 @@ export class FormEntryComponent implements OnInit {
     this.dataSelectors = {
       stationId: stationId,
       sourceId: sourceId,
-      elementId: -1, year: -1, month: -1, day: -1, hour: -1
+      elementId: -1, year: -1, month: -1, day: -1, hour: -1, period: -1
     }
+    
 
     this.stationsService.getStation(stationId).subscribe((data) => {
       this.stationName = `${data.id} - ${data.name}`;
@@ -92,6 +94,8 @@ export class FormEntryComponent implements OnInit {
 
     //set form metadata
     this.formMetadata = entryForm;
+
+    this.dataSelectors.period = entryForm.period;
 
     if (entryForm.selectors.includes('ELEMENT')) {
       this.dataSelectors.elementId = entryForm.elements[0];
@@ -124,6 +128,7 @@ export class FormEntryComponent implements OnInit {
     }
 
     this.entryControl = entryForm.layout;
+
   }
 
 
@@ -183,6 +188,8 @@ export class FormEntryComponent implements OnInit {
     if (this.dataSelectors.hour > -1) {
       select.hour = this.dataSelectors.hour;
     }
+
+    select.period = this.dataSelectors.period;
 
     this.observationService.getObservations(select).subscribe((data) => {
 

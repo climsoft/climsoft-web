@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ElementModel } from '../models/element.model';
@@ -9,7 +9,7 @@ import { ElementModel } from '../models/element.model';
 })
 export class ElementsService {
 
-  endPointUrl: string = " http://localhost:3000/elements";
+  private endPointUrl: string = " http://localhost:3000/elements";
 
   constructor(private http: HttpClient) { }
 

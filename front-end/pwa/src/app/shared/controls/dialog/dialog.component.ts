@@ -15,16 +15,16 @@ export class DialogComponent {
   @Output() okClick = new EventEmitter();
   @Output() cancelClick = new EventEmitter();
 
-  openDialog() {
+  public openDialog() {
     this.open = true;
   }
 
-  onOkClick(): void {
+  protected onOkClick(): void {
     this.onClose();
     this.okClick.emit();
   }
 
-  onCancelClick(): void {
+  protected onCancelClick(): void {
     this.onClose();
     this.cancelClick.emit();
   }

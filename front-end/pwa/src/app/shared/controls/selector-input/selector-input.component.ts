@@ -61,7 +61,7 @@ export class SelectorInputComponent implements OnInit, OnChanges {
     }
 
     if ('value' in changes && this.value !== undefined && this.valueMember !== undefined) {
-      console.log('selector value', this.value);
+      //console.log('selector value', this.value);
 
       //set the selected object
       const newSelectedObject = ArrayUtils.findDataItems(this.dataSource, Array.isArray(this.value) ? this.value : [this.value], this.valueMember);

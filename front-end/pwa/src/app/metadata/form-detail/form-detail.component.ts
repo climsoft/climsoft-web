@@ -7,22 +7,25 @@ import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
 
 @Component({
-  selector: 'app-form-builder',
-  templateUrl: './form-builder.component.html',
-  styleUrls: ['./form-builder.component.scss']
+  selector: 'app-form-detail',
+  templateUrl: './form-detail.component.html',
+  styleUrls: ['./form-detail.component.scss']
 })
-export class FormBuilderComponent implements OnInit {
-  public source!: SourceModel;
-  public formName: string = '';
-  public formDescription: string = '';
-  public possibleSelectors: SelectorType[] = ['ELEMENT', 'YEAR', 'MONTH', 'DAY', 'HOUR'];
-  public possibleFields: FieldsType | null = null;
-  public selectedSelectors: SelectorsType | null = null;
-  public selectedFields: FieldsType | null = null;
-  public selectedLayout: LayoutType | null = null;
-  public selectedElements: number[] = [];
-  public selectedHours: number[] = []
-  public errorMessage: string = '';
+export class FormDetailComponent {
+
+  protected source!: SourceModel;
+  protected formName: string = '';
+  protected formDescription: string = '';
+  protected possibleSelectors: SelectorType[] = ['ELEMENT', 'YEAR', 'MONTH', 'DAY', 'HOUR'];
+  protected possibleFields: FieldsType | null = null;
+  protected selectedSelectors: SelectorsType | null = null;
+  protected selectedFields: FieldsType | null = null;
+  protected selectedLayout: LayoutType | null = null;
+  protected selectedElements: number[] = [];
+  protected selectedHours: number[] = [];
+  protected selectedPeriod: number = 0;
+  protected validateTotal: boolean = false;
+  protected errorMessage: string = '';
 
   constructor(private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
   }
@@ -55,6 +58,8 @@ export class FormBuilderComponent implements OnInit {
     this.selectedLayout = entryForm.layout;
     this.selectedElements = entryForm.elements;
     this.selectedHours = entryForm.hours;
+    this.selectedPeriod = entryForm.period;
+    this.validateTotal= entryForm.validateTotal;
   }
 
   public onSelectorsSelected(newSelectedSelectors: SelectorType[]): void {
@@ -86,7 +91,7 @@ export class FormBuilderComponent implements OnInit {
       this.possibleFields = [allPossibleFields[0], allPossibleFields[1]];
     }
 
-    this.selectedLayout = this.getLayout(this.selectedSelectors,this.selectedFields);
+    this.selectedLayout = this.getLayout(this.selectedSelectors, this.selectedFields);
   }
 
   public onFieldsSelected(newSelectedFields: FieldType[]): void {
@@ -109,7 +114,7 @@ export class FormBuilderComponent implements OnInit {
       return null;
     }
 
-    if (fields === null || !this.fieldsValid(selectors,fields)) {
+    if (fields === null || !this.fieldsValid(selectors, fields)) {
       return null;
     }
 
@@ -175,7 +180,8 @@ export class FormBuilderComponent implements OnInit {
       selectors: this.selectedSelectors,
       fields: this.selectedFields, layout: this.selectedLayout,
       elements: this.selectedElements, hours: this.selectedHours,
-      scale: true, validations: '', samplePaperImage: ''
+      period: this.selectedPeriod, validateTotal: this.validateTotal,
+      samplePaperImage: ''
     };
 
     this.source.extraMetadata = JSON.stringify(entryForm);
@@ -217,8 +223,5 @@ export class FormBuilderComponent implements OnInit {
       ((possibleSelectors.length === 4 && possibleFields.length === 1) ||
         (possibleSelectors.length === 3 && possibleFields.length === 2));
   }
-
-
-
 
 }

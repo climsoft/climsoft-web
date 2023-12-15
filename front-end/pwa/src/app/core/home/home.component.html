@@ -32,11 +32,6 @@
                 </div>
                 <div *dropdownMenu class="dropdown-menu" role="menu">
                   <a class="dropdown-item" href="#"><i class="bi bi-person" data-feather="user"></i> Profile</a>
-                  <a class="dropdown-item" href="#"><i class="bi bi-pie-chart" data-feather="pie-chart"></i>
-                    Analytics</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#"><i class="bi bi-gear"></i> Settings & Privacy</a>
-                  <a class="dropdown-item" href="#"><i class="bi bi-question-circle"></i> Help Center</a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item" href="#">Log out</a>
                 </div>
@@ -53,7 +48,7 @@
               <span>
                 <i [class]="nav.icon"></i> {{ nav.name}}
               </span>
-              <i *ngIf="nav.children.length > 0" class="bi bi-chevron-down"></i>
+              <app-toggle-chevron *ngIf="nav.children.length > 0" />
             </a>
 
             <!-- sub menus -->
@@ -98,6 +93,6 @@
     <div class="container-fluid ">
       <router-outlet></router-outlet>
     </div>
-    
+
   </div>
 </div>

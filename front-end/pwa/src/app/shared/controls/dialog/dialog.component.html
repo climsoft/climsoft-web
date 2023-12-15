@@ -2,7 +2,7 @@
 <div *ngIf="open" class="dialog-overlay">
     <div class="card m-3 ">
         
-        <div class="card-header bg-transparent">
+        <div *ngIf="title" class="card-header bg-transparent">
             {{ title }}
         </div>
 

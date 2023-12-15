@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 //--------------------------------
 
 //------- third party modules -------
+// Todo. remove these dependencies after refactoring the multiple selector
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { CollapseModule } from 'ngx-bootstrap/collapse'; 
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -27,6 +28,10 @@ import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
 import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
 import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
+import { PeriodSelectorComponent } from './controls/period-selector/period-selector.component';
+import { SelectorComponent } from './controls/selector/selector.component';
+import { SimulateTabOnEnterDirective } from '../shared/simulate-tab-on-enter.directive';
+import { CloseDropDownDirective } from './close-drop-down.directive';
 
 //--------------------------------
 
@@ -52,6 +57,7 @@ const controlsComponents = [
  
   StationInputComponent,
   ElementInputComponent,
+  PeriodSelectorComponent, 
 
   DataListViewComponent,
   TableViewComponent,
@@ -59,12 +65,20 @@ const controlsComponents = [
   InputDialogComponent,
   ToggleChevronComponent,
 
+  
+  SelectorComponent,
+
 ];
+
+const directives = [
+  SimulateTabOnEnterDirective, 
+  CloseDropDownDirective,
+]
 
 @NgModule({
   declarations: [
-    ...controlsComponents,    
-    
+    ...controlsComponents,   
+   ...directives,
   ],
   imports: [
     ...angularModules,
@@ -80,6 +94,7 @@ const controlsComponents = [
   exports: [
     ...angularModules,
     ...controlsComponents,
+    ...directives,
 
     BsDropdownModule,
     CollapseModule, 

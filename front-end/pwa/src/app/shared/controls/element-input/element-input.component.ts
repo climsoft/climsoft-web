@@ -9,15 +9,15 @@ import { ElementsService } from 'src/app/core/services/elements.service';
 })
 export class ElementInputComponent implements OnInit, OnChanges {
 
-  @Input() controlLabel: string = 'Element';
-  @Input() multiple: boolean = false;
-  @Input() ids!: number[];
-  @Input() value!: any;
-  @Output() valueChange = new EventEmitter<any>();
-  elements!: ElementModel[];
+  @Input() public controlLabel: string = 'Element';
+  @Input() public multiple: boolean = false;
+  @Input() public ids!: number[];
+  @Input() public value!: any;
+  @Output() public valueChange = new EventEmitter<any>();
 
-  selectedValue!: any;
-  bIgnoreNgChanges: boolean= false;
+  protected elements!: ElementModel[];
+  protected selectedValue!: any;
+  private bIgnoreNgChanges: boolean = false;
 
   constructor(private elementsSevice: ElementsService) {
   }
@@ -27,7 +27,7 @@ export class ElementInputComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    if(this.bIgnoreNgChanges){
+    if (this.bIgnoreNgChanges) {
       this.bIgnoreNgChanges = false;
       return;
     }
@@ -40,10 +40,10 @@ export class ElementInputComponent implements OnInit, OnChanges {
   }
 
   onChange(change: any) {
-    this.bIgnoreNgChanges = true;//todo. added because thng changes was being raised when same value is raised uoutside this component
+    this.bIgnoreNgChanges = true;//todo. added because onChange was being raised when same value is raised outside this component
     this.value = change;
     this.selectedValue = change;
-    this.valueChange.emit(change);   
+    this.valueChange.emit(change);
   }
 
 }

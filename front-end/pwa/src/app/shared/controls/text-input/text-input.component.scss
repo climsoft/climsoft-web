@@ -1,0 +1,10 @@
+.min-w-100 {
+  min-width: 100%;
+}
+
+.custom-drop-down {
+  /* Show dropdown on top of other content */
+  z-index: 10;
+  /* Remove default browser styles */
+  padding-left: 0;
+}

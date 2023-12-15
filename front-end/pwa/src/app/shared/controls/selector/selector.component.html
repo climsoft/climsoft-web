@@ -1,0 +1,9 @@
+<!-- show drop down when there is a click event or when the user is typing on the input. Note user may navigate using tab or enter keys -->
+<app-text-input #textInput [label]="label" [includeDropDownOption]="true" [includeCancelOption]="true"
+    [value]="getDisplayValue()" (inputClick)="textInput.showDropDown(true) "
+    (valueChange)="textInput.showDropDown(true); onInputChange($event);">
+    <div class="list-group">
+        <button type="button" class="list-group-item list-group-item-action" *ngFor="let option of filteredValues"
+            (click)="onSelectedValue(option); textInput.showDropDown(false);">{{ displayFn(option) }}</button>
+    </div>
+</app-text-input>

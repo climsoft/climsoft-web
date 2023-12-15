@@ -1,63 +1,44 @@
-<div *ngIf="observation" [class.container-max-w-sm]="smallSize">
+<app-text-input *ngIf="observation" [id]="id" [label]="label"
+    [includeDropDownOption]="true" [value]="displayedValueFlag" [dropDownOptionMaxHeight]="'300px'"
+    [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event);">
 
-    <div *ngIf="label" [class.label-sm]="smallSize">
-        {{ label }}
-    </div>
-    <div class="input-group">
-        <input #inputRef  class="form-control form-control-sm" autocomplete="off" type="text" [id]="id"
-            [class.text-success]="!userChange " [value]="displayedValueFlag"          
-            simulateTabOnEnter
-            (input)="onInputEntry($any($event.target).value)" />
+    <div class="card">
+        <div class="card-body">
 
-        <div dropdown [autoClose]="false">
-            <button type="button" dropdownToggle class="btn btn-sm btn-outline-secondary btn-input-group">
-                <i class="bi bi-info"></i>
-            </button>
-            <div *dropdownMenu class="dropdown-menu shadow-sm p-3">
-
-                <div class="mb-3">
-                    <app-text-input [controlLabel]="'New Comment'"
-                        (valueChange)="onCommentEntry( $event)"></app-text-input>
-                </div>
-
-                <div>
-                    <div>History</div>
-                    <table class="table table-striped table-hover">
-                        <thead>
-                            <tr>
-                                <th scope="col">Value</th>
-                                <th scope="col">Flag</th>
-                                <th scope="col">Period</th>
-                                <th scope="col">QC</th>
-                                <th scope="col">User</th>
-                                <th scope="col">Time</th>
-                                <th scope="col">Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let row of getLogs(observation) ">
-                                <td>{{ row.value }}</td>
-                                <td>{{ row.flag }}</td>
-                                <td>{{ row.period }}</td>
-                                <td>{{ row.qcStatus }}</td>
-                                <td>{{ row.entryUser }}</td>
-                                <td>{{ row.entryDateTime }}</td>
-                                <td>{{ row.comment }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-
+            <div class="mb-3">
+                <app-text-input [label]="'New Comment'" (valueChange)="onCommentEntry( $event)"></app-text-input>
             </div>
+
+            <div>
+                <div>History</div>
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Value</th>
+                            <th scope="col">Flag</th>
+                            <th scope="col">Period</th>
+                            <th scope="col">QC</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Time</th>
+                            <th scope="col">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let row of getLogs(observation) ">
+                            <td>{{ row.value }}</td>
+                            <td>{{ row.flag }}</td>
+                            <td>{{ row.period }}</td>
+                            <td>{{ row.qcStatus }}</td>
+                            <td>{{ row.entryUser }}</td>
+                            <td>{{ row.entryDateTime }}</td>
+                            <td>{{ row.comment }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
-
-    </div>
-
-    <div *ngIf="errorMessage" class="form-text text-danger">
-        {{ errorMessage }}
     </div>
 
 
-
-</div>
+</app-text-input>

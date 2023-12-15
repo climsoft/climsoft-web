@@ -12,7 +12,7 @@ interface DataTableItem {
 })
 export class TableViewComponent<TData> implements OnInit, OnChanges {
   @Input() clickable: boolean =false;
-  @Input() columnsData!: { id: string, name: string }[];
+  @Input() columnsData!: { id: keyof TData, name: string }[];
   @Input() rowsData!: TData[];
   @Output() rowDataClicked = new EventEmitter<TData>();
 
@@ -29,8 +29,8 @@ export class TableViewComponent<TData> implements OnInit, OnChanges {
     this.rowDataClicked.emit(rowdataClicked);
   }
 
-  getRowDataItem(rowData:TData,  key: string): any{
-    return  rowData[key as keyof TData ];
+  getRowDataItem(rowData:TData,  key: keyof TData): any{
+    return  rowData[key  ];
   }
 
 }

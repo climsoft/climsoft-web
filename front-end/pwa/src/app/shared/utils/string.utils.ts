@@ -42,8 +42,6 @@ export class StringUtils {
         return regex.test(input);
     }
 
-
-
     static splitNumbersAndTrailingNonNumericCharactersOnly(input: string): [number | null, string | null] {
         const extractedNumberString: [number | null, string | null] = [null, null];
 

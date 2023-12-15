@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router'; 
-import { FormBuilderComponent } from './form-builder/form-builder.component';
 import { FormsComponent } from './forms/forms.component';
 import { StationsComponent } from './stations/stations.component';
 import { StationDetailComponent } from './station-detail/station-detail.component';
 import { ElementsComponent } from './elements/elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
+import { FormDetailComponent } from './form-detail/form-detail.component';
 
 
 const routes: Routes = [
@@ -28,12 +28,12 @@ const routes: Routes = [
         }
       },
       {
-        path: 'form-builder',
-        component: FormBuilderComponent
+        path: 'form-detail',
+        component: FormDetailComponent
       },
       {
-        path: 'form-builder/:sourceid',
-        component: FormBuilderComponent
+        path: 'form-detail/:sourceid',
+        component: FormDetailComponent
       },
       {
         path: 'stations',

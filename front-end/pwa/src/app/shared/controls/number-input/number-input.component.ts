@@ -9,7 +9,7 @@ import { StringUtils } from '../../utils/string.utils';
 })
 export class NumberInputComponent implements OnInit, OnChanges {
 
-  @Input() controlLabel: string = "";
+  @Input() label: string = '';
   @Input() disabled: boolean = false;
   @Input() hintMessage: string = '';
   @Input() errorMessage: string = '';

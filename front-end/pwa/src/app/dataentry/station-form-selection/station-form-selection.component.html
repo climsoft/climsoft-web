@@ -22,7 +22,7 @@
           <ng-container *ngFor="let row of stations">
             <tr class="cursor-pointer" (click)="loadStationForms(row); stationSelected.open = !stationSelected.open;">
               <td>
-                <app-toggle-chevron #stationSelected [clickable]="false"></app-toggle-chevron>
+                <app-toggle-chevron #stationSelected></app-toggle-chevron>
               </td>
               <td>{{ row.id}}</td>
               <td>{{ row.name}}</td>
