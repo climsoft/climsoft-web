@@ -1,6 +1,8 @@
 <app-text-input *ngIf="observation" [id]="id" [label]="label"
     [includeDropDownOption]="true" [value]="displayedValueFlag" [dropDownOptionMaxHeight]="'300px'"
-    [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event);">
+    [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event)"
+    (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()"
+    >
 
     <div class="card">
         <div class="card-body">

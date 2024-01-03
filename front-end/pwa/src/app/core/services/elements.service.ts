@@ -16,7 +16,7 @@ export class ElementsService {
   getElements(elementIds?: number[]): Observable<ElementModel[]> {
     
     const obsParams: { [key: string]: number[] } = {};
-    if (elementIds) {
+    if (elementIds && elementIds.length) {
       obsParams['ids'] = elementIds;
     }
 

@@ -2,7 +2,13 @@ import { StringUtils } from "./string.utils";
 
 export class DateUtils {
 
-    //takes a 0 based index (month id) and returns the number of days in that month
+    /**
+     * 
+     * @param year 
+     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @param prefix 
+     * @returns 
+     */
     static getDaysInMonthList(year: number, month: number, prefix?: string): { [key: string]: any }[] {
         const allDays: { [key: string]: any }[] = [];
         const lastDay: number = new Date(year, month, 0).getDate();
@@ -29,7 +35,12 @@ export class DateUtils {
         return allHours;
     }
 
-    //takes a zero-based month
+    /**
+     * 
+     * @param year 
+     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @returns 
+     */
     static getLastDayOfMonth(year: number, month: number): number {
         return new Date(year, month, 0).getDate();
     }

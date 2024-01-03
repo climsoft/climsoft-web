@@ -11,7 +11,7 @@ export class SelectObservationDTO {
 
     @IsNumber()
     @IsOptional()
-    elementId?: number;
+    elementIds?: number[];
 
     @IsNumber()
     @IsOptional()
@@ -27,7 +27,7 @@ export class SelectObservationDTO {
 
     @IsNumber()
     @IsOptional()
-    hour?: number;
+    hours?: number[];
 
     @IsNumber()
     @IsOptional()

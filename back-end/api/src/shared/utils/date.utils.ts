@@ -2,10 +2,15 @@ import { StringUtils } from "./string.utils";
 
 export class DateUtils {
 
-    //takes a 0 based index (month id) and returns the number of days in that month
+    /**
+     * 
+     * @param year 
+     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @returns 
+     */
     static getDaysInMonthList(year: number, month: number): { [key: string]: any }[] {
         const allDays: { [key: string]: any }[] = [];
-        const lastDay: number = new Date(year, month, 0).getDate();
+        const lastDay: number = DateUtils.getLastDayOfMonth(year,month);
         for (let i = 1; i <= lastDay; i++) {
             allDays.push({ id: i, name: `Day ${i.toString().padStart(2, '0')}` });
         }
@@ -24,7 +29,12 @@ export class DateUtils {
         return allHours;
     }
 
-    //takes a zero-based month
+    /**
+     * 
+     * @param year 
+     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @returns 
+     */
     static getLastDayOfMonth(year: number, month: number): number {
         return new Date(year, month, 0).getDate();
     }

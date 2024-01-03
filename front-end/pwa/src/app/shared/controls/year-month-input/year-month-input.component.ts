@@ -1,13 +1,12 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component,Input ,EventEmitter,Output} from '@angular/core';
 
 @Component({
-  selector: 'app-date-input',
-  templateUrl: './date-input.component.html',
-  styleUrls: ['./date-input.component.scss']
+  selector: 'app-year-month-input',
+  templateUrl: './year-month-input.component.html',
+  styleUrls: ['./year-month-input.component.scss']
 })
-export class DateInputComponent implements OnInit, OnChanges {
-
-  @Input() label: string = '';
+export class YearMonthInputComponent {
+  @Input() label: string = 'Year-month';
   @Input() disabled: boolean = false;
   @Input() hintMessage!: string;
   @Input() errorMessage!: string | null;
@@ -16,17 +15,7 @@ export class DateInputComponent implements OnInit, OnChanges {
   @Output() public inputClick = new EventEmitter<string >();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();
   @Output() public inputBlur = new EventEmitter<string >();
-  maxDate: string = "";
 
-  constructor() {
-    this.maxDate = new Date().toISOString().slice(0, 10);
-  }
-
-  ngOnInit(): void {
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-  }
   protected onValueChange(value: string) {
     this.valueChange.emit(this.value);
   }

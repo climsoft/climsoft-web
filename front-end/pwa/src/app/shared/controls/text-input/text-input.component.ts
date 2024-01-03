@@ -13,14 +13,22 @@ export class TextInputComponent implements OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
   @Input() public disabled: boolean = false;
+  @Input() public readonly: boolean = false;
   @Input() public hintMessage: string = '';
-  @Input() public errorMessage: string = '';
+  @Input() public errorMessage: string | null = '';
   @Input() public value: string | number | null = '';
   @Output() public valueChange = new EventEmitter<string>();
-  @Output() public inputClick = new EventEmitter<void>();
+  @Output() public inputClick = new EventEmitter<string>();
+  @Output() public inputEnterKeyPress = new EventEmitter<string>();
+  @Output() public inputBlur = new EventEmitter<string>();
   @Output() public dropDownOptionClick = new EventEmitter<void>();
 
-  protected userChange: boolean = false;
+
+  // For Year-month and date control
+  @Input() public max!: string | number ;
+
+
+  //protected userChange: boolean = false;
   protected displayDropDown: boolean = false;
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -30,18 +38,25 @@ export class TextInputComponent implements OnChanges {
     this.displayDropDown = showDropDrown;
   }
 
-  protected onInputChange(value: string): void {
-    this.userChange = true;
+  protected onValueChange(value: string): void {
+    //this.userChange = true;
     this.value = value;
     this.valueChange.emit(value);
   }
 
   protected onInputClick(): void {
-    this.inputClick.emit();
+    this.inputClick.emit(this.value ? this.value.toString() : '');
+  }
+  protected onEnterKeyPressed() {
+    this.inputEnterKeyPress.emit(this.value ? this.value.toString() : '');
+  }
+
+  protected onInputBlur() {
+    this.inputBlur.emit(this.value ? this.value.toString() : '');
   }
 
   protected onCancelOptionClick(): void {
-    this.onInputChange('');
+    this.onValueChange('');
   }
 
   protected onDropDownOptionClick(): void {

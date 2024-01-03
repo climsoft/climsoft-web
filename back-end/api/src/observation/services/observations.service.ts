@@ -20,8 +20,8 @@ export class ObservationsService {
             selectOptions.stationId = selectObsevationDto.stationId;
         }
 
-        if (selectObsevationDto.elementId) {
-            selectOptions.elementId = selectObsevationDto.elementId;
+        if (selectObsevationDto.elementIds) {
+            selectOptions.elementId = In(selectObsevationDto.elementIds);
         }
 
         if (selectObsevationDto.sourceId) {
@@ -39,8 +39,12 @@ export class ObservationsService {
 
     private setDateFilter(selectObsevationDto: SelectObservationDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
 
-        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day && selectObsevationDto.hour !== undefined) {
-            selectOptions.datetime = DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, selectObsevationDto.hour, 0, 0);
+        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day && selectObsevationDto.hours !== undefined) {
+            const allHours: string[] = [];
+            for (let hour = 0; hour < selectObsevationDto.hours.length; hour++) {
+                allHours.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, hour, 0, 0));
+            }
+            selectOptions.datetime = In(allHours);
             return;
         }
 
@@ -52,11 +56,13 @@ export class ObservationsService {
             return;
         }
 
-        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.hour !== undefined) {
-            const lastDay: number = DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month - 1);
+        if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.hours !== undefined) {
+            const lastDay: number = DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month);
             const allDays: string[] = [];
             for (let day = 1; day <= lastDay; day++) {
-                allDays.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, day, selectObsevationDto.hour, 0, 0));
+                for (let hour = 0; hour < selectObsevationDto.hours.length; hour++) {
+                    allDays.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, day, hour, 0, 0));
+                }                
             }
             selectOptions.datetime = In(allDays);
             return;
@@ -65,7 +71,7 @@ export class ObservationsService {
         if (selectObsevationDto.year && selectObsevationDto.month) {
             selectOptions.datetime = Between(
                 DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, 1, 0, 0, 0),
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month - 1), 1, 23, 0, 0));
+                DateUtils.getDateInSQLFormat(selectObsevationDto.year, DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month), 1, 23, 0, 0));
             return;
         }
 
@@ -109,6 +115,7 @@ export class ObservationsService {
                 });
             }
 
+
             this.updateObservationEntity(observationEntity, createObservationDto);
             obsEntities.push(observationEntity);
         }
@@ -127,7 +134,7 @@ export class ObservationsService {
             comment: entity.comment,
             entryUserId: entity.entryUserId,
             entryDateTime: entity.entryDateTime,
-         
+
         };
     }
 
@@ -140,7 +147,7 @@ export class ObservationsService {
             final: 0,//
             comment: dto.comment,
             entryUserId: '2', //todo. this will come from user session or token
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),           
+            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
         };
     }
 

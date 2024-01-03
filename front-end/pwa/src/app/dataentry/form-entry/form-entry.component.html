@@ -7,32 +7,24 @@
       <div class="card-body p-0">
         <div class="card-header mb-2 p-1 fw-bold">Selectors</div>
         <div class="row g-2 p-2">
-          <div class="col-sm-auto mb-2" *ngIf="dataSelectors.elementId > 0">
-            <app-element-input [controlLabel]="'Element'" [value]="dataSelectors.elementId"
+          <div class="col-sm-auto mb-2" *ngIf="formMetadata.selectors.includes('ELEMENT') && formFilter.elementId">
+            <app-element-input [controlLabel]="'Element'" [value]="formFilter.elementId"  [ids]="formMetadata.elementIds"
               (valueChange)="onElementChange($event)"></app-element-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.year > 0">
-            <app-number-input [label]="'Year'" [value]="dataSelectors.year"
-              (valueChange)="onYearChange($event)"></app-number-input>
-          </div>
-
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl && dataSelectors.month > 0">
-            <app-month-input [value]="dataSelectors.month" (valueChange)="onMonthChange($event)"></app-month-input>
-          </div>
-
-          <div class="col-sm-auto mb-2" *ngIf="!useDatePickerControl  && dataSelectors.day > 0">
-            <app-day-input [year]="dataSelectors.year" [month]="dataSelectors.month" [value]="dataSelectors.day"
-              (valueChange)="onDayChange($event)"></app-day-input>
-          </div>
-
-          <div class="col-sm-auto mb-2" *ngIf="useDatePickerControl">
-            <app-date-input [controlLabel]="'Date'" [value]="defaultDatePickerDate"
+          <div class="col-sm-auto mb-2" *ngIf="formMetadata.selectors.includes('DAY') && defaultDateValue">
+            <app-date-input [label]="'Date'" [value]="defaultDateValue"
               (valueChange)="onDateChange($event)"></app-date-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="this.dataSelectors.hour > -1">
-            <app-hour-input [controlLabel]="'Hour'" [value]="dataSelectors.hour" [onlyIncludeIds]="formMetadata.hours"
+          <div class="col-sm-auto mb-2" *ngIf="!formMetadata.selectors.includes('DAY') && defaultDateValue">
+            <app-year-month-input [value]="defaultDateValue" (valueChange)="onMonthChange($event)"></app-year-month-input>
+          </div>        
+
+        
+
+          <div class="col-sm-auto mb-2" *ngIf="formMetadata.selectors.includes('HOUR') && formFilter.hour">
+            <app-hour-input [controlLabel]="'Hour'" [value]="formFilter.hour" [onlyIncludeIds]="formMetadata.hours"
               (valueChange)="onHourChange($event)"></app-hour-input>
           </div>
 
@@ -44,19 +36,19 @@
     <div class="card mb-2 border-0">
 
       <div class="card-body p-0">
-        <div class="card-header mb-2 p-1 fw-bold">Entries</div>
+        <div class="card-header mb-2 p-1 fw-bold">Fields</div>
         <div class="p-2">
           <!-- list layout -->
-          <app-linear-layout *ngIf="entryControl === 'LINEAR'" [dataSelectors]="dataSelectors" [elements]="elements"
+          <app-linear-layout *ngIf="this.formMetadata.layout === 'LINEAR'" [formFilter]="formFilter" [elements]="elements"
             [flags]="flags" [formMetadata]="formMetadata" [dbObservations]="observations"
-            (valueChange)="onValueChange($event)">
+            (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-linear-layout>
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="entryControl === 'GRID'" [dataSelectors]="dataSelectors" [elements]="elements"
+          <app-grid-layout *ngIf="this.formMetadata.layout === 'GRID'" [formFilter]="formFilter" [elements]="elements"
             [flags]="flags" [formMetadata]="formMetadata" [dbObservations]="observations"
-            (valueChange)="onValueChange($event)">
+            (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-grid-layout>
           <!-- ----------- -->
         </div>
@@ -65,7 +57,7 @@
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSave" (click)="onSaveClick()">
       Save
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>

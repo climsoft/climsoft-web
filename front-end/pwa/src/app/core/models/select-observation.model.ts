@@ -1,11 +1,11 @@
 export interface SelectObservation {
     stationId?: string;
     sourceId?: number; 
-    elementId?: number;
+    elementIds?: number[];
     year?: number;
     month?: number;
     day?: number;
-    hour?: number;
+    hours?: number[];
     period?: number;
     limit?: number;
     offset?: number;

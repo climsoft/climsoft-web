@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { FieldType, FieldsType, EntryForm, LayoutType, SelectorType, SelectorsType } from '../../core/models/entry-form.model';
+import { EntryType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
 import { DateUtils } from '../../shared/utils/date.utils';
 import { SourceModel } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
@@ -11,20 +11,28 @@ import { SourcesService } from 'src/app/core/services/sources.service';
   templateUrl: './form-detail.component.html',
   styleUrls: ['./form-detail.component.scss']
 })
-export class FormDetailComponent {
+export class FormDetailComponent implements OnInit {
 
   protected source!: SourceModel;
   protected formName: string = '';
   protected formDescription: string = '';
-  protected possibleSelectors: SelectorType[] = ['ELEMENT', 'YEAR', 'MONTH', 'DAY', 'HOUR'];
-  protected possibleFields: FieldsType | null = null;
-  protected selectedSelectors: SelectorsType | null = null;
-  protected selectedFields: FieldsType | null = null;
-  protected selectedLayout: LayoutType | null = null;
-  protected selectedElements: number[] = [];
-  protected selectedHours: number[] = [];
-  protected selectedPeriod: number = 0;
+
+  protected possibleSelectors: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
+  protected possibleFields: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
+
+  protected selectedSelectors: EntryType[]=[];
+  protected selectedFields: EntryType[]=[];
+  protected selectedLayout: LayoutType = 'LINEAR';
+  protected selectedElementIds: number[] = [];
+  protected possibleHourIds: number[] = [];
+  protected selectedHourIds: number[] = [];
+  protected selectedPeriodId: number | null = null;
   protected validateTotal: boolean = false;
+  protected selectorsErrorMessage: string = '';
+  protected fieldsErrorMessage: string = '';
+  protected elementsErrorMessage: string = '';
+  protected hoursErrorMessage: string = '';
+  protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
   constructor(private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
@@ -41,7 +49,7 @@ export class FormDetailComponent {
       });
     } else {
       this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' }
-      this.selectedHours = DateUtils.getHours().map(item => item['id']);
+      //this.selectedHourIds = DateUtils.getHours().map(item => item['id']);
     }
   }
 
@@ -51,86 +59,88 @@ export class FormDetailComponent {
 
     // Get form metadata
     const entryForm: EntryForm = JSON.parse(this.source.extraMetadata);
-    this.selectedSelectors = entryForm.selectors;
-    //set possible fields so that selected fields can show up
-    this.possibleFields = entryForm.fields
-    this.selectedFields = entryForm.fields;
+
+    const selectedSelectors: EntryType[] = [];
+    const possibleFields: EntryType[] = [];
+    const selectedFields: EntryType[] = [];
+
+    for (const s of entryForm.selectors) {
+      if (s) {
+        selectedSelectors.push(s);
+      }
+    }
+
+
+    for (const f of entryForm.fields) {
+      if (f) {
+        this.possibleFields.push(f);
+        this.selectedFields.push(f);
+      }
+    }
+
+    this.selectedSelectors = selectedSelectors;
+    this.possibleFields = possibleFields;
+    this.selectedFields = selectedFields;
     this.selectedLayout = entryForm.layout;
-    this.selectedElements = entryForm.elements;
-    this.selectedHours = entryForm.hours;
-    this.selectedPeriod = entryForm.period;
-    this.validateTotal= entryForm.validateTotal;
+    this.selectedElementIds = entryForm.elementIds;
+    this.selectedHourIds = entryForm.hours;
+    this.selectedPeriodId = entryForm.period;
+    this.validateTotal = entryForm.validateTotal;
   }
 
-  public onSelectorsSelected(newSelectedSelectors: SelectorType[]): void {
+  public onSelectorsSelected(selectedSelectors: EntryType[]): void {
 
-    //console.log('cycle', newSelectedSelectors);
-
-    //reset previous selected entry selectors and all entry fields
-    this.selectedSelectors = null;
-    this.possibleFields = null;
-    this.selectedFields = null;
-
-    if (!(newSelectedSelectors.length >= 3 && newSelectedSelectors.length <= 4)) {
+    if (!this.validSelectors(selectedSelectors)) {
       return;
     }
 
-    //set possible selectable selectors
-    if (newSelectedSelectors.length === 3) {
-      this.selectedSelectors = [newSelectedSelectors[0], newSelectedSelectors[1], newSelectedSelectors[2]];
-    } else if (newSelectedSelectors.length === 4) {
-      this.selectedSelectors = [newSelectedSelectors[0], newSelectedSelectors[1], newSelectedSelectors[2], newSelectedSelectors[3]];
-    }
+    this.selectedSelectors = selectedSelectors;
 
-    //remove selected entry selectors from the list of selectable entry fields
-    let allPossibleFields: FieldType[] = ['ELEMENT', 'DAY', 'HOUR'];
-    allPossibleFields = allPossibleFields.filter(item => !newSelectedSelectors.includes(item));
-    if (allPossibleFields.length == 1) {
-      this.possibleFields = [allPossibleFields[0]];
-    } else if (allPossibleFields.length == 2) {
-      this.possibleFields = [allPossibleFields[0], allPossibleFields[1]];
-    }
-
-    this.selectedLayout = this.getLayout(this.selectedSelectors, this.selectedFields);
-  }
-
-  public onFieldsSelected(newSelectedFields: FieldType[]): void {
-
-    if (newSelectedFields.length === 1) {
-      this.selectedFields = [newSelectedFields[0]];
-    } else if (newSelectedFields.length === 2) {
-      this.selectedFields = [newSelectedFields[0], newSelectedFields[1]];
-    } else {
-      this.selectedFields = null;
-    }
-
-    this.selectedLayout = this.getLayout(this.selectedSelectors, this.selectedFields);
+    //remove selected selector from the list of selectable entry fields
+    this.possibleFields = this.possibleSelectors.filter(data => !selectedSelectors.includes(data));
+    this.selectedFields = [];
+    this.selectedLayout = this.getLayout(this.selectedFields);
   }
 
 
-  private getLayout(selectors: SelectorsType | null, fields: FieldsType | null): LayoutType | null {
 
-    if (!this.selectorsValid(selectors)) {
-      return null;
+  public onFieldsSelected(selectedFields: EntryType[]): void {
+
+    if (!this.validFields(this.selectedSelectors, selectedFields)) {
+      return;
     }
 
-    if (fields === null || !this.fieldsValid(selectors, fields)) {
-      return null;
-    }
-
-    // 1 field should give a linear layout
-    // 2 fields should give a grid layout
-    switch (fields.length) {
-      case 1:
-        return 'LINEAR';
-      case 2:
-        return 'GRID';
-      default:
-        return null;
-    }
+    this.selectedFields = selectedFields;
+    this.selectedLayout = this.getLayout(this.selectedFields);
   }
 
-  onSave(): void {
+  private getLayout(fields: EntryType[]): LayoutType {
+    return fields.length === 2 ? 'GRID' : 'LINEAR';
+  }
+
+  protected onPeriodSelected(periodId: number | null) {
+    this.selectedPeriodId = periodId;
+
+    if(this.selectedPeriodId  === null){
+      this.periodErrorMessage = 'Select period'
+      return;
+    }
+
+    // const possibleHourIds: number[] = [];
+    // if(this.selectedPeriodId === 60){
+    //   possibleHourIds = DateUtils.getHours()
+    // }
+
+
+
+  }
+
+  protected onSave(): void {
+
+    if (!this.source) {
+      this.errorMessage = 'Form not defined';
+      return;
+    }
 
     if (!this.formName) {
       this.errorMessage = 'Enter form name';
@@ -142,45 +152,47 @@ export class FormDetailComponent {
       return;
     }
 
-    if (this.selectedSelectors === null || !this.selectorsValid(this.selectedSelectors)) {
-      this.errorMessage = 'Select valid entry selectors';
+    if (this.validSelectors(this.selectedSelectors)) {
+      this.errorMessage = 'Select valid selectors';
       return;
     }
 
-    if (this.selectedFields === null || !this.fieldsValid(this.selectedSelectors, this.selectedFields)) {
-      this.errorMessage = 'Select valid entry fields';
+    if (this.validFields(this.selectedSelectors, this.selectedFields)) {
+      this.errorMessage = 'Select valid fields';
       return;
     }
 
-    if (this.selectedLayout === null) {
-      this.errorMessage = 'Select layout';
+    if (this.selectedLayout) {
+      this.errorMessage = 'Select valid layout';
       return;
     }
 
-    if (this.selectedElements.length === 0) {
-      this.errorMessage = 'Select elements';
+    if (this.selectedElementIds.length === 0) {
+      this.elementsErrorMessage = 'Select elements';
       return;
     }
 
-    if (this.selectedHours.length === 0) {
-      this.errorMessage = 'Select hours';
+    if (!this.selectedPeriodId) {
+      this.periodErrorMessage = 'Select period';
       return;
     }
 
-    if (!this.source) {
-      this.errorMessage = 'Form not defined';
+    if (this.selectedHourIds.length === 0) {
+      this.hoursErrorMessage = 'Select hours';
       return;
     }
+
 
     this.source.sourceTypeId = 1;
     this.source.name = this.formName;
     this.source.description = this.formDescription;
 
     const entryForm: EntryForm = {
-      selectors: this.selectedSelectors,
-      fields: this.selectedFields, layout: this.selectedLayout,
-      elements: this.selectedElements, hours: this.selectedHours,
-      period: this.selectedPeriod, validateTotal: this.validateTotal,
+      selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
+      fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
+      layout: this.selectedLayout,
+      elementIds: this.selectedElementIds, hours: this.selectedHourIds,
+      period: this.selectedPeriodId, validateTotal: this.validateTotal,
       samplePaperImage: ''
     };
 
@@ -199,11 +211,11 @@ export class FormDetailComponent {
 
   }
 
-  onCancel(): void {
+  protected onCancel(): void {
     this.location.back();
   }
 
-  onDelete(): void {
+  protected onDelete(): void {
     //todo. prompt for confirmation first
     this.sourceService.deleteSource(this.source.id).subscribe((data) => {
       this.location.back();
@@ -211,17 +223,34 @@ export class FormDetailComponent {
 
   }
 
-  selectorsValid(possibleSelectors: SelectorsType | null): boolean {
-    // must be a minimum of 4 and maximum of 5 selectors
-    return possibleSelectors !== null && possibleSelectors.length >= 3 && possibleSelectors.length <= 4;
+  private validSelectors(selectors: EntryType[]): boolean {
+    this.selectorsErrorMessage = '';
+    if (selectors.length === 0) {
+      this.selectorsErrorMessage = 'Selector(s) required';
+    } else if (selectors.length > 2) {
+      this.selectorsErrorMessage = 'Number of maximum selectors allowed are 2';
+    }
+
+    return this.selectorsErrorMessage === '';
   }
 
-  fieldsValid(possibleSelectors: SelectorsType | null, possibleFields: FieldsType | null): boolean {
-    // 4 selectors should be accompanied by 1 field
-    // 3 selectors should be accompanied by 2 fields
-    return (possibleSelectors !== null && possibleFields !== null) &&
-      ((possibleSelectors.length === 4 && possibleFields.length === 1) ||
-        (possibleSelectors.length === 3 && possibleFields.length === 2));
+  private validFields(selectors: EntryType[], fields: EntryType[]): boolean {
+    this.fieldsErrorMessage = '';
+
+    if (!this.validSelectors(selectors)) {
+      this.fieldsErrorMessage = 'Invalid selectors';
+      return false;
+    }
+
+    if (fields.length === 0) {
+      this.fieldsErrorMessage = 'Fields(s) required';
+    } else if (selectors.length == 1 && fields.length !== 2) {
+      this.fieldsErrorMessage = '2 Fields required';
+    } else if (selectors.length == 2 && fields.length !== 1) {
+      this.fieldsErrorMessage = '1 Field required';
+    }
+
+    return this.fieldsErrorMessage === '';
   }
 
 }
