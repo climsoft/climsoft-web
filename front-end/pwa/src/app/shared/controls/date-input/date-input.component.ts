@@ -7,12 +7,12 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
 })
 export class DateInputComponent implements OnInit, OnChanges {
 
-  @Input() label: string = '';
-  @Input() disabled: boolean = false;
-  @Input() hintMessage!: string;
-  @Input() errorMessage!: string | null;
-  @Input() value!: string;
-  @Output() valueChange = new EventEmitter<string >();
+  @Input() public label: string = '';
+  @Input() public disabled: boolean = false;
+  @Input() public hintMessage!: string;
+  @Input() public errorMessage!: string | null;
+  @Input() public value!: string;
+  @Output() public valueChange = new EventEmitter<string >();
   @Output() public inputClick = new EventEmitter<string >();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();
   @Output() public inputBlur = new EventEmitter<string >();
@@ -26,9 +26,10 @@ export class DateInputComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+   
   }
   protected onValueChange(value: string) {
-    this.valueChange.emit(this.value);
+    this.valueChange.emit(value);
   }
 
   protected onInputClick(): void {

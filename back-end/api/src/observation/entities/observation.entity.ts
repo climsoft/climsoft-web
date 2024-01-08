@@ -31,14 +31,17 @@ export class ObservationEntity {
   @Column({ type: 'int' })
   qcStatus: number;
 
-  @Column({ type: 'int', default: 0 })
-  final: 0 | 1; //todo. small int as type? indicates whether the record is uploaded
+  @Column({ type: 'boolean', default: 0 })
+  final: boolean; //todo. small int as type? indicates whether the record is uploaded
 
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;
 
   @Column({ type: 'varchar' })
   entryUserId: string;
+
+  @Column({ type: 'boolean', default: false })
+  deleted: boolean; //todo. small int as type? indicates whether the record is uploaded
 
   //for consistency in date time storage. This should be set at application level instead of relying on typeorm and database
   //for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
@@ -58,8 +61,9 @@ export interface ObservationLogVo {
   value: number | null;
   flag: number | null;
   qcStatus: number;
-  final: 0 | 1;
+  final: boolean;
   comment: string | null;
   entryUserId: string;
   entryDateTime: string;
+  deleted: boolean;
 }

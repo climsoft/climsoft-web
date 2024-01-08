@@ -41,8 +41,8 @@ export class ObservationsService {
 
         if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day && selectObsevationDto.hours !== undefined) {
             const allHours: string[] = [];
-            for (let hour = 0; hour < selectObsevationDto.hours.length; hour++) {
-                allHours.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, hour, 0, 0));
+            for (let index = 0; index < selectObsevationDto.hours.length; index++) {
+                allHours.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, selectObsevationDto.hours[index], 0, 0));
             }
             selectOptions.datetime = In(allHours);
             return;
@@ -60,9 +60,9 @@ export class ObservationsService {
             const lastDay: number = DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month);
             const allDays: string[] = [];
             for (let day = 1; day <= lastDay; day++) {
-                for (let hour = 0; hour < selectObsevationDto.hours.length; hour++) {
-                    allDays.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, day, hour, 0, 0));
-                }                
+                for (let index = 0; index < selectObsevationDto.hours.length; index++) {
+                    allDays.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, day, selectObsevationDto.hours[index], 0, 0));
+                }
             }
             selectOptions.datetime = In(allDays);
             return;
@@ -133,8 +133,8 @@ export class ObservationsService {
             final: entity.final,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
-
+            deleted: entity.deleted,
+            entryDateTime: entity.entryDateTime           
         };
     }
 
@@ -144,10 +144,11 @@ export class ObservationsService {
             value: dto.value,
             flag: dto.flag,
             qcStatus: dto.qcStatus,
-            final: 0,//
+            final: false,
             comment: dto.comment,
             entryUserId: '2', //todo. this will come from user session or token
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+            deleted: false,
+            entryDateTime: DateUtils.getTodayDateInSQLFormat()          
         };
     }
 
@@ -158,8 +159,11 @@ export class ObservationsService {
         entity.qcStatus = dto.qcStatus;
         entity.comment = dto.comment;
         entity.entryUserId = '2';
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.deleted = (entity.value === null && entity.flag === null)
+        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();    
         entity.log = this.getNewLog(entity.log, this.getObservationLogFromEntity(entity));
+
+       
     }
 
     private getNewLog(currentLogs: string | null | undefined, newLog: ObservationLogVo): string {

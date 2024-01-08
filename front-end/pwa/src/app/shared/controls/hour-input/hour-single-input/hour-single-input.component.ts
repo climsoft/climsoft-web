@@ -39,10 +39,9 @@ export class HourSingleInputComponent implements OnInit, OnChanges {
       this.options = this.getHours().filter(data => this.includeOnlyIds.includes(data.id));
     }
 
-    // Only react to changes if selectedId actually changes and is not the first change
-    if (this.selectedId) {
-      const foundPeriod = this.options.find(period => period.id === this.selectedId);
-      this.selectedOption = foundPeriod ? foundPeriod : null;
+    if (this.selectedId !== undefined  ) {
+      const found = this.options.find(period => period.id === this.selectedId);
+      this.selectedOption = found ? found : null;
     }
 
   }

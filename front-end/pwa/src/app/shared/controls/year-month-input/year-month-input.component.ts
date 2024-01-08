@@ -6,18 +6,18 @@ import { Component,Input ,EventEmitter,Output} from '@angular/core';
   styleUrls: ['./year-month-input.component.scss']
 })
 export class YearMonthInputComponent {
-  @Input() label: string = 'Year-month';
-  @Input() disabled: boolean = false;
-  @Input() hintMessage!: string;
-  @Input() errorMessage!: string | null;
-  @Input() value!: string;
-  @Output() valueChange = new EventEmitter<string >();
+  @Input() public label: string = 'Year-month';
+  @Input() public disabled: boolean = false;
+  @Input() public hintMessage!: string;
+  @Input() public errorMessage!: string | null;
+  @Input() public value!: string;
+  @Output() public valueChange = new EventEmitter<string >();
   @Output() public inputClick = new EventEmitter<string >();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();
   @Output() public inputBlur = new EventEmitter<string >();
 
   protected onValueChange(value: string) {
-    this.valueChange.emit(this.value);
+    this.valueChange.emit(value);
   }
 
   protected onInputClick(): void {

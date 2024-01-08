@@ -103,7 +103,7 @@ export class FormEntryUtil {
     };
 
     //set other fields
-    if (formFilter.elementId ) {
+    if (formFilter.elementId) {
       entryObservation.elementId = formFilter.elementId;
     }
 
@@ -112,11 +112,11 @@ export class FormEntryUtil {
     datetimeVars[0] = formFilter.year;
     datetimeVars[1] = formFilter.month;
 
-    if (formFilter.day ) {
+    if (formFilter.day) {
       datetimeVars[2] = formFilter.day;
     }
 
-    if (formFilter.hour ) {
+    if (formFilter.hour !== undefined) {
       datetimeVars[3] = formFilter.hour;
     }
 
@@ -151,7 +151,7 @@ export class FormEntryUtil {
 
     //set datetime from date time variables. year-month-day hour. JS months are 0 based 
     entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
-
+    
     return entryObservation;
   }
 

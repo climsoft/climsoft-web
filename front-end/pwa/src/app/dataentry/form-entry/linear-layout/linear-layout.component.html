@@ -11,7 +11,7 @@
       </div>
 
       <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formMetadata.validateTotal" class="row mb-2">
-        <app-number-input [id]="'total'" [label]="'Total'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
+        <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
           (valueChange)="onTotalValueChange($event)"
           (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
       </div>
@@ -27,7 +27,7 @@
       (valueChange)="onValueChange()" (inputBlur)="onInputBlur($event)"></app-value-flag-input>
 
     <div *ngIf="formMetadata.validateTotal" class="mb-2">
-      <app-number-input [id]="'total'" [label]="'Total'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
+      <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
         (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
     </div>
 

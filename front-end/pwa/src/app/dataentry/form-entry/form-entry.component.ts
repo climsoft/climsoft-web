@@ -86,9 +86,9 @@ export class FormEntryComponent implements OnInit {
 
       this.formFilter = this.getSelectionFilter(stationId, sourceId, this.formMetadata);
 
-      if (this.formFilter.year && this.formFilter.month && this.formFilter.day) {
-        this.defaultDateValue = DateUtils.getDateInSQLFormat(this.formFilter.year, this.formFilter.month, this.formFilter.day, 0, 0, 0);
-      } else if (this.formFilter.year && this.formFilter.month && this.formFilter.day) {
+      if ( this.formFilter.day) {
+        this.defaultDateValue = new Date().toISOString().slice(0, 10)
+      } else  {
         this.defaultDateValue = this.formFilter.year + '-' + StringUtils.addLeadingZero(this.formFilter.month);
       }
 
@@ -96,6 +96,8 @@ export class FormEntryComponent implements OnInit {
       this.loadSelectedElementsAndObservations();
 
     });
+
+  
 
   }
 
@@ -106,7 +108,6 @@ export class FormEntryComponent implements OnInit {
       year: todayDate.getFullYear(), month: todayDate.getMonth() + 1
     };
 
-
     if (formMetadata.selectors.includes('ELEMENT')) {
       formFilter.elementId = formMetadata.elementIds[0];
     }
@@ -115,20 +116,13 @@ export class FormEntryComponent implements OnInit {
       formFilter.day = todayDate.getDate();
     }
 
-    if (formMetadata.selectors.includes('HOUR')) {
+    if (formMetadata.selectors.includes('HOUR')) {    
       formFilter.hour = formMetadata.hours[0];
     }
 
     return formFilter;
 
   }
-
-
-  //todo delete
-  protected display(selectorcontroltype: SelectorControlType): boolean {
-    return this.selectorControlsToUse.includes(selectorcontroltype);
-  }
-
 
   private loadSelectedElementsAndObservations() {
 
@@ -165,6 +159,8 @@ export class FormEntryComponent implements OnInit {
     observationFilter.stationId = this.formFilter.stationId;
     observationFilter.sourceId = this.formFilter.sourceId;
     observationFilter.period = this.formFilter.period;
+    observationFilter.year = this.formFilter.year;
+    observationFilter.month = this.formFilter.month;
 
     if (this.formFilter.day) {
       observationFilter.day = this.formFilter.day;
@@ -176,7 +172,7 @@ export class FormEntryComponent implements OnInit {
       observationFilter.elementIds = this.formMetadata.elementIds;
     }
 
-    if (this.formFilter.hour) {
+    if (this.formFilter.hour !== undefined) {
       observationFilter.hours = [this.formFilter.hour];
     } else {
       observationFilter.hours = this.formMetadata.hours;
@@ -187,41 +183,35 @@ export class FormEntryComponent implements OnInit {
     });
   }
 
-  public onElementChange(elementIdSelected: any): void {
-    //this.dataSelectors.elementId = elementIdSelected;
-    //this.loadSelectedElementsAndObservations();
+  public onElementChange(elementIdInput: number| null): void {
+    if(elementIdInput === null){
+      return;
+    }
+    this.formFilter.elementId = elementIdInput;
+    this.loadSelectedElementsAndObservations();
   }
 
-  public onYearChange(yearInput: any): void {
-    //this.dataSelectors.year = yearInput.id;
-    //this.loadSelectedElementsAndObservations();
+  protected onYearMonthChange(yearMonthInput: string): void {
+    const date: Date = new Date(yearMonthInput); 
+    this.formFilter.year = date.getFullYear();
+    this.formFilter.month = date.getMonth() + 1;
+    this.loadSelectedElementsAndObservations();
   }
 
-  public onMonthChange(monthSelected: any): void {
-    //this.dataSelectors.month = monthSelected.id;
-    //this.loadSelectedElementsAndObservations();
+  protected onDateChange(dateInput: string): void {
+    const date: Date = new Date(dateInput); 
+    this.formFilter.year = date.getFullYear();
+    this.formFilter.month = date.getMonth() + 1;
+    this.formFilter.day = date.getDate();
+    this.loadSelectedElementsAndObservations();
   }
 
-  public onDayChange(daySelected: any): void {
-    //this.dataSelectors.day = daySelected.id;
-    //this.loadSelectedElementsAndObservations();
-  }
-
-  public onYearMonthChange(yearMonthSelected: any): void {
-    //todo
-  }
-
-  onDateChange(dateInput: string): void {
-    //const date = new Date(dateInput);
-    //this.dataSelectors.year = date.getFullYear();
-    //this.dataSelectors.month = date.getMonth() + 1;
-    //this.dataSelectors.day = date.getDate();
-    //this.loadSelectedElementsAndObservations();
-  }
-
-  onHourChange(hourInput: number): void {
-    //this.dataSelectors.hour = hourInput;
-    //this.loadSelectedElementsAndObservations();
+  protected onHourChange(hourIdInput: number | null): void {
+    if(hourIdInput === null){
+      return;
+    }
+    this.formFilter.hour = hourIdInput;
+    this.loadSelectedElementsAndObservations();
   }
 
   protected onValueChange(newObservation: ObservationModel): void {

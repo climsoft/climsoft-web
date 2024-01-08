@@ -19,10 +19,11 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   @Output() valueChange = new EventEmitter<ObservationModel>();
   @Output() public enableSave = new EventEmitter<boolean>();
 
-  public rowFieldDefinitions!: [number, string][];
-  public colFieldDefinitions!: [number, string][];
-  public entryObservations!: ObservationModel[][];
-  public entryTotals!: { value: number | null, errorMessage: string | null }[];
+  protected rowFieldDefinitions!: [number, string][];
+  protected colFieldDefinitions!: [number, string][];
+  protected entryObservations!: ObservationModel[][];
+  protected entryTotals!: { value: number | null, errorMessage: string | null }[];
+ 
 
   constructor() {
   }
@@ -42,6 +43,10 @@ export class GridLayoutComponent implements OnInit, OnChanges {
       this.entryObservations = [];
     }
 
+  }
+
+  protected get rowHeaderName(): string{
+    return this.formMetadata.fields[0]
   }
 
   private setup(): void {
