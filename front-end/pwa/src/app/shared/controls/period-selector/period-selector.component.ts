@@ -29,10 +29,10 @@ export class PeriodSelectorComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    console.log('period selectedId', this.selectedId, 'existing: ', this.selectedOption, '  ', changes)
+    //console.log('period selectedId', this.selectedId, 'existing: ', this.selectedOption, '  ', changes)
 
-     //load options once
-     if (!this.options) {
+    //load options once
+    if (!this.options) {
       this.options = this.getPeriods();
     }
 
@@ -43,13 +43,11 @@ export class PeriodSelectorComponent implements OnInit, OnChanges {
     // Only react to changes if selectedId actually changes and is not the first change
     if (this.selectedId) {
       const found = this.options.find(period => period.id === this.selectedId);
-     
-
-      if(found  && found !== this.selectedOption ){
-        console.log( ' setting found: ', found)
-        this.selectedOption = found ;
+      if (found && found !== this.selectedOption) {
+        //console.log('setting found: ', found)
+        this.selectedOption = found;
       }
-     
+
     }
 
   }
@@ -71,7 +69,7 @@ export class PeriodSelectorComponent implements OnInit, OnChanges {
   }
 
   protected onSelectedOptionChange(selectedOption: Period | null) {
-   //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
+    //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

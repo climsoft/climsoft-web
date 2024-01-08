@@ -1,101 +1,89 @@
-<div class="container-fluid h-100 p-1">
-
-    <div class="row d-flex justify-content-between align-items-center mb-2">
-        <div class="col">
-            <h4 class="fw-normal component-h1">Form Metadata</h4>
+<div class="card border-0">
+    <div class="card-body px-0">
+        <!--form name -->
+        <div class="mb-3">
+            <app-text-input [label]="'Name'" [(value)]="formName">
+            </app-text-input>
         </div>
-    </div>
+        <!--------->
 
-    <div class="card border-0">
-        <div class="card-body">
-            <!--form name -->
-            <div class="mb-3">
-                <app-text-input [label]="'Name'" [(value)]="formName">
-                </app-text-input>
+        <!--form description -->
+        <div class="mb-3">
+            <app-text-input [label]="'Description'" [(value)]="formDescription">
+            </app-text-input>
+        </div>
+        <!--------->
+
+        <!--entry selectors-->
+        <div class="mb-3">
+            <app-selector-multiple-input [label]="'Extra Selectors'" [errorMessage]="selectorsErrorMessage"
+                [options]="possibleSelectors" [selectedOptions]="selectedSelectors"
+                (selectedOptionsChange)="onSelectorsSelected($event)"></app-selector-multiple-input>
+        </div>
+        <!--------->
+
+        <!--entry fields-->
+        <div class="mb-3">
+            <app-selector-multiple-input [label]="'Fields'" [errorMessage]="fieldsErrorMessage"
+                [options]="possibleFields" [selectedOptions]="selectedFields"
+                (selectedOptionsChange)="onFieldsSelected($event)"></app-selector-multiple-input>
+        </div>
+        <!--------->
+
+        <!--layout -->
+        <div class="mb-3">
+            <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout">
+            </app-text-input>
+        </div>
+        <!--------->
+
+        <!--elements-->
+        <div class="mb-3">
+            <app-element-multiple-input [errorMessage]="elementsErrorMessage"
+                [(selectedIds)]="selectedElementIds"></app-element-multiple-input>
+        </div>
+        <!--------->
+
+        <!--period-->
+        <div class="mb-3">
+            <app-period-selector [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
+                (selectedIdChange)="onPeriodSelected($event)"></app-period-selector>
+        </div>
+        <!--------->
+
+        <!--hours-->
+        <div class="mb-3">
+            <app-hour-multiple-input [errorMessage]="hoursErrorMessage" [selectedIds]="selectedHourIds"
+                (selectedIdsChange)="onHoursSelected($event)"></app-hour-multiple-input>
+        </div>
+        <!--------->
+
+        <!--Total-->
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="validateTotal" [(ngModel)]="validateTotal">
+                <label class="form-check-label" for="validateTotal"> Validate Total </label>
             </div>
-            <!--------->
+        </div>
+        <!--------->
 
-            <!--form description -->
-            <div class="mb-3">
-                <app-text-input [label]="'Description'" [(value)]="formDescription">
-                </app-text-input>
-            </div>
-            <!--------->
+        <!-- todo. link the error to individual controls and possibly use bootstrap alert component-->
+        <div class="mb-3" style="color: red;">
+            {{ errorMessage }}
+        </div>
 
-            <!--entry selectors-->
-            <div class="mb-3">
-                <app-selector-multiple-input [label]="'Extra Selectors (Minimum 1 and maximum 2)'"
-                    [errorMessage]="selectorsErrorMessage" [options]="possibleSelectors"
-                    [selectedOptions]="selectedSelectors"
-                    (selectedOptionsChange)="onSelectorsSelected($event)"></app-selector-multiple-input>
-            </div>
-            <!--------->
+        <div class="d-flex flex-row justify-content-end">
+            <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
+                Save
+            </button>
+            <button *ngIf="source && source.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+                (click)="onDelete()">
+                Delete
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
+                Cancel
+            </button>
 
-            <!--entry fields-->
-            <div class="mb-3">
-                <app-selector-multiple-input [label]="'Fields'" [errorMessage]="fieldsErrorMessage"
-                    [options]="possibleFields" [selectedOptions]="selectedFields"
-                    (selectedOptionsChange)="onFieldsSelected($event)"></app-selector-multiple-input>
-            </div>
-            <!--------->
-
-            <!--layout -->
-            <div class="mb-3">
-                <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout">
-                </app-text-input>
-            </div>
-            <!--------->
-
-            <!--elements-->
-            <div class="mb-3">
-                <app-element-multiple-input [errorMessage]="elementsErrorMessage"
-                    [(selectedIds)]="selectedElementIds"></app-element-multiple-input>
-            </div>
-            <!--------->
-
-            <!--period-->
-            <div class="mb-3">
-                <app-period-selector [includeOnlyIds]="[60, 180, 360, 720, 1440]"
-                    [selectedId]="selectedPeriodId" (selectedIdChange)="onPeriodSelected($event)"></app-period-selector>
-            </div>
-            <!--------->
-
-            <!--hours-->
-            <div class="mb-3">
-                <app-hour-multiple-input [errorMessage]="hoursErrorMessage" 
-                [(selectedIds)]="selectedHourIds"></app-hour-multiple-input>
-            </div>
-            <!--------->
-
-            <!--Total-->
-            <div class="mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="validateTotal"
-                        [(ngModel)]="validateTotal">
-                    <label class="form-check-label" for="validateTotal"> Validate Total </label>
-                </div>
-            </div>
-            <!--------->
-
-            <!-- todo. link the error to individual controls and possibly use bootstrap alert component-->
-            <div class="mb-3" style="color: red;">
-                {{ errorMessage }}
-            </div>
-
-            <div class="d-flex flex-row justify-content-end">
-                <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
-                    Save
-                </button>
-                <button *ngIf="source && source.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
-                    (click)="onDelete()">
-                    Delete
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
-                    Cancel
-                </button>
-
-
-            </div>
 
         </div>
 

@@ -21,7 +21,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     this.filteredValues = this.options;
   
-    console.log('single input ngOnChanges', changes)
+    //console.log('single input ngOnChanges', changes)
   }
 
   protected get selectedOptionDisplay(): string {
@@ -43,7 +43,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
  
     this.selectedOption = option;
 
-    console.log('single input onSelectedOption',  this.selectedOption)
+    //console.log('single input onSelectedOption',  this.selectedOption)
     this.selectedOptionChange.emit(option);
     this.filteredValues = this.options;
   }

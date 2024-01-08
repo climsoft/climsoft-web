@@ -21,8 +21,6 @@
             <app-year-month-input [value]="defaultDateValue" (valueChange)="onMonthChange($event)"></app-year-month-input>
           </div>        
 
-        
-
           <div class="col-sm-auto mb-2" *ngIf="formMetadata.selectors.includes('HOUR') && formFilter.hour">
             <app-hour-input [controlLabel]="'Hour'" [value]="formFilter.hour" [onlyIncludeIds]="formMetadata.hours"
               (valueChange)="onHourChange($event)"></app-hour-input>

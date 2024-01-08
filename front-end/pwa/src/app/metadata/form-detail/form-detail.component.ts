@@ -1,10 +1,12 @@
+// TODO. Try using angular forms?
+
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { EntryType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
-import { DateUtils } from '../../shared/utils/date.utils';
 import { SourceModel } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
 @Component({
   selector: 'app-form-detail',
@@ -20,8 +22,8 @@ export class FormDetailComponent implements OnInit {
   protected possibleSelectors: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
   protected possibleFields: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
 
-  protected selectedSelectors: EntryType[]=[];
-  protected selectedFields: EntryType[]=[];
+  protected selectedSelectors: EntryType[] = [];
+  protected selectedFields: EntryType[] = [];
   protected selectedLayout: LayoutType = 'LINEAR';
   protected selectedElementIds: number[] = [];
   protected possibleHourIds: number[] = [];
@@ -35,21 +37,22 @@ export class FormDetailComponent implements OnInit {
   protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
-  constructor(private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
+  constructor(  private pagesDataService: PagesDataService,
+    private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {    
   }
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['sourceid'];
     if (sourceId) {
+      this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
       this.sourceService.getSource(sourceId).subscribe((data) => {
-
         this.source = data;
         this.setControlValues(data);
       });
     } else {
-      this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' }
-      //this.selectedHourIds = DateUtils.getHours().map(item => item['id']);
+      this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' };
+      this.pagesDataService.setPageHeader('New Entry Form');
     }
   }
 
@@ -70,11 +73,10 @@ export class FormDetailComponent implements OnInit {
       }
     }
 
-
     for (const f of entryForm.fields) {
       if (f) {
-        this.possibleFields.push(f);
-        this.selectedFields.push(f);
+        possibleFields.push(f);
+        selectedFields.push(f);
       }
     }
 
@@ -112,6 +114,7 @@ export class FormDetailComponent implements OnInit {
 
     this.selectedFields = selectedFields;
     this.selectedLayout = this.getLayout(this.selectedFields);
+
   }
 
   private getLayout(fields: EntryType[]): LayoutType {
@@ -120,18 +123,30 @@ export class FormDetailComponent implements OnInit {
 
   protected onPeriodSelected(periodId: number | null) {
     this.selectedPeriodId = periodId;
+    this.selectedHourIds = [];
+    this.periodErrorMessage = this.selectedPeriodId === null? 'Select period':''; 
+  }
 
-    if(this.selectedPeriodId  === null){
-      this.periodErrorMessage = 'Select period'
-      return;
+  protected onHoursSelected(hourIds: number[]) {
+    this.hoursErrorMessage = '';
+
+    if (this.selectedPeriodId === 1440 && hourIds.length !== 1) {
+      // for 24 hours
+      this.hoursErrorMessage = '1 hour expected only';
+    } else if (this.selectedPeriodId === 720 && hourIds.length !== 2) {
+      //for 12 hour
+      this.hoursErrorMessage = '2 hours expected only';
+    } else if (this.selectedPeriodId === 360 && hourIds.length !== 4) {
+      //for 6 hours
+      this.hoursErrorMessage = '4 hours expected only';
+    } else if (this.selectedPeriodId === 180 && hourIds.length !== 8) {
+      //for 3 hours
+      this.hoursErrorMessage = '8 hours expected only';
     }
 
-    // const possibleHourIds: number[] = [];
-    // if(this.selectedPeriodId === 60){
-    //   possibleHourIds = DateUtils.getHours()
-    // }
-
-
+    if (this.hoursErrorMessage) {
+      this.selectedHourIds = hourIds;
+    }
 
   }
 
@@ -152,17 +167,17 @@ export class FormDetailComponent implements OnInit {
       return;
     }
 
-    if (this.validSelectors(this.selectedSelectors)) {
+    if (!this.validSelectors(this.selectedSelectors)) {
       this.errorMessage = 'Select valid selectors';
       return;
     }
 
-    if (this.validFields(this.selectedSelectors, this.selectedFields)) {
+    if (!this.validFields(this.selectedSelectors, this.selectedFields)) {
       this.errorMessage = 'Select valid fields';
       return;
     }
 
-    if (this.selectedLayout) {
+    if (!this.selectedLayout) {
       this.errorMessage = 'Select valid layout';
       return;
     }
@@ -173,7 +188,7 @@ export class FormDetailComponent implements OnInit {
     }
 
     if (!this.selectedPeriodId) {
-      this.periodErrorMessage = 'Select period';
+      this.errorMessage = 'Select period';
       return;
     }
 
@@ -181,7 +196,6 @@ export class FormDetailComponent implements OnInit {
       this.hoursErrorMessage = 'Select hours';
       return;
     }
-
 
     this.source.sourceTypeId = 1;
     this.source.name = this.formName;
@@ -208,7 +222,6 @@ export class FormDetailComponent implements OnInit {
       });
     }
 
-
   }
 
   protected onCancel(): void {
@@ -228,7 +241,7 @@ export class FormDetailComponent implements OnInit {
     if (selectors.length === 0) {
       this.selectorsErrorMessage = 'Selector(s) required';
     } else if (selectors.length > 2) {
-      this.selectorsErrorMessage = 'Number of maximum selectors allowed are 2';
+      this.selectorsErrorMessage = 'Maximum selectors allowed are 2';
     }
 
     return this.selectorsErrorMessage === '';
