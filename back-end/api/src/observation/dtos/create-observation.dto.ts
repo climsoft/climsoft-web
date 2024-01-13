@@ -21,7 +21,6 @@ export class CreateObservationDto {
     period: number;
 
     @IsNumber()
-    //@IsOptional()//todo research about it when you enable validations for number or null values
     value: number | null;
 
     @IsNumber()

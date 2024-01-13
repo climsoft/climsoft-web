@@ -24,7 +24,7 @@
 
   <div *ngIf="displayDropDown"
     class="position-absolute min-w-100 overflow-auto border border-dark rounded custom-drop-down"
-    [style.max-height]="dropDownOptionMaxHeight"> 
+    [style.max-height.px]="dropDownOptionMaxHeight"> 
       <ng-content></ng-content>   
   </div>
 

@@ -1,3 +1,19 @@
-<div>
-  works
+<div class="card border-0">
+  <div class="card-body">
+    <h4 class="card-title text-center">Upload File</h4>
+    <h6 class="text-center"><span class="fw-bold">Columns expected: </span>station id, element id, source id, level, date time,
+      period, value, flag, comment</h6>
+    <h6 class="text-center">First row should be field names(headers)</h6>
+    <div class="d-flex justify-content-center align-items-center" style="min-height:200px; background-color:#e0f7fa;">
+      <div>
+        <input type="file" id="file" class="form-control mb-2" [accept]="'text/csv'" [value]="filePath" (change)="onFileSelected($event)">
+        <div class="text-center">or drop file here</div>
+      </div>
+      <div>
+        <div *ngIf="uploadProgress" class="progress" role="progressbar" aria-label="Basic example" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar" style="width: 100%" [style.width.%]="uploadProgress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

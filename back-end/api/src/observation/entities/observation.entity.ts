@@ -32,7 +32,7 @@ export class ObservationEntity {
   qcStatus: number;
 
   @Column({ type: 'boolean', default: 0 })
-  final: boolean; //todo. small int as type? indicates whether the record is uploaded
+  final: boolean; 
 
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;

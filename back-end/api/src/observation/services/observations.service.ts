@@ -96,6 +96,7 @@ export class ObservationsService {
                 sourceId: createObservationDto.sourceId,
                 level: createObservationDto.level,
                 datetime: createObservationDto.datetime,
+                period: createObservationDto.period,
             });
 
             if (observationEntity) {
@@ -105,6 +106,7 @@ export class ObservationsService {
                 if (ObjectUtils.areObjectsEqual<ObservationLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
                     continue;
                 }
+
             } else {
                 observationEntity = this.observationRepo.create({
                     stationId: createObservationDto.stationId,
@@ -112,7 +114,9 @@ export class ObservationsService {
                     sourceId: createObservationDto.sourceId,
                     level: createObservationDto.level,
                     datetime: createObservationDto.datetime,
+                    period: createObservationDto.period,
                 });
+               
             }
 
 
@@ -158,12 +162,11 @@ export class ObservationsService {
         entity.flag = dto.flag;
         entity.qcStatus = dto.qcStatus;
         entity.comment = dto.comment;
+        entity.final = false;
         entity.entryUserId = '2';
         entity.deleted = (entity.value === null && entity.flag === null)
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();    
         entity.log = this.getNewLog(entity.log, this.getObservationLogFromEntity(entity));
-
-       
     }
 
     private getNewLog(currentLogs: string | null | undefined, newLog: ObservationLogVo): string {

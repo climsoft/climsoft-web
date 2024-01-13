@@ -7,7 +7,7 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
 })
 export class TextInputComponent implements OnChanges {
   @Input() public includeDropDownOption: boolean = false;
-  @Input() public dropDownOptionMaxHeight: string = '200px';
+  @Input() public dropDownOptionMaxHeight: number = 200;
   @Input() public includeCancelOption: boolean = false;
   @Input() public type: string = 'text';
   @Input() public id: string | number = '';

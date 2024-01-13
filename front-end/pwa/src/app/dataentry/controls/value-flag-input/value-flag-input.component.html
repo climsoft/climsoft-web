@@ -1,5 +1,5 @@
 <app-text-input *ngIf="observation" [id]="id" [label]="label"
-    [includeDropDownOption]="true" [value]="displayedValueFlag" [dropDownOptionMaxHeight]="'300px'"
+    [includeDropDownOption]="true" [value]="displayedValueFlag" [dropDownOptionMaxHeight]="300"
     [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event)"
     (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()"
     >
