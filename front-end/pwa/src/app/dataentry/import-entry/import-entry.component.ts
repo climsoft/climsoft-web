@@ -56,7 +56,6 @@ export class ImportEntryComponent implements OnInit {
       } else if (event.type == HttpEventType.Response) {
 
         this.filePath = '';
-        console.log('body ', event.body)
 
         if (!event.body) {
           //todo. something wrong
