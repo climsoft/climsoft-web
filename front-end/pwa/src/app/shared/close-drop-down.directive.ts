@@ -1,5 +1,7 @@
 import { Directive, ElementRef, HostListener, Output, EventEmitter } from '@angular/core';
 
+// TODO. Rename this directive to a name that is appropriate?
+
 @Directive({
   selector: '[appCloseDropDown]'
 })

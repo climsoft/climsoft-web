@@ -1,17 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { EntryForm, LayoutType } from '../../core/models/entry-form.model';
+import { EntryForm } from '../../core/models/entry-form.model';
 import { ObservationModel } from '../../core/models/observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { SourcesService } from 'src/app/core/services/sources.service';
-import { SelectObservation } from 'src/app/core/models/select-observation.model';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { FlagsService } from 'src/app/core/services/flags.service';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { EntryFormFilter } from './form-entry.util';
+import { SelectObservation } from 'src/app/core/models/select-observation.model';
 
 export interface DataSelectorsValues {
   stationId: string;
@@ -24,6 +27,7 @@ export interface DataSelectorsValues {
   period: number;
 }
 
+export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'YEARMONTH' | 'DATE';
 
 @Component({
   selector: 'app-form-entry',
@@ -31,20 +35,23 @@ export interface DataSelectorsValues {
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit {
-  public dataSelectors!: DataSelectorsValues;
-  public formMetadata!: EntryForm;
-  public useDatePickerControl: boolean = false;
-  public defaultDatePickerDate!: string;
-  public entryControl!: LayoutType;
-  public elements!: ElementModel[];
-  public observations!: ObservationModel[];
-  public newObservations!: ObservationModel[];
+  //protected dataSelectors!: DataSelectorsValues;
+  protected formMetadata!: EntryForm;
+  protected formFilter!: EntryFormFilter;
 
-  public flags!: FlagModel[];
 
-  public stationName!: string;
-  public formName!: string;
+  protected elements!: ElementModel[];
+  protected observations!: ObservationModel[];
+  protected newObservations!: ObservationModel[];
 
+  protected flags!: FlagModel[];
+
+  protected stationName!: string;
+  protected formName!: string;
+  protected enableSave: boolean = false;
+
+  protected selectorControlsToUse!: SelectorControlType[];
+  protected defaultDateValue!: string;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -67,70 +74,55 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['datasourceid'];
 
-    //set data selector
-    this.dataSelectors = {
-      stationId: stationId,
-      sourceId: sourceId,
-      elementId: -1, year: -1, month: -1, day: -1, hour: -1, period: -1
-    }
-    
-
     this.stationsService.getStation(stationId).subscribe((data) => {
       this.stationName = `${data.id} - ${data.name}`;
     });
 
-    this.sourcesService.getSource(this.dataSelectors.sourceId).subscribe((data) => {
+    this.sourcesService.getSource(sourceId).subscribe((data) => {
+      //set form name
       this.formName = data.name;
-      //first set up the controls. this will set the form selectors 
-      this.setFormSelectorsAndControl(JSON.parse(data.extraMetadata));
+      //set form metadata
+      this.formMetadata = JSON.parse(data.extraMetadata);
+
+      this.formFilter = this.getSelectionFilter(stationId, sourceId, this.formMetadata);
+
+      if ( this.formFilter.day) {
+        this.defaultDateValue = new Date().toISOString().slice(0, 10)
+      } else  {
+        this.defaultDateValue = this.formFilter.year + '-' + StringUtils.addLeadingZero(this.formFilter.month);
+      }
+
       //the load the existing observation data
       this.loadSelectedElementsAndObservations();
 
     });
 
-  }
-
-  private setFormSelectorsAndControl(entryForm: EntryForm) {
-
-    //set form metadata
-    this.formMetadata = entryForm;
-
-    this.dataSelectors.period = entryForm.period;
-
-    if (entryForm.selectors.includes('ELEMENT')) {
-      this.dataSelectors.elementId = entryForm.elements[0];
-    }
-
-    const todayDate = new Date();
-
-    if (entryForm.selectors.includes('YEAR')) {
-      this.dataSelectors.year = todayDate.getFullYear();
-    }
-
-    if (entryForm.selectors.includes('MONTH')) {
-      this.dataSelectors.month = todayDate.getMonth() + 1;
-    }
-
-    if (entryForm.selectors.includes('DAY')) {
-      this.dataSelectors.day = todayDate.getDate();
-    }
-
-    if (entryForm.selectors.includes('HOUR')) {
-      this.dataSelectors.hour = entryForm.hours.length > 0 ? entryForm.hours[0] : 0;
-    }
-
-    this.useDatePickerControl = entryForm.selectors.includes('YEAR') &&
-      entryForm.selectors.includes('MONTH') &&
-      entryForm.selectors.includes('DAY');
-
-    if (this.useDatePickerControl) {
-      this.defaultDatePickerDate = todayDate.toISOString().slice(0, 10);
-    }
-
-    this.entryControl = entryForm.layout;
+  
 
   }
 
+  private getSelectionFilter(stationId: string, sourceId: number, formMetadata: EntryForm): EntryFormFilter {
+    const todayDate: Date = new Date();
+    const formFilter: EntryFormFilter = {
+      stationId: stationId, sourceId: sourceId, period: formMetadata.period,
+      year: todayDate.getFullYear(), month: todayDate.getMonth() + 1
+    };
+
+    if (formMetadata.selectors.includes('ELEMENT')) {
+      formFilter.elementId = formMetadata.elementIds[0];
+    }
+
+    if (formMetadata.selectors.includes('DAY')) {
+      formFilter.day = todayDate.getDate();
+    }
+
+    if (formMetadata.selectors.includes('HOUR')) {    
+      formFilter.hour = formMetadata.hours[0];
+    }
+
+    return formFilter;
+
+  }
 
   private loadSelectedElementsAndObservations() {
 
@@ -140,10 +132,10 @@ export class FormEntryComponent implements OnInit {
 
     //determine which fields to use for loading the elements used in this control
     let elementsToSearch: number[] = [];
-    if (this.dataSelectors.elementId > 0) {
-      elementsToSearch.push(this.dataSelectors.elementId);
+    if (this.formFilter.elementId) {
+      elementsToSearch.push(this.formFilter.elementId);
     } else if (this.formMetadata.fields.includes("ELEMENT")) {
-      elementsToSearch.push(...this.formMetadata.elements);
+      elementsToSearch.push(...this.formMetadata.elementIds);
     } else {
       //todo. display error in set value flag set up
       return;
@@ -162,83 +154,69 @@ export class FormEntryComponent implements OnInit {
   }
 
   private getObservationData(): void {
+    //get the data based on the selection filter
+    const observationFilter: SelectObservation = {};
+    observationFilter.stationId = this.formFilter.stationId;
+    observationFilter.sourceId = this.formFilter.sourceId;
+    observationFilter.period = this.formFilter.period;
+    observationFilter.year = this.formFilter.year;
+    observationFilter.month = this.formFilter.month;
 
-    //get the data based on the station, data source and selectors
-    const select: SelectObservation = {};
-
-    select.stationId = this.dataSelectors.stationId;
-    select.sourceId = this.dataSelectors.sourceId;
-
-    if (this.dataSelectors.elementId > 0) {
-      select.elementId = this.dataSelectors.elementId;
+    if (this.formFilter.day) {
+      observationFilter.day = this.formFilter.day;
     }
 
-    if (this.dataSelectors.year > 0) {
-      select.year = this.dataSelectors.year;
+    if (this.formFilter.elementId) {
+      observationFilter.elementIds = [this.formFilter.elementId];
+    } else {
+      observationFilter.elementIds = this.formMetadata.elementIds;
     }
 
-    if (this.dataSelectors.month > 0) {
-      select.month = this.dataSelectors.month;
+    if (this.formFilter.hour !== undefined) {
+      observationFilter.hours = [this.formFilter.hour];
+    } else {
+      observationFilter.hours = this.formMetadata.hours;
     }
 
-    if (this.dataSelectors.day > 0) {
-      select.day = this.dataSelectors.day;
-    }
-
-    if (this.dataSelectors.hour > -1) {
-      select.hour = this.dataSelectors.hour;
-    }
-
-    select.period = this.dataSelectors.period;
-
-    this.observationService.getObservations(select).subscribe((data) => {
-
-      // Todo. Create a deep copy of original observations as well 
-      // then compare them before saving to eliminate unchanged data
+    this.observationService.getObservations(observationFilter).subscribe((data) => {
       this.observations = data;
-
     });
   }
 
-  public onElementChange(elementIdSelected: any): void {
-    this.dataSelectors.elementId = elementIdSelected;
+  public onElementChange(elementIdInput: number| null): void {
+    if(elementIdInput === null){
+      return;
+    }
+    this.formFilter.elementId = elementIdInput;
     this.loadSelectedElementsAndObservations();
   }
 
-  public onYearChange(yearInput: any): void {
-    this.dataSelectors.year = yearInput.id;
+  protected onYearMonthChange(yearMonthInput: string): void {
+    const date: Date = new Date(yearMonthInput); 
+    this.formFilter.year = date.getFullYear();
+    this.formFilter.month = date.getMonth() + 1;
     this.loadSelectedElementsAndObservations();
   }
 
-  public onMonthChange(monthSelected: any): void {
-    this.dataSelectors.month = monthSelected.id;
+  protected onDateChange(dateInput: string): void {
+    const date: Date = new Date(dateInput); 
+    this.formFilter.year = date.getFullYear();
+    this.formFilter.month = date.getMonth() + 1;
+    this.formFilter.day = date.getDate();
     this.loadSelectedElementsAndObservations();
   }
 
-  public onDayChange(daySelected: any): void {
-    this.dataSelectors.day = daySelected.id;
+  protected onHourChange(hourIdInput: number | null): void {
+    if(hourIdInput === null){
+      return;
+    }
+    this.formFilter.hour = hourIdInput;
     this.loadSelectedElementsAndObservations();
   }
 
-  onDateChange(dateInput: string): void {
-    const date = new Date(dateInput);
-    this.dataSelectors.year = date.getFullYear();
-    this.dataSelectors.month = date.getMonth() + 1;
-    this.dataSelectors.day = date.getDate();
-    this.loadSelectedElementsAndObservations();
-  }
-
-  onHourChange(hourInput: number): void {
-    this.dataSelectors.hour = hourInput;
-    this.loadSelectedElementsAndObservations();
-  }
-
-  public onValueChange(newObservation: ObservationModel): void {
-    //TODO. add to the list of observations changed for later elimintation checking
-    // for instance if value was really changed or not
-
+  protected onValueChange(newObservation: ObservationModel): void {
     const index = this.newObservations.findIndex((data) => (data === newObservation))
-    if (index > -1) {
+    if (index !== -1) {
       this.newObservations[index] = newObservation;
     } else {
       this.newObservations.push(newObservation);
@@ -246,10 +224,12 @@ export class FormEntryComponent implements OnInit {
 
   }
 
-  onSaveClick(): void {
+  protected onEnableSave(enableSave: boolean): void {
+    this.enableSave = enableSave;
+  }
 
-    // Todo. check for truly changed observations
-
+  protected onSaveClick(): void {
+    this.enableSave = false;
     this.observationService.saveObservations(this.newObservations).subscribe((data) => {
 
       this.pagesDataService.showToast({
@@ -261,7 +241,7 @@ export class FormEntryComponent implements OnInit {
     });
   }
 
-  onCancelClick(): void {
+  protected onCancelClick(): void {
     this.location.back();
   }
 

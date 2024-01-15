@@ -6,10 +6,11 @@ import { ObservationEntity } from './entities/observation.entity';
 import { FlagEntity } from './entities/flag.entity';
 import { FlagsController } from './controllers/flags.controller';
 import { FlagsService } from './services/flags.service';
+import { ObservationUploadService } from './services/observation-upload.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ObservationEntity, FlagEntity])],
   controllers: [ObservationsController, FlagsController],
-  providers: [ObservationsService, FlagsService]
+  providers: [ObservationsService, FlagsService, ObservationUploadService]
 })
 export class ObservationModule {}

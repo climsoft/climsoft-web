@@ -5,12 +5,12 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   templateUrl: './selector.component.html',
   styleUrls: ['./selector.component.scss']
 })
-export class SelectorComponent<T extends Object> implements OnChanges {
+export class SelectorComponent<T> implements OnChanges {
   @Input() label: string = '';
-  @Input() values: T[] = [];
-  @Input() displayFn: (option: T) => string = (option => option.toString());
-  @Input() selectedValue!: T;
-  @Output() selectedValueChange = new EventEmitter<T>();
+  @Input() options: T[] = [];
+  @Input() optionDisplayFn: (option: T) => string = (option => String(option));
+  @Input() selectedOption!: T;
+  @Output() selectedOptionChange = new EventEmitter<T>();
 
   protected filteredValues!: T[];
 
@@ -20,28 +20,28 @@ export class SelectorComponent<T extends Object> implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     if ('values' in changes) {
-      this.filteredValues = this.values;
+      this.filteredValues = this.options;
     }
 
   }
 
-  protected getDisplayValue(): string {
-    return this.selectedValue ? this.displayFn(this.selectedValue) : '';
+  protected get selectedOptionDisplay(): string {
+    return this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
   }
 
   protected onInputChange(inputValue: string): void {
     if (!inputValue) {
-      this.filteredValues = this.values;
+      this.filteredValues = this.options;
     } else {
-      this.filteredValues = this.values.filter(option =>
-        this.displayFn(option).toLowerCase().includes(inputValue.toLowerCase())
+      this.filteredValues = this.options.filter(option =>
+        this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())
       );
     }
   }
 
   protected onSelectedValue(selectedValue: T): void {
-    this.selectedValue = selectedValue;
-    this.selectedValueChange.emit(selectedValue);
-    this.filteredValues = this.values;
+    this.selectedOption = selectedValue;
+    this.selectedOptionChange.emit(selectedValue);
+    this.filteredValues = this.options;
   }
 }

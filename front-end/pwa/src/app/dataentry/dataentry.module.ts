@@ -7,8 +7,8 @@ import { SharedModule } from '../shared/shared.module';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
-import { GridLayoutComponent } from './controls/grid-layout/grid-layout.component';
-import { LnearLayoutComponent } from './controls/linear-layout/linear-layout.component';
+import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
+import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
 import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-input.component';
 
 //------------------------------------

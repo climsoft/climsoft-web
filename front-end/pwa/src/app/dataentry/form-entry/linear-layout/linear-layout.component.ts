@@ -1,11 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { ObservationModel } from 'src/app/core/models/observation.model';
-import { DataSelectorsValues } from '../../form-entry/form-entry.component';
+import { ObservationModel } from 'src/app/core/models/observation.model'; 
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { FlagModel } from 'src/app/core/models/Flag.model';
-import { EntryFieldItem, FormEntryUtil } from '../../form-entry/form-entry.util';
-import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
+import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
+import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service'; 
 
 @Component({
   selector: 'app-linear-layout',
@@ -13,18 +12,19 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.se
   styleUrls: ['./linear-layout.component.scss']
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
-  @Input() elements!: ElementModel[];
-  @Input() dataSelectors!: DataSelectorsValues;
-  @Input() formMetadata!: EntryForm;
-  @Input() dbObservations!: ObservationModel[];
-  @Input() flags!: FlagModel[];
-  @Output() valueChange = new EventEmitter<ObservationModel>();
+  @Input() public elements!: ElementModel[];
+  @Input() public formFilter!: EntryFormFilter;
+  @Input() public formMetadata!: EntryForm;
+  @Input() public dbObservations!: ObservationModel[];
+  @Input() public flags!: FlagModel[];
+  @Output() public valueChange = new EventEmitter<ObservationModel>();
+  @Output() public enableSave = new EventEmitter<boolean>();
 
   // Todo, change this to a typed interface
   protected fieldDefinitions!: [number, string][];
   protected fieldDefinitionsChunks!: [number, string][][];
   protected entryObservations!: ObservationModel[];
-  protected total: number = 0;
+  protected entryTotal!: { value: number | null, errorMessage: string | null };
   protected largeScreen: boolean = false;
 
   constructor(private viewPortService: ViewportService) {
@@ -39,30 +39,33 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //only proceed with seting up the control if all inputs have been set.
     if (this.dbObservations && this.elements && this.elements.length > 0 &&
-      this.dataSelectors && this.formMetadata &&
+      this.formFilter && this.formMetadata &&
       this.flags && this.flags.length > 0) {
 
       // Get the new definitions 
-      this.setup(this.dataSelectors, this.elements, this.formMetadata, this.dbObservations);
-
+      this.setup();
     } else {
       this.entryObservations = [];
     }
 
   }
 
-  private setup(dataSelectors: DataSelectorsValues, elements: ElementModel[], formMetadata: EntryForm, observations: ObservationModel[]): void {
+  private setup(): void {
     //get entry field to use for control definitions
-    const entryField = formMetadata.fields[0];
+    const entryField = this.formMetadata.fields[0];
     const fieldDefinitions: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryField, elements, dataSelectors.year, dataSelectors.month, formMetadata.hours
+      entryField, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
-    const controlDefs: ObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(dataSelectors, entryFieldItems, observations);
+    const entryObservations: ObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(this.formFilter, entryFieldItems, this.dbObservations);
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
-    this.entryObservations = controlDefs;
+    this.entryObservations = entryObservations;
+    if (this.formMetadata.validateTotal) {
+      this.entryTotal = { value: FormEntryUtil.getTotal(this.entryObservations, this.elements), errorMessage: '' };
+    }
+
   }
 
   protected getEntryObservation(fieldDef: [number, string]): ObservationModel {
@@ -80,19 +83,28 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     return chunks;
   }
 
+  protected onValueChange(): void {
+    if (this.formMetadata.validateTotal) {
+      this.entryTotal.errorMessage = null;
+      this.entryTotal.value = null;
+    }
+    
+    this.enableSave.emit(!this.formMetadata.validateTotal);
+  }
+  
 
-  protected onValueChange(entryObservation: ObservationModel): void {
+  protected onInputBlur(entryObservation: ObservationModel): void {
     this.valueChange.emit(entryObservation);
   }
 
-  protected onTotalInput(value: number | null): void {
-    if (!value) {
-      return;
-    }
-    //todo. think about the total
-    //should we have it displayed when the form is shown
-    //left here
-    this.total = value;
+  protected onTotalValueChange(value: number | null): void {
+    const expectedTotal = FormEntryUtil.getTotal(this.entryObservations, this.elements);
+    this.entryTotal.errorMessage = FormEntryUtil.checkTotal(expectedTotal, value);
+    this.entryTotal.value = value;
+
+    // If no error, then emit true. If error detected emit false
+    this.enableSave.emit(this.entryTotal.errorMessage === null || this.entryTotal.errorMessage === '');
   }
+
 
 }

@@ -1,28 +1,23 @@
 
-export type SelectorType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR';
-export type SelectorsType = [SelectorType, SelectorType, SelectorType, SelectorType?];
-
-export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
-export type FieldsType = [FieldType, FieldType?];
+export type EntryType = 'ELEMENT' | 'DAY' | 'HOUR';
+//export type EntrysType = [EntryType, EntryType?];
 
 export type LayoutType = 'LINEAR' | 'GRID';
 
 
 export interface EntryForm {
 
-    //defines the entry selectors used by the form to get data
-    //allowed values, array of ; element, year, month, day, hour e.
-    selectors: SelectorsType;
+    //defines the extra entry selectors used by the form to get data
+    selectors: [EntryType, EntryType?];
 
-    //defines the entry fields used by the form to display data
-    //can only contain elementId, day or hour
-    fields: FieldsType;
+    //defines the entry fields used by the form to display and enter data
+    fields: [EntryType, EntryType?];
 
-    //control to be used for entry fields in data entry and data display
+    //layout used by entry fields
     layout: LayoutType;
 
     //elements ids allowed to be recorded by the form
-    elements: number[];
+    elementIds: number[];
 
     //hours allowed to be recorded by the form
     hours: number[];
