@@ -10,6 +10,7 @@ import { StationFormSelectionComponent } from './station-form-selection/station-
 import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
 import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
 import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-input.component';
+import { ViewEntryComponent } from './view-entry/view-entry.component';
 
 //------------------------------------
 
@@ -23,7 +24,8 @@ import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-
     FormEntryComponent,
     GridLayoutComponent,
     LnearLayoutComponent,
-    ValueFlagInputComponent, 
+    ValueFlagInputComponent,
+    ViewEntryComponent, 
 
   ],
   imports: [

@@ -15,15 +15,15 @@ export class SelectObservationDTO {
 
     @IsNumber()
     @IsOptional()
-    year?: number;
+    period?: number;
 
-    @IsNumber()
+    @IsString()
     @IsOptional()
-    month?: number;
+    fromDate?: string; //yyyy-mm-dd format
 
-    @IsNumber()
+    @IsString()
     @IsOptional()
-    day?: number;
+    toDate?: string;//yyyy-mm-dd format
 
     @IsNumber()
     @IsOptional()
@@ -31,13 +31,27 @@ export class SelectObservationDTO {
 
     @IsNumber()
     @IsOptional()
-    period: number;
+    page?: number;
 
     @IsNumber()
     @IsOptional()
-    limit?: number;
+    pageSize?: number;
+
+
+    //TODO. Delete below later
 
     @IsNumber()
     @IsOptional()
-    offset?: number;
+    year?: number;//todo. remove
+
+    @IsNumber()
+    @IsOptional()
+    month?: number;//todo. remove
+
+    @IsNumber()
+    @IsOptional()
+    day?: number;//todo. remove
+
+
+ 
 }

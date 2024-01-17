@@ -1,6 +1,4 @@
-
-
-export class ViewObservationDto {
+export interface ViewObservationDto {
     stationName: string;
     elementAbbrv: string;
     sourceName: string;
@@ -12,5 +10,4 @@ export class ViewObservationDto {
     qcStatus: number;
     entryUserName: string;
     entryDateTime: string;
- 
 }

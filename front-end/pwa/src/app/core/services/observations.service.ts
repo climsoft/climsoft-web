@@ -4,7 +4,8 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 import { ObservationModel } from '../models/observation.model';
-import { SelectObservation } from '../models/select-observation.model';
+import { SelectObservation } from '../models/dtos/select-observation.model';
+import { ViewObservationDto } from '../models/dtos/view-observation.model';
 
 @Injectable({
   providedIn: 'root'
@@ -15,29 +16,39 @@ export class ObservationsService {
 
   constructor(private http: HttpClient) { }
 
-
-  getObservations(selectObservation: SelectObservation): Observable<ObservationModel[]> {
-
-    const obsParams: { [key:string]: any } = {};
+  //TODO. This shpuld later be generalised
+  private getQueryParams(selectObservation: SelectObservation): { [key: string]: any } {
+    const obsParams: { [key: string]: any } = {};
 
     for (const key in selectObservation) {
       if (selectObservation.hasOwnProperty(key)) {
         const value = selectObservation[key as keyof SelectObservation];
         if (value !== undefined) {
-          obsParams[key] = value; 
+          obsParams[key] = value;
         }
       }
     }
 
-    //console.log('observation params', obsParams);   
+    return obsParams
+  }
 
-    return this.http.get<ObservationModel[]>(this.endPointUrl, { params: obsParams })
+  public getObservationsRaw(selectObservation: SelectObservation): Observable<ObservationModel[]> {
+    return this.http.get<ObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams(selectObservation) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  saveObservations(observations: ObservationModel[]): Observable<ObservationModel[]> {
+  public getObservations(selectObservation: SelectObservation): Observable<ViewObservationDto[]> {
+    return this.http.get<ViewObservationDto[]>(`${this.endPointUrl}`, { params: this.getQueryParams(selectObservation) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+
+
+  public saveObservations(observations: ObservationModel[]): Observable<ObservationModel[]> {
     return this.http.post<ObservationModel[]>(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)

@@ -7,15 +7,30 @@ export class SourcesController {
 
     constructor(private readonly sourcesService: SourcesService) { }
 
+    // @Get()
+    // find(@Query() query: { [key: string]: number }) {
+    //     if (query['sourceId']) {
+    //         return this.sourcesService.findSource(query['sourceId']);
+    //     } else if (query['sourceTypeId']) {
+    //         return this.sourcesService.findSources(query['sourceTypeId']);
+    //     } else {
+    //         return this.sourcesService.findSources();
+    //     }    
+    // }
+
     @Get()
-    find(@Query() query: { [key: string]: number }) {
-        if (query['sourceId']) {
-            return this.sourcesService.findSource(query['sourceId']);
-        } else if (query['sourceTypeId']) {
-            return this.sourcesService.findSources(query['sourceTypeId']);
-        } else {
-            return this.sourcesService.findSources();
-        }    
+    find() {
+        return this.sourcesService.findSources();
+    }
+
+    @Get('/source/:id')
+    findSource(@Param('id') id: number) {
+        return this.sourcesService.findSource(id);
+    }
+
+    @Get('/source-type/:id')
+    findSourcesOfType(@Param('id') id: number) {
+        return this.sourcesService.findSources(id);
     }
 
     @Post()

@@ -38,5 +38,6 @@ import { StationElementInstrumentEntity } from './entities/station-element-instr
     ])],
     controllers: [SourcesController, StationsController, ElementsController],
     providers: [SourcesService, StationsService, ElementsService],
+    exports:[SourcesService, StationsService, ElementsService]
 })
 export class MetadataModule { }

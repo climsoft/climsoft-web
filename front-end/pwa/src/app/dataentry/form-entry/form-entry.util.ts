@@ -1,7 +1,5 @@
-
 import { ElementModel } from 'src/app/core/models/element.model';
-import { ObservationModel } from 'src/app/core/models/observation.model';
-import { DataSelectorsValues } from './form-entry.component';
+import { ObservationModel } from 'src/app/core/models/observation.model'; 
 import { EntryType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';

@@ -8,12 +8,19 @@ import { ObservationUploadService } from '../services/observation-upload.service
 @Controller('observations')
 export class ObservationsController {
   constructor(private readonly observationsService: ObservationsService,
-    private readonly  observationUpload: ObservationUploadService,) { }
+    private readonly observationUpload: ObservationUploadService,) { }
 
   @Get()
-  find(@Query() selectObsevationQuery: SelectObservationDTO) {
-    return this.observationsService.find(selectObsevationQuery);
+  findProcessed(@Query() selectObsevationQuery: SelectObservationDTO) {
+    return this.observationsService.findProcessed(selectObsevationQuery);
   }
+
+
+  @Get('/raw')
+  findRaw(@Query() selectObsevationQuery: SelectObservationDTO) {
+    return this.observationsService.findRaw(selectObsevationQuery); 
+  }
+
 
   // @Get(':id')
   // findOne(@Param('id') id: string) {
@@ -38,7 +45,7 @@ export class ObservationsController {
   ) file: Express.Multer.File, @Session() session: Record<string, any>) {
 
     session.userId = session.userId ? session.userId : 1;
-    return this.observationUpload.processFile( session.userId, file);
+    return this.observationUpload.processFile(session.userId, file);
   }
 
   // @Patch(':id')
