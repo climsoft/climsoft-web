@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Equal, FindOptionsWhere, In, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ObservationEntity, ObservationLogVo } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { ElementEntity } from 'src/metadata/entities/element.entity';
 import { ElementsService } from 'src/metadata/services/elements.service';
 import { SourcesService } from 'src/metadata/services/sources.service';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
