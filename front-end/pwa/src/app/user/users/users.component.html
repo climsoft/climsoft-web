@@ -1,0 +1,25 @@
+<div class="card border-0">
+    <div class="card-header d-flex justify-content-between p-0 align-items-center">
+        <div class="fw-bold">Showing Users</div>
+        <div class="mb-1">
+            <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+                Search
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewUserClick()">
+                New
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body px-0">
+        <app-table-view [clickable]="true" [columnsData]="[ 
+            {id: 'id', name: 'Id'},
+            {id: 'name', name: 'Name'},
+            {id: 'email', name: 'Email'}, 
+            {id: 'phone', name: 'Phone'},
+            {id: 'roleName', name: 'Role'},
+            {id: 'disabled', name: 'Disabled'} ]" [rowsData]="users"
+            (rowDataClicked)="onEditUserClick($event)"></app-table-view>
+    </div>
+
+</div>

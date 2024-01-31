@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { SourcesService } from '../services/sources.service';
 import { CreateSourceDto } from '../dtos/create-source.dto';
+import { Admin } from 'src/shared/decorators/admin.decorator';
 
 @Controller('sources')
 export class SourcesController {
@@ -15,14 +16,16 @@ export class SourcesController {
     //         return this.sourcesService.findSources(query['sourceTypeId']);
     //     } else {
     //         return this.sourcesService.findSources();
-    //     }    
+    //     }     
     // }
 
+    @Admin()
     @Get()
     find() {
         return this.sourcesService.findSources();
     }
 
+    @Admin()
     @Get('/source/:id')
     findSource(@Param('id') id: number) {
         return this.sourcesService.findSource(id);
@@ -33,16 +36,19 @@ export class SourcesController {
         return this.sourcesService.findSources(id);
     }
 
+    @Admin()
     @Post()
     create(@Body() createSourceDto: CreateSourceDto) {
         return this.sourcesService.create(createSourceDto);
     }
 
+    @Admin()
     @Patch(':id')
     update(@Param('id') id: number, @Body() createSourceDto: CreateSourceDto) {
         return this.sourcesService.updateSource(id, createSourceDto);
     }
 
+    @Admin()
     @Delete(':id')
     delete(@Param('id') id: number) {
         return this.sourcesService.deleteSource(id);

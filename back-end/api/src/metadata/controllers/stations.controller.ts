@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Session } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { CreateStationDto } from '../dtos/create-station.dto';
 import { CreateStationElementLimitDto } from '../dtos/create-station-element-limit.dto';
+import { Admin } from 'src/shared/decorators/admin.decorator';
 
 @Controller('stations')
 export class StationsController {
@@ -10,7 +11,6 @@ export class StationsController {
 
   @Get()
   findAll() {
-    // const { limit, offset } = paginationQuery;
     return this.stationsService.findAll();
   }
 
@@ -19,6 +19,7 @@ export class StationsController {
     return this.stationsService.findStation(id);
   }
 
+  @Admin()
   @Post()
   saveCharacteristics(@Body() stationDto: CreateStationDto[]) {
     return this.stationsService.saveStations(stationDto);
@@ -30,11 +31,13 @@ export class StationsController {
     return this.stationsService.findElements(id);
   }
 
+  @Admin()
   @Post('elements/:id')
   saveElements(@Param('id') stationId: string, @Body() elementIds: number[]) {
     return this.stationsService.saveElements(stationId, elementIds);
   }
 
+  @Admin()
   @Delete('elements/:stationId/:elementId')
   deleteElement(@Param('stationId') stationId: string, @Param('elementId') elementId: number) {
     return this.stationsService.deleteElement(stationId, elementId);
@@ -50,6 +53,7 @@ export class StationsController {
     return this.stationsService.findStationElementLimits(stationId, elementId);
   }
 
+  @Admin()
   @Post('element-limits/:stationId/:elementId')
   saveElementLimits(
     @Param('stationId') stationId: string,
@@ -58,6 +62,7 @@ export class StationsController {
     return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
   }
 
+  @Admin()
   @Delete('element-limits/:stationId/:elementId/:monthId')
   deleteElementLimit(
     @Param('stationId') stationId: string,
@@ -74,11 +79,13 @@ export class StationsController {
     return this.stationsService.findForms(id);
   }
 
+  @Admin()
   @Post('forms/:id')
   saveForms(@Param('id') stationId: string, @Body() formIds: number[]) {
     return this.stationsService.saveForms(stationId, formIds);
   }
 
+  @Admin()
   @Delete('forms/:stationId/:formId')
   deleteForm(@Param('stationId') stationId: string, @Param('formId') formId: number) {
     return this.stationsService.deleteForm(stationId, formId);

@@ -7,6 +7,7 @@ import { SourceModel } from '../../core/models/source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-form-detail',
@@ -43,7 +44,7 @@ export class FormDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['sourceid'];
-    if (sourceId) {
+    if (StringUtils.containsNumbersOnly(sourceId) ) {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
       this.sourceService.getSource(sourceId).subscribe((data) => {

@@ -1,23 +1,42 @@
 <div *ngIf="element" class="card border-0">
-    <div class="card-body p-0">
-        <div class="card-title fw-bold">Showing element details</div>
-        <div>
-            <app-number-input [label]="'Id'" [value]="element.id" (valueChange)="onElementIdEntry($event)"></app-number-input>
-            <app-text-input [label]="'Name'" [(value)]="element.name"></app-text-input>
-            <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation"></app-text-input>
-            <app-text-input [label]="'Description'" [(value)]="element.description"></app-text-input>
-            <app-number-input [label]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
-            <app-number-input [label]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
-            <app-number-input [label]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
-        </div>
+  <div class="card-body p-0">
+    <div class="card-title fw-bold">Showing element details</div>
+    <div>
+      <div class="mb-3">
+        <app-number-input [label]="'Id'" [value]="element.id" (valueChange)="onElementIdEntry($event)" />
+      </div>
+      <div class="mb-3">
+        <app-text-input [label]="'Name'" [(value)]="element.name" />
+      </div>
+      <div>
+        <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation"></app-text-input>
+      </div>
+
+      <div class="mb-3">
+        <app-text-input [label]="'Description'" [(value)]="element.description"></app-text-input>
+      </div>
+
+      <div class="mb-3">
+        <app-number-input [label]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
+      </div>
+
+      <div class="mb-3">
+        <app-number-input [label]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
+      </div>
+
+      <div class="mb-3">
+        <app-number-input [label]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
+      </div>
 
     </div>
 
-    <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
-          Save 
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
-      </div>
+  </div>
+
+  <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+      Save
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+  </div>
 
 </div>

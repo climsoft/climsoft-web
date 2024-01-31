@@ -1,0 +1,30 @@
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6">
+            <div class="card border-0">
+                <div class="card-header border-0">
+                    CLIMSOFT
+                </div>
+                <div class="card-body">
+                    <div *ngIf="errorMessage" class="alert alert-danger">{{errorMessage}}</div>
+                    <form (ngSubmit)="login()">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username(Email)</label>
+                            <input type="email" class="form-control" id="username" name="username" [(ngModel)]="username"
+                                required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                [(ngModel)]="password" required>
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-outline-secondary">Login</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

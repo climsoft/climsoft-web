@@ -22,6 +22,7 @@
 
   <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
 
+  <!-- TODO. utilise custom css similar in the way done by toast and user drop down in home component -->
   <div *ngIf="displayDropDown"
     class="position-absolute min-w-100 overflow-auto border border-dark rounded custom-drop-down"
     [style.max-height.px]="dropDownOptionMaxHeight"> 

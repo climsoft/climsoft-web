@@ -64,6 +64,6 @@ export interface ObservationLogVo {
   final: boolean;
   comment: string | null;
   entryUserId: string;
-  entryDateTime: string;
   deleted: boolean;
+  entryDateTime: string;
 }

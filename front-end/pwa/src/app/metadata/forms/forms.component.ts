@@ -37,7 +37,7 @@ export class FormsComponent implements OnInit {
   }
 
   onNewForm() {
-    this.router.navigate(['form-detail'], { relativeTo: this.route.parent });
+    this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
   }
 
 

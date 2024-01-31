@@ -19,7 +19,7 @@ import { YearInputComponent } from './controls/year-input/year-input.component';
 import { MonthInputComponent } from './controls/month-input/month-input.component';
 import { DayInputComponent } from './controls/day-input/day-input.component'; 
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
@@ -78,6 +78,8 @@ const controlsComponents = [
   SourceSingleInputComponent,
   StationSingleInputComponent,
 
+
+
 ];
 
 const directives = [
@@ -90,6 +92,7 @@ const directives = [
     ...controlsComponents,
     ...directives,
   
+  
   ],
   imports: [
     ...angularModules,
@@ -100,7 +103,7 @@ const directives = [
 
   ],
   providers: [
-
+   
   ],
   exports: [
     ...angularModules,

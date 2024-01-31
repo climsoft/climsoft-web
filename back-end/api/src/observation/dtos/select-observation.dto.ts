@@ -9,7 +9,7 @@ export class SelectObservationDTO {
     @IsOptional()
     sourceId?: number; 
 
-    @IsNumber()
+    //@IsNumber()
     @IsOptional()
     elementIds?: number[];
 
@@ -25,7 +25,7 @@ export class SelectObservationDTO {
     @IsOptional()
     toDate?: string;//yyyy-mm-dd format
 
-    @IsNumber()
+    //@IsNumber()
     @IsOptional()
     hours?: number[];
 
