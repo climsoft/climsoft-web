@@ -46,8 +46,8 @@
 
         <!--period-->
         <div class="mb-3">
-            <app-period-selector [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
-                (selectedIdChange)="onPeriodSelected($event)"></app-period-selector>
+            <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
+                (selectedIdChange)="onPeriodSelected($event)"></app-period-single-input>
         </div>
         <!--------->
 

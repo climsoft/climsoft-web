@@ -1,27 +1,32 @@
-import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseFilePipe, Post, Query, Session, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseFilePipe, Post, Query, Session, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ObservationUploadService } from '../services/observation-upload.service';
+//import { AuthorisedStationsPipe } from '../pipes/authorised-stations.pipe';
+import { Public } from 'src/shared/decorators/public.decorator';
+import { AuthorisedStationsPipe } from 'src/shared/pipes/authorised-stations.pipe';
 
 @Controller('observations')
 export class ObservationsController {
   constructor(private readonly observationsService: ObservationsService,
-    private readonly  observationUpload: ObservationUploadService,) { }
+    private readonly observationUpload: ObservationUploadService,) { }
 
+  @Public()
   @Get()
-  find(@Query() selectObsevationQuery: SelectObservationDTO) {
-    return this.observationsService.find(selectObsevationQuery);
+  getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
+    return this.observationsService.findProcessed(selectObsevationQuery);
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   //return this.observationsService.findOne(id);
-  // }
+
+  @Get('/raw')
+  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
+    return this.observationsService.findRaw(selectObsevationQuery);
+  }
 
   @Post()
-  create(@Body() observationDtos: CreateObservationDto[]) {
+  save(@Body(AuthorisedStationsPipe) observationDtos: CreateObservationDto[]) {
     //console.log('dtos', observationDtos);
     return this.observationsService.save(observationDtos);
   }
@@ -37,8 +42,8 @@ export class ObservationsController {
     }),
   ) file: Express.Multer.File, @Session() session: Record<string, any>) {
 
-    session.userId = session.userId ? session.userId : 1;
-    return this.observationUpload.processFile( session.userId, file);
+    //session.userId = session.userId ? session.userId : 1;
+    return this.observationUpload.processFile(session, file);
   }
 
   // @Patch(':id')

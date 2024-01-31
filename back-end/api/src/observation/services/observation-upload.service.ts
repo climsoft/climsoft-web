@@ -16,7 +16,7 @@ export class ObservationUploadService {
 
     constructor(private readonly observationsService: ObservationsService) { }
 
-    async processFile(userId: string, file: Express.Multer.File): Promise<string> {
+    async processFile(session: Record<string, any>, file: Express.Multer.File): Promise<string> {
         const observationDtos: CreateObservationDto[] = [];
         let index: number = 0;
 
@@ -109,7 +109,8 @@ export class ObservationUploadService {
     }
 
 
-    private saveFile(userId: string, fileContent: string): void {
+    private saveFile(session: Record<string, any>, fileContent: string): void {
+        const userId = session.user.id;
         fs.writeFile(`C:/Users/patoe/Downloads/${userId}.json`, fileContent, err => {
             if (err) {
                 console.error('Error when saving file:', err);

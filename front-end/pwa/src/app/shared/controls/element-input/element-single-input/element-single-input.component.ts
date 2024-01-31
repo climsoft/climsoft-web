@@ -26,15 +26,15 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //load the elements once
-    if (!this.options || this.includeOnlyIds) { 
+    if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length>0)) { 
       this.elementsSevice.getElements(this.includeOnlyIds).subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });
+    }else{
+      this.setInputSelectedOption();
     }
-
-
-    this.setInputSelectedOption();
+ 
   }
 
   private setInputSelectedOption(): void {

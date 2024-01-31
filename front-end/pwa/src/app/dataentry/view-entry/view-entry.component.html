@@ -1,0 +1,66 @@
+<div class="card border-0">
+  <div class="card-body p-0">
+    <div class="row g-2 px-2">
+      <div class="col-auto mb-2">
+        <app-station-single-input [label]="'Station'" [(selectedId)]="stationId" />
+      </div>
+      <div class="col-auto mb-2">
+        <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-element-single-input [label]="'Element'" [(selectedId)]="elementId" />
+
+        <!-- <app-element-single-input [label]="'Element'" [includeOnlyIds]="formMetadata.elementIds"
+                [selectedId]="formFilter.elementId" (selectedIdChange)="onElementChange($event)" /> -->
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-date-input [label]="'From'" [(value)]="fromDate" />
+
+        <!-- <app-date-input [label]="'Date'" [value]="defaultDateValue"
+                (valueChange)="onDateChange($event)"></app-date-input> -->
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-date-input [label]="'To'" />
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-hour-single-input [label]="'Hour'" />
+        <!-- <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formMetadata.hours" [selectedId]="formFilter.hour"
+                (selectedIdChange)="onHourChange($event)" /> -->
+      </div>
+
+    </div>
+
+    <div class="card-header d-flex justify-content-between p-0 align-items-center">
+      <div class="fw-bold">Showing Entries</div>
+      <div class="mb-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onViewClick()">
+          Refresh
+        </button>
+      </div>
+    </div>
+    <div class="mt-2">
+      <app-table-view [clickable]="true" [columnsData]="[ 
+      {id: 'stationName', name: 'Station'}, 
+      {id: 'sourceName', name: 'Source'}, 
+      {id: 'elementAbbrv', name: 'Element'} , 
+      {id: 'level', name: 'Level'} , 
+      {id: 'period', name: 'Period'}, 
+      {id: 'datetime', name: 'Date Time'} ,
+      {id: 'value', name: 'Value'},
+      {id: 'flag', name: 'Flag'},
+      {id: 'entryUserName', name: 'User'}, 
+      {id: 'entryDateTime', name: 'Entry Date Time'}, ]" [rowsData]="observations"
+        (rowDataClicked)="onObservationClick($event)" />
+    </div>
+
+
+  </div>
+</div>

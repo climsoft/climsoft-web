@@ -1,9 +1,6 @@
 
-export type EntryType = 'ELEMENT' | 'DAY' | 'HOUR';
-//export type EntrysType = [EntryType, EntryType?];
-
-export type LayoutType = 'LINEAR' | 'GRID';
-
+export type EntryType = 'ELEMENT' | 'DAY' | 'HOUR'; //todo. convert this to enums?
+export type LayoutType = 'LINEAR' | 'GRID'; //todo. convert this to enums?
 
 export interface EntryForm {
 

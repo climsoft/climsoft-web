@@ -26,8 +26,8 @@ export class ElementDetailComponent implements OnInit {
 
   ngOnInit() {
 
-    const elementId = this.route.snapshot.params['elementid'];
-    console.log("element id", elementId)
+    const elementId = this.route.snapshot.params['id'];
+    //console.log("element id", elementId)
     if (StringUtils.containsNumbersOnly(elementId)) {
       this.elementsService.getElement(elementId).subscribe((data) => {
         this.element = data;

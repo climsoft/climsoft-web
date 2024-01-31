@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SourceModel } from '../../core/models/source.model';
-import { DataClicked } from '../../shared/controls/data-list-view/data-list-view.component';
+import { SourceModel, SourceTypeIdEnum } from '../../core/models/source.model'; 
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
@@ -28,7 +27,7 @@ export class FormsComponent implements OnInit {
 
   private loadSources() {
     //get data sources of source type forms
-    this.sourceService.getSources(1).subscribe((data) => {
+    this.sourceService.getSources(SourceTypeIdEnum.FORM).subscribe((data) => {
       this.sources = data;
     });
   }
@@ -38,7 +37,7 @@ export class FormsComponent implements OnInit {
   }
 
   onNewForm() {
-    this.router.navigate(['form-detail'], { relativeTo: this.route.parent });
+    this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
   }
 
 

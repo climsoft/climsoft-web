@@ -14,21 +14,17 @@ import { NgSelectModule } from '@ng-select/ng-select';
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
-import { SelectorInputComponent } from './controls/selector-input/selector-input.component';
-import { HourInputComponent } from './controls/hour-input/hour-input.component';
-import { StationInputComponent } from './controls/station-input/station-input.component';
+import { SelectorInputComponent } from './controls/selector-input/selector-input.component'; 
 import { YearInputComponent } from './controls/year-input/year-input.component';
 import { MonthInputComponent } from './controls/month-input/month-input.component';
-import { DayInputComponent } from './controls/day-input/day-input.component';
-import { ElementInputComponent } from './controls/element-input/element-input.component';
+import { DayInputComponent } from './controls/day-input/day-input.component'; 
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
 import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron.component';
 import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
-import { PeriodSelectorComponent } from './controls/period-selector/period-selector.component';
 import { SimulateTabOnEnterDirective } from '../shared/simulate-tab-on-enter.directive';
 import { CloseDropDownDirective } from './close-drop-down.directive';
 import { YearMonthInputComponent } from './controls/year-month-input/year-month-input.component';
@@ -38,6 +34,9 @@ import { ElementSingleInputComponent } from './controls/element-input/element-si
 import { ElementMultipleInputComponent } from './controls/element-input/element-multiple-input/element-multiple-input.component';
 import { HourSingleInputComponent } from './controls/hour-input/hour-single-input/hour-single-input.component';
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
+import { PeriodSingleInputComponent } from './controls/period-input/period-single-input/period-single-input.component';
+import { SourceSingleInputComponent } from './controls/source-input/source-single-input/source-single-input.component';
+import { StationSingleInputComponent } from './controls/station-input/station-single-input/station-single-input.component';
 
 //--------------------------------
 
@@ -59,11 +58,6 @@ const controlsComponents = [
   YearInputComponent,
   MonthInputComponent,
   DayInputComponent,
-  HourInputComponent,
-
-  StationInputComponent,
-  ElementInputComponent,
-  PeriodSelectorComponent,
 
   DataListViewComponent,
   TableViewComponent,
@@ -80,6 +74,12 @@ const controlsComponents = [
 
   YearMonthInputComponent,
 
+  PeriodSingleInputComponent,
+  SourceSingleInputComponent,
+  StationSingleInputComponent,
+
+
+
 ];
 
 const directives = [
@@ -91,7 +91,8 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
-
+  
+  
   ],
   imports: [
     ...angularModules,
@@ -102,7 +103,7 @@ const directives = [
 
   ],
   providers: [
-
+   
   ],
   exports: [
     ...angularModules,

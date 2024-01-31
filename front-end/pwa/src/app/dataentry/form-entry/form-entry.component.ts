@@ -11,21 +11,10 @@ import { ElementsService } from 'src/app/core/services/elements.service';
 import { FlagsService } from 'src/app/core/services/flags.service';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { StringUtils } from 'src/app/shared/utils/string.utils'; 
 import { EntryFormFilter } from './form-entry.util';
-import { SelectObservation } from 'src/app/core/models/select-observation.model';
+import { SelectObservation } from 'src/app/core/models/dtos/select-observation.model';
 
-export interface DataSelectorsValues {
-  stationId: string;
-  sourceId: number;
-  elementId: number;
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  period: number;
-}
 
 export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'YEARMONTH' | 'DATE';
 
@@ -35,7 +24,6 @@ export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' 
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit {
-  //protected dataSelectors!: DataSelectorsValues;
   protected formMetadata!: EntryForm;
   protected formFilter!: EntryFormFilter;
 
@@ -178,7 +166,7 @@ export class FormEntryComponent implements OnInit {
       observationFilter.hours = this.formMetadata.hours;
     }
 
-    this.observationService.getObservations(observationFilter).subscribe((data) => {
+    this.observationService.getObservationsRaw(observationFilter).subscribe((data) => {
       this.observations = data;
     });
   }
@@ -198,12 +186,14 @@ export class FormEntryComponent implements OnInit {
     this.loadSelectedElementsAndObservations();
   }
 
-  protected onDateChange(dateInput: string): void {
-    const date: Date = new Date(dateInput); 
-    this.formFilter.year = date.getFullYear();
-    this.formFilter.month = date.getMonth() + 1;
-    this.formFilter.day = date.getDate();
-    this.loadSelectedElementsAndObservations();
+  protected onDateChange(dateInput: string|null): void {
+    if(dateInput){
+      const date: Date = new Date(dateInput); 
+      this.formFilter.year = date.getFullYear();
+      this.formFilter.month = date.getMonth() + 1;
+      this.formFilter.day = date.getDate();
+      this.loadSelectedElementsAndObservations();
+    } 
   }
 
   protected onHourChange(hourIdInput: number | null): void {

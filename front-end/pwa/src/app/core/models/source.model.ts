@@ -1,7 +1,13 @@
+export enum SourceTypeIdEnum {
+    FORM = 1,
+    IMPORT = 2,
+    DIGITAL = 3,
+}
+
 export interface SourceModel {
     id: number;
     name: string;
     description: string;
     extraMetadata: string; //json
-    sourceTypeId: 1 | 2 | 3; //types allowed
+    sourceTypeId: SourceTypeIdEnum; //types allowed
 }

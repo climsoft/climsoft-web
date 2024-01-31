@@ -26,11 +26,7 @@ const routes: Routes = [
         data: {
           subComponent: true
         }
-      },
-      {
-        path: 'form-detail',
-        component: FormDetailComponent
-      },
+      }, 
       {
         path: 'form-detail/:sourceid',
         component: FormDetailComponent
@@ -48,7 +44,7 @@ const routes: Routes = [
         component: ElementsComponent
       },
       {
-        path: 'element-detail/:elementid',
+        path: 'element-detail/:id',
         component: ElementDetailComponent
       },
     ]

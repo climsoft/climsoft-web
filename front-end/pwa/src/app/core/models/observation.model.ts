@@ -9,7 +9,7 @@ export interface ObservationModel {
     flag: number | null; //todo. rename this to flag Id
     qcStatus: number;
     comment: string | null;
-    entryUser?: number;
+    entryUserId?: number;
     entryDateTime?: string;
     log: string | null; //json string
 }

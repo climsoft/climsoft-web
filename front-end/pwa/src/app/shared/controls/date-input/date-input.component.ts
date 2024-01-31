@@ -11,11 +11,11 @@ export class DateInputComponent implements OnInit, OnChanges {
   @Input() public disabled: boolean = false;
   @Input() public hintMessage!: string;
   @Input() public errorMessage!: string | null;
-  @Input() public value!: string;
-  @Output() public valueChange = new EventEmitter<string >();
-  @Output() public inputClick = new EventEmitter<string >();
-  @Output() public inputEnterKeyPress = new EventEmitter<string>();
-  @Output() public inputBlur = new EventEmitter<string >();
+  @Input() public value!: string|null;
+  @Output() public valueChange = new EventEmitter<string|null >();
+  @Output() public inputClick = new EventEmitter<string|null >();
+  @Output() public inputEnterKeyPress = new EventEmitter<string|null>();
+  @Output() public inputBlur = new EventEmitter<string|null >();
   maxDate: string = "";
 
   constructor() {
@@ -29,7 +29,12 @@ export class DateInputComponent implements OnInit, OnChanges {
    
   }
   protected onValueChange(value: string) {
-    this.valueChange.emit(value);
+    if(value){
+      this.valueChange.emit(value);
+    }else{
+      this.valueChange.emit(null);
+    }
+ 
   }
 
   protected onInputClick(): void {

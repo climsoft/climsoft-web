@@ -6,10 +6,11 @@ import { SharedModule } from './shared/shared.module';
 import { ObservationModule } from './observation/observation.module';
 import { FileController } from './file.controller';
 import { MetadataModule } from './metadata/metadata.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
-    SharedModule, MetadataModule, ObservationModule,
+    SharedModule, UserModule, MetadataModule, ObservationModule,
     TypeOrmModule.forRoot({
       type: 'mariadb', // type of our database
       host: 'localhost', // database host
@@ -20,8 +21,7 @@ import { MetadataModule } from './metadata/metadata.module';
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: true, // your entities will be synced with the database(recommended: disable in prod)
      // timezone: 'Z', //todo. do more research about it. It affects how dates are saved in the database
-    }),
-    MetadataModule,  
+    }), 
 
   ],
   controllers: [AppController, FileController],
