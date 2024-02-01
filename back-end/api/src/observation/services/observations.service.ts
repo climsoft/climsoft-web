@@ -28,7 +28,7 @@ export class ObservationsService {
 
                 const obsEntities = await this.findRaw(selectObsevationDto);
 
-                const stationEntities = await this.stationsService.findAll();
+                const stationEntities = await this.stationsService.findStations();
                 const elementEntities = await this.elementsService.findElements();
                 const sourceEntities = await this.sourcesService.findSources();
 

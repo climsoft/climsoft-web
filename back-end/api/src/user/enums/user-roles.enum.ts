@@ -1,6 +1,6 @@
 export enum UserRole {
     Administrator = 1,
-    DataApprover = 2,
-    DataEntry = 3,
-    DataAnalyst = 4,
+    Approver = 2,
+    EntryClerk = 3,
+    Viewer = 4,
 }

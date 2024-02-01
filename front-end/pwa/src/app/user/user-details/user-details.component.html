@@ -1,11 +1,11 @@
 <div *ngIf="user" class="card border-0">
 
   <div class="card-header d-flex justify-content-between p-0 align-items-center mb-3">
-    <div class="fw-bold">Showing user details</div>    
-</div>
+    <div class="fw-bold">Showing user details</div>
+  </div>
 
   <div class="card-body p-0">
-    
+
     <div>
 
       <div class="mb-3">
@@ -21,7 +21,14 @@
       </div>
 
       <div class="mb-3">
-        <app-user-role-single-input [label]="'Role'"  [selectedId]="user.roleId" (selectedIdChange)="onRoleSelection($event)" />
+        <app-user-role-single-input [label]="'Role'" [selectedId]="user.roleId"
+          (selectedIdChange)="onRoleSelection($event)" />
+      </div>
+
+      <div class="mb-3" *ngIf="user.roleId !== 1">
+        <app-station-multiple-input [label]="'Authorised stations'" [placeholder]="'All stations'"
+          [selectedIds]="user.authorisedStationIds? user.authorisedStationIds: []"
+          (selectedIdsChange)="onStationsSelection($event)" />
       </div>
 
       <div class="mb-3">

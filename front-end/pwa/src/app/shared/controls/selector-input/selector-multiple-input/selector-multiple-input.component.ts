@@ -6,20 +6,21 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-multiple-input.component.scss']
 })
 export class SelectorMultipleInputComponent<T> implements OnChanges {
-  @Input() label: string = '';
-  @Input() errorMessage: string = '';
-  @Input() options: T[] = [];
-  @Input() selectedOptions: T[] = [];
-  @Input() optionDisplayFn: (option: T) => string = (option => String(option));
-  @Output() selectedOptionsChange = new EventEmitter<T[]>();
+  @Input() public label: string = '';
+  @Input() public placeholder: string | null = null;
+  @Input() public errorMessage: string = '';
+  @Input() public options: T[] = [];
+  @Input() public selectedOptions: T[] = [];
+  @Input() public optionDisplayFn: (option: T) => string = (option => String(option));
+  @Output() public selectedOptionsChange = new EventEmitter<T[]>();
 
-  protected filteredValues: T[]=this.options;
+  protected filteredValues: T[] = this.options;
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if(!this.selectedOptions){
+    if (!this.selectedOptions) {
       return;
     }
     this.filteredValues = this.options;

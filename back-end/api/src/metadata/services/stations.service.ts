@@ -29,7 +29,13 @@ export class StationsService {
         private readonly sourcesService: SourcesService,
     ) { }
 
-    async findAll() {
+    async findStations(ids?: string[]) {
+        if (ids) {
+            return this.stationRepo.findBy({
+                id: In(ids),
+            });
+        }
+
         return this.stationRepo.find();
     }
 

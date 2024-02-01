@@ -4,6 +4,7 @@ import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { UserRole } from '../models/enums/user-roles.enum';
 
 
 @Component({
@@ -12,8 +13,6 @@ import { Router } from '@angular/router';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-
-
 
   //holds the features navigation items
   protected featuresNavItems: any[] = [
@@ -108,8 +107,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.userSub = this.authService.user.subscribe(user => {
-      if (!user) {
-        // TODO. show user information in the header?
+      if (user) {
+        this.setAllowedNavigationLinks(user.roleId);
       }
     });
   }
@@ -120,9 +119,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   protected logOut(): void {
     this.authService.logout().pipe(take(1)).subscribe(data => {
-      console.log('logout', data);
       this.authService.removeUser();
-      //TODO. test this. should go to app component route
+      //TODO. test why this doesn't work here but works in app component. Has something to do with the route .
+      //should go to app component route
       //this.router.navigate(['../../login']);
     });
   }
@@ -138,6 +137,14 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.toasts.splice(0, 1);
       }
     }, 3000);
+
+  }
+
+  private setAllowedNavigationLinks(roleId: number): void {
+    // TODO. Change this implementation after changing the structure of the array
+    if (roleId !== UserRole.Administrator) {
+      this.featuresNavItems.splice(3, 1);
+    }
 
   }
 

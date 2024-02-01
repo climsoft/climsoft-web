@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { SourcesService } from '../services/sources.service';
-import { CreateSourceDto } from '../dtos/create-source.dto';
-import { Admin } from 'src/shared/decorators/admin.decorator';
+import { CreateSourceDto } from '../dtos/create-source.dto'; 
+import { Admin } from 'src/user/decorators/admin.decorator';
 
 @Controller('sources')
 export class SourcesController {
@@ -19,13 +19,11 @@ export class SourcesController {
     //     }     
     // }
 
-    @Admin()
     @Get()
     find() {
         return this.sourcesService.findSources();
     }
-
-    @Admin()
+   
     @Get('/source/:id')
     findSource(@Param('id') id: number) {
         return this.sourcesService.findSource(id);

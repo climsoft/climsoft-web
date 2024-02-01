@@ -1,9 +1,7 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
-import { AuthGuard } from './guards/auth.guard'; 
+import { Module } from '@nestjs/common'; 
 
 @Module({
-    providers: [{provide: APP_GUARD, useClass: AuthGuard},]
+    providers: [],   
 })
 export class SharedModule {
 

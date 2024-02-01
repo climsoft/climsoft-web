@@ -31,8 +31,12 @@ export class ObservationEntity {
   @Column({ type: 'int' })
   qcStatus: number;
 
-  @Column({ type: 'boolean', default: 0 })
-  final: boolean; 
+  //maps to QC test log model
+  @Column({ type: 'json', nullable: true })
+  qcTestLog: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  final: boolean;
 
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;

@@ -14,7 +14,7 @@
     </div>
 
     <div class="card p-3 rounded-0 border-0">
-      <div class="list-group list-group-flush">
+      <div  *ngIf="featuresNavItems" class="list-group list-group-flush">
         <!-- menu iems section -->
         <div class="list-group-item list-group-item-action px-0" *ngFor="let nav of featuresNavItems">
           <div class="list-group list-group-flush p-0 m-0">

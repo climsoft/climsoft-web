@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { SourceModel } from 'src/app/core/models/source.model'; 
+import { SourceModel } from 'src/app/core/models/source.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { StationsService } from 'src/app/core/services/stations.service';
@@ -9,10 +9,11 @@ import { StationsService } from 'src/app/core/services/stations.service';
   templateUrl: './station-single-input.component.html',
   styleUrls: ['./station-single-input.component.scss']
 })
-export class StationSingleInputComponent  implements OnInit, OnChanges{
+export class StationSingleInputComponent implements OnInit, OnChanges {
 
   @Input() public label: string = 'Station';
-  @Input() errorMessage: string = '';
+  @Input() public errorMessage: string = '';
+  @Input() public placeholder: string | null = null;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: string | null;
   @Output() public selectedIdChange = new EventEmitter<string | null>();
@@ -21,7 +22,7 @@ export class StationSingleInputComponent  implements OnInit, OnChanges{
   protected selectedOption!: StationModel | null;
 
   constructor(private stationsService: StationsService) {
-  
+
   }
 
   ngOnInit(): void {
@@ -35,10 +36,10 @@ export class StationSingleInputComponent  implements OnInit, OnChanges{
         this.options = data;
         this.setInputSelectedOption();
       });
-    }else{
+    } else {
       this.setInputSelectedOption();
     }
-   
+
   }
 
   private setInputSelectedOption(): void {

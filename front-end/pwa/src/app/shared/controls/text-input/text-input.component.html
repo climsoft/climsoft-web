@@ -3,7 +3,7 @@
   <div [class.input-group]="includeDropDownOption || includeCancelOption">
 
     <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"
-      [disabled]="disabled" [readOnly]="readonly" [class.text-danger]="errorMessage" [value]="value" [attr.max]="max"
+      [disabled]="disabled" [readOnly]="readonly" [class.text-danger]="errorMessage" [value]="value" [attr.max]="max" [attr.placeholder]="placeholder"
       (click)="onInputClick()" (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
       (blur)="onInputBlur()" appSimulateTabOnEnter />
 

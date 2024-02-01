@@ -3,17 +3,15 @@ import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ObservationUploadService } from '../services/observation-upload.service';
-//import { AuthorisedStationsPipe } from '../pipes/authorised-stations.pipe';
-import { Public } from 'src/shared/decorators/public.decorator';
-import { AuthorisedStationsPipe } from 'src/shared/pipes/authorised-stations.pipe';
+import { ObservationUploadService } from '../services/observation-upload.service'; 
+import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 
 @Controller('observations')
 export class ObservationsController {
   constructor(private readonly observationsService: ObservationsService,
     private readonly observationUpload: ObservationUploadService,) { }
 
-  @Public()
+ 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
     return this.observationsService.findProcessed(selectObsevationQuery);

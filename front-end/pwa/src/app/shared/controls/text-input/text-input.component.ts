@@ -12,6 +12,7 @@ export class TextInputComponent implements OnChanges {
   @Input() public type: string = 'text';
   @Input() public id: string | number = '';
   @Input() public label: string = '';
+  @Input() public placeholder: string|null = null;
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public hintMessage: string = '';
@@ -25,8 +26,8 @@ export class TextInputComponent implements OnChanges {
 
 
   // For Year-month and date control
-  @Input() public max!: string | number ;
-
+  @Input() public max: string | number | null = null ;
+  
 
   //protected userChange: boolean = false;
   protected displayDropDown: boolean = false;
