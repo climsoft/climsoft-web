@@ -16,7 +16,7 @@ export class InstrumentEntity {
     @Column({ type: 'varchar', nullable: true })
     status: string;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
     statusChangeDate: string | null;
 
     @Column({ type: 'varchar', nullable: true })
@@ -28,7 +28,7 @@ export class InstrumentEntity {
     @Column({ type: 'int' })
     entryUser: number;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
     entryDateTime: string;
 
     @Column({ type: 'json', nullable: true })

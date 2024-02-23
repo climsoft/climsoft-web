@@ -61,7 +61,7 @@ export class InstrumentTypeEntity {
     @Column({ type: 'int' })
     entryUser: number;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
     entryDateTime: string;
 
     @Column({ type: 'json', nullable: true })

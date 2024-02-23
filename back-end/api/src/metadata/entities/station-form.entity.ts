@@ -13,6 +13,6 @@ export class StationFormEntity {
     @Column({ type: 'varchar' })
     entryUserId: string;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
     entryDateTime: string;
 }

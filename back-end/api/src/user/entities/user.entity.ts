@@ -35,7 +35,7 @@ export class UserEntity {
   //for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
   //we also need the transformer to yield consistent results
   //there could also be inconsistency if typeorm ended up using different timezone
-  @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+  @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
   entryDateTime: string;
 
   //maps to observation log model

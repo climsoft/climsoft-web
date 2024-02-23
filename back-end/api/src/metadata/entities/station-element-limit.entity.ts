@@ -25,7 +25,7 @@ export class StationElementLimitEntity {
     @Column({ type: 'varchar' })
     entryUserId: string;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
     entryDateTime: string;
 
     @Column({ type: 'json', nullable: true })

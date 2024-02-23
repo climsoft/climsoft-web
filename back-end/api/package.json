@@ -29,6 +29,7 @@
     "csv-parse": "^5.5.3",
     "express-session": "^1.17.3",
     "mysql2": "^3.6.0",
+    "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.17"

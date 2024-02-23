@@ -1,0 +1,8 @@
+FROM node:21-alpine3.18
+WORKDIR /app
+COPY package*.json .
+RUN npm install
+COPY . .
+#EXPOSE "4200"
+CMD [ "npm", "start" ]
+#RUN npm run build
