@@ -1,25 +1,38 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_station_elements")
+@Entity("station_elements")
 export class StationElementEntity {
 
-    @PrimaryColumn({ type: 'varchar' })
+    @PrimaryColumn({ type: "varchar" })
     stationId: string;
 
-    @PrimaryColumn({ type: 'int' })
+    @PrimaryColumn({ type: "int" })
     elementId: number;
 
-    @Column({ type: 'varchar', nullable: true })
-    comment: string | null;
-  
-    @Column({ type: 'varchar' })
+    @Column({ type: "jsonb", nullable: true })
+    limits: Limit | null;
+
+    @Column({ type: "varchar", name:"entry_user_id" })
     entryUserId: string;
 
-    @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
+    @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
     entryDateTime: string;
 
-    @Column({ type: 'json', nullable: true })
-    log: string | null;
+    @Column({ type: "jsonb", nullable: true })
+    log: StationElementEntityLogVo | null;
+}
 
+export interface Limit{
+    monthId: number;
+    lowerLimit: number | null; 
+    upperLimit: number | null;
+    comment: string | null;
+}
+
+export interface StationElementEntityLogVo {
+    limits: Limit | null;
+    comment: string | null;
+    entryUserId: string;
+    entryDateTime: string;
 }

@@ -46,32 +46,32 @@ export class StationsController {
   //--------------------------
 
   //--------- station element limits ----------
-  @Get('element-limits/:stationId/:elementId/')
-  findElementLimits(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number) {
+  // @Get('element-limits/:stationId/:elementId/')
+  // findElementLimits(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number) {
 
-    return this.stationsService.findStationElementLimits(stationId, elementId);
-  }
+  //   return this.stationsService.findStationElementLimits(stationId, elementId);
+  // }
 
-  @Admin()
-  @Post('element-limits/:stationId/:elementId')
-  saveElementLimits(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number,
-    @Body() elementLimits: CreateStationElementLimitDto[]) {
-    return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
-  }
+  // @Admin()
+  // @Post('element-limits/:stationId/:elementId')
+  // saveElementLimits(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number,
+  //   @Body() elementLimits: CreateStationElementLimitDto[]) {
+  //   return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
+  // }
 
-  @Admin()
-  @Delete('element-limits/:stationId/:elementId/:monthId')
-  deleteElementLimit(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number,
-    @Param('monthId') monthId: number) {
+  // @Admin()
+  // @Delete('element-limits/:stationId/:elementId/:monthId')
+  // deleteElementLimit(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number,
+  //   @Param('monthId') monthId: number) {
 
-    return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
-  }
+  //   return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
+  // }
   //--------------------------
 
   //--------- station forms ----------

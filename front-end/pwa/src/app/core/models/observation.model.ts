@@ -2,7 +2,7 @@ export interface ObservationModel {
     stationId: string;
     elementId: number;
     sourceId: number;
-    level: string;
+    elevation: number;
     datetime: string;
     period: number;
     value: number | null;

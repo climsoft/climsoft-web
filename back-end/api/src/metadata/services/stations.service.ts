@@ -12,8 +12,7 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import { ViewStationElementDto } from '../dtos/view-station-element.dto';
 import { StationElementEntity } from '../entities/station-element.entity';
 import { ElementsService } from './elements.service';
-import { ElementEntity } from '../entities/element.entity';
-import { StationElementLimitEntity, StationElementLimitEntityLogVo } from '../entities/station-element-limit.entity';
+import { ElementEntity } from '../entities/element.entity'; 
 import { CreateStationElementLimitDto } from '../dtos/create-station-element-limit.dto';
 import { ViewStationElementLimitDto } from '../dtos/view-station-element-limit.dto';
 
@@ -23,7 +22,6 @@ export class StationsService {
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
         @InjectRepository(StationElementEntity) private readonly stationElementsRepo: Repository<StationElementEntity>,
-        @InjectRepository(StationElementLimitEntity) private readonly stationElementLimitsRepo: Repository<StationElementLimitEntity>,
         @InjectRepository(StationFormEntity) private readonly stationFormsRepo: Repository<StationFormEntity>,
         private readonly elementsService: ElementsService,
         private readonly sourcesService: SourcesService,
@@ -94,7 +92,7 @@ export class StationsService {
             name: dto.name,
             description: dto.description,
             comment: dto.comment,
-            entryUserId: '2', //todo. this will come from user session or token
+            entryUserId: 2, //todo. this will come from user session or token
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),
         };
     }
@@ -103,7 +101,7 @@ export class StationsService {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.comment = dto.comment;
-        entity.entryUserId = '2';
+        entity.entryUserId = 2;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
         entity.log = ObjectUtils.getNewLog<StationLogVo>(entity.log, this.getStationLogFromEntity(entity));
     }
@@ -168,108 +166,108 @@ export class StationsService {
     //---------------------------------------
 
     //--------------Station Element Limits--------------------
-    async findStationElementLimit(stationId: string, elementId: number, monthId: number) {
-        const stationElementLimit = await this.stationElementLimitsRepo.findOneBy({
-            stationId: stationId,
-            elementId: elementId,
-            monthId: monthId,
-        });
+    // async findStationElementLimit(stationId: string, elementId: number, monthId: number) {
+    //     const stationElementLimit = await this.stationElementLimitsRepo.findOneBy({
+    //         stationId: stationId,
+    //         elementId: elementId,
+    //         monthId: monthId,
+    //     });
 
-        if (!stationElementLimit) {
-            throw new NotFoundException(`Station Element #${stationId} - #${elementId} - #${monthId} not found`);
-        }
-        return stationElementLimit;
-    }
+    //     if (!stationElementLimit) {
+    //         throw new NotFoundException(`Station Element #${stationId} - #${elementId} - #${monthId} not found`);
+    //     }
+    //     return stationElementLimit;
+    // }
 
-    async findStationElementLimits(stationId: string, elementId: number): Promise<ViewStationElementLimitDto[]> {
-        return this.stationElementLimitsRepo.findBy({ stationId, elementId }).then(stationElementLimits =>
-          stationElementLimits.map(stationElementLimit => ({
-            monthId: stationElementLimit.monthId,
-            lowerLimit: stationElementLimit.lowerLimit,
-            upperLimit: stationElementLimit.upperLimit,
-            comment: stationElementLimit.comment,
-            entryUserId: stationElementLimit.entryUserId,
-            entryDateTime: stationElementLimit.entryDateTime,
-            log: stationElementLimit.log,
-          }))
-        );
-      }
+    // async findStationElementLimits(stationId: string, elementId: number): Promise<ViewStationElementLimitDto[]> {
+    //     return this.stationElementLimitsRepo.findBy({ stationId, elementId }).then(stationElementLimits =>
+    //       stationElementLimits.map(stationElementLimit => ({
+    //         monthId: stationElementLimit.monthId,
+    //         lowerLimit: stationElementLimit.lowerLimit,
+    //         upperLimit: stationElementLimit.upperLimit,
+    //         comment: stationElementLimit.comment,
+    //         entryUserId: stationElementLimit.entryUserId,
+    //         entryDateTime: stationElementLimit.entryDateTime,
+    //         log: stationElementLimit.log,
+    //       }))
+    //     );
+    //   }
       
 
-    async saveElementLimit(stationId: string, elementId: number, createStationLimitsDtos: CreateStationElementLimitDto[]): Promise<StationElementLimitEntity[]> {
+    // async saveElementLimit(stationId: string, elementId: number, createStationLimitsDtos: CreateStationElementLimitDto[]): Promise<StationElementLimitEntity[]> {
 
-        const elementLimitEntities: StationElementLimitEntity[] = [];
+    //     const elementLimitEntities: StationElementLimitEntity[] = [];
 
-        for (const createStationLimitsDto of createStationLimitsDtos) {
-            // Check if the entity exists StationElementLimitEntity
-            let elementLimitEntity = await this.stationElementLimitsRepo.findOneBy({
-                stationId: stationId,
-                elementId: elementId,
-                monthId: createStationLimitsDto.monthId,
-            });
+    //     for (const createStationLimitsDto of createStationLimitsDtos) {
+    //         // Check if the entity exists StationElementLimitEntity
+    //         let elementLimitEntity = await this.stationElementLimitsRepo.findOneBy({
+    //             stationId: stationId,
+    //             elementId: elementId,
+    //             monthId: createStationLimitsDto.monthId,
+    //         });
 
-            if (elementLimitEntity) {
-                const oldChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromEntity(elementLimitEntity);
-                const newChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromDto(createStationLimitsDto);
+    //         if (elementLimitEntity) {
+    //             const oldChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromEntity(elementLimitEntity);
+    //             const newChanges: StationElementLimitEntityLogVo = this.getStationElementLogFromDto(createStationLimitsDto);
 
-                //if no changes, then no need to save
-                if (ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
-                    continue;
-                }
-            } else {
-                // If it doesn't exist, create the entity
-                elementLimitEntity = this.stationElementLimitsRepo.create({
-                    stationId: stationId,
-                    elementId: elementId,
-                    monthId: createStationLimitsDto.monthId,
-                    entryUserId: '2', //todo set the logged in user
-                    entryDateTime: DateUtils.getTodayDateInSQLFormat()
-                });
-            }
+    //             //if no changes, then no need to save
+    //             if (ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
+    //                 continue;
+    //             }
+    //         } else {
+    //             // If it doesn't exist, create the entity
+    //             elementLimitEntity = this.stationElementLimitsRepo.create({
+    //                 stationId: stationId,
+    //                 elementId: elementId,
+    //                 monthId: createStationLimitsDto.monthId,
+    //                 entryUserId: '2', //todo set the logged in user
+    //                 entryDateTime: DateUtils.getTodayDateInSQLFormat()
+    //             });
+    //         }
 
-            this.updateStationElementEntity(elementLimitEntity, createStationLimitsDto);
-            elementLimitEntities.push(elementLimitEntity);
+    //         this.updateStationElementEntity(elementLimitEntity, createStationLimitsDto);
+    //         elementLimitEntities.push(elementLimitEntity);
 
-        }
+    //     }
 
 
-        return this.stationElementLimitsRepo.save(elementLimitEntities);
+    //     return this.stationElementLimitsRepo.save(elementLimitEntities);
 
-    }
+    // }
 
-    private getStationElementLogFromEntity(entity: StationElementLimitEntity): StationElementLimitEntityLogVo {
-        return {
-            lowerLimit: entity.lowerLimit,
-            upperLimit: entity.upperLimit,
-            comment: entity.comment,
-            entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
-        };
-    }
+    // private getStationElementLogFromEntity(entity: StationElementLimitEntity): StationElementLimitEntityLogVo {
+    //     return {
+    //         lowerLimit: entity.lowerLimit,
+    //         upperLimit: entity.upperLimit,
+    //         comment: entity.comment,
+    //         entryUserId: entity.entryUserId,
+    //         entryDateTime: entity.entryDateTime,
+    //     };
+    // }
 
-    private getStationElementLogFromDto(dto: CreateStationElementLimitDto): StationElementLimitEntityLogVo {
-        return {
-            lowerLimit: dto.lowerLimit,
-            upperLimit: dto.upperLimit,
-            comment: dto.comment,
-            entryUserId: '2', //todo. this will come from user session or token
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
-        };
-    }
+    // private getStationElementLogFromDto(dto: CreateStationElementLimitDto): StationElementLimitEntityLogVo {
+    //     return {
+    //         lowerLimit: dto.lowerLimit,
+    //         upperLimit: dto.upperLimit,
+    //         comment: dto.comment,
+    //         entryUserId: '2', //todo. this will come from user session or token
+    //         entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+    //     };
+    // }
 
-    private updateStationElementEntity(entity: StationElementLimitEntity, dto: CreateStationElementLimitDto): void {
-        entity.lowerLimit = dto.lowerLimit;
-        entity.upperLimit = dto.upperLimit;
-        entity.comment = dto.comment;
-        entity.entryUserId = '2';
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
-        entity.log = ObjectUtils.getJsonArray(entity.log, this.getStationElementLogFromEntity(entity));
-    }
+    // private updateStationElementEntity(entity: StationElementLimitEntity, dto: CreateStationElementLimitDto): void {
+    //     entity.lowerLimit = dto.lowerLimit;
+    //     entity.upperLimit = dto.upperLimit;
+    //     entity.comment = dto.comment;
+    //     entity.entryUserId = '2';
+    //     entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+    //     entity.log = ObjectUtils.getJsonArray(entity.log, this.getStationElementLogFromEntity(entity));
+    // }
 
-    async deleteElementLimit(stationId: string, elementId: number, monthId: number): Promise<StationElementLimitEntity> {
-        const existingStationElementLimit = await this.findStationElementLimit(stationId, elementId, monthId);
-        return this.stationElementLimitsRepo.remove(existingStationElementLimit);
-    }
+    // async deleteElementLimit(stationId: string, elementId: number, monthId: number): Promise<StationElementLimitEntity> {
+    //     const existingStationElementLimit = await this.findStationElementLimit(stationId, elementId, monthId);
+    //     return this.stationElementLimitsRepo.remove(existingStationElementLimit);
+    // }
 
     //---------------------------------------
 

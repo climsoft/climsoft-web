@@ -88,7 +88,7 @@ export class ElementsService {
             upperLimit: dto.upperLimit,
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
-            entryUserId: '2', //todo. this will come from user session or token
+            entryUserId: 2, //todo. this will come from user session or token
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),
         };
     }
@@ -102,7 +102,7 @@ export class ElementsService {
         entity.upperLimit = dto.upperLimit;
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
-        entity.entryUserId = '2';
+        entity.entryUserId = 2;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
         entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
     }

@@ -1,7 +1,7 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_stations")
+@Entity("stations")
 export class StationEntity {
   @PrimaryColumn({ type: 'varchar' })
   id: string;
@@ -21,8 +21,8 @@ export class StationEntity {
   // @Column({ type: 'varchar', nullable: true })
   // location: string | null; //a GeoJSON. Polygon feature
 
-  // @Column({ type: 'varchar', nullable: true })
-  // elevation: string | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+  // @Column({ type: 'float', nullable: true })
+  // elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
 
   // @Column({ type: 'varchar', nullable: true })
   // wigosId: string | null;
@@ -57,14 +57,14 @@ export class StationEntity {
    @Column({ type: 'varchar', nullable: true })
    comment: string | null;
 
-   @Column({ type: 'varchar' })
-   entryUserId: string;
+   @Column({ type: "varchar", name: "entry_user_id" })
+   entryUserId: number;
 
-   @Column({ type: 'timestamptz', transformer: new DateTimeColumn() })
+   @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
    entryDateTime: string;
  
-   @Column({ type: 'json', nullable: true })
-   log: string | null;
+   @Column({ type: 'jsonb', nullable: true })
+   log: StationLogVo[] | null;
 
 }
 
@@ -72,6 +72,6 @@ export interface StationLogVo {
   name: string;
   description: string;
   comment: string | null;
-  entryUserId: string;
+  entryUserId: number;
   entryDateTime: string;  
 }

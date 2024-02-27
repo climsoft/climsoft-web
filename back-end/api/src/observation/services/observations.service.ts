@@ -33,6 +33,7 @@ export class ObservationsService {
                 const sourceEntities = await this.sourcesService.findSources();
 
                 for (const obsEntity of obsEntities) {
+                    
                     const viewObs: ViewObservationDto = new ViewObservationDto();
 
                     const station = stationEntities.find(data => data.id === obsEntity.stationId);
@@ -50,13 +51,13 @@ export class ObservationsService {
                         viewObs.sourceName = source.name;
                     }
 
-                    viewObs.level = obsEntity.level;
+                    viewObs.elevation = obsEntity.elevation;
                     viewObs.period = obsEntity.period;
                     viewObs.datetime = obsEntity.datetime;
                     viewObs.value = obsEntity.value;
                     viewObs.flag = obsEntity.flag;
                     viewObs.qcStatus = obsEntity.qcStatus;
-                    viewObs.entryUserName = obsEntity.entryUserId; // TODO later fetch the user name
+                    viewObs.entryUserName = obsEntity.entryUserId + ''; // TODO later fetch the user name
                     viewObs.entryDateTime = obsEntity.entryDateTime;
 
                     obsView.push(viewObs);
@@ -212,7 +213,7 @@ export class ObservationsService {
                 stationId: createObservationDto.stationId,
                 elementId: createObservationDto.elementId,
                 sourceId: createObservationDto.sourceId,
-                level: createObservationDto.level,
+                elevation: createObservationDto.elevation,
                 datetime: createObservationDto.datetime,
                 period: createObservationDto.period,
             });
@@ -230,7 +231,7 @@ export class ObservationsService {
                     stationId: createObservationDto.stationId,
                     elementId: createObservationDto.elementId,
                     sourceId: createObservationDto.sourceId,
-                    level: createObservationDto.level,
+                    elevation: createObservationDto.elevation,
                     datetime: createObservationDto.datetime,
                     period: createObservationDto.period,
                 });
@@ -268,7 +269,7 @@ export class ObservationsService {
             qcStatus: dto.qcStatus,
             final: false,
             comment: dto.comment,
-            entryUserId: '2', //todo. this will come from user session or token
+            entryUserId: 2, //todo. this will come from user session or token
             deleted: false,
             entryDateTime: DateUtils.getTodayDateInSQLFormat()
         };
@@ -281,17 +282,13 @@ export class ObservationsService {
         entity.qcStatus = dto.qcStatus;
         entity.comment = dto.comment;
         entity.final = false;
-        entity.entryUserId = '2';
+        entity.entryUserId = 2;
         entity.deleted = (entity.value === null && entity.flag === null)
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
-        entity.log = this.getNewLog(entity.log, this.getObservationLogFromEntity(entity));
+        entity.log = ObjectUtils.getNewLog<ObservationLogVo>(entity.log, this.getObservationLogFromEntity(entity));
     }
 
-    private getNewLog(currentLogs: string | null | undefined, newLog: ObservationLogVo): string {
-        const logs: ObservationLogVo[] = currentLogs ? JSON.parse(currentLogs) : [];
-        logs.push(newLog);
-        return JSON.stringify(logs);
-    }
+  
 
 
 }

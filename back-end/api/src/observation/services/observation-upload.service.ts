@@ -6,6 +6,8 @@ import { Index } from 'typeorm';
 import { ObservationsService } from './observations.service';
 import { isNumber } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { QCStatus } from '../enums/qc-status.enum';
+import { Flag } from '../enums/flag.enum';
 
 interface UploadedObservationDto extends CreateObservationDto {
     status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
@@ -49,12 +51,12 @@ export class ObservationUploadService {
                 const stationId: string = row[0];
                 const elementId: number = parseInt(row[1]);
                 const sourceId:  number = parseInt(row[2]);
-                const level: string =  row[3].toString();
+                const elevation: number =  row[3];
                 const datetime: string =  row[4].toString();
                 const period:  number = parseInt(row[5]);
 
                 let value: number | null = null;
-                let flag: number | null = null;
+                let flag: Flag | null = null;
                 let comment: string | null = null;
 
                 if (StringUtils.containsNumbersOnly(row[6])) {
@@ -62,7 +64,8 @@ export class ObservationUploadService {
                 }
 
                 if (StringUtils.containsNumbersOnly(row[7])) {
-                    flag = parseInt(row[7]);
+                    //TODO. validate the flag
+                    flag =row[7];
                 }
 
                 if (row[8]) {
@@ -77,7 +80,7 @@ export class ObservationUploadService {
 
 
                 const uploadedDto: UploadedObservationDto = {
-                    stationId: stationId, elementId: elementId, sourceId: sourceId, level: level, datetime: datetime, period: period, value: value, flag: flag, qcStatus: 0, comment: comment, status: 'NEW',
+                    stationId: stationId, elementId: elementId, sourceId: sourceId, elevation: elevation, datetime: datetime, period: period, value: value, flag: flag, qcStatus: QCStatus.NoQCTestsDone, comment: comment, status: 'NEW',
                 }
 
                 observationDtos.push(uploadedDto);

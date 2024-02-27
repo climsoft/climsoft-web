@@ -4,11 +4,11 @@ import { FlagsService } from '../services/flags.service';
 @Controller('flags')
 export class FlagsController {
 
-    constructor(private readonly flagsService: FlagsService) { }
+    // constructor(private readonly flagsService: FlagsService) { }
 
-    @Get()
-    find() {
-        return this.flagsService.find();   
-    }
+    // @Get()
+    // find() {
+    //     return this.flagsService.find();   
+    // }
 
 }

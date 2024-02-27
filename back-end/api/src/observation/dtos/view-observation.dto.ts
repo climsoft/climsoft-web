@@ -1,16 +1,17 @@
+import { Flag } from "../enums/flag.enum";
+import { QCStatus } from "../enums/qc-status.enum";
 
 
 export class ViewObservationDto {
     stationName: string;
     elementAbbrv: string;
     sourceName: string;
-    level: string;
+    elevation: number;
     datetime: string;
     period: number;
     value: number | null;
-    flag: number | null;
-    qcStatus: number;
+    flag: Flag | null;
+    qcStatus: QCStatus;
     entryUserName: string;
     entryDateTime: string;
- 
 }

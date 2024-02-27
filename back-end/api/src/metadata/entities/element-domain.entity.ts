@@ -1,13 +1,13 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_element_domains")
-export class DomainEntity {
-    @PrimaryColumn({ type: 'int' })
+@Entity("element_domains")
+export class ElementDomainEntity {
+    @PrimaryColumn({ type: "int" })
     id: number;
   
-    @Column({ type: 'varchar' })
+    @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: 'varchar' })
+    @Column({ type: "varchar" })
     description: string;
 }
