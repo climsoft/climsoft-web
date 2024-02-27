@@ -22,10 +22,10 @@ export class ObjectUtils {
         return JSON.stringify(logs);
     }
 
-    static getNewLog<T>(currentLogs: string | null | undefined, newLog: T): string {
-        const logs: T[] = currentLogs ? JSON.parse(currentLogs) : [];
+    static getNewLog<T>(currentLogs: T[] | null | undefined, newLog: T): T[] {
+        const logs: T[] = currentLogs ? currentLogs: [];
         logs.push(newLog);
-        return JSON.stringify(logs);
+        return logs;
     }
 
 }

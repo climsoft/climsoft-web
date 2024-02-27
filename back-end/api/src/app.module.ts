@@ -12,12 +12,12 @@ import { UserModule } from './user/user.module';
   imports: [
     SharedModule, UserModule, MetadataModule, ObservationModule,
     TypeOrmModule.forRoot({
-      type: 'mariadb', // type of our database
-      host: 'localhost', // database host
-      port: 3306, // database host
-      username: 'root', // username
-      password: 'P@trickm!', // user password
-      database: 'mariadb_climsoft_db_v4', // name of our database,
+      type: 'postgres', // type of our database
+      host: process.env.DB_HOST, // database host
+      port: process.env.DB_PORT? +process.env.DB_PORT : 5432, // database host
+      username: process.env.DB_USERNAME, // username
+      password: process.env.DB_PASSWORD, // user password
+      database: process.env.DB_NAME, // name of our database,
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: true, // your entities will be synced with the database(recommended: disable in prod)
      // timezone: 'Z', //todo. do more research about it. It affects how dates are saved in the database

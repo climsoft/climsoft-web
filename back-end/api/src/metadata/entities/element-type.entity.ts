@@ -1,16 +1,16 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_element_types")
+@Entity("element_types")
 export class ElementTypeEntity {
-    @PrimaryColumn({ type: 'int' })
+    @PrimaryColumn({ type: "int" })
     id: number;
-  
-    @Column({ type: 'varchar' })
+
+    @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: 'varchar' })
+    @Column({ type: "varchar" })
     description: string;
 
-    @Column({ type: 'int' })
-    subdomainId: number
+    @Column({ type: "int", name: "subdomain_id" })
+    subdomainId: number;
 }

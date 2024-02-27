@@ -14,30 +14,28 @@ import { StationElementEntity } from './entities/station-element.entity';
 import { StationFormEntity } from './entities/station-form.entity';
 import { InstrumentEntity } from './entities/instrument.entity';
 import { InstrumentTypeEntity } from './entities/instrument-type.entity';
-import { StationElementLimitEntity } from './entities/station-element-limit.entity';
-import { DomainEntity } from './entities/element-domain.entity';
+import { ElementDomainEntity } from './entities/element-domain.entity';
 import { ElementSubdomainEntity } from './entities/element-subdomain.entity';
 import { ElementTypeEntity } from './entities/element-type.entity';
-import { StationElementInstrumentEntity } from './entities/station-element-instrument.entity';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
         SourceTypeEntity,
         SourceEntity,
         StationEntity,
-        DomainEntity,
+        ElementDomainEntity,
         ElementSubdomainEntity,
         ElementTypeEntity,
         ElementEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
         StationElementEntity,
-        StationElementLimitEntity,
-        StationElementInstrumentEntity,
         StationFormEntity,
-    ])],
+    ]), UserModule],
     controllers: [SourcesController, StationsController, ElementsController],
     providers: [SourcesService, StationsService, ElementsService],
+    // TODO. Check if these need to be exported
     exports:[SourcesService, StationsService, ElementsService]
 })
 export class MetadataModule { }

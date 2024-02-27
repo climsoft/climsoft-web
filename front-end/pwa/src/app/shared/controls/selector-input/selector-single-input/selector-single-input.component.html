@@ -1,5 +1,5 @@
 <!-- show drop down when there is a click event or when the user is typing on the input. Note user may navigate using tab or enter keys -->
-<app-text-input #textInput [label]="label" [errorMessage]="errorMessage" [includeDropDownOption]="true"
+<app-text-input #textInput [label]="label" [placeholder]="placeholder" [errorMessage]="errorMessage" [includeDropDownOption]="true"
     [includeCancelOption]="true" [value]="selectedOptionDisplay" (inputClick)="textInput.showDropDown(true) "
     (valueChange)="onInputChange($event);">
     <div class="list-group rounded-0">

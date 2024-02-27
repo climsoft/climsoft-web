@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Session } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Session } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { CreateStationDto } from '../dtos/create-station.dto';
 import { CreateStationElementLimitDto } from '../dtos/create-station-element-limit.dto';
-import { Admin } from 'src/shared/decorators/admin.decorator';
+import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
+import { Admin } from 'src/user/decorators/admin.decorator';
 
 @Controller('stations')
 export class StationsController {
@@ -10,12 +11,12 @@ export class StationsController {
   constructor(private readonly stationsService: StationsService) { }
 
   @Get()
-  findAll() {
-    return this.stationsService.findAll();
+  getStations(@Query('ids', AuthorisedStationsPipe) ids: string[]) {
+    return this.stationsService.findStations(ids);
   }
 
   @Get(':id')
-  findCharacteristics(@Param('id') id: string) {
+  getCharacteristics(@Param('id') id: string) {
     return this.stationsService.findStation(id);
   }
 
@@ -27,7 +28,7 @@ export class StationsController {
 
   //--------- station elements ----------
   @Get('elements/:id')
-  findElements(@Param('id') id: string) {
+  getElements(@Param('id') id: string) {
     return this.stationsService.findElements(id);
   }
 
@@ -45,32 +46,32 @@ export class StationsController {
   //--------------------------
 
   //--------- station element limits ----------
-  @Get('element-limits/:stationId/:elementId/')
-  findElementLimits(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number) {
+  // @Get('element-limits/:stationId/:elementId/')
+  // findElementLimits(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number) {
 
-    return this.stationsService.findStationElementLimits(stationId, elementId);
-  }
+  //   return this.stationsService.findStationElementLimits(stationId, elementId);
+  // }
 
-  @Admin()
-  @Post('element-limits/:stationId/:elementId')
-  saveElementLimits(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number,
-    @Body() elementLimits: CreateStationElementLimitDto[]) {
-    return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
-  }
+  // @Admin()
+  // @Post('element-limits/:stationId/:elementId')
+  // saveElementLimits(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number,
+  //   @Body() elementLimits: CreateStationElementLimitDto[]) {
+  //   return this.stationsService.saveElementLimit(stationId, elementId, elementLimits);
+  // }
 
-  @Admin()
-  @Delete('element-limits/:stationId/:elementId/:monthId')
-  deleteElementLimit(
-    @Param('stationId') stationId: string,
-    @Param('elementId') elementId: number,
-    @Param('monthId') monthId: number) {
+  // @Admin()
+  // @Delete('element-limits/:stationId/:elementId/:monthId')
+  // deleteElementLimit(
+  //   @Param('stationId') stationId: string,
+  //   @Param('elementId') elementId: number,
+  //   @Param('monthId') monthId: number) {
 
-    return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
-  }
+  //   return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
+  // }
   //--------------------------
 
   //--------- station forms ----------

@@ -16,14 +16,20 @@ export class StationsService {
 
   constructor(private http: HttpClient) { }
 
-  getStations(): Observable<StationModel[]> {
-    return this.http.get<StationModel[]>(this.endPointUrl)
+ public getStations(stationIds?: string[]): Observable<StationModel[]> {
+    let params: HttpParams = new HttpParams();
+
+    if (stationIds && stationIds.length > 0) {
+      params = params.set('ids', stationIds.join(','));
+    }
+
+    return this.http.get<StationModel[]>(this.endPointUrl, { params: params })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  getStation(stationId: string): Observable<StationModel> {
+  public getStation(stationId: string): Observable<StationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
     console.log(url)
     return this.http.get<StationModel>(url)

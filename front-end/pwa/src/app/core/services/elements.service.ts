@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ElementModel } from '../models/element.model';
@@ -13,21 +13,18 @@ export class ElementsService {
 
   constructor(private http: HttpClient) { }
 
-  getElements(elementIds?: number[]): Observable<ElementModel[]> {
+  public getElements(elementIds?: number[]): Observable<ElementModel[]> {
+    let params: HttpParams = new HttpParams();
     
-    const obsParams: { [key: string]: number[] } = {};
-    if (elementIds && elementIds.length) {
-      obsParams['ids'] = elementIds;
+    if (elementIds && elementIds.length > 0) {
+      params = params.set('ids', elementIds.join(','));
     }
-
-    //todo. load slected elements
-    return this.http.get<ElementModel[]>(this.endPointUrl, { params: obsParams})
-      .pipe(
-        catchError(this.handleError)
-      );
+  
+    return this.http.get<ElementModel[]>(this.endPointUrl, { params: params })
+      .pipe(catchError(this.handleError));
   }
 
-  getElement(elementId: string): Observable<ElementModel> {
+  public getElement(elementId: string): Observable<ElementModel> {
     const url = `${this.endPointUrl}/${elementId}`;
     return this.http.get<ElementModel>(url)
       .pipe(

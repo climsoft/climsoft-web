@@ -24,11 +24,11 @@ export class UsersService {
   }
 
   create(createUserDto: CreateUserDto): Observable<CreateUserDto> {
-    return this.http.post<CreateUserDto>(this.endPointUrl, createUserDto);
+    return this.http.post<CreateUserDto>(`${this.endPointUrl}/create`, createUserDto);
   }
 
   update(userId: number, createUserDto: CreateUserDto): Observable<CreateUserDto> {
-    return this.http.patch<CreateUserDto>(`${this.endPointUrl}/${userId}`, createUserDto);
+    return this.http.patch<CreateUserDto>(`${this.endPointUrl}/update/${userId}`, createUserDto);
   }
 
  

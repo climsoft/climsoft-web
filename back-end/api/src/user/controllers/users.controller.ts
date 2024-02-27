@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, Res, Session } from '@nestjs/common';
 import { UsersService } from '../services/users.service';
-import { Public } from 'src/shared/decorators/public.decorator';
-import { Admin } from 'src/shared/decorators/admin.decorator';
 import { LoggedInUserDto } from '../dtos/logged-in-user.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { Request } from 'express';
+import { Admin } from '../decorators/admin.decorator';
+import { Public } from '../decorators/public.decorator';
+import { AuthUtil } from '../services/auth.util';
 
 @Controller('users')
 export class UsersController {
@@ -29,16 +30,16 @@ export class UsersController {
     }
 
     @Admin()
-    @Patch(':id')
+    @Patch('/update/:id')
     update(@Param('id') id: number, @Body() createUserDto: CreateUserDto) {
         return this.userService.updateUser(id, createUserDto);
     }
 
-
     @Public()
     @Post('/login')
-    public login(@Req() request: Request, @Body() loginCredentials: { username: string, password: string }) {
-        return this.userService.loginUser(request, loginCredentials.username, loginCredentials.password);
+    public async login(@Req() request: Request, @Body() loginCredentials: { username: string, password: string }) {
+       const userEntity =  await this.userService.getUserByCredentials(loginCredentials.username, loginCredentials.password);
+       return AuthUtil.createNewSessionUser(request, userEntity);
     }
 
     @Post('/changeCredentials')

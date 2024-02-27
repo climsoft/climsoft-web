@@ -2,7 +2,7 @@ export interface ViewObservationDto {
     stationName: string;
     elementAbbrv: string;
     sourceName: string;
-    level: string;
+    elevation: number;
     datetime: string;
     period: number;
     value: number | null;

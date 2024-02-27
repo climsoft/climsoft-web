@@ -1,14 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_source_types")
+@Entity("source_types")
 export class SourceTypeEntity {
-    @PrimaryGeneratedColumn()
+    @PrimaryColumn({type: "int"})
     id: number;
 
-    @Column()
+    @Column({type: "varchar"})
     name: string;
 
-    @Column()
+    @Column({type: "varchar"})
     description: string;
 
 }

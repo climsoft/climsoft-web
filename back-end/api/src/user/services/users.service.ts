@@ -6,12 +6,15 @@ import { Repository } from 'typeorm';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { Request } from 'express';
 import { ViewUserDto } from '../dtos/view-user.dto';
+import { DateUtils } from 'src/shared/utils/date.utils';
+import { AuthUtil } from './auth.util';
 
 
 @Injectable()
 export class UsersService {
 
-    constructor(@InjectRepository(UserEntity) private readonly userRepo: Repository<UserEntity>,) {
+    constructor(@InjectRepository(UserEntity) private readonly userRepo: Repository<UserEntity>, 
+     ) {
     }
 
     public async getUsers(): Promise<ViewUserDto[]> {
@@ -57,12 +60,12 @@ export class UsersService {
             throw new BadRequestException('username exists');
         }
 
-         //id: 1, //TODO. after changing the id from being autoincrement, change this     
+        //id: 1, //TODO. after changing the id from being autoincrement, change this     
         userEntity = this.userRepo.create();
 
         this.updateUserEntity(userEntity, createUserDto);
         userEntity.password = '123';// TODO. create a random hashed password that will be emailed to the user
-      
+
         await this.userRepo.save(userEntity);
 
         return createUserDto
@@ -90,77 +93,22 @@ export class UsersService {
         entity.email = dto.email;
         entity.phone = dto.phone;
         entity.roleId = dto.roleId;
-        entity.authorisedStationIds = JSON.stringify(dto.authorisedStationIds);
+        entity.authorisedStationIds = dto.authorisedStationIds ? JSON.stringify(dto.authorisedStationIds) : null;
         entity.extraMetadata = dto.extraMetadata;
         entity.disabled = dto.disabled;
+        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
     }
 
-    public async loginUser(request: Request, username: string, password: string): Promise<LoggedInUserDto> {
+    public async getUserByCredentials( username: string, password: string): Promise<UserEntity> {
         const userEntity: UserEntity | null = await this.userRepo.findOneBy({ email: username, password: password });
 
         if (!userEntity) {
             throw new NotFoundException('INVALID_CREDENTIALS');
         }
+      return  userEntity;
 
-
-        //if user found then set the user session  
-        const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? JSON.parse(userEntity.authorisedStationIds) : null;
-        const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
-        const loggedInUser: LoggedInUserDto = {
-            id: userEntity.id,
-            roleId: userEntity.roleId,
-            authorisedStationIds: authorisedStationIds,
-            expiresIn: expiresIn,
-
-        };
-
-        //TODO. Instead of type assertion, in future extend the Session class of express session module?.
-        // This helps if user is accessed in multiple places
-        // interface ExtendedSession extends Session {
-        //     user?: LoggedInUser; 
-        //   }
-
-        (request.session as any).user = loggedInUser;
-
-        return loggedInUser
 
     }
-
-
-    // public loginUser(request: Request, username: string, password: string): Promise<LoggedInUserDto> {
-    //     return new Promise(async (resolve, reject) => {
-    //         try {
-    //             // TODO. In future, the username could be phone number as well
-    //             const userEntity: UserEntity | null = await this.userRepo.findOneBy({ email: username, password: password });
-
-    //             //if user found then set the user session 
-    //             if (userEntity) {
-    //                 const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? JSON.parse(userEntity.authorisedStationIds) : null;
-    //                 const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
-    //                 const loggedInUser: LoggedInUserDto = {
-    //                     id: userEntity.id,
-    //                     roleId: userEntity.roleId,
-    //                     authorisedStationIds: authorisedStationIds,
-    //                     expiresIn: expiresIn,
-
-    //                 };
-
-    //                 //TODO. Instead of type assertion, in future extend the Session class of express session module?.
-    //                 // This helps if user is accessed in multiple places
-    //                 // interface ExtendedSession extends Session {
-    //                 //     user?: LoggedInUser; 
-    //                 //   }
-    //                 (request.session as any).user = loggedInUser;
-
-    //                 resolve(loggedInUser);
-    //             } else {
-    //                 reject(new NotFoundException('INVALID_CREDENTIALS'));
-    //             }
-    //         } catch (error) {
-    //             reject(error);
-    //         }
-    //     });
-    //}
 
 
 

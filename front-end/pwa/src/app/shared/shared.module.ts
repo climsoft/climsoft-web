@@ -37,6 +37,7 @@ import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-
 import { PeriodSingleInputComponent } from './controls/period-input/period-single-input/period-single-input.component';
 import { SourceSingleInputComponent } from './controls/source-input/source-single-input/source-single-input.component';
 import { StationSingleInputComponent } from './controls/station-input/station-single-input/station-single-input.component';
+import { StationMultipleInputComponent } from './controls/station-input/station-multiple-input/station-multiple-input.component';
 
 //--------------------------------
 
@@ -76,7 +77,9 @@ const controlsComponents = [
 
   PeriodSingleInputComponent,
   SourceSingleInputComponent,
+
   StationSingleInputComponent,
+  StationMultipleInputComponent,
 
 
 
@@ -91,12 +94,14 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
+   
   
   
   ],
   imports: [
     ...angularModules,
 
+    // TODO. Remove these imports
     BsDropdownModule.forRoot(),
     CollapseModule.forRoot(),
     NgSelectModule,

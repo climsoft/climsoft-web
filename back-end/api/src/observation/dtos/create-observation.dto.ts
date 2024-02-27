@@ -1,4 +1,6 @@
 import { IsDate, IsNumber, IsString } from 'class-validator';
+import { Flag } from '../enums/flag.enum';
+import { QCStatus } from '../enums/qc-status.enum';
 
 export class CreateObservationDto {
 
@@ -12,7 +14,7 @@ export class CreateObservationDto {
     sourceId: number;
 
     @IsString()
-    level: string;
+    elevation: number;
 
     @IsDate()
     datetime: string;
@@ -23,11 +25,10 @@ export class CreateObservationDto {
     @IsNumber()
     value: number | null;
 
-    @IsNumber()
-    flag: number | null;
+   
+    flag: Flag | null;
 
-    @IsNumber()
-    qcStatus: number;
+    qcStatus: QCStatus;
 
     @IsString()
     comment: string | null;

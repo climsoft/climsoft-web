@@ -1,18 +1,18 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity("web_station_forms")
+@Entity("station_forms")
 export class StationFormEntity {
 
-    @PrimaryColumn({ type: 'varchar' })
+    @PrimaryColumn({ type: "varchar" })
     stationId: string;
 
-    @PrimaryColumn({ type: 'int' })
+    @PrimaryColumn({ type: "int" })
     sourceId: number;
   
-    @Column({ type: 'varchar' })
+    @Column({ type: "varchar", name: "entry_user_id" })
     entryUserId: string;
 
-    @Column({ type: 'datetime', transformer: new DateTimeColumn() })
+    @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
     entryDateTime: string;
 }

@@ -32,7 +32,7 @@ export class UserDetailsComponent implements OnInit {
     const userId = this.route.snapshot.params['id'];
     //console.log("element id", elementId)
     if (StringUtils.containsNumbersOnly(userId)) {
-      this.userId = userId;
+      this.userId = +userId;
       this.usersService.getUser(userId).subscribe((data) => {
         this.user = data;
       });
@@ -42,13 +42,21 @@ export class UserDetailsComponent implements OnInit {
 
   }
 
-  protected onRoleSelection(roleId: number | null) {
+  protected onRoleSelection(roleId: number | null): void {
+    if (roleId) {
+      this.user.roleId = roleId;
+    }
 
+  }
+
+  protected onStationsSelection(stationIds: string[]): void {
+    this.user.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
   }
 
 
   protected onSaveClick(): void {
     // TODO. do validations
+
 
     if (this.userId) {
 
@@ -64,6 +72,7 @@ export class UserDetailsComponent implements OnInit {
       });
 
     } else {
+
       this.usersService.create(this.user).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({

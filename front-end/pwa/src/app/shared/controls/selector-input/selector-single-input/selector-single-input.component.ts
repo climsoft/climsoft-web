@@ -6,12 +6,13 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-single-input.component.scss']
 })
 export class SelectorSingleInputComponent<T> implements OnChanges {
-  @Input() label: string = '';
-  @Input() errorMessage: string = '';
-  @Input() options: T[] = [];
-  @Input() optionDisplayFn: (option: T) => string = (option => String(option));
-  @Input() selectedOption!: T | null;
-  @Output() selectedOptionChange = new EventEmitter<T | null>();
+  @Input() public label: string = '';
+  @Input() public placeholder: string | null = null;
+  @Input() public errorMessage: string = '';
+  @Input() public options: T[] = [];
+  @Input() public optionDisplayFn: (option: T) => string = (option => String(option));
+  @Input() public selectedOption!: T | null;
+  @Output() public selectedOptionChange = new EventEmitter<T | null>();
 
   protected filteredValues!: T[];
 
@@ -20,12 +21,12 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     this.filteredValues = this.options;
-  
+
     //console.log('single input ngOnChanges', changes)
   }
 
   protected get selectedOptionDisplay(): string {
-    return this.selectedOption? this.optionDisplayFn(this.selectedOption) : '' ;
+    return this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
   }
 
   protected onInputChange(inputValue: string): void {
@@ -40,7 +41,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   }
 
   protected onSelectedOption(option: T): void {
- 
+
     this.selectedOption = option;
 
     //console.log('single input onSelectedOption',  this.selectedOption)

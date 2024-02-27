@@ -93,7 +93,7 @@ export class FormEntryUtil {
     const entryObservation: ObservationModel = {
       stationId: formFilter.stationId,
       sourceId: formFilter.sourceId,
-      elementId: 0, level: 'surface',
+      elementId: 0, elevation: 0,
       datetime: '',
       value: null, flag: null, qcStatus: 0,
       period: formFilter.period,
@@ -162,7 +162,7 @@ export class FormEntryUtil {
         entryObservation.stationId === dbObservation.stationId &&
         entryObservation.elementId === dbObservation.elementId &&
         entryObservation.sourceId === dbObservation.sourceId &&
-        entryObservation.level === dbObservation.level &&
+        entryObservation.elevation === dbObservation.elevation &&
         entryObservation.datetime === dbObservation.datetime &&
         entryObservation.period === dbObservation.period) {
         return dbObservation;
