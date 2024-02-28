@@ -4,13 +4,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 //--------------------------------
 
-//------- third party modules -------
-// Todo. remove these dependencies after refactoring the multiple selector
-import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
-import { CollapseModule } from 'ngx-bootstrap/collapse';
-import { NgSelectModule } from '@ng-select/ng-select';
-//--------------------------------
-
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
@@ -101,11 +94,6 @@ const directives = [
   imports: [
     ...angularModules,
 
-    // TODO. Remove these imports
-    BsDropdownModule.forRoot(),
-    CollapseModule.forRoot(),
-    NgSelectModule,
-
   ],
   providers: [
    
@@ -115,9 +103,7 @@ const directives = [
     ...controlsComponents,
     ...directives,
 
-    BsDropdownModule,
-    CollapseModule,
-    NgSelectModule,
+
 
   ]
 })

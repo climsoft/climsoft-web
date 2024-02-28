@@ -11,7 +11,9 @@ export class DateTimeColumn implements ValueTransformer {
         }
 
         from(date: string) {
+                const k = 1;
                 return date;
+                // test changes
                 // const jsDate = new Date(date);
                 // const appTimezoneOffset = jsDate.getTimezoneOffset() * 60000;
                 // const actualDate = new Date(jsDate.getTime() - appTimezoneOffset);

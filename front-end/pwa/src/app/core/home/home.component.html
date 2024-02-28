@@ -27,13 +27,15 @@
             </a>
 
             <!-- sub menus -->
-            <div *ngIf="nav.children.length > 0" class="list-group-item list-group list-group-flush p-0"
-              [collapse]="!nav.open" [isAnimated]="true">
-              <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
-                [routerLink]="nav.url + subNav.url">
-                <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
-              </a>
+            <div *ngIf="nav.children.length > 0"  >
+              <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0" > 
+                <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
+                  [routerLink]="nav.url + subNav.url">
+                  <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
+                </a>
+              </div>
             </div>
+            
           </div>
         </div>
         <!-- end -->

@@ -3,6 +3,8 @@ Climsoft web application
 
 Install docker desktop
 
-Execute command
+Execute commands
 
 docker-compose -f docker-compose.dev.yaml up
+
+ng serve
