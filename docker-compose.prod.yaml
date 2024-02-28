@@ -1,0 +1,42 @@
+
+services:
+  pwa:
+    build:
+      context: ./front-end/pwa
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ./back-end/api
+      dockerfile: Dockerfile.prod
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      DB_PORT: 5432      
+      DB_NAME: climsoft
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16.2
+    restart: always
+    environment:
+      POSTGRES_DB: climsoft
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password 
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

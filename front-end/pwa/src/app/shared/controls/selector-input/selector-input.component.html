@@ -2,7 +2,7 @@
 <div *ngIf="!editable">
   <label [htmlFor]="controlLabel">{{ controlLabel }}</label>
     <!-- setting min-width to 180px makes selector maintain minimum width even when empty -->
-  <ng-select
+  <!-- <ng-select
     [id]="controlLabel"
     [items]="dataSource"
     [ngModel]="selectedObject"
@@ -15,7 +15,7 @@
     (change)="onValueChange($event)"
     style="min-width: 11.25rem;" 
     
-  ></ng-select>
+  ></ng-select> -->
 </div>
 
 <!--editable selector-->

@@ -1,23 +1,23 @@
 
 services:
-  pwa:
-    build:
-      context: ./front-end/pwa
-      dockerfile: Dockerfile.dev
-    restart: always
-    ports:
-      - "4200:4200"
-    volumes:
-    - ./front-end/pwa:/app
-      #- ./front-end/pwa:/usr/share/nginx/html
-    depends_on:
-      - api
+  # PWA service has been commented temporarily due to the angular development server not receiving connections when run inside docker 
+  # pwa:
+  #   build:
+  #     context: ./front-end/pwa
+  #     dockerfile: Dockerfile.dev
+  #     restart: always
+  #   ports:
+  #     - "4200:4200"
+  #   volumes:
+  #   - ./front-end/pwa:/app
+  #   depends_on:
+  #     - api
 
   api:
     build:
       context: ./back-end/api
       dockerfile: Dockerfile.dev
-    restart: always
+    #restart: always
     environment:
       #DB_URL: postgresql://postgres:password@db:5432/climsoft 
       DB_HOST: db
@@ -34,7 +34,7 @@ services:
 
   db:
     image: postgres:16.2
-    restart: always
+    #restart: always
     environment:
       POSTGRES_DB: climsoft
       POSTGRES_USER: postgres
