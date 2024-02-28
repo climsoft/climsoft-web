@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
-  protected username: string = ''; //TODO. In future, this could be phone as well
+  protected email: string = ''; //TODO. In future, this could be phone as well
   protected password: string = '';
   protected errorMessage: string = '';
 
@@ -20,7 +20,7 @@ export class LoginComponent {
 
     this.errorMessage = '';
 
-    if (!this.username) {
+    if (!this.email) {
       this.errorMessage = 'Email is required';
       return;
     }
@@ -31,7 +31,7 @@ export class LoginComponent {
       return;
     }
 
-    this.authService.login(this.username, this.password).pipe(
+    this.authService.login(this.email, this.password).pipe(
       take(1),
       catchError(error => {
         this.errorMessage = error.message;

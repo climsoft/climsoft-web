@@ -5,5 +5,6 @@ WORKDIR /app
 COPY package*.json .
 RUN npm install
 COPY . .
-#CMD [ "npm", "start" ]
-CMD [ "ng", "serve" , "--host", "0.0.0.0", "--disable-host-check"]
+CMD [ "npm", "start"]
+#CMD [ "npm", "start" , "--host", "0.0.0.0", "--disable-host-check"]
+#CMD [ "ng", "serve" , "--host", "0.0.0.0", "--disable-host-check"]

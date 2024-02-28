@@ -6,15 +6,15 @@
     <div class="navbar sticky-top shadow-sm bg-light p-0">
       <div class="d-flex flex-row w-100 justify-content-between">
         <div class=" nav-bar-title px-3 ">Climsoft</div>
-        <div *ngIf="bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav"> <i class="bi bi-list py-1 nav-bar-icon"></i>
+        <div *ngIf="bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav">
+          <i class="bi bi-list py-1 nav-bar-icon"></i>
         </div>
-
       </div>
 
     </div>
 
     <div class="card p-3 rounded-0 border-0">
-      <div  *ngIf="featuresNavItems" class="list-group list-group-flush">
+      <div *ngIf="featuresNavItems" class="list-group list-group-flush">
         <!-- menu iems section -->
         <div class="list-group-item list-group-item-action px-0" *ngFor="let nav of featuresNavItems">
           <div class="list-group list-group-flush p-0 m-0">
@@ -27,15 +27,15 @@
             </a>
 
             <!-- sub menus -->
-            <div *ngIf="nav.children.length > 0"  >
-              <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0" > 
+            <div *ngIf="nav.children.length > 0">
+              <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0">
                 <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
                   [routerLink]="nav.url + subNav.url">
                   <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
                 </a>
               </div>
             </div>
-            
+
           </div>
         </div>
         <!-- end -->

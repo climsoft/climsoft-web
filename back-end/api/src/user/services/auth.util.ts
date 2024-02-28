@@ -16,7 +16,7 @@ export class AuthUtil {
 
     public static createNewSessionUser(request: Request, userEntity: UserEntity): LoggedInUserDto {
         //if user found then set the user session  
-        const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? JSON.parse(userEntity.authorisedStationIds) : null;
+        const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? userEntity.authorisedStationIds : null;
         const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
         const loggedInUser: LoggedInUserDto = {
             id: userEntity.id,

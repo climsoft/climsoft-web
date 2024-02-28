@@ -1,15 +1,15 @@
 
 services:
-  # PWA service has been commented temporarily due to the angular development server not receiving connections when run inside docker 
+  #PWA service has been commented temporarily due to the angular development server not receiving connections when run inside docker 
   # pwa:
   #   build:
   #     context: ./front-end/pwa
   #     dockerfile: Dockerfile.dev
-  #     restart: always
+  #   #restart: always
   #   ports:
   #     - "4200:4200"
   #   volumes:
-  #   - ./front-end/pwa:/app
+  #     - ./front-end/pwa:/app
   #   depends_on:
   #     - api
 
