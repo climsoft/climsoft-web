@@ -1,14 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { LoggedInUserDto } from '../dtos/logged-in-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from '../dtos/create-user.dto';
-import { Request } from 'express';
 import { ViewUserDto } from '../dtos/view-user.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
-import { AuthUtil } from './auth.util';
-
 
 @Injectable()
 export class UsersService {
@@ -41,7 +37,7 @@ export class UsersService {
             email: userEntity.email,
             phone: userEntity.phone,
             roleId: userEntity.roleId,
-            authorisedStationIds: userEntity.authorisedStationIds ? JSON.parse(userEntity.authorisedStationIds) : null,
+            authorisedStationIds: userEntity.authorisedStationIds ? userEntity.authorisedStationIds : null,
             extraMetadata: userEntity.extraMetadata,
             disabled: userEntity.disabled,
         };
@@ -93,7 +89,7 @@ export class UsersService {
         entity.email = dto.email;
         entity.phone = dto.phone;
         entity.roleId = dto.roleId;
-        entity.authorisedStationIds = dto.authorisedStationIds ? JSON.stringify(dto.authorisedStationIds) : null;
+        entity.authorisedStationIds = dto.authorisedStationIds ? dto.authorisedStationIds : null;
         entity.extraMetadata = dto.extraMetadata;
         entity.disabled = dto.disabled;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();

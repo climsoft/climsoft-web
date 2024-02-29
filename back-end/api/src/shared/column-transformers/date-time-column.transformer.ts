@@ -11,7 +11,7 @@ export class DateTimeColumn implements ValueTransformer {
         }
 
         from(date: string) {
-                const k = 1;
+               
                 return date;
                 // test changes
                 // const jsDate = new Date(date);

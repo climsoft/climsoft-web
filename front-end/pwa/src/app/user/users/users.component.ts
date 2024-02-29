@@ -1,10 +1,7 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { extend } from 'leaflet';
-import { ViewUserDto } from 'src/app/core/models/dtos/view-user.dto';
-import { ElementModel } from 'src/app/core/models/element.model';
-import { UserRole } from 'src/app/core/models/enums/user-roles.enum';
-import { ElementsService } from 'src/app/core/services/elements.service';
+import { ActivatedRoute, Router } from '@angular/router'; 
+import { ViewUserDto } from 'src/app/core/models/dtos/view-user.dto'; 
+import { UserRole } from 'src/app/core/models/enums/user-roles.enum'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users.service';
 

@@ -1,9 +1,0 @@
-FROM node:21-alpine3.18
-WORKDIR /app
-# Install Angular CLI globally within the container
-#RUN npm install -g @angular/cli
-COPY package*.json .
-RUN npm install
-COPY . .
-#CMD [ "npm", "start" ]
-CMD [ "ng", "serve" , "--host", "0.0.0.0", "--disable-host-check"]

@@ -11,7 +11,7 @@ export class StationElementEntity {
     elementId: number;
 
     @Column({ type: "jsonb", nullable: true })
-    limits: Limit | null;
+    limits: Limit[] | null;
 
     @Column({ type: "varchar", name:"entry_user_id" })
     entryUserId: string;
@@ -31,7 +31,7 @@ export interface Limit{
 }
 
 export interface StationElementEntityLogVo {
-    limits: Limit | null;
+    limits: Limit[] | null;
     comment: string | null;
     entryUserId: string;
     entryDateTime: string;

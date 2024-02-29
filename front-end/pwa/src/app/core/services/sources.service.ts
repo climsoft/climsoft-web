@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { SourceModel, SourceTypeIdEnum } from '../models/source.model';
+import { SourceModel, SourceTypeEnum } from '../models/source.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +20,7 @@ export class SourcesService {
       );
   }
 
-  public getSources(sourceTypeId?: SourceTypeIdEnum): Observable<SourceModel[]> {
+  public getSources(sourceTypeId?: SourceTypeEnum): Observable<SourceModel[]> {
     let url: string = this.endPointUrl;
     if (sourceTypeId) {
       url = `${this.endPointUrl}/source-type/${sourceTypeId}`
