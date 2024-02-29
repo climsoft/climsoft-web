@@ -49,7 +49,7 @@ For testing deployment with Docker containers for Angular, NestJS, and PostgreSQ
 - Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Activate the Docker engine using the Docker Desktop application.
 
-### Deployment
+### Setup
 1. **Clone the Repository**:
    Clone Climsoft Web to your machine:
    ```bash
