@@ -1,4 +1,4 @@
-# Climsoft-Web README
+# Climsoft-Web
 
 ## Overview
 Climsoft Web is a comprehensive web application featuring both frontend and backend components. The frontend is developed with Angular, while the backend leverages NestJS and PostgreSQL for a robust, full-stack solution.
