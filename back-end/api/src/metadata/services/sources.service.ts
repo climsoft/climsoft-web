@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SourceEntity } from '../entities/source.entity';
+import { SourceEntity, SourceTypeEnum } from '../entities/source.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateSourceDto } from '../dtos/create-source.dto';
@@ -10,12 +10,8 @@ export class SourcesService {
     constructor(@InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
     ) { }
 
-    findForms() {
-        return this.findSources(1);
-    }
-
-    async findSources(sourceTypeId?: number) {
-        let sources;
+    async findSources(sourceTypeId?: SourceTypeEnum): Promise<SourceEntity[]> {
+        let sources: SourceEntity[];
         if (sourceTypeId) {
             sources = await this.sourceRepo.find({
                 where: {

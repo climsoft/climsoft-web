@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { SourceModel, SourceTypeIdEnum } from '../../core/models/source.model'; 
+import { SourceModel, SourceTypeEnum } from '../../core/models/source.model'; 
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
@@ -27,7 +27,7 @@ export class FormsComponent implements OnInit {
 
   private loadSources() {
     //get data sources of source type forms
-    this.sourceService.getSources(SourceTypeIdEnum.FORM).subscribe((data) => {
+    this.sourceService.getSources(SourceTypeEnum.FORM).subscribe((data) => {
       this.sources = data;
     });
   }

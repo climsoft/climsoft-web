@@ -6,7 +6,7 @@ import { CreateStationDto } from '../dtos/create-station.dto';
 import { StationFormEntity } from '../entities/station-form.entity';
 import { SourcesService } from './sources.service';
 import { ViewStationFormDto } from '../dtos/view-station-form.dto';
-import { SourceEntity } from '../entities/source.entity';
+import { SourceEntity, SourceTypeEnum } from '../entities/source.entity';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { ViewStationElementDto } from '../dtos/view-station-element.dto';
@@ -274,7 +274,7 @@ export class StationsService {
     //---------forms------------------------------
     async findForms(stationId: string): Promise<ViewStationFormDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
-        const stationFormDetails: SourceEntity[] = await this.sourcesService.findForms();
+        const stationFormDetails: SourceEntity[] = await this.sourcesService.findSources(SourceTypeEnum.FORM);
 
         return stationForms.flatMap(form => {
             const formDetails: undefined | SourceEntity = stationFormDetails.find(fd => fd.id === form.sourceId);

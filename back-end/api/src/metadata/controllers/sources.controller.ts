@@ -2,12 +2,14 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { SourcesService } from '../services/sources.service';
 import { CreateSourceDto } from '../dtos/create-source.dto'; 
 import { Admin } from 'src/user/decorators/admin.decorator';
+import { SourceTypeEnum } from '../entities/source.entity';
 
 @Controller('sources')
 export class SourcesController {
 
     constructor(private readonly sourcesService: SourcesService) { }
 
+    //TODO delete this
     // @Get()
     // find(@Query() query: { [key: string]: number }) {
     //     if (query['sourceId']) {
@@ -30,7 +32,7 @@ export class SourcesController {
     }
 
     @Get('/source-type/:id')
-    findSourcesOfType(@Param('id') id: number) {
+    findSourcesOfType(@Param('id') id: SourceTypeEnum) {
         return this.sourcesService.findSources(id);
     }
 
