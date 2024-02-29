@@ -14,14 +14,6 @@ Follow the below steps for deployment.
 ```bash
  docker-compose -f docker-compose.dev.yaml up
 ``` 
-5. Run `npm install` inside the front-end/pwa of the downloaded/cloned folder. This will download the Angular application dependencies :
-```bash
- npm install
-```
-6. Run `ng serve` inside the front-end/pwa of the downloaded/cloned folder. This will start the angular development server:
-```bash
- ng serve
-```
-7. Navigate to `http://localhost:4200/`.
+5. Navigate to `http://localhost:4200/`.
 
 
