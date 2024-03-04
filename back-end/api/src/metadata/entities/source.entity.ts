@@ -1,5 +1,3 @@
-
-
 export enum SourceTypeEnum {
 
     //Represents data entry through entry forms
@@ -12,13 +10,13 @@ export enum SourceTypeEnum {
     DIGITAL = 3,
 }
 
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 @Entity("sources")
 export class SourceEntity {
-    @PrimaryColumn({ type: "int" })
+    @PrimaryGeneratedColumn({ type: "int" })
     id: number;
 
-    @Column({ type: "varchar" })
+    @Column({ type: "varchar", unique: true })
     name: string;
 
     @Column({ type: "varchar" })
