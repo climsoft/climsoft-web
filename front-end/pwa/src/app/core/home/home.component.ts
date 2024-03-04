@@ -52,12 +52,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       url: '/metadata',
       icon: 'bi bi-chat-dots',
       open: false,
-      children: [
-        {
-          name: 'Stations',
-          url: '/stations',
-          featureTitle: 'Stations'
-        },
+      children: [        
         {
           name: 'Elements',
           url: '/elements',
@@ -67,6 +62,11 @@ export class HomeComponent implements OnInit, OnDestroy {
           name: 'Forms',
           url: '/forms',
           featureTitle: 'Entry Forms'
+        },
+        {
+          name: 'Stations',
+          url: '/stations',
+          featureTitle: 'Stations'
         }
       ]
     },

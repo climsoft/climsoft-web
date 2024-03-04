@@ -23,7 +23,6 @@ export class AuthUtil {
             roleId: userEntity.roleId,
             authorisedStationIds: authorisedStationIds,
             expiresIn: expiresIn,
-
         };
 
         //TODO. Instead of type assertion, in future extend the Session class of express session module?.

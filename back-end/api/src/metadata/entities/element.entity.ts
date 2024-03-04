@@ -1,8 +1,10 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { UserEntity } from "src/user/entities/user.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 
 @Entity("elements")
-export class ElementEntity {
+export class ElementEntity extends BaseEntity{
   @PrimaryColumn({ type: "int" })
   id: number;
 
@@ -30,18 +32,12 @@ export class ElementEntity {
   @Column({ type: "varchar", nullable: true })
   comment: string | null;
 
-  @Column({ type: "int" })
-  entryUserId: number;
-
-  @Column({ type: "timestamptz",  name: "entry_date_time", transformer: new DateTimeColumn() })
-  entryDateTime: string;
-
   @Column({ type: "jsonb", nullable: true })
   log: ElementLogVo[] | null;
 
 }
 
-export interface ElementLogVo {
+export interface ElementLogVo extends BaseLogVo {
   name: string;
   abbreviation: string;
   description: string;
@@ -50,6 +46,4 @@ export interface ElementLogVo {
   upperLimit: number | null;
   entryScaleFactor: number | null;
   comment: string | null;
-  entryUserId: number;
-  entryDateTime: string;
 }

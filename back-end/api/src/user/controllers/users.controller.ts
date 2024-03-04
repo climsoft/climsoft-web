@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { Admin } from '../decorators/admin.decorator';
 import { Public } from '../decorators/public.decorator';
 import { AuthUtil } from '../services/auth.util';
+import { UserEntity } from '../entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -38,7 +39,7 @@ export class UsersController {
     @Public()
     @Post('/login')
     public async login(@Req() request: Request, @Body() loginCredentials: { username: string, password: string }) {
-       const userEntity =  await this.userService.getUserByCredentials(loginCredentials.username, loginCredentials.password);
+       const userEntity: UserEntity =  await this.userService.getUserByCredentials(loginCredentials.username, loginCredentials.password);
        return AuthUtil.createNewSessionUser(request, userEntity);
     }
 
