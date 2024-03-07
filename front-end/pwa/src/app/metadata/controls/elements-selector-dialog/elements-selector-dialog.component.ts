@@ -13,8 +13,8 @@ export interface ElementSelection extends ElementModel {
   styleUrls: ['./elements-selector-dialog.component.scss']
 })
 export class ElementsSelectorDialogComponent {
-  @Input() public title: string = 'Select Element';
-  @Input() public okButtonLabel: string = 'OK';
+  @Input() public title: string = "Select Element";
+  @Input() public okButtonLabel: string = "OK";
   @Output() public ok = new EventEmitter<number[]>();
 
   protected open: boolean = false;

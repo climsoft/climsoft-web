@@ -30,9 +30,8 @@
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
                         (click)="dlgElementAdd.openDialog(undefined, elementIds, false)">Edit</button>
-                    <app-elements-selector-dialog #dlgElementAdd
-                        (ok)="onElementsEdited($event)"/>
-                  
+                    <app-elements-selector-dialog #dlgElementAdd (ok)="onElementsEdited($event)" />
+
                 </div>
 
                 <table class="table table-sm table-striped">
@@ -79,18 +78,12 @@
                                                             *ngIf="elementLimitsDisplay.open">
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-secondary me-1"
-                                                                (click)="elementLimitsInput.openDialog( 'EDIT', station.id,element.id)">Edit</button>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary"
-                                                                (click)="elementLimitsInput.openDialog( 'DELETE', station.id,element.id)">Delete</button>
+                                                                (click)="elementLimitsInput.openDialog( station.id,element.id)">Edit</button>
 
-                                                            <app-station-element-limits-input-dialog #elementLimitsInput
-                                                                (ok)="loadElementLimits(element.id);">
-                                                            </app-station-element-limits-input-dialog>
-
-                                                            <!-- <app-elements-selector-dialog #dlgElementAdd
-                                                                [okButtonLabel]="'Save'"
-                                                                (ok)="onElementsSelected($event)"></app-elements-selector-dialog> -->
+                                                            <app-station-element-limits-input-dialog
+                                                                [title]="'Set Monthly Limits - ' + element.name"
+                                                                #elementLimitsInput
+                                                                (ok)="onElementLimitsEdited(element.id,$event);" />
                                                         </div>
                                                     </div>
 
@@ -124,9 +117,7 @@
                                                         <div class="d-flex justify-content-end"
                                                             *ngIf="elementInstrument.open">
                                                             <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary me-1">Add</button>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary">Delete</button>
+                                                                class="btn btn-sm btn-outline-secondary me-1">Edit</button>
                                                         </div>
                                                     </div>
 

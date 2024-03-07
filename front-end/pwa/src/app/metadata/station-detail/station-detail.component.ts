@@ -92,7 +92,7 @@ export class StationDetailComponent implements OnInit {
     }
   }
 
-  private updateStationElements(elementIds: number[], action: 'ADD' | 'DELETE'): Observable<any> {
+  private updateStationElements(elementIds: number[], action: 'ADD' | 'DELETE'): Observable<number[] | null> {
     if (elementIds.length === 0) {
       // Immediately complete if no elements to process
       return of(null);
@@ -103,10 +103,10 @@ export class StationDetailComponent implements OnInit {
       : this.stationElementsService.deleteStationElements(this.station.id, elementIds);
 
     return operation.pipe(
-      tap(data => {
-        const message = action === 'ADD' ? 'Elements Added' : 'Elements Deleted';
-        if ((action === 'ADD' && data.length > 0) || (action === 'DELETE' && data)) {
-          this.pagesDataService.showToast({ title: 'Station Element', message, type: 'success' });
+      tap(data => {      
+        if (data.length > 0) {
+          const message: string = action === "ADD" ? "Elements Added" : "Elements Deleted";
+          this.pagesDataService.showToast({ title: "Station Element", message: message, type: "success" });
         }
       }),
       catchError(error => {
@@ -116,7 +116,6 @@ export class StationDetailComponent implements OnInit {
       })
     );
   }
-
 
 
   //-------------------
@@ -131,6 +130,18 @@ export class StationDetailComponent implements OnInit {
 
   getMonthName(monthId: number): string {
     return DateUtils.getMonthName(monthId)
+  }
+
+  protected onElementLimitsEdited(elementId: number, elementLimits: StationElementLimitModel[]): void {
+
+    //save limits. Server will handle deletions
+    this.stationElementsService.saveStationElementLimits(this.station.id, elementId, elementLimits).subscribe(data => {
+      if (data.length > 0) {
+        this.elementLimits = data;
+        this.pagesDataService.showToast({ title: "Element Limits", message: "Element limits saved", type: "success" }); 
+      }
+    });
+
   }
 
 

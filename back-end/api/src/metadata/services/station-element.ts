@@ -3,7 +3,7 @@ import { StationElementEntity, StationElementEntityLogVo, StationElementLimit } 
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ObjectUtils } from "src/shared/utils/object.util";
-import { DateUtils } from "src/shared/utils/date.utils"; 
+import { DateUtils } from "src/shared/utils/date.utils";
 import { ElementsService } from "./elements.service";
 import { ViewElementDto } from "../dtos/view-element.dto";
 
@@ -17,8 +17,8 @@ export class StationElementsService {
 
     async findElements(stationId: string): Promise<ViewElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
-        const elementIds: number[] = stationElementEntities.map(data => (data.elementId));        
-        return elementIds.length>0? this.elementsService.findElements(elementIds): [];
+        const elementIds: number[] = stationElementEntities.map(data => (data.elementId));
+        return elementIds.length > 0 ? this.elementsService.findElements(elementIds) : [];
     }
 
     async saveElements(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {
@@ -87,7 +87,7 @@ export class StationElementsService {
         const newLimits = this.getUpdatedStationElementLimits(stationElementEntity.monthLimits, limitsDtos)
 
         const oldChanges: StationElementEntityLogVo = this.getLogForLimitsFromEntity(stationElementEntity);
-        const newChanges: StationElementEntityLogVo = this.getLogForLimitsFromDto( newLimits, userId);
+        const newChanges: StationElementEntityLogVo = this.getLogForLimitsFromDto(newLimits, userId);
 
         //if there are changes, then no need to save
         if (!ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
@@ -134,19 +134,21 @@ export class StationElementsService {
         };
     }
 
-
     private updateEntityWithLimits(entity: StationElementEntity, limitsDto: StationElementLimit[], userId: number): void {
-        entity.monthLimits = limitsDto;
+        // Check if some limits are not null. If all limits are nulls, then just set the monthLimits field to null.
+        const someLimitsAdded: boolean = limitsDto.some(limit => limit.lowerLimit !== null || limit.upperLimit !== null);
+      
+        entity.monthLimits = someLimitsAdded ? limitsDto : null;
         entity.entryUserId = userId;
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat(); // Ensure DateUtils.getTodayDateInSQLFormat is correctly implemented
         entity.log = ObjectUtils.getNewLog<StationElementEntityLogVo>(entity.log, this.getLogForEntity(entity));
-    }
-
+      }
+      
     //-------------------
 
     //-----------instruments------------------
 
-    //TODO. implement find etc
+    //TODO. implement find etc for instruments
 
     private getLogForInstrumentFromDto(instrumentId: number, userId: number): StationElementEntityLogVo {
         return {

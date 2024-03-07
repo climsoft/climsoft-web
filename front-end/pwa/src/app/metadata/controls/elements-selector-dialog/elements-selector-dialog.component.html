@@ -1,6 +1,6 @@
-<app-dialog  [(open)]="open" [title]="title" [okButtonLabel]="okButtonLabel" (okClick)="onOkClick()">
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="okButtonLabel" (okClick)="onOkClick()">
 
-    <table class="table table-hover">
+    <table *ngIf="elements" class="table table-hover">
         <thead>
             <tr>
                 <th scope="col">Id</th>

@@ -42,13 +42,5 @@ export class StationElementsController {
     return this.stationsService.saveElementLimit(stationId, elementId, limits, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Admin()
-  @Delete('element-limits/:stationId/:elementId/:monthId')
-  deleteElementLimit(@Param('stationId') stationId: string, @Param('elementId') elementId: number, @Param('monthId') monthId: number) {
-    // return this.stationsService.deleteElementLimit(stationId, elementId, monthId);
-  }
-
-
-
 
 }
