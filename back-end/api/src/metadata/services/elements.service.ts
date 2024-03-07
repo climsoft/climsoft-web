@@ -4,26 +4,29 @@ import { FindManyOptions, In, Repository } from 'typeorm';
 import { ElementEntity, ElementLogVo } from '../entities/element.entity';
 import { CreateElementDto } from '../dtos/create-element.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { DateUtils } from 'src/shared/utils/date.utils'; 
+import { DateUtils } from 'src/shared/utils/date.utils';
+import { ViewElementDto } from '../dtos/view-element.dto';
 
 @Injectable()
 export class ElementsService {
     constructor(@InjectRepository(ElementEntity) private readonly elementRepo: Repository<ElementEntity>,
     ) { }
 
-    public findElements(ids?: number[]): Promise<ElementEntity[]> {
+    public async findElements(ids?: number[]): Promise<ViewElementDto[]> {
         const findOptions: FindManyOptions<ElementEntity> = {
             order: {
-                id: "ASC" // or "DESC" for descending order
+                id: "ASC"
             }
         };
-    
-        if (ids && ids.length > 0) {
+
+        if (ids) {
             findOptions.where = { id: In(ids) };
         }
-    
-        return this.elementRepo.find(findOptions);
+
+        const elementEntities = await this.elementRepo.find(findOptions);
+        return elementEntities.map(element => ({ ...element }));
     }
+
 
 
     public async findElement(id: number): Promise<ElementEntity> {
@@ -76,7 +79,7 @@ export class ElementsService {
             upperLimit: entity.upperLimit,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
-            entryUserId: entity.entryUserId ,
+            entryUserId: entity.entryUserId,
             entryDateTime: entity.entryDateTime,
         };
     }
@@ -91,7 +94,7 @@ export class ElementsService {
             upperLimit: dto.upperLimit,
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
-            entryUserId: userId, 
+            entryUserId: userId,
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),
         };
     }
@@ -105,7 +108,7 @@ export class ElementsService {
         entity.upperLimit = dto.upperLimit;
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
-        entity.entryUserId = userId; 
+        entity.entryUserId = userId;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
         entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
     }

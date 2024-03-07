@@ -1,7 +1,12 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
+import { StationElementsService } from 'src/app/core/services/station-elements.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+
+export interface MonthLimitSelection extends StationElementLimitModel {
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-station-element-limits-input-dialog',
@@ -9,86 +14,103 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
   styleUrls: ['./station-element-limits-input-dialog.component.scss']
 })
 export class StationElementLimitsInputDialogComponent {
-  @Output() ok = new EventEmitter();
-  mode!: 'EDIT' | 'DELETE';
-  open: boolean = false;
-  allMonthLimits!: StationElementLimitModel[];
+  @Output() public ok = new EventEmitter<StationElementLimitModel[]>();
+  protected mode!: 'EDIT' | 'DELETE';
+  protected open: boolean = false;
   private stationId!: string;
   private elementId!: number;
-  okButtonLabel!: string;
-  cancelButtonLabel!: string;
+  protected monthLimits!: MonthLimitSelection[];
 
-  constructor(private stationsService: StationsService) {
+  constructor(private stationElementsService: StationElementsService) {
   }
 
-  openDialog(mode: 'EDIT' | 'DELETE', stationId: string, elementId: number): void {
+  public openDialog(mode: 'EDIT' | 'DELETE', stationId: string, elementId: number): void {
 
     this.open = true;
     this.mode = mode;
     this.stationId = stationId;
     this.elementId = elementId;
 
-    if (this.mode === 'EDIT') {
-      this.okButtonLabel = 'Save';
-      this.cancelButtonLabel = 'Cancel';
-    } else {
-      this.okButtonLabel = '';
-      this.cancelButtonLabel = 'Close';
-    }
-
-
     this.loadLimits();
 
   }
 
   private loadLimits(): void {
-    this.stationsService.getStationElementLimits(this.stationId, this.elementId).subscribe((data) => {
+    this.monthLimits = [];
+
+    this.stationElementsService.getStationElementLimits(this.stationId, this.elementId).subscribe((dbLimits) => {
+
       if (this.mode === 'EDIT') {
 
-        this.allMonthLimits = [];
-
-        for (let i = 1; i <= 12; i++) {
-          this.allMonthLimits.push({ monthId: i, lowerLimit: null, upperLimit: null, comment: null, log: null, entryUserId: '', entryDateTime: '' });
+        for (let monthId = 1; monthId <= 12; monthId++) {
+          this.monthLimits.push({ monthId: monthId, lowerLimit: null, upperLimit: null, comment: null, selected: false });
         }
 
-        for (let dbMonthLimit of data) {
-          let displayMonthLimit = this.allMonthLimits.find(limit => (dbMonthLimit.monthId === limit.monthId))
+        for (let dbMonthLimit of dbLimits) {
+          let displayMonthLimit = this.monthLimits.find(limit => (dbMonthLimit.monthId === limit.monthId));
           if (displayMonthLimit) {
-            Object.assign<StationElementLimitModel, StationElementLimitModel>(displayMonthLimit, dbMonthLimit)
+            Object.assign<StationElementLimitModel, StationElementLimitModel>(displayMonthLimit, dbMonthLimit);
           }
         }
 
-      } else {
-        this.allMonthLimits = data;
+      } else if (this.mode === 'DELETE') {
+
+        for (let dbMonthLimit of dbLimits) {
+          this.monthLimits.push({ ...dbMonthLimit, selected: false });
+        }
+
       }
 
     });
   }
 
-  onOkClick(): void {
+  protected onOkCancelClick(): void {
+    let updatedLimits: MonthLimitSelection[] = [];
+    if (this.mode === "EDIT") {
+       updatedLimits = this.monthLimits.filter(monthLimit =>
+        monthLimit.lowerLimit !== null || monthLimit.upperLimit !== null
+      );      
 
-    const updatedMonthLimits: StationElementLimitModel[] = this.allMonthLimits.filter(monthLimit =>
-      monthLimit.lowerLimit !== null || monthLimit.upperLimit !== null
-    );
+    } else if (this.mode === "DELETE") {
+      updatedLimits = this.monthLimits.filter(limit => limit.selected);
+    } 
 
-    //save limits
-    this.stationsService.saveStationElementLimits(this.stationId, this.elementId, updatedMonthLimits).subscribe(data => {
-      if (data.length > 0) {
-        this.ok.emit();
-      }
-    });
+    const newLimits: StationElementLimitModel[]= [];
+    for(const limitSlection of updatedLimits){
+      const limit: StationElementLimitModel = {...limitSlection}
+      newLimits.push(limit);
+    }
+
+    this.ok.emit(newLimits);
 
   }
 
+  protected onLimitClicked(monthLimit: MonthLimitSelection): void {
+    // Toggle selection
+    monthLimit.selected = !monthLimit.selected;
+  }
 
-  getMonthName(monthId: number): string {
+  protected getMonthName(monthId: number): string {
     return DateUtils.getMonthName(monthId)
   }
 
-  deleteLimit(limit: StationElementLimitModel): void {
-    this.stationsService.deleteStationElementLimit(this.stationId, this.elementId, limit.monthId).subscribe(data => {
-      this.loadLimits();
-    });
+  private emitLimts(updatedLimits: MonthLimitSelection[]): void {
+  
+
+
+    //save limits
+    // this.stationsService.saveStationElementLimits(this.stationId, this.elementId, updatedMonthLimits).subscribe(data => {
+    //   if (data && data.length > 0) {
+    //     this.ok.emit();
+    //   }
+    // });
+  }
+
+  private deleteLimits(): void {
+   
+    // this.stationsService.deleteStationElementLimit(this.stationId, this.elementId, selectedIds).subscribe(data => {
+    //   this.loadLimits();
+    // });
 
   }
 

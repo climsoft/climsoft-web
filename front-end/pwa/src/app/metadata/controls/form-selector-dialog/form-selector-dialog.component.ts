@@ -16,7 +16,7 @@ export class FormSelectorDialogComponent {
   @Output() ok = new EventEmitter<number[]>();
   open: boolean = false;
   forms!: FormSelection[];
-  private selectedIds: number[] = [];
+  private selectedIds: number[] = [];// TODO remove
   private exludeIds: number[] = [];
 
   constructor(private readonly sourcesService: SourcesService) { }
@@ -48,7 +48,7 @@ export class FormSelectorDialogComponent {
 
   }
 
-  onFormClicked(form: FormSelection): void {
+  protected onFormClicked(form: FormSelection): void {
     // Toggle form selection
     form.selected = !form.selected;
 
@@ -56,7 +56,7 @@ export class FormSelectorDialogComponent {
     this.selectedIds = this.forms.filter(f => f.selected).map(f => f.id);
   }
 
-  onOkClick(): void {
+  protected onOkClick(): void {
     // Emit the updated selectedIds
     this.ok.emit(this.selectedIds);
   }

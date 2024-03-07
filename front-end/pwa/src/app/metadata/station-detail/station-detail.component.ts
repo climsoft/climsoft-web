@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
-import { StationElementModel } from 'src/app/core/models/station-element.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
+import { ElementModel } from 'src/app/core/models/element.model';
+import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model'; 
 import { StationFormModel } from 'src/app/core/models/station-form.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { StationElementsService } from 'src/app/core/services/station-elements.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
@@ -17,63 +20,111 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 export class StationDetailComponent implements OnInit {
 
   station!: StationModel;
-  elements!: StationElementModel[];
+  elements!: ElementModel[];
   elementLimits!: StationElementLimitModel[];
   forms!: StationFormModel[];
 
   constructor(
     private pagesDataService: PagesDataService,
     private route: ActivatedRoute,
+    private router: Router,
     private stationsService: StationsService,
+    private stationElementsService: StationElementsService,
   ) {
     this.pagesDataService.setPageHeader('Station Detail');
   }
 
   ngOnInit() {
 
-    const stationId = this.route.snapshot.params['stationid'];
+    const stationId = this.route.snapshot.params['id'];
 
-    this.stationsService.getStation(stationId).subscribe((data) => {
+    this.stationsService.getStationCharacteristics(stationId).subscribe((data) => {
       this.station = data;
     });
 
   }
 
+  protected onEditCharacteristics(): void {
+    this.router.navigate(["station-characteristics", this.station.id], { relativeTo: this.route.parent });
+  }
+
   //------ elements -----
-  loadElements(): void {
-    this.stationsService.getStationElements(this.station.id).subscribe((data) => {
+  protected loadElements(): void {
+    this.stationElementsService.getStationElements(this.station.id).subscribe((data) => {
       this.elements = data;
     });
   }
 
-  getElementIdsToExclude(): number[] {
-    return this.elements.map(element => element.elementId) ?? [];
+
+  protected get elementIds(): number[] {
+    return this.elements.map(element => element.id) ?? [];
   }
 
-  onElementsSelected(selectedIds: number[]): void {
-    this.stationsService.saveStationElements(this.station.id, selectedIds).subscribe((data) => {
-      if (data.length > 0) {
-        this.pagesDataService.showToast({ title: 'Station Element', message: 'Elements Added', type: 'success' });
-      }
-      this.loadElements();
-    });
+
+  protected onElementsEdited(selectedIds: number[]): void {
+
+    let addedElementIds: number[] = selectedIds;
+    let removeElementIds: number[] = [];
+
+    if (this.elements && this.elements.length > 0) {      
+      const existingElementIds = this.elements.map(element => element.id);
+      //filter existing element ids 
+      addedElementIds = selectedIds.filter(id=> !existingElementIds.includes(id));
+
+      //get existing element ids that have been removed 
+      removeElementIds = existingElementIds.filter(id => !selectedIds.includes(id));
+    }
+
+    // Use RxJS to optimize simultaneous operations
+    if (addedElementIds.length > 0) {
+      this.updateStationElements(addedElementIds, 'ADD')
+        .pipe(
+          // Ensure delete operation starts only after add operation completes
+          switchMap(() => removeElementIds.length > 0 ? this.updateStationElements(removeElementIds, 'DELETE') : of(null)),
+          // Handle both operations completion
+          finalize(() => this.loadElements())
+        )
+        .subscribe({
+          // You could handle errors here if needed
+        });
+    } else if (removeElementIds.length > 0) {
+      this.updateStationElements(removeElementIds, 'DELETE').pipe(finalize(() => this.loadElements())).subscribe();
+    }
   }
 
-  onElementDeleted(elementId: string): void {
-    this.stationsService.deleteStationElement(this.station.id, Number(elementId)).subscribe((data) => {
-      if (data) {
-        this.pagesDataService.showToast({ title: 'Station Element', message: 'Element Deleted', type: 'success' });
-      }
-      this.loadElements();
-    });
+  private updateStationElements(elementIds: number[], action: 'ADD' | 'DELETE'): Observable<any> {
+    if (elementIds.length === 0) {
+      // Immediately complete if no elements to process
+      return of(null);
+    }
+
+    const operation = action === 'ADD'
+      ? this.stationElementsService.saveStationElements(this.station.id, elementIds)
+      : this.stationElementsService.deleteStationElements(this.station.id, elementIds);
+
+    return operation.pipe(
+      tap(data => {
+        const message = action === 'ADD' ? 'Elements Added' : 'Elements Deleted';
+        if ((action === 'ADD' && data.length > 0) || (action === 'DELETE' && data)) {
+          this.pagesDataService.showToast({ title: 'Station Element', message, type: 'success' });
+        }
+      }),
+      catchError(error => {
+        // TODO. Handle the error appropriately
+        console.error(error);
+        return of(null); // or throw an observable error if you want to stop the chain
+      })
+    );
   }
+
+
+
   //-------------------
 
   //------element limits----
 
   loadElementLimits(elementId: number): void {
-    this.stationsService.getStationElementLimits(this.station.id, elementId).subscribe((data) => {
-      console.log("station detalisl found limits", data);
+    this.stationElementsService.getStationElementLimits(this.station.id, elementId).subscribe((data) => {
       this.elementLimits = data;
     });
   }

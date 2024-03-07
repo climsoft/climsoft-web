@@ -43,7 +43,7 @@ export class FormDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const sourceId = this.route.snapshot.params['sourceid'];
+    const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId) ) {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id

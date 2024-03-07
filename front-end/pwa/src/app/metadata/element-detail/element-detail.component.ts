@@ -21,12 +21,12 @@ export class ElementDetailComponent implements OnInit {
     private elementsService: ElementsService,
     private location: Location,
   ) {
-    this.pagesDataService.setPageHeader('Element Detail');
+    this.pagesDataService.setPageHeader("Element Detail");
   }
 
   ngOnInit() {
 
-    const elementId = this.route.snapshot.params['id'];
+    const elementId = this.route.snapshot.params["id"];
     //console.log("element id", elementId)
     if (StringUtils.containsNumbersOnly(elementId)) {
       this.elementsService.getElement(elementId).subscribe((data) => {
@@ -38,18 +38,18 @@ export class ElementDetailComponent implements OnInit {
 
   }
 
-  onElementIdEntry(id: number| null){
-    if(id){
+  protected onElementIdEntry(id: number | null) {
+    if (id) {
       this.element.id = id
     }
-   
+
   }
 
-  onSaveClick(): void {
+  protected onSaveClick(): void {
     //todo. do validations
 
     this.elementsService.save([this.element]).subscribe((data) => {
-      if(data.length>0){
+      if (data.length > 0) {
         this.element = data[0];
 
         this.pagesDataService.showToast({
@@ -58,12 +58,12 @@ export class ElementDetailComponent implements OnInit {
 
         this.location.back();
       }
-      
+
     });
 
   }
 
-  onCancelClick(): void {
+  protected onCancelClick(): void {
     this.location.back();
   }
 

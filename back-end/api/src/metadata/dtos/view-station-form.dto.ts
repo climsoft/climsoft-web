@@ -13,9 +13,8 @@ export class ViewStationFormDto {
 
     @IsString()
     sourceDescription: string;
-  
-    @IsString()
-    entryUserId: string;
+
+    entryUserId: number | null;
 
     @IsDate()
     entryDateTime: string;

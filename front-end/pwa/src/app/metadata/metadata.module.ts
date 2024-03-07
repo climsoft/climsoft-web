@@ -11,6 +11,7 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ElementsComponent } from './elements/elements.component';
+import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
 
 
 const controlsComponents = [
@@ -30,7 +31,8 @@ const controlsComponents = [
     StationDetailComponent,
     ElementsSelectorDialogComponent,
     ElementDetailComponent,
-    ElementsComponent, 
+    ElementsComponent,
+    StationCharacteristicsComponent, 
   ],
   imports: [
     SharedModule,

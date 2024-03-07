@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
@@ -13,37 +14,25 @@ export interface ElementSelection extends ElementModel {
 })
 export class ElementsSelectorDialogComponent {
   @Input() public title: string = 'Select Element';
-  @Input() public okButtonLabel: string = 'Add';
+  @Input() public okButtonLabel: string = 'OK';
   @Output() public ok = new EventEmitter<number[]>();
 
   protected open: boolean = false;
   protected elements!: ElementSelection[];
-  private selectedIds!: number[];
-  private excludeIds!: number[];
+  private selectedIds: number[] = [];
+  private showSelectedIdsOnly: boolean = false;
+  private excludeIds: number[] = [];
 
   constructor(private readonly elementsService: ElementsService) { }
 
-  public openDialog(): void {
-    this.selectedIds = [];
-    this.excludeIds = [];
-    this.setupDialog()
-  }
-
-  public openDialogWithSelectedElements(selectedIds: number[]): void {
-    this.selectedIds = selectedIds;
-    this.excludeIds = [];
-    this.setupDialog();
-  }
-
-  public openDialogWithExcludedElements(excludeIds: number[]): void {
-    this.selectedIds = [];
+  public openDialog(excludeIds: number[] = [], selectedIds: number[] = [], showSelectedIdsOnly: boolean = false): void {
     this.excludeIds = excludeIds;
-    this.setupDialog();
-  }
-
-  private setupDialog(): void {
+    this.selectedIds = selectedIds;
+    this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
-    this.elementsService.getElements().subscribe(data => {
+
+    const elementSubscription: Observable<ElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
+    elementSubscription.subscribe(data => {
       this.elements = data
         .filter(element => !this.excludeIds.includes(element.id))
         .map(element => ({ ...element, selected: this.selectedIds.includes(element.id) }));

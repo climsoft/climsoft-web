@@ -1,4 +1,5 @@
-<app-dialog [(open)]="open" [title]="'Set Monthly Limits'" [okButtonLabel]="okButtonLabel" [cancelButtonLabel]="cancelButtonLabel" (okClick)="onOkClick()">
+<app-dialog [(open)]="open" [title]="'Set Monthly Limits'" [okButtonLabel]="'Save'"
+    [cancelButtonLabel]="'Cancel'" (okClick)="onOkCancelClick()">
     <table *ngIf="mode === 'EDIT'" class="table">
         <thead>
             <tr>
@@ -8,7 +9,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let limit of allMonthLimits">
+            <tr *ngFor="let limit of monthLimits">
                 <td>{{ getMonthName(limit.monthId) }}</td>
                 <td>
                     <div class="form-control-max-w-sm">
@@ -33,15 +34,12 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let limit of allMonthLimits">
+            <tr *ngFor="let monthLimit of monthLimits" (click)="monthLimit.selected = !monthLimit.selected;" class="cursor-pointer">
 
-                <td>{{getMonthName(limit.monthId)}}</td>
-                <td>{{limit.lowerLimit ?? ''}}</td>
-                <td>{{limit.upperLimit ?? ''}}</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="deleteLimit( limit)">Delete</button>
-                </td>
+                <td>{{getMonthName(monthLimit.monthId)}}</td>
+                <td>{{monthLimit.lowerLimit ?? ''}}</td>
+                <td>{{monthLimit.upperLimit ?? ''}}</td>
+                <td> <input type="checkbox" class="form-check-input" [checked]="monthLimit.selected"> </td>
             </tr>
         </tbody>
     </table>

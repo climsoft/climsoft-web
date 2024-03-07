@@ -1,8 +1,8 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
+import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("station_elements")
-export class StationElementEntity {
+export class StationElementEntity extends BaseEntity {
 
     @PrimaryColumn({ type: "varchar" })
     stationId: string;
@@ -10,29 +10,24 @@ export class StationElementEntity {
     @PrimaryColumn({ type: "int" })
     elementId: number;
 
-    @Column({ type: "jsonb", nullable: true })
-    limits: Limit[] | null;
+    @Column({ type: "int",name: "instrument_id", nullable: true })
+    instrumentId: number | null;
 
-    @Column({ type: "varchar", name:"entry_user_id" })
-    entryUserId: string;
-
-    @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
-    entryDateTime: string;
+    @Column({ type: "jsonb",name: "month_limits", nullable: true })
+    monthLimits: StationElementLimit[] | null;   
 
     @Column({ type: "jsonb", nullable: true })
-    log: StationElementEntityLogVo | null;
+    log: StationElementEntityLogVo[] | null;
 }
 
-export interface Limit{
+export interface StationElementLimit {
     monthId: number;
-    lowerLimit: number | null; 
+    lowerLimit: number | null;
     upperLimit: number | null;
     comment: string | null;
 }
 
-export interface StationElementEntityLogVo {
-    limits: Limit[] | null;
-    comment: string | null;
-    entryUserId: string;
-    entryDateTime: string;
+export interface StationElementEntityLogVo extends BaseLogVo {
+    instrumentId: number | null;
+    monthLimits: StationElementLimit[] | null;
 }

@@ -1,17 +1,15 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
-import { UserEntity } from "src/user/entities/user.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("elements")
-export class ElementEntity extends BaseEntity{
+export class ElementEntity extends BaseEntity {
   @PrimaryColumn({ type: "int" })
   id: number;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", unique: true })
   name: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", unique: true })
   abbreviation: string;
 
   @Column({ type: "varchar" })
@@ -23,10 +21,10 @@ export class ElementEntity extends BaseEntity{
   @Column({ type: "int", name: "lower_limit", nullable: true })
   lowerLimit: number | null;
 
-  @Column({ type: "int",  name: "upper_limit", nullable: true })
+  @Column({ type: "int", name: "upper_limit", nullable: true })
   upperLimit: number | null;
 
-  @Column({ type: "float",  name: "entry_scale_factor", nullable: true })
+  @Column({ type: "float", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
 
   @Column({ type: "varchar", nullable: true })

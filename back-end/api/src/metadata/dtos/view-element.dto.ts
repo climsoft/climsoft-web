@@ -17,20 +17,15 @@ export class ViewElementDto {
     typeId: number;
 
     @IsNumber()
-    lowerLimit: number;
+    lowerLimit: number| null;
 
     @IsNumber()
-    upperLimit: number;
+    upperLimit: number| null;
 
     @IsNumber()
-    entryScaleFactor: number;
+    entryScaleFactor: number| null;
 
     @IsString()
-    comment: string | null;
+    comment: string | null; 
 
-    @IsString()
-    entryUserId: string;
-
-    @IsDate()
-    entryDateTime: string;
 }

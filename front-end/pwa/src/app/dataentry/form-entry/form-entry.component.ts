@@ -62,7 +62,7 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['datasourceid'];
 
-    this.stationsService.getStation(stationId).subscribe((data) => {
+    this.stationsService.getStationCharacteristics(stationId).subscribe((data) => {
       this.stationName = `${data.id} - ${data.name}`;
     });
 

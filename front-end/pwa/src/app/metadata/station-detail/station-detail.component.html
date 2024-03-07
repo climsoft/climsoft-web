@@ -10,7 +10,8 @@
             </div>
             <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        (click)="onEditCharacteristics()">Edit</button>
                 </div>
 
                 <app-text-input [label]="'Id'" [value]="station.id"></app-text-input>
@@ -28,14 +29,10 @@
 
                 <div class="d-flex justify-content-end">
                     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-                        (click)="dlgElementAdd.openDialogWithExcludedElements( getElementIdsToExclude())">Add</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="dlgElementDelete.openDialog()">Delete</button>
-                    <app-elements-selector-dialog #dlgElementAdd [okButtonLabel]="'Save'"
-                        (ok)="onElementsSelected($event)"></app-elements-selector-dialog>
-                    <app-input-dialog #dlgElementDelete [title]="'Delete Element'" [inputLabel]="'Enter element id:'"
-                        (ok)="onElementDeleted($event)"></app-input-dialog>
-
+                        (click)="dlgElementAdd.openDialog(undefined, elementIds, false)">Edit</button>
+                    <app-elements-selector-dialog #dlgElementAdd
+                        (ok)="onElementsEdited($event)"/>
+                  
                 </div>
 
                 <table class="table table-sm table-striped">
@@ -53,9 +50,9 @@
                                 <td>
                                     <app-toggle-chevron #elementSelected></app-toggle-chevron>
                                 </td>
-                                <td>{{ element.elementId}}</td>
-                                <td>{{ element.elementName}}</td>
-                                <td>{{ element.elementDescription}}</td>
+                                <td>{{ element.id}}</td>
+                                <td>{{ element.name}}</td>
+                                <td>{{ element.description}}</td>
                             </tr>
 
                             <!-- metadata row that contains 1 columns with metadata tables -->
@@ -77,23 +74,23 @@
 
                                                     <div class="d-flex justify-content-between">
                                                         <app-toggle-chevron #elementLimitsDisplay
-                                                            (opened)="loadElementLimits(element.elementId);">Limits</app-toggle-chevron>
+                                                            (opened)="loadElementLimits(element.id);">Limits</app-toggle-chevron>
                                                         <div class="d-flex justify-content-end"
                                                             *ngIf="elementLimitsDisplay.open">
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-secondary me-1"
-                                                                (click)="elementLimitsInput.openDialog( 'EDIT', station.id,element.elementId)">Edit</button>
+                                                                (click)="elementLimitsInput.openDialog( 'EDIT', station.id,element.id)">Edit</button>
                                                             <button type="button"
                                                                 class="btn btn-sm btn-outline-secondary"
-                                                                (click)="elementLimitsInput.openDialog( 'DELETE', station.id,element.elementId)">Delete</button>
+                                                                (click)="elementLimitsInput.openDialog( 'DELETE', station.id,element.id)">Delete</button>
 
                                                             <app-station-element-limits-input-dialog #elementLimitsInput
-                                                                (ok)="loadElementLimits(element.elementId);">
+                                                                (ok)="loadElementLimits(element.id);">
                                                             </app-station-element-limits-input-dialog>
 
-                                                            <app-elements-selector-dialog #dlgElementAdd
+                                                            <!-- <app-elements-selector-dialog #dlgElementAdd
                                                                 [okButtonLabel]="'Save'"
-                                                                (ok)="onElementsSelected($event)"></app-elements-selector-dialog>
+                                                                (ok)="onElementsSelected($event)"></app-elements-selector-dialog> -->
                                                         </div>
                                                     </div>
 

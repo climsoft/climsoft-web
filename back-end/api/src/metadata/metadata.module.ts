@@ -18,6 +18,8 @@ import { ElementDomainEntity } from './entities/element-domain.entity';
 import { ElementSubdomainEntity } from './entities/element-subdomain.entity';
 import { ElementTypeEntity } from './entities/element-type.entity';
 import { UserModule } from 'src/user/user.module';
+import { StationElementsService } from './services/station-element';
+import { StationElementsController } from './controllers/station-elements.controller';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -33,9 +35,9 @@ import { UserModule } from 'src/user/user.module';
         StationElementEntity,
         StationFormEntity,
     ]), UserModule],
-    controllers: [SourcesController, StationsController, ElementsController],
-    providers: [SourcesService, StationsService, ElementsService],
+    controllers: [ElementsController, SourcesController, StationsController, StationElementsController],
+    providers: [ElementsService, SourcesService, StationsService, StationElementsService],
     // TODO. Check if these need to be exported
-    exports:[SourcesService, StationsService, ElementsService]
+    exports:[ElementsService, SourcesService,StationsService, StationElementsService ]
 })
 export class MetadataModule { }

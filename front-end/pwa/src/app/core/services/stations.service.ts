@@ -3,16 +3,14 @@ import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { StationModel } from '../models/station.model';
-import { StationFormModel } from '../models/station-form.model';
-import { StationElementModel } from '../models/station-element.model';
-import { StationElementLimitModel } from '../models/station-element-limit.model';
+import { StationFormModel } from '../models/station-form.model'; 
 
 @Injectable({
   providedIn: 'root'
 })
 export class StationsService {
 
-  endPointUrl: string = " http://localhost:3000/stations";
+  private endPointUrl: string = " http://localhost:3000/stations";
 
   constructor(private http: HttpClient) { }
 
@@ -29,23 +27,22 @@ export class StationsService {
       );
   }
 
-  public getStation(stationId: string): Observable<StationModel> {
+  public getStationCharacteristics(stationId: string): Observable<StationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
-    console.log(url)
     return this.http.get<StationModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  save(station: StationModel): Observable<StationModel> {
-    return this.http.post<StationModel>(this.endPointUrl, station)
+  public saveStationCharacteristics(station: StationModel[]): Observable<StationModel[]> {
+    return this.http.post<StationModel[]>(this.endPointUrl, station)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  delete(stationId: number): Observable<StationModel> {
+  public delete(stationId: number): Observable<StationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
     return this.http.delete<StationModel>(url)
       .pipe(
@@ -53,54 +50,7 @@ export class StationsService {
       );
   }
 
-  getStationElements(stationId: string): Observable<StationElementModel[]> {
-    const url = `${this.endPointUrl}/elements/${stationId}`;
-    return this.http.get<StationElementModel[]>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  saveStationElements(stationId: string, elementIds: number[]): Observable<StationElementModel[]> {
-    const url = `${this.endPointUrl}/elements/${stationId}`;
-    return this.http.post<StationElementModel[]>(url, elementIds)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  deleteStationElement(stationId: string, elementId: number): Observable<StationElementModel> {
-    const url = `${this.endPointUrl}/elements/${stationId}/${elementId}`;
-    return this.http.delete<StationElementModel>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  getStationElementLimits(stationId: string, elementId: number): Observable<StationElementLimitModel[]> {
-    const url = `${this.endPointUrl}/element-limits/${stationId}/${elementId}`;
-    return this.http.get<StationElementLimitModel[]>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  saveStationElementLimits(stationId: string, elementId: number, elementLimit: StationElementLimitModel[]): Observable<StationElementLimitModel[]> {
-    const url = `${this.endPointUrl}/element-limits/${stationId}/${elementId}`;
-    return this.http.post<StationElementLimitModel[]>(url, elementLimit)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  deleteStationElementLimit(stationId: string, elementId: number, monthId: number): Observable<StationElementLimitModel> {
-    const url = `${this.endPointUrl}/element-limits/${stationId}/${elementId}/${monthId}`;
-    return this.http.delete<StationElementLimitModel>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
+ 
   getStationForms(stationId: string): Observable<StationFormModel[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
     return this.http.get<StationFormModel[]>(url)

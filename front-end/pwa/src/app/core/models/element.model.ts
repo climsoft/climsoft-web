@@ -17,7 +17,4 @@ export interface ElementModel {
 
   comment: string | null;
 
-  entryUserId?: string;
-
-  entryDateTime?: string;
 }
