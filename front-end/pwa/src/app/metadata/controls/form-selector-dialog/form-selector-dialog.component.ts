@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Observable } from 'rxjs';
 import { SourceModel } from 'src/app/core/models/source.model';
 import { SourcesService } from 'src/app/core/services/sources.service';
 
-export interface FormSelection extends SourceModel {
+export interface ItemSelection extends SourceModel {
   selected: boolean;
 }
 
@@ -12,54 +13,50 @@ export interface FormSelection extends SourceModel {
   styleUrls: ['./form-selector-dialog.component.scss']
 })
 export class FormSelectorDialogComponent {
-  @Input() okButtonLabel: string = 'Add';
-  @Output() ok = new EventEmitter<number[]>();
-  open: boolean = false;
-  forms!: FormSelection[];
-  private selectedIds: number[] = [];// TODO remove
-  private exludeIds: number[] = [];
+  @Input() public title: string = "Select Form";
+  @Input() public okButtonLabel: string = "OK";
+  @Output() public ok = new EventEmitter<number[]>();
+
+  protected open: boolean = false;
+  protected items!: ItemSelection[];
+  private selectedIds: number[] = [];
+  private showSelectedIdsOnly: boolean = false;
+  private excludeIds: number[] = [];
 
   constructor(private readonly sourcesService: SourcesService) { }
 
-  openDialog(): void {
-    this.selectedIds = [];
-    this.exludeIds = [];
-    this.setupDialog()
-  }
-  openDialogWithSelectedForms(selectedIds: number[]): void {
+  public openDialog(excludeIds: number[] = [], selectedIds: number[] = [], showSelectedIdsOnly: boolean = false): void {
+    this.excludeIds = excludeIds;
     this.selectedIds = selectedIds;
-    this.exludeIds = [];
-    this.setupDialog();
-  }
-
-  openDialogWithExcludedForms(exludeIds: number[]): void {
-    this.selectedIds = [];
-    this.exludeIds = exludeIds;
-    this.setupDialog();
-  }
-
-  private setupDialog(): void {
+    this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
-    this.sourcesService.getForms().subscribe(data => { 
-      this.forms = data
-      .filter(form => !this.exludeIds.includes(form.id))
-      .map(form => ({ ...form, selected: this.selectedIds.includes(form.id) }));
+
+    const elementSubscription: Observable<SourceModel[]> = this.showSelectedIdsOnly ? this.sourcesService.getForms(this.selectedIds) : this.sourcesService.getForms();
+    elementSubscription.subscribe(data => {
+      this.items = data
+        .filter(item => !this.excludeIds.includes(item.id))
+        .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));
     });
 
   }
 
-  protected onFormClicked(form: FormSelection): void {
-    // Toggle form selection
-    form.selected = !form.selected;
+  protected onItemClicked(item: ItemSelection): void {
+    // Toggle element selection
+    item.selected = !item.selected;
 
     // Update selectedIds based on the selected forms
-    this.selectedIds = this.forms.filter(f => f.selected).map(f => f.id);
+    // TODO. This is set in realtime because in future we may want to show the number of items selected 
+    this.selectedIds = this.items.filter(item => item.selected).map(item => item.id);
   }
 
   protected onOkClick(): void {
     // Emit the updated selectedIds
     this.ok.emit(this.selectedIds);
   }
+
+
+
+
 
 
 }

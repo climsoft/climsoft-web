@@ -3,7 +3,7 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { StationElementsService } from '../services/station-element';
+import { StationElementsService } from '../services/station-element.service';
 import { StationElementLimit } from '../entities/station-element.entity';
 
 @Controller('station-elements')
@@ -24,7 +24,7 @@ export class StationElementsController {
 
   @Admin()
   @Delete('elements/:id')
-  deleteElement(@Param('id', AuthorisedStationsPipe) stationId: string, @Body() elementIds: number[]) {
+  deleteElements(@Param('id', AuthorisedStationsPipe) stationId: string, @Body() elementIds: number[]) {
     return this.stationsService.deleteElements(stationId, elementIds);
   }
 

@@ -11,7 +11,7 @@ import { ElementsService } from 'src/app/core/services/elements.service';
 import { FlagsService } from 'src/app/core/services/flags.service';
 import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils'; 
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { EntryFormFilter } from './form-entry.util';
 import { SelectObservation } from 'src/app/core/models/dtos/select-observation.model';
 
@@ -70,13 +70,17 @@ export class FormEntryComponent implements OnInit {
       //set form name
       this.formName = data.name;
       //set form metadata
+      if (!data.extraMetadata) {
+        // TODO. Throw error?
+        return;
+      }
       this.formMetadata = JSON.parse(data.extraMetadata);
 
       this.formFilter = this.getSelectionFilter(stationId, sourceId, this.formMetadata);
 
-      if ( this.formFilter.day) {
+      if (this.formFilter.day) {
         this.defaultDateValue = new Date().toISOString().slice(0, 10)
-      } else  {
+      } else {
         this.defaultDateValue = this.formFilter.year + '-' + StringUtils.addLeadingZero(this.formFilter.month);
       }
 
@@ -85,7 +89,7 @@ export class FormEntryComponent implements OnInit {
 
     });
 
-  
+
 
   }
 
@@ -104,7 +108,7 @@ export class FormEntryComponent implements OnInit {
       formFilter.day = todayDate.getDate();
     }
 
-    if (formMetadata.selectors.includes('HOUR')) {    
+    if (formMetadata.selectors.includes('HOUR')) {
       formFilter.hour = formMetadata.hours[0];
     }
 
@@ -171,8 +175,8 @@ export class FormEntryComponent implements OnInit {
     });
   }
 
-  public onElementChange(elementIdInput: number| null): void {
-    if(elementIdInput === null){
+  public onElementChange(elementIdInput: number | null): void {
+    if (elementIdInput === null) {
       return;
     }
     this.formFilter.elementId = elementIdInput;
@@ -180,24 +184,24 @@ export class FormEntryComponent implements OnInit {
   }
 
   protected onYearMonthChange(yearMonthInput: string): void {
-    const date: Date = new Date(yearMonthInput); 
+    const date: Date = new Date(yearMonthInput);
     this.formFilter.year = date.getFullYear();
     this.formFilter.month = date.getMonth() + 1;
     this.loadSelectedElementsAndObservations();
   }
 
-  protected onDateChange(dateInput: string|null): void {
-    if(dateInput){
-      const date: Date = new Date(dateInput); 
+  protected onDateChange(dateInput: string | null): void {
+    if (dateInput) {
+      const date: Date = new Date(dateInput);
       this.formFilter.year = date.getFullYear();
       this.formFilter.month = date.getMonth() + 1;
       this.formFilter.day = date.getDate();
       this.loadSelectedElementsAndObservations();
-    } 
+    }
   }
 
   protected onHourChange(hourIdInput: number | null): void {
-    if(hourIdInput === null){
+    if (hourIdInput === null) {
       return;
     }
     this.formFilter.hour = hourIdInput;

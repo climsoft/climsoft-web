@@ -15,13 +15,13 @@ export class StationElementsService {
         private elementsService: ElementsService) {
     }
 
-    async findElements(stationId: string): Promise<ViewElementDto[]> {
+    public async findElements(stationId: string): Promise<ViewElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const elementIds: number[] = stationElementEntities.map(data => (data.elementId));
         return elementIds.length > 0 ? this.elementsService.findElements(elementIds) : [];
     }
 
-    async saveElements(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {
+    public async saveElements(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {
         //fetch existing station elements
         const existingElements = await this.stationElementsRepo.find({
             where: {
@@ -51,7 +51,7 @@ export class StationElementsService {
         return elementsSaved.map(data => data.elementId);
     }
 
-    async deleteElements(stationId: string, elementId: number[]): Promise<number[]> {
+    public async deleteElements(stationId: string, elementId: number[]): Promise<number[]> {
         //fetch existing station elements
         const existingElements = await this.stationElementsRepo.find({
             where: {
@@ -67,12 +67,12 @@ export class StationElementsService {
 
     //----------limits--------------
 
-    async findStationElementLimits(stationId: string, elementId: number): Promise<StationElementLimit[]> {
+    public async findStationElementLimits(stationId: string, elementId: number): Promise<StationElementLimit[]> {
         const stationElement = await this.stationElementsRepo.findOneBy({ stationId, elementId });
         return stationElement && stationElement.monthLimits ? stationElement.monthLimits : [];
     }
 
-    async saveElementLimit(stationId: string, elementId: number, limitsDtos: StationElementLimit[], userId: number): Promise<StationElementLimit[]> {
+    public async saveElementLimit(stationId: string, elementId: number, limitsDtos: StationElementLimit[], userId: number): Promise<StationElementLimit[]> {
 
         //get the station element
         const stationElementEntity: StationElementEntity | null = await this.stationElementsRepo.findOneBy({
@@ -137,13 +137,13 @@ export class StationElementsService {
     private updateEntityWithLimits(entity: StationElementEntity, limitsDto: StationElementLimit[], userId: number): void {
         // Check if some limits are not null. If all limits are nulls, then just set the monthLimits field to null.
         const someLimitsAdded: boolean = limitsDto.some(limit => limit.lowerLimit !== null || limit.upperLimit !== null);
-      
+
         entity.monthLimits = someLimitsAdded ? limitsDto : null;
         entity.entryUserId = userId;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat(); // Ensure DateUtils.getTodayDateInSQLFormat is correctly implemented
         entity.log = ObjectUtils.getNewLog<StationElementEntityLogVo>(entity.log, this.getLogForEntity(entity));
-      }
-      
+    }
+
     //-------------------
 
     //-----------instruments------------------

@@ -27,8 +27,6 @@ export class ElementsService {
         return elementEntities.map(element => ({ ...element }));
     }
 
-
-
     public async findElement(id: number): Promise<ElementEntity> {
         const element: ElementEntity | null = await this.elementRepo.findOneBy({
             id: id,

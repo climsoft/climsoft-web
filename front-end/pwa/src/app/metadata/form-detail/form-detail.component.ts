@@ -38,13 +38,13 @@ export class FormDetailComponent implements OnInit {
   protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
-  constructor(  private pagesDataService: PagesDataService,
-    private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {    
+  constructor(private pagesDataService: PagesDataService,
+    private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
-    if (StringUtils.containsNumbersOnly(sourceId) ) {
+    if (StringUtils.containsNumbersOnly(sourceId)) {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
       this.sourceService.getSource(sourceId).subscribe((data) => {
@@ -57,11 +57,15 @@ export class FormDetailComponent implements OnInit {
     }
   }
 
-  private setControlValues(source: SourceModel) {
+  private setControlValues(source: SourceModel): void {
     this.formName = source.name;
     this.formDescription = this.source.description;
 
     // Get form metadata
+    // TODO. What should be done when this happens, though never expected
+    if (!this.source.extraMetadata) {
+      return;
+    }
     const entryForm: EntryForm = JSON.parse(this.source.extraMetadata);
 
     const selectedSelectors: EntryType[] = [];
@@ -125,7 +129,7 @@ export class FormDetailComponent implements OnInit {
   protected onPeriodSelected(periodId: number | null) {
     this.selectedPeriodId = periodId;
     this.selectedHourIds = [];
-    this.periodErrorMessage = this.selectedPeriodId === null? 'Select period':''; 
+    this.periodErrorMessage = this.selectedPeriodId === null ? 'Select period' : '';
   }
 
   protected onHoursSelected(hourIds: number[]) {

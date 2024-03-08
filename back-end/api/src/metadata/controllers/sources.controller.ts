@@ -23,7 +23,7 @@ export class SourcesController {
 
     @Get()
     find() {
-        return this.sourcesService.findSources();
+        return this.sourcesService.findSourcesByTypeIds();
     }
    
     @Get('/source/:id')
@@ -33,7 +33,7 @@ export class SourcesController {
 
     @Get('/source-type/:id')
     findSourcesOfType(@Param('id') id: SourceTypeEnum) {
-        return this.sourcesService.findSources(id);
+        return this.sourcesService.findSourcesByTypeIds(id);
     }
 
     @Admin()

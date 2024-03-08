@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
-export interface ElementSelection extends ElementModel {
+export interface ItemSelection extends ElementModel {
   selected: boolean;
 }
 
@@ -18,7 +18,7 @@ export class ElementsSelectorDialogComponent {
   @Output() public ok = new EventEmitter<number[]>();
 
   protected open: boolean = false;
-  protected elements!: ElementSelection[];
+  protected items!: ItemSelection[];
   private selectedIds: number[] = [];
   private showSelectedIdsOnly: boolean = false;
   private excludeIds: number[] = [];
@@ -33,19 +33,20 @@ export class ElementsSelectorDialogComponent {
 
     const elementSubscription: Observable<ElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
     elementSubscription.subscribe(data => {
-      this.elements = data
-        .filter(element => !this.excludeIds.includes(element.id))
-        .map(element => ({ ...element, selected: this.selectedIds.includes(element.id) }));
+      this.items = data
+        .filter(item => !this.excludeIds.includes(item.id))
+        .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));
     });
 
   }
 
-  protected onElementClicked(element: ElementSelection): void {
+  protected onItemClicked(item: ItemSelection): void {
     // Toggle element selection
-    element.selected = !element.selected;
+    item.selected = !item.selected;
 
     // Update selectedIds based on the selected forms
-    this.selectedIds = this.elements.filter(f => f.selected).map(f => f.id);
+    // TODO. This is set in realtime because in future we may want to show the number of items selected 
+    this.selectedIds = this.items.filter(item => item.selected).map(item => item.id);
   }
 
   protected onOkClick(): void {

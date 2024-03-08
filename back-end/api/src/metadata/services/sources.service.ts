@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SourceEntity, SourceTypeEnum } from '../entities/source.entity';
-import { Repository } from 'typeorm';
+import { FindManyOptions, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateSourceDto } from '../dtos/create-source.dto';
+import { ViewSourceDto } from '../dtos/view-source.dto';
 
 @Injectable()
 export class SourcesService {
@@ -10,7 +11,22 @@ export class SourcesService {
     constructor(@InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
     ) { }
 
-    async findSources(sourceTypeId?: SourceTypeEnum): Promise<SourceEntity[]> {
+    public async findSourcesByIds(ids?: number[]): Promise<ViewSourceDto[]> {
+        const findOptions: FindManyOptions<SourceEntity> = {
+            order: {
+                id: "ASC"
+            }
+        };
+
+        if (ids) {
+            findOptions.where = { id: In(ids) };
+        }
+
+        const sourceEntities = await this.sourceRepo.find(findOptions);
+        return sourceEntities.map(source => ({ ...source }));
+    }
+
+    async findSourcesByTypeIds(sourceTypeId?: SourceTypeEnum): Promise<SourceEntity[]> {
         let sources: SourceEntity[];
         if (sourceTypeId) {
             sources = await this.sourceRepo.find({

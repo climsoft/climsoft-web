@@ -30,7 +30,7 @@ export class ObservationsService {
 
                 const stationEntities = await this.stationsService.findStations();
                 const elementEntities = await this.elementsService.findElements();
-                const sourceEntities = await this.sourcesService.findSources();
+                const sourceEntities = await this.sourcesService.findSourcesByTypeIds();
 
                 for (const obsEntity of obsEntities) {
                     

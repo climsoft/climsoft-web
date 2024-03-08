@@ -23,10 +23,10 @@ export class SourceEntity {
     description: string;
 
     @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
-    extraMetadata: string;
+    extraMetadata: string | null;
 
     @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type_id", nullable: true })
-    sourceTypeId: SourceTypeEnum; //we have changed
+    sourceTypeId: SourceTypeEnum | null; 
 
 }
 

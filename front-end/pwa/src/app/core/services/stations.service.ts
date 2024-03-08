@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { StationModel } from '../models/station.model';
-import { StationFormModel } from '../models/station-form.model'; 
+import { StationModel } from '../models/station.model';  
 
 @Injectable({
   providedIn: 'root'
@@ -50,30 +49,6 @@ export class StationsService {
       );
   }
 
- 
-  getStationForms(stationId: string): Observable<StationFormModel[]> {
-    const url = `${this.endPointUrl}/forms/${stationId}`;
-    return this.http.get<StationFormModel[]>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  saveStationForms(stationId: string, formIds: number[]): Observable<StationFormModel[]> {
-    const url = `${this.endPointUrl}/forms/${stationId}`;
-    return this.http.post<StationFormModel[]>(url, formIds)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  deleteStationForm(stationId: string, formId: number): Observable<StationFormModel> {
-    const url = `${this.endPointUrl}/forms/${stationId}/${formId}`;
-    return this.http.delete<StationFormModel>(url)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
 
   //---todo. push to another class ----
   private handleError(error: HttpErrorResponse) {
