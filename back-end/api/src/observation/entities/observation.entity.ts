@@ -1,10 +1,11 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { Flag } from "../enums/flag.enum";
 import { QCStatus } from "../enums/qc-status.enum";
+import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
 
 @Entity("observations")
-export class ObservationEntity {
+export class ObservationEntity extends BaseEntity{
 
   @PrimaryColumn({ type: "varchar" })
   stationId: string;
@@ -31,39 +32,33 @@ export class ObservationEntity {
   flag: Flag | null;
 
   @Column({ type: "enum", enum: QCStatus, default: QCStatus.NoQCTestsDone, name: "qc_status" })
+  @Index()
   qcStatus: QCStatus;
 
   @Column({ type: "json", nullable: true, name: "qc_test_log" })
   qcTestLog: string | null;
 
   @Column({ type: "boolean", default: false })
+  @Index()
   final: boolean;
 
   @Column({ type: "varchar", nullable: true })
   comment: string | null;
 
   @Column({ type: "boolean", default: false })
+  @Index()
   deleted: boolean;
-
-  @Column({ type: "int", name: "entry_user_id" })
-  entryUserId: number;
-
-  @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
-  entryDateTime: string;
 
   @Column({ type: "jsonb", nullable: true })
   log: ObservationLogVo[] | null;
 
 }
 
-export interface ObservationLogVo {
-  period: number;
+export interface ObservationLogVo extends BaseLogVo {
   value: number | null;
   flag: Flag | null;
   qcStatus: QCStatus;
   final: boolean;
-  comment: string | null;
-  entryUserId: number;
-  deleted: boolean;
-  entryDateTime: string;
+  comment: string | null; 
+  deleted: boolean; 
 }

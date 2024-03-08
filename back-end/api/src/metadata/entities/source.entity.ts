@@ -10,7 +10,7 @@ export enum SourceTypeEnum {
     DIGITAL = 3,
 }
 
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 @Entity("sources")
 export class SourceEntity {
     @PrimaryGeneratedColumn({ type: "int" })
@@ -26,8 +26,8 @@ export class SourceEntity {
     extraMetadata: string | null;
 
     @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type_id", nullable: true })
+    @Index()
     sourceTypeId: SourceTypeEnum | null; 
-
 }
 
 

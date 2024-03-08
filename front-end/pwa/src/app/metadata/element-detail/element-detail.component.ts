@@ -33,7 +33,7 @@ export class ElementDetailComponent implements OnInit {
         this.element = data;
       });
     } else {
-      this.element = { id: 0, name: '', abbreviation: '', description: '', typeId: 0, lowerLimit: null, upperLimit: null, entryScaleFactor: null, comment: null };
+      this.element = { id: 0, name: '', abbreviation: '', description: '', typeId: 1, lowerLimit: null, upperLimit: null, entryScaleFactor: null, comment: null };
     }
 
   }

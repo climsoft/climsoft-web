@@ -1,5 +1,6 @@
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { ElementTypeEntity } from "./element-type.entity";
 
 @Entity("elements")
 export class ElementEntity extends BaseEntity {
@@ -32,6 +33,11 @@ export class ElementEntity extends BaseEntity {
 
   @Column({ type: "jsonb", nullable: true })
   log: ElementLogVo[] | null;
+
+  // ManyToOne relationship with ElementTypeEntity
+  @ManyToOne(() => ElementTypeEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "type_id" })
+  elementType: ElementTypeEntity; 
 
 }
 

@@ -249,7 +249,6 @@ export class ObservationsService {
 
     private getObservationLogFromEntity(entity: ObservationEntity): ObservationLogVo {
         return {
-            period: entity.period,
             value: entity.value,
             flag: entity.flag,
             qcStatus: entity.qcStatus,
@@ -263,7 +262,6 @@ export class ObservationsService {
 
     private getObservationLogFromDto(dto: CreateObservationDto): ObservationLogVo {
         return {
-            period: dto.period,
             value: dto.value,
             flag: dto.flag,
             qcStatus: dto.qcStatus,
