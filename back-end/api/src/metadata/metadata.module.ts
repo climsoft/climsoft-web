@@ -5,8 +5,7 @@ import { StationsController } from './controllers/stations.controller';
 import { StationsService } from './services/stations.service';
 import { ElementsController } from './controllers/elements.controller';
 import { ElementEntity } from './entities/element.entity';
-import { ElementsService } from './services/elements.service';
-import { SourceTypeEntity } from './entities/source-type.entity';
+import { ElementsService } from './services/elements.service'; 
 import { SourceEntity } from './entities/source.entity';
 import { SourcesService } from 'src/metadata/services/sources.service';
 import { SourcesController } from 'src/metadata/controllers/sources.controller';
@@ -24,8 +23,7 @@ import { StationFormsController } from './controllers/station-forms.controller';
 import { StationFormsService } from './services/station-forms.service';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([
-        SourceTypeEntity,
+    imports: [TypeOrmModule.forFeature([ 
         SourceEntity,
         StationEntity,
         ElementDomainEntity,

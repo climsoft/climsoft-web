@@ -1,11 +1,14 @@
 import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("instruments")
 export class InstrumentEntity {
 
-    @PrimaryColumn({ type: "varchar" })
-    id: string; // can be the instrument serial number
+    @PrimaryGeneratedColumn({ type: "int" })
+    id: number; 
+
+    @Column({ type: "varchar", name:"serial_number" })
+    serialNumber: string;
 
     @Column({ type: "int", name:"instrument_type_id" })
     instrumentTypeId: number;
