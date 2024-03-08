@@ -1,0 +1,26 @@
+<div *ngIf="station" class="card border-0">
+    <div class="card-body p-0">
+      <div class="card-title fw-bold">Showing station characteristics</div>
+      <div>
+        <div class="mb-3">
+          <app-text-input [label]="'Id'" [(value)]="station.id"  />
+        </div>
+        <div class="mb-3">
+          <app-text-input [label]="'Name'" [(value)]="station.name" />
+        </div>  
+        <div class="mb-3">
+          <app-text-input [label]="'Description'" [(value)]="station.description"></app-text-input>
+        </div>
+  
+      </div>
+  
+    </div>
+  
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
+      <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+        Save
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+    </div>
+  
+  </div>

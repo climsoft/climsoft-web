@@ -1,19 +1,17 @@
-<app-dialog  [(open)]="open" [title]="'Select Form'" [okButtonLabel]="okButtonLabel" (okClick)="onOkClick()">
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="okButtonLabel" (okClick)="onOkClick()">
 
-    <table class="table table-hover">
+    <table *ngIf="items" class="table table-hover">
         <thead>
             <tr>
-                <th scope="col">Id</th>
                 <th scope="col">Name</th>
                 <th scope="col">Description</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let form of forms" (click)="onFormClicked(form)" class="cursor-pointer">
-                <td>{{ form.id }}</td>
-                <td>{{ form.name }}</td>
-                <td>{{ form.description }}</td>
-                <td><input type="checkbox" class="form-check-input" [checked]="form.selected"></td>
+            <tr *ngFor="let item of items" (click)="onItemClicked(item);" class="cursor-pointer">
+                <td>{{ item.name }}</td>
+                <td>{{ item.description }}</td>
+                <td><input type="checkbox" class="form-check-input" [checked]="item.selected"></td>
             </tr>
         </tbody>
     </table>

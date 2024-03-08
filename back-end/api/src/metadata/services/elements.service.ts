@@ -1,30 +1,34 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { FindManyOptions, In, Repository } from 'typeorm';
 import { ElementEntity, ElementLogVo } from '../entities/element.entity';
 import { CreateElementDto } from '../dtos/create-element.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { DateUtils } from 'src/shared/utils/date.utils';
+import { ViewElementDto } from '../dtos/view-element.dto';
 
 @Injectable()
 export class ElementsService {
     constructor(@InjectRepository(ElementEntity) private readonly elementRepo: Repository<ElementEntity>,
     ) { }
 
-    findElements(ids?: number[]) {
+    public async findElements(ids?: number[]): Promise<ViewElementDto[]> {
+        const findOptions: FindManyOptions<ElementEntity> = {
+            order: {
+                id: "ASC"
+            }
+        };
 
         if (ids) {
-            return this.elementRepo.findBy({
-                id: In(ids),
-            });
+            findOptions.where = { id: In(ids) };
         }
 
-        return this.elementRepo.find();
+        const elementEntities = await this.elementRepo.find(findOptions);
+        return elementEntities.map(element => ({ ...element }));
     }
 
-
-    async findElement(id: number) {
-        const element = await this.elementRepo.findOneBy({
+    public async findElement(id: number): Promise<ElementEntity> {
+        const element: ElementEntity | null = await this.elementRepo.findOneBy({
             id: id,
         });
 
@@ -34,7 +38,7 @@ export class ElementsService {
         return element;
     }
 
-    async saveElements(createElementDtos: CreateElementDto[]) {
+    public async saveElements(createElementDtos: CreateElementDto[], userId: number): Promise<ElementEntity[]> {
         const elementEntities: ElementEntity[] = [];
 
         for (const createElementDto of createElementDtos) {
@@ -44,7 +48,7 @@ export class ElementsService {
 
             if (stationEntity) {
                 const oldChanges: ElementLogVo = this.getElementLogFromEntity(stationEntity);
-                const newChanges: ElementLogVo = this.getElementLogFromDto(createElementDto);
+                const newChanges: ElementLogVo = this.getElementLogFromDto(createElementDto, userId);
 
                 //if no changes, then no need to save
                 if (ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
@@ -56,7 +60,7 @@ export class ElementsService {
                 });
             }
 
-            this.updateElementEntity(stationEntity, createElementDto);
+            this.updateElementEntity(stationEntity, createElementDto, userId);
             elementEntities.push(stationEntity);
         }
 
@@ -78,7 +82,7 @@ export class ElementsService {
         };
     }
 
-    private getElementLogFromDto(dto: CreateElementDto): ElementLogVo {
+    private getElementLogFromDto(dto: CreateElementDto, userId: number): ElementLogVo {
         return {
             name: dto.name,
             abbreviation: dto.abbreviation,
@@ -88,12 +92,12 @@ export class ElementsService {
             upperLimit: dto.upperLimit,
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
-            entryUserId: 2, //todo. this will come from user session or token
+            entryUserId: userId,
             entryDateTime: DateUtils.getTodayDateInSQLFormat(),
         };
     }
 
-    private updateElementEntity(entity: ElementEntity, dto: CreateElementDto): void {
+    private updateElementEntity(entity: ElementEntity, dto: CreateElementDto, userId: number): void {
         entity.name = dto.name;
         entity.abbreviation = dto.abbreviation;
         entity.description = dto.description;
@@ -102,7 +106,7 @@ export class ElementsService {
         entity.upperLimit = dto.upperLimit;
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
-        entity.entryUserId = 2;
+        entity.entryUserId = userId;
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
         entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
     }

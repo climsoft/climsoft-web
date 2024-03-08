@@ -1,12 +1,12 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
+import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("stations")
-export class StationEntity {
+export class StationEntity extends BaseEntity {
   @PrimaryColumn({ type: 'varchar' })
   id: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ type: 'varchar', unique: true })
   name: string;
 
   @Column({ type: 'varchar' })
@@ -29,22 +29,22 @@ export class StationEntity {
 
   // @Column({ type: 'varchar', nullable: true })
   // climateZone: string | null; //based on koppen climate classification
- 
+
   // @Column({ type: 'varchar', nullable: true })
   // territory: string | null; //province, county, district. Lowest form of self government
-  
+
   // @Column({ type: 'varchar', nullable: true })
   // networkAffiliation: string | null;
-  
+
   // @Column({ type: 'varchar', nullable: true })
   // organisation: string | null; // name of organisation that owns the station.
-  
+
   // @Column({ type: 'varchar', nullable: true })
   // wmoRegion: string | null;
 
   // @Column({ type: 'varchar', nullable: true })
   // timeZone: string | null;
- 
+
   // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
   // dateEstablished: string | null;
 
@@ -54,24 +54,16 @@ export class StationEntity {
   // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
   // statusChangeDate: string | null;
 
-   @Column({ type: 'varchar', nullable: true })
-   comment: string | null;
+  @Column({ type: 'varchar', nullable: true })
+  comment: string | null;
 
-   @Column({ type: "varchar", name: "entry_user_id" })
-   entryUserId: number;
-
-   @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
-   entryDateTime: string;
- 
-   @Column({ type: 'jsonb', nullable: true })
-   log: StationLogVo[] | null;
+  @Column({ type: 'jsonb', nullable: true })
+  log: StationLogVo[] | null;
 
 }
 
-export interface StationLogVo {
+export interface StationLogVo extends BaseLogVo {
   name: string;
   description: string;
   comment: string | null;
-  entryUserId: number;
-  entryDateTime: string;  
 }

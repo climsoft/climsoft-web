@@ -1,15 +1,16 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { ElementTypeEntity } from "./element-type.entity";
 
 @Entity("elements")
-export class ElementEntity {
+export class ElementEntity extends BaseEntity {
   @PrimaryColumn({ type: "int" })
   id: number;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", unique: true })
   name: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", unique: true })
   abbreviation: string;
 
   @Column({ type: "varchar" })
@@ -21,27 +22,26 @@ export class ElementEntity {
   @Column({ type: "int", name: "lower_limit", nullable: true })
   lowerLimit: number | null;
 
-  @Column({ type: "int",  name: "upper_limit", nullable: true })
+  @Column({ type: "int", name: "upper_limit", nullable: true })
   upperLimit: number | null;
 
-  @Column({ type: "float",  name: "entry_scale_factor", nullable: true })
+  @Column({ type: "float", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
 
   @Column({ type: "varchar", nullable: true })
   comment: string | null;
 
-  @Column({ type: "int" })
-  entryUserId: number;
-
-  @Column({ type: "timestamptz",  name: "entry_date_time", transformer: new DateTimeColumn() })
-  entryDateTime: string;
-
   @Column({ type: "jsonb", nullable: true })
   log: ElementLogVo[] | null;
 
+  // ManyToOne relationship with ElementTypeEntity
+  @ManyToOne(() => ElementTypeEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "type_id" })
+  elementType: ElementTypeEntity; 
+
 }
 
-export interface ElementLogVo {
+export interface ElementLogVo extends BaseLogVo {
   name: string;
   abbreviation: string;
   description: string;
@@ -50,6 +50,4 @@ export interface ElementLogVo {
   upperLimit: number | null;
   entryScaleFactor: number | null;
   comment: string | null;
-  entryUserId: number;
-  entryDateTime: string;
 }

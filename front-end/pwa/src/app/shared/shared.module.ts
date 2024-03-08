@@ -31,6 +31,7 @@ import { PeriodSingleInputComponent } from './controls/period-input/period-singl
 import { SourceSingleInputComponent } from './controls/source-input/source-single-input/source-single-input.component';
 import { StationSingleInputComponent } from './controls/station-input/station-single-input/station-single-input.component';
 import { StationMultipleInputComponent } from './controls/station-input/station-multiple-input/station-multiple-input.component';
+import { LabelInputComponent } from './controls/label-input/label-input.component';
 
 //--------------------------------
 
@@ -44,6 +45,7 @@ const angularModules = [
 //--------------------------------
 
 const controlsComponents = [
+  LabelInputComponent,
   TextInputComponent,
   NumberInputComponent,
   SelectorInputComponent,
@@ -87,6 +89,7 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
+  
    
   
   

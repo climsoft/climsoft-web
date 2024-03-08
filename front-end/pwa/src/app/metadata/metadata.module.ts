@@ -11,33 +11,38 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ElementsComponent } from './elements/elements.component';
+import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
+import { StationFormsComponent } from './station-detail/station-forms/station-forms.component';
+import { StationLimitsComponent } from './station-detail/station-limits/station-limits.component';
 
 
-const controlsComponents = [
-  ElementsSelectorDialogComponent,
-  FormSelectorDialogComponent,
-  StationElementLimitsInputDialogComponent,
-];
+ 
 
 
 @NgModule({
   declarations: [
-    ...controlsComponents,
+    ElementsSelectorDialogComponent,
+    FormSelectorDialogComponent,
+    StationElementLimitsInputDialogComponent,
 
     FormsComponent,
     FormDetailComponent,
     StationsComponent,
     StationDetailComponent,
-    ElementsSelectorDialogComponent,
+  
     ElementDetailComponent,
-    ElementsComponent, 
+    ElementsComponent,
+    StationCharacteristicsComponent,
+    StationFormsComponent,
+    StationLimitsComponent, 
   ],
   imports: [
     SharedModule,
     MetadataRoutingModule
   ],
   exports: [
-    ...controlsComponents,
+    ElementsSelectorDialogComponent,
+    FormSelectorDialogComponent,
   ]
 })
 export class MetadataModule { }

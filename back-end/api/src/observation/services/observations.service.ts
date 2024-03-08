@@ -30,7 +30,7 @@ export class ObservationsService {
 
                 const stationEntities = await this.stationsService.findStations();
                 const elementEntities = await this.elementsService.findElements();
-                const sourceEntities = await this.sourcesService.findSources();
+                const sourceEntities = await this.sourcesService.findSourcesByTypeIds();
 
                 for (const obsEntity of obsEntities) {
                     
@@ -249,7 +249,6 @@ export class ObservationsService {
 
     private getObservationLogFromEntity(entity: ObservationEntity): ObservationLogVo {
         return {
-            period: entity.period,
             value: entity.value,
             flag: entity.flag,
             qcStatus: entity.qcStatus,
@@ -263,7 +262,6 @@ export class ObservationsService {
 
     private getObservationLogFromDto(dto: CreateObservationDto): ObservationLogVo {
         return {
-            period: dto.period,
             value: dto.value,
             flag: dto.flag,
             qcStatus: dto.qcStatus,

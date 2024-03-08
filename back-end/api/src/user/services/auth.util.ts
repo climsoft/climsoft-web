@@ -8,10 +8,10 @@ import { UserRole } from '../enums/user-roles.enum';
 export class AuthUtil {
 
 
-    public static getSessionUser(request: Request):  LoggedInUserDto | null  {
+    public static getSessionUser(request: Request): LoggedInUserDto | null {
         const session: any = request.session
 
-        return session.user? session.user as LoggedInUserDto  : null;
+        return session.user ? session.user as LoggedInUserDto : null;
     }
 
     public static createNewSessionUser(request: Request, userEntity: UserEntity): LoggedInUserDto {
@@ -23,7 +23,6 @@ export class AuthUtil {
             roleId: userEntity.roleId,
             authorisedStationIds: authorisedStationIds,
             expiresIn: expiresIn,
-
         };
 
         //TODO. Instead of type assertion, in future extend the Session class of express session module?.
@@ -39,7 +38,11 @@ export class AuthUtil {
 
     public static sessionUserIsAdmin(request: Request): boolean {
         const user = AuthUtil.getSessionUser(request);
-        return user? user.roleId === UserRole.Administrator: false;       
+        return user ? user.roleId === UserRole.Administrator : false;
+    }
+
+    public static getLoggedInUserId(request: Request): number  {
+        return ((request.session as any).user as LoggedInUserDto).id
     }
 
 }

@@ -1,5 +1,11 @@
-<app-dialog [(open)]="open" [title]="'Set Monthly Limits'" [okButtonLabel]="okButtonLabel" [cancelButtonLabel]="cancelButtonLabel" (okClick)="onOkClick()">
-    <table *ngIf="mode === 'EDIT'" class="table">
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [cancelButtonLabel]="'Cancel'"
+    (okClick)="onOkCancelClick()">
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="onDeleteAll()">Delete All</button>
+    </div>
+
+    <table *ngIf="monthLimits" class="table">
         <thead>
             <tr>
                 <th>Month</th>
@@ -8,7 +14,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let limit of allMonthLimits">
+            <tr *ngFor="let limit of monthLimits">
                 <td>{{ getMonthName(limit.monthId) }}</td>
                 <td>
                     <div class="form-control-max-w-sm">
@@ -19,28 +25,6 @@
                     <div class="form-control-max-w-sm">
                         <app-number-input [(value)]="limit.upperLimit"></app-number-input>
                     </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <table *ngIf="mode === 'DELETE'" class="table">
-        <thead>
-            <tr>
-                <th>Month</th>
-                <th>Lower Limit</th>
-                <th>Upper Limit</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let limit of allMonthLimits">
-
-                <td>{{getMonthName(limit.monthId)}}</td>
-                <td>{{limit.lowerLimit ?? ''}}</td>
-                <td>{{limit.upperLimit ?? ''}}</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="deleteLimit( limit)">Delete</button>
                 </td>
             </tr>
         </tbody>

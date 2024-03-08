@@ -10,11 +10,18 @@
             </div>
             <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary">Edit</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                        (click)="onEditCharacteristics()">Edit</button>
                 </div>
 
-                <app-text-input [label]="'Id'" [value]="station.id"></app-text-input>
-                <app-text-input [label]="'Name'" [value]="station.name"></app-text-input>
+                <div class="mb-1">
+                    <app-label-input [id]="'id'" [label]="'Id'" [value]="station.id" />
+                </div>
+                <div class="mrow">
+                    <app-label-input [id]="'name'" [label]="'Name'" [value]="station.name" />
+                </div>
+
+
             </div>
         </div>
         <!-- /end characteristics -->
@@ -22,155 +29,12 @@
         <!-- elements -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
-                <app-toggle-chevron #elementsToggle (opened)="loadElements();">Elements</app-toggle-chevron>
+                <app-toggle-chevron #elementsToggle>Elements</app-toggle-chevron>
             </div>
-            <div *ngIf="elementsToggle.open" class="card-body  px-0">
-
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-                        (click)="dlgElementAdd.openDialogWithExcludedElements( getElementIdsToExclude())">Add</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="dlgElementDelete.openDialog()">Delete</button>
-                    <app-elements-selector-dialog #dlgElementAdd [okButtonLabel]="'Save'"
-                        (ok)="onElementsSelected($event)"></app-elements-selector-dialog>
-                    <app-input-dialog #dlgElementDelete [title]="'Delete Element'" [inputLabel]="'Enter element id:'"
-                        (ok)="onElementDeleted($event)"></app-input-dialog>
-
-                </div>
-
-                <table class="table table-sm table-striped">
-                    <thead>
-                        <tr>
-                            <th style="width: 2%;"></th>
-                            <th style="width: 3%;">Id</th>
-                            <th style="width: 12%;">Name</th>
-                            <th style="width: 83%;">Description</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <ng-container *ngFor="let element of elements">
-                            <tr>
-                                <td>
-                                    <app-toggle-chevron #elementSelected></app-toggle-chevron>
-                                </td>
-                                <td>{{ element.elementId}}</td>
-                                <td>{{ element.elementName}}</td>
-                                <td>{{ element.elementDescription}}</td>
-                            </tr>
-
-                            <!-- metadata row that contains 1 columns with metadata tables -->
-                            <tr *ngIf="elementSelected.open">
-                                <td></td>
-                                <td></td>
-                                <td colspan="2">
-
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>Metadata</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="table-group-divider">
-
-                                            <tr>
-                                                <td>
-
-                                                    <div class="d-flex justify-content-between">
-                                                        <app-toggle-chevron #elementLimitsDisplay
-                                                            (opened)="loadElementLimits(element.elementId);">Limits</app-toggle-chevron>
-                                                        <div class="d-flex justify-content-end"
-                                                            *ngIf="elementLimitsDisplay.open">
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary me-1"
-                                                                (click)="elementLimitsInput.openDialog( 'EDIT', station.id,element.elementId)">Edit</button>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary"
-                                                                (click)="elementLimitsInput.openDialog( 'DELETE', station.id,element.elementId)">Delete</button>
-
-                                                            <app-station-element-limits-input-dialog #elementLimitsInput
-                                                                (ok)="loadElementLimits(element.elementId);">
-                                                            </app-station-element-limits-input-dialog>
-
-                                                            <app-elements-selector-dialog #dlgElementAdd
-                                                                [okButtonLabel]="'Save'"
-                                                                (ok)="onElementsSelected($event)"></app-elements-selector-dialog>
-                                                        </div>
-                                                    </div>
-
-                                                    <table *ngIf="elementLimitsDisplay.open"
-                                                        class="table table-sm table-striped ms-3">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Month</th>
-                                                                <th>Lower Limit</th>
-                                                                <th>Upper Limit</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="table-group-divider">
-                                                            <tr *ngFor="let limit of elementLimits">
-                                                                <td>{{getMonthName(limit.monthId)}}</td>
-                                                                <td>{{limit.lowerLimit ?? ''}}</td>
-                                                                <td>{{limit.upperLimit ?? ''}}</td>
-                                                            </tr>
-                                                        </tbody>
-
-                                                    </table>
-
-                                                </td>
-                                            </tr>
-
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex justify-content-between">
-                                                        <app-toggle-chevron
-                                                            #elementInstrument>Instruments</app-toggle-chevron>
-                                                        <div class="d-flex justify-content-end"
-                                                            *ngIf="elementInstrument.open">
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary me-1">Add</button>
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-outline-secondary">Delete</button>
-                                                        </div>
-                                                    </div>
-
-
-
-                                                    <table *ngIf="elementInstrument.open"
-                                                        class="table table-sm table-striped ms-3">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Id</th>
-                                                                <th>Name</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody class="table-group-divider">
-                                                            <!-- <tr>
-                                                                <td>1</td>
-                                                                <td>Daily guage</td>
-                                                            </tr> -->
-                                                        </tbody>
-
-                                                    </table>
-
-                                                </td>
-                                            </tr>
-
-                                        </tbody>
-
-                                    </table>
-
-
-                                </td>
-
-                            </tr>
-
-                        </ng-container>
-
-
-                    </tbody>
-                </table>
-
+            <div *ngIf="elementsToggle.open">
+                <app-station-limits [stationId]="station.id" />
             </div>
+
 
         </div>
         <!-- end elements -->
@@ -178,31 +42,10 @@
         <!-- forms -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
-                <app-toggle-chevron #formsToggle (opened)="loadForms();">Forms</app-toggle-chevron>
+                <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>
-            <div *ngIf="formsToggle.open" class="card-body px-0">
-
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-                        (click)="dlgFormAdd.openDialogWithExcludedForms(getFormIds())">Add</button>
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="dlgFormDelete.openDialog()">Delete</button>
-
-                    <app-form-selector-dialog #dlgFormAdd [okButtonLabel]="'Save'"
-                        (ok)="onFormsSelected($event)"></app-form-selector-dialog>
-
-                    <app-input-dialog #dlgFormDelete [title]="'Delete Form'" [inputLabel]="'Enter form id:'"
-                        (ok)="onFormDeleted($event)"></app-input-dialog>
-
-                </div>
-
-                <div class="px-3">
-                    <app-table-view
-                        [columnsData]="[ {id: 'sourceId', name: 'Id'}, {id: 'sourceName', name: 'Name'}, {id: 'sourceDescription', name: 'Description'}  ]"
-                        [rowsData]="forms"></app-table-view>
-                </div>
-
-
+            <div *ngIf="formsToggle.open">
+                <app-station-forms [stationId]="station.id" />
             </div>
         </div>
         <!-- end forms -->

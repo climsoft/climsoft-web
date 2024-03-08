@@ -1,8 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
-export interface ElementSelection extends ElementModel {
+export interface ItemSelection extends ElementModel {
   selected: boolean;
 }
 
@@ -12,51 +13,40 @@ export interface ElementSelection extends ElementModel {
   styleUrls: ['./elements-selector-dialog.component.scss']
 })
 export class ElementsSelectorDialogComponent {
-  @Input() public title: string = 'Select Element';
-  @Input() public okButtonLabel: string = 'Add';
+  @Input() public title: string = "Select Element";
+  @Input() public okButtonLabel: string = "OK";
   @Output() public ok = new EventEmitter<number[]>();
 
   protected open: boolean = false;
-  protected elements!: ElementSelection[];
-  private selectedIds!: number[];
-  private excludeIds!: number[];
+  protected items!: ItemSelection[];
+  private selectedIds: number[] = [];
+  private showSelectedIdsOnly: boolean = false;
+  private excludeIds: number[] = [];
 
   constructor(private readonly elementsService: ElementsService) { }
 
-  public openDialog(): void {
-    this.selectedIds = [];
-    this.excludeIds = [];
-    this.setupDialog()
-  }
-
-  public openDialogWithSelectedElements(selectedIds: number[]): void {
-    this.selectedIds = selectedIds;
-    this.excludeIds = [];
-    this.setupDialog();
-  }
-
-  public openDialogWithExcludedElements(excludeIds: number[]): void {
-    this.selectedIds = [];
+  public openDialog(excludeIds: number[] = [], selectedIds: number[] = [], showSelectedIdsOnly: boolean = false): void {
     this.excludeIds = excludeIds;
-    this.setupDialog();
-  }
-
-  private setupDialog(): void {
+    this.selectedIds = selectedIds;
+    this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
-    this.elementsService.getElements().subscribe(data => {
-      this.elements = data
-        .filter(element => !this.excludeIds.includes(element.id))
-        .map(element => ({ ...element, selected: this.selectedIds.includes(element.id) }));
+
+    const elementSubscription: Observable<ElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
+    elementSubscription.subscribe(data => {
+      this.items = data
+        .filter(item => !this.excludeIds.includes(item.id))
+        .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));
     });
 
   }
 
-  protected onElementClicked(element: ElementSelection): void {
+  protected onItemClicked(item: ItemSelection): void {
     // Toggle element selection
-    element.selected = !element.selected;
+    item.selected = !item.selected;
 
     // Update selectedIds based on the selected forms
-    this.selectedIds = this.elements.filter(f => f.selected).map(f => f.id);
+    // TODO. This is set in realtime because in future we may want to show the number of items selected 
+    this.selectedIds = this.items.filter(item => item.selected).map(item => item.id);
   }
 
   protected onOkClick(): void {

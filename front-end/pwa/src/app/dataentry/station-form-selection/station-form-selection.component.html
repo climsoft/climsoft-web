@@ -19,16 +19,16 @@
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <ng-container *ngFor="let row of stations">
-            <tr class="cursor-pointer" (click)="loadStationForms(row); stationSelected.open = !stationSelected.open;">
+          <ng-container *ngFor="let station of stations">
+            <tr class="cursor-pointer" (click)="loadStationForms(station); stationSelected.open = !stationSelected.open;">
               <td>
                 <app-toggle-chevron #stationSelected></app-toggle-chevron>
               </td>
-              <td>{{ row.id}}</td>
-              <td>{{ row.name}}</td>
+              <td>{{ station.id}}</td>
+              <td>{{ station.name}}</td>
             </tr>
   
-            <tr *ngIf="stationSelected.open && row.forms">
+            <tr *ngIf="stationSelected.open && station.forms">
               <td></td>
               <td></td>
               <td colspan="2">
@@ -37,15 +37,15 @@
                         <tr><th>Forms</th></tr>
                     </thead>
                     <tbody class="table-group-divider">
-                        <tr *ngFor="let form of row.forms" (click)="onFormClick(form)" >
+                        <tr *ngFor="let form of station.forms" (click)="onFormClick(station.id, form.id)" >
                             <td>
                                 <div class="d-flex flex-row">
                                     <div class="d-flex flex-row">
                                         <div><i class="bi bi-arrow-right-short"></i></div>
-                                        <div>{{form.sourceName}}</div>
+                                        <div>{{form.name}}</div>
                                     </div>
                                     <div class="ms-1 me-1">-</div>
-                                    <div>{{form.sourceDescription}}</div>
+                                    <div>{{form.description}}</div>
                                 </div>
                                 
                             </td>

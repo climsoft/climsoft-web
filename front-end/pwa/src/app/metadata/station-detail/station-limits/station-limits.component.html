@@ -1,0 +1,134 @@
+<div class="card-body  px-0">
+
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+            (click)="dlgElementEdit.openDialog(undefined, elementIds, false)">Edit</button>
+        <app-elements-selector-dialog #dlgElementEdit (ok)="onElementsEdited($event)" />
+
+    </div>
+
+    <table class="table table-sm table-striped">
+        <thead>
+            <tr>
+                <th style="width: 2%;"></th>
+                <th style="width: 3%;">Id</th>
+                <th style="width: 12%;">Name</th>
+                <th style="width: 83%;">Description</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            <ng-container *ngFor="let element of elements">
+                <tr>
+                    <td>
+                        <app-toggle-chevron #elementSelected></app-toggle-chevron>
+                    </td>
+                    <td>{{ element.id}}</td>
+                    <td>{{ element.name}}</td>
+                    <td>{{ element.description}}</td>
+                </tr>
+
+                <!-- metadata row that contains 1 columns with metadata tables -->
+                <tr *ngIf="elementSelected.open">
+                    <td></td>
+                    <td></td>
+                    <td colspan="2">
+
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Metadata</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+
+                                <tr>
+                                    <td>
+
+                                        <div class="d-flex justify-content-between">
+                                            <app-toggle-chevron #elementLimitsDisplay
+                                                (opened)="loadElementLimits(element.id);">Limits</app-toggle-chevron>
+                                            <div class="d-flex justify-content-end"
+                                                *ngIf="elementLimitsDisplay.open">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary me-1"
+                                                    (click)="elementLimitsInput.openDialog( stationId,element.id)">Edit</button>
+
+                                                <app-station-element-limits-input-dialog
+                                                    [title]="'Set Monthly Limits - ' + element.name"
+                                                    #elementLimitsInput
+                                                    (ok)="onElementLimitsEdited(element.id,$event);" />
+                                            </div>
+                                        </div>
+
+                                        <table *ngIf="elementLimitsDisplay.open"
+                                            class="table table-sm table-striped ms-3">
+                                            <thead>
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th>Lower Limit</th>
+                                                    <th>Upper Limit</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider">
+                                                <tr *ngFor="let limit of elementLimits">
+                                                    <td>{{getMonthName(limit.monthId)}}</td>
+                                                    <td>{{limit.lowerLimit ?? ''}}</td>
+                                                    <td>{{limit.upperLimit ?? ''}}</td>
+                                                </tr>
+                                            </tbody>
+
+                                        </table>
+
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <div class="d-flex justify-content-between">
+                                            <app-toggle-chevron
+                                                #elementInstrument>Instruments</app-toggle-chevron>
+                                            <div class="d-flex justify-content-end"
+                                                *ngIf="elementInstrument.open">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary me-1">Edit</button>
+                                            </div>
+                                        </div>
+
+
+
+                                        <table *ngIf="elementInstrument.open"
+                                            class="table table-sm table-striped ms-3">
+                                            <thead>
+                                                <tr>
+                                                    <th>Id</th>
+                                                    <th>Name</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider">
+                                                <!-- <tr>
+                                                    <td>1</td>
+                                                    <td>Daily guage</td>
+                                                </tr> -->
+                                            </tbody>
+
+                                        </table>
+
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+
+                    </td>
+
+                </tr>
+
+            </ng-container>
+
+
+        </tbody>
+    </table>
+
+</div>

@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { StationModel } from '../../core/models/station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormModel } from 'src/app/core/models/station-form.model';
+import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
+import { StationFormsService } from 'src/app/core/services/station-forms.service';
+import { SourceModel } from 'src/app/core/models/source.model';
 
 export interface StationView extends StationModel {
-  forms?: StationFormModel[]; 
+  forms?: SourceModel[]; 
 }
 
 @Component({
@@ -18,7 +19,10 @@ export class StationFormSelectionComponent {
 
   stations!: StationView[];
 
-  constructor(private pagesDataService: PagesDataService, private stationsService: StationsService, private router: Router, private route: ActivatedRoute) {
+  constructor(private pagesDataService: PagesDataService, 
+    private stationsService: StationsService,
+    private stationFormsService: StationFormsService,
+     private router: Router, private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Station');
 
     this.stationsService.getStations().subscribe(data => {
@@ -33,15 +37,15 @@ export class StationFormSelectionComponent {
 
   public loadStationForms(station: StationView): void {
     if(!station.forms){
-      this.stationsService.getStationForms(station.id).subscribe(data => {
+      this.stationFormsService.getStationForms(station.id).subscribe(data => {
         station.forms = data;
       });
     } 
 
   }
 
-  public onFormClick(form: StationFormModel): void {
-    this.router.navigate(['form-entry', form.stationId, form.sourceId], { relativeTo: this.route.parent });
+  public onFormClick(stationId: string,sourceId: number): void {
+    this.router.navigate(['form-entry', stationId, sourceId], { relativeTo: this.route.parent });
   }
 
 }

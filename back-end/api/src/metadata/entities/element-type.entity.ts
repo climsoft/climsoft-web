@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { ElementSubdomainEntity } from "./element-subdomain.entity";
 
 @Entity("element_types")
 export class ElementTypeEntity {
@@ -13,4 +14,9 @@ export class ElementTypeEntity {
 
     @Column({ type: "int", name: "subdomain_id" })
     subdomainId: number;
+
+    // ManyToOne relationship with ElementSubdomainEntity
+    @ManyToOne(() => ElementSubdomainEntity, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "subdomain_id" })
+    elementType: ElementSubdomainEntity;
 }
