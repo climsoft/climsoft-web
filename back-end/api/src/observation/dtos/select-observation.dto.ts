@@ -1,20 +1,25 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsInt, IsNumber, IsOptional, IsString } from "class-validator";
+import { StringUtils } from "src/shared/utils/string.utils";
 
 export class SelectObservationDTO {
-    @IsString()
+   
     @IsOptional()
+    @IsString()
     stationId?: string;
 
-    @IsNumber()
     @IsOptional()
+    @IsInt()
     sourceId?: number; 
 
     //@IsNumber()
     @IsOptional()
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @IsInt({ each: true })
     elementIds?: number[];
 
-    @IsNumber()
     @IsOptional()
+    @IsNumber()   
     period?: number;
 
     @IsString()
@@ -25,12 +30,14 @@ export class SelectObservationDTO {
     @IsOptional()
     toDate?: string;//yyyy-mm-dd format
 
-    //@IsNumber()
+    
     @IsOptional()
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @IsInt({ each: true })
     hours?: number[];
 
-    @IsNumber()
     @IsOptional()
+    @IsInt()
     page?: number;
 
     @IsNumber()
@@ -40,16 +47,17 @@ export class SelectObservationDTO {
 
     //TODO. Delete below later
 
-    @IsNumber()
     @IsOptional()
+    @IsInt()
     year?: number;//todo. remove
 
-    @IsNumber()
+ 
     @IsOptional()
+    @IsInt()
     month?: number;//todo. remove
 
-    @IsNumber()
     @IsOptional()
+    @IsInt()
     day?: number;//todo. remove
 
 

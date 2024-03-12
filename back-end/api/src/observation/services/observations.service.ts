@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
-import { ObservationEntity, ObservationLogVo } from '../entities/observation.entity';
+import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
@@ -11,6 +11,8 @@ import { ElementsService } from 'src/metadata/services/elements.service';
 import { SourcesService } from 'src/metadata/services/sources.service';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { StationsService } from 'src/metadata/services/stations.service';
+import { QCStatusEnum } from '../enums/qc-status.enum';
+import { RawObservationQueryDto } from '../dtos/raw-observation-query.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -26,14 +28,14 @@ export class ObservationsService {
             try {
                 const obsView: ViewObservationDto[] = [];
 
-                const obsEntities = await this.findRaw(selectObsevationDto);
+                const obsEntities = await this.findRawDeprecate(selectObsevationDto);
 
                 const stationEntities = await this.stationsService.findStations();
                 const elementEntities = await this.elementsService.findElements();
                 const sourceEntities = await this.sourcesService.findSourcesByTypeIds();
 
                 for (const obsEntity of obsEntities) {
-                    
+
                     const viewObs: ViewObservationDto = new ViewObservationDto();
 
                     const station = stationEntities.find(data => data.id === obsEntity.stationId);
@@ -53,7 +55,7 @@ export class ObservationsService {
 
                     viewObs.elevation = obsEntity.elevation;
                     viewObs.period = obsEntity.period;
-                    viewObs.datetime = obsEntity.datetime;
+                    viewObs.datetime = obsEntity.datetime.toISOString();
                     viewObs.value = obsEntity.value;
                     viewObs.flag = obsEntity.flag;
                     viewObs.qcStatus = obsEntity.qcStatus;
@@ -74,7 +76,7 @@ export class ObservationsService {
 
 
     /*  page should be minimum of 1. */
-    async findRaw(selectObsevationDto: SelectObservationDTO) {
+    async findRawDeprecate(selectObsevationDto: SelectObservationDTO) {
         const selectOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationId) {
@@ -93,7 +95,7 @@ export class ObservationsService {
             selectOptions.period = selectObsevationDto.period;
         }
 
-        this.setDateFilter(selectObsevationDto, selectOptions);
+        this.setDateFilterDeprecate(selectObsevationDto, selectOptions);
 
         selectOptions.deleted = false;
 
@@ -111,12 +113,16 @@ export class ObservationsService {
 
     }
 
-    private setDateFilter(selectObsevationDto: SelectObservationDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
+    private setDateFilterDeprecate(selectObsevationDto: SelectObservationDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
+
+        console.log("select observaton", selectObsevationDto)
+
         if (selectObsevationDto.fromDate && selectObsevationDto.toDate && selectObsevationDto.hours) {
 
             if (selectObsevationDto.fromDate === selectObsevationDto.toDate && selectObsevationDto.hours.length === 1) {
                 const hour: string = StringUtils.addLeadingZero(selectObsevationDto.hours[0])
-                selectOptions.datetime = `${selectObsevationDto.fromDate} ${hour}:00:00`;
+                // TODO change this
+                //selectOptions.datetime = new Date(`${selectObsevationDto.fromDate} ${hour}:00:00`);
                 return;
             }
 
@@ -147,12 +153,12 @@ export class ObservationsService {
         } else if (selectObsevationDto.fromDate && selectObsevationDto.toDate) {
 
             if (selectObsevationDto.fromDate === selectObsevationDto.toDate) {
-                selectOptions.datetime = selectObsevationDto.fromDate;
+                //selectOptions.datetime = selectObsevationDto.fromDate;
                 return;
             }
 
 
-            selectOptions.datetime = Between(selectObsevationDto.fromDate, selectObsevationDto.toDate);
+            // selectOptions.datetime = Between(selectObsevationDto.fromDate, selectObsevationDto.toDate);
             return;
         }
 
@@ -164,14 +170,13 @@ export class ObservationsService {
                 allHours.push(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, selectObsevationDto.hours[index], 0, 0));
             }
             selectOptions.datetime = In(allHours);
+            console.log("date time set", allHours)
             return;
         }
 
         if (selectObsevationDto.year && selectObsevationDto.month && selectObsevationDto.day) {
             //a day has 24 hours
-            selectOptions.datetime = Between(
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, 0, 0, 0),
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, 23, 0, 0));
+            //selectOptions.datetime = Between(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, 0, 0, 0), DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, selectObsevationDto.day, 23, 0, 0));
             return;
         }
 
@@ -188,16 +193,12 @@ export class ObservationsService {
         }
 
         if (selectObsevationDto.year && selectObsevationDto.month) {
-            selectOptions.datetime = Between(
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, 1, 0, 0, 0),
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month), 1, 23, 0, 0));
+            //selectOptions.datetime = Between(DateUtils.getDateInSQLFormat(selectObsevationDto.year, selectObsevationDto.month, 1, 0, 0, 0), DateUtils.getDateInSQLFormat(selectObsevationDto.year, DateUtils.getLastDayOfMonth(selectObsevationDto.year, selectObsevationDto.month), 1, 23, 0, 0));
             return;
         }
 
         if (selectObsevationDto.year) {
-            selectOptions.datetime = Between(
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, 1, 1, 0, 0, 0),
-                DateUtils.getDateInSQLFormat(selectObsevationDto.year, 12, 1, 23, 0, 0));
+            //selectOptions.datetime = Between(DateUtils.getDateInSQLFormat(selectObsevationDto.year, 1, 1, 0, 0, 0), DateUtils.getDateInSQLFormat(selectObsevationDto.year, 12, 1, 23, 0, 0));
             return;
         }
 
@@ -205,28 +206,62 @@ export class ObservationsService {
     }
 
 
-    async save(createObservationDtoArray: CreateObservationDto[]) {
+    public async findRaw(queryDto: RawObservationQueryDto): Promise<CreateObservationDto[]> {
+
+        console.log("query", queryDto)
+
+        const entities: ObservationEntity[] = await this.observationRepo.findBy({
+            stationId: queryDto.stationId,
+            elementId: In(queryDto.elementIds),
+            sourceId: queryDto.sourceId,
+            period: queryDto.period,
+            datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
+            deleted: false
+        })
+
+        const dtos: CreateObservationDto[] = entities.map(data => ({
+            stationId: data.stationId,
+            elementId: data.elementId,
+            sourceId: data.sourceId,
+            elevation: data.elevation,
+            datetime: data.datetime.toISOString(),
+            period: data.period,
+            value: data.value,
+            flag: data.flag,
+            comment: data.comment,
+        })
+        );
+
+        return dtos;
+    }
+
+
+    async save(createObservationDtoArray: CreateObservationDto[], userId: number) {
         const obsEntities: ObservationEntity[] = [];
 
+        let newEntity: boolean;
+        let observationEntity;
         for (const createObservationDto of createObservationDtoArray) {
-            let observationEntity = await this.observationRepo.findOneBy({
+            newEntity = false;
+            observationEntity = await this.observationRepo.findOneBy({
                 stationId: createObservationDto.stationId,
                 elementId: createObservationDto.elementId,
                 sourceId: createObservationDto.sourceId,
                 elevation: createObservationDto.elevation,
-                datetime: createObservationDto.datetime,
+                datetime: new Date(createObservationDto.datetime),
                 period: createObservationDto.period,
             });
 
             if (observationEntity) {
-                const oldChanges: ObservationLogVo = this.getObservationLogFromEntity(observationEntity);
-                const newChanges: ObservationLogVo = this.getObservationLogFromDto(createObservationDto);
+                const oldChanges: UpdateObservationValuesLogVo = this.getObservationLogFromEntity(observationEntity);
+                const newChanges: UpdateObservationValuesLogVo = this.getObservationLogFromDto(createObservationDto, userId);
 
-                if (ObjectUtils.areObjectsEqual<ObservationLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
+                if (ObjectUtils.areObjectsEqual<UpdateObservationValuesLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
                     continue;
                 }
 
             } else {
+                newEntity = true;
                 observationEntity = this.observationRepo.create({
                     stationId: createObservationDto.stationId,
                     elementId: createObservationDto.elementId,
@@ -239,7 +274,7 @@ export class ObservationsService {
             }
 
 
-            this.updateObservationEntity(observationEntity, createObservationDto);
+            this.updateObservationEntity(observationEntity, createObservationDto, userId, newEntity);
             obsEntities.push(observationEntity);
         }
 
@@ -247,11 +282,10 @@ export class ObservationsService {
     }
 
 
-    private getObservationLogFromEntity(entity: ObservationEntity): ObservationLogVo {
+    private getObservationLogFromEntity(entity: ObservationEntity): UpdateObservationValuesLogVo {
         return {
             value: entity.value,
             flag: entity.flag,
-            qcStatus: entity.qcStatus,
             final: entity.final,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
@@ -260,33 +294,32 @@ export class ObservationsService {
         };
     }
 
-    private getObservationLogFromDto(dto: CreateObservationDto): ObservationLogVo {
+    private getObservationLogFromDto(dto: CreateObservationDto, userId: number): UpdateObservationValuesLogVo {
         return {
             value: dto.value,
             flag: dto.flag,
-            qcStatus: dto.qcStatus,
             final: false,
             comment: dto.comment,
-            entryUserId: 2, //todo. this will come from user session or token
+            entryUserId: userId,
             deleted: false,
             entryDateTime: DateUtils.getTodayDateInSQLFormat()
         };
     }
 
-    private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto): void {
+    private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto, userId: number, newEntity: boolean): void {
         entity.period = dto.period;
         entity.value = dto.value;
         entity.flag = dto.flag;
-        entity.qcStatus = dto.qcStatus;
+        entity.qcStatus = QCStatusEnum.NoQCTestsDone;
         entity.comment = dto.comment;
         entity.final = false;
-        entity.entryUserId = 2;
+        entity.entryUserId = userId;
         entity.deleted = (entity.value === null && entity.flag === null)
         entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
-        entity.log = ObjectUtils.getNewLog<ObservationLogVo>(entity.log, this.getObservationLogFromEntity(entity));
+        entity.log = newEntity ? null : ObjectUtils.getNewLog<UpdateObservationValuesLogVo>(entity.log, this.getObservationLogFromEntity(entity));
     }
 
-  
+
 
 
 }

@@ -1,10 +1,9 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { ObservationModel } from 'src/app/core/models/observation.model'; 
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';  
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { FlagModel } from 'src/app/core/models/Flag.model';
 import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service'; 
+import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
 @Component({
   selector: 'app-linear-layout',
@@ -15,15 +14,14 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() public elements!: ElementModel[];
   @Input() public formFilter!: EntryFormFilter;
   @Input() public formMetadata!: EntryForm;
-  @Input() public dbObservations!: ObservationModel[];
-  @Input() public flags!: FlagModel[];
-  @Output() public valueChange = new EventEmitter<ObservationModel>();
+  @Input() public dbObservations!: CreateObservationModel[];
+  @Output() public valueChange = new EventEmitter<CreateObservationModel>();
   @Output() public enableSave = new EventEmitter<boolean>();
 
   // Todo, change this to a typed interface
   protected fieldDefinitions!: [number, string][];
   protected fieldDefinitionsChunks!: [number, string][][];
-  protected entryObservations!: ObservationModel[];
+  protected entryObservations!: CreateObservationModel[];
   protected entryTotal!: { value: number | null, errorMessage: string | null };
   protected largeScreen: boolean = false;
 
@@ -39,8 +37,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //only proceed with seting up the control if all inputs have been set.
     if (this.dbObservations && this.elements && this.elements.length > 0 &&
-      this.formFilter && this.formMetadata &&
-      this.flags && this.flags.length > 0) {
+      this.formFilter && this.formMetadata ) {
 
       // Get the new definitions 
       this.setup();
@@ -57,7 +54,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       entryField, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
-    const entryObservations: ObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(this.formFilter, entryFieldItems, this.dbObservations);
+    const entryObservations: CreateObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(this.formFilter, entryFieldItems, this.dbObservations);
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
@@ -66,9 +63,13 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       this.entryTotal = { value: FormEntryUtil.getTotal(this.entryObservations, this.elements), errorMessage: '' };
     }
 
+   /// console.log("fieldDefinitions",this.fieldDefinitions)
+   // console.log("fieldDefinitionsChunks",this.fieldDefinitionsChunks)
+    //console.log("entryObservations",this.entryObservations)
+
   }
 
-  protected getEntryObservation(fieldDef: [number, string]): ObservationModel {
+  protected getEntryObservation(fieldDef: [number, string]): CreateObservationModel {
     const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
     return this.entryObservations[index];
   }
@@ -93,7 +94,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   }
   
 
-  protected onInputBlur(entryObservation: ObservationModel): void {
+  protected onInputBlur(entryObservation: CreateObservationModel): void {
     this.valueChange.emit(entryObservation);
   }
 

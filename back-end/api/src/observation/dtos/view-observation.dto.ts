@@ -1,5 +1,5 @@
-import { Flag } from "../enums/flag.enum";
-import { QCStatus } from "../enums/qc-status.enum";
+import { FlagEnum } from "../enums/flag.enum";
+import { QCStatusEnum } from "../enums/qc-status.enum";
 
 
 export class ViewObservationDto {
@@ -10,8 +10,8 @@ export class ViewObservationDto {
     datetime: string;
     period: number;
     value: number | null;
-    flag: Flag | null;
-    qcStatus: QCStatus;
+    flag: FlagEnum | null;
+    qcStatus: QCStatusEnum;
     entryUserName: string;
     entryDateTime: string;
 }

@@ -22,7 +22,7 @@
                 <!-- entry fields -->
                 <div class="row mb-2 d-flex flex-grow-1"
                     *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                    <app-value-flag-input [id]="rowDef[0] +'-'+ colDef[0]" [elements]="elements" [flags]="flags"
+                    <app-value-flag-input [id]="rowDef[0] +'-'+ colDef[0]" [elements]="elements"
                         [observation]="getEntryObservation(rowIndex,colIndex)" (valueChange)="onValueChange(colIndex)"
                         (inputBlur)="onInputBlur($event)"></app-value-flag-input>
                 </div>

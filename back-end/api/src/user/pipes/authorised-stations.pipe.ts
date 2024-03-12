@@ -12,9 +12,12 @@ export class AuthorisedStationsPipe implements PipeTransform {
   }
 
 
+  // TODO. Modify this pipe to ensure that the generic type is always returned.
+  // When its an array expected and was not passed, yet the user is allowed access to stations, return an empty array.
+  // This will iprove on consistency.
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('AuthorisedStationsPipe metadata', metadata);
+    console.log('AuthorisedStationsPipe',"value: ", value," metadata: ", metadata);
 
     const user = AuthUtil.getSessionUser(this.request);
     if (!user) {

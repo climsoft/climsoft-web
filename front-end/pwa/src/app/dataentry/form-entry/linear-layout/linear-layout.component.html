@@ -5,14 +5,14 @@
     <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks; let i = index">
 
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
-        <app-value-flag-input [id]="fieldDef[0]" [label]="fieldDef[1]" [elements]="elements" [flags]="flags"
+        <app-value-flag-input [id]="fieldDef[0]" [label]="fieldDef[1]" [elements]="elements" 
           [observation]="getEntryObservation(fieldDef)" (valueChange)="onValueChange()"
           (inputBlur)="onInputBlur($event)"></app-value-flag-input>
       </div>
 
       <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formMetadata.validateTotal" class="row mb-2">
-        <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
-          (valueChange)="onTotalValueChange($event)"
+        <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
+          [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
           (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
       </div>
 
@@ -23,12 +23,13 @@
   <div *ngIf="!largeScreen" class="d-flex flex-column">
 
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef[0]"
-      [label]="fieldDef[1]" [elements]="elements" [flags]="flags" [observation]="getEntryObservation(fieldDef)"
+      [label]="fieldDef[1]" [elements]="elements" [observation]="getEntryObservation(fieldDef)"
       (valueChange)="onValueChange()" (inputBlur)="onInputBlur($event)"></app-value-flag-input>
 
     <div *ngIf="formMetadata.validateTotal" class="mb-2">
-      <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value" [errorMessage]="entryTotal.errorMessage"
-        (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
+      <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
+        [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
+        (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
     </div>
 
   </div>

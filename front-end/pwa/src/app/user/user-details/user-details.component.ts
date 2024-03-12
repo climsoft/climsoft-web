@@ -37,7 +37,7 @@ export class UserDetailsComponent implements OnInit {
         this.user = data;
       });
     } else {
-      this.user = { name: '', email: '', phone: '', roleId: UserRole.Administrator, authorisedStationIds: null, extraMetadata: null, disabled: false };
+      this.user = { name: "", email: "", phone: "", roleId: UserRole.Administrator, authorisedStationIds: null, extraMetadata: null, disabled: false };
     }
 
   }

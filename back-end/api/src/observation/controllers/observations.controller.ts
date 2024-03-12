@@ -1,17 +1,21 @@
-import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseFilePipe, Post, Query, Session, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseArrayPipe, ParseFilePipe, Post, Query, Req, Session, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { SelectObservationDTO } from '../dtos/select-observation.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ObservationUploadService } from '../services/observation-upload.service'; 
+import { ObservationUploadService } from '../services/observation-upload.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
+import { Request } from 'express';
+import { AuthUtil } from 'src/user/services/auth.util';
+import { RawObservationQueryDto } from '../dtos/raw-observation-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
-  constructor(private readonly observationsService: ObservationsService,
+  constructor(
+    private readonly observationsService: ObservationsService,
     private readonly observationUpload: ObservationUploadService,) { }
 
- 
+
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
     return this.observationsService.findProcessed(selectObsevationQuery);
@@ -19,14 +23,16 @@ export class ObservationsController {
 
 
   @Get('/raw')
-  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
+  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: RawObservationQueryDto) {
     return this.observationsService.findRaw(selectObsevationQuery);
   }
 
   @Post()
-  save(@Body(AuthorisedStationsPipe) observationDtos: CreateObservationDto[]) {
+  save(
+    @Req() request: Request,
+    @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
     //console.log('dtos', observationDtos);
-    return this.observationsService.save(observationDtos);
+    return this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
   @Post('upload')

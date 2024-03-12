@@ -14,17 +14,26 @@ export class ElementsService {
 
     public async findElements(ids?: number[]): Promise<ViewElementDto[]> {
         const findOptions: FindManyOptions<ElementEntity> = {
-            order: {
-                id: "ASC"
-            }
+            order: { id: "ASC" }
         };
 
-        if (ids) {
+        if (ids && ids.length > 0) {
             findOptions.where = { id: In(ids) };
         }
 
         const elementEntities = await this.elementRepo.find(findOptions);
-        return elementEntities.map(element => ({ ...element }));
+
+        return elementEntities.map(element => ({
+            id: element.id,
+            name: element.name,
+            abbreviation: element.abbreviation,
+            description: element.description,
+            typeId: element.typeId,
+            lowerLimit: element.lowerLimit,
+            upperLimit: element.upperLimit,
+            entryScaleFactor: element.entryScaleFactor,
+            comment: element.comment
+        }));
     }
 
     public async findElement(id: number): Promise<ElementEntity> {

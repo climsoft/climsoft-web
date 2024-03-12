@@ -1,9 +1,8 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { ObservationModel } from 'src/app/core/models/observation.model'; 
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
 import { EntryForm } from 'src/app/core/models/entry-form.model';
-import { ElementModel } from 'src/app/core/models/element.model';
-import { FlagModel } from 'src/app/core/models/Flag.model';
+import { ElementModel } from 'src/app/core/models/element.model'; 
 import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
+import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
 @Component({
   selector: 'app-grid-layout',
@@ -14,14 +13,13 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   @Input() elements!: ElementModel[];
   @Input() formFilter!: EntryFormFilter;
   @Input() formMetadata!: EntryForm;
-  @Input() dbObservations!: ObservationModel[];
-  @Input() flags!: FlagModel[];
-  @Output() valueChange = new EventEmitter<ObservationModel>();
+  @Input() dbObservations!: CreateObservationModel[];
+  @Output() valueChange = new EventEmitter<CreateObservationModel>();
   @Output() public enableSave = new EventEmitter<boolean>();
 
   protected rowFieldDefinitions!: [number, string][];
   protected colFieldDefinitions!: [number, string][];
-  protected entryObservations!: ObservationModel[][];
+  protected entryObservations!: CreateObservationModel[][];
   protected entryTotals!: { value: number | null, errorMessage: string | null }[];
  
 
@@ -35,7 +33,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
     //only proceed with seting up the control if all inputs have been set.
     if (this.dbObservations && this.elements && this.elements.length > 0 &&
-      this.formFilter && this.formMetadata && this.flags && this.flags.length > 0) {
+      this.formFilter && this.formMetadata) {
 
       this.setup();
 
@@ -70,7 +68,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
     const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }
     const colFieldItems: EntryFieldItem = { fieldProperty: entryFieldForColumn, fieldValues: colFieldDefs.map(data => (data[0])) }
-    const entryObservations: ObservationModel[][] = FormEntryUtil.getEntryObservationsForGridLayout(this.formFilter, [rowFieldItems, colFieldItems], this.dbObservations);
+    const entryObservations: CreateObservationModel[][] = FormEntryUtil.getEntryObservationsForGridLayout(this.formFilter, [rowFieldItems, colFieldItems], this.dbObservations);
 
     this.rowFieldDefinitions = rowFieldDefs;
     this.colFieldDefinitions = colFieldDefs;
@@ -85,7 +83,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     }
   }
 
-  public getEntryObservation(rowIndex: number, colIndex: number): ObservationModel {
+  public getEntryObservation(rowIndex: number, colIndex: number): CreateObservationModel {
     return this.entryObservations[rowIndex][colIndex];
   }
 
@@ -100,7 +98,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   }
 
 
-  protected onInputBlur(entryObservation: ObservationModel): void {
+  protected onInputBlur(entryObservation: CreateObservationModel): void {
     this.valueChange.emit(entryObservation);
   }
 
@@ -113,7 +111,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
 
   private getColumnTotal(colIndex: number): number | null {
-    const colObservations: ObservationModel[] = []
+    const colObservations: CreateObservationModel[] = []
     for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
       colObservations.push(this.entryObservations[rowIndex][colIndex]);
     }

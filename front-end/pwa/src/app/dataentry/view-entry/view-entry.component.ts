@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ObservationModel } from 'src/app/core/models/observation.model';
+import { ViewObservationModel } from 'src/app/core/models/view-observation.model';
 import { SelectObservation } from 'src/app/core/models/dtos/select-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';

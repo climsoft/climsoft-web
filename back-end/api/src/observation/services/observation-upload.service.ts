@@ -6,8 +6,8 @@ import { Index } from 'typeorm';
 import { ObservationsService } from './observations.service';
 import { isNumber } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { QCStatus } from '../enums/qc-status.enum';
-import { Flag } from '../enums/flag.enum';
+import { QCStatusEnum } from '../enums/qc-status.enum';
+import { FlagEnum } from '../enums/flag.enum';
 
 interface UploadedObservationDto extends CreateObservationDto {
     status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
@@ -56,7 +56,7 @@ export class ObservationUploadService {
                 const period:  number = parseInt(row[5]);
 
                 let value: number | null = null;
-                let flag: Flag | null = null;
+                let flag: FlagEnum | null = null;
                 let comment: string | null = null;
 
                 if (StringUtils.containsNumbersOnly(row[6])) {
@@ -80,7 +80,7 @@ export class ObservationUploadService {
 
 
                 const uploadedDto: UploadedObservationDto = {
-                    stationId: stationId, elementId: elementId, sourceId: sourceId, elevation: elevation, datetime: datetime, period: period, value: value, flag: flag, qcStatus: QCStatus.NoQCTestsDone, comment: comment, status: 'NEW',
+                    stationId: stationId, elementId: elementId, sourceId: sourceId, elevation: elevation, datetime: datetime, period: period, value: value, flag: flag, comment: comment, status: 'NEW',
                 }
 
                 observationDtos.push(uploadedDto);
@@ -99,8 +99,8 @@ export class ObservationUploadService {
             return 'no content found';
         }
 
-        //console.log(' to be saved', observationDtos);
-        const savedEntities = await this.observationsService.save(observationDtos);
+        //TODO. pass correct user id
+        const savedEntities = await this.observationsService.save(observationDtos, 1);
 
 
 
