@@ -37,27 +37,33 @@ export class SourcesService {
   }
 
   public createSource(source: SourceModel): Observable<SourceModel> {
-    return this.http.post<SourceModel>(this.endPointUrl, source)
+    const createSourceDto = this.getCreateSourceDto(source);
+    return this.http.post<SourceModel>(this.endPointUrl, createSourceDto)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  updateSource(source: SourceModel): Observable<SourceModel> {
+  public updateSource(source: SourceModel): Observable<SourceModel> {
     const url = `${this.endPointUrl}/${source.id}`;
-    return this.http.patch<SourceModel>(url, source)
+    const createSourceDto = this.getCreateSourceDto(source);
+    return this.http.patch<SourceModel>(url, createSourceDto)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteSource(id: number): Observable<SourceModel> {
+  public deleteSource(id: number): Observable<SourceModel> {
     //todo use json as body of ids?
     const url = `${this.endPointUrl}/${id}`;
     return this.http.delete<SourceModel>(url)
       .pipe(
         catchError(this.handleError)
       );
+  }
+
+  private getCreateSourceDto(source: SourceModel){
+    return { name: source.name, description: source.description, extraMetadata: source.extraMetadata, sourceTypeId: source.sourceTypeId }
   }
 
 

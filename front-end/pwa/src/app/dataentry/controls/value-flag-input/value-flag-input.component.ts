@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FlagModel } from 'src/app/core/models/Flag.model';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { ObservationLog } from 'src/app/core/models/observation-log.model';
-import { ObservationModel } from 'src/app/core/models/observation.model';
+import { ObservationLog } from 'src/app/core/models/observation-log.model'; 
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryUtil } from '../../form-entry/form-entry.util';
+import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
+import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
 
 //validation interface local to this component only
@@ -22,10 +22,9 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
   @Input() public elements!: ElementModel[];
-  @Input() public flags!: FlagModel[];
-  @Input() public observation!: ObservationModel;
-  @Output() public valueChange = new EventEmitter<ObservationModel>();
-  @Output() public inputBlur = new EventEmitter<ObservationModel>();
+  @Input() public observation!: CreateObservationModel;
+  @Output() public valueChange = new EventEmitter<CreateObservationModel>();
+  @Output() public inputBlur = new EventEmitter<CreateObservationModel>();
 
   protected displayedValueFlag!: string;
   protected validationResults!: ValidationResponse;
@@ -40,7 +39,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (!this.elements || !this.flags || !this.observation) {
+    if (!this.elements || !this.observation) {
       return;
     }
 
@@ -52,7 +51,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       value = FormEntryUtil.getScaledValue(element, value);
     }
 
-    this.displayedValueFlag = this.getValueFlagForDisplay(value, this.getFlagName(this.observation.flag));
+    this.displayedValueFlag = this.getValueFlagForDisplay(value, FormEntryUtil.checkFlagValidity(this.observation.flag));
 
   }
 
@@ -92,7 +91,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //set the value and flag
     this.observation.value = value === null ? null : this.getUnScaledValue(this.observation.elementId, value);
-    this.observation.flag = this.getFlagId(flagName);
+    this.observation.flag = FormEntryUtil.checkFlagValidity(flagName);
 
     //scale the value for display 
     this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
@@ -161,14 +160,14 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
 
-  private validateAndQCFlag(value: number | null, flagName: string): ValidationResponse {
-    const flagFound = this.flags.find(flag => flag.name == flagName);
+  private validateAndQCFlag(value: number | null, flagId: string): ValidationResponse {
+    const flagFound: FlagEnum| null = FormEntryUtil.checkFlagValidity(flagId);
 
     if (!flagFound) {
       return { isValid: false, message: 'Invalid Flag' };
     }
 
-    if (value !== null && flagFound.name === 'M') {
+    if (value !== null && flagFound === 'M') {
       return { isValid: false, message: 'Invalid Flag, M is used for missing value ONLY' };
     }
 
@@ -191,16 +190,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return element && element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
-  private getFlagId(name: string | null): number | null {
-    const flag = name !== null ? this.flags.find((flag) => flag.name === name) : null;
-    return flag ? flag.id : null;
-  }
-
-  private getFlagName(id: number | null): string | null {
-    const flag = id !== null ? this.flags.find((flag) => flag.id === id) : null;
-    return flag ? flag.name : null;
-  }
-
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
     // TODO. this hard coded file should come from a config file?
@@ -218,9 +207,16 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.valueChange.emit(this.observation); 
   }
 
-  protected getLogs(observation: ObservationModel): ObservationLog[] {
-    return observation.log === null ? [] : JSON.parse(observation.log);
+  protected getLogs(observation: CreateObservationModel): ObservationLog[] {
+
+    // TODO, query the log
+
+    //return observation.log === null ? [] : JSON.parse(observation.log);
+    return [];
   }
+
+
+  
 
 
 

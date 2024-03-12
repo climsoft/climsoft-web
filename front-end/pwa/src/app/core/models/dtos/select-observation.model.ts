@@ -1,3 +1,4 @@
+//TODO. deprecate this
 export interface SelectObservation {
     stationId?: string;
     sourceId?: number; 

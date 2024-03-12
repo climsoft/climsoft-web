@@ -23,7 +23,7 @@ const routes: Routes = [
         component: StationFormSelectionComponent
       },     
       {
-        path: 'form-entry/:stationid/:datasourceid',
+        path: 'form-entry/:stationid/:sourceid',
         component: FormEntryComponent
       },
       {

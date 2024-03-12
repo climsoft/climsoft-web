@@ -33,6 +33,7 @@ export class SourcesController {
 
     @Get('/source-type/:id')
     findSourcesOfType(@Param('id') id: SourceTypeEnum) {
+        console.log("finding sources of type: ", id)
         return this.sourcesService.findSourcesByTypeIds(id);
     }
 

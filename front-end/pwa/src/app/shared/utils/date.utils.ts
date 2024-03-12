@@ -35,6 +35,20 @@ export class DateUtils {
         return allHours;
     }
 
+    static getUTCHour(hour: number) {
+        // Create a Date object for today.
+        const now = new Date();
+        
+        // Set the hour to the specified hour.
+        now.setHours(hour, 0, 0, 0); // Sets hours, minutes, seconds, milliseconds
+        
+        // Get the UTC hour.
+        const utcHour = now.getUTCHours();
+        
+        return utcHour;
+      }
+      
+
     /**
      * 
      * @param year 

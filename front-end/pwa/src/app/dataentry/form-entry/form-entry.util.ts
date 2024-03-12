@@ -1,8 +1,10 @@
-import { ElementModel } from 'src/app/core/models/element.model';
-import { ObservationModel } from 'src/app/core/models/observation.model'; 
+import { ElementModel } from 'src/app/core/models/element.model'; 
 import { EntryType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
+import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
+import { QCStatusEnum } from 'src/app/core/models/enums/qc-status.enum';
+import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
 export interface EntryFormFilter {
   stationId: string;
@@ -13,9 +15,6 @@ export interface EntryFormFilter {
   elementId?: number;
   day?: number;
   hour?: number;
-
-  //limit?: number;
-  //offset?: number;
 }
 
 export interface EntryFieldItem { fieldProperty: EntryType, fieldValues: number[] }
@@ -49,12 +48,12 @@ export class FormEntryUtil {
     return fieldDefs;
   }
 
-  public static getEntryObservationsForLinearLayout(formFilter: EntryFormFilter, entryFieldItem: EntryFieldItem, dbObservations: ObservationModel[]): ObservationModel[] {
+  public static getEntryObservationsForLinearLayout(formFilter: EntryFormFilter, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[]): CreateObservationModel[] {
 
-    const entryObservations: ObservationModel[] = [];
+    const entryObservations: CreateObservationModel[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
 
-      const entryObservation: ObservationModel = FormEntryUtil.getEntryObservation(formFilter, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
+      const entryObservation: CreateObservationModel = FormEntryUtil.getEntryObservation(formFilter, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
 
       entryObservations.push(FormEntryUtil.getExistingObservationIfItExists(dbObservations, entryObservation));
 
@@ -63,13 +62,13 @@ export class FormEntryUtil {
     return entryObservations;
   }
 
-  public static getEntryObservationsForGridLayout(formFilter: EntryFormFilter, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: ObservationModel[]): ObservationModel[][] {
+  public static getEntryObservationsForGridLayout(formFilter: EntryFormFilter, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[]): CreateObservationModel[][] {
 
-    const entryObservations: ObservationModel[][] = [];
+    const entryObservations: CreateObservationModel[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
-      const subArrEntryObservations: ObservationModel[] = [];
+      const subArrEntryObservations: CreateObservationModel[] = [];
       for (const secondFieldValue of entryFieldItems[1].fieldValues) {
-        const entryObservation: ObservationModel = this.getEntryObservation(formFilter,
+        const entryObservation: CreateObservationModel = this.getEntryObservation(formFilter,
           [{ entryFieldProperty: entryFieldItems[0].fieldProperty, entryPropFieldValue: firstFieldValue },
           { entryFieldProperty: entryFieldItems[1].fieldProperty, entryPropFieldValue: secondFieldValue }]);
 
@@ -88,16 +87,16 @@ export class FormEntryUtil {
     entryFields: [
       { entryFieldProperty: EntryType, entryPropFieldValue: number },
       { entryFieldProperty: EntryType, entryPropFieldValue: number }?
-    ]): ObservationModel {
+    ]): CreateObservationModel {
     //create new entr data
-    const entryObservation: ObservationModel = {
+    const entryObservation: CreateObservationModel = {
       stationId: formFilter.stationId,
       sourceId: formFilter.sourceId,
       elementId: 0, elevation: 0,
-      datetime: '',
-      value: null, flag: null, qcStatus: 0,
+      datetime: "",
+      value: null, flag: null, 
       period: formFilter.period,
-      comment: null, log: null
+      comment: null, 
     };
 
     //set other fields
@@ -148,14 +147,16 @@ export class FormEntryUtil {
     }
 
     //set datetime from date time variables. year-month-day hour. JS months are 0 based 
-    entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
-    
+    //entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
+    entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
+    //console.log("new observation time", entryObservation.datetime)
+
     return entryObservation;
   }
 
 
 
-  private static getExistingObservationIfItExists(dbObservations: ObservationModel[], entryObservation: ObservationModel): ObservationModel {
+  private static getExistingObservationIfItExists(dbObservations: CreateObservationModel[], entryObservation: CreateObservationModel): CreateObservationModel {
     for (const dbObservation of dbObservations) {
       // Look for the observation element id and date time.
       if (
@@ -179,7 +180,7 @@ export class FormEntryUtil {
     return element.entryScaleFactor ? unscaledValue * element.entryScaleFactor : unscaledValue;
   }
 
-  public static getTotal(entryObservations: ObservationModel[], elements: ElementModel[]): number | null {
+  public static getTotal(entryObservations: CreateObservationModel[], elements: ElementModel[]): number | null {
     let total = 0;
     let allAreNull: boolean = true;
 
@@ -214,6 +215,18 @@ export class FormEntryUtil {
 
     return errorMessage;
   }
+
+  // TODO. move later to shared code
+  public static checkFlagValidity(inputFlagId: string | null): FlagEnum | null {
+    // Early return for null input
+    if (inputFlagId === null) {
+      return null;
+    }
+  
+    // Check if inputFlagId is a valid FlagEnum key
+    return Object.values<FlagEnum>(FlagEnum).includes(inputFlagId.toUpperCase() as FlagEnum) ? inputFlagId as FlagEnum : null;
+  }
+  
 
 
 }

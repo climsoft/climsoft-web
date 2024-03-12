@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateElementDto {
     @IsNumber()
@@ -25,6 +25,7 @@ export class CreateElementDto {
     @IsNumber()
     entryScaleFactor: number;
 
+    @IsOptional()
     @IsString()
     comment: string | null;
 }

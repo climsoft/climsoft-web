@@ -1,35 +1,36 @@
-import { IsDate, IsNumber, IsString } from 'class-validator';
-import { Flag } from '../enums/flag.enum';
-import { QCStatus } from '../enums/qc-status.enum';
+import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { FlagEnum } from '../enums/flag.enum';
+import { QCStatusEnum } from '../enums/qc-status.enum';
 
 export class CreateObservationDto {
 
     @IsString()
     stationId: string;
 
-    @IsNumber()
+    @IsInt()
     elementId: number;
 
-    @IsNumber()
+    @IsInt()
     sourceId: number;
 
-    @IsString()
+    @IsNumber()
     elevation: number;
 
-    @IsDate()
+    @IsDateString()
     datetime: string;
 
-    @IsNumber()
+    @IsInt()
     period: number;
 
+    @IsOptional() 
     @IsNumber()
     value: number | null;
 
-   
-    flag: Flag | null;
-
-    qcStatus: QCStatus;
-
+    @IsOptional()
+    @IsEnum(FlagEnum, { message: 'flag must be a valid FlagEnum value or null' })
+    flag: FlagEnum | null;
+ 
+    @IsOptional()
     @IsString()
     comment: string | null;
 

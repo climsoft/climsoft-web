@@ -1,16 +1,26 @@
-import { Type } from "class-transformer"; 
-export class CreateUserDto{
-    @Type(() => String) 
+
+import {IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+export class CreateUserDto {
+    @IsString()
     name: string;
-    email: string;  
+
+    @IsString()
+    email: string;
+
+    @IsString()
     phone: string;
 
-    @Type(() => Number) 
+    @IsNumber()
     roleId: number;
-   
+
+    @IsOptional()
+    @IsString({each: true})
     authorisedStationIds: string[] | null;
 
+    @IsOptional()
+    @IsString()
     extraMetadata: string | null;
 
+    @IsBoolean()
     disabled: boolean;
 }

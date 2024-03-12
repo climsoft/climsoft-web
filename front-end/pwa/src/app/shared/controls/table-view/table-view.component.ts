@@ -1,10 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 
-
-interface DataTableItem {
-  [key: string]: any;
-}
-
 @Component({
   selector: 'app-table-view',
   templateUrl: './table-view.component.html',

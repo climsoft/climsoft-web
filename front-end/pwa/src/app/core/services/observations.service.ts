@@ -3,9 +3,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
-import { ObservationModel } from '../models/observation.model';
+import { ViewObservationModel } from '../models/view-observation.model';
 import { SelectObservation } from '../models/dtos/select-observation.model';
 import { ViewObservationDto } from '../models/dtos/view-observation.model';
+import { CreateObservationModel } from '../models/create-observation.model';
+import { RawObservationQueryDto } from '../models/dtos/raw-observation-query.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -16,31 +18,37 @@ export class ObservationsService {
 
   constructor(private http: HttpClient) { }
 
-  //TODO. This shpuld later be generalised
-  private getQueryParams(selectObservation: SelectObservation): { [key: string]: any } {
-    const obsParams: { [key: string]: any } = {};
+  private getQueryParams<T extends object>(params: T): HttpParams{
+    let httpParams: HttpParams = new HttpParams();
 
-    for (const key in selectObservation) {
-      if (selectObservation.hasOwnProperty(key)) {
-        const value = selectObservation[key as keyof SelectObservation];
-        if (value !== undefined) {
-          obsParams[key] = value;
+    // Dynamically add parameters if they are present
+    Object.keys(params).forEach(key => {
+      const value = params[key as keyof T];
+      if (value !== undefined && value !== null) {
+        if (Array.isArray(value)) {
+          // Join array values with comma for query parameters
+          httpParams = httpParams.set(key, value.join(','));
+        } else {
+          // Convert non-array values to string
+          httpParams = httpParams.set(key, value.toString());
         }
       }
-    }
-
-    return obsParams
+    });
+    return httpParams ;
   }
 
-  public getObservationsRaw(selectObservation: SelectObservation): Observable<ObservationModel[]> {
-    return this.http.get<ObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams(selectObservation) })
+  public getObservationsRaw(selectObservation: RawObservationQueryDto): Observable<CreateObservationModel[]> {
+
+    console.log("params", this.getQueryParams<RawObservationQueryDto>(selectObservation) )
+
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<RawObservationQueryDto>(selectObservation) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getObservations(selectObservation: SelectObservation): Observable<ViewObservationDto[]> {
-    return this.http.get<ViewObservationDto[]>(`${this.endPointUrl}`, { params: this.getQueryParams(selectObservation) })
+  public getObservations(observationQuery: SelectObservation ): Observable<ViewObservationDto[]> {
+    return this.http.get<ViewObservationDto[]>(`${this.endPointUrl}`, { params: this.getQueryParams<SelectObservation>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -48,18 +56,19 @@ export class ObservationsService {
 
 
 
-  public saveObservations(observations: ObservationModel[]): Observable<ObservationModel[]> {
-    return this.http.post<ObservationModel[]>(this.endPointUrl, observations)
+  public saveObservations(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
+    console.log("saving", observations);
+    return this.http.post<ViewObservationModel[]>(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteObservations(ids: number[]): Observable<ObservationModel[]> {
+  deleteObservations(ids: number[]): Observable<ViewObservationModel[]> {
     //todo use json as body of ids?
     //const url = `${this.endPointUrl}/${id}`; 
     const url = '';
-    return this.http.delete<ObservationModel[]>(url)
+    return this.http.delete<ViewObservationModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );
