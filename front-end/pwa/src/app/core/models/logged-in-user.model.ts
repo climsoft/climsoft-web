@@ -1,6 +1,6 @@
-import { UserRole } from "../enums/user-roles.enum";
+import { UserRole } from "./enums/user-roles.enum";
 
-export interface LoggedInUserDto {
+export interface LoggedInUserModel {
     id: number;
     roleId: UserRole;
     authorisedStationIds: string[] | null; 

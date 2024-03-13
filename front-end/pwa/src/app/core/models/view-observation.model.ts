@@ -1,7 +1,12 @@
-import { CreateObservationModel } from "./create-observation.model";
 import { FlagEnum } from "./enums/flag.enum";
-import { QCStatusEnum } from "./enums/qc-status.enum";
 
-export interface ViewObservationModel extends  CreateObservationModel{
-    qcStatus: QCStatusEnum; 
+export interface ViewObservationModel {
+    stationName: string;
+    elementAbbrv: string;
+    sourceName: string;
+    elevation: number;
+    datetime: string; 
+    period: number;
+    value: number | null;
+    flag: FlagEnum | null;
 }

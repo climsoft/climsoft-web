@@ -2,12 +2,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
+import { ViewObservationQueryModel } from '../models/view-observation-query.model';
 import { ViewObservationModel } from '../models/view-observation.model';
-import { SelectObservation } from '../models/dtos/select-observation.model';
-import { ViewObservationDto } from '../models/dtos/view-observation.model';
 import { CreateObservationModel } from '../models/create-observation.model';
-import { RawObservationQueryDto } from '../models/dtos/raw-observation-query.dto';
+import { CreateObservationQueryModel } from '../models/create-observation-query.model';
 
 @Injectable({
   providedIn: 'root'
@@ -37,18 +36,15 @@ export class ObservationsService {
     return httpParams ;
   }
 
-  public getObservationsRaw(selectObservation: RawObservationQueryDto): Observable<CreateObservationModel[]> {
-
-    console.log("params", this.getQueryParams<RawObservationQueryDto>(selectObservation) )
-
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<RawObservationQueryDto>(selectObservation) })
+  public getObservationsRaw(selectObservation: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(selectObservation) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getObservations(observationQuery: SelectObservation ): Observable<ViewObservationDto[]> {
-    return this.http.get<ViewObservationDto[]>(`${this.endPointUrl}`, { params: this.getQueryParams<SelectObservation>(observationQuery) })
+  public getObservations(observationQuery: ViewObservationQueryModel ): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -57,14 +53,14 @@ export class ObservationsService {
 
 
   public saveObservations(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
-    console.log("saving", observations);
+    //console.log("saving", observations);
     return this.http.post<ViewObservationModel[]>(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  deleteObservations(ids: number[]): Observable<ViewObservationModel[]> {
+ public deleteObservations(ids: number[]): Observable<ViewObservationModel[]> {
     //todo use json as body of ids?
     //const url = `${this.endPointUrl}/${id}`; 
     const url = '';
@@ -72,7 +68,7 @@ export class ObservationsService {
       .pipe(
         catchError(this.handleError)
       );
-  }
+  } 
 
 
   private handleError(error: HttpErrorResponse) {

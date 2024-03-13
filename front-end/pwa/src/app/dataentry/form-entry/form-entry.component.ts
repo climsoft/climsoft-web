@@ -10,7 +10,7 @@ import { ElementsService } from 'src/app/core/services/elements.service';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { EntryFormFilter } from './form-entry.util';
-import { RawObservationQueryDto } from 'src/app/core/models/dtos/raw-observation-query.dto';
+import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
 
@@ -135,7 +135,7 @@ export class FormEntryComponent implements OnInit {
 
   private getObservationData(): void {
     //get the data based on the selection filter
-    const observationQuery: RawObservationQueryDto = {
+    const observationQuery: CreateObservationQueryModel = {
       stationId: this.formSelector.stationId,
       sourceId: this.formSelector.sourceId,
       period: this.formSelector.period,

@@ -38,16 +38,16 @@ export class DateUtils {
     static getUTCHour(hour: number) {
         // Create a Date object for today.
         const now = new Date();
-        
+
         // Set the hour to the specified hour.
         now.setHours(hour, 0, 0, 0); // Sets hours, minutes, seconds, milliseconds
-        
+
         // Get the UTC hour.
         const utcHour = now.getUTCHours();
-        
+
         return utcHour;
-      }
-      
+    }
+
 
     /**
      * 
@@ -62,6 +62,21 @@ export class DateUtils {
     //takes a one-based month based
     static getDateInSQLFormat(year: number, month: number, day: number, hour: number, minute: number, second: number): string {
         return `${year.toString()}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)} ${StringUtils.addLeadingZero(hour)}:${StringUtils.addLeadingZero(minute)}:${StringUtils.addLeadingZero(second)}`
+    }
+
+    static getDateInSQLFormatFromDate(date: Date): string {
+        const pad = (num: number): string => num.toString().padStart(2, '0');
+
+        const year = date.getFullYear();
+        const month = pad(date.getMonth() + 1); // getMonth() is zero-based
+        const day = pad(date.getDate());
+        const hours = pad(date.getHours());
+        const minutes = pad(date.getMinutes());
+        const seconds = pad(date.getSeconds());
+        const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+
     }
 
 

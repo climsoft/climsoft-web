@@ -43,6 +43,7 @@ export class DateUtils {
         const date = new Date();
         return DateUtils.getDateInSQLFormat(date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds());
     }
+
     //takes a one-based month based
     static getDateInSQLFormat(year: number, month: number, day: number, hour: number, minute: number, second: number): string {
         return `${year.toString()}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)} ${StringUtils.addLeadingZero(hour)}:${StringUtils.addLeadingZero(minute)}:${StringUtils.addLeadingZero(second)}`

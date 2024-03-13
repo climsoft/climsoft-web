@@ -4,8 +4,7 @@ import { FindManyOptions, In, Repository } from 'typeorm';
 import { StationEntity, StationLogVo } from '../entities/station.entity';
 import { CreateStationDto } from '../dtos/create-station.dto';
 import { SourcesService } from './sources.service'; 
-import { ObjectUtils } from 'src/shared/utils/object.util';
-import { DateUtils } from 'src/shared/utils/date.utils'; 
+import { ObjectUtils } from 'src/shared/utils/object.util'; 
 
 @Injectable()
 export class StationsService {
@@ -54,7 +53,7 @@ export class StationsService {
                 const newChanges: StationLogVo = this.getStationLogFromDto(createStationDto, userId);
 
                 //if no changes, then no need to save
-                if (ObjectUtils.areObjectsEqual<StationLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
+                if (ObjectUtils.areObjectsEqual<StationLogVo>(oldChanges, newChanges, ["entryUserId","entryDateTime"])) {
                     continue;
                 }
             } else {
@@ -86,7 +85,7 @@ export class StationsService {
             description: dto.description,
             comment: dto.comment,
             entryUserId: userId,
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+            entryDateTime: new Date(),
         };
     }
 
@@ -95,7 +94,7 @@ export class StationsService {
         entity.description = dto.description;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.entryDateTime =new Date();
         entity.log = ObjectUtils.getNewLog<StationLogVo>(entity.log, this.getStationLogFromEntity(entity));
     }
 

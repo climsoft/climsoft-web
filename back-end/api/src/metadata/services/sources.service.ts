@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SourceEntity, SourceTypeEnum } from '../entities/source.entity';
-import { FindManyOptions, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateSourceDto } from '../dtos/create-source.dto';
 import { ViewSourceDto } from '../dtos/view-source.dto';
@@ -11,6 +11,22 @@ export class SourcesService {
     constructor(@InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
     ) { }
 
+
+    public async findSources(selectOptions?: FindOptionsWhere<SourceEntity> ): Promise<ViewSourceDto[]> {
+        const findOptions: FindManyOptions<SourceEntity> = {
+            order: {
+                id: "ASC"
+            }
+        };
+
+        if (selectOptions) {
+            findOptions.where = selectOptions;
+        }
+
+        const sourceEntities = await this.sourceRepo.find(findOptions);
+        return sourceEntities.map(source => ({ ...source }));
+    }
+
     public async findSourcesByIds(ids?: number[]): Promise<ViewSourceDto[]> {
         const findOptions: FindManyOptions<SourceEntity> = {
             order: {
@@ -18,7 +34,8 @@ export class SourcesService {
             }
         };
 
-        if (ids) {
+        // TODO. use the find sources
+        if (ids && ids.length>0) {
             findOptions.where = { id: In(ids) };
         }
 
@@ -28,6 +45,9 @@ export class SourcesService {
 
     async findSourcesByTypeIds(sourceTypeId?: SourceTypeEnum): Promise<SourceEntity[]> {
         let sources: SourceEntity[];
+
+        // TODO. Use the find sources
+
         if (sourceTypeId) {
             sources = await this.sourceRepo.find({
                 where: {
@@ -38,9 +58,6 @@ export class SourcesService {
             sources = await this.sourceRepo.find();
         }
 
-        if (!sources) {
-            throw new NotFoundException(`Sources of type #${sourceTypeId} not found`);
-        }
         return sources;
     }
 

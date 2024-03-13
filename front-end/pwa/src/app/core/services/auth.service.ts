@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoggedInUserDto } from '../models/dtos/logged-in-user.dto';
+import { LoggedInUserModel } from '../models/logged-in-user.model';
 import { BehaviorSubject, catchError, tap, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
@@ -7,7 +7,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
   providedIn: 'root'
 })
 export class AuthService {
-  private _user: BehaviorSubject<LoggedInUserDto | null> = new BehaviorSubject<LoggedInUserDto | null>(null);
+  private _user: BehaviorSubject<LoggedInUserModel | null> = new BehaviorSubject<LoggedInUserModel | null>(null);
 
   private endPointUrl: string = "http://localhost:3000/users";
 
@@ -27,7 +27,7 @@ export class AuthService {
   }
 
   public login(username: string, password: string) {
-    return this.http.post<LoggedInUserDto>(`${this.endPointUrl}/login`, { username: username, password: password })
+    return this.http.post<LoggedInUserModel>(`${this.endPointUrl}/login`, { username: username, password: password })
       .pipe(
         catchError((error) => this.handleError(error)),
         tap((data) => this.handleAuthentication(data))
@@ -35,7 +35,7 @@ export class AuthService {
   }
 
   public logout() {
-    return this.http.post<LoggedInUserDto>(`${this.endPointUrl}/logout`, {})
+    return this.http.post<LoggedInUserModel>(`${this.endPointUrl}/logout`, {})
       .pipe(
         catchError((error) => this.handleError(error)),
         tap((data) => {
@@ -49,7 +49,7 @@ export class AuthService {
       );
   }
 
-  private handleAuthentication(loggedInUser: LoggedInUserDto) {
+  private handleAuthentication(loggedInUser: LoggedInUserModel) {
     this.updateUserExpiryDateAndSave(loggedInUser)
     this._user.next(loggedInUser)
   }
@@ -60,7 +60,7 @@ export class AuthService {
           this._user.next(null);
   }
 
-  public updateUserExpiryDateAndSave(loggedInUser?: LoggedInUserDto): void {
+  public updateUserExpiryDateAndSave(loggedInUser?: LoggedInUserModel): void {
     if (!loggedInUser && this._user.value) {
       loggedInUser = this._user.value
     }

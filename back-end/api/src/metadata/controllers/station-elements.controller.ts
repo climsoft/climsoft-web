@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Post, Req } from '@nestjs/common';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
@@ -42,7 +42,7 @@ export class StationElementsController {
   @Post('element-limits/:stationId/:elementId')
   saveElementLimits(@Req() request: Request,
     @Param('stationId', AuthorisedStationsPipe) stationId: string,
-    @Param('elementId') elementId: number,
+    @Param('elementId', ParseIntPipe) elementId: number,
     @Body() limits: StationElementLimit[]) {
     console.log("TODO, limit should be valid dto: ", limits);
     return this.stationsService.saveElementLimit(stationId, elementId, limits, AuthUtil.getLoggedInUserId(request));

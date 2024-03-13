@@ -149,7 +149,7 @@ export class FormEntryUtil {
     //set datetime from date time variables. year-month-day hour. JS months are 0 based 
     //entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
     entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
-    //console.log("new observation time", entryObservation.datetime)
+    console.log("new obs time", entryObservation.datetime, " from ", datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0)
 
     return entryObservation;
   }

@@ -1,26 +1,25 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
-import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { FlagEnum } from "../enums/flag.enum";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { StationEntity } from "src/metadata/entities/station.entity";
+import { ElementEntity } from "src/metadata/entities/element.entity";
+import { SourceEntity } from "src/metadata/entities/source.entity";
 
 @Entity("observations")
-export class ObservationEntity extends BaseEntity{
+export class ObservationEntity extends BaseEntity {
 
-  @PrimaryColumn({ type: "varchar" })
+  @PrimaryColumn({ type: "varchar", name: "station_id" })
   stationId: string;
 
-  @PrimaryColumn({ type: "int" })
+  @PrimaryColumn({ type: "int", name: "element_id" })
   elementId: number;
 
-  @PrimaryColumn({ type: "int" })
+  @PrimaryColumn({ type: "int", name: "source_id" })
   sourceId: number;
 
   @PrimaryColumn({ type: "float" })
   elevation: number;
-
-  //@PrimaryColumn({ type: "timestamptz", name: "date_time", transformer: new DateTimeColumn() })
-  //datetime: string;
 
   @PrimaryColumn({ type: "timestamptz", name: "date_time" })
   datetime: Date;
@@ -36,9 +35,9 @@ export class ObservationEntity extends BaseEntity{
 
   @Column({ type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NoQCTestsDone, name: "qc_status" })
   @Index()
-  qcStatus: QCStatusEnum; 
+  qcStatus: QCStatusEnum;
 
-  @Column({ type: "json", nullable: true, name: "qc_test_log" })
+  @Column({ type: "jsonb", nullable: true, name: "qc_test_log" })
   qcTestLog: string | null;
 
   @Column({ type: "boolean", default: false })
@@ -55,6 +54,20 @@ export class ObservationEntity extends BaseEntity{
   @Column({ type: "jsonb", nullable: true })
   log: UpdateObservationValuesLogVo[] | null;
 
+  // Relationships
+
+  @ManyToOne(() => StationEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "station_id" })
+  station: StationEntity;
+
+  @ManyToOne(() => ElementEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "element_id" })
+  element: ElementEntity;
+
+  @ManyToOne(() => SourceEntity, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "source_id" })
+  source: SourceEntity;
+
 }
 
 //when changing qc, we will use the qc log
@@ -62,6 +75,6 @@ export interface UpdateObservationValuesLogVo extends BaseLogVo {
   value: number | null;
   flag: FlagEnum | null;
   final: boolean;
-  comment: string | null; 
-  deleted: boolean; 
+  comment: string | null;
+  deleted: boolean;
 }

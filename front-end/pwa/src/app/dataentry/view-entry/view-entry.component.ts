@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
+import { ViewObservationQueryModel } from 'src/app/core/models/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/view-observation.model';
-import { SelectObservation } from 'src/app/core/models/dtos/select-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewObservationDto } from 'src/app/core/models/dtos/view-observation.model';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+
 
 @Component({
   selector: 'app-view-entry',
@@ -19,7 +20,7 @@ export class ViewEntryComponent {
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
   protected hour: number | null = null;
-  protected observations: ViewObservationDto[] = [];
+  protected observations: ViewObservationModel[] = [];
 
   constructor(private pagesDataService: PagesDataService, private observationService: ObservationsService,) {
     this.pagesDataService.setPageHeader('View Entries');
@@ -28,14 +29,14 @@ export class ViewEntryComponent {
   protected onViewClick(): void {
 
     //get the data based on the selection filter
-    const observationFilter: SelectObservation = {};
+    const observationFilter: ViewObservationQueryModel = {};
 
     if (this.stationId) {
-      observationFilter.stationId = this.stationId;
+      observationFilter.stationIds = [this.stationId];
     }
 
     if (this.sourceId) {
-      observationFilter.sourceId = this.sourceId;
+      observationFilter.sourceIds = [this.sourceId];
     }
 
     if (this.elementId) {
@@ -56,17 +57,16 @@ export class ViewEntryComponent {
       observationFilter.toDate = this.toDate;
     }
 
-    if (this.hour !== undefined && this.hour !== null) {
-      observationFilter.hours = [this.hour];
-    }
-
     this.observationService.getObservations(observationFilter).subscribe((data) => {
-      this.observations = data;
+      this.observations = data.map(item => {
+        item.datetime = DateUtils.getDateInSQLFormatFromDate(new Date(item.datetime));
+        return item;
+      });
     });
 
   }
 
-  protected onObservationClick(observation: ViewObservationDto): void{
+  protected onObservationClick(observation: ViewObservationModel): void {
 
   }
 

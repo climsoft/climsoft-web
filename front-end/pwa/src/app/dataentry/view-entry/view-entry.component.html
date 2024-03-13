@@ -10,9 +10,6 @@
 
       <div class="col-auto mb-2">
         <app-element-single-input [label]="'Element'" [(selectedId)]="elementId" />
-
-        <!-- <app-element-single-input [label]="'Element'" [includeOnlyIds]="formMetadata.elementIds"
-                [selectedId]="formFilter.elementId" (selectedIdChange)="onElementChange($event)" /> -->
       </div>
 
       <div class="col-auto mb-2">
@@ -21,19 +18,10 @@
 
       <div class="col-auto mb-2">
         <app-date-input [label]="'From'" [(value)]="fromDate" />
-
-        <!-- <app-date-input [label]="'Date'" [value]="defaultDateValue"
-                (valueChange)="onDateChange($event)"></app-date-input> -->
       </div>
 
       <div class="col-auto mb-2">
         <app-date-input [label]="'To'" />
-      </div>
-
-      <div class="col-auto mb-2">
-        <app-hour-single-input [label]="'Hour'" />
-        <!-- <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formMetadata.hours" [selectedId]="formFilter.hour"
-                (selectedIdChange)="onHourChange($event)" /> -->
       </div>
 
     </div>
@@ -52,13 +40,10 @@
       {id: 'sourceName', name: 'Source'}, 
       {id: 'elementAbbrv', name: 'Element'} , 
       {id: 'elevation', name: 'Elevation'} , 
-      {id: 'period', name: 'Period'}, 
       {id: 'datetime', name: 'Date Time'} ,
+      {id: 'period', name: 'Period'}, 
       {id: 'value', name: 'Value'},
-      {id: 'flag', name: 'Flag'},
-      {id: 'entryUserName', name: 'User'}, 
-      {id: 'entryDateTime', name: 'Entry Date Time'}, ]" [rowsData]="observations"
-        (rowDataClicked)="onObservationClick($event)" />
+      {id: 'flag', name: 'Flag'},]" [rowsData]="observations" (rowDataClicked)="onObservationClick($event)" />
     </div>
 
 
