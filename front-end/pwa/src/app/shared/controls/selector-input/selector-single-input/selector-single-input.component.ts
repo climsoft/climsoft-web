@@ -30,9 +30,11 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   }
 
   protected onInputChange(inputValue: string): void {
+    console.log("inputvalue", inputValue)
     if (!inputValue) {
       this.filteredValues = this.options;
-      this.selectedOption = null;
+      //this.selectedOption = null; //TODO. Is this needed?
+      this.selectedOptionChange.emit(null);
     } else {
       this.filteredValues = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())
@@ -42,9 +44,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   protected onSelectedOption(option: T): void {
 
-    this.selectedOption = option;
-
-    //console.log('single input onSelectedOption',  this.selectedOption)
+    //this.selectedOption = option; // TODO. Is this needed?
     this.selectedOptionChange.emit(option);
     this.filteredValues = this.options;
   }

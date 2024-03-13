@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindOptionsWhere, In, Repository } from 'typeorm';
+import { Between, FindManyOptions, FindOptionsWhere, In, LessThanOrEqual,  MoreThanOrEqual, Repository } from 'typeorm';
 import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -65,42 +65,46 @@ export class ObservationsService {
 
 
     private async findProcessedObs(selectObsevationDto: ViewObservationQueryDTO) {
-        const selectOptions: FindOptionsWhere<ObservationEntity> = {};
+        const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationIds) {
-            selectOptions.stationId = In(selectObsevationDto.stationIds);
+            whereOptions.stationId = In(selectObsevationDto.stationIds);
         }
 
         if (selectObsevationDto.elementIds) {
-            selectOptions.elementId = In(selectObsevationDto.elementIds);
+            whereOptions.elementId = In(selectObsevationDto.elementIds);
         }
 
         if (selectObsevationDto.sourceIds) {
-            selectOptions.sourceId = In(selectObsevationDto.sourceIds);
+            whereOptions.sourceId = In(selectObsevationDto.sourceIds);
         }
 
         if (selectObsevationDto.period) {
-            selectOptions.period = selectObsevationDto.period;
+            whereOptions.period = selectObsevationDto.period;
         }
 
-        this.setProcessedObsDateFilter(selectObsevationDto, selectOptions);
+        this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);
 
-        selectOptions.deleted = false;
+        whereOptions.deleted = false;
 
-        let entities: ObservationEntity[];
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            order: {
+                stationId: "ASC",
+                elementId: "ASC",
+                sourceId: "ASC",
+                elevation: "ASC",
+                datetime: "ASC"
+            },
+            where: whereOptions
+        };
+
 
         if (selectObsevationDto.page && selectObsevationDto.pageSize) {
-            const skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
-            entities = await this.observationRepo.find({
-                where: selectOptions,
-                skip: skip,
-                take: selectObsevationDto.pageSize
-            });
-        } else {
-            entities = await this.observationRepo.findBy(selectOptions);
+            findOptions.skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
+            findOptions.take = selectObsevationDto.pageSize
         }
 
-        return entities;
+        return this.observationRepo.find(findOptions);
 
 
     }
@@ -116,9 +120,9 @@ export class ObservationsService {
             }
 
         } else if (selectObsevationDto.fromDate) {
-
+            selectOptions.datetime = MoreThanOrEqual(new Date(selectObsevationDto.fromDate))
         } else if (selectObsevationDto.toDate) {
-
+            selectOptions.datetime = LessThanOrEqual(new Date(selectObsevationDto.toDate))
         }
 
 
@@ -173,7 +177,7 @@ export class ObservationsService {
                 const oldChanges: UpdateObservationValuesLogVo = this.getObservationLogFromEntity(observationEntity);
                 const newChanges: UpdateObservationValuesLogVo = this.getObservationLogFromDto(createObservationDto, userId);
 
-                if (ObjectUtils.areObjectsEqual<UpdateObservationValuesLogVo>(oldChanges, newChanges, ["entryUserId","entryDateTime"])) {
+                if (ObjectUtils.areObjectsEqual<UpdateObservationValuesLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
                     continue;
                 }
 

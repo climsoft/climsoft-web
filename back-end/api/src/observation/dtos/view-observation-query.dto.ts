@@ -10,7 +10,7 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
-    @IsInt()
+    @IsInt( {each: true })
     sourceIds?: number[]; 
 
     @IsOptional()

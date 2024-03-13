@@ -50,11 +50,11 @@ export class ViewEntryComponent {
 
 
     if (this.fromDate) {
-      observationFilter.fromDate = this.fromDate;
+      observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
     }
 
     if (this.toDate) {
-      observationFilter.toDate = this.toDate;
+      observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 
     this.observationService.getObservations(observationFilter).subscribe((data) => {

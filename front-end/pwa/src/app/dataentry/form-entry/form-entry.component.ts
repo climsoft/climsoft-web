@@ -156,20 +156,13 @@ export class FormEntryComponent implements OnInit {
       for (let i = 1; i <= lastDay; i++) {
         observationQuery.datetimes.push(new Date(year, monthIndex, i, hours[0], 0, 0, 0).toISOString());
       }
-
-    
     }
 
 
     this.observationService.getObservationsRaw(observationQuery).subscribe((data) => {
-
       this.observations = data;
     });
   }
-
-
-
-
 
   public onElementChange(elementIdInput: number | null): void {
     if (elementIdInput === null) {

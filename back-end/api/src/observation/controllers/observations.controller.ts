@@ -31,7 +31,6 @@ export class ObservationsController {
   save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
-    //console.log('dtos', observationDtos);
     return this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
