@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CreateUserDto } from 'src/app/core/models/dtos/create-user.dto';
+import { CreateUserModel } from 'src/app/core/models/create-user.model';
 import { ElementModel } from 'src/app/core/models/element.model';
 import { UserRole } from 'src/app/core/models/enums/user-roles.enum';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -15,7 +15,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 })
 export class UserDetailsComponent implements OnInit {
   private userId: number | null = null;
-  protected user!: CreateUserDto;
+  protected user!: CreateUserModel;
   protected bEnableSave: boolean = true;//todo. should be false by default
 
   constructor(

@@ -1,5 +1,5 @@
 
-export interface ViewUserDto {
+export interface ViewUserModel {
     id: number;
     name: string;
     email: string;

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { Observable, catchError, of, take, tap } from 'rxjs';
-import { LoggedInUserDto } from '../models/dtos/logged-in-user.dto';
+import { LoggedInUserModel } from '../models/logged-in-user.model';
 import { Router } from '@angular/router';
 
 @Component({

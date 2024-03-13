@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';  
-import { ViewUserDto } from '../models/dtos/view-user.dto';
-import { CreateUserDto } from '../models/dtos/create-user.dto';
+import { ViewUserModel } from '../models/view-user.model';
+import { CreateUserModel } from '../models/create-user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,22 +13,22 @@ export class UsersService {
 
   constructor(private http: HttpClient) { }
 
-  getUsers(): Observable<ViewUserDto[]> {
+  getUsers(): Observable<ViewUserModel[]> {
   
     //todo. load slected elements
-    return this.http.get<ViewUserDto[]>(this.endPointUrl);
+    return this.http.get<ViewUserModel[]>(this.endPointUrl);
   }
 
-  getUser(userId: string): Observable<CreateUserDto> {
-    return this.http.get<CreateUserDto>(`${this.endPointUrl}/${userId}`);
+  getUser(userId: string): Observable<CreateUserModel> {
+    return this.http.get<CreateUserModel>(`${this.endPointUrl}/${userId}`);
   }
 
-  create(createUserDto: CreateUserDto): Observable<CreateUserDto> {
-    return this.http.post<CreateUserDto>(`${this.endPointUrl}/create`, createUserDto);
+  create(createUserDto: CreateUserModel): Observable<CreateUserModel> {
+    return this.http.post<CreateUserModel>(`${this.endPointUrl}/create`, createUserDto);
   }
 
-  update(userId: number, createUserDto: CreateUserDto): Observable<CreateUserDto> {
-    return this.http.patch<CreateUserDto>(`${this.endPointUrl}/update/${userId}`, createUserDto);
+  update(userId: number, createUserDto: CreateUserModel): Observable<CreateUserModel> {
+    return this.http.patch<CreateUserModel>(`${this.endPointUrl}/update/${userId}`, createUserDto);
   }
 
  

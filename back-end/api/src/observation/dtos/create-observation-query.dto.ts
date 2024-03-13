@@ -1,8 +1,8 @@
 import { Transform } from "class-transformer";
-import { IsArray, IsDateString, IsInt, IsString } from "class-validator";
+import { IsDateString, IsInt, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
-export class RawObservationQueryDto {
+export class CreateObservationQueryDto {
     @IsString()
     stationId: string;
 

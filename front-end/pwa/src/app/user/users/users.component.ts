@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router'; 
-import { ViewUserDto } from 'src/app/core/models/dtos/view-user.dto'; 
+import { ViewUserModel } from 'src/app/core/models/view-user.model'; 
 import { UserRole } from 'src/app/core/models/enums/user-roles.enum'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users.service';
 
 
-interface ViewUser extends ViewUserDto {
+interface ViewUser extends ViewUserModel {
   roleName?: string;
 }
 
@@ -58,7 +58,7 @@ export class UsersComponent {
     this.router.navigate(['user-detail', 'new'], { relativeTo: this.route.parent });
   }
 
-  onEditUserClick(viewUser: ViewUserDto) {
+  onEditUserClick(viewUser: ViewUserModel) {
     this.router.navigate(['user-detail', viewUser.id], { relativeTo: this.route.parent });
   }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Query, Body, Req, ParseArrayPipe, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, Req, ParseArrayPipe, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
 import { Request } from 'express';
 import { ElementsService } from '../services/elements.service';
 import { CreateElementDto } from '../dtos/create-element.dto';
@@ -18,7 +18,7 @@ export class ElementsController {
   }
 
   @Get(':id')
-  findElement(@Param("id") id: number) {
+  findElement(@Param("id", ParseIntPipe) id: number) {
     return this.elementsService.findElement(id);
   }
 

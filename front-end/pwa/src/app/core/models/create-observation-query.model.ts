@@ -1,4 +1,4 @@
-export interface RawObservationQueryDto {
+export interface CreateObservationQueryModel {
     stationId: string;
     sourceId: number;
     elementIds: number[];

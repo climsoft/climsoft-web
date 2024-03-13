@@ -4,7 +4,6 @@ import { FindManyOptions, In, Repository } from 'typeorm';
 import { ElementEntity, ElementLogVo } from '../entities/element.entity';
 import { CreateElementDto } from '../dtos/create-element.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { DateUtils } from 'src/shared/utils/date.utils';
 import { ViewElementDto } from '../dtos/view-element.dto';
 
 @Injectable()
@@ -60,7 +59,7 @@ export class ElementsService {
                 const newChanges: ElementLogVo = this.getElementLogFromDto(createElementDto, userId);
 
                 //if no changes, then no need to save
-                if (ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ['entryDateTime'])) {
+                if (ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
                     continue;
                 }
             } else {
@@ -102,7 +101,7 @@ export class ElementsService {
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
             entryUserId: userId,
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+            entryDateTime: new Date(),
         };
     }
 
@@ -116,7 +115,7 @@ export class ElementsService {
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.entryDateTime = new Date();
         entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
     }
 

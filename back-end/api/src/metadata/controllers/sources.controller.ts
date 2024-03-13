@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { SourcesService } from '../services/sources.service';
 import { CreateSourceDto } from '../dtos/create-source.dto'; 
 import { Admin } from 'src/user/decorators/admin.decorator';
@@ -9,31 +9,20 @@ export class SourcesController {
 
     constructor(private readonly sourcesService: SourcesService) { }
 
-    //TODO delete this
-    // @Get()
-    // find(@Query() query: { [key: string]: number }) {
-    //     if (query['sourceId']) {
-    //         return this.sourcesService.findSource(query['sourceId']);
-    //     } else if (query['sourceTypeId']) {
-    //         return this.sourcesService.findSources(query['sourceTypeId']);
-    //     } else {
-    //         return this.sourcesService.findSources();
-    //     }     
-    // }
-
     @Get()
     find() {
         return this.sourcesService.findSourcesByTypeIds();
     }
    
     @Get('/source/:id')
-    findSource(@Param('id') id: number) {
+    findSource(@Param('id', ParseIntPipe) id: number) { 
         return this.sourcesService.findSource(id);
     }
 
     @Get('/source-type/:id')
     findSourcesOfType(@Param('id') id: SourceTypeEnum) {
-        console.log("finding sources of type: ", id)
+        // TODO validate enum. 
+        console.log("finding sources of type: ", id);
         return this.sourcesService.findSourcesByTypeIds(id);
     }
 
@@ -45,13 +34,13 @@ export class SourcesController {
 
     @Admin()
     @Patch(':id')
-    update(@Param('id') id: number, @Body() createSourceDto: CreateSourceDto) {
+    update(@Param('id',ParseIntPipe) id: number, @Body() createSourceDto: CreateSourceDto) {
         return this.sourcesService.updateSource(id, createSourceDto);
     }
 
     @Admin()
     @Delete(':id')
-    delete(@Param('id') id: number) {
+    delete(@Param('id',ParseIntPipe) id: number) {
         return this.sourcesService.deleteSource(id);
     }
 

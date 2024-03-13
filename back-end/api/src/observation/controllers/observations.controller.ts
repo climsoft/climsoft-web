@@ -1,13 +1,13 @@
 import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseArrayPipe, ParseFilePipe, Post, Query, Req, Session, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
-import { SelectObservationDTO } from '../dtos/select-observation.dto';
+import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ObservationUploadService } from '../services/observation-upload.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { RawObservationQueryDto } from '../dtos/raw-observation-query.dto';
+import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -17,14 +17,14 @@ export class ObservationsController {
 
 
   @Get()
-  getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: SelectObservationDTO) {
+  getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: ViewObservationQueryDTO) {
     return this.observationsService.findProcessed(selectObsevationQuery);
   }
 
 
   @Get('/raw')
-  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: RawObservationQueryDto) {
-    return this.observationsService.findRaw(selectObsevationQuery);
+  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: CreateObservationQueryDto) {
+    return this.observationsService.findRawObs(selectObsevationQuery);
   }
 
   @Post()

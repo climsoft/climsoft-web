@@ -86,11 +86,11 @@ export class StationElementsService {
 
         const newLimits = this.getUpdatedStationElementLimits(stationElementEntity.monthLimits, limitsDtos)
 
-        const oldChanges: StationElementEntityLogVo = this.getLogForLimitsFromEntity(stationElementEntity);
-        const newChanges: StationElementEntityLogVo = this.getLogForLimitsFromDto(newLimits, userId);
+        const oldChanges: StationElementEntityLogVo = this.getLogFromEntity(stationElementEntity);
+        const newChanges: StationElementEntityLogVo = this.getLogFromLimitsDto(newLimits, userId);
 
         //if there are changes, then no need to save
-        if (!ObjectUtils.areObjectsEqual(oldChanges, newChanges, ['entryDateTime'])) {
+        if (!ObjectUtils.areObjectsEqual(oldChanges, newChanges, ["entryUserId", "entryDateTime", "instrumentId"])) {
             this.updateEntityWithLimits(stationElementEntity, newLimits, userId);
             await this.stationElementsRepo.save(stationElementEntity);
         }
@@ -116,21 +116,21 @@ export class StationElementsService {
         return newMergedlimits;
     }
 
-    private getLogForLimitsFromEntity(entity: StationElementEntity): StationElementEntityLogVo {
+    private getLogFromEntity(entity: StationElementEntity): StationElementEntityLogVo {
         return {
-            instrumentId: null,
+            instrumentId: entity.instrumentId,
             monthLimits: entity.monthLimits,
             entryUserId: entity.entryUserId,
             entryDateTime: entity.entryDateTime,
         };
     }
 
-    private getLogForLimitsFromDto(limitsDto: StationElementLimit[], userId: number): StationElementEntityLogVo {
+    private getLogFromLimitsDto(limitsDto: StationElementLimit[], userId: number): StationElementEntityLogVo {
         return {
             instrumentId: null,
             monthLimits: limitsDto,
             entryUserId: userId,
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+            entryDateTime: new Date(),
         };
     }
 
@@ -140,7 +140,7 @@ export class StationElementsService {
 
         entity.monthLimits = someLimitsAdded ? limitsDto : null;
         entity.entryUserId = userId;
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat(); // Ensure DateUtils.getTodayDateInSQLFormat is correctly implemented
+        entity.entryDateTime = new Date();
         entity.log = ObjectUtils.getNewLog<StationElementEntityLogVo>(entity.log, this.getLogForEntity(entity));
     }
 
@@ -155,7 +155,7 @@ export class StationElementsService {
             instrumentId: instrumentId,
             monthLimits: null,
             entryUserId: userId,
-            entryDateTime: DateUtils.getTodayDateInSQLFormat(),
+            entryDateTime: new Date()
         };
     }
 
@@ -163,7 +163,7 @@ export class StationElementsService {
     private updateEntityWithInstrument(entity: StationElementEntity, instrumentId: number, userId: number): void {
         entity.instrumentId = instrumentId;
         entity.entryUserId = userId;
-        entity.entryDateTime = DateUtils.getTodayDateInSQLFormat();
+        entity.entryDateTime = new Date();
         entity.log = ObjectUtils.getNewLog<StationElementEntityLogVo>(entity.log, this.getLogForEntity(entity));
     }
 
