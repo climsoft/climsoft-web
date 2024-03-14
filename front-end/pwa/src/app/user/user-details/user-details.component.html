@@ -21,11 +21,11 @@
       </div>
 
       <div class="mb-3">
-        <app-user-role-single-input [label]="'Role'" [selectedId]="user.roleId"
+        <app-user-role-single-input [label]="'Role'" [selectedId]="user.role"
           (selectedIdChange)="onRoleSelection($event)" />
       </div>
 
-      <div class="mb-3" *ngIf="user.roleId !== 1">
+      <div class="mb-3" *ngIf="userRoleIsNotAdmin">
         <app-station-multiple-input [label]="'Authorised stations'" [placeholder]="'All stations'"
           [selectedIds]="user.authorisedStationIds? user.authorisedStationIds: []"
           (selectedIdsChange)="onStationsSelection($event)" />

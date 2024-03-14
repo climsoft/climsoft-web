@@ -13,26 +13,20 @@ export class UsersService {
 
   constructor(private http: HttpClient) { }
 
-  getUsers(): Observable<ViewUserModel[]> {
-  
-    //todo. load slected elements
+  public getUsers(): Observable<ViewUserModel[]> {
     return this.http.get<ViewUserModel[]>(this.endPointUrl);
   }
 
-  getUser(userId: string): Observable<CreateUserModel> {
+  public getUser(userId: string): Observable<CreateUserModel> {
     return this.http.get<CreateUserModel>(`${this.endPointUrl}/${userId}`);
   }
 
-  create(createUserDto: CreateUserModel): Observable<CreateUserModel> {
+  public create(createUserDto: CreateUserModel): Observable<CreateUserModel> {
     return this.http.post<CreateUserModel>(`${this.endPointUrl}/create`, createUserDto);
   }
 
-  update(userId: number, createUserDto: CreateUserModel): Observable<CreateUserModel> {
+  public update(userId: number, createUserDto: CreateUserModel): Observable<CreateUserModel> {
     return this.http.patch<CreateUserModel>(`${this.endPointUrl}/update/${userId}`, createUserDto);
   }
-
- 
-
-
 
 }

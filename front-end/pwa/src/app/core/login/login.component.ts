@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { Observable, catchError, of, take, tap } from 'rxjs';
-import { LoggedInUserModel } from '../models/logged-in-user.model';
+import { catchError, of, take } from 'rxjs';
 import { Router } from '@angular/router';
 
 @Component({
@@ -16,7 +15,7 @@ export class LoginComponent {
 
   constructor(private authService: AuthService, private router: Router) { }
 
-  protected login() {
+  protected login(): void {
 
     this.errorMessage = '';
 

@@ -1,9 +1,8 @@
-import { UserRoleEnum } from "./enums/user-roles.enum";
+import { UserRoleEnum } from "../enums/user-roles.enum";
 
 export interface LoggedInUserModel {
-    id: number;
+    id: number;  
     role: UserRoleEnum;
     authorisedStationIds: string[] | null; 
     expiresIn: number; //milliseconds
-    expirationDate?: number; //milliseconds
 }

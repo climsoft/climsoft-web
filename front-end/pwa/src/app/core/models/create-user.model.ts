@@ -1,8 +1,10 @@
+import { UserRoleEnum } from "./enums/user-roles.enum";
+
 export interface CreateUserModel{
     name: string;
     email: string;  
     phone: string;
-    roleId: number;   
+    role: UserRoleEnum;   
     authorisedStationIds: string[] | null;
     extraMetadata: string | null;
     disabled: boolean;

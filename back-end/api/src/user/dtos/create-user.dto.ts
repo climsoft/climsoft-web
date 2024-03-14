@@ -1,17 +1,18 @@
 
-import {IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import {IsBoolean, IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
+import { UserRoleEnum } from "../enums/user-roles.enum";
 export class CreateUserDto {
     @IsString()
     name: string;
 
-    @IsString()
+    @IsEmail()
     email: string;
 
     @IsString()
     phone: string;
 
-    @IsNumber()
-    roleId: number;
+    @IsEnum(UserRoleEnum, { message: 'User role must be a valid value' })
+    role: UserRoleEnum;
 
     @IsOptional()
     @IsString({each: true})
@@ -19,7 +20,7 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsString()
-    extraMetadata: string | null;
+    extraMetadata: string | null; //TODO. Later set the model
 
     @IsBoolean()
     disabled: boolean;

@@ -26,11 +26,11 @@ export class AuthService {
     }
   }
 
-  public login(username: string, password: string) {
-    return this.http.post<LoggedInUserModel>(`${this.endPointUrl}/login`, { username: username, password: password })
+  public login(email: string, password: string) {
+    return this.http.post<LoggedInUserModel>(`${this.endPointUrl}/login`, { email: email, password: password })
       .pipe(
-        catchError((error) => this.handleError(error)),
-        tap((data) => this.handleAuthentication(data))
+        tap((data) => this.handleAuthentication(data)),
+        catchError((error) => this.handleError(error)),       
       );
   }
 
@@ -42,7 +42,7 @@ export class AuthService {
 
           console.log('logout data', data);
 
-        
+
 
           this.removeUser();
         })
@@ -54,10 +54,10 @@ export class AuthService {
     this._user.next(loggedInUser)
   }
 
-  public removeUser(){
-      localStorage.removeItem('user');
+  public removeUser() {
+    localStorage.removeItem('user');
 
-          this._user.next(null);
+    this._user.next(null);
   }
 
   public updateUserExpiryDateAndSave(loggedInUser?: LoggedInUserModel): void {
@@ -72,8 +72,6 @@ export class AuthService {
       localStorage.setItem('user', JSON.stringify(loggedInUser));
     }
 
-
-
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -81,7 +79,7 @@ export class AuthService {
     if (error.error && error.error.message) {
       switch (error.error.message) {
         case 'INVALID_CREDENTIALS':
-          errorMessage = 'Wrong username or password';
+          errorMessage = 'Wrong email or password';
       }
     }
 

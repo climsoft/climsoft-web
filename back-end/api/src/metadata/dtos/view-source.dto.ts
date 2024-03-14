@@ -5,5 +5,5 @@ export class ViewSourceDto {
     name: string; 
     description: string; 
     extraMetadata: string|null; 
-    sourceTypeId: SourceTypeEnum | null; 
+    sourceType: SourceTypeEnum | null; 
 }

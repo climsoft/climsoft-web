@@ -12,7 +12,7 @@ export class SourcesService {
     ) { }
 
 
-    public async findSources(selectOptions?: FindOptionsWhere<SourceEntity> ): Promise<ViewSourceDto[]> {
+    public async findSources(selectOptions?: FindOptionsWhere<SourceEntity>): Promise<ViewSourceDto[]> {
         const findOptions: FindManyOptions<SourceEntity> = {
             order: {
                 id: "ASC"
@@ -35,7 +35,7 @@ export class SourcesService {
         };
 
         // TODO. use the find sources
-        if (ids && ids.length>0) {
+        if (ids && ids.length > 0) {
             findOptions.where = { id: In(ids) };
         }
 
@@ -51,7 +51,7 @@ export class SourcesService {
         if (sourceTypeId) {
             sources = await this.sourceRepo.find({
                 where: {
-                    sourceTypeId: sourceTypeId,
+                    sourceType: sourceTypeId,
                 },
             });
         } else {
@@ -80,6 +80,7 @@ export class SourcesService {
     }
 
     async updateSource(id: number, sourceDto: CreateSourceDto) {
+        // TODO. don't use preload because of logging source changes
         const source = await this.sourceRepo.preload({
             id, ...sourceDto,
         });
