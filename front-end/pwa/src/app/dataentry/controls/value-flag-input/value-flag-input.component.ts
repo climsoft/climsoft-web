@@ -1,10 +1,14 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { ObservationLog } from 'src/app/core/models/observation-log.model'; 
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryUtil } from '../../form-entry/form-entry.util';
 import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { ObservationsService } from 'src/app/core/services/observations.service';
+import { ViewObservationLogModel } from 'src/app/core/models/view-observation-log.model';
+import { ViewObservationLogQueryModel } from 'src/app/core/models/view-observation-log-query.model';
+import { take } from 'rxjs';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 
 //validation interface local to this component only
@@ -28,8 +32,9 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   protected displayedValueFlag!: string;
   protected validationResults!: ValidationResponse;
+  protected obsLog!: ViewObservationLogModel[];
 
-  constructor() {
+  constructor(private observationService: ObservationsService) {
 
   }
   ngOnInit(): void {
@@ -64,7 +69,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.validationResults = this.validateValueFlagInput(valueFlagInput)
 
     //check validation results
-    if (!this.validationResults.isValid) { 
+    if (!this.validationResults.isValid) {
       return;
     }
 
@@ -76,7 +81,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     //if value input then do QC
     if (value !== null) {
       this.validationResults = this.validateAndQCValue(this.observation.elementId, value);
-      if (!this.validationResults.isValid) { 
+      if (!this.validationResults.isValid) {
         return;
       }
     }
@@ -84,7 +89,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     //if flag input then validate
     if (flagName !== null) {
       this.validationResults = this.validateAndQCFlag(value, flagName);
-      if (!this.validationResults.isValid) { 
+      if (!this.validationResults.isValid) {
         return;
       }
     }
@@ -97,7 +102,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
 
     // Emit data change event
-    this.valueChange.emit(this.observation); 
+    this.valueChange.emit(this.observation);
 
   }
 
@@ -161,7 +166,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
 
   private validateAndQCFlag(value: number | null, flagId: string): ValidationResponse {
-    const flagFound: FlagEnum| null = FormEntryUtil.checkFlagValidity(flagId);
+    const flagFound: FlagEnum | null = FormEntryUtil.checkFlagValidity(flagId);
 
     if (!flagFound) {
       return { isValid: false, message: 'Invalid Flag' };
@@ -204,19 +209,39 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   protected onCommentEntry(comment: string) {
     this.observation.comment = comment;
-    this.valueChange.emit(this.observation); 
+    this.valueChange.emit(this.observation);
   }
-
-  protected getLogs(observation: CreateObservationModel): ObservationLog[] {
-
-    // TODO, query the log
-
-    //return observation.log === null ? [] : JSON.parse(observation.log);
-    return [];
-  }
-
 
   
+  protected loadObservationLog(): void {
+
+    // Note the function twice, when drop down is opened and when it's closed
+    // So this obsLog truthy check prevents unnecessary reloading
+
+    if(this.obsLog){
+      // No need to reload the log
+      return;
+    }
+
+    const query: ViewObservationLogQueryModel = {
+      stationId: this.observation.stationId,
+      elementId: this.observation.elementId,
+      sourceId: this.observation.sourceId,
+      elevation: this.observation.elevation,
+      datetime: this.observation.datetime,
+      period: this.observation.period
+    };
+
+    this.observationService.getObservationLog(query).pipe(
+      take(1)
+    ).subscribe(data => {
+      this.obsLog = data.map(item => ({ ...item, entryDateTime: DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime)) }))
+    });
+
+  }
+
+
+
 
 
 

@@ -93,7 +93,7 @@ export class FormEntryUtil {
       stationId: formFilter.stationId,
       sourceId: formFilter.sourceId,
       elementId: 0, elevation: 0,
-      datetime: "",
+      datetime: '',
       value: null, flag: null, 
       period: formFilter.period,
       comment: null, 

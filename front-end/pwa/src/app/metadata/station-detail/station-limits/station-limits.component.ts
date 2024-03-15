@@ -42,6 +42,8 @@ export class StationLimitsComponent implements OnInit {
     let addedIds: number[] = selectedIds;
     let removeIds: number[] = [];
 
+   // TODO. delete doesn't work well.
+
     if (this.elements && this.elements.length > 0) {
       const existingElementIds = this.elements.map(element => element.id);
       //filter existing element ids 
@@ -57,12 +59,17 @@ export class StationLimitsComponent implements OnInit {
         .pipe(
           // Ensure delete operation starts only after add operation completes
           switchMap(() => removeIds.length > 0 ? this.updateStationElements(removeIds, 'DELETE') : of(null)),
-          // Handle both operations completion
+          // Reload elements after completion
           finalize(() => this.loadElements())
         )
         .subscribe();
     } else if (removeIds.length > 0) {
-      this.updateStationElements(removeIds, 'DELETE').pipe(finalize(() => this.loadElements())).subscribe();
+      this.updateStationElements(removeIds, 'DELETE').pipe(finalize(() => this.loadElements()))
+        .pipe(
+          // Reload elements after completion
+          finalize(() => this.loadElements())
+        )
+        .subscribe();
     }
   }
 

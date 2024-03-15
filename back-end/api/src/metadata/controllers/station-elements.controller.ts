@@ -34,7 +34,9 @@ export class StationElementsController {
   }
 
   @Get('element-limits/:stationId/:elementId/')
-  findElementLimits(@Param('stationId', AuthorisedStationsPipe) stationId: string, @Param('elementId') elementId: number) {
+  findElementLimits(
+    @Param('stationId', AuthorisedStationsPipe) stationId: string,
+    @Param('elementId', ParseIntPipe) elementId: number) {
     return this.stationsService.findStationElementLimits(stationId, elementId);
   }
 
@@ -47,6 +49,5 @@ export class StationElementsController {
     console.log("TODO, limit should be valid dto: ", limits);
     return this.stationsService.saveElementLimit(stationId, elementId, limits, AuthUtil.getLoggedInUserId(request));
   }
-
 
 }
