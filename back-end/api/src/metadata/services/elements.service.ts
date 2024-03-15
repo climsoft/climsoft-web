@@ -86,7 +86,7 @@ export class ElementsService {
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
+            entryDateTime: entity.entryDateTime.toISOString()
         };
     }
 
@@ -101,7 +101,7 @@ export class ElementsService {
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
             entryUserId: userId,
-            entryDateTime: new Date(),
+            entryDateTime: new Date().toISOString()
         };
     }
 

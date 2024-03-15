@@ -12,6 +12,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { EntryFormFilter } from './form-entry.util';
 import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { take } from 'rxjs';
 
 
 export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'YEARMONTH' | 'DATE';
@@ -53,11 +54,15 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
-    this.stationsService.getStationCharacteristics(stationId).subscribe((data) => {
+    this.stationsService.getStationCharacteristics(stationId).pipe(
+      take(1)
+    ).subscribe((data) => {
       this.stationName = `${data.id} - ${data.name}`;
     });
 
-    this.sourcesService.getSource(sourceId).subscribe((data) => {
+    this.sourcesService.getSource(sourceId).pipe(
+      take(1)
+    ).subscribe((data) => {
       //set form name
       this.formName = data.name;
       //set form metadata
@@ -126,7 +131,9 @@ export class FormEntryComponent implements OnInit {
     //that should be regarded as an error in form builder design.
     //so always assume that elements selected are provided
     //fetch the elements
-    this.elementsService.getElements(elementsToSearch).subscribe(data => {
+    this.elementsService.getElements(elementsToSearch).pipe(
+      take(1)
+    ).subscribe(data => {
       this.elements = data;
       this.getObservationData();
     });
@@ -156,20 +163,15 @@ export class FormEntryComponent implements OnInit {
       for (let i = 1; i <= lastDay; i++) {
         observationQuery.datetimes.push(new Date(year, monthIndex, i, hours[0], 0, 0, 0).toISOString());
       }
-
-    
     }
 
 
-    this.observationService.getObservationsRaw(observationQuery).subscribe((data) => {
-
+    this.observationService.getObservationsRaw(observationQuery).pipe(
+      take(1)
+    ).subscribe((data) => {
       this.observations = data;
     });
   }
-
-
-
-
 
   public onElementChange(elementIdInput: number | null): void {
     if (elementIdInput === null) {

@@ -4,7 +4,7 @@ import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { UserRole } from '../models/enums/user-roles.enum';
+import { UserRoleEnum } from '../models/enums/user-roles.enum';
 
 
 @Component({
@@ -108,7 +108,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userSub = this.authService.user.subscribe(user => {
       if (user) {
-        this.setAllowedNavigationLinks(user.roleId);
+        this.setAllowedNavigationLinks(user.role);
       }
     });
   }
@@ -140,9 +140,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   }
 
-  private setAllowedNavigationLinks(roleId: number): void {
+  private setAllowedNavigationLinks(role: UserRoleEnum): void {
     // TODO. Change this implementation after changing the structure of the array
-    if (roleId !== UserRole.Administrator) {
+    if (role !== UserRoleEnum.Administrator) {
       this.featuresNavItems.splice(3, 1);
     }
 

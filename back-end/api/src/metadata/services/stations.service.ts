@@ -75,7 +75,7 @@ export class StationsService {
             description: entity.description,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
+            entryDateTime: entity.entryDateTime.toISOString()
         };
     }
 
@@ -85,7 +85,7 @@ export class StationsService {
             description: dto.description,
             comment: dto.comment,
             entryUserId: userId,
-            entryDateTime: new Date(),
+            entryDateTime: new Date().toISOString()
         };
     }
 

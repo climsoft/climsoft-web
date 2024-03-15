@@ -14,15 +14,13 @@ export class StationFormsService {
         private sourcesService: SourcesService) {
     }
 
-    async findForms(stationId: string): Promise<ViewSourceDto[]> {
+    public async findForms(stationId: string): Promise<ViewSourceDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
         const stationFormIds: number[] = stationForms.map(form => form.sourceId);
-
-        return await this.sourcesService.findSourcesByIds(stationFormIds);
-
+        return stationFormIds.length > 0 ? await this.sourcesService.findSourcesByIds(stationFormIds) : [];
     }
 
-    async saveForms(stationId: string, formIds: number[], userId: number): Promise<number[]> {
+    public async saveForms(stationId: string, formIds: number[], userId: number): Promise<number[]> {
         //fetch existing station elements
         const existingForms: StationFormEntity[] = await this.stationFormsRepo.find({
             where: {

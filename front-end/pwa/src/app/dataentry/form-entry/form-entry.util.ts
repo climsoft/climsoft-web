@@ -93,7 +93,7 @@ export class FormEntryUtil {
       stationId: formFilter.stationId,
       sourceId: formFilter.sourceId,
       elementId: 0, elevation: 0,
-      datetime: "",
+      datetime: '',
       value: null, flag: null, 
       period: formFilter.period,
       comment: null, 
@@ -146,10 +146,8 @@ export class FormEntryUtil {
 
     }
 
-    //set datetime from date time variables. year-month-day hour. JS months are 0 based 
-    //entryObservation.datetime = DateUtils.getDateInSQLFormat(datetimeVars[0], datetimeVars[1], datetimeVars[2], datetimeVars[3], 0, 0);
+    //set datetime from date time variables. year-month-day hour. 
     entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
-    console.log("new obs time", entryObservation.datetime, " from ", datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0)
 
     return entryObservation;
   }

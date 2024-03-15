@@ -65,6 +65,7 @@ export class TextInputComponent implements OnChanges {
     this.dropDownOptionClick.emit();
   }
 
+  // Called by a directive
   protected closeDropdown(): void {
     this.showDropDown(false);
   }

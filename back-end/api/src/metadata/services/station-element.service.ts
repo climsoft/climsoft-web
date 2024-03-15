@@ -121,7 +121,7 @@ export class StationElementsService {
             instrumentId: entity.instrumentId,
             monthLimits: entity.monthLimits,
             entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
+            entryDateTime: entity.entryDateTime.toISOString()
         };
     }
 
@@ -130,7 +130,7 @@ export class StationElementsService {
             instrumentId: null,
             monthLimits: limitsDto,
             entryUserId: userId,
-            entryDateTime: new Date(),
+            entryDateTime: new Date().toISOString()
         };
     }
 
@@ -155,7 +155,7 @@ export class StationElementsService {
             instrumentId: instrumentId,
             monthLimits: null,
             entryUserId: userId,
-            entryDateTime: new Date()
+            entryDateTime: new Date().toISOString()
         };
     }
 
@@ -175,7 +175,7 @@ export class StationElementsService {
             instrumentId: entity.instrumentId,
             monthLimits: entity.monthLimits,
             entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime,
+            entryDateTime: entity.entryDateTime.toISOString()
         };
     }
 

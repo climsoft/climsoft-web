@@ -1,8 +1,7 @@
-<app-text-input *ngIf="observation" [id]="id" [label]="label"
-    [includeDropDownOption]="true" [value]="displayedValueFlag" [dropDownOptionMaxHeight]="300"
+<app-text-input *ngIf="observation" [id]="id" [label]="label" [includeDropDownOption]="true"
+    [value]="displayedValueFlag" [dropDownOptionMaxHeight]="300"
     [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event)"
-    (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()"
-    >
+    (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()" (dropDownOptionClick)="loadObservationLog()">
 
     <div class="card">
         <div class="card-body">
@@ -11,28 +10,30 @@
                 <app-text-input [label]="'New Comment'" (valueChange)="onCommentEntry( $event)"></app-text-input>
             </div>
 
-            <div>
+            <div *ngIf="obsLog && obsLog.length>0">
                 <div>History</div>
                 <table class="table table-striped table-hover">
                     <thead>
                         <tr>
                             <th scope="col">Value</th>
                             <th scope="col">Flag</th>
-                            <th scope="col">Period</th>
-                            <th scope="col">QC</th>
-                            <th scope="col">User</th>
-                            <th scope="col">Time</th>
+                            <th scope="col">Final</th>
                             <th scope="col">Comment</th>
+                            <th scope="col">Deleted</th>
+                            <th scope="col">User</th>
+                            <th scope="col">Entry Time</th>
+
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let row of getLogs(observation) ">
+                        <tr *ngFor="let row of obsLog ">
                             <td>{{ row.value }}</td>
                             <td>{{ row.flag }}</td>
-                            <td>{{ row.period }}</td> 
-                            <td>{{ row.entryUser }}</td>
-                            <td>{{ row.entryDateTime }}</td>
+                            <td>{{ row.final }}</td>
                             <td>{{ row.comment }}</td>
+                            <td>{{ row.deleted }}</td>
+                            <td>{{ row.entryUserEmail }}</td>
+                            <td>{{ row.entryDateTime }}</td>
                         </tr>
                     </tbody>
                 </table>

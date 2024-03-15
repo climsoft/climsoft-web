@@ -1,4 +1,5 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNumber, IsString } from 'class-validator';
+import { SourceTypeEnum } from '../entities/source.entity';
 
 export class CreateSourceDto {
 
@@ -11,7 +12,7 @@ export class CreateSourceDto {
     @IsString()
     extraMetadata: string;
 
-    @IsNumber()
-    sourceTypeId: number;
+    @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
+    sourceType: SourceTypeEnum;
 
 }

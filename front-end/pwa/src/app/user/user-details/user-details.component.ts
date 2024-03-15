@@ -3,7 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CreateUserModel } from 'src/app/core/models/create-user.model';
 import { ElementModel } from 'src/app/core/models/element.model';
-import { UserRole } from 'src/app/core/models/enums/user-roles.enum';
+import { UserRoleEnum } from 'src/app/core/models/enums/user-roles.enum';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -37,14 +37,18 @@ export class UserDetailsComponent implements OnInit {
         this.user = data;
       });
     } else {
-      this.user = { name: "", email: "", phone: "", roleId: UserRole.Administrator, authorisedStationIds: null, extraMetadata: null, disabled: false };
+      this.user = { name: "", email: "", phone: "", role: UserRoleEnum.Administrator, authorisedStationIds: null, extraMetadata: null, disabled: false };
     }
 
   }
 
-  protected onRoleSelection(roleId: number | null): void {
-    if (roleId) {
-      this.user.roleId = roleId;
+  protected get userRoleIsNotAdmin(){
+    return this. user.role!== UserRoleEnum.Administrator
+  }
+
+  protected onRoleSelection(role: UserRoleEnum | null): void {
+    if (role) {
+      this.user.role = role;
     }
 
   }
@@ -52,7 +56,6 @@ export class UserDetailsComponent implements OnInit {
   protected onStationsSelection(stationIds: string[]): void {
     this.user.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
   }
-
 
   protected onSaveClick(): void {
     // TODO. do validations
@@ -84,8 +87,6 @@ export class UserDetailsComponent implements OnInit {
 
       });
     }
-
-
 
   }
 

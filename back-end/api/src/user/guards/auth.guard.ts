@@ -4,8 +4,8 @@ import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { IS_ADMIN_KEY } from '../decorators/admin.decorator';
-import { UserRole } from 'src/user/enums/user-roles.enum';
-import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
+import { UserRoleEnum } from 'src/user/enums/user-roles.enum';
+import { LoggedInUserModel } from 'src/user/model/logged-in-user.model';
 import { AuthUtil } from '../services/auth.util';
 
 
@@ -32,9 +32,9 @@ export class AuthGuard implements CanActivate {
     // If only user role admin allowed to access the route handler then check if the user logged in is admin
     // and allow router handler access if logged in user is admin.
     const isAdmin = this.reflector.get(IS_ADMIN_KEY, context.getHandler());
-    const user: LoggedInUserDto | null = AuthUtil.getSessionUser(context.switchToHttp().getRequest<Request>())
+    const user: LoggedInUserModel | null = AuthUtil.getSessionUser(context.switchToHttp().getRequest<Request>())
 
-    return user && isAdmin?  user.roleId === UserRole.Administrator : !!user;
+    return user && isAdmin?  user.role === UserRoleEnum.Administrator : !!user;
 
   }
 }

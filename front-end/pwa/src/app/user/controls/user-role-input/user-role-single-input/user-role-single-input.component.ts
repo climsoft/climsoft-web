@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { UserRole } from 'src/app/core/models/enums/user-roles.enum';
+import { UserRoleEnum } from 'src/app/core/models/enums/user-roles.enum';
 
 
 interface Role {
-  id: number;
+  id: UserRoleEnum;
   name: string;
 }
 
@@ -15,9 +15,9 @@ interface Role {
 export class UserRoleSingleInputComponent {
   @Input() public label: string = 'User Role';
   @Input() public errorMessage: string = '';
-  @Input() public includeOnlyIds!: number[];
-  @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Input() public includeOnlyIds!: UserRoleEnum[];
+  @Input() public selectedId!: UserRoleEnum | null;
+  @Output() public selectedIdChange = new EventEmitter<UserRoleEnum | null>();
 
   protected options!: Role[];
   protected selectedOption!: Role | null;
@@ -56,10 +56,10 @@ export class UserRoleSingleInputComponent {
 
   private getRoles(): Role[] {
     const roles: Role[] = [];
-    roles.push({ id: UserRole.Administrator, name: 'Administrator' });
-    roles.push({ id: UserRole.Approver, name: 'Approver' });
-    roles.push({ id: UserRole.EntryClerk, name: 'Entry Clerk' });
-    roles.push({ id: UserRole.Viewer, name: 'Viewer' }); 
+    roles.push({ id: UserRoleEnum.Administrator, name: 'Administrator' });
+    roles.push({ id: UserRoleEnum.Approver, name: 'Approver' });
+    roles.push({ id: UserRoleEnum.EntryClerk, name: 'Entry Clerk' });
+    roles.push({ id: UserRoleEnum.Viewer, name: 'Viewer' }); 
     return roles;
   }
 

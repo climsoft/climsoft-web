@@ -1,6 +1,5 @@
 import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
-import { FlagEnum } from '../enums/flag.enum';
-import { QCStatusEnum } from '../enums/qc-status.enum';
+import { FlagEnum } from '../enums/flag.enum'; 
 
 export class CreateObservationDto {
 

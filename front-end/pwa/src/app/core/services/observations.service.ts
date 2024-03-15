@@ -7,6 +7,8 @@ import { ViewObservationQueryModel } from '../models/view-observation-query.mode
 import { ViewObservationModel } from '../models/view-observation.model';
 import { CreateObservationModel } from '../models/create-observation.model';
 import { CreateObservationQueryModel } from '../models/create-observation-query.model';
+import { ViewObservationLogQueryModel } from '../models/view-observation-log-query.model';
+import { ViewObservationLogModel } from '../models/view-observation-log.model';
 
 @Injectable({
   providedIn: 'root'
@@ -36,8 +38,8 @@ export class ObservationsService {
     return httpParams ;
   }
 
-  public getObservationsRaw(selectObservation: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(selectObservation) })
+  public getObservationsRaw(observationQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -50,7 +52,12 @@ export class ObservationsService {
       );
   }
 
-
+  public getObservationLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
+    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: this.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
   public saveObservations(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
     //console.log("saving", observations);

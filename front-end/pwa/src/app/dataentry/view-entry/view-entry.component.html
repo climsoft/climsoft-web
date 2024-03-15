@@ -4,12 +4,13 @@
       <div class="col-auto mb-2">
         <app-station-single-input [label]="'Station'" [(selectedId)]="stationId" />
       </div>
-      <div class="col-auto mb-2">
-        <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
-      </div>
 
       <div class="col-auto mb-2">
         <app-element-single-input [label]="'Element'" [(selectedId)]="elementId" />
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
       </div>
 
       <div class="col-auto mb-2">
@@ -17,28 +18,33 @@
       </div>
 
       <div class="col-auto mb-2">
-        <app-date-input [label]="'From'" [(value)]="fromDate" />
+        <div class="row">
+          <div class="col-auto">
+            <app-date-input [label]="'From'" [(value)]="fromDate" />
+          </div>
+          <div class="col-auto">
+            <app-date-input [label]="'To'" [(value)]="toDate" />
+          </div>
+        </div>
+
       </div>
 
-      <div class="col-auto mb-2">
-        <app-date-input [label]="'To'" />
+      <div class="col-auto mb-2 d-flex align-items-end p-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onViewClick()">
+          Refresh
+        </button>
       </div>
 
     </div>
 
     <div class="card-header d-flex justify-content-between p-0 align-items-center">
       <div class="fw-bold">Showing Entries</div>
-      <div class="mb-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onViewClick()">
-          Refresh
-        </button>
-      </div>
     </div>
     <div class="mt-2">
       <app-table-view [clickable]="true" [columnsData]="[ 
       {id: 'stationName', name: 'Station'}, 
-      {id: 'sourceName', name: 'Source'}, 
       {id: 'elementAbbrv', name: 'Element'} , 
+      {id: 'sourceName', name: 'Source'},    
       {id: 'elevation', name: 'Elevation'} , 
       {id: 'datetime', name: 'Date Time'} ,
       {id: 'period', name: 'Period'}, 

@@ -8,6 +8,7 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
+import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -15,23 +16,25 @@ export class ObservationsController {
     private readonly observationsService: ObservationsService,
     private readonly observationUpload: ObservationUploadService,) { }
 
-
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: ViewObservationQueryDTO) {
     return this.observationsService.findProcessed(selectObsevationQuery);
   }
-
 
   @Get('/raw')
   getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: CreateObservationQueryDto) {
     return this.observationsService.findRawObs(selectObsevationQuery);
   }
 
+  @Get('/log')
+  getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
+    return this.observationsService.findObsLog(viewObsevationQuery);
+  }
+
   @Post()
   save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
-    //console.log('dtos', observationDtos);
     return this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 

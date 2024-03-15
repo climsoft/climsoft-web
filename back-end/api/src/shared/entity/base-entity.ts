@@ -22,5 +22,9 @@ export abstract class BaseEntity {
 
 export interface BaseLogVo {
     entryUserId: number | null;
-    entryDateTime: Date;
+    
+    // Note, don't use Date type here because this will always be a JSON object.
+    // There is no standard JSON representation of dates and therefore the JSON parser called by typeorm will always return this in a string format.
+    // Using a Date type may result in runtime bugs due to developers calling date functions from the property when its actually a string. 
+    entryDateTime: string; 
 }

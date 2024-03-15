@@ -17,6 +17,8 @@ import { HomeComponent } from './home/home.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LoginComponent } from './login/login.component'; 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { PasswordResetComponent } from './password-reset/password-reset.component';
+import { AccountVerificationComponent } from './account-verification/account-verification.component';
 
 
 @NgModule({
@@ -25,6 +27,8 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
     HomeComponent,
     DashboardComponent,
     LoginComponent,
+    PasswordResetComponent,
+    AccountVerificationComponent,
 
   ],
   imports: [
