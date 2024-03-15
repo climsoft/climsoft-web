@@ -29,6 +29,8 @@ To deploy the Climsoft Web application for development purposes, follow these st
    Navigate to `back-end/api` and run the commands below to install dependencies and start the NestJS backend with hot-reload enabled:
    ```bash
    npm install
+   ```
+    ```bash
    nest start --watch
    ```
 
@@ -36,6 +38,8 @@ To deploy the Climsoft Web application for development purposes, follow these st
    In the `front-end/pwa` directory, execute the following commands to install Angular dependencies and launch the development server:
    ```bash
    npm install
+   ```
+    ```bash
    ng serve
    ```
 
