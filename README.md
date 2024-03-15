@@ -10,6 +10,7 @@ To deploy the Climsoft Web application for development purposes, follow these st
 ### Prerequisites
 - Ensure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Start the Docker engine via the Docker Desktop application.
+- Ensure Node.js is [downloaded](https://nodejs.org/en) and installed on your machine.
 
 ### Setup
 1. **Clone the Repository**:
