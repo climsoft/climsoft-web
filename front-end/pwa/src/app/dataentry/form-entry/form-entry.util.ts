@@ -174,8 +174,15 @@ export class FormEntryUtil {
 
 
   public static getScaledValue(element: ElementModel, unscaledValue: number): number {
-    //return element ? parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
+
+    //return parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
+
+    // TODO. Values like 20.2 will not be formatted back to 202
     return element.entryScaleFactor ? unscaledValue * element.entryScaleFactor : unscaledValue;
+
+
+
+
   }
 
   public static getTotal(entryObservations: CreateObservationModel[], elements: ElementModel[]): number | null {
