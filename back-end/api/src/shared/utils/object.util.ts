@@ -22,9 +22,9 @@ export class ObjectUtils {
         return JSON.stringify(logs);
     }
 
-    static getNewLog<T>(currentLogs: T[] | null | undefined, newLog: T): T[] {
-        const logs: T[] = currentLogs ? currentLogs: [];
-        logs.push(newLog);
+    static getNewLog<T>(currentEntityLogVos: T[] | null | undefined, currentEntityValuesAsLogVo: T): T[] {
+        const logs: T[] = currentEntityLogVos ? currentEntityLogVos: [];
+        logs.push(currentEntityValuesAsLogVo);
         return logs;
     }
 

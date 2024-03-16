@@ -235,6 +235,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.observationService.getObservationLog(query).pipe(
       take(1)
     ).subscribe(data => {
+      // Convert the entry date time to current local time
       this.obsLog = data.map(item => ({ ...item, entryDateTime: DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime)) }))
     });
 

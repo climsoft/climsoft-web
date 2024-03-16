@@ -6,6 +6,5 @@ export class ViewObservationLogDto {
     final: boolean;
     comment: string | null;
     deleted: boolean;
-    entryUserEmail: string | null;
     entryDateTime: string;
 }

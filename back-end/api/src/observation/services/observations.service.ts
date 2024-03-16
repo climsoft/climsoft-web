@@ -175,15 +175,38 @@ export class ObservationsService {
             throw new NotFoundException('Observation not found');
         }
 
-        return entity.log ? entity.log.map(item => ({
-            value: item.value,
-            flag: item.flag,
-            final: item.final,
-            comment: item.comment,
-            deleted: item.deleted,
-            entryUserEmail: item.entryUserId + '',// TODO get user email from user id
-            entryDateTime: item.entryDateTime
-        })) : [];
+        let log: ViewObservationLogDto[] = [];
+
+        if (entity.log) {
+            log = entity.log.map(item => {
+                const logObj: ViewObservationLogDto = {
+                    value: item.value,
+                    flag: item.flag,
+                    final: item.final,
+                    comment: item.comment,
+                    deleted: item.deleted,
+                    entryDateTime: item.entryDateTime,
+                }
+                return logObj;
+
+            })
+
+        }
+
+        // Include the current values as log.
+        // Important because present values should be part of the record history
+        const currentValuesAsLogObj: ViewObservationLogDto = {
+            value: entity.value,
+            flag: entity.flag,
+            final: entity.final,
+            comment: entity.comment,
+            deleted: entity.deleted,
+            entryDateTime: entity.entryDateTime.toISOString()
+        }
+
+        log.push(currentValuesAsLogObj);
+
+        return log;
     }
 
 
@@ -204,7 +227,7 @@ export class ObservationsService {
             });
 
             if (observationEntity) {
-                const oldChanges: UpdateObservationValuesLogVo = this.getObservationLogFromEntity(observationEntity);
+                const oldChanges: UpdateObservationValuesLogVo = this.getEntityValsAsLogVO(observationEntity);
                 const newChanges: UpdateObservationValuesLogVo = this.getObservationLogFromDto(createObservationDto, userId);
 
                 if (ObjectUtils.areObjectsEqual<UpdateObservationValuesLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
@@ -233,7 +256,7 @@ export class ObservationsService {
     }
 
 
-    private getObservationLogFromEntity(entity: ObservationEntity): UpdateObservationValuesLogVo {
+    private getEntityValsAsLogVO(entity: ObservationEntity): UpdateObservationValuesLogVo {
         return {
             value: entity.value,
             flag: entity.flag,
@@ -258,6 +281,13 @@ export class ObservationsService {
     }
 
     private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto, userId: number, newEntity: boolean): void {
+
+        // If its a new entity, then no need to set log.
+        // If its an existing entity, log the previous values and log(if there was an existing log)
+        // Note, log has to be set before updating the new values to the entity.
+        entity.log = newEntity ? null : ObjectUtils.getNewLog<UpdateObservationValuesLogVo>(entity.log, this.getEntityValsAsLogVO(entity));
+
+        // Then set the new values
         entity.period = dto.period;
         entity.value = dto.value;
         entity.flag = dto.flag;
@@ -267,7 +297,6 @@ export class ObservationsService {
         entity.entryUserId = userId;
         entity.deleted = (entity.value === null && entity.flag === null)
         entity.entryDateTime = new Date();
-        entity.log = newEntity ? null : ObjectUtils.getNewLog<UpdateObservationValuesLogVo>(entity.log, this.getObservationLogFromEntity(entity));
     }
 
 

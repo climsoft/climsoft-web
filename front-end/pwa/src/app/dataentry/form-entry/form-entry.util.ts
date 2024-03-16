@@ -215,14 +215,14 @@ export class FormEntryUtil {
   }
 
   // TODO. move later to shared code
-  public static checkFlagValidity(inputFlagId: string | null): FlagEnum | null {
+  public static checkFlagValidity(inputFlag: string | null): FlagEnum | null {
     // Early return for null input
-    if (inputFlagId === null) {
+    if (inputFlag === null) {
       return null;
     }
   
     // Check if inputFlagId is a valid FlagEnum key
-    return Object.values<FlagEnum>(FlagEnum).includes(inputFlagId.toUpperCase() as FlagEnum) ? inputFlagId as FlagEnum : null;
+    return Object.values<FlagEnum>(FlagEnum).includes(inputFlag.toUpperCase() as FlagEnum) ? inputFlag as FlagEnum : null;
   }
   
 

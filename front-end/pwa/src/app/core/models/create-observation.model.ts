@@ -1,3 +1,4 @@
+import { ElementModel } from "./element.model";
 import { FlagEnum } from "./enums/flag.enum"; 
 
 export interface CreateObservationModel {
