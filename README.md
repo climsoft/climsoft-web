@@ -11,6 +11,7 @@ To deploy the Climsoft Web application for development purposes, follow these st
 - Ensure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Start the Docker engine via the Docker Desktop application.
 - Ensure Node.js is [downloaded](https://nodejs.org/en) and installed on your machine.
+- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
 
 ### Setup
 1. **Clone the Repository**:
@@ -53,6 +54,7 @@ For testing deployment with Docker containers for Angular, NestJS, and PostgreSQ
 ### Prerequisites
 - Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Activate the Docker engine using the Docker Desktop application.
+- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
 
 ### Setup
 1. **Clone the Repository**:
