@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           featureTitle: 'Import Data'
         },
         {
-          name: 'View Entries',
+          name: 'Inventory',
           url: '/view-entry',
           featureTitle: 'View Entries'
         }
