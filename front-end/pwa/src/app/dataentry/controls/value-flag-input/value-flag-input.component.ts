@@ -51,7 +51,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     //scale the value for display
     let value: number | null = this.observation.value;
     const element = this.elements.find(data => data.id === this.observation.elementId);
-
     if (value !== null && element) {
       value = FormEntryUtil.getScaledValue(element, value);
     }
@@ -212,13 +211,13 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.valueChange.emit(this.observation);
   }
 
-  
+
   protected loadObservationLog(): void {
 
     // Note the function twice, when drop down is opened and when it's closed
     // So this obsLog truthy check prevents unnecessary reloading
 
-    if(this.obsLog){
+    if (this.obsLog) {
       // No need to reload the log
       return;
     }
@@ -235,7 +234,21 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.observationService.getObservationLog(query).pipe(
       take(1)
     ).subscribe(data => {
-      this.obsLog = data.map(item => ({ ...item, entryDateTime: DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime)) }))
+      // Convert the entry date time to current local time
+      this.obsLog = data.map(item => {
+
+        if (item.value !== null) {
+          const element = this.elements.find(data => data.id === this.observation.elementId);
+          if (element) {
+            item.value = FormEntryUtil.getScaledValue(element, item.value);
+          }
+        }
+        item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime))
+        return item;
+
+      }
+
+      )
     });
 
   }

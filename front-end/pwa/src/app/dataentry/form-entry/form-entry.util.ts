@@ -172,10 +172,9 @@ export class FormEntryUtil {
 
   }
 
-
   public static getScaledValue(element: ElementModel, unscaledValue: number): number {
-    //return element ? parseFloat((unscaledValue * element.entryScaleFactor).toFixed(2)) : 0;
-    return element.entryScaleFactor ? unscaledValue * element.entryScaleFactor : unscaledValue;
+    // To remove rounding errors use Math.floor()
+    return element.entryScaleFactor ? Math.floor(unscaledValue * element.entryScaleFactor)  : unscaledValue;
   }
 
   public static getTotal(entryObservations: CreateObservationModel[], elements: ElementModel[]): number | null {
@@ -215,14 +214,14 @@ export class FormEntryUtil {
   }
 
   // TODO. move later to shared code
-  public static checkFlagValidity(inputFlagId: string | null): FlagEnum | null {
+  public static checkFlagValidity(inputFlag: string | null): FlagEnum | null {
     // Early return for null input
-    if (inputFlagId === null) {
+    if (inputFlag === null) {
       return null;
     }
   
     // Check if inputFlagId is a valid FlagEnum key
-    return Object.values<FlagEnum>(FlagEnum).includes(inputFlagId.toUpperCase() as FlagEnum) ? inputFlagId as FlagEnum : null;
+    return Object.values<FlagEnum>(FlagEnum).includes(inputFlag.toUpperCase() as FlagEnum) ? inputFlag as FlagEnum : null;
   }
   
 

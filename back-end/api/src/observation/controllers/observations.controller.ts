@@ -58,7 +58,7 @@ export class ObservationsController {
   //   return this.observationsService.update(id, observationDto);
   // }
 
-  //todo. these delte has been left here for reference purposes.
+  //todo. these delete has been left here for reference purposes.
   //a delete command can have a body
   // @Delete(':id')
   // delete(@Param('id') id: string,@Body() observations: CreateObservationDto[]) {
