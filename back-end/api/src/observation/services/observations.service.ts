@@ -235,6 +235,12 @@ export class ObservationsService {
                 }
 
             } else {
+
+                //TODO. Move this validation to a pipe validator
+                if(createObservationDto.value === null && createObservationDto.flag === null){
+                    continue;
+                }
+
                 newEntity = true;
                 observationEntity = this.observationRepo.create({
                     stationId: createObservationDto.stationId,

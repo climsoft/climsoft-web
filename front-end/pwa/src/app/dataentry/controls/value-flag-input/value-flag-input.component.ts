@@ -238,13 +238,10 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       this.obsLog = data.map(item => {
 
         if (item.value !== null) {
-          console.log('value before', item.value)
           const element = this.elements.find(data => data.id === this.observation.elementId);
           if (element) {
             item.value = FormEntryUtil.getScaledValue(element, item.value);
           }
-
-          console.log('value after', item.value)
         }
         item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime))
         return item;
