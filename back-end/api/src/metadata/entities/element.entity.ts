@@ -8,13 +8,16 @@ export class ElementEntity extends BaseEntity {
   id: number;
 
   @Column({ type: "varchar", unique: true })
-  name: string;
-
-  @Column({ type: "varchar", unique: true })
   abbreviation: string;
 
+  @Column({ type: "varchar", unique: true })
+  name: string;
+
+ 
   @Column({ type: "varchar" })
   description: string;
+
+  units: string;
 
   @Column({ type: "int", name: "type_id" })
   typeId: number;
