@@ -12,10 +12,11 @@ To deploy the Climsoft Web application for development purposes, follow these st
 - Start the Docker engine via the Docker Desktop application.
 - Ensure Node.js is [downloaded](https://nodejs.org/en) and installed on your machine.
 - Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
+- For CI/CD(continuous integration and development) workflows, use [visual studio code](https://code.visualstudio.com/) to execute set up commands, pull and push latest changes.
 
 ### Setup
 1. **Clone the Repository**:
-   Clone Climsoft Web to your local machine using the command:
+   Execute the following command to Clone Climsoft Web to your local machine using the command:
    ```bash
    git clone https://github.com/climsoft/climsoft-web.git
    ```
@@ -27,7 +28,7 @@ To deploy the Climsoft Web application for development purposes, follow these st
    ```
 
 3. **Backend API Setup**:
-   Navigate to `back-end/api` and run the commands below to install dependencies and start the NestJS backend with hot-reload enabled:
+   Navigate to `back-end/api` and run the commands below to install NestJS dependencies and and launch the backend API with hot-reload enabled:
    ```bash
    npm install
    ```
@@ -49,12 +50,13 @@ To deploy the Climsoft Web application for development purposes, follow these st
 
 ## Testing Deployment Guide
 
-For testing deployment with Docker containers for Angular, NestJS, and PostgreSQL, follow these steps:
+For testing deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
 
 ### Prerequisites
 - Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Activate the Docker engine using the Docker Desktop application.
 - Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
+- For CI/CD(continuous integration and development) workflows, we recommend using [GitHub Desktop](https://desktop.github.com/) to pull latest changes.
 
 ### Setup
 1. **Clone the Repository**:
@@ -64,7 +66,7 @@ For testing deployment with Docker containers for Angular, NestJS, and PostgreSQ
    ```
 
 2. **Initialize Containers**:
-   Inside the cloned directory, use `docker-compose` to set up and start the Angular, NestJS, and PostgreSQL containers:
+   Within the cloned repository directory, execute the following command to initialize the PWA, API and PostgreSQL containers:
    ```bash
    docker-compose -f docker-compose.dev.yaml up
    ```
