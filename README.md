@@ -10,6 +10,8 @@ To deploy the Climsoft Web application for development purposes, follow these st
 ### Prerequisites
 - Ensure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Start the Docker engine via the Docker Desktop application.
+- Ensure Node.js is [downloaded](https://nodejs.org/en) and installed on your machine.
+- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
 
 ### Setup
 1. **Clone the Repository**:
@@ -28,6 +30,8 @@ To deploy the Climsoft Web application for development purposes, follow these st
    Navigate to `back-end/api` and run the commands below to install dependencies and start the NestJS backend with hot-reload enabled:
    ```bash
    npm install
+   ```
+    ```bash
    nest start --watch
    ```
 
@@ -35,6 +39,8 @@ To deploy the Climsoft Web application for development purposes, follow these st
    In the `front-end/pwa` directory, execute the following commands to install Angular dependencies and launch the development server:
    ```bash
    npm install
+   ```
+    ```bash
    ng serve
    ```
 
@@ -48,6 +54,7 @@ For testing deployment with Docker containers for Angular, NestJS, and PostgreSQ
 ### Prerequisites
 - Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Activate the Docker engine using the Docker Desktop application.
+- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
 
 ### Setup
 1. **Clone the Repository**:
