@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SourceModel, SourceTypeEnum } from '../../core/models/source.model'; 
+import { ActivatedRoute, Router } from '@angular/router'; 
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
+import { ViewSourceModel } from 'src/app/core/models/view-source.model';
 
 @Component({
   selector: 'app-forms',
@@ -11,7 +12,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class FormsComponent implements OnInit {
 
-  sources: SourceModel[] = [];
+  sources: ViewSourceModel[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -32,7 +33,7 @@ export class FormsComponent implements OnInit {
     });
   }
 
-  onFormClicked(dataClicked: SourceModel): void {
+  onFormClicked(dataClicked: ViewSourceModel): void {
     this.router.navigate(['form-detail', dataClicked.id], { relativeTo: this.route.parent });
   }
 

@@ -1,7 +1,7 @@
-import { IsEnum, IsString } from 'class-validator'; 
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { SourceTypeEnum } from '../enums/source-type.enum';
 
-export class CreateSourceDto {
+export class CreateUpdateSourceDto {
 
     @IsString()
     name: string;
@@ -9,8 +9,9 @@ export class CreateSourceDto {
     @IsString()
     description: string;
 
+    @IsOptional()
     @IsString()
-    extraMetadata: string;
+    extraMetadata: string | null;
 
     @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
     sourceType: SourceTypeEnum;

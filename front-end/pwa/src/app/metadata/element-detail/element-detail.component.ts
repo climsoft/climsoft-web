@@ -1,7 +1,8 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { UpdateElementModel } from 'src/app/core/models/update-element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -12,7 +13,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./element-detail.component.scss']
 })
 export class ElementDetailComponent implements OnInit {
-  element!: ElementModel;
+  element!: ViewElementModel;
   bEnableSave: boolean = true;//todo. should be false by default
 
   constructor(
@@ -26,31 +27,31 @@ export class ElementDetailComponent implements OnInit {
 
   ngOnInit() {
 
-    const elementId = this.route.snapshot.params["id"];
-    //console.log("element id", elementId)
+    const elementId = this.route.snapshot.params["id"]; 
     if (StringUtils.containsNumbersOnly(elementId)) {
       this.elementsService.getElement(elementId).subscribe((data) => {
         this.element = data;
       });
     } else {
-      this.element = { id: 0, name: '', abbreviation: '', description: '', typeId: 1, lowerLimit: null, upperLimit: null, entryScaleFactor: null, comment: null };
-    }
-
-  }
-
-  protected onElementIdEntry(id: number | null) {
-    if (id) {
-      this.element.id = id
+      // TODO. show an error.
     }
 
   }
 
   protected onSaveClick(): void {
-    //todo. do validations
+    // TODO. do validations
 
-    this.elementsService.save([this.element]).subscribe((data) => {
-      if (data.length > 0) {
-        this.element = data[0];
+    const updatedElement: UpdateElementModel = {
+      lowerLimit: this.element.lowerLimit,
+      upperLimit: this.element.upperLimit,
+      entryScaleFactor: this.element.entryScaleFactor,
+      comment: this.element.comment
+
+    }
+
+    this.elementsService.update(this.element.id, updatedElement).subscribe((data) => {
+      if (data) {
+        this.element = data;
 
         this.pagesDataService.showToast({
           title: 'Element Details', message: `${this.element.name} saved`, type: 'success'

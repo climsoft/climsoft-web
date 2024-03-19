@@ -15,12 +15,11 @@
                 </div>
 
                 <div class="mb-1">
-                    <app-label-input [id]="'id'" [label]="'Id'" [value]="station.id" />
+                    <app-label-input [label]="'Id'" [value]="station.id" />
                 </div>
-                <div class="mrow">
-                    <app-label-input [id]="'name'" [label]="'Name'" [value]="station.name" />
+                <div class="mb-1">
+                    <app-label-input [label]="'Name'" [value]="station.name" />
                 </div>
-
 
             </div>
         </div>
@@ -34,8 +33,6 @@
             <div *ngIf="elementsToggle.open">
                 <app-station-limits [stationId]="station.id" />
             </div>
-
-
         </div>
         <!-- end elements -->
 

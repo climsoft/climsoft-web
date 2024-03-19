@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, retry } from 'rxjs/operators';
-import { SourceModel, SourceTypeEnum } from '../models/source.model';
+import { catchError } from 'rxjs/operators'; 
+import { CreateUpdateSourceModel } from '../models/create-update-source.model';
+import { SourceTypeEnum } from '../models/enums/source-type.enum';
+import { ViewSourceModel } from '../models/view-source.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,58 +15,52 @@ export class SourcesService {
 
   constructor(private http: HttpClient) { }
 
-  public getSource(sourceId: number): Observable<SourceModel> {
-    return this.http.get<SourceModel>(`${this.endPointUrl}/source/${sourceId}`)
+  public getSource(sourceId: number): Observable<ViewSourceModel> {
+    return this.http.get<ViewSourceModel>(`${this.endPointUrl}/source/${sourceId}`)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getSources(sourceTypeId?: SourceTypeEnum): Observable<SourceModel[]> {
+  public getSources(sourceTypeId?: SourceTypeEnum): Observable<ViewSourceModel[]> {
     let url: string = this.endPointUrl;
     if (sourceTypeId) {
       url = `${this.endPointUrl}/source-type/${sourceTypeId}`
     }
 
-    return this.http.get<SourceModel[]>(this.endPointUrl)
+    return this.http.get<ViewSourceModel[]>(this.endPointUrl)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getForms(ids?: number[]): Observable<SourceModel[]> {
-    return this.getSources(1);
+  public getForms(ids?: number[]): Observable<ViewSourceModel[]> {
+    return this.getSources(SourceTypeEnum.FORM);
   }
 
-  public createSource(source: SourceModel): Observable<SourceModel> {
-    const createSourceDto = this.getCreateSourceDto(source);
-    return this.http.post<SourceModel>(this.endPointUrl, createSourceDto)
+  public createSource(source: CreateUpdateSourceModel): Observable<ViewSourceModel> {
+    return this.http.post<ViewSourceModel>(this.endPointUrl, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public updateSource(source: SourceModel): Observable<SourceModel> {
-    const url = `${this.endPointUrl}/${source.id}`;
-    const createSourceDto = this.getCreateSourceDto(source);
-    return this.http.patch<SourceModel>(url, createSourceDto)
+  public updateSource(id: number, source: CreateUpdateSourceModel): Observable<ViewSourceModel> {
+    return this.http.patch<ViewSourceModel>(`${this.endPointUrl}/${id}`, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public deleteSource(id: number): Observable<SourceModel> {
+  public deleteSource(id: number): Observable<ViewSourceModel> {
     //todo use json as body of ids?
     const url = `${this.endPointUrl}/${id}`;
-    return this.http.delete<SourceModel>(url)
+    return this.http.delete<ViewSourceModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  private getCreateSourceDto(source: SourceModel){
-    return { name: source.name, description: source.description, extraMetadata: source.extraMetadata, sourceTypeId: source.sourceTypeId }
-  }
 
 
   private handleError(error: HttpErrorResponse) {

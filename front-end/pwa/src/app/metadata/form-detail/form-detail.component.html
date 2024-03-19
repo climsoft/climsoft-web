@@ -76,7 +76,7 @@
             <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
                 Save
             </button>
-            <button *ngIf="source && source.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+            <button *ngIf="createUpdateSource && sourceId > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
                 (click)="onDelete()">
                 Delete
             </button>

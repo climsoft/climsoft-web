@@ -1,4 +1,4 @@
-import { ElementModel } from 'src/app/core/models/element.model'; 
+import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
 import { EntryType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
@@ -21,7 +21,7 @@ export interface EntryFieldItem { fieldProperty: EntryType, fieldValues: number[
 
 export class FormEntryUtil {
 
-  public static getEntryFieldDefs(entryField: EntryType, elements: ElementModel[], year: number, month: number, hours: number[]): [number, string][] {
+  public static getEntryFieldDefs(entryField: EntryType, elements: ViewElementModel[], year: number, month: number, hours: number[]): [number, string][] {
 
     let fieldDefs: [number, string][] = [];
 
@@ -172,12 +172,12 @@ export class FormEntryUtil {
 
   }
 
-  public static getScaledValue(element: ElementModel, unscaledValue: number): number {
+  public static getScaledValue(element: ViewElementModel, unscaledValue: number): number {
     // To remove rounding errors use Math.floor()
     return element.entryScaleFactor ? Math.floor(unscaledValue * element.entryScaleFactor)  : unscaledValue;
   }
 
-  public static getTotal(entryObservations: CreateObservationModel[], elements: ElementModel[]): number | null {
+  public static getTotal(entryObservations: CreateObservationModel[], elements: ViewElementModel[]): number | null {
     let total = 0;
     let allAreNull: boolean = true;
 

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
 import { EntryForm } from 'src/app/core/models/entry-form.model';
-import { ElementModel } from 'src/app/core/models/element.model'; 
+import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
 import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 
@@ -10,7 +10,7 @@ import { CreateObservationModel } from 'src/app/core/models/create-observation.m
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
-  @Input() elements!: ElementModel[];
+  @Input() elements!: ViewElementModel[];
   @Input() formFilter!: EntryFormFilter;
   @Input() formMetadata!: EntryForm;
   @Input() dbObservations!: CreateObservationModel[];

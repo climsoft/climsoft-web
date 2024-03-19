@@ -4,7 +4,7 @@ import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
-import { UserRoleEnum } from '../models/enums/user-roles.enum';
+import { UserRoleEnum } from '../models/enums/user-role.enum';
 
 
 @Component({

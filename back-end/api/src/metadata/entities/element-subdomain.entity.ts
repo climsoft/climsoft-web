@@ -1,5 +1,5 @@
 import { Column, Entity, Index,  PrimaryColumn } from "typeorm"; 
-import { DomainEnum } from "../enums/domain.enum"; 
+import { ElementDomainEnum } from "../enums/element-domain.enum"; 
 
 @Entity("element_subdomains")
 export class ElementSubdomainEntity {
@@ -9,9 +9,9 @@ export class ElementSubdomainEntity {
     @Column({ type: "varchar", unique: true })
     name: string;
 
-    @Column({ type: "enum", enum: DomainEnum, name: "domain"})
+    @Column({ type: "enum", enum: ElementDomainEnum, name: "domain"})
     @Index()
-    domain: DomainEnum;
+    domain: ElementDomainEnum;
 
 
 }

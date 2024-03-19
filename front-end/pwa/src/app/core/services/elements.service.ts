@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ElementModel } from '../models/element.model';
+import { ViewElementModel } from '../models/view-element.model';
+import { UpdateElementModel } from '../models/update-element.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,35 +14,27 @@ export class ElementsService {
 
   constructor(private http: HttpClient) { }
 
-  public getElements(elementIds?: number[]): Observable<ElementModel[]> {
+  public getElements(elementIds?: number[]): Observable<ViewElementModel[]> {
     let params: HttpParams = new HttpParams();
     
     if (elementIds && elementIds.length > 0) {
       params = params.set('ids', elementIds.join(','));
     }
   
-    return this.http.get<ElementModel[]>(this.endPointUrl, { params: params })
+    return this.http.get<ViewElementModel[]>(this.endPointUrl, { params: params })
       .pipe(catchError(this.handleError));
   }
 
-  public getElement(elementId: string): Observable<ElementModel> {
+  public getElement(elementId: string): Observable<ViewElementModel> {
     const url = `${this.endPointUrl}/${elementId}`;
-    return this.http.get<ElementModel>(url)
+    return this.http.get<ViewElementModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  save(element: ElementModel[]): Observable<ElementModel[]> {
-    return this.http.post<ElementModel[]>(this.endPointUrl, element)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  delete(elementId: number): Observable<ElementModel> {
-    const url = `${this.endPointUrl}/${elementId}`;
-    return this.http.delete<ElementModel>(url)
+  public update(id: number, updateElementDto: UpdateElementModel): Observable<ViewElementModel> {    
+    return this.http.patch<ViewElementModel>(`${this.endPointUrl}/${id}`, updateElementDto)
       .pipe(
         catchError(this.handleError)
       );

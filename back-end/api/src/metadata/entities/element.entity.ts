@@ -12,7 +12,7 @@ export class ElementEntity extends BaseEntity {
 
   @Column({ type: "varchar", unique: true })
   name: string;
- 
+
   @Column({ type: "varchar" })
   description: string;
 
@@ -38,17 +38,20 @@ export class ElementEntity extends BaseEntity {
   log: ElementLogVo[] | null;
 
   // ManyToOne relationship with ElementTypeEntity
-  @ManyToOne(() => ElementTypeEntity, { onDelete: "CASCADE" })
+  @ManyToOne(() => ElementTypeEntity, {
+    onDelete: "CASCADE",
+
+    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
+    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
+    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
+    eager: true,
+  })
   @JoinColumn({ name: "type_id" })
-  elementType: ElementTypeEntity; 
+  elementType: ElementTypeEntity;
 
 }
 
 export interface ElementLogVo extends BaseLogVo {
-  name: string;
-  abbreviation: string;
-  description: string;
-  typeId: number;
   lowerLimit: number | null;
   upperLimit: number | null;
   entryScaleFactor: number | null;

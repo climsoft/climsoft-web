@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { ElementEntity, ElementLogVo } from '../entities/element.entity';
-import { CreateElementDto } from '../dtos/create-element.dto';
+import { UpdateElementDto } from '../dtos/update-element.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { ViewElementDto } from '../dtos/view-element.dto';
 
@@ -22,65 +22,33 @@ export class ElementsService {
 
         const elementEntities = await this.elementRepo.find(findOptions);
 
-        return elementEntities.map(element => ({
-            id: element.id,
-            name: element.name,
-            abbreviation: element.abbreviation,
-            description: element.description,
-            typeId: element.typeId,
-            lowerLimit: element.lowerLimit,
-            upperLimit: element.upperLimit,
-            entryScaleFactor: element.entryScaleFactor,
-            comment: element.comment
-        }));
-    }
-
-    public async findElement(id: number): Promise<ElementEntity> {
-        const element: ElementEntity | null = await this.elementRepo.findOneBy({
-            id: id,
+        return elementEntities.map(elementEntity => {
+            return this.createViewElementDto(elementEntity);
         });
-
-        if (!element) {
-            throw new NotFoundException(`Element #${id} not found`);
-        }
-        return element;
     }
 
-    public async saveElements(createElementDtos: CreateElementDto[], userId: number): Promise<ElementEntity[]> {
-        const elementEntities: ElementEntity[] = [];
+    public async findElement(id: number): Promise<ViewElementDto> {
+        const elementEntity: ElementEntity = await this.getElementEntity(id);
+        return this.createViewElementDto(elementEntity);
+    }
 
-        for (const createElementDto of createElementDtos) {
-            let stationEntity = await this.elementRepo.findOneBy({
-                id: createElementDto.id,
-            });
+    public async saveElement(id: number, updateElementDto: UpdateElementDto, userId: number): Promise<ViewElementDto> {
+        const elementEntity: ElementEntity = await this.getElementEntity(id);
+        const oldChanges: ElementLogVo = this.getElementLogFromEntity(elementEntity);
+        const newChanges: ElementLogVo = this.getElementLogFromDto(updateElementDto, userId);
 
-            if (stationEntity) {
-                const oldChanges: ElementLogVo = this.getElementLogFromEntity(stationEntity);
-                const newChanges: ElementLogVo = this.getElementLogFromDto(createElementDto, userId);
-
-                //if no changes, then no need to save
-                if (ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
-                    continue;
-                }
-            } else {
-                stationEntity = this.elementRepo.create({
-                    id: createElementDto.id,
-                });
-            }
-
-            this.updateElementEntity(stationEntity, createElementDto, userId);
-            elementEntities.push(stationEntity);
+        //if no changes, then no need to save
+        if (!ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
+            this.updateElementEntity(elementEntity, updateElementDto, userId);
+            await this.elementRepo.save(elementEntity);
         }
 
-        return this.elementRepo.save(elementEntities);
+        return this.createViewElementDto(elementEntity);
+
     }
 
     private getElementLogFromEntity(entity: ElementEntity): ElementLogVo {
         return {
-            name: entity.name,
-            abbreviation: entity.abbreviation,
-            description: entity.description,
-            typeId: entity.typeId,
             lowerLimit: entity.lowerLimit,
             upperLimit: entity.upperLimit,
             entryScaleFactor: entity.entryScaleFactor,
@@ -90,12 +58,8 @@ export class ElementsService {
         };
     }
 
-    private getElementLogFromDto(dto: CreateElementDto, userId: number): ElementLogVo {
+    private getElementLogFromDto(dto: UpdateElementDto, userId: number): ElementLogVo {
         return {
-            name: dto.name,
-            abbreviation: dto.abbreviation,
-            description: dto.description,
-            typeId: dto.typeId,
             lowerLimit: dto.lowerLimit,
             upperLimit: dto.upperLimit,
             entryScaleFactor: dto.entryScaleFactor,
@@ -105,19 +69,54 @@ export class ElementsService {
         };
     }
 
-    private updateElementEntity(entity: ElementEntity, dto: CreateElementDto, userId: number): void {
-        entity.name = dto.name;
-        entity.abbreviation = dto.abbreviation;
-        entity.description = dto.description;
-        entity.typeId = dto.typeId;
+    private updateElementEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
+        // Note, log has to be set before updating the new values to the entity, because we are logging previous values.
+        entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
+
         entity.lowerLimit = dto.lowerLimit;
         entity.upperLimit = dto.upperLimit;
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
         entity.entryDateTime = new Date();
-        entity.log = ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
+
     }
+
+
+    /**
+     * Tries to find the element with the passed id, if not found throws a NOT FOUND error
+     * @param id 
+     * @returns 
+     */
+    private async getElementEntity(id: number): Promise<ElementEntity> {
+        const elementEntity: ElementEntity | null = await this.elementRepo.findOneBy({
+            id: id,
+        });
+
+        if (!elementEntity) {
+            throw new NotFoundException(`Element #${id} not found`);
+        }
+        return elementEntity;
+    }
+
+    private createViewElementDto(elementEntity: ElementEntity): ViewElementDto {
+        return {
+            id: elementEntity.id,
+            abbreviation: elementEntity.abbreviation,
+            name: elementEntity.name,
+            description: elementEntity.description,
+            units: elementEntity.units,
+            type: elementEntity.elementType.name,
+            subdomain: elementEntity.elementType.elementSubdomain.name,
+            domain: elementEntity.elementType.elementSubdomain.domain,
+            lowerLimit: elementEntity.lowerLimit,
+            upperLimit: elementEntity.upperLimit,
+            entryScaleFactor: elementEntity.entryScaleFactor,
+            comment: elementEntity.comment,
+        }
+    }
+
+
 
 
 }
