@@ -59,9 +59,9 @@ export class HomeComponent implements OnInit, OnDestroy {
           featureTitle: 'Elements'
         },
         {
-          name: 'Forms',
-          url: '/forms',
-          featureTitle: 'Entry Forms'
+          name: 'Sources',
+          url: '/sources',
+          featureTitle: 'Sources'
         },
         {
           name: 'Stations',
