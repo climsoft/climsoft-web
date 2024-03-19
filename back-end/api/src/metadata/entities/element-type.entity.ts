@@ -9,14 +9,11 @@ export class ElementTypeEntity {
     @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: "varchar" })
-    description: string;
-
     @Column({ type: "int", name: "subdomain_id" })
     subdomainId: number;
 
     // ManyToOne relationship with ElementSubdomainEntity
     @ManyToOne(() => ElementSubdomainEntity, { onDelete: "CASCADE" })
     @JoinColumn({ name: "subdomain_id" })
-    elementType: ElementSubdomainEntity;
+    elementSubdomain: ElementSubdomainEntity;
 }

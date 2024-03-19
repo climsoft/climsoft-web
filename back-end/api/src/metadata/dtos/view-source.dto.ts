@@ -1,4 +1,5 @@
-import { SourceTypeEnum } from "../entities/source.entity";
+import { SourceTypeEnum } from "../enums/source-type.enum";
+
 
 export class ViewSourceDto {
     id: number; 

@@ -1,5 +1,5 @@
-import { IsEnum, IsNumber, IsString } from 'class-validator';
-import { SourceTypeEnum } from '../entities/source.entity';
+import { IsEnum, IsString } from 'class-validator'; 
+import { SourceTypeEnum } from '../enums/source-type.enum';
 
 export class CreateSourceDto {
 

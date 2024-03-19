@@ -1,22 +1,17 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
-import { ElementDomainEntity } from "./element-domain.entity";
+import { Column, Entity, Index,  PrimaryColumn } from "typeorm"; 
+import { DomainEnum } from "../enums/domain.enum"; 
 
 @Entity("element_subdomains")
 export class ElementSubdomainEntity {
     @PrimaryColumn({ type: "int" })
     id: number;
 
-    @Column({ type: "varchar" })
+    @Column({ type: "varchar", unique: true })
     name: string;
 
-    @Column({ type: "varchar" })
-    description: string;
+    @Column({ type: "enum", enum: DomainEnum, name: "domain"})
+    @Index()
+    domain: DomainEnum;
 
-    @Column({ type: "int", name: "domain_id" })
-    domainId: number;
 
-    // ManyToOne relationship with ElementDomainEntity
-    @ManyToOne(() => ElementSubdomainEntity, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "domain_id" })
-    elementType: ElementDomainEntity;
 }

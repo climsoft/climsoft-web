@@ -10,12 +10,12 @@ export abstract class BaseEntity {
     @Column({ type: "int", name: "entry_user_id", nullable: true })
     entryUserId: number | null;
 
-    //@UpdateDateColumn({ type: "timestamptz", name: "entry_date_time", default: () => "CURRENT_TIMESTAMP" }) // Left here for future rreference.
-    // Note, we are not using the UpdateDateColumn() because we store this field as part of the log (in the log column) when saving an entity in the database.
-    // So it's important to have this set at the application layer rather than the database. 
+    //@UpdateDateColumn({ type: "timestamptz", name: "entry_date_time", default: () => "CURRENT_TIMESTAMP", transformer: new DateTimeColumn() }) // Left here for future reference.
 
-    //transformer: new DateTimeColumn()     
-    @Column({ type: "timestamptz", name: "entry_date_time" })
+    // Note, we are NOT using the UpdateDateColumn() because we store this field as part of the log (in the log column) when saving an entity in the database.
+    // So it's important to have this set at the application layer rather than the database.  
+    // Setting of default timestamp is useful for seeding migrations which populate the database with default values like elements.
+    @Column({ type: "timestamptz", name: "entry_date_time",  default: () => "CURRENT_TIMESTAMP" })
     entryDateTime: Date;
 }
 

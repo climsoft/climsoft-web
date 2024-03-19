@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { SourcesService } from '../services/sources.service';
 import { CreateSourceDto } from '../dtos/create-source.dto'; 
-import { Admin } from 'src/user/decorators/admin.decorator';
-import { SourceTypeEnum } from '../entities/source.entity';
+import { Admin } from 'src/user/decorators/admin.decorator'; 
+import { SourceTypeEnum } from '../enums/source-type.enum';
 
 @Controller('sources')
 export class SourcesController {
@@ -11,7 +11,7 @@ export class SourcesController {
 
     @Get()
     find() {
-        return this.sourcesService.findSourcesByTypeIds();
+        return this.sourcesService.findSourcesBySourceTypes();
     }
    
     @Get('/source/:id')
@@ -23,7 +23,7 @@ export class SourcesController {
     findSourcesOfType(@Param('id') id: SourceTypeEnum) {
         // TODO validate enum. 
         console.log("finding sources of type: ", id);
-        return this.sourcesService.findSourcesByTypeIds(id);
+        return this.sourcesService.findSourcesBySourceTypes(id);
     }
 
     @Admin()

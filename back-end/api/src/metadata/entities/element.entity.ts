@@ -12,11 +12,11 @@ export class ElementEntity extends BaseEntity {
 
   @Column({ type: "varchar", unique: true })
   name: string;
-
  
   @Column({ type: "varchar" })
   description: string;
 
+  @Column({ type: "varchar" })
   units: string;
 
   @Column({ type: "int", name: "type_id" })
