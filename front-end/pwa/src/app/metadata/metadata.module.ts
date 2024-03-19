@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
-import { FormsComponent } from './forms/forms.component'; 
 import { FormDetailComponent } from './form-detail/form-detail.component';
 import { StationsComponent } from './stations/stations.component';
 import { StationDetailComponent } from './station-detail/station-detail.component';
@@ -14,10 +13,7 @@ import { ElementsComponent } from './elements/elements.component';
 import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
 import { StationFormsComponent } from './station-detail/station-forms/station-forms.component';
 import { StationLimitsComponent } from './station-detail/station-limits/station-limits.component';
-
-
- 
-
+import { SourcesComponent } from './sources/sources.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +21,7 @@ import { StationLimitsComponent } from './station-detail/station-limits/station-
     FormSelectorDialogComponent,
     StationElementLimitsInputDialogComponent,
 
-    FormsComponent,
+    SourcesComponent,
     FormDetailComponent,
     StationsComponent,
     StationDetailComponent,
@@ -34,7 +30,8 @@ import { StationLimitsComponent } from './station-detail/station-limits/station-
     ElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
-    StationLimitsComponent, 
+    StationLimitsComponent,
+ 
   ],
   imports: [
     SharedModule,

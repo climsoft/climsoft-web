@@ -1,9 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SourceEntity, SourceTypeEnum } from '../entities/source.entity';
+import { SourceEntity } from '../entities/source.entity';
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateSourceDto } from '../dtos/create-source.dto';
+import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { ViewSourceDto } from '../dtos/view-source.dto';
+import { SourceTypeEnum } from '../enums/source-type.enum';
+
+// TODO refactor this service later
 
 @Injectable()
 export class SourcesService {
@@ -43,25 +46,25 @@ export class SourcesService {
         return sourceEntities.map(source => ({ ...source }));
     }
 
-    async findSourcesByTypeIds(sourceTypeId?: SourceTypeEnum): Promise<SourceEntity[]> {
+    async findSourcesBySourceTypes(sourceType?: SourceTypeEnum): Promise<SourceEntity[]> {
         let sources: SourceEntity[];
 
         // TODO. Use the find sources
 
-        if (sourceTypeId) {
+        if (sourceType) {
             sources = await this.sourceRepo.find({
                 where: {
-                    sourceType: sourceTypeId,
+                    sourceType: sourceType,
                 },
             });
         } else {
-            sources = await this.sourceRepo.find();
+            sources = await this.findSources();
         }
 
         return sources;
     }
 
-    async findSource(id: number) {
+    public async findSource(id: number) {
         const source = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -72,25 +75,27 @@ export class SourcesService {
         return source;
     }
 
-    async create(sourceDto: CreateSourceDto) {
+    public  async create(sourceDto: CreateUpdateSourceDto) {
+        //source entity will be created with an auto incremented id
         const source = this.sourceRepo.create({
             ...sourceDto,
         });
         return this.sourceRepo.save(source);
     }
 
-    async updateSource(id: number, sourceDto: CreateSourceDto) {
-        // TODO. don't use preload because of logging source changes
-        const source = await this.sourceRepo.preload({
-            id, ...sourceDto,
-        });
-        if (!source) {
-            throw new NotFoundException(`Source #${id} not found`);
-        }
+    public async updateSource(id: number, sourceDto: CreateUpdateSourceDto) {
+        const source = await this.findSource(id);
+        
+        //TODO. Implement logging?
+        source.name = sourceDto.name;
+        source.description = sourceDto.description;
+        source.extraMetadata = sourceDto.extraMetadata;
+        source.sourceType = sourceDto.sourceType
+         
         return this.sourceRepo.save(source);
     }
 
-    async deleteSource(id: number) {
+    public  async deleteSource(id: number) {
         const source = await this.findSource(id);
         return this.sourceRepo.remove(source);
     }

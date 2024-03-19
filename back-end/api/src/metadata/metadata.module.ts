@@ -12,8 +12,7 @@ import { SourcesController } from 'src/metadata/controllers/sources.controller';
 import { StationElementEntity } from './entities/station-element.entity';
 import { StationFormEntity } from './entities/station-form.entity';
 import { InstrumentEntity } from './entities/instrument.entity';
-import { InstrumentTypeEntity } from './entities/instrument-type.entity';
-import { ElementDomainEntity } from './entities/element-domain.entity';
+import { InstrumentTypeEntity } from './entities/instrument-type.entity'; 
 import { ElementSubdomainEntity } from './entities/element-subdomain.entity';
 import { ElementTypeEntity } from './entities/element-type.entity';
 import { UserModule } from 'src/user/user.module';
@@ -25,8 +24,7 @@ import { StationFormsService } from './services/station-forms.service';
 @Module({
     imports: [TypeOrmModule.forFeature([ 
         SourceEntity,
-        StationEntity,
-        ElementDomainEntity,
+        StationEntity, 
         ElementSubdomainEntity,
         ElementTypeEntity,
         ElementEntity,

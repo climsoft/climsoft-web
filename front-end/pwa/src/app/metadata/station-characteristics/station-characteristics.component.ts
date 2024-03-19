@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';

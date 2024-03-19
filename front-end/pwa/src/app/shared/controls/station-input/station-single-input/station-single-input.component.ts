@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { SourceModel } from 'src/app/core/models/source.model';
+import { CreateUpdateSourceModel } from 'src/app/core/models/create-update-source.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { StationsService } from 'src/app/core/services/stations.service';

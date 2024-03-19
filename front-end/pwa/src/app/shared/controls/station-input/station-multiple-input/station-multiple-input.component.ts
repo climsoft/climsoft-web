@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { StationsService } from 'src/app/core/services/stations.service';

@@ -3,11 +3,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { EntryType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
-import { SourceModel } from '../../core/models/source.model';
+import { CreateUpdateSourceModel } from '../../core/models/create-update-source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-form-detail',
@@ -16,7 +18,8 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 })
 export class FormDetailComponent implements OnInit {
 
-  protected source!: SourceModel;
+  protected sourceId: number = 0;
+  protected createUpdateSource!: CreateUpdateSourceModel;
   protected formName: string = '';
   protected formDescription: string = '';
 
@@ -48,25 +51,28 @@ export class FormDetailComponent implements OnInit {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
       this.sourceService.getSource(sourceId).subscribe((data) => {
-        this.source = data;
+        this.sourceId = data.id;
+        // Important, deconstruct explicitly
+        this.createUpdateSource = { name: data.name, description: data.description, extraMetadata: data.extraMetadata, sourceType: data.sourceType };
         this.setControlValues(data);
       });
     } else {
-      this.source = { id: 0, name: '', description: '', sourceTypeId: 1, extraMetadata: '' };
+      this.sourceId = 0;
+      this.createUpdateSource = { name: '', description: '', sourceType: SourceTypeEnum.FORM, extraMetadata: '' };
       this.pagesDataService.setPageHeader('New Entry Form');
     }
   }
 
-  private setControlValues(source: SourceModel): void {
+  private setControlValues(source: CreateUpdateSourceModel): void {
     this.formName = source.name;
-    this.formDescription = this.source.description;
+    this.formDescription = this.createUpdateSource.description;
 
     // Get form metadata
     // TODO. What should be done when this happens, though never expected
-    if (!this.source.extraMetadata) {
+    if (!this.createUpdateSource.extraMetadata) {
       return;
     }
-    const entryForm: EntryForm = JSON.parse(this.source.extraMetadata);
+    const entryForm: EntryForm = JSON.parse(this.createUpdateSource.extraMetadata);
 
     const selectedSelectors: EntryType[] = [];
     const possibleFields: EntryType[] = [];
@@ -157,7 +163,7 @@ export class FormDetailComponent implements OnInit {
 
   protected onSave(): void {
 
-    if (!this.source) {
+    if (!this.createUpdateSource) {
       this.errorMessage = 'Form not defined';
       return;
     }
@@ -202,9 +208,9 @@ export class FormDetailComponent implements OnInit {
       return;
     }
 
-    this.source.sourceTypeId = 1;
-    this.source.name = this.formName;
-    this.source.description = this.formDescription;
+    this.createUpdateSource.sourceType = SourceTypeEnum.FORM;
+    this.createUpdateSource.name = this.formName;
+    this.createUpdateSource.description = this.formDescription;
 
     const entryForm: EntryForm = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
@@ -215,14 +221,14 @@ export class FormDetailComponent implements OnInit {
       samplePaperImage: ''
     };
 
-    this.source.extraMetadata = JSON.stringify(entryForm);
+    this.createUpdateSource.extraMetadata = JSON.stringify(entryForm);
 
-    if (this.source.id === 0) {
-      this.sourceService.createSource(this.source).subscribe((data) => {
+    if (this.sourceId === 0) {
+      this.sourceService.createSource(this.createUpdateSource).pipe(take(1)).subscribe((data) => {
         this.location.back();
       });
     } else {
-      this.sourceService.updateSource(this.source).subscribe((data) => {
+      this.sourceService.updateSource(this.sourceId, this.createUpdateSource).pipe(take(1)).subscribe((data) => {
         this.location.back();
       });
     }
@@ -235,7 +241,7 @@ export class FormDetailComponent implements OnInit {
 
   protected onDelete(): void {
     //todo. prompt for confirmation first
-    this.sourceService.deleteSource(this.source.id).subscribe((data) => {
+    this.sourceService.deleteSource(this.sourceId).subscribe((data) => {
       this.location.back();
     });
 

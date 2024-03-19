@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router'; 
-import { FormsComponent } from './forms/forms.component';
+import { RouterModule, Routes } from '@angular/router';  
 import { StationsComponent } from './stations/stations.component';
 import { StationDetailComponent } from './station-detail/station-detail.component';
 import { ElementsComponent } from './elements/elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { FormDetailComponent } from './form-detail/form-detail.component';
 import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
+import { SourcesComponent } from './sources/sources.component';
 
 
 const routes: Routes = [
@@ -18,15 +18,20 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'forms',
+        redirectTo: 'elements',
         pathMatch: 'full',
       },
       {
-        path: 'forms',
-        component: FormsComponent, 
-        data: {
-          subComponent: true
-        }
+        path: 'elements',
+        component: ElementsComponent
+      },
+      {
+        path: 'element-detail/:id',
+        component: ElementDetailComponent
+      },
+      {
+        path: 'sources',
+        component: SourcesComponent
       }, 
       {
         path: 'form-detail/:id',
@@ -44,14 +49,7 @@ const routes: Routes = [
         path: 'station-characteristics/:id',
         component: StationCharacteristicsComponent
       },
-      {
-        path: 'elements',
-        component: ElementsComponent
-      },
-      {
-        path: 'element-detail/:id',
-        component: ElementDetailComponent
-      },
+     
     ]
   }
  

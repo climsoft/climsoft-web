@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';  
 import { EntryForm } from 'src/app/core/models/entry-form.model';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service'; 
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
@@ -11,7 +11,7 @@ import { CreateObservationModel } from 'src/app/core/models/create-observation.m
   styleUrls: ['./linear-layout.component.scss']
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
-  @Input() public elements!: ElementModel[];
+  @Input() public elements!: ViewElementModel[];
   @Input() public formFilter!: EntryFormFilter;
   @Input() public formMetadata!: EntryForm;
   @Input() public dbObservations!: CreateObservationModel[];

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { ElementModel } from 'src/app/core/models/element.model'; 
+import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
 import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
 import { StationModel } from 'src/app/core/models/station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';

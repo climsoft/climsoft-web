@@ -290,7 +290,7 @@ export class ObservationsService {
 
         // If its a new entity, then no need to set log.
         // If its an existing entity, log the previous values and log(if there was an existing log)
-        // Note, log has to be set before updating the new values to the entity.
+        // Note, log has to be set before updating the new values to the entity, because we are logging previous values.
         entity.log = newEntity ? null : ObjectUtils.getNewLog<UpdateObservationValuesLogVo>(entity.log, this.getEntityValsAsLogVO(entity));
 
         // Then set the new values

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationElementsService } from 'src/app/core/services/station-elements.service';
 import { Observable, of } from 'rxjs';
@@ -14,7 +14,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 })
 export class StationLimitsComponent implements OnInit {
   @Input() public stationId!: string;
-  protected elements!: ElementModel[];
+  protected elements!: ViewElementModel[];
   protected elementLimits!: StationElementLimitModel[];
 
   constructor(

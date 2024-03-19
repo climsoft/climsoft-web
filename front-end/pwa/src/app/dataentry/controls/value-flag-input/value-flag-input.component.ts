@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryUtil } from '../../form-entry/form-entry.util';
 import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
@@ -25,7 +25,7 @@ interface ValidationResponse {
 export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
-  @Input() public elements!: ElementModel[];
+  @Input() public elements!: ViewElementModel[];
   @Input() public observation!: CreateObservationModel;
   @Output() public valueChange = new EventEmitter<CreateObservationModel>();
   @Output() public inputBlur = new EventEmitter<CreateObservationModel>();

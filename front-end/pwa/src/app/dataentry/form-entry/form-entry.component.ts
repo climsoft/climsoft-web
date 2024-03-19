@@ -7,7 +7,7 @@ import { SourcesService } from 'src/app/core/services/sources.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements.service';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { EntryFormFilter } from './form-entry.util';
 import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
@@ -27,7 +27,7 @@ export class FormEntryComponent implements OnInit {
   protected formSelector!: EntryFormFilter;
 
 
-  protected elements!: ElementModel[];
+  protected elements!: ViewElementModel[];
   protected observations!: CreateObservationModel[];
   protected newObservations!: CreateObservationModel[];
 

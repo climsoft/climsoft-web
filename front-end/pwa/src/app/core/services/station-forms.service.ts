@@ -1,7 +1,8 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core'; 
 import { Observable, catchError, throwError } from 'rxjs';
-import { SourceModel } from '../models/source.model';
+import { CreateUpdateSourceModel } from '../models/create-update-source.model';
+import { ViewSourceModel } from '../models/view-source.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,9 +13,9 @@ export class StationFormsService {
 
   constructor(private http: HttpClient) { }
 
-  public getStationForms(stationId: string): Observable<SourceModel[]> {
+  public getStationForms(stationId: string): Observable<ViewSourceModel[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
-    return this.http.get<SourceModel[]>(url)
+    return this.http.get<ViewSourceModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );

@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
 @Component({
@@ -14,8 +14,8 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ElementModel[] ;
-  protected selectedOption!: ElementModel | null;
+  protected options!: ViewElementModel[] ;
+  protected selectedOption!: ViewElementModel | null;
 
   constructor(private elementsSevice: ElementsService) {
   }
@@ -44,11 +44,11 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: ElementModel): string {
+  protected optionDisplayFunction(option: ViewElementModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: ElementModel | null) {
+  protected onSelectedOptionChange(selectedOption: ViewElementModel | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

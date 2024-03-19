@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { UserRoleEnum } from 'src/app/core/models/enums/user-roles.enum';
+import { UserRoleEnum } from 'src/app/core/models/enums/user-role.enum';
 
 
 interface Role {

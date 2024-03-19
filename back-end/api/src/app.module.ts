@@ -11,7 +11,7 @@ import { UserModule } from './user/user.module';
   imports: [
     UserModule, MetadataModule, ObservationModule,
     TypeOrmModule.forRoot({
-      type: "postgres", // type of our database
+      type: "postgres", 
       host: process.env.DB_HOST ? process.env.DB_HOST : "localhost",
       port: process.env.DB_PORT ? +process.env.DB_PORT : 5432,
       username: process.env.DB_USERNAME ? process.env.DB_USERNAME : "postgres",

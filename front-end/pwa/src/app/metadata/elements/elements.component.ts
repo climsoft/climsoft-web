@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
@@ -10,7 +10,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
   styleUrls: ['./elements.component.scss']
 })
 export class ElementsComponent {
-  elements!: ElementModel[];
+  elements!: ViewElementModel[];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -32,11 +32,7 @@ export class ElementsComponent {
 
   onSearchClick() { }
 
-  onNewElementClick() {
-    this.router.navigate(['element-detail', 'new'], { relativeTo: this.route.parent });
-  }
-
-  onEditElementClick(element: ElementModel) {
+  protected onEditElementClick(element: ViewElementModel) {
     this.router.navigate(['element-detail', element.id], { relativeTo: this.route.parent });
   }
 

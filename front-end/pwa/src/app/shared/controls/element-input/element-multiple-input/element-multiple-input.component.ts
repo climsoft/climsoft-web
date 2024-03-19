@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
 @Component({
@@ -14,8 +14,8 @@ export class ElementMultipleInputComponent implements OnInit, OnChanges {
   @Input() public selectedIds: number[]=[];
   @Output() public selectedIdsChange = new EventEmitter<number[]>();
 
-  protected options!: ElementModel[];
-  protected selectedOptions: ElementModel[]=[];
+  protected options!: ViewElementModel[];
+  protected selectedOptions: ViewElementModel[]=[];
 
   constructor(private elementsSevice: ElementsService) {
  
@@ -49,11 +49,11 @@ export class ElementMultipleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: ElementModel): string {
+  protected optionDisplayFunction(option: ViewElementModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: ElementModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: ViewElementModel[]) {
 
     this.selectedIds.length = 0;
     for (const option of selectedOptions) {

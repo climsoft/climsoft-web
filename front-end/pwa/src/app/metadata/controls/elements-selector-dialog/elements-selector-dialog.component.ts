@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ElementModel } from 'src/app/core/models/element.model';
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 
-export interface ItemSelection extends ElementModel {
+export interface ItemSelection extends ViewElementModel {
   selected: boolean;
 }
 
@@ -31,7 +31,7 @@ export class ElementsSelectorDialogComponent {
     this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
 
-    const elementSubscription: Observable<ElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
+    const elementSubscription: Observable<ViewElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
     elementSubscription.subscribe(data => {
       this.items = data
         .filter(item => !this.excludeIds.includes(item.id))
