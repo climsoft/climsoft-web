@@ -30,8 +30,8 @@ export class SeedElements1710833167092 implements MigrationInterface {
         (16, 'VAPPRESS', 'Vapour Pressure', '', 'Kpa', 5 ),
 
         (17, 'WNDSPAVG', 'Wind Speed Average', '', 'Meters/Second', 6),
-        (18, 'PKGUST', 'Wind Gust Speed Maximum', '', 'Meters/Second', 13),
-        (19, 'PKGSTD', 'Wind Gust Direction', '', 'Tens of Degrees', 13),
+        (18, 'PKGUST', 'Wind Gust Speed Maximum', '', 'Meters/Second', 6),
+        (19, 'PKGSTD', 'Wind Gust Direction', '', 'Tens of Degrees', 6),
 
         (20, 'CLDTOT', 'Cloud Cover Total', '', 'Octas', 13),
         (21, 'CLDOPC', 'Cloud Opacity Total', '', 'Octas', 13)
