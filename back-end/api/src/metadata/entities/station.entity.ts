@@ -1,5 +1,7 @@
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { StationStatusEnum } from "../enums/station-status.enum";
+import { StationObservationMethodEnum } from "../enums/station-observation-method.enum";
 
 @Entity("stations")
 export class StationEntity extends BaseEntity {
@@ -12,47 +14,65 @@ export class StationEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  // @Column({ type: 'int' })
-  // stationType: number;
+  @Column({ type: 'varchar', nullable: true })
+  location: string | null; //a GeoJSON. Polygon feature
 
-  // @Column({ type: 'int', nullable: true })
-  // stationClass: number;
+  @Column({ type: 'float', nullable: true })
+  elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
 
-  // @Column({ type: 'varchar', nullable: true })
-  // location: string | null; //a GeoJSON. Polygon feature
+  @Column({ type: "enum", enum: StationObservationMethodEnum, name: "station_observation_method", nullable: true })
+  @Index()
+  stationObservationMethod: StationObservationMethodEnum | null;
 
-  // @Column({ type: 'float', nullable: true })
-  // elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+  @Column({ type: 'int', name: "station_obsevation_environment_id" })
+  stationObsevationEnvironmentId: number | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // wigosId: string | null;
+  @Column({ type: 'int', name: "station_obsevation_focus_id", nullable: true })
+  stationObservationFocusId: number | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // climateZone: string | null; //based on koppen climate classification
+  //TODO. implement based on koppen climate classification.
+  @Column({ type: "int", name: "climate_zone_id", nullable: true })
+  climateZoneId: number | null; 
 
-  // @Column({ type: 'varchar', nullable: true })
-  // territory: string | null; //province, county, district. Lowest form of self government
+  //TODO. Implement after creating the models relevant to 
+  // drainage basin, water bodies and other features.
+  @Column({ type: "int", name: "drainage_basin_id", nullable: true })
+  drainageBasinId: number | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // networkAffiliation: string | null;
+  // TODO
+  @Column({ type: "int", name: "administrative_unit_id", nullable: true })
+  administrativeUnitId: number | null; //province, county, district. Lowest form of self government
+  
+  // TODO
+  @Column({ type: "int", name: "organisation_id", nullable: true })
+  organisationId: number | null; // name of organisation that owns the station.
 
-  // @Column({ type: 'varchar', nullable: true })
-  // organisation: string | null; // name of organisation that owns the station.
+  // TODO
+  @Column({ type: 'int', name: "network_affiliation_id", nullable: true })
+  networkAffiliationId: number | null; // network affiliation that the station shares data with
+  
+  @Column({ type: 'varchar', nullable: true })
+  wmoId: string | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // wmoRegion: string | null;
+  @Column({ type: 'varchar', nullable: true })
+  wigosId: string | null;
 
-  // @Column({ type: 'varchar', nullable: true })
-  // timeZone: string | null;
+  @Column({ type: 'varchar', nullable: true })
+  icaoId: string | null;
 
-  // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
-  // dateEstablished: string | null;
+  // TODO
+  @Column({ type: 'varchar', name: "time_zone", nullable: true })
+  timeZone: string | null;
 
-  // @Column({ type: 'varchar'})
-  // status:  string | null;
+  @Column({ type: "enum", enum: StationStatusEnum, nullable: true })
+  @Index()
+  status: StationStatusEnum | null;
 
-  // @Column({ type: 'datetime', transformer: new DateTimeColumn() })
-  // statusChangeDate: string | null;
+  @Column({ type: "timestamptz", name: "date_established", nullable: true })
+  dateEstablished: Date | null;
+
+  @Column({ type: 'timestamptz', name: "date_closed", nullable: true })
+  dateClosed: Date | null;
 
   @Column({ type: 'varchar', nullable: true })
   comment: string | null;
@@ -66,4 +86,5 @@ export interface StationLogVo extends BaseLogVo {
   name: string;
   description: string;
   comment: string | null;
+  // TODO. Other properties as well
 }

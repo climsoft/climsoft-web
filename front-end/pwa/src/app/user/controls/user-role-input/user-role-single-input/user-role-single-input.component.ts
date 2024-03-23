@@ -56,10 +56,10 @@ export class UserRoleSingleInputComponent {
 
   private getRoles(): Role[] {
     const roles: Role[] = [];
-    roles.push({ id: UserRoleEnum.Administrator, name: 'Administrator' });
-    roles.push({ id: UserRoleEnum.Approver, name: 'Approver' });
-    roles.push({ id: UserRoleEnum.EntryClerk, name: 'Entry Clerk' });
-    roles.push({ id: UserRoleEnum.Viewer, name: 'Viewer' }); 
+    roles.push({ id: UserRoleEnum.ADMINISTRATOR, name: 'Administrator' });
+    roles.push({ id: UserRoleEnum.APPROVER, name: 'Approver' });
+    roles.push({ id: UserRoleEnum.ENTRY_CLERK, name: 'Entry Clerk' });
+    roles.push({ id: UserRoleEnum.VIEWER, name: 'Viewer' }); 
     return roles;
   }
 

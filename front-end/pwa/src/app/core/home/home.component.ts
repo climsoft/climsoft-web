@@ -142,7 +142,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private setAllowedNavigationLinks(role: UserRoleEnum): void {
     // TODO. Change this implementation after changing the structure of the array
-    if (role !== UserRoleEnum.Administrator) {
+    if (role !== UserRoleEnum.ADMINISTRATOR) {
       this.featuresNavItems.splice(3, 1);
     }
 

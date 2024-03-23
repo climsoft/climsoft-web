@@ -6,20 +6,20 @@ export class SeedElementSubdomains1710833102997 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         const sql = `
-        INSERT INTO element_subdomains (id, name, domain) VALUES 
+        INSERT INTO element_subdomains (id, name,description, domain) VALUES 
         
-        (1, 'Surface', 'Atmosphere' ),
-        (2, 'Upper-air', 'Atmosphere'),
-        (3, 'Atmospheric Composition', 'Atmosphere'),
+        (1, 'Surface', '', 'atmosphere' ),
+        (2, 'Upper-air', '', 'atmosphere'),
+        (3, 'Atmospheric Composition', '', 'atmosphere'),
 
-        (4, 'Hydrosphere', 'Land'),
-        (5, 'Cryosphere', 'Land'),
-        (6, 'Biosphere', 'Land'),
-        (7, 'Anthroposphere', 'Land'),
+        (4, 'Hydrosphere', '', 'land'),
+        (5, 'Cryosphere', '', 'land'),
+        (6, 'Biosphere', '', 'land'),
+        (7, 'Anthroposphere', '', 'land'),
 
-        (8, 'Physical', 'Ocean'),
-        (9, 'Biogeochemical', 'Ocean'),
-        (10, 'Biological/ecosystems', 'Ocean')
+        (8, 'Physical', '', 'ocean'),
+        (9, 'Biogeochemical', '', 'ocean'),
+        (10, 'Biological/ecosystems', '', 'ocean')
         `;
 
         await queryRunner.query(sql);

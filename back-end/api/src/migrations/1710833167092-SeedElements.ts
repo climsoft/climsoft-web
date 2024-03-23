@@ -1,6 +1,10 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
 
-// To create this migration just execute; npx typeorm migration:create src/migrations/SeedElements
+/**
+ * To create this migration just execute;
+ * npx typeorm migration:create src/migrations/SeedElements
+ */
+
+import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class SeedElements1710833167092 implements MigrationInterface {
 
