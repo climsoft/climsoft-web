@@ -171,7 +171,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       return { isValid: false, message: 'Invalid Flag' };
     }
 
-    if (value !== null && flagFound === 'M') {
+    if (value !== null && flagFound === FlagEnum.MISSING) {
       return { isValid: false, message: 'Invalid Flag, M is used for missing value ONLY' };
     }
 

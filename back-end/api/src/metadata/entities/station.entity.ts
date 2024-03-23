@@ -1,7 +1,9 @@
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
-import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObservationMethodEnum } from "../enums/station-observation-method.enum";
+import { StationObservationFocusEntity } from "./station-observation-focus.entity";
+import { StationObservationEnvironmentEntity } from "./station-observation-environment.entity";
 
 @Entity("stations")
 export class StationEntity extends BaseEntity {
@@ -16,19 +18,31 @@ export class StationEntity extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: true })
   location: string | null; //a GeoJSON. Polygon feature
-
+ 
   @Column({ type: 'float', nullable: true })
-  elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+  elevation: number | null;  // Elevation of station above mean sea level.
 
   @Column({ type: "enum", enum: StationObservationMethodEnum, name: "station_observation_method", nullable: true })
   @Index()
   stationObservationMethod: StationObservationMethodEnum | null;
 
+  //---------------
   @Column({ type: 'int', name: "station_obsevation_environment_id" })
   stationObsevationEnvironmentId: number | null;
 
+  @ManyToOne(() => StationObservationEnvironmentEntity, { nullable: true, onDelete: "SET NULL" }) // This makes the relationship itself nullable
+  @JoinColumn({ name: "station_obsevation_environment_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
+  stationObsevationEnvironment: StationObservationEnvironmentEntity | null;
+ //---------------
+
+  //---------------
   @Column({ type: 'int', name: "station_obsevation_focus_id", nullable: true })
   stationObservationFocusId: number | null;
+
+  @ManyToOne(() => StationObservationFocusEntity, { nullable: true, onDelete: "SET NULL" }) // This makes the relationship itself nullable
+  @JoinColumn({ name: "station_obsevation_focus_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
+  stationObsevationFocus: StationObservationFocusEntity | null;
+ //---------------
 
   //TODO. implement based on koppen climate classification.
   @Column({ type: "int", name: "climate_zone_id", nullable: true })

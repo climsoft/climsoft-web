@@ -3,15 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { StationEntity, StationLogVo } from '../entities/station.entity';
 import { CreateStationDto } from '../dtos/create-station.dto';
-import { SourcesService } from './sources.service'; 
-import { ObjectUtils } from 'src/shared/utils/object.util'; 
+import { SourcesService } from './sources.service';
+import { ObjectUtils } from 'src/shared/utils/object.util';
 
 @Injectable()
 export class StationsService {
 
     constructor(
-        @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>, 
-      
+        @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
+
         private readonly sourcesService: SourcesService,
     ) { }
 
@@ -48,15 +48,7 @@ export class StationsService {
                 id: createStationDto.id,
             });
 
-            if (stationEntity) {
-                const oldChanges: StationLogVo = this.getStationLogFromEntity(stationEntity);
-                const newChanges: StationLogVo = this.getStationLogFromDto(createStationDto, userId);
-
-                //if no changes, then no need to save
-                if (ObjectUtils.areObjectsEqual<StationLogVo>(oldChanges, newChanges, ["entryUserId","entryDateTime"])) {
-                    continue;
-                }
-            } else {
+            if (!stationEntity) {
                 stationEntity = this.stationRepo.create({
                     id: createStationDto.id,
                 });
@@ -69,36 +61,17 @@ export class StationsService {
         return this.stationRepo.save(stationEntities);
     }
 
-    private getStationLogFromEntity(entity: StationEntity): StationLogVo {
-        return {
-            name: entity.name,
-            description: entity.description,
-            comment: entity.comment,
-            entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime.toISOString()
-        };
-    }
-
-    private getStationLogFromDto(dto: CreateStationDto, userId: number): StationLogVo {
-        return {
-            name: dto.name,
-            description: dto.description,
-            comment: dto.comment,
-            entryUserId: userId,
-            entryDateTime: new Date().toISOString()
-        };
-    }
 
     private updateStationEntity(entity: StationEntity, dto: CreateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        entity.entryDateTime =new Date();
-        entity.log = ObjectUtils.getNewLog<StationLogVo>(entity.log, this.getStationLogFromEntity(entity));
+        entity.entryDateTime = new Date();
+        entity.log = null;
     }
 
-  
+
 
 
 }
