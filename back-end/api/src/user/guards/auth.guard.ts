@@ -34,7 +34,7 @@ export class AuthGuard implements CanActivate {
     const isAdmin = this.reflector.get(IS_ADMIN_KEY, context.getHandler());
     const user: LoggedInUserModel | null = AuthUtil.getSessionUser(context.switchToHttp().getRequest<Request>())
 
-    return user && isAdmin?  user.role === UserRoleEnum.Administrator : !!user;
+    return user && isAdmin?  user.role === UserRoleEnum.ADMINISTRATOR : !!user;
 
   }
 }

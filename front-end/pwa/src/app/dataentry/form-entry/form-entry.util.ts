@@ -1,4 +1,4 @@
-import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
+import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { EntryType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
@@ -94,9 +94,9 @@ export class FormEntryUtil {
       sourceId: formFilter.sourceId,
       elementId: 0, elevation: 0,
       datetime: '',
-      value: null, flag: null, 
+      value: null, flag: null,
       period: formFilter.period,
-      comment: null, 
+      comment: null,
     };
 
     //set other fields
@@ -147,7 +147,7 @@ export class FormEntryUtil {
     }
 
     //set datetime from date time variables. year-month-day hour. 
-    entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1]-1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
+    entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
 
     return entryObservation;
   }
@@ -174,7 +174,7 @@ export class FormEntryUtil {
 
   public static getScaledValue(element: ViewElementModel, unscaledValue: number): number {
     // To remove rounding errors use Math.floor()
-    return element.entryScaleFactor ? Math.floor(unscaledValue * element.entryScaleFactor)  : unscaledValue;
+    return element.entryScaleFactor ? Math.floor(unscaledValue * element.entryScaleFactor) : unscaledValue;
   }
 
   public static getTotal(entryObservations: CreateObservationModel[], elements: ViewElementModel[]): number | null {
@@ -216,14 +216,22 @@ export class FormEntryUtil {
   // TODO. move later to shared code
   public static checkFlagValidity(inputFlag: string | null): FlagEnum | null {
     // Early return for null input
-    if (inputFlag === null) {
+    if (inputFlag === null || inputFlag === '') {
       return null;
     }
-  
+
+    // TODO. Test and optimise this
+    const flags: FlagEnum[] = Object.values<FlagEnum>(FlagEnum);
+    for (const f of flags) {
+      if (inputFlag[0].toLowerCase() === f[0].toLowerCase()) {
+        return f;
+      }
+    }
+
     // Check if inputFlagId is a valid FlagEnum key
-    return Object.values<FlagEnum>(FlagEnum).includes(inputFlag.toUpperCase() as FlagEnum) ? inputFlag as FlagEnum : null;
+    return null;
   }
-  
+
 
 
 }

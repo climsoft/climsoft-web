@@ -34,7 +34,7 @@ export class AuthUtil {
 
     public static sessionUserIsAdmin(request: Request): boolean {
         const user = AuthUtil.getSessionUser(request);
-        return user ? user.role === UserRoleEnum.Administrator : false;
+        return user ? user.role === UserRoleEnum.ADMINISTRATOR : false;
     }
 
     public static getLoggedInUserId(request: Request): number  {

@@ -297,7 +297,7 @@ export class ObservationsService {
         entity.period = dto.period;
         entity.value = dto.value;
         entity.flag = dto.flag;
-        entity.qcStatus = QCStatusEnum.NoQCTestsDone;
+        entity.qcStatus = QCStatusEnum.NO_QC_TESTS_DONE;
         entity.comment = dto.comment;
         entity.final = false;
         entity.entryUserId = userId;

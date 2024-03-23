@@ -20,17 +20,21 @@ import { StationElementsService } from './services/station-element.service';
 import { StationElementsController } from './controllers/station-elements.controller';
 import { StationFormsController } from './controllers/station-forms.controller';
 import { StationFormsService } from './services/station-forms.service';
+import { StationObservationEnvironmentEntity } from './entities/station-observation-environment.entity';
+import { StationObservationFocusEntity } from './entities/station-observation-focus.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([ 
-        SourceEntity,
-        StationEntity, 
         ElementSubdomainEntity,
         ElementTypeEntity,
         ElementEntity,
+        SourceEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
-        StationElementEntity,
+        StationObservationEnvironmentEntity,
+        StationObservationFocusEntity,
+        StationEntity,      
+        StationElementEntity,        
         StationFormEntity,
     ]), UserModule],
     controllers: [ElementsController, SourcesController, StationsController, StationElementsController, StationFormsController],

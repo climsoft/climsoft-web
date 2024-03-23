@@ -33,7 +33,7 @@ export class ObservationEntity extends BaseEntity {
   @Column({ type: "enum", enum: FlagEnum, nullable: true })
   flag: FlagEnum | null;
 
-  @Column({ type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NoQCTestsDone, name: "qc_status" })
+  @Column({ type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NO_QC_TESTS_DONE, name: "qc_status" })
   @Index()
   qcStatus: QCStatusEnum;
 

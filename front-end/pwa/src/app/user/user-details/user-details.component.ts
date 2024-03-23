@@ -37,13 +37,13 @@ export class UserDetailsComponent implements OnInit {
         this.user = data;
       });
     } else {
-      this.user = { name: "", email: "", phone: "", role: UserRoleEnum.Administrator, authorisedStationIds: null, extraMetadata: null, disabled: false };
+      this.user = { name: "", email: "", phone: "", role: UserRoleEnum.ADMINISTRATOR, authorisedStationIds: null, extraMetadata: null, disabled: false };
     }
 
   }
 
   protected get userRoleIsNotAdmin(){
-    return this. user.role!== UserRoleEnum.Administrator
+    return this. user.role!== UserRoleEnum.ADMINISTRATOR
   }
 
   protected onRoleSelection(role: UserRoleEnum | null): void {

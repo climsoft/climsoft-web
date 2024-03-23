@@ -1,5 +1,5 @@
 export enum ElementDomainEnum {
-    Atmosphere = "Atmosphere",
-    Land = "Land",
-    Ocean = "Ocean",
+    ATMOSPHERE = "atmosphere",
+    LAND = "land",
+    OCEAN = "ocean",
 }
