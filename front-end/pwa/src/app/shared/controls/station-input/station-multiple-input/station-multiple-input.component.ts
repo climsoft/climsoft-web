@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { StationModel } from 'src/app/core/models/station.model';
+import { CreateUpdateStationModel } from 'src/app/core/models/create-update-station.model';
 import { ElementsService } from 'src/app/core/services/elements.service';
 import { StationsService } from 'src/app/core/services/stations.service';
 
@@ -17,8 +17,8 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
   @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
-  protected options!: StationModel[];
-  protected selectedOptions: StationModel[] = [];
+  protected options!: CreateUpdateStationModel[];
+  protected selectedOptions: CreateUpdateStationModel[] = [];
 
   constructor(private stationsSevice: StationsService) {
 
@@ -50,11 +50,11 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: StationModel): string {
+  protected optionDisplayFunction(option: CreateUpdateStationModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: StationModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: CreateUpdateStationModel[]) {
 
     this.selectedIds.length = 0;
     for (const option of selectedOptions) {

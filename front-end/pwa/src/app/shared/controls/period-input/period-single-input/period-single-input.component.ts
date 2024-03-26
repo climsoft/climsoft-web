@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
 
 interface Period {
   id: number;
@@ -10,7 +10,7 @@ interface Period {
   templateUrl: './period-single-input.component.html',
   styleUrls: ['./period-single-input.component.scss']
 })
-export class PeriodSingleInputComponent {
+export class PeriodSingleInputComponent  implements OnInit, OnChanges  {
   @Input() public label: string = 'Period';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];

@@ -20,16 +20,16 @@ export class ElementsService {
             findOptions.where = { id: In(ids) };
         }
 
-        const elementEntities = await this.elementRepo.find(findOptions);
+        const entities = await this.elementRepo.find(findOptions);
 
-        return elementEntities.map(elementEntity => {
-            return this.createViewElementDto(elementEntity);
+        return entities.map(entity => {
+            return this.createViewDto(entity);
         });
     }
 
     public async findElement(id: number): Promise<ViewElementDto> {
         const elementEntity: ElementEntity = await this.getElementEntity(id);
-        return this.createViewElementDto(elementEntity);
+        return this.createViewDto(elementEntity);
     }
 
     public async saveElement(id: number, updateElementDto: UpdateElementDto, userId: number): Promise<ViewElementDto> {
@@ -43,7 +43,7 @@ export class ElementsService {
             await this.elementRepo.save(elementEntity);
         }
 
-        return this.createViewElementDto(elementEntity);
+        return this.createViewDto(elementEntity);
 
     }
 
@@ -99,20 +99,20 @@ export class ElementsService {
         return elementEntity;
     }
 
-    private createViewElementDto(elementEntity: ElementEntity): ViewElementDto {
+    private createViewDto(entity: ElementEntity): ViewElementDto {
         return {
-            id: elementEntity.id,
-            abbreviation: elementEntity.abbreviation,
-            name: elementEntity.name,
-            description: elementEntity.description,
-            units: elementEntity.units,
-            type: elementEntity.elementType.name,
-            subdomain: elementEntity.elementType.elementSubdomain.name,
-            domain: elementEntity.elementType.elementSubdomain.domain,
-            lowerLimit: elementEntity.lowerLimit,
-            upperLimit: elementEntity.upperLimit,
-            entryScaleFactor: elementEntity.entryScaleFactor,
-            comment: elementEntity.comment,
+            id: entity.id,
+            abbreviation: entity.abbreviation,
+            name: entity.name,
+            description: entity.description,
+            units: entity.units,
+            type: entity.elementType.name,
+            subdomain: entity.elementType.elementSubdomain.name,
+            domain: entity.elementType.elementSubdomain.domain,
+            lowerLimit: entity.lowerLimit,
+            upperLimit: entity.upperLimit,
+            entryScaleFactor: entity.entryScaleFactor,
+            comment: entity.comment,
         }
     }
 

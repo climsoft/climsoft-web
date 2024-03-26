@@ -14,7 +14,6 @@ export class StationElementsService {
 
   constructor(private http: HttpClient) { }
 
-
   public getStationElements(stationId: string): Observable<ViewElementModel[]> {
     const url = `${this.endPointUrl}/elements/${stationId}`;
     return this.http.get<ViewElementModel[]>(url)

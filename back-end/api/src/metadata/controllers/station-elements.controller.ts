@@ -3,7 +3,7 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { StationElementsService } from '../services/station-element.service';
+import { StationElementsService } from '../services/station-elements.service';
 import { StationElementLimit } from '../entities/station-element.entity';
 
 @Controller('station-elements')

@@ -32,9 +32,13 @@ import { SourceSingleInputComponent } from './controls/source-input/source-singl
 import { StationSingleInputComponent } from './controls/station-input/station-single-input/station-single-input.component';
 import { StationMultipleInputComponent } from './controls/station-input/station-multiple-input/station-multiple-input.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
+import { StationObsMethodSingleInputComponent } from './controls/station-obs-method-input/station-obs-method-single-input/station-obs-method-single-input.component';
+import { StationObsEnvironmentSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-environment-single-input.component';
+import { StationObservationFocusSingleInputComponent } from './controls/station-obs-focus-input/station-obs-focus-single-input/station-obs-focus-single-input.component';
+import { StationStatusSingleInputComponent } from './controls/station-status-input/station-status-single-input/station-status-single-input.component';
 
 //--------------------------------
-
+  
 const angularModules = [
   CommonModule,
   ReactiveFormsModule,
@@ -75,7 +79,10 @@ const controlsComponents = [
 
   StationSingleInputComponent,
   StationMultipleInputComponent,
-
+  StationObsMethodSingleInputComponent,
+  StationObsEnvironmentSingleInputComponent,
+  StationObservationFocusSingleInputComponent,
+  StationStatusSingleInputComponent,
 
 
 ];
@@ -89,7 +96,6 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
-  
    
   
   
@@ -105,8 +111,6 @@ const directives = [
     ...angularModules,
     ...controlsComponents,
     ...directives,
-
-
 
   ]
 })

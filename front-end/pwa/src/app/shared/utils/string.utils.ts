@@ -1,7 +1,7 @@
 export class StringUtils {
 
 
-    static isNullOrEmpty(input: string | null, trimWhiteSpace?: boolean) {
+    public static isNullOrEmpty(input: string | null, trimWhiteSpace?: boolean) {
         if (input === null) {
             return true;
         }
@@ -12,14 +12,14 @@ export class StringUtils {
     }
 
 
-    static containsNumbersOnly(input: string): boolean {
+    public static containsNumbersOnly(input: string): boolean {
         // Regular expression to match numeric, decimal, negative, or positive numbers
         const regex = /^[-+]?\d+(\.\d+)?$/;
         // Test the input against the pattern
         return regex.test(input);
     }
 
-    static doesNotContainNumericCharacters(inputString: string): boolean {
+    public static doesNotContainNumericCharacters(inputString: string): boolean {
         // Use a regular expression to check if the string contains only non-numeric characters
         const regex = /^[^0-9]*$/;
 
@@ -27,14 +27,14 @@ export class StringUtils {
         return regex.test(inputString);
     }
 
-    static containsStringBetweenNumbers(input: string): boolean {
+    public static containsStringBetweenNumbers(input: string): boolean {
         // Define a regular expression pattern to match digits followed by a letter, followed by digits
         const pattern = /\d+[A-Za-z]+\d+/;
         // Use the test method of the regular expression to check if the input matches the pattern
         return pattern.test(input);
     }
 
-    static containsNumbersAndTrailingNonNumericCharactersOnly(input: string): boolean {
+    public static containsNumbersAndTrailingNonNumericCharactersOnly(input: string): boolean {
         // Regular expression to match valid numbers with optional decimal part and optional trailing non-numeric characters
         const regex = /^[-+]?(\d+(\.\d*)?|\.\d+)([a-zA-Z]*)?$/;
 
@@ -42,7 +42,7 @@ export class StringUtils {
         return regex.test(input);
     }
 
-    static splitNumbersAndTrailingNonNumericCharactersOnly(input: string): [number | null, string | null] {
+    public static splitNumbersAndTrailingNonNumericCharactersOnly(input: string): [number | null, string | null] {
         const extractedNumberString: [number | null, string | null] = [null, null];
 
         // Regular expression to match numbers with optional decimal points
@@ -57,11 +57,18 @@ export class StringUtils {
         return extractedNumberString;
     }
 
-    static addLeadingZero(num: number): string {
+    public static addLeadingZero(num: number): string {
         // Check if the number is a single digit (between 0 and 9)
         // If the number is not a single digit, convert it to a string without adding a leading '0'
         return num >= 0 && num <= 9 ? `0${num}` : num.toString();
     }
+
+    public static capitalizeFirstLetter(str: string): string {
+        return str? str[0].toUpperCase() + str.slice(1) : "";
+    }
+
+
+
 
 
 }

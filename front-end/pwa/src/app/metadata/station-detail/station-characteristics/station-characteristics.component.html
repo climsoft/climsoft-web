@@ -1,0 +1,72 @@
+<div *ngIf="station">
+  <div class="d-flex justify-content-end">
+    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+      (click)="dlgEdit.openDialog(station.id)">Edit</button>
+    <app-station-characteristics-edit-dialog #dlgEdit (ok)="onStationEdited()" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Id'" [value]="station.id" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Name'" [value]="station.name" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Description'" [value]="station.description" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Longitude'" [value]="station.location.x" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Latitude'" [value]="station.location.y" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Elevation'" [value]="station.elevation" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Method'" [value]="station.stationObsMethod" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Environment'" [value]="station.stationObsEnvironmentName" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Focus'" [value]="station.stationObsFocusName" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'WMO ID'" [value]="station.wmoId" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'WIGOS ID'" [value]="station.wigosId" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'ICAO ID'" [value]="station.icaoId" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Status'" [value]="station.status" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Date Established'" [value]="station.dateEstablished" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Date Closed'" [value]="station.dateClosed" />
+  </div>
+
+  <div class="mb-3">
+    <app-label-input [label]="'Comment'" [value]="station.comment" />
+  </div>
+
+</div>

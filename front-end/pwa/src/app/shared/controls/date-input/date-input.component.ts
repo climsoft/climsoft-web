@@ -29,6 +29,10 @@ export class DateInputComponent implements OnInit, OnChanges {
    
   }
   protected onValueChange(value: string) {
+    
+    // TODO. Think of also emitting an actual date time
+    console.log("emit value",value)
+
     if(value){
       this.valueChange.emit(value);
     }else{
@@ -38,6 +42,7 @@ export class DateInputComponent implements OnInit, OnChanges {
   }
 
   protected onInputClick(): void {
+   
     this.inputClick.emit(this.value);
   }
   protected onEnterKeyPressed() {

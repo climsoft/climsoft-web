@@ -5,16 +5,14 @@
       <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
         Search
       </button>
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewStationClick()">
-        New
-      </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="dlgEdit.openDialog()">New</button>
+      <app-station-characteristics-edit-dialog #dlgEdit  (ok)="onNewStationAddedClick()" />
     </div>
   </div>
 
   <div class="card-body px-0">
-    <app-table-view [clickable]="true"
-      [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]" [rowsData]="stations"
-      (rowDataClicked)="onEditStationClick($event)"></app-table-view>
+    <app-table-view [clickable]="true" [columnsData]="[ {id: 'id', name: 'Id'}, {id: 'name', name: 'Name'} ]"
+      [rowsData]="stations" (rowDataClicked)="onEditStationClick($event)"></app-table-view>
   </div>
 
 </div>

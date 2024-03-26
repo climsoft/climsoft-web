@@ -10,10 +10,11 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ElementsComponent } from './elements/elements.component';
-import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
+import { StationCharacteristicsComponent } from './station-detail/station-characteristics/station-characteristics.component';
 import { StationFormsComponent } from './station-detail/station-forms/station-forms.component';
 import { StationLimitsComponent } from './station-detail/station-limits/station-limits.component';
 import { SourcesComponent } from './sources/sources.component';
+import { StationCharacteristicsEditDialogComponent } from './station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { SourcesComponent } from './sources/sources.component';
     StationCharacteristicsComponent,
     StationFormsComponent,
     StationLimitsComponent,
+    StationCharacteristicsEditDialogComponent,
  
   ],
   imports: [

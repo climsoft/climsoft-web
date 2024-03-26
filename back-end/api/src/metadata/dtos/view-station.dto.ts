@@ -1,22 +1,6 @@
-import { IsDate, IsString } from 'class-validator';
+import { CreateUpdateStationDto } from './create-update-station.dto';
 
-export class ViewStationDto {
-    @IsString()
-    id: string;
-
-    @IsString()
-    name: string;
-
-    @IsString()
-    description: string;
-
-    @IsString()
-    comment: string | null;
-
-    @IsString()
-    entryUserId: string;
-
-    @IsDate()
-    entryDateTime: string;
-
+export class ViewStationDto extends CreateUpdateStationDto {
+    stationObsEnvironmentName: string | null;
+    stationObsFocusName: string | null;
 }

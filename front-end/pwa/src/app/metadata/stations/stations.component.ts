@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { StationModel } from '../../core/models/station.model';
+import { CreateUpdateStationModel } from '../../core/models/create-update-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { ViewStationModel } from 'src/app/core/models/view-station.model';
 
 @Component({
   selector: 'app-stations',
@@ -11,7 +12,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class StationsComponent implements OnInit {
 
-  stations!: StationModel[];
+  stations!: ViewStationModel[];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -21,10 +22,7 @@ export class StationsComponent implements OnInit {
 
     this.pagesDataService.setPageHeader('Stations Metadata');
 
-    this.stationsService.getStations().subscribe(data => {
-      this.stations = data;
-    });
-
+    this.loadStations();
 
   }
 
@@ -33,12 +31,18 @@ export class StationsComponent implements OnInit {
 
   protected onSearchClick() { }
 
-  protected onNewStationClick() {
-    this.router.navigate(["station-characteristics", "new"], { relativeTo: this.route.parent });
+  protected onNewStationAddedClick() {
+    this.loadStations();
   }
 
-  protected onEditStationClick(station: StationModel) {
+  protected onEditStationClick(station: CreateUpdateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
+  }
+
+  private loadStations(): void {
+    this.stationsService.getStations().subscribe(data => {
+      this.stations = data;
+    });
   }
 
 

@@ -1,5 +1,5 @@
 <div class="position-relative w-100" appCloseDropDown (closeDropdown)="closeDropdown()">
-  <label *ngIf="label" [for]="id? id:label">{{ label }}</label>
+  <label *ngIf="label" [for]="id? id:label">{{ label + ':' }}</label>
   <div [class.input-group]="includeDropDownOption || includeCancelOption">
 
     <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"

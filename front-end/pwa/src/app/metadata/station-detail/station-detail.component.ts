@@ -1,13 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
-import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
-import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
-import { StationModel } from 'src/app/core/models/station.model';
+import { CreateUpdateStationModel } from 'src/app/core/models/create-update-station.model';
+import { ViewStationModel } from 'src/app/core/models/view-station.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 
 @Component({
@@ -17,7 +13,8 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 })
 export class StationDetailComponent implements OnInit {
 
-  protected station!: StationModel;
+ // protected station!: ViewStationModel;
+  protected stationId!: string;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -30,16 +27,16 @@ export class StationDetailComponent implements OnInit {
 
   ngOnInit() {
 
-    const stationId = this.route.snapshot.params['id'];
-
-    this.stationsService.getStationCharacteristics(stationId).subscribe((data) => {
-      this.station = data;
-    });
+    this.stationId = this.route.snapshot.params['id'];
+ 
+    // this.stationsService.getStationCharacteristics(stationId).subscribe((data) => {
+    //   this.station = data;
+    // });
 
   }
 
-  protected onEditCharacteristics(): void {
-    this.router.navigate(["station-characteristics", this.station.id], { relativeTo: this.route.parent });
+  protected onDeleteStation(): void {
+    //this.router.navigate(["station-characteristics", this.station.id], { relativeTo: this.route.parent });
   }
 
   

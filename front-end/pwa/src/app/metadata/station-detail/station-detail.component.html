@@ -1,26 +1,21 @@
-<div *ngIf="station" class="card border-0">
+<div *ngIf="stationId" class="card border-0">
     <div class="card-body p-0">
 
-        <div class="card-title fw-bold">Showing station details</div>
+        <div class="card-title fw-bold d-flex justify-content-between">
+            <div>Showing station details</div>
+            <div>
+                <button type="button" class="btn btn-sm btn-outline-secondary"
+                    (click)="onDeleteStation()">Delete</button>
+            </div>
+        </div>
 
         <!-- characteristics -->
         <div class="card border-0">
             <div class="card-header px-0 fw-bold">
                 <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
-            <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
-                <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-sm btn-outline-secondary"
-                        (click)="onEditCharacteristics()">Edit</button>
-                </div>
-
-                <div class="mb-1">
-                    <app-label-input [label]="'Id'" [value]="station.id" />
-                </div>
-                <div class="mb-1">
-                    <app-label-input [label]="'Name'" [value]="station.name" />
-                </div>
-
+            <div class="card-body  px-0" *ngIf="characteristicsToggle.open">
+                <app-station-characteristics [stationId]="stationId" />
             </div>
         </div>
         <!-- /end characteristics -->
@@ -30,8 +25,8 @@
             <div class="card-header px-0 fw-bold">
                 <app-toggle-chevron #elementsToggle>Elements</app-toggle-chevron>
             </div>
-            <div *ngIf="elementsToggle.open">
-                <app-station-limits [stationId]="station.id" />
+            <div class="card-body  px-0" *ngIf="elementsToggle.open">
+                <app-station-limits [stationId]="stationId" />
             </div>
         </div>
         <!-- end elements -->
@@ -41,8 +36,8 @@
             <div class="card-header px-0 fw-bold">
                 <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>
-            <div *ngIf="formsToggle.open">
-                <app-station-forms [stationId]="station.id" />
+            <div class="card-body  px-0" *ngIf="formsToggle.open">
+                <app-station-forms [stationId]="stationId" />
             </div>
         </div>
         <!-- end forms -->

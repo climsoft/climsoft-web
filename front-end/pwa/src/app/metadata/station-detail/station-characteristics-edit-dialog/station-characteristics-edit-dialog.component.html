@@ -1,0 +1,72 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" (okClick)="onOkClick()">
+    <div *ngIf="station">
+        <div class="mb-3">
+            <app-text-input [label]="'Id'" [(value)]="station.id" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'Name'" [(value)]="station.name" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'Description'" [(value)]="station.description" />
+        </div>
+
+        <div class="mb-3">
+            <app-number-input [label]="'Longitude'" [value]="station.location.x"
+                (valueChange)="onLongitudeChange($event)" />
+        </div>
+
+        <div class="mb-3">
+            <app-number-input [label]="'Latitude'" [value]="station.location.y"
+                (valueChange)="onLatitudeChange($event)" />
+        </div>
+
+        <div class="mb-3">
+            <app-number-input [label]="'Elevation'" [value]="station.elevation"
+                (valueChange)="onElevationChange($event)" />
+        </div>
+
+        <div class="mb-3">
+            <app-station-obs-method-single-input [selectedId]="station.stationObsMethod"
+                (selectedIdChange)="onStationObsChange($event)" />
+        </div>
+
+        <div class="mb-3">
+            <app-station-obs-environment-single-input [(selectedId)]="station.stationObsEnvironmentId" />
+        </div>
+
+        <div class="mb-3">
+            <app-station-obs-focus-single-input [(selectedId)]="station.stationObsFocusId" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'WMO ID'" [(value)]="station.wmoId" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'WIGOS ID'" [(value)]="station.wigosId" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'ICAO ID'" [(value)]="station.icaoId" />
+        </div>
+
+        <div class="mb-3">
+            <app-station-status-single-input [(selectedId)]="station.status"></app-station-status-single-input>
+        </div>
+
+        <div class="mb-3">
+            <app-date-input [label]="'Date Established'" [(value)]="station.dateEstablished" />
+        </div>
+
+        <div class="mb-3">
+            <app-date-input [label]="'Date Closed'" [(value)]="station.dateClosed" />
+        </div>
+
+        <div class="mb-3">
+            <app-text-input [label]="'Comment'" [(value)]="station.comment" />
+        </div>
+
+    </div>
+</app-dialog>
