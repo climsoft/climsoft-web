@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { StationModel } from '../models/station.model';  
+import { CreateUpdateStationModel } from '../models/create-update-station.model';  
+import { ViewStationModel } from '../models/view-station.model';
 
 @Injectable({
   providedIn: 'root'
@@ -13,37 +14,39 @@ export class StationsService {
 
   constructor(private http: HttpClient) { }
 
- public getStations(stationIds?: string[]): Observable<StationModel[]> {
+ public getStations(stationIds?: string[]): Observable<ViewStationModel[]> {
     let params: HttpParams = new HttpParams();
 
     if (stationIds && stationIds.length > 0) {
       params = params.set('ids', stationIds.join(','));
     }
 
-    return this.http.get<StationModel[]>(this.endPointUrl, { params: params })
+    return this.http.get<ViewStationModel[]>(this.endPointUrl, { params: params })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getStationCharacteristics(stationId: string): Observable<StationModel> {
+  public getStationCharacteristics(stationId: string): Observable<ViewStationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
-    return this.http.get<StationModel>(url)
+    return this.http.get<ViewStationModel>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public saveStationCharacteristics(station: StationModel[]): Observable<StationModel[]> {
-    return this.http.post<StationModel[]>(this.endPointUrl, station)
+  public saveStationCharacteristics(station: CreateUpdateStationModel): Observable<ViewStationModel> {
+    console.log("saving station: ", station);
+
+    return this.http.post<ViewStationModel>(this.endPointUrl, station)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public delete(stationId: number): Observable<StationModel> {
+  public delete(stationId: number): Observable<ViewStationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
-    return this.http.delete<StationModel>(url)
+    return this.http.delete<ViewStationModel>(url)
       .pipe(
         catchError(this.handleError)
       );

@@ -1,6 +1,6 @@
-import { Body, Controller, Get, Param, ParseArrayPipe, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
-import { CreateStationDto } from '../dtos/create-station.dto';
+import { CreateUpdateStationDto } from '../dtos/create-update-station.dto';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
@@ -27,8 +27,8 @@ export class StationsController {
   @Post()
   saveCharacteristics(
     @Req() request: Request,
-    @Body(new ParseArrayPipe({ items: CreateStationDto })) stationDto: CreateStationDto[]) {
-    return this.stationsService.saveStations(stationDto, AuthUtil.getLoggedInUserId(request));
+    @Body() stationDto: CreateUpdateStationDto) {
+    return this.stationsService.saveStation(stationDto, AuthUtil.getLoggedInUserId(request));
   }
 
 }

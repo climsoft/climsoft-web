@@ -5,7 +5,6 @@ import { StationDetailComponent } from './station-detail/station-detail.componen
 import { ElementsComponent } from './elements/elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { FormDetailComponent } from './form-detail/form-detail.component';
-import { StationCharacteristicsComponent } from './station-characteristics/station-characteristics.component';
 import { SourcesComponent } from './sources/sources.component';
 
 
@@ -44,10 +43,6 @@ const routes: Routes = [
       {
         path: 'station-detail/:id',
         component: StationDetailComponent
-      },
-      {
-        path: 'station-characteristics/:id',
-        component: StationCharacteristicsComponent
       },
      
     ]

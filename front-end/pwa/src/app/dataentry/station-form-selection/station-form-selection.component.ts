@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { StationModel } from '../../core/models/station.model';
+import { CreateUpdateStationModel } from '../../core/models/create-update-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/core/services/station-forms.service'; 
 import { ViewSourceModel } from 'src/app/core/models/view-source.model';
 
-export interface StationView extends StationModel {
+export interface StationView extends CreateUpdateStationModel {
   forms?: ViewSourceModel[];
 }
 

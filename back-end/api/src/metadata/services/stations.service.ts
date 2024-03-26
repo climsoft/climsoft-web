@@ -1,21 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { StationEntity, StationLogVo } from '../entities/station.entity';
-import { CreateStationDto } from '../dtos/create-station.dto';
-import { SourcesService } from './sources.service';
-import { ObjectUtils } from 'src/shared/utils/object.util';
+import { CreateUpdateStationDto } from '../dtos/create-update-station.dto';
+import { ViewStationDto } from '../dtos/view-station.dto';
 
 @Injectable()
 export class StationsService {
 
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
-
-        private readonly sourcesService: SourcesService,
     ) { }
 
-    async findStations(ids?: string[]) {
+    public async findStations(ids?: string[]): Promise<ViewStationDto[]> {
         const findOptions: FindManyOptions<StationEntity> = {
             order: {
                 id: "ASC"
@@ -26,49 +23,85 @@ export class StationsService {
             findOptions.where = { id: In(ids) };
         }
 
-        return this.stationRepo.find(findOptions);
+        const entities = await this.stationRepo.find(findOptions);
+
+        return entities.map(entity => {
+            return this.createViewDto(entity);
+        });
+
     }
 
-    async findStation(id: string) {
-        const station = await this.stationRepo.findOneBy({
+    public async findStation(id: string): Promise<ViewStationDto> {
+        const entity = await this.stationRepo.findOneBy({
             id: id,
         });
 
-        if (!station) {
+        if (!entity) {
             throw new NotFoundException(`Station #${id} not found`);
         }
-        return station;
+        return this.createViewDto(entity);
     }
 
-    async saveStations(createStationDtos: CreateStationDto[], userId: number) {
-        const stationEntities: StationEntity[] = [];
+    public async saveStation(createStationDto: CreateUpdateStationDto, userId: number): Promise<ViewStationDto> {
 
-        for (const createStationDto of createStationDtos) {
-            let stationEntity = await this.stationRepo.findOneBy({
+        let stationEntity: StationEntity | null = await this.stationRepo.findOneBy({
+            id: createStationDto.id,
+        });
+
+        if (!stationEntity) {
+            stationEntity = this.stationRepo.create({
                 id: createStationDto.id,
             });
-
-            if (!stationEntity) {
-                stationEntity = this.stationRepo.create({
-                    id: createStationDto.id,
-                });
-            }
-
-            this.updateStationEntity(stationEntity, createStationDto, userId);
-            stationEntities.push(stationEntity);
         }
 
-        return this.stationRepo.save(stationEntities);
+        this.updateStationEntity(stationEntity, createStationDto, userId);
+
+        return this.createViewDto(await this.stationRepo.save(stationEntity));
     }
 
 
-    private updateStationEntity(entity: StationEntity, dto: CreateStationDto, userId: number): void {
+    private updateStationEntity(entity: StationEntity, dto: CreateUpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
+        entity.location = dto.location;
+        entity.elevation = dto.elevation;
+        entity.stationObsMethod = dto.stationObsMethod;
+        entity.stationObsEnvironmentId = dto.stationObsEnvironmentId;
+        entity.stationObsFocusId = dto.stationObsFocusId;
+        entity.wmoId = dto.wmoId;
+        entity.wigosId = dto.wigosId;
+        entity.icaoId = dto.icaoId;
+        entity.status = dto.status;
+        entity.dateEstablished = dto.dateEstablished ? new Date(dto.dateEstablished) : null;
+        entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
         entity.entryDateTime = new Date();
         entity.log = null;
+    }
+
+    private createViewDto(entity: StationEntity): ViewStationDto {
+        //TODO. For some reason, typeorm sets this to x and y when retrieving Point. Investigate why.
+        
+        return {
+            id: entity.id,
+            name: entity.name,
+            description: entity.description,
+            location: entity.location,
+            elevation: entity.elevation,
+            stationObsMethod: entity.stationObsMethod,
+            stationObsEnvironmentId: entity.stationObsEnvironmentId,
+            stationObsEnvironmentName: entity.stationObsEnvironment ? entity.stationObsEnvironment.name : null,
+            stationObsFocusId: entity.stationObsFocusId,
+            stationObsFocusName: entity.stationObsFocus ? entity.stationObsFocus.name : null,
+            wmoId: entity.wmoId,
+            wigosId: entity.wigosId,
+            icaoId: entity.icaoId,
+            status: entity.status,
+            dateEstablished: entity.dateEstablished ? entity.dateEstablished.toISOString() : null,
+            dateClosed: entity.dateClosed ? entity.dateClosed.toISOString() : null,
+            comment: entity.comment,
+        }
     }
 
 
