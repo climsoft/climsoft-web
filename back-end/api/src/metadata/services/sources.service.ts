@@ -64,7 +64,7 @@ export class SourcesService {
         return sources;
     }
 
-    public async findSource(id: number) {
+    public async findSource(id: number): Promise<SourceEntity> {
         const source = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -75,7 +75,7 @@ export class SourcesService {
         return source;
     }
 
-    public  async create(sourceDto: CreateUpdateSourceDto) {
+    public async create(sourceDto: CreateUpdateSourceDto) {
         //source entity will be created with an auto incremented id
         const source = this.sourceRepo.create({
             ...sourceDto,
@@ -85,17 +85,17 @@ export class SourcesService {
 
     public async updateSource(id: number, sourceDto: CreateUpdateSourceDto) {
         const source = await this.findSource(id);
-        
+
         //TODO. Implement logging?
         source.name = sourceDto.name;
         source.description = sourceDto.description;
         source.extraMetadata = sourceDto.extraMetadata;
         source.sourceType = sourceDto.sourceType
-         
+
         return this.sourceRepo.save(source);
     }
 
-    public  async deleteSource(id: number) {
+    public async deleteSource(id: number) {
         const source = await this.findSource(id);
         return this.sourceRepo.remove(source);
     }

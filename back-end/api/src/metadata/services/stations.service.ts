@@ -4,6 +4,7 @@ import { FindManyOptions, In, Repository } from 'typeorm';
 import { StationEntity, StationLogVo } from '../entities/station.entity';
 import { CreateUpdateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationDto } from '../dtos/view-station.dto';
+import { StringUtils } from 'src/shared/utils/string.utils';
 
 @Injectable()
 export class StationsService {
@@ -32,6 +33,11 @@ export class StationsService {
     }
 
     public async findStation(id: string): Promise<ViewStationDto> {
+        const entity = await this.findStationRaw(id);
+        return this.createViewDto(entity);
+    }
+
+    private async findStationRaw(id: string): Promise<StationEntity > {
         const entity = await this.stationRepo.findOneBy({
             id: id,
         });
@@ -39,7 +45,7 @@ export class StationsService {
         if (!entity) {
             throw new NotFoundException(`Station #${id} not found`);
         }
-        return this.createViewDto(entity);
+        return entity;
     }
 
     public async saveStation(createStationDto: CreateUpdateStationDto, userId: number): Promise<ViewStationDto> {
@@ -59,15 +65,20 @@ export class StationsService {
         return this.createViewDto(await this.stationRepo.save(stationEntity));
     }
 
+    public async deleteStation(id: string) {
+        const entity = await this.findStationRaw(id)
+        return this.stationRepo.remove(entity);
+    }
+
 
     private updateStationEntity(entity: StationEntity, dto: CreateUpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.location = dto.location;
         entity.elevation = dto.elevation;
-        entity.stationObsMethod = dto.stationObsMethod;
-        entity.stationObsEnvironmentId = dto.stationObsEnvironmentId;
-        entity.stationObsFocusId = dto.stationObsFocusId;
+        entity.obsProcessingMethod = dto.stationObsProcessingMethod;
+        entity.obsEnvironmentId = dto.stationObsEnvironmentId;
+        entity.obsFocusId = dto.stationObsFocusId;
         entity.wmoId = dto.wmoId;
         entity.wigosId = dto.wigosId;
         entity.icaoId = dto.icaoId;
@@ -80,20 +91,19 @@ export class StationsService {
         entity.log = null;
     }
 
-    private createViewDto(entity: StationEntity): ViewStationDto {
-        //TODO. For some reason, typeorm sets this to x and y when retrieving Point. Investigate why.
-        
+    private createViewDto(entity: StationEntity): ViewStationDto {      
         return {
             id: entity.id,
             name: entity.name,
             description: entity.description,
             location: entity.location,
             elevation: entity.elevation,
-            stationObsMethod: entity.stationObsMethod,
-            stationObsEnvironmentId: entity.stationObsEnvironmentId,
-            stationObsEnvironmentName: entity.stationObsEnvironment ? entity.stationObsEnvironment.name : null,
-            stationObsFocusId: entity.stationObsFocusId,
-            stationObsFocusName: entity.stationObsFocus ? entity.stationObsFocus.name : null,
+            stationObsProcessingMethod: entity.obsProcessingMethod,
+            stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod) ,
+            stationObsEnvironmentId: entity.obsEnvironmentId,
+            stationObsEnvironmentName: entity.obsEnvironment ? entity.obsEnvironment.name : null,
+            stationObsFocusId: entity.obsFocusId,
+            stationObsFocusName: entity.obsFocus ? entity.obsFocus.name : null,
             wmoId: entity.wmoId,
             wigosId: entity.wigosId,
             icaoId: entity.icaoId,

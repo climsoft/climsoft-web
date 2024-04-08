@@ -1,4 +1,4 @@
-import { StationObservationMethodEnum } from "./enums/station-observation-method.enum";
+import { StationObsProcessingMethodEnum } from "./enums/station-obs-Processing-method.enum";
 import { StationStatusEnum } from "./enums/station-status.enum";
 import { PointModel } from "./point.model";
 
@@ -8,7 +8,7 @@ export interface CreateUpdateStationModel {
   description: string;
   location: PointModel ; 
   elevation: number ;
-  stationObsMethod: StationObservationMethodEnum ;
+  stationObsProcessingMethod: StationObsProcessingMethodEnum ;
   stationObsEnvironmentId: number | null;
   stationObsFocusId: number | null; 
   wmoId: string | null; 

@@ -63,4 +63,8 @@ export class StringUtils {
         return value.split(',').map(str => str) ;
     }
 
+    public static capitalizeFirstLetter(str: string): string {
+        return str? str[0].toUpperCase() + str.slice(1) : "";
+    }
+
 }

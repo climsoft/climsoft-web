@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { CreateUpdateStationDto } from '../dtos/create-update-station.dto';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
@@ -29,6 +29,12 @@ export class StationsController {
     @Req() request: Request,
     @Body() stationDto: CreateUpdateStationDto) {
     return this.stationsService.saveStation(stationDto, AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Delete(':id')
+  public delete(@Param('id') id: string) {
+      return this.stationsService.deleteStation(id);
   }
 
 }

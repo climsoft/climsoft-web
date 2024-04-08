@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ViewStationModel } from 'src/app/core/models/view-station.model';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-stations',
@@ -40,11 +41,12 @@ export class StationsComponent implements OnInit {
   }
 
   private loadStations(): void {
-    this.stationsService.getStations().subscribe(data => {
+    this.stationsService.getStations().pipe(
+      take(1)
+    ).subscribe(data => {
       this.stations = data;
     });
   }
-
 
 
 }
