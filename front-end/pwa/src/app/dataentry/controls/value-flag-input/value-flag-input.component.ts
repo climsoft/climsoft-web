@@ -75,7 +75,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     //extract and set the value and flag
     const extractedNumberString = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
     const value: number | null = extractedNumberString[0];
-    const flagName: string | null = extractedNumberString[1] === null ? null : extractedNumberString[1].toUpperCase();
+    const flagLetter: string | null = extractedNumberString[1] === null ? null : extractedNumberString[1].toUpperCase();
 
     //if value input then do QC
     if (value !== null) {
@@ -86,8 +86,8 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     }
 
     //if flag input then validate
-    if (flagName !== null) {
-      this.validationResults = this.validateAndQCFlag(value, flagName);
+    if (flagLetter !== null) {
+      this.validationResults = this.validateAndQCFlag(value, flagLetter);
       if (!this.validationResults.isValid) {
         return;
       }
@@ -95,10 +95,10 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //set the value and flag
     this.observation.value = value === null ? null : this.getUnScaledValue(this.observation.elementId, value);
-    this.observation.flag = FormEntryUtil.checkFlagValidity(flagName);
+    this.observation.flag = FormEntryUtil.checkFlagValidity(flagLetter);
 
     //scale the value for display 
-    this.displayedValueFlag = this.getValueFlagForDisplay(value, flagName);
+    this.displayedValueFlag = this.getValueFlagForDisplay(value, this.observation.flag);
 
     // Emit data change event
     this.valueChange.emit(this.observation);
@@ -178,13 +178,13 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return { isValid: true, message: '' };
   }
 
-  private getValueFlagForDisplay(value: number | null, flag: string | null): string {
-    if (value === null && flag === null) {
+  private getValueFlagForDisplay(value: number | null, flagEnum: FlagEnum | null): string {
+    if (value === null && flagEnum === null) {
       return '';
     }
 
     const valueStr = value !== null ? value.toString() : '';
-    const flagStr = flag !== null ? flag : '';
+    const flagStr = flagEnum !== null ? flagEnum[0].toUpperCase() : '';
 
     return valueStr + flagStr;
   }

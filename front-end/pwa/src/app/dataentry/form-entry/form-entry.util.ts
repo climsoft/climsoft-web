@@ -5,6 +5,7 @@ import { ArrayUtils } from 'src/app/shared/utils/array.utils';
 import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
 import { QCStatusEnum } from 'src/app/core/models/enums/qc-status.enum';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 export interface EntryFormFilter {
   stationId: string;
@@ -48,12 +49,12 @@ export class FormEntryUtil {
     return fieldDefs;
   }
 
-  public static getEntryObservationsForLinearLayout(formFilter: EntryFormFilter, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[]): CreateObservationModel[] {
+  public static getEntryObservationsForLinearLayout(formFilter: EntryFormFilter, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[],  convertDateTimeToUTC: boolean): CreateObservationModel[] {
 
     const entryObservations: CreateObservationModel[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
 
-      const entryObservation: CreateObservationModel = FormEntryUtil.getEntryObservation(formFilter, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }])
+      const entryObservation: CreateObservationModel = FormEntryUtil.getEntryObservation(formFilter, [{ entryFieldProperty: entryFieldItem.fieldProperty, entryPropFieldValue: firstFieldValue }], convertDateTimeToUTC)
 
       entryObservations.push(FormEntryUtil.getExistingObservationIfItExists(dbObservations, entryObservation));
 
@@ -62,7 +63,7 @@ export class FormEntryUtil {
     return entryObservations;
   }
 
-  public static getEntryObservationsForGridLayout(formFilter: EntryFormFilter, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[]): CreateObservationModel[][] {
+  public static getEntryObservationsForGridLayout(formFilter: EntryFormFilter, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[][] {
 
     const entryObservations: CreateObservationModel[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
@@ -70,7 +71,7 @@ export class FormEntryUtil {
       for (const secondFieldValue of entryFieldItems[1].fieldValues) {
         const entryObservation: CreateObservationModel = this.getEntryObservation(formFilter,
           [{ entryFieldProperty: entryFieldItems[0].fieldProperty, entryPropFieldValue: firstFieldValue },
-          { entryFieldProperty: entryFieldItems[1].fieldProperty, entryPropFieldValue: secondFieldValue }]);
+          { entryFieldProperty: entryFieldItems[1].fieldProperty, entryPropFieldValue: secondFieldValue }], convertDateTimeToUTC);
 
         subArrEntryObservations.push(this.getExistingObservationIfItExists(dbObservations, entryObservation));
       }
@@ -87,7 +88,7 @@ export class FormEntryUtil {
     entryFields: [
       { entryFieldProperty: EntryType, entryPropFieldValue: number },
       { entryFieldProperty: EntryType, entryPropFieldValue: number }?
-    ]): CreateObservationModel {
+    ], convertDateTimeToUTC: boolean): CreateObservationModel {
     //create new entr data
     const entryObservation: CreateObservationModel = {
       stationId: formFilter.stationId,
@@ -147,7 +148,12 @@ export class FormEntryUtil {
     }
 
     //set datetime from date time variables. year-month-day hour. 
-    entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
+    if (convertDateTimeToUTC) {
+      entryObservation.datetime = new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
+    } else {
+      entryObservation.datetime = `${datetimeVars[0]}-${StringUtils.addLeadingZero(datetimeVars[1])}-${StringUtils.addLeadingZero(datetimeVars[2])}T${datetimeVars[3]}:00:000Z`;
+      console.log("entryObservation: ", entryObservation);
+    }
 
     return entryObservation;
   }

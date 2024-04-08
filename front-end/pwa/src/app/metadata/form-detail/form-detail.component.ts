@@ -33,6 +33,8 @@ export class FormDetailComponent implements OnInit {
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
+  protected convertDateTimeToUTC: boolean = true;
+  protected allowDataEntryOnLimitCheckInvalid: boolean = true;
   protected validateTotal: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
@@ -98,6 +100,7 @@ export class FormDetailComponent implements OnInit {
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
+    this.convertDateTimeToUTC = entryForm.convertDateTimeToUTC;
     this.validateTotal = entryForm.validateTotal;
   }
 
@@ -216,20 +219,39 @@ export class FormDetailComponent implements OnInit {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
       layout: this.selectedLayout,
-      elementIds: this.selectedElementIds, hours: this.selectedHourIds,
-      period: this.selectedPeriodId, validateTotal: this.validateTotal,
+      elementIds: this.selectedElementIds,
+      hours: this.selectedHourIds,
+      period: this.selectedPeriodId,
+      convertDateTimeToUTC: this.convertDateTimeToUTC,
+      allowDataEntryOnLimitCheckInvalid: this.allowDataEntryOnLimitCheckInvalid,
+      validateTotal: this.validateTotal,
       samplePaperImage: ''
     };
 
     this.createUpdateSource.extraMetadata = JSON.stringify(entryForm);
 
     if (this.sourceId === 0) {
-      this.sourceService.createSource(this.createUpdateSource).pipe(take(1)).subscribe((data) => {
-        this.location.back();
+      this.sourceService.createSource(this.createUpdateSource).pipe(
+        take(1)
+      ).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Form Details', message: `Form ${this.createUpdateSource.name} created`, type: 'success'
+          });
+          this.location.back();
+        }
       });
     } else {
-      this.sourceService.updateSource(this.sourceId, this.createUpdateSource).pipe(take(1)).subscribe((data) => {
-        this.location.back();
+      this.sourceService.updateSource(this.sourceId, this.createUpdateSource).pipe(
+        take(1)
+      ).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Form Details', message: `Form ${this.createUpdateSource.name} updated`, type: 'success'
+          });
+          this.location.back();
+        }
+
       });
     }
 

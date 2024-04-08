@@ -54,7 +54,8 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       entryField, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
-    const entryObservations: CreateObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(this.formFilter, entryFieldItems, this.dbObservations);
+    const entryObservations: CreateObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(
+      this.formFilter, entryFieldItems, this.dbObservations, this.formMetadata.convertDateTimeToUTC);
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);

@@ -19,10 +19,9 @@ export class SourcesController {
         return this.sourcesService.findSource(id);
     }
 
-    @Get('/source-type/:id')
+    @Get('/source-type/:id')     // TODO validate enum. 
     public findSourcesOfType(@Param('id') id: SourceTypeEnum) {
-        // TODO validate enum. 
-        console.log("finding sources of type: ", id);
+        //console.log("finding sources of type: ", id);
         return this.sourcesService.findSourcesBySourceTypes(id);
     }
 

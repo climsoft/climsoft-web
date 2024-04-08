@@ -68,7 +68,8 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
     const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }
     const colFieldItems: EntryFieldItem = { fieldProperty: entryFieldForColumn, fieldValues: colFieldDefs.map(data => (data[0])) }
-    const entryObservations: CreateObservationModel[][] = FormEntryUtil.getEntryObservationsForGridLayout(this.formFilter, [rowFieldItems, colFieldItems], this.dbObservations);
+    const entryObservations: CreateObservationModel[][] = FormEntryUtil.getEntryObservationsForGridLayout(
+      this.formFilter, [rowFieldItems, colFieldItems], this.dbObservations,this.formMetadata.convertDateTimeToUTC);
 
     this.rowFieldDefinitions = rowFieldDefs;
     this.colFieldDefinitions = colFieldDefs;

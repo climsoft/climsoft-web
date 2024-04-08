@@ -19,8 +19,14 @@ export interface EntryForm {
     //hours allowed to be recorded by the form
     hours: number[];
 
-    //period for observation
+    // period for observation
     period: number;
+
+    // whether entry date time should be converted to UTC. 
+    // Some forms don't require this because the date time on the physical form is alreday in UTC.
+    convertDateTimeToUTC: boolean;
+
+    allowDataEntryOnLimitCheckInvalid: boolean;
 
     //whether user should type in observation total
     validateTotal: boolean;
