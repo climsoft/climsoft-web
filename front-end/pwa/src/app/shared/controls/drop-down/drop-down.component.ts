@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'app-drop-down',
@@ -6,5 +6,7 @@ import { Component } from '@angular/core';
   styleUrls: ['./drop-down.component.scss']
 })
 export class DropDownComponent {
+  @Input() public maxHeight: number = 200;
+  @Input() public translate!: boolean ;
 
 }

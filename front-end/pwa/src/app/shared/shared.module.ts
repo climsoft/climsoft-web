@@ -86,9 +86,8 @@ const controlsComponents = [
   StationObservationFocusSingleInputComponent,
   StationStatusSingleInputComponent,
 
-  
   DropDownButtonComponent,
-
+  DropDownComponent, 
 
 ];
 
@@ -101,8 +100,6 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
-    DropDownComponent,  
-  
   
   ],
   imports: [
