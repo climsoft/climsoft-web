@@ -15,9 +15,9 @@ export class SourceEntity {
     @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
     extraMetadata: string | null;
 
-    @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type", nullable: true })
+    @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type"})
     @Index()
-    sourceType: SourceTypeEnum | null; 
+    sourceType: SourceTypeEnum; 
 }
 
 

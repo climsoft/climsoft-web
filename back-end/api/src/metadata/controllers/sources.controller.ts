@@ -11,12 +11,12 @@ export class SourcesController {
 
     @Get()
     public find() {
-        return this.sourcesService.findSourcesBySourceTypes();
+        return this.sourcesService.findSources();
     }
 
     @Get('/source/:id')
     public findSource(@Param('id', ParseIntPipe) id: number) {
-        return this.sourcesService.findSource(id);
+        return this.sourcesService.findSourceRaw(id);
     }
 
     @Get('/source-type/:id')     // TODO validate enum. 

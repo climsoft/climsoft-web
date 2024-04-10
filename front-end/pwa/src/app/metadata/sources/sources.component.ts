@@ -5,6 +5,7 @@ import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
 import { ViewSourceModel } from 'src/app/core/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesService } from 'src/app/core/services/sources.service';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-sources',
@@ -29,7 +30,7 @@ export class SourcesComponent {
   private loadSources() {
     //get data sources of source type forms
     this.sourceService.getSources().pipe(take(1)).subscribe((data) => {
-      this.sources = data;
+      this.sources = data;       
     });
   }
 
@@ -42,7 +43,10 @@ export class SourcesComponent {
 
   }
 
-  protected onNewForm() {
-    this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
+  protected onNewSource(sourceType: string) {
+    if(sourceType === "Form"){
+      this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
+    }
+   
   }
 }

@@ -60,7 +60,7 @@ export class TextInputComponent implements OnChanges {
     this.onValueChange('');
   }
 
-  protected onDropDownOptionClick(): void {
+  protected onDropDownButtonClick(): void {
     this.showDropDown(!this.displayDropDown);
     this.dropDownOptionClick.emit();
   }

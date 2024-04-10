@@ -36,6 +36,8 @@ import { StationObsMethodSingleInputComponent } from './controls/station-obs-met
 import { StationObsEnvironmentSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-environment-single-input.component';
 import { StationObservationFocusSingleInputComponent } from './controls/station-obs-focus-input/station-obs-focus-single-input/station-obs-focus-single-input.component';
 import { StationStatusSingleInputComponent } from './controls/station-status-input/station-status-single-input/station-status-single-input.component';
+import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
+import { DropDownComponent } from './controls/drop-down/drop-down.component';
 
 //--------------------------------
   
@@ -84,6 +86,9 @@ const controlsComponents = [
   StationObservationFocusSingleInputComponent,
   StationStatusSingleInputComponent,
 
+  
+  DropDownButtonComponent,
+
 
 ];
 
@@ -96,7 +101,7 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
-   
+    DropDownComponent,  
   
   
   ],

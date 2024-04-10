@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { ViewSourceDto } from '../dtos/view-source.dto';
 import { SourceTypeEnum } from '../enums/source-type.enum';
+import { StringUtils } from 'src/shared/utils/string.utils';
 
 // TODO refactor this service later
 
@@ -27,7 +28,9 @@ export class SourcesService {
         }
 
         const sourceEntities = await this.sourceRepo.find(findOptions);
-        return sourceEntities.map(source => ({ ...source }));
+        return sourceEntities.map(source => {
+            return this.createViewDto(source);
+        });
     }
 
     public async findSourcesByIds(ids?: number[]): Promise<ViewSourceDto[]> {
@@ -42,29 +45,37 @@ export class SourcesService {
             findOptions.where = { id: In(ids) };
         }
 
-        const sourceEntities = await this.sourceRepo.find(findOptions);
-        return sourceEntities.map(source => ({ ...source }));
+        const entities = await this.sourceRepo.find(findOptions);
+        return entities.map(source => {
+            return this.createViewDto(source);
+        });
     }
 
-    async findSourcesBySourceTypes(sourceType?: SourceTypeEnum): Promise<SourceEntity[]> {
-        let sources: SourceEntity[];
+    async findSourcesBySourceTypes(sourceType?: SourceTypeEnum): Promise<ViewSourceDto[]> {
+        let dtos: ViewSourceDto[];
 
         // TODO. Use the find sources
 
         if (sourceType) {
-            sources = await this.sourceRepo.find({
+            const entities = await this.sourceRepo.find({
                 where: {
                     sourceType: sourceType,
                 },
             });
+
+            dtos = entities.map(source => {
+                return this.createViewDto(source);
+            });
+
+
         } else {
-            sources = await this.findSources();
+            dtos = await this.findSources();
         }
 
-        return sources;
+        return dtos;
     }
 
-    public async findSource(id: number): Promise<SourceEntity> {
+    public async findSourceRaw(id: number): Promise<SourceEntity> {
         const source = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -84,7 +95,7 @@ export class SourcesService {
     }
 
     public async updateSource(id: number, sourceDto: CreateUpdateSourceDto) {
-        const source = await this.findSource(id);
+        const source = await this.findSourceRaw(id);
 
         //TODO. Implement logging?
         source.name = sourceDto.name;
@@ -96,7 +107,18 @@ export class SourcesService {
     }
 
     public async deleteSource(id: number) {
-        const source = await this.findSource(id);
+        const source = await this.findSourceRaw(id);
         return this.sourceRepo.remove(source);
+    }
+
+    private createViewDto(entity: SourceEntity): ViewSourceDto {
+        return {
+            id: entity.id,
+            name: entity.name,
+            description: entity.description,
+            extraMetadata: entity.extraMetadata,
+            sourceType: entity.sourceType,
+            sourceTypeName: StringUtils.capitalizeFirstLetter(entity.sourceType),
+        }
     }
 }
