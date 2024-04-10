@@ -6,4 +6,5 @@ export interface ViewSourceModel {
     description: string;
     extraMetadata: string | null;
     sourceType: SourceTypeEnum;
+    sourceTypeName: string;
 }

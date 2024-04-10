@@ -44,7 +44,7 @@ export class StationsService {
       );
   }
 
-  public delete(stationId: number): Observable<ViewStationModel> {
+  public delete(stationId: string): Observable<ViewStationModel> {
     const url = `${this.endPointUrl}/${stationId}`;
     return this.http.delete<ViewStationModel>(url)
       .pipe(

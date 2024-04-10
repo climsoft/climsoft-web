@@ -1,0 +1,10 @@
+<div appCloseDropDown (closeDropdown)="closeDropdown()" >
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onButtonClick()">
+        <ng-content></ng-content>
+    </button>
+    <app-drop-down *ngIf="displayDropDown && dropDownItems" [translate]="translate">
+        <div class="list-group rounded-0" *ngFor="let item of dropDownItems">
+            <button type="button" class="list-group-item list-group-item-action" (click)="onDropDownItemClick(item)">{{item}}</button>
+        </div>
+    </app-drop-down>
+</div>
