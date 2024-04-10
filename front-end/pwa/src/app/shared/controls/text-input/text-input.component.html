@@ -3,9 +3,9 @@
   <div [class.input-group]="includeDropDownOption || includeCancelOption">
 
     <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"
-      [disabled]="disabled" [readOnly]="readonly" [class.text-danger]="errorMessage" [value]="value" [attr.max]="max" [attr.placeholder]="placeholder"
-      (click)="onInputClick()" (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
-      (blur)="onInputBlur()" appSimulateTabOnEnter />
+      [disabled]="disabled" [readOnly]="readonly" [class.text-danger]="errorMessage" [value]="value" [attr.max]="max"
+      [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
+      (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" appSimulateTabOnEnter />
 
     <!-- btn-input-group class is needed to prevent tab selection on enter key press -->
     <button *ngIf="includeDropDownOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
@@ -22,11 +22,9 @@
 
   <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
 
-  <!-- TODO. utilise custom css similar in the way done by toast and user drop down in home component -->
-  <div *ngIf="displayDropDown"
-    class="position-absolute min-w-100 overflow-auto border border-dark rounded custom-drop-down"
-    [style.max-height.px]="dropDownOptionMaxHeight"> 
-      <ng-content></ng-content>   
-  </div>
+
+  <app-drop-down *ngIf="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
+    <ng-content></ng-content>
+  </app-drop-down>
 
 </div>
