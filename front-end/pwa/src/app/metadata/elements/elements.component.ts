@@ -32,8 +32,13 @@ export class ElementsComponent {
 
   onSearchClick() { }
 
+  protected onNewElementClicked() {
+    this.router.navigate(['element-detail', 'new'], { relativeTo: this.route.parent });
+  }
+  
   protected onEditElementClick(element: ViewElementModel) {
     this.router.navigate(['element-detail', element.id], { relativeTo: this.route.parent });
   }
+
 
 }

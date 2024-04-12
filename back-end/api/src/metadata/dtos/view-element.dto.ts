@@ -3,14 +3,15 @@ import { ElementDomainEnum } from "../enums/element-domain.enum";
 export class ViewElementDto {
     id: number;
     name: string;
-    abbreviation: string; 
+    abbreviation: string;
     description: string;
     units: string;
-    type: string;
-    subdomain: string;
+    typeId: number;
+    typeName: string;
+    subdomainName: string;
     domain: ElementDomainEnum;
-    lowerLimit: number| null;
-    upperLimit: number| null;
-    entryScaleFactor: number| null;
-    comment: string | null; 
+    lowerLimit: number | null;
+    upperLimit: number | null;
+    entryScaleFactor: number | null;
+    comment: string | null;
 }

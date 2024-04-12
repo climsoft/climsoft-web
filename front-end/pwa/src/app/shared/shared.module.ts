@@ -33,11 +33,14 @@ import { StationSingleInputComponent } from './controls/station-input/station-si
 import { StationMultipleInputComponent } from './controls/station-input/station-multiple-input/station-multiple-input.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { StationObsMethodSingleInputComponent } from './controls/station-obs-method-input/station-obs-method-single-input/station-obs-method-single-input.component';
-import { StationObsEnvironmentSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-environment-single-input.component';
+import { StationObsEnvSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-env-single-input.component';
 import { StationObservationFocusSingleInputComponent } from './controls/station-obs-focus-input/station-obs-focus-single-input/station-obs-focus-single-input.component';
 import { StationStatusSingleInputComponent } from './controls/station-status-input/station-status-single-input/station-status-single-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
 import { DropDownComponent } from './controls/drop-down/drop-down.component';
+import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
+import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
+import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
 
 //--------------------------------
   
@@ -82,12 +85,17 @@ const controlsComponents = [
   StationSingleInputComponent,
   StationMultipleInputComponent,
   StationObsMethodSingleInputComponent,
-  StationObsEnvironmentSingleInputComponent,
+  StationObsEnvSingleInputComponent,
   StationObservationFocusSingleInputComponent,
   StationStatusSingleInputComponent,
 
   DropDownButtonComponent,
   DropDownComponent, 
+
+  
+  ElementDomainSingleInputComponent,  
+  ElementSubdomainSingleInputComponent,
+  ElementTypeSingleInputComponent,
 
 ];
 

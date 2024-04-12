@@ -1,18 +1,33 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateElementDto {
 
+    @IsString()
+    name: string;
+
+    @IsString()
+    abbreviation: string;
+
+    @IsString()
+    description: string;
+
+    @IsString()
+    units: string;
+
+    @IsInt()
+    typeId: number;
+
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     lowerLimit: number | null;
 
     @IsOptional()
-    @IsNumber()
+    @IsInt()
     upperLimit: number | null;
 
     @IsOptional()
-    @IsNumber()
-    entryScaleFactor: number| null;
+    @IsInt()
+    entryScaleFactor: number | null;
 
     @IsOptional()
     @IsString()

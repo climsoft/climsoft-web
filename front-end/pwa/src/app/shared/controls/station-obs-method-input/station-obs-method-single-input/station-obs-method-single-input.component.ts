@@ -54,11 +54,6 @@ export class StationObsMethodSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected onSelectedOptionChange(selectedOption: StationObsProcessingMethodEnum | null) {
-    if (selectedOption) {
-      this.selectedIdChange.emit(selectedOption);
-    } else {
-      this.selectedIdChange.emit(null);
-    }
-
+    this.selectedIdChange.emit(selectedOption? selectedOption: null);
   }
 }

@@ -22,10 +22,10 @@ export class SourcesService {
       );
   }
 
-  public getSources(sourceTypeId?: SourceTypeEnum): Observable<ViewSourceModel[]> {
+  public getSources(sourceTypeEnum?: SourceTypeEnum): Observable<ViewSourceModel[]> {
     let url: string = this.endPointUrl;
-    if (sourceTypeId) {
-      url = `${this.endPointUrl}/source-type/${sourceTypeId}`
+    if (sourceTypeEnum) {
+      url = `${this.endPointUrl}/source-type/${sourceTypeEnum}`
     }
 
     return this.http.get<ViewSourceModel[]>(this.endPointUrl)

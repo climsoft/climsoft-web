@@ -4,6 +4,10 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ViewElementModel } from '../models/view-element.model';
 import { UpdateElementModel } from '../models/update-element.model';
+import { CreateElementModel } from '../models/create-element.model';
+import { ElementDomainEnum } from '../models/enums/element-domain.enum';
+import { ViewElementSubdomainModel } from '../models/view-element-subdomain.model';
+import { ViewElementTypeModel } from '../models/view-element-type.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,13 +18,13 @@ export class ElementsService {
 
   constructor(private http: HttpClient) { }
 
-  public getElements(elementIds?: number[]): Observable<ViewElementModel[]> {
+  public getElements(ids?: number[]): Observable<ViewElementModel[]> {
     let params: HttpParams = new HttpParams();
-    
-    if (elementIds && elementIds.length > 0) {
-      params = params.set('ids', elementIds.join(','));
+
+    if (ids && ids.length > 0) {
+      params = params.set('ids', ids.join(','));
     }
-  
+
     return this.http.get<ViewElementModel[]>(this.endPointUrl, { params: params })
       .pipe(catchError(this.handleError));
   }
@@ -33,13 +37,19 @@ export class ElementsService {
       );
   }
 
-  public update(id: number, updateElementDto: UpdateElementModel): Observable<ViewElementModel> {    
-    return this.http.patch<ViewElementModel>(`${this.endPointUrl}/${id}`, updateElementDto)
+  public create(createDto: CreateElementModel): Observable<ViewElementModel> {
+    return this.http.post<ViewElementModel>(`${this.endPointUrl}`, createDto)
       .pipe(
         catchError(this.handleError)
       );
   }
 
+  public update(id: number, updateElementDto: UpdateElementModel): Observable<ViewElementModel> {
+    return this.http.patch<ViewElementModel>(`${this.endPointUrl}/${id}`, updateElementDto)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
   private handleError(error: HttpErrorResponse) {
     if (error.status === 0) {

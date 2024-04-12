@@ -30,7 +30,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   }
 
   protected onInputChange(inputValue: string): void {
-    console.log("inputvalue", inputValue)
+    //console.log("inputvalue", inputValue)
     if (!inputValue) {
       this.filteredValues = this.options;
       //this.selectedOption = null; //TODO. Is this needed?

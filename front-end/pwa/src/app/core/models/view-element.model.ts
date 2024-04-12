@@ -1,13 +1,10 @@
+import { CreateElementModel } from "./create-element.model";
 import { ElementDomainEnum } from "./enums/element-domain.enum";
 
-export interface ViewElementModel {
-  id: number;
-  name: string;
-  abbreviation: string; 
-  description: string;
-  units: string;
-  type: string;
-  subdomain: string;
+export interface ViewElementModel extends CreateElementModel{
+  typeId: number;
+  typeName: string;
+  subdomainName: string;
   domain: ElementDomainEnum;
   lowerLimit: number| null;
   upperLimit: number| null;

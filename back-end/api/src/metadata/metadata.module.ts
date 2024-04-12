@@ -22,10 +22,12 @@ import { StationFormsController } from './controllers/station-forms.controller';
 import { StationFormsService } from './services/station-forms.service';
 import { StationObsEnvironmentEntity } from './entities/station-observation-environment.entity';
 import { StationObservationFocusEntity } from './entities/station-observation-focus.entity';
-import { StationObsEnvironmentsController } from './controllers/station-obs-environments.controller';
-import { StationObsEnvironmentsService } from './services/station-obs-environments.service';
+import { StationObsEnvsController } from './controllers/station-obs-envs.controller';
+import { StationObsEnvService } from './services/station-obs-env.service';
 import { StationObsFocusesService } from './services/station-obs-focuses.service';
 import { StationObsFocusesController } from './controllers/station-obs-focuses.controller';
+import { ElementTypesController } from './controllers/elements-types.controller';
+import { ElementSubdomainsController } from './controllers/elements-subdomains.controller';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -43,8 +45,10 @@ import { StationObsFocusesController } from './controllers/station-obs-focuses.c
     ]), UserModule],
     controllers: [
         ElementsController,
+        ElementTypesController,
+        ElementSubdomainsController,
         SourcesController,
-        StationObsEnvironmentsController,
+        StationObsEnvsController,
         StationObsFocusesController,
         StationsController,
         StationElementsController,
@@ -52,14 +56,16 @@ import { StationObsFocusesController } from './controllers/station-obs-focuses.c
     providers: [
         ElementsService,
         SourcesService,
-        StationObsEnvironmentsService,
+        StationObsEnvService,
         StationObsFocusesService,
         StationsService,
         StationElementsService,
         StationFormsService],
     // TODO. Check if these need to be exported
-    exports: [ElementsService, SourcesService,
-        StationObsEnvironmentsService,
+    exports: [
+        ElementsService, 
+        SourcesService,
+        StationObsEnvService,
         StationObsFocusesService,
         StationsService,
         StationElementsService,
