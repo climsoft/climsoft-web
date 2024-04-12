@@ -7,7 +7,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class DropDownButtonComponent {
   @Input() public dropDownItems!: string[];
-  @Input() public translate!: boolean ;
+  @Input() public translateX!: boolean ;
   @Output() public dropDownOptionClick = new EventEmitter<string>();
 
   protected displayDropDown: boolean = false;

@@ -47,6 +47,5 @@ export class SourcesComponent {
     if(sourceType === "Form"){
       this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
     }
-   
   }
 }

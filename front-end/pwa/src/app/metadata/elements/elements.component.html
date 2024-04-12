@@ -5,6 +5,9 @@
       <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
         Search
       </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onNewElementClicked()">
+        New
+      </button>
     </div>
   </div>
 
@@ -12,10 +15,11 @@
     <app-table-view [clickable]="true" [columnsData]="[ 
           {id: 'id', name: 'Id'},
           {id: 'abbreviation', name: 'Abbreviation'}, 
-         {id: 'name', name: 'Name'}, 
-         {id: 'type', name: 'Type'},  
-         {id: 'subdomain', name: 'Subdomain'}, 
-         {id: 'domain', name: 'Domain'}, ]" [rowsData]="elements"
+          {id: 'name', name: 'Name'}, 
+          {id: 'domain', name: 'Domain'},
+          {id: 'subdomainName', name: 'Subdomain'}, 
+          {id: 'typeName', name: 'Type'},
+          {id: 'description', name: 'Description'}  ]" [rowsData]="elements"
       (rowDataClicked)="onEditElementClick($event)"></app-table-view>
   </div>
 

@@ -22,7 +22,6 @@
 
   <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
 
-
   <app-drop-down *ngIf="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
     <ng-content></ng-content>
   </app-drop-down>

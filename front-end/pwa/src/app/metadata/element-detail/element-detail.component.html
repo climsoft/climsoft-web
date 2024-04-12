@@ -9,27 +9,30 @@
       </div>
       <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
 
-        <div class="mb-1">
-          <app-label-input [label]="'Id'" [value]="element.id" />
+        <div class="mb-3">
+          <app-number-input [label]="'Id'" [disabled]="!bNew" [value]="element.id" (valueChange)="onElementIdEntry($event)" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Abbreviation'" [value]="element.abbreviation" />
+
+        <div class="mb-3">
+          <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Name'" [value]="element.name" />
+
+        <div class="mb-3">
+          <app-text-input [label]="'Name'" [(value)]="element.name" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Type'" [value]="element.type" />
+
+        <div class="mb-3">
+          <app-text-input [label]="'Description'" [(value)]="element.description" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Subdomain'" [value]="element.subdomain" />
+
+        <div class="mb-3">
+          <app-text-input [label]="'Units'" [(value)]="element.units" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Domain'" [value]="element.domain" />
+
+        <div class="mb-3">
+          <app-element-type-single-input [selectedId]="element.typeId" (selectedIdChange)="onTypeChange($event)" />
         </div>
-        <div class="mb-1">
-          <app-label-input [label]="'Description'" [value]="element.description" />
-        </div>
+
 
       </div>
     </div>
@@ -38,7 +41,7 @@
     <!-- Data Ingestion Validations -->
     <div class="card border-0">
       <div class="card-header px-0 fw-bold">
-        <app-toggle-chevron #validationsToggle>Data Ingestion Validations</app-toggle-chevron>
+        <app-toggle-chevron #validationsToggle>Data Entry Validations</app-toggle-chevron>
       </div>
       <div *ngIf="validationsToggle.open">
         <div class="mb-3">

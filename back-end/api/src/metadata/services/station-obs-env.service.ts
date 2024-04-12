@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { StationObsEnvironmentEntity } from "../entities/station-observation-environment.entity";
 
 @Injectable()
-export class StationObsEnvironmentsService {
+export class StationObsEnvService {
 
     public constructor(
         @InjectRepository(StationObsEnvironmentEntity) private stationObsEnvRepo: Repository<StationObsEnvironmentEntity>) {

@@ -28,7 +28,7 @@ export class ElementEntity extends BaseEntity {
   @Column({ type: "int", name: "upper_limit", nullable: true })
   upperLimit: number | null;
 
-  @Column({ type: "float", name: "entry_scale_factor", nullable: true })
+  @Column({ type: "int", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
 
   @Column({ type: "varchar", nullable: true })
@@ -52,6 +52,11 @@ export class ElementEntity extends BaseEntity {
 }
 
 export interface ElementLogVo extends BaseLogVo {
+  abbreviation: string;
+  name: string; 
+  description: string; 
+  units: string; 
+  typeId: number;
   lowerLimit: number | null;
   upperLimit: number | null;
   entryScaleFactor: number | null;

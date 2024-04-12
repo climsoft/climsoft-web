@@ -33,11 +33,11 @@ export class StationsService {
     }
 
     public async findStation(id: string): Promise<ViewStationDto> {
-        const entity = await this.findStationRaw(id);
+        const entity = await this.getStationEntity(id);
         return this.createViewDto(entity);
     }
 
-    private async findStationRaw(id: string): Promise<StationEntity > {
+    private async getStationEntity(id: string): Promise<StationEntity > {
         const entity = await this.stationRepo.findOneBy({
             id: id,
         });
@@ -66,10 +66,8 @@ export class StationsService {
     }
 
     public async deleteStation(id: string) {
-        const entity = await this.findStationRaw(id)
-        return this.stationRepo.remove(entity);
+        return this.stationRepo.remove(await this.getStationEntity(id));
     }
-
 
     private updateStationEntity(entity: StationEntity, dto: CreateUpdateStationDto, userId: number): void {
         entity.name = dto.name;
