@@ -13,8 +13,8 @@ export class FormEntryDefinition {
     daySelectorValue: number | null;
     hourSelectorValue: number | null;
 
-    /** Elements required for data entry. Th */
-    elements: ViewElementModel[];
+    /** Element metadata required for data entry. Th */
+    elementsMetadata: ViewElementModel[];
 
     constructor(stationId: string, sourceId: number, formMetadata: EntryForm) {
         this.stationId = stationId;
@@ -26,7 +26,7 @@ export class FormEntryDefinition {
         this.monthSelectorValue = todayDate.getMonth() + 1;
         this.daySelectorValue = formMetadata.selectors.includes('DAY') ? todayDate.getDate() : null;
         this.hourSelectorValue = formMetadata.selectors.includes('HOUR') ? formMetadata.hours[0] : null;
-        this.elements = [];
+        this.elementsMetadata = [];
     }
 
     public get elementValuesForDBQuerying(): number[] {
@@ -37,8 +37,9 @@ export class FormEntryDefinition {
         return this.hourSelectorValue !== null ? [this.hourSelectorValue] : this.formMetadata.hours;
     }
 
-    public loadElementMetadata(elementsService: ElementsService) {
+    public loadElementMetadata(forceRefresh: boolean) {
         // TODO.
+        // Should return an observable
     }
 
 

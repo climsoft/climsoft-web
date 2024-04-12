@@ -108,7 +108,7 @@ export class FormEntryComponent implements OnInit {
 
   private loadObservations() {
 
-    this.formDefinitions.elements = [];
+    this.formDefinitions.elementsMetadata = [];
     this.dbObservations = [];
     this.newObservations = [];
 
@@ -116,10 +116,12 @@ export class FormEntryComponent implements OnInit {
     // that should be regarded as an error in form builder design.
     // so always assume that elements selected are provided
     // Fetch the elements first then their observations
+
+    //TODO. find a way of making this be loaded by the definition first
     this.elementsService.getElements(this.formDefinitions.elementValuesForDBQuerying).pipe(
       take(1),
       switchMap(data => {
-        this.formDefinitions.elements = data;
+        this.formDefinitions.elementsMetadata = data;
         return this.observationService.getObservationsRaw(this.createObservationQuery(this.formDefinitions)).pipe(take(1));
       }),
       catchError(error => {

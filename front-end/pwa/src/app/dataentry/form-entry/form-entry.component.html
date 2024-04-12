@@ -39,13 +39,13 @@
         <div class="px-2">
           <!-- list layout -->
           <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'" [formFilter]="formDefinitions"
-            [elements]=" formDefinitions.elements"  [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
+            [elements]=" formDefinitions.elementsMetadata"  [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
             (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-linear-layout>
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formFilter]="formDefinitions" [elements]="formDefinitions.elements"
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formFilter]="formDefinitions" [elements]="formDefinitions.elementsMetadata"
             [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
             (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-grid-layout>
