@@ -10,7 +10,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 import { catchError, of, switchMap, take } from 'rxjs';
-import { EntryFormDefinition } from './form-entry.definition';
+import { FormEntryDefinition } from './form-entry.definition';
 
 /** Types of selector controls allowed */
 //export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'YEARMONTH' | 'DATE';
@@ -28,7 +28,7 @@ export class FormEntryComponent implements OnInit {
   protected formName!: string;
 
   /** Definitions used to determine form functionality */
-  protected formDefinitions!: EntryFormDefinition;
+  protected formDefinitions!: FormEntryDefinition;
 
 
   /** Enables or disables save button */
@@ -75,7 +75,7 @@ export class FormEntryComponent implements OnInit {
       }
 
       //the load existing observation data
-      this.formDefinitions = new EntryFormDefinition(stationId, sourceId, JSON.parse(data.extraMetadata));
+      this.formDefinitions = new FormEntryDefinition(stationId, sourceId, JSON.parse(data.extraMetadata));
       this.loadObservations();
 
     });
@@ -133,7 +133,7 @@ export class FormEntryComponent implements OnInit {
   }
 
 
-  private createObservationQuery(formDefinitions: EntryFormDefinition): CreateObservationQueryModel {
+  private createObservationQuery(formDefinitions: FormEntryDefinition): CreateObservationQueryModel {
     //get the data based on the selection filter
     const observationQuery: CreateObservationQueryModel = {
       stationId: formDefinitions.stationId,

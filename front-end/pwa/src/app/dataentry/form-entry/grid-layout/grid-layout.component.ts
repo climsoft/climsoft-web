@@ -3,7 +3,7 @@ import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
 import { EntryFieldItem,  FormEntryUtil } from '../form-entry.util';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
-import { EntryFormDefinition } from '../form-entry.definition';
+import { FormEntryDefinition } from '../form-entry.definition';
 
 @Component({
   selector: 'app-grid-layout',
@@ -12,7 +12,7 @@ import { EntryFormDefinition } from '../form-entry.definition';
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
   @Input() elements!: ViewElementModel[];
-  @Input() formFilter!: EntryFormDefinition;
+  @Input() formFilter!: FormEntryDefinition;
   @Input() formMetadata!: EntryForm;
   @Input() dbObservations!: CreateObservationModel[];
   @Output() valueChange = new EventEmitter<CreateObservationModel>();

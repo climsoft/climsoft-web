@@ -4,7 +4,7 @@ import { ViewElementModel } from 'src/app/core/models/view-element.model';
 import { EntryFieldItem, FormEntryUtil } from '../form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service'; 
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
-import { EntryFormDefinition } from '../form-entry.definition';
+import { FormEntryDefinition } from '../form-entry.definition';
 
 @Component({
   selector: 'app-linear-layout',
@@ -13,7 +13,7 @@ import { EntryFormDefinition } from '../form-entry.definition';
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() public elements!: ViewElementModel[];
-  @Input() public formFilter!: EntryFormDefinition;
+  @Input() public formFilter!: FormEntryDefinition;
   @Input() public formMetadata!: EntryForm;
   @Input() public dbObservations!: CreateObservationModel[];
   @Output() public valueChange = new EventEmitter<CreateObservationModel>();

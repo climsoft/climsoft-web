@@ -5,7 +5,7 @@ import { ArrayUtils } from 'src/app/shared/utils/array.utils';
 import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { EntryFormDefinition } from './form-entry.definition';
+import { FormEntryDefinition } from './form-entry.definition';
 
 
 
@@ -40,7 +40,7 @@ export class FormEntryUtil {
     return fieldDefs;
   }
 
-  public static getEntryObservationsForLinearLayout(formFilter: EntryFormDefinition, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[] {
+  public static getEntryObservationsForLinearLayout(formFilter: FormEntryDefinition, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[] {
 
     const entryObservations: CreateObservationModel[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
@@ -54,7 +54,7 @@ export class FormEntryUtil {
     return entryObservations;
   }
 
-  public static getEntryObservationsForGridLayout(formFilter: EntryFormDefinition, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[][] {
+  public static getEntryObservationsForGridLayout(formFilter: FormEntryDefinition, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[][] {
 
     const entryObservations: CreateObservationModel[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
@@ -75,7 +75,7 @@ export class FormEntryUtil {
   }
 
 
-  private static getEntryObservation(formFilter: EntryFormDefinition,
+  private static getEntryObservation(formFilter: FormEntryDefinition,
     entryFields: [
       { entryFieldProperty: ExtraSelectorControlType, entryPropFieldValue: number },
       { entryFieldProperty: ExtraSelectorControlType, entryPropFieldValue: number }?

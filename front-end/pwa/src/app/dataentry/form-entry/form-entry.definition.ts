@@ -3,7 +3,7 @@ import { EntryForm } from "src/app/core/models/entry-form.model";
 import { ViewElementModel } from "src/app/core/models/view-element.model";
 import { ElementsService } from "src/app/core/services/elements.service";
 
-export class EntryFormDefinition {
+export class FormEntryDefinition {
     stationId: string;
     sourceId: number;
     formMetadata: EntryForm;
