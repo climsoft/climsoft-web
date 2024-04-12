@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { EntryType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
+import { ExtraSelectorControlType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
 import { CreateUpdateSourceModel } from '../../core/models/create-update-source.model';
 import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources.service';
@@ -23,11 +23,11 @@ export class FormDetailComponent implements OnInit {
   protected formName: string = '';
   protected formDescription: string = '';
 
-  protected possibleSelectors: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
-  protected possibleFields: EntryType[] = ['ELEMENT', 'DAY', 'HOUR'];
+  protected possibleSelectors: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
+  protected possibleFields: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
 
-  protected selectedSelectors: EntryType[] = [];
-  protected selectedFields: EntryType[] = [];
+  protected selectedSelectors: ExtraSelectorControlType[] = [];
+  protected selectedFields: ExtraSelectorControlType[] = [];
   protected selectedLayout: LayoutType = 'LINEAR';
   protected selectedElementIds: number[] = [];
   protected possibleHourIds: number[] = [];
@@ -76,9 +76,9 @@ export class FormDetailComponent implements OnInit {
     }
     const entryForm: EntryForm = JSON.parse(this.createUpdateSource.extraMetadata);
 
-    const selectedSelectors: EntryType[] = [];
-    const possibleFields: EntryType[] = [];
-    const selectedFields: EntryType[] = [];
+    const selectedSelectors: ExtraSelectorControlType[] = [];
+    const possibleFields: ExtraSelectorControlType[] = [];
+    const selectedFields: ExtraSelectorControlType[] = [];
 
     for (const s of entryForm.selectors) {
       if (s) {
@@ -104,7 +104,7 @@ export class FormDetailComponent implements OnInit {
     this.validateTotal = entryForm.validateTotal;
   }
 
-  public onSelectorsSelected(selectedSelectors: EntryType[]): void {
+  public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
 
     if (!this.validSelectors(selectedSelectors)) {
       return;
@@ -120,7 +120,7 @@ export class FormDetailComponent implements OnInit {
 
 
 
-  public onFieldsSelected(selectedFields: EntryType[]): void {
+  public onFieldsSelected(selectedFields: ExtraSelectorControlType[]): void {
 
     if (!this.validFields(this.selectedSelectors, selectedFields)) {
       return;
@@ -131,7 +131,7 @@ export class FormDetailComponent implements OnInit {
 
   }
 
-  private getLayout(fields: EntryType[]): LayoutType {
+  private getLayout(fields: ExtraSelectorControlType[]): LayoutType {
     return fields.length === 2 ? 'GRID' : 'LINEAR';
   }
 
@@ -269,7 +269,7 @@ export class FormDetailComponent implements OnInit {
 
   }
 
-  private validSelectors(selectors: EntryType[]): boolean {
+  private validSelectors(selectors: ExtraSelectorControlType[]): boolean {
     this.selectorsErrorMessage = '';
     if (selectors.length === 0) {
       this.selectorsErrorMessage = 'Selector(s) required';
@@ -280,7 +280,7 @@ export class FormDetailComponent implements OnInit {
     return this.selectorsErrorMessage === '';
   }
 
-  private validFields(selectors: EntryType[], fields: EntryType[]): boolean {
+  private validFields(selectors: ExtraSelectorControlType[], fields: ExtraSelectorControlType[]): boolean {
     this.fieldsErrorMessage = '';
 
     if (!this.validSelectors(selectors)) {

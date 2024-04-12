@@ -1,8 +1,9 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
-import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
+import { EntryFieldItem,  FormEntryUtil } from '../form-entry.util';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { EntryFormDefinition } from '../form-entry.definition';
 
 @Component({
   selector: 'app-grid-layout',
@@ -11,7 +12,7 @@ import { CreateObservationModel } from 'src/app/core/models/create-observation.m
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
   @Input() elements!: ViewElementModel[];
-  @Input() formFilter!: EntryFormFilter;
+  @Input() formFilter!: EntryFormDefinition;
   @Input() formMetadata!: EntryForm;
   @Input() dbObservations!: CreateObservationModel[];
   @Output() valueChange = new EventEmitter<CreateObservationModel>();
@@ -59,11 +60,11 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     const entryFieldForColumn = this.formMetadata.fields[1];
 
     const rowFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryFieldForRow, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
+      entryFieldForRow, this.elements, this.formFilter.yearSelectorValue, this.formFilter.monthSelectorValue, this.formMetadata.hours
     );
 
     const colFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryFieldForColumn, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
+      entryFieldForColumn, this.elements, this.formFilter.yearSelectorValue, this.formFilter.monthSelectorValue, this.formMetadata.hours
     );
 
     const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }

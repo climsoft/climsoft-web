@@ -1,9 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';  
 import { EntryForm } from 'src/app/core/models/entry-form.model';
 import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { EntryFieldItem, EntryFormFilter, FormEntryUtil } from '../form-entry.util';
+import { EntryFieldItem, FormEntryUtil } from '../form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service'; 
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { EntryFormDefinition } from '../form-entry.definition';
 
 @Component({
   selector: 'app-linear-layout',
@@ -12,7 +13,7 @@ import { CreateObservationModel } from 'src/app/core/models/create-observation.m
 })
 export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() public elements!: ViewElementModel[];
-  @Input() public formFilter!: EntryFormFilter;
+  @Input() public formFilter!: EntryFormDefinition;
   @Input() public formMetadata!: EntryForm;
   @Input() public dbObservations!: CreateObservationModel[];
   @Output() public valueChange = new EventEmitter<CreateObservationModel>();
@@ -51,7 +52,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     //get entry field to use for control definitions
     const entryField = this.formMetadata.fields[0];
     const fieldDefinitions: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryField, this.elements, this.formFilter.year, this.formFilter.month, this.formMetadata.hours
+      entryField, this.elements, this.formFilter.yearSelectorValue, this.formFilter.monthSelectorValue, this.formMetadata.hours
     );
     const entryFieldItems: EntryFieldItem = { fieldProperty: entryField, fieldValues: fieldDefinitions.map(data => (data[0])) }
     const entryObservations: CreateObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(

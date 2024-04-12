@@ -1,4 +1,4 @@
-<div class="card border-0" *ngIf="formSelector">
+<div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
     <div class="card-title fw-bold">{{formName}} data entry for {{stationName}}</div>
     <!-- entry selectors -->
@@ -7,23 +7,23 @@
       <div class="card-body p-0">
         <div class="card-header mb-2 p-1 fw-bold">Selectors</div>
         <div class="row g-2 px-2">
-          <div class="col-sm-auto mb-2" *ngIf="formSelector.elementId">
-            <app-element-single-input [label]="'Element'" [includeOnlyIds]="formMetadata.elementIds"
-              [selectedId]="formSelector.elementId" (selectedIdChange)="onElementChange($event)" />
+          <div class="col-sm-auto mb-2" *ngIf="displayElementSelector">
+            <app-element-single-input [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
+              [selectedId]="formDefinitions.elementSelectorValue" (selectedIdChange)="onElementChange($event)" />
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="formSelector.day && defaultDateValue">
+          <div class="col-sm-auto mb-2" *ngIf="displayDateSelector">
             <app-date-input [label]="'Date'" [value]="defaultDateValue"
               (valueChange)="onDateChange($event)"></app-date-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="!formSelector.day && defaultDateValue">
-            <app-year-month-input [value]="defaultDateValue"
+          <div class="col-sm-auto mb-2" *ngIf="displayYearMonthSelector">
+            <app-year-month-input [value]="defaultYearMonthValue"
               (valueChange)="onYearMonthChange($event)"></app-year-month-input>
           </div>
 
-          <div class="col-sm-auto mb-2" *ngIf="formSelector.hour !== undefined">
-            <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formMetadata.hours" [selectedId]="formSelector.hour"
+          <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
+            <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formDefinitions.formMetadata.hours" [selectedId]="formDefinitions.hourSelectorValue"
               (selectedIdChange)="onHourChange($event)" />
           </div>
 
@@ -38,15 +38,15 @@
         <div class="card-header mb-2 p-1 fw-bold">Fields</div>
         <div class="px-2">
           <!-- list layout -->
-          <app-linear-layout *ngIf="this.formMetadata.layout === 'LINEAR'" [formFilter]="formSelector"
-            [elements]="elements"  [formMetadata]="formMetadata" [dbObservations]="observations"
+          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'" [formFilter]="formDefinitions"
+            [elements]=" formDefinitions.elements"  [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
             (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-linear-layout>
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="this.formMetadata.layout === 'GRID'" [formFilter]="formSelector" [elements]="elements"
-            [formMetadata]="formMetadata" [dbObservations]="observations"
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formFilter]="formDefinitions" [elements]="formDefinitions.elements"
+            [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
             (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
           </app-grid-layout>
           <!-- ----------- -->

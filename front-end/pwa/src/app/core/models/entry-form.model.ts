@@ -1,14 +1,14 @@
 
-export type EntryType = 'ELEMENT' | 'DAY' | 'HOUR'; //todo. convert this to enums?
+export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR'; //todo. convert this to enums?
 export type LayoutType = 'LINEAR' | 'GRID'; //todo. convert this to enums?
 
 export interface EntryForm {
 
     //defines the extra entry selectors used by the form to get data
-    selectors: [EntryType, EntryType?];
+    selectors: [ExtraSelectorControlType, ExtraSelectorControlType?];
 
     //defines the entry fields used by the form to display and enter data
-    fields: [EntryType, EntryType?];
+    fields: [ExtraSelectorControlType, ExtraSelectorControlType?];
 
     //layout used by entry fields
     layout: LayoutType;

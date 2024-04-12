@@ -1,28 +1,19 @@
 import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { EntryType } from 'src/app/core/models/entry-form.model';
+import { ExtraSelectorControlType } from 'src/app/core/models/entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
 import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
-import { QCStatusEnum } from 'src/app/core/models/enums/qc-status.enum';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { EntryFormDefinition } from './form-entry.definition';
 
-export interface EntryFormFilter {
-  stationId: string;
-  sourceId: number;
-  period: number;
-  year: number;
-  month: number;
-  elementId?: number;
-  day?: number;
-  hour?: number;
-}
 
-export interface EntryFieldItem { fieldProperty: EntryType, fieldValues: number[] }
+
+export interface EntryFieldItem { fieldProperty: ExtraSelectorControlType, fieldValues: number[] }
 
 export class FormEntryUtil {
 
-  public static getEntryFieldDefs(entryField: EntryType, elements: ViewElementModel[], year: number, month: number, hours: number[]): [number, string][] {
+  public static getEntryFieldDefs(entryField: ExtraSelectorControlType, elements: ViewElementModel[], year: number, month: number, hours: number[]): [number, string][] {
 
     let fieldDefs: [number, string][] = [];
 
@@ -49,7 +40,7 @@ export class FormEntryUtil {
     return fieldDefs;
   }
 
-  public static getEntryObservationsForLinearLayout(formFilter: EntryFormFilter, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[],  convertDateTimeToUTC: boolean): CreateObservationModel[] {
+  public static getEntryObservationsForLinearLayout(formFilter: EntryFormDefinition, entryFieldItem: EntryFieldItem, dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[] {
 
     const entryObservations: CreateObservationModel[] = [];
     for (const firstFieldValue of entryFieldItem.fieldValues) {
@@ -63,7 +54,7 @@ export class FormEntryUtil {
     return entryObservations;
   }
 
-  public static getEntryObservationsForGridLayout(formFilter: EntryFormFilter, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[][] {
+  public static getEntryObservationsForGridLayout(formFilter: EntryFormDefinition, entryFieldItems: [EntryFieldItem, EntryFieldItem], dbObservations: CreateObservationModel[], convertDateTimeToUTC: boolean): CreateObservationModel[][] {
 
     const entryObservations: CreateObservationModel[][] = [];
     for (const firstFieldValue of entryFieldItems[0].fieldValues) {
@@ -84,10 +75,10 @@ export class FormEntryUtil {
   }
 
 
-  private static getEntryObservation(formFilter: EntryFormFilter,
+  private static getEntryObservation(formFilter: EntryFormDefinition,
     entryFields: [
-      { entryFieldProperty: EntryType, entryPropFieldValue: number },
-      { entryFieldProperty: EntryType, entryPropFieldValue: number }?
+      { entryFieldProperty: ExtraSelectorControlType, entryPropFieldValue: number },
+      { entryFieldProperty: ExtraSelectorControlType, entryPropFieldValue: number }?
     ], convertDateTimeToUTC: boolean): CreateObservationModel {
     //create new entr data
     const entryObservation: CreateObservationModel = {
@@ -96,26 +87,26 @@ export class FormEntryUtil {
       elementId: 0, elevation: 0,
       datetime: '',
       value: null, flag: null,
-      period: formFilter.period,
+      period: formFilter.formMetadata.period,
       comment: null,
     };
 
     //set other fields
-    if (formFilter.elementId) {
-      entryObservation.elementId = formFilter.elementId;
+    if (formFilter.elementSelectorValue) {
+      entryObservation.elementId = formFilter.elementSelectorValue;
     }
 
     let datetimeVars: [number, number, number, number] = [-1, -1, -1, -1];
 
-    datetimeVars[0] = formFilter.year;
-    datetimeVars[1] = formFilter.month;
+    datetimeVars[0] = formFilter.yearSelectorValue;
+    datetimeVars[1] = formFilter.monthSelectorValue;
 
-    if (formFilter.day) {
-      datetimeVars[2] = formFilter.day;
+    if (formFilter.daySelectorValue) {
+      datetimeVars[2] = formFilter.daySelectorValue;
     }
 
-    if (formFilter.hour !== undefined) {
-      datetimeVars[3] = formFilter.hour;
+    if (formFilter.hourSelectorValue !== null) {
+      datetimeVars[3] = formFilter.hourSelectorValue;
     }
 
     //set entry field
