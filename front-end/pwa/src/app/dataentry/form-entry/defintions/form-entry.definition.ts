@@ -5,6 +5,7 @@ import { FieldEntryDefinition } from "./field.definition";
 import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
 import { ViewStationModel } from "src/app/core/models/stations/view-station.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
+import { ObservationDefinition } from "./observation.definition";
 
 export class FormEntryDefinition {
 
@@ -88,9 +89,9 @@ export class FormEntryDefinition {
     }
 
     /** Gets the observations that will be used by the value flag controls in a linear layout */
-    public getEntryObsForLinearLayout(): CreateObservationModel[] {
+    public getEntryObsForLinearLayout(): ObservationDefinition[] {
 
-        const newObservations: CreateObservationModel[] = [];
+        const obsDefinitions: ObservationDefinition[] = [];
         const entryField: FieldType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
 
@@ -123,24 +124,24 @@ export class FormEntryDefinition {
                 datetimeVars[3] = fieldDef.id;
             }
 
-            newObs.datetime = this.getObsDatetime(datetimeVars);
+            newObs.datetime = this.getObsDatetime(datetimeVars);            
 
-            newObservations.push(this.getDBObsIfItExists(newObs));
+            obsDefinitions.push(this.createNewObservationDefintion(this.getDBObsIfItExists(newObs)));
 
         }
 
-        return newObservations;
+        return obsDefinitions;
     }
 
 
     /** Gets the observations that will be used by the value flag controls in a grid layout */
-    public getEntryObsForGridLayout(): CreateObservationModel[][] {
+    public getEntryObsForGridLayout(): ObservationDefinition[][] {
 
         if (this.formMetadata.fields.length < 2 || !this.formMetadata.fields[1]) {
             return []; // TODO, throw a dev error.
         }
 
-        const newObservations: CreateObservationModel[][] = [];
+        const newObservations: ObservationDefinition[][] = [];
         const rowEntryField: FieldType = this.formMetadata.fields[0];
         const colEntryField: FieldType = this.formMetadata.fields[1];
 
@@ -150,7 +151,7 @@ export class FormEntryDefinition {
         for (const rowFieldDef of rowEntryfieldDefs) {
 
             // Array to hold the observations in a row
-            const subArrEntryObservations: CreateObservationModel[] = [];
+            const subArrEntryObservations: ObservationDefinition[] = [];
 
             for (const colFieldDef of colEntryfieldDefs) {
 
@@ -190,7 +191,7 @@ export class FormEntryDefinition {
 
                 newObs.datetime = this.getObsDatetime(datetimeVars);
 
-                subArrEntryObservations.push(this.getDBObsIfItExists(newObs));
+                subArrEntryObservations.push(this.createNewObservationDefintion(this.getDBObsIfItExists(newObs)));
             }
 
             newObservations.push(subArrEntryObservations);
@@ -214,6 +215,15 @@ export class FormEntryDefinition {
             period: this.formMetadata.period,
             comment: null,
         };
+    }
+
+    private createNewObservationDefintion(observation: CreateObservationModel): ObservationDefinition{
+        const elementMetadata = this.formMetadata.elementsMetadata.find(items => items.id === observation.elementId);
+        if (!elementMetadata) {
+          //TODO. Through developer error.
+          throw new Error('Developer error: Element metadata NOT found');
+        }
+        return new ObservationDefinition(observation, elementMetadata);
     }
 
 
@@ -245,10 +255,7 @@ export class FormEntryDefinition {
         }
     
         return newObs;
-    
       }
-
-
 
 
 }

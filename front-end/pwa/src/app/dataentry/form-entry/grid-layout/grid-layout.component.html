@@ -1,6 +1,6 @@
 <div class="card border-0">
     <div class="card-body py-0">
-        <div *ngIf="newObservations && newObservations.length > 0" class="row g-2">
+        <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0" class="row g-2">
             <div class="col d-flex flex-column container-max-w-sm">
                 <div class="row me-2 mb-2 d-flex flex-grow-1">
                     {{rowHeaderName}}
@@ -22,8 +22,8 @@
                 <!-- entry fields -->
                 <div class="row mb-2 d-flex flex-grow-1"
                     *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id" [elements]="formDefinitions.formMetadata.elementsMetadata"
-                        [observation]="getEntryObservation(rowIndex,colIndex)" (valueChange)="onValueChange(colIndex)"
+                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id" 
+                        [observationDefinition]="getObservationDef(rowIndex,colIndex)" (valueChange)="onValueChange(colIndex)"
                         (inputBlur)="onInputBlur($event)"></app-value-flag-input>
                 </div>
 

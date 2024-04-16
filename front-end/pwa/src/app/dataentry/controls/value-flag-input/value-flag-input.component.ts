@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { FormEntryUtil } from '../../form-entry/form-entry.util';
+import { FormEntryUtil } from '../../form-entry/defintions/form-entry.util';
 import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
@@ -9,6 +9,7 @@ import { ViewObservationLogModel } from 'src/app/core/models/observations/view-o
 import { ViewObservationLogQueryModel } from 'src/app/core/models/observations/view-observation-log-query.model';
 import { take } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
 
 
 //validation interface local to this component only
@@ -25,12 +26,10 @@ interface ValidationResponse {
 export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
-  @Input() public elements!: ViewElementModel[];
-  @Input() public observation!: CreateObservationModel;
+  @Input() public observationDefinition!: ObservationDefinition;
   @Output() public valueChange = new EventEmitter<CreateObservationModel>();
   @Output() public inputBlur = new EventEmitter<CreateObservationModel>();
 
-  protected displayedValueFlag!: string;
   protected validationResults!: ValidationResponse;
   protected obsLog!: ViewObservationLogModel[];
 
@@ -43,26 +42,9 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    //only proceed with seting up the control if all inputs have been set.
-    if (!this.elements || !this.observation) {
-      return;
-    }
-
-    //scale the value for display
-    let value: number | null = this.observation.value;
-    const element = this.elements.find(data => data.id === this.observation.elementId);
-    if (value !== null && element) {
-      value = FormEntryUtil.getScaledValue(element, value);
-    }
-
-    this.displayedValueFlag = this.getValueFlagForDisplay(value, FormEntryUtil.checkFlagValidity(this.observation.flag));
-
   }
 
   protected onInputEntry(valueFlagInput: string): void {
-
-    //set the new input value as the displayed value. Important for when the value is invalid even after enter key press
-    this.displayedValueFlag = valueFlagInput;
 
     //validate value flag
     this.validationResults = this.validateValueFlagInput(valueFlagInput)
@@ -79,7 +61,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
 
     //if value input then do QC
     if (value !== null) {
-      this.validationResults = this.validateAndQCValue(this.observation.elementId, value);
+      this.validationResults = this.validateAndQCValue(value);
       if (!this.validationResults.isValid) {
         return;
       }
@@ -94,14 +76,12 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     }
 
     //set the value and flag
-    this.observation.value = value === null ? null : this.getUnScaledValue(this.observation.elementId, value);
-    this.observation.flag = FormEntryUtil.checkFlagValidity(flagLetter);
+    this.observationDefinition.observation.value = value === null ? null : this.getUnScaledValue(value);
+    this.observationDefinition.observation.flag = FormEntryUtil.checkFlagValidity(flagLetter);
 
-    //scale the value for display 
-    this.displayedValueFlag = this.getValueFlagForDisplay(value, this.observation.flag);
 
     // Emit data change event
-    this.valueChange.emit(this.observation);
+    this.valueChange.emit(this.observationDefinition.observation);
 
   }
 
@@ -136,18 +116,15 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return { isValid: true, message: '' };
   }
 
-  private validateAndQCValue(elementId: number, value: number): ValidationResponse {
-    const element = this.elements.find(data => data.id === elementId);
+  private validateAndQCValue(value: number): ValidationResponse {
 
-    if (!element) {
-      return { isValid: false, message: 'Element NOT found' };
-    }
 
     // Transform the value to actual scale to validate the limits
-    value = this.getUnScaledValue(elementId, value);
+    value = this.getUnScaledValue(value);
 
     let scaleFactor: number = 1;
 
+    const element = this.observationDefinition.elementMetadata;
     if (element.entryScaleFactor) {
       scaleFactor = element.entryScaleFactor;
     }
@@ -178,39 +155,30 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return { isValid: true, message: '' };
   }
 
-  private getValueFlagForDisplay(value: number | null, flagEnum: FlagEnum | null): string {
-    if (value === null && flagEnum === null) {
-      return '';
-    }
 
-    const valueStr = value !== null ? value.toString() : '';
-    const flagStr = flagEnum !== null ? flagEnum[0].toUpperCase() : '';
 
-    return valueStr + flagStr;
-  }
-
-  private getUnScaledValue(elementId: number, scaledValue: number): number {
-    const element = this.elements.find(data => data.id === elementId);
-    return element && element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
+  // TODO. Deprecate this.
+  private getUnScaledValue(scaledValue: number): number {
+    const element = this.observationDefinition.elementMetadata;
+    return element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
     // TODO. this hard coded file should come from a config file?
-    if (!this.displayedValueFlag) {
+    if (!this.observationDefinition.ValueFlagForDisplay) {
       this.onInputEntry('M');
     }
   }
 
   protected onInputBlur(): void {
-    this.inputBlur.emit(this.observation);
+    this.inputBlur.emit(this.observationDefinition.observation);
   }
 
   protected onCommentEntry(comment: string) {
-    this.observation.comment = comment;
-    this.valueChange.emit(this.observation);
+    this.observationDefinition.observation.comment = comment;
+    this.valueChange.emit(this.observationDefinition.observation);
   }
-
 
   protected loadObservationLog(): void {
 
@@ -223,12 +191,12 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     }
 
     const query: ViewObservationLogQueryModel = {
-      stationId: this.observation.stationId,
-      elementId: this.observation.elementId,
-      sourceId: this.observation.sourceId,
-      elevation: this.observation.elevation,
-      datetime: this.observation.datetime,
-      period: this.observation.period
+      stationId: this.observationDefinition.observation.stationId,
+      elementId: this.observationDefinition.observation.elementId,
+      sourceId: this.observationDefinition.observation.sourceId,
+      elevation: this.observationDefinition.observation.elevation,
+      datetime: this.observationDefinition.observation.datetime,
+      period: this.observationDefinition.observation.period
     };
 
     this.observationService.findObsLog(query).pipe(
@@ -238,10 +206,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       this.obsLog = data.map(item => {
 
         if (item.value !== null) {
-          const element = this.elements.find(data => data.id === this.observation.elementId);
-          if (element) {
-            item.value = FormEntryUtil.getScaledValue(element, item.value);
-          }
+          item.value = FormEntryUtil.getScaledValue(this.observationDefinition.elementMetadata, item.value);
         }
         item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime))
         return item;

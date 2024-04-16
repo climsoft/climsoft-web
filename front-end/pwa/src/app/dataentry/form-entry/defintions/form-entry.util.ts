@@ -6,6 +6,7 @@ import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryDefinition } from './form-entry.definition';
+import { ObservationDefinition } from './observation.definition';
 
 
 
@@ -187,7 +188,7 @@ export class FormEntryUtil {
     return element.entryScaleFactor ? Math.floor(unscaledValue * element.entryScaleFactor) : unscaledValue;
   }
 
-  public static getTotal(entryObservations: CreateObservationModel[], elements: ViewElementModel[]): number | null {
+  public static getTotal(entryObservations: ObservationDefinition[], elements: ViewElementModel[]): number | null {
     let total = 0;
     let allAreNull: boolean = true;
 
@@ -195,9 +196,9 @@ export class FormEntryUtil {
       // Create a map for quick element lookup
       const elementsMap = new Map(elements.map(element => [element.id, element]));
       for (const obs of entryObservations) {
-        if (obs.value !== null) {
-          const element = elementsMap.get(obs.elementId);
-          total = element ? total + FormEntryUtil.getScaledValue(element, obs.value) : total;
+        if (obs.observation.value !== null) {
+          const element = elementsMap.get(obs.observation.elementId);
+          total = element ? total + FormEntryUtil.getScaledValue(element, obs.observation.value) : total;
           allAreNull = false;
         }
       }

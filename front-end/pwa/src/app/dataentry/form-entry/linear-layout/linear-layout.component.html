@@ -1,12 +1,12 @@
-<ng-container *ngIf="newObservations && newObservations.length>0">
+<ng-container *ngIf="observationsDefinitions && observationsDefinitions.length>0">
   <!-- For large screens, use the grid system and
     split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
   <div *ngIf="largeScreen" class="row g-4">
     <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks; let i = index">
 
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
-        <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name" [elements]="formDefinitions.formMetadata .elementsMetadata" 
-          [observation]="getEntryObservation(fieldDef)" (valueChange)="onValueChange()"
+        <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name" 
+          [observationDefinition]="getObservationDef(fieldDef)" (valueChange)="onValueChange()"
           (inputBlur)="onInputBlur($event)"></app-value-flag-input>
       </div>
 
@@ -23,7 +23,7 @@
   <div *ngIf="!largeScreen" class="d-flex flex-column">
 
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef.name"
-      [label]="fieldDef.name" [elements]="formDefinitions.formMetadata .elementsMetadata" [observation]="getEntryObservation(fieldDef)"
+      [label]="fieldDef.name" [observationDefinition]="getObservationDef(fieldDef)"
       (valueChange)="onValueChange()" (inputBlur)="onInputBlur($event)"></app-value-flag-input>
 
     <div *ngIf="formDefinitions.formMetadata.validateTotal" class="mb-2">

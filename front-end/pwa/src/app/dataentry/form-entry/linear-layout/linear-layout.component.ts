@@ -1,9 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { EntryFieldItem, FormEntryUtil } from '../form-entry.util';
+import { EntryFieldItem, FormEntryUtil } from '../defintions/form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { FormEntryDefinition } from '../form-entry.definition';
-import { FieldEntryDefinition } from '../field.definition';
+import { FormEntryDefinition } from '../defintions/form-entry.definition';
+import { FieldEntryDefinition } from '../defintions/field.definition';
+import { ObservationDefinition } from '../defintions/observation.definition';
 
 @Component({
   selector: 'app-linear-layout',
@@ -19,7 +20,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   // Todo, change this to a typed interface
   protected fieldDefinitions!: FieldEntryDefinition[];
   protected fieldDefinitionsChunks!: FieldEntryDefinition[][];
-  protected newObservations!: CreateObservationModel[];
+  protected observationsDefinitions!: ObservationDefinition[];
   protected entryTotal!: { value: number | null, errorMessage: string | null };
   protected largeScreen: boolean = true;
 
@@ -37,7 +38,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     if (this.formDefinitions && this.dbObservations) {
       this.setup();
     } else {
-      this.newObservations = [];
+      this.observationsDefinitions = [];
     }
 
   }
@@ -52,24 +53,20 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     // const entryObservations: CreateObservationModel[] = FormEntryUtil.getEntryObservationsForLinearLayout(
     //   this.formDefinitions, entryFieldItems, this.dbObservations, this.formDefinitions.formMetadata.convertDateTimeToUTC);
 
-    const entryObservations: CreateObservationModel[] = this.formDefinitions.getEntryObsForLinearLayout();
+    const entryObservations: ObservationDefinition[] = this.formDefinitions.getEntryObsForLinearLayout();
 
     this.fieldDefinitions = fieldDefinitions;
     this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
-    this.newObservations = entryObservations;
+    this.observationsDefinitions = entryObservations;
     if (this.formDefinitions.formMetadata.validateTotal) {
-      this.entryTotal = { value: FormEntryUtil.getTotal(this.newObservations, this.formDefinitions.formMetadata.elementsMetadata), errorMessage: '' };
+      this.entryTotal = { value: FormEntryUtil.getTotal(this.observationsDefinitions, this.formDefinitions.formMetadata.elementsMetadata), errorMessage: '' };
     }
-
-    /// console.log("fieldDefinitions",this.fieldDefinitions)
-    // console.log("fieldDefinitionsChunks",this.fieldDefinitionsChunks)
-    //console.log("entryObservations",this.entryObservations)
 
   }
 
-  protected getEntryObservation(fieldDef: FieldEntryDefinition): CreateObservationModel {
+  protected getObservationDef(fieldDef: FieldEntryDefinition): ObservationDefinition {
     const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
-    return this.newObservations[index];
+    return this.observationsDefinitions[index];
   }
 
   //todo. Push this to array utils
@@ -81,6 +78,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     }
     return chunks;
   }
+
 
   protected onValueChange(): void {
     if (this.formDefinitions.formMetadata.validateTotal) {
@@ -97,7 +95,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   }
 
   protected onTotalValueChange(value: number | null): void {
-    const expectedTotal = FormEntryUtil.getTotal(this.newObservations, this.formDefinitions.formMetadata.elementsMetadata);
+    const expectedTotal = FormEntryUtil.getTotal(this.observationsDefinitions, this.formDefinitions.formMetadata.elementsMetadata);
     this.entryTotal.errorMessage = FormEntryUtil.checkTotal(expectedTotal, value);
     this.entryTotal.value = value;
 
