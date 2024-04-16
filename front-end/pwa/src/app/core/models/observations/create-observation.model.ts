@@ -1,5 +1,5 @@
-import { ViewElementModel } from "./view-element.model";
-import { FlagEnum } from "./enums/flag.enum"; 
+import { ViewElementModel } from "../elements/view-element.model";
+import { FlagEnum } from "./flag.enum"; 
 
 export interface CreateObservationModel {
     stationId: string;

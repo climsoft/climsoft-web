@@ -1,5 +1,5 @@
 import { CreateElementModel } from "./create-element.model";
-import { ElementDomainEnum } from "./enums/element-domain.enum";
+import { ElementDomainEnum } from "./element-domain.enum";
 
 export interface ViewElementModel extends CreateElementModel{
   typeId: number;

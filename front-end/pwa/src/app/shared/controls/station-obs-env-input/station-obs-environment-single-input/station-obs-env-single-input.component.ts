@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ViewStationObsEnvModel } from 'src/app/core/models/view-station-obs-env.model';
-import { StationObsEnvironmentsService } from 'src/app/core/services/station-obs-environments.service';
+import { ViewStationObsEnvModel } from 'src/app/core/models/stations/view-station-obs-env.model';
+import { StationObsEnvironmentsService } from 'src/app/core/services/stations/station-obs-environments.service';
 
 @Component({
   selector: 'app-station-obs-env-single-input',

@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators'; 
 import { CreateUpdateSourceModel } from '../../models/sources/create-update-source.model';
-import { SourceTypeEnum } from '../../models/enums/source-type.enum';
+import { SourceTypeEnum } from '../../models/sources/source-type.enum';
 import { ViewSourceModel } from '../../models/sources/view-source.model';
 
 @Injectable({

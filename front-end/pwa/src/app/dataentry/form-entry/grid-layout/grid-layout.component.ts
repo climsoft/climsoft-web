@@ -1,8 +1,8 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
 import { CreateEntryFormModel } from 'src/app/core/models/sources/create-entry-form.model';
-import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model'; 
 import { EntryFieldItem,  FormEntryUtil } from '../form-entry.util';
-import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { FormEntryDefinition } from '../form-entry.definition';
 import { FieldEntryDefinition } from '../field.definition';
 

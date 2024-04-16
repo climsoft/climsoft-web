@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';  
-import { ViewStationObsFocusModel } from 'src/app/core/models/view-station-obs-focus.model';
-import { StationObsEnvironmentsService } from 'src/app/core/services/station-obs-environments.service';
-import { StationObsFocusesService } from 'src/app/core/services/station-obs-focuses.service';
+import { ViewStationObsFocusModel } from 'src/app/core/models/stations/view-station-obs-focus.model';
+import { StationObsEnvironmentsService } from 'src/app/core/services/stations/station-obs-environments.service';
+import { StationObsFocusesService } from 'src/app/core/services/stations/station-obs-focuses.service';
 
 @Component({
   selector: 'app-station-obs-focus-single-input',

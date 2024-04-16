@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; 
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewElementModel } from '../models/view-element.model';
-import { ViewStationObsEnvModel } from '../models/view-station-obs-env.model';
+import { ViewElementModel } from '../../models/elements/view-element.model';
+import { ViewStationObsEnvModel } from '../../models/stations/view-station-obs-env.model';
 
 @Injectable({
   providedIn: 'root'

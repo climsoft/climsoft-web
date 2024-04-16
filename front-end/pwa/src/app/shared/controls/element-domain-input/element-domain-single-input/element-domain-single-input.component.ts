@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ElementDomainEnum } from 'src/app/core/models/enums/element-domain.enum';
+import { ElementDomainEnum } from 'src/app/core/models/elements/element-domain.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({

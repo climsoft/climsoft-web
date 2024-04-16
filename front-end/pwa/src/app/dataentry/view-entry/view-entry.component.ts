@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/core/models/view-observation-query.model';
-import { ViewObservationModel } from 'src/app/core/models/view-observation.model';
-import { ObservationsService } from 'src/app/core/services/observations.service';
+import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
+import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
+import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 

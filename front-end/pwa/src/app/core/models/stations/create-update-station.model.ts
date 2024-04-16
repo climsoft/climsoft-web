@@ -1,6 +1,6 @@
-import { StationObsProcessingMethodEnum } from "./enums/station-obs-Processing-method.enum";
-import { StationStatusEnum } from "./enums/station-status.enum";
-import { PointModel } from "./point.model";
+import { StationObsProcessingMethodEnum } from "./station-obs-Processing-method.enum";
+import { StationStatusEnum } from "./station-status.enum";
+import { PointModel } from "../point.model";
 
 export interface CreateUpdateStationModel {
   id: string;

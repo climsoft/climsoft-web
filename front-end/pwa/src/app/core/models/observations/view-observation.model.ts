@@ -1,4 +1,4 @@
-import { FlagEnum } from "./enums/flag.enum";
+import { FlagEnum } from "./flag.enum";
 
 export interface ViewObservationModel {
     stationName: string;

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { StationElementLimitModel } from '../models/station-element-limit.model';
+import { StationElementLimitModel } from '../../models/stations/station-element-limit.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewElementModel } from '../models/view-element.model';
+import { ViewElementModel } from '../../models/elements/view-element.model';
 
 @Injectable({
   providedIn: 'root'

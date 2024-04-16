@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CreateUpdateStationModel } from '../models/create-update-station.model';  
-import { ViewStationModel } from '../models/view-station.model';
+import { CreateUpdateStationModel } from '../../models/stations/create-update-station.model';  
+import { ViewStationModel } from '../../models/stations/view-station.model';
 
 @Injectable({
   providedIn: 'root'

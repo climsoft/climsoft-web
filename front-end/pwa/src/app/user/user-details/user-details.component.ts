@@ -1,11 +1,11 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { CreateUserModel } from 'src/app/core/models/create-user.model';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { UserRoleEnum } from 'src/app/core/models/enums/user-role.enum';
+import { CreateUserModel } from 'src/app/core/models/users/create-user.model';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { UserRoleEnum } from 'src/app/core/models/users/user-role.enum';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { UsersService } from 'src/app/core/services/users.service';
+import { UsersService } from 'src/app/core/services/users/users.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({

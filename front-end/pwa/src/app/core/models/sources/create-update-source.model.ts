@@ -1,4 +1,4 @@
-import { SourceTypeEnum } from "../enums/source-type.enum";
+import { SourceTypeEnum } from "./source-type.enum";
 
 export interface CreateUpdateSourceModel<T> {
     name: string;

@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewElementModel } from '../models/view-element.model';
-import { UpdateElementModel } from '../models/update-element.model';
-import { CreateElementModel } from '../models/create-element.model';
-import { ElementDomainEnum } from '../models/enums/element-domain.enum';
-import { ViewElementSubdomainModel } from '../models/view-element-subdomain.model';
-import { ViewElementTypeModel } from '../models/view-element-type.model';
+import { ViewElementModel } from '../../models/elements/view-element.model';
+import { UpdateElementModel } from '../../models/elements/update-element.model';
+import { CreateElementModel } from '../../models/elements/create-element.model';
+import { ElementDomainEnum } from '../../models/elements/element-domain.enum';
+import { ViewElementSubdomainModel } from '../../models/elements/view-element-subdomain.model';
+import { ViewElementTypeModel } from '../../models/elements/view-element-type.model';
 
 @Injectable({
   providedIn: 'root'

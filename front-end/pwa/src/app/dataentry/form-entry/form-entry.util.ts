@@ -1,9 +1,9 @@
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { ExtraSelectorControlType, FieldType } from 'src/app/core/models/sources/create-entry-form.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ArrayUtils } from 'src/app/shared/utils/array.utils';
-import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
-import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryDefinition } from './form-entry.definition';
 

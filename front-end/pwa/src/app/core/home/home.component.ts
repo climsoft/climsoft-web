@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
+import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../services/users/auth.service';
 import { Router } from '@angular/router';
-import { UserRoleEnum } from '../models/enums/user-role.enum';
+import { UserRoleEnum } from '../models/users/user-role.enum';
 
 
 @Component({

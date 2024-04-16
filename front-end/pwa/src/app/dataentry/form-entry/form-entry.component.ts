@@ -1,16 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ObservationsService } from 'src/app/core/services/observations.service'; 
-import { StationsService } from 'src/app/core/services/stations.service';
+import { ObservationsService } from 'src/app/core/services/observations/observations.service'; 
+import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
-import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { CreateObservationQueryModel } from 'src/app/core/models/observations/create-observation-query.model';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { catchError, of, take } from 'rxjs';
 import { FormEntryDefinition } from './form-entry.definition';
 import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
-import { ViewStationModel } from 'src/app/core/models/view-station.model';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 
 @Component({
   selector: 'app-form-entry',

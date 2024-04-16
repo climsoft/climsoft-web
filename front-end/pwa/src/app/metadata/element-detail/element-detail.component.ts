@@ -2,12 +2,12 @@ import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { CreateElementModel } from 'src/app/core/models/create-element.model';
-import { ElementDomainEnum } from 'src/app/core/models/enums/element-domain.enum';
-import { UpdateElementModel } from 'src/app/core/models/update-element.model';
-import { ViewElementSubdomainModel } from 'src/app/core/models/view-element-subdomain.model';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { ElementsService } from 'src/app/core/services/elements.service';
+import { CreateElementModel } from 'src/app/core/models/elements/create-element.model';
+import { ElementDomainEnum } from 'src/app/core/models/elements/element-domain.enum';
+import { UpdateElementModel } from 'src/app/core/models/elements/update-element.model';
+import { ViewElementSubdomainModel } from 'src/app/core/models/elements/view-element-subdomain.model';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 

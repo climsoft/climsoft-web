@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ElementDomainEnum } from '../models/enums/element-domain.enum';
-import { ViewElementSubdomainModel } from '../models/view-element-subdomain.model';
+import { ElementDomainEnum } from '../../models/elements/element-domain.enum';
+import { ViewElementSubdomainModel } from '../../models/elements/view-element-subdomain.model';
 
 @Injectable({
   providedIn: 'root'

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/station-forms.service';
+import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';

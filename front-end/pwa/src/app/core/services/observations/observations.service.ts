@@ -3,12 +3,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewObservationQueryModel } from '../models/view-observation-query.model';
-import { ViewObservationModel } from '../models/view-observation.model';
-import { CreateObservationModel } from '../models/create-observation.model';
-import { CreateObservationQueryModel } from '../models/create-observation-query.model';
-import { ViewObservationLogQueryModel } from '../models/view-observation-log-query.model';
-import { ViewObservationLogModel } from '../models/view-observation-log.model';
+import { ViewObservationQueryModel } from '../../models/observations/view-observation-query.model';
+import { ViewObservationModel } from '../../models/observations/view-observation.model';
+import { CreateObservationModel } from '../../models/observations/create-observation.model';
+import { CreateObservationQueryModel } from '../../models/observations/create-observation-query.model';
+import { ViewObservationLogQueryModel } from '../../models/observations/view-observation-log-query.model';
+import { ViewObservationLogModel } from '../../models/observations/view-observation-log.model';
 
 @Injectable({
   providedIn: 'root'

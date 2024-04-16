@@ -2,8 +2,8 @@ import { ExtraSelectorControlType, FieldType } from "src/app/core/models/sources
 import { ViewEntryFormModel } from "src/app/core/models/sources/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
-import { CreateObservationModel } from "src/app/core/models/create-observation.model";
-import { ViewStationModel } from "src/app/core/models/view-station.model";
+import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
+import { ViewStationModel } from "src/app/core/models/stations/view-station.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 
 export class FormEntryDefinition {

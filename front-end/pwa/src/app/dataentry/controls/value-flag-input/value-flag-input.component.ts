@@ -1,12 +1,12 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FormEntryUtil } from '../../form-entry/form-entry.util';
-import { FlagEnum } from 'src/app/core/models/enums/flag.enum';
-import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
-import { ObservationsService } from 'src/app/core/services/observations.service';
-import { ViewObservationLogModel } from 'src/app/core/models/view-observation-log.model';
-import { ViewObservationLogQueryModel } from 'src/app/core/models/view-observation-log-query.model';
+import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
+import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ViewObservationLogModel } from 'src/app/core/models/observations/view-observation-log.model';
+import { ViewObservationLogQueryModel } from 'src/app/core/models/observations/view-observation-log-query.model';
 import { take } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 

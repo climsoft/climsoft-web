@@ -1,8 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { pipe, take } from 'rxjs';
-import { StationObsProcessingMethodEnum } from 'src/app/core/models/enums/station-obs-Processing-method.enum';
-import { CreateUpdateStationModel } from 'src/app/core/models/create-update-station.model';
-import { StationsService } from 'src/app/core/services/stations.service';
+import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { CreateUpdateStationModel } from 'src/app/core/models/stations/create-update-station.model';
+import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 

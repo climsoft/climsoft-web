@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { EntryFieldItem, FormEntryUtil } from '../form-entry.util';
-import { ViewPortSize, ViewportService } from 'src/app/core/services/viewport.service';
-import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
+import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { FormEntryDefinition } from '../form-entry.definition';
 import { FieldEntryDefinition } from '../field.definition';
 

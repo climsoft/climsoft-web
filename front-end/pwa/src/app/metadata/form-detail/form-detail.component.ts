@@ -8,7 +8,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { take } from 'rxjs';
 
 @Component({
