@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
-import { ViewSourceModel } from 'src/app/core/models/view-source.model';
-import { SourcesService } from 'src/app/core/services/sources.service';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-source-single-input',
@@ -14,8 +14,8 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ViewSourceModel[];
-  protected selectedOption!: ViewSourceModel | null;
+  protected options!: ViewSourceModel<string>[];
+  protected selectedOption!: ViewSourceModel<string> | null;
 
   constructor(private sourcesService: SourcesService) {
   
@@ -45,11 +45,11 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: ViewSourceModel): string {
+  protected optionDisplayFunction(option: ViewSourceModel<string>): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: ViewSourceModel | null) {
+  protected onSelectedOptionChange(selectedOption: ViewSourceModel<string> | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

@@ -57,7 +57,7 @@ export class ViewEntryComponent {
       observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 
-    this.observationService.getObservations(observationFilter).subscribe((data) => {
+    this.observationService.findProcessed(observationFilter).subscribe((data) => {
       this.observations = data.map(item => {
         // Convert to ISO 8601 SQL standard. Note, this will show the date time in the local time zone
         item.datetime = DateUtils.getDateInSQLFormatFromDate(new Date(item.datetime));

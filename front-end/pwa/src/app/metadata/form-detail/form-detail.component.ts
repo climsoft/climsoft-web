@@ -2,10 +2,10 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ExtraSelectorControlType, EntryForm, LayoutType, } from '../../core/models/entry-form.model';
-import { CreateUpdateSourceModel } from '../../core/models/create-update-source.model';
+import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../../core/models/sources/create-entry-form.model';
+import { CreateUpdateSourceModel } from '../../core/models/sources/create-update-source.model';
 import { ActivatedRoute } from '@angular/router';
-import { SourcesService } from 'src/app/core/services/sources.service';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
@@ -19,7 +19,7 @@ import { take } from 'rxjs';
 export class FormDetailComponent implements OnInit {
 
   protected sourceId: number = 0;
-  protected createUpdateSource!: CreateUpdateSourceModel;
+  protected createUpdateSource!: CreateUpdateSourceModel<string>;
   protected formName: string = '';
   protected formDescription: string = '';
 
@@ -65,7 +65,7 @@ export class FormDetailComponent implements OnInit {
     }
   }
 
-  private setControlValues(source: CreateUpdateSourceModel): void {
+  private setControlValues(source: CreateUpdateSourceModel<string>): void {
     this.formName = source.name;
     this.formDescription = this.createUpdateSource.description;
 
@@ -74,7 +74,7 @@ export class FormDetailComponent implements OnInit {
     if (!this.createUpdateSource.extraMetadata) {
       return;
     }
-    const entryForm: EntryForm = JSON.parse(this.createUpdateSource.extraMetadata);
+    const entryForm: CreateEntryFormModel = JSON.parse(this.createUpdateSource.extraMetadata);
 
     const selectedSelectors: ExtraSelectorControlType[] = [];
     const possibleFields: ExtraSelectorControlType[] = [];
@@ -215,7 +215,7 @@ export class FormDetailComponent implements OnInit {
     this.createUpdateSource.name = this.formName;
     this.createUpdateSource.description = this.formDescription;
 
-    const entryForm: EntryForm = {
+    const entryForm: CreateEntryFormModel = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
       layout: this.selectedLayout,

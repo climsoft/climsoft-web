@@ -9,8 +9,8 @@ export class DateUtils {
      * @param prefix 
      * @returns 
      */
-    static getDaysInMonthList(year: number, month: number, prefix?: string): { [key: string]: any }[] {
-        const allDays: { [key: string]: any }[] = [];
+    static getDaysInMonthList(year: number, month: number, prefix?: string): { id: number, name: string }[] {
+        const allDays: { id: number, name: string }[] = [];
         const lastDay: number = new Date(year, month, 0).getDate();
 
         if (prefix === undefined) {
@@ -23,8 +23,8 @@ export class DateUtils {
         return allDays;
     }
 
-    static getHours(hourIds?: number[]): { [key: string]: any }[] {
-        const allHours: { [key: string]: any }[] = [];
+    static getHours(hourIds?: number[]): { id: number, name: string }[] {
+        const allHours: { id: number, name: string }[] = [];
         for (let i = 0; i <= 23; i++) {
             allHours.push({ id: i, name: `Hour ${i.toString().padStart(2, '0')}` });
         }

@@ -2,9 +2,9 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typ
 import { FlagEnum } from "../enums/flag.enum";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
-import { StationEntity } from "src/metadata/entities/station.entity";
-import { ElementEntity } from "src/metadata/entities/element.entity";
-import { SourceEntity } from "src/metadata/entities/source.entity";
+import { StationEntity } from "src/metadata/entities/stations/station.entity";
+import { ElementEntity } from "src/metadata/entities/elements/element.entity";
+import { SourceEntity } from "src/metadata/entities/sources/source.entity";
 
 @Entity("observations")
 export class ObservationEntity extends BaseEntity {

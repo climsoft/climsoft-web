@@ -1,9 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
-import { EntryForm } from 'src/app/core/models/entry-form.model';
+import { CreateEntryFormModel } from 'src/app/core/models/sources/create-entry-form.model';
 import { ViewElementModel } from 'src/app/core/models/view-element.model'; 
 import { EntryFieldItem,  FormEntryUtil } from '../form-entry.util';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
 import { FormEntryDefinition } from '../form-entry.definition';
+import { FieldEntryDefinition } from '../field.definition';
 
 @Component({
   selector: 'app-grid-layout',
@@ -11,16 +12,14 @@ import { FormEntryDefinition } from '../form-entry.definition';
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
-  @Input() elements!: ViewElementModel[];
-  @Input() formFilter!: FormEntryDefinition;
-  @Input() formMetadata!: EntryForm;
+  @Input() formDefinitions!: FormEntryDefinition;
   @Input() dbObservations!: CreateObservationModel[];
   @Output() valueChange = new EventEmitter<CreateObservationModel>();
   @Output() public enableSave = new EventEmitter<boolean>();
 
-  protected rowFieldDefinitions!: [number, string][];
-  protected colFieldDefinitions!: [number, string][];
-  protected entryObservations!: CreateObservationModel[][];
+  protected rowFieldDefinitions!: FieldEntryDefinition[];
+  protected colFieldDefinitions!: FieldEntryDefinition[];
+  protected newObservations!: CreateObservationModel[][];
   protected entryTotals!: { value: number | null, errorMessage: string | null }[];
  
 
@@ -33,49 +32,32 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (this.dbObservations && this.elements && this.elements.length > 0 &&
-      this.formFilter && this.formMetadata) {
-
+    if (this.formDefinitions && this.dbObservations) {
       this.setup();
-
     } else {
-      this.entryObservations = [];
+      this.newObservations = [];
     }
 
   }
 
-  protected get rowHeaderName(): string{
-    return this.formMetadata.fields[0]
-  }
+
 
   private setup(): void {
 
-    if (!(this.formMetadata.fields.length > 1 && this.formMetadata.fields[1])) {
+    if (this.formDefinitions.formMetadata.fields.length < 0 || !this.formDefinitions.formMetadata.fields[1]) {
       return;
     }
 
-    //get entry field to use for control definitions
-
-    const entryFieldForRow = this.formMetadata.fields[0];
-    const entryFieldForColumn = this.formMetadata.fields[1];
-
-    const rowFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryFieldForRow, this.elements, this.formFilter.yearSelectorValue, this.formFilter.monthSelectorValue, this.formMetadata.hours
-    );
-
-    const colFieldDefs: [number, string][] = FormEntryUtil.getEntryFieldDefs(
-      entryFieldForColumn, this.elements, this.formFilter.yearSelectorValue, this.formFilter.monthSelectorValue, this.formMetadata.hours
-    );
-
-    const rowFieldItems: EntryFieldItem = { fieldProperty: entryFieldForRow, fieldValues: rowFieldDefs.map(data => (data[0])) }
-    const colFieldItems: EntryFieldItem = { fieldProperty: entryFieldForColumn, fieldValues: colFieldDefs.map(data => (data[0])) }
-    const entryObservations: CreateObservationModel[][] = FormEntryUtil.getEntryObservationsForGridLayout(
-      this.formFilter, [rowFieldItems, colFieldItems], this.dbObservations,this.formMetadata.convertDateTimeToUTC);
+    const rowFieldDefs: FieldEntryDefinition[] = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
+    const colFieldDefs: FieldEntryDefinition[] = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
+    const entryObservations: CreateObservationModel[][] = this.formDefinitions.getEntryObsForGridLayout();
 
     this.rowFieldDefinitions = rowFieldDefs;
     this.colFieldDefinitions = colFieldDefs;
-    this.entryObservations = entryObservations;
-    if (this.formMetadata.validateTotal) {
+    this.newObservations = entryObservations;
+
+
+    if (this.formDefinitions.formMetadata.validateTotal) {
       const entryTotals = [];
       for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
         entryTotals.push({ value: this.getColumnTotal(colIndex), errorMessage: '' });
@@ -85,18 +67,22 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     }
   }
 
-  public getEntryObservation(rowIndex: number, colIndex: number): CreateObservationModel {
-    return this.entryObservations[rowIndex][colIndex];
+  protected get rowHeaderName(): string{
+    return this.formDefinitions.formMetadata.fields[0]
+  }
+
+  protected getEntryObservation(rowIndex: number, colIndex: number): CreateObservationModel {
+    return this.newObservations[rowIndex][colIndex];
   }
 
   protected onValueChange(colIndex: number): void {
-    if (this.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.validateTotal) {
       const entryTotal = this.entryTotals[colIndex];
       entryTotal.errorMessage = null;
       entryTotal.value = null;
     }
 
-    this.enableSave.emit(!this.formMetadata.validateTotal);
+    this.enableSave.emit(!this.formDefinitions.formMetadata.validateTotal);
   }
 
 
@@ -115,9 +101,9 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   private getColumnTotal(colIndex: number): number | null {
     const colObservations: CreateObservationModel[] = []
     for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
-      colObservations.push(this.entryObservations[rowIndex][colIndex]);
+      colObservations.push(this.newObservations[rowIndex][colIndex]);
     }
-    return FormEntryUtil.getTotal(colObservations, this.elements);
+    return FormEntryUtil.getTotal(colObservations, this.formDefinitions.formMetadata.elementsMetadata);
   }
 
   private allColumnTotalsValid(): boolean {

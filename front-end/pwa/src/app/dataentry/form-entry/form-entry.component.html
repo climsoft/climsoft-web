@@ -1,6 +1,6 @@
 <div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
-    <div class="card-title fw-bold">{{formName}} data entry for {{stationName}}</div>
+    <div class="card-title fw-bold">{{formName}} data entry for {{station.id}} - {{station.name}}</div>
     <!-- entry selectors -->
     <div class="card mb-2 border-0 ">
 
@@ -23,8 +23,8 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
-            <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formDefinitions.formMetadata.hours" [selectedId]="formDefinitions.hourSelectorValue"
-              (selectedIdChange)="onHourChange($event)" />
+            <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formDefinitions.formMetadata.hours"
+              [selectedId]="formDefinitions.hourSelectorValue" (selectedIdChange)="onHourChange($event)" />
           </div>
 
         </div>
@@ -38,16 +38,16 @@
         <div class="card-header mb-2 p-1 fw-bold">Fields</div>
         <div class="px-2">
           <!-- list layout -->
-          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'" [formFilter]="formDefinitions"
-            [elements]=" formDefinitions.elementsMetadata"  [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
-            (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
+          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
+            [formDefinitions]="formDefinitions" [dbObservations]="dbObservations"
+            (valueChange)="onObservationEntry($event)" (enableSave)="onEnableSave($event)">
           </app-linear-layout>
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formFilter]="formDefinitions" [elements]="formDefinitions.elementsMetadata"
-            [formMetadata]="formDefinitions.formMetadata" [dbObservations]="dbObservations"
-            (valueChange)="onValueChange($event)" (enableSave)="onEnableSave($event)">
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formDefinitions]="formDefinitions"
+            [dbObservations]="dbObservations" (valueChange)="onObservationEntry($event)"
+            (enableSave)="onEnableSave($event)">
           </app-grid-layout>
           <!-- ----------- -->
         </div>
@@ -59,6 +59,7 @@
     <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSave" (click)="onSaveClick()">
       Save
     </button>
+    <button type="button" class="btn btn-sm btn-outline-danger me-2" (click)="onDeleteClick()">Delete</button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
   </div>
 

@@ -231,7 +231,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       period: this.observation.period
     };
 
-    this.observationService.getObservationLog(query).pipe(
+    this.observationService.findObsLog(query).pipe(
       take(1)
     ).subscribe(data => {
       // Convert the entry date time to current local time

@@ -92,7 +92,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService, private router: Router) {
 
     this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
-      this.bOpenSideNav = viewPortSize === ViewPortSize.Large;
+      this.bOpenSideNav = viewPortSize === ViewPortSize.LARGE;
     });
 
     this.pagesDataService.pageHeader.subscribe(name => {

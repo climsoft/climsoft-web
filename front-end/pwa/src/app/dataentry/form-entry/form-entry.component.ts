@@ -1,19 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ObservationsService } from 'src/app/core/services/observations.service';
-import { SourcesService } from 'src/app/core/services/sources.service';
+import { ObservationsService } from 'src/app/core/services/observations.service'; 
 import { StationsService } from 'src/app/core/services/stations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ElementsService } from 'src/app/core/services/elements.service';
+import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationQueryModel } from 'src/app/core/models/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/create-observation.model';
-import { catchError, of, switchMap, take } from 'rxjs';
+import { catchError, of, take } from 'rxjs';
 import { FormEntryDefinition } from './form-entry.definition';
-
-/** Types of selector controls allowed */
-//export type SelectorControlType = 'ELEMENT' | 'YEAR' | 'MONTH' | 'DAY' | 'HOUR' | 'YEARMONTH' | 'DATE';
+import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
+import { ViewStationModel } from 'src/app/core/models/view-station.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -22,30 +19,27 @@ import { FormEntryDefinition } from './form-entry.definition';
 })
 export class FormEntryComponent implements OnInit {
   /** Name of station */
-  protected stationName!: string;
+  protected station!: ViewStationModel;
 
-  /** Name of form */
+   /** Name of form */
   protected formName!: string;
 
-  /** Definitions used to determine form functionality */
+  /** Definitions used to determine form functionalities */
   protected formDefinitions!: FormEntryDefinition;
-
 
   /** Enables or disables save button */
   protected enableSave: boolean = false;
 
-
-
   /** Observations retrieved from database */
   protected dbObservations!: CreateObservationModel[];
 
+  /** Observations entered */
   protected newObservations!: CreateObservationModel[];
 
   constructor
     (private pagesDataService: PagesDataService,
-      private sourcesService: SourcesService,
+      private formSourcesService: FormSourcesService,
       private stationsService: StationsService,
-      private elementsService: ElementsService,
       private observationService: ObservationsService,
       private route: ActivatedRoute,
       private location: Location) {
@@ -57,88 +51,91 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
+    // Get station name 
     this.stationsService.getStationCharacteristics(stationId).pipe(
       take(1)
-    ).subscribe((data) => {
-      this.stationName = `${data.id} - ${data.name}`;
+    ).subscribe(data => {
+      this.station = data;
     });
 
-    this.sourcesService.getSource(sourceId).pipe(
+    // Get form metadata
+    this.formSourcesService.find(sourceId).pipe(
       take(1)
     ).subscribe((data) => {
-      //set form name
-      this.formName = data.name;
-      //set form metadata
+     
       if (!data.extraMetadata) {
         // TODO. Throw error?
         return;
       }
 
-      //the load existing observation data
-      this.formDefinitions = new FormEntryDefinition(stationId, sourceId, JSON.parse(data.extraMetadata));
+      // Set form name
+      this.formName = data.name
+
+      // Define initial definition
+      this.formDefinitions = new FormEntryDefinition(this.station, sourceId, data.extraMetadata);
+     
+      // Load existing observation data
       this.loadObservations();
 
     });
 
   }
 
+  /** Used to determine whether to display element selector */
   protected get displayElementSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('ELEMENT');
   }
 
+   /** Used to determine whether to display date selector */
   protected get displayDateSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('DAY');
   }
 
+   /** Used to determine whether to display year-month selector */
   protected get displayYearMonthSelector(): boolean {
     return !this.displayDateSelector;
   }
 
+   /** Used to determine whether to display hour selector */
   protected get displayHourSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
 
+   /** Gets default date value (YYYY-MM-DD) used by date selector */
   protected get defaultDateValue(): string {
     return new Date().toISOString().slice(0, 10);
   }
 
+   /** Gets default year-month value (YYYY-MM) used by year-month selector */
   protected get defaultYearMonthValue(): string {
     return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
   }
 
+  /** Loads any existing observations from the database */
   private loadObservations() {
 
-    this.formDefinitions.elementsMetadata = [];
     this.dbObservations = [];
     this.newObservations = [];
+    this.formDefinitions.dbObservations = [];
 
-    // Note, its not expected that all elements in the database will be set as entry fields. 
-    // that should be regarded as an error in form builder design.
-    // so always assume that elements selected are provided
-    // Fetch the elements first then their observations
-
-    //TODO. find a way of making this be loaded by the definition first
-    this.elementsService.getElements(this.formDefinitions.elementValuesForDBQuerying).pipe(
+    this.observationService.findRaw(this.createObservationQuery(this.formDefinitions)).pipe(
       take(1),
-      switchMap(data => {
-        this.formDefinitions.elementsMetadata = data;
-        return this.observationService.getObservationsRaw(this.createObservationQuery(this.formDefinitions)).pipe(take(1));
-      }),
       catchError(error => {
-        console.error('Failed to load data', error);
+        console.error('Failed to load observation data', error);
         return of([]); // TODO. Appropriate fallback needed
       })
     ).subscribe(data => {
       this.dbObservations = data;
+      this.formDefinitions.dbObservations = data;
     });
 
   }
 
-
+  /** Creates the observation query object for loading existing observations from the database */
   private createObservationQuery(formDefinitions: FormEntryDefinition): CreateObservationQueryModel {
     //get the data based on the selection filter
     const observationQuery: CreateObservationQueryModel = {
-      stationId: formDefinitions.stationId,
+      stationId: formDefinitions.station.id,
       sourceId: formDefinitions.sourceId,
       period: formDefinitions.formMetadata.period,
       elementIds: formDefinitions.elementValuesForDBQuerying,
@@ -149,6 +146,7 @@ export class FormEntryComponent implements OnInit {
     const monthIndex = formDefinitions.monthSelectorValue - 1;
     const hours = formDefinitions.hourValuesForDBQuerying
 
+    // If day value is defined then just define a single data time else define all date times for the entire month
     if (formDefinitions.daySelectorValue) {
       observationQuery.datetimes = [new Date(year, monthIndex, formDefinitions.daySelectorValue, hours[0], 0, 0, 0).toISOString()];
     } else {
@@ -161,46 +159,51 @@ export class FormEntryComponent implements OnInit {
     return observationQuery;
   }
 
-  public onElementChange(elementIdInput: number | null): void {
-    if (elementIdInput === null) {
+  /** Event handler for element selector */
+  public onElementChange(id: number | null): void {
+    if (id === null) {
       return;
     }
-    this.formDefinitions.elementSelectorValue = elementIdInput;
+    this.formDefinitions.elementSelectorValue = id;
     this.loadObservations();
   }
 
-  protected onYearMonthChange(yearMonthInput: string | null): void {
-    if (yearMonthInput === null) {
+    /** Event handler for year month selector */
+  protected onYearMonthChange(yearMonth: string | null): void {
+    if (yearMonth === null) {
       return;
     }
 
-    const date: Date = new Date(yearMonthInput);
+    const date: Date = new Date(yearMonth);
     this.formDefinitions.yearSelectorValue = date.getFullYear();
     this.formDefinitions.monthSelectorValue = date.getMonth() + 1;
     this.loadObservations();
   }
 
-  protected onDateChange(dateInput: string | null): void {
-    if (dateInput === null) {
+    /** Event handler for date selector */
+  protected onDateChange(strDate: string | null): void {
+    if (strDate === null) {
       return;
     }
-    const date: Date = new Date(dateInput);
-    this.formDefinitions.yearSelectorValue = date.getFullYear();
-    this.formDefinitions.monthSelectorValue = date.getMonth() + 1;
-    this.formDefinitions.daySelectorValue = date.getDate();
+    const oDate: Date = new Date(strDate);
+    this.formDefinitions.yearSelectorValue = oDate.getFullYear();
+    this.formDefinitions.monthSelectorValue = oDate.getMonth() + 1;
+    this.formDefinitions.daySelectorValue = oDate.getDate();
     this.loadObservations();
 
   }
 
-  protected onHourChange(hourIdInput: number | null): void {
-    if (hourIdInput === null) {
+    /** Event handler for hour selector */
+  protected onHourChange(hour: number | null): void {
+    if (hour === null) {
       return;
     }
-    this.formDefinitions.hourSelectorValue = hourIdInput;
+    this.formDefinitions.hourSelectorValue = hour;
     this.loadObservations();
   }
 
-  protected onValueChange(newObservation: CreateObservationModel): void {
+    /** Event handler for observation entry controls */
+  protected onObservationEntry(newObservation: CreateObservationModel): void {
     const index = this.newObservations.findIndex((data) => (data === newObservation))
     if (index !== -1) {
       this.newObservations[index] = newObservation;
@@ -214,9 +217,10 @@ export class FormEntryComponent implements OnInit {
     this.enableSave = enableSave;
   }
 
+    /** Event handler for save button */
   protected onSaveClick(): void {
     this.enableSave = false;
-    this.observationService.saveObservations(this.newObservations).subscribe((data) => {
+    this.observationService.save(this.newObservations).subscribe((data) => {
 
       this.pagesDataService.showToast({
         title: 'Observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
@@ -227,6 +231,11 @@ export class FormEntryComponent implements OnInit {
     });
   }
 
+  protected onDeleteClick(): void {
+    this.location.back();
+  }
+
+    /** Event handler for cancel button */
   protected onCancelClick(): void {
     this.location.back();
   }

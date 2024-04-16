@@ -19,7 +19,7 @@ export class ObservationsService {
 
   constructor(private http: HttpClient) { }
 
-  private getQueryParams<T extends object>(params: T): HttpParams{
+  private getQueryParams<T extends object>(params: T): HttpParams {
     let httpParams: HttpParams = new HttpParams();
 
     // Dynamically add parameters if they are present
@@ -35,31 +35,31 @@ export class ObservationsService {
         }
       }
     });
-    return httpParams ;
+    return httpParams;
   }
 
-  public getObservationsRaw(observationQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
+  public findRaw(observationQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
     return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getObservations(observationQuery: ViewObservationQueryModel ): Observable<ViewObservationModel[]> {
+  public findProcessed(observationQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getObservationLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
+  public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
     return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: this.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public saveObservations(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
+  public save(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
     //console.log("saving", observations);
     return this.http.post<ViewObservationModel[]>(this.endPointUrl, observations)
       .pipe(
@@ -67,15 +67,15 @@ export class ObservationsService {
       );
   }
 
- public deleteObservations(ids: number[]): Observable<ViewObservationModel[]> {
+  public delete(ids: number[]): Observable<ViewObservationModel[]> {
     //todo use json as body of ids?
     //const url = `${this.endPointUrl}/${id}`; 
     const url = '';
-    return this.http.delete<ViewObservationModel[]>(url)
+    return this.http.delete<ViewObservationModel[]>(url, { body: ids })
       .pipe(
         catchError(this.handleError)
       );
-  } 
+  }
 
 
   private handleError(error: HttpErrorResponse) {
