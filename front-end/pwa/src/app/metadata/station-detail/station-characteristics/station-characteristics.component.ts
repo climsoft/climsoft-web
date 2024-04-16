@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { StationsService } from 'src/app/core/services/stations.service';
-import { ViewStationModel } from 'src/app/core/models/view-station.model';
+import { StationsService } from 'src/app/core/services/stations/stations.service';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { take } from 'rxjs';
 
 @Component({

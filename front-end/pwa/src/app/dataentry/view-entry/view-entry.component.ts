@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/core/models/view-observation-query.model';
-import { ViewObservationModel } from 'src/app/core/models/view-observation.model';
-import { ObservationsService } from 'src/app/core/services/observations.service';
+import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
+import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
+import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
@@ -57,7 +57,7 @@ export class ViewEntryComponent {
       observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 
-    this.observationService.getObservations(observationFilter).subscribe((data) => {
+    this.observationService.findProcessed(observationFilter).subscribe((data) => {
       this.observations = data.map(item => {
         // Convert to ISO 8601 SQL standard. Note, this will show the date time in the local time zone
         item.datetime = DateUtils.getDateInSQLFormatFromDate(new Date(item.datetime));

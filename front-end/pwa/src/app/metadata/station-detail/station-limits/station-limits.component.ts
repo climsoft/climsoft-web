@@ -1,10 +1,10 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationElementsService } from 'src/app/core/services/station-elements.service';
+import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
+import { StationElementLimitModel } from 'src/app/core/models/stations/station-element-limit.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 @Component({

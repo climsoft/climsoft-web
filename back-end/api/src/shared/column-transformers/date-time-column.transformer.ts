@@ -21,4 +21,4 @@ export class DateTimeColumn implements ValueTransformer {
                 // //console.log('typeOrm date', date, 'JS date', jsDate, 'actual db date', actualDate);
                 // return actualDate.toISOString().slice(0, 19).replace('T', ' ');
         }
-}
+} 

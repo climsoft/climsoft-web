@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { ElementsService } from 'src/app/core/services/elements.service';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { ElementsService } from 'src/app/core/services/elements/elements.service';
 
 @Component({
   selector: 'app-element-multiple-input',

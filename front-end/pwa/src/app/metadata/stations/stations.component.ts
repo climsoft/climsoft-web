@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CreateUpdateStationModel } from '../../core/models/create-update-station.model';
+import { CreateUpdateStationModel } from '../../core/models/stations/create-update-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
-import { StationsService } from 'src/app/core/services/stations.service';
+import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewStationModel } from 'src/app/core/models/view-station.model';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { take } from 'rxjs';
 
 @Component({

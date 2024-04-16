@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationsService } from 'src/app/core/services/stations.service';
+import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { take } from 'rxjs';
 
 

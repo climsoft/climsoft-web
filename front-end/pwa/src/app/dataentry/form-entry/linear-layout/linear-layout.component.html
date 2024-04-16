@@ -1,16 +1,16 @@
-<ng-container *ngIf="entryObservations && entryObservations.length>0">
+<ng-container *ngIf="newObservations && newObservations.length>0">
   <!-- For large screens, use the grid system and
     split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
   <div *ngIf="largeScreen" class="row g-4">
     <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks; let i = index">
 
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
-        <app-value-flag-input [id]="fieldDef[0]" [label]="fieldDef[1]" [elements]="elements" 
+        <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name" [elements]="formDefinitions.formMetadata .elementsMetadata" 
           [observation]="getEntryObservation(fieldDef)" (valueChange)="onValueChange()"
           (inputBlur)="onInputBlur($event)"></app-value-flag-input>
       </div>
 
-      <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formMetadata.validateTotal" class="row mb-2">
+      <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.validateTotal" class="row mb-2">
         <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
           [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
           (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
@@ -22,11 +22,11 @@
   <!-- For small screens, just use a column flex container -->
   <div *ngIf="!largeScreen" class="d-flex flex-column">
 
-    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef[0]"
-      [label]="fieldDef[1]" [elements]="elements" [observation]="getEntryObservation(fieldDef)"
+    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef.name"
+      [label]="fieldDef.name" [elements]="formDefinitions.formMetadata .elementsMetadata" [observation]="getEntryObservation(fieldDef)"
       (valueChange)="onValueChange()" (inputBlur)="onInputBlur($event)"></app-value-flag-input>
 
-    <div *ngIf="formMetadata.validateTotal" class="mb-2">
+    <div *ngIf="formDefinitions.formMetadata.validateTotal" class="mb-2">
       <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
         [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
         (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>

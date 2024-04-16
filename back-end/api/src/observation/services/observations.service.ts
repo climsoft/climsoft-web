@@ -5,10 +5,10 @@ import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/obs
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { ElementsService } from 'src/metadata/services/elements.service';
-import { SourcesService } from 'src/metadata/services/sources.service';
+import { ElementsService } from 'src/metadata/services/elements/elements.service';
+import { SourcesService } from 'src/metadata/services/sources/sources.service';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
-import { StationsService } from 'src/metadata/services/stations.service';
+import { StationsService } from 'src/metadata/services/stations/stations.service';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';

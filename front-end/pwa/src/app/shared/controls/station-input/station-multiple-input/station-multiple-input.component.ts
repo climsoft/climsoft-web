@@ -1,8 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/view-element.model';
-import { CreateUpdateStationModel } from 'src/app/core/models/create-update-station.model';
-import { ElementsService } from 'src/app/core/services/elements.service';
-import { StationsService } from 'src/app/core/services/stations.service';
+import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { CreateUpdateStationModel } from 'src/app/core/models/stations/create-update-station.model';
+import { ElementsService } from 'src/app/core/services/elements/elements.service';
+import { StationsService } from 'src/app/core/services/stations/stations.service';
 
 @Component({
   selector: 'app-station-multiple-input',

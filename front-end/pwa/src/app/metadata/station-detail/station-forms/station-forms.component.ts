@@ -1,9 +1,9 @@
 import { Component, Input, OnInit } from '@angular/core'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/station-forms.service';
+import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
-import { ViewSourceModel } from 'src/app/core/models/view-source.model';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 
 @Component({
   selector: 'app-station-forms',
@@ -12,7 +12,7 @@ import { ViewSourceModel } from 'src/app/core/models/view-source.model';
 })
 export class StationFormsComponent implements OnInit {
   @Input() public stationId!: string;
-  protected forms!: ViewSourceModel[];
+  protected forms!: ViewSourceModel<string>[];
 
   public constructor(
     private stationFormsService: StationFormsService,

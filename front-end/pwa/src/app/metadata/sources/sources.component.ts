@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/core/models/enums/source-type.enum';
-import { ViewSourceModel } from 'src/app/core/models/view-source.model';
+import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesService } from 'src/app/core/services/sources.service';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
@@ -13,7 +13,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./sources.component.scss']
 })
 export class SourcesComponent {
-  protected sources: ViewSourceModel[] = [];
+  protected sources: ViewSourceModel<string>[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -34,7 +34,7 @@ export class SourcesComponent {
     });
   }
 
-  protected onSourceClicked(dataClicked: ViewSourceModel): void {
+  protected onSourceClicked(dataClicked: ViewSourceModel<string>): void {
     if (dataClicked.sourceType === SourceTypeEnum.FORM) {
       this.router.navigate(['form-detail', dataClicked.id], { relativeTo: this.route.parent });
     } else if (dataClicked.sourceType === SourceTypeEnum.IMPORT) {

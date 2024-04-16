@@ -1,7 +1,7 @@
-import { PointColumnModel } from "./point-column.model";
+import { PointDTO } from "../dtos/point.dto"; 
 
 export class PointColumnTransformer {
-    public from(dbValue: any): PointColumnModel | null {
+    public from(dbValue: any): PointDTO | null {
         if (dbValue) {
             // console.log("point dbvalue", dbValue, " typeof: ", typeof dbValue)
             // postgresql dbValue comes in the format of a Postgres point e.g (x,y) which typeorm automatically converts to aplain object  {x, y}.
@@ -11,10 +11,10 @@ export class PointColumnTransformer {
         return null;
     }
 
-    public to(point: PointColumnModel | null): string | null {
+    public to(point: PointDTO | null): string | null {
         if (point) {
             return `(${point.x},${point.y})`;
         }
         return null;
     }
-}
+} 

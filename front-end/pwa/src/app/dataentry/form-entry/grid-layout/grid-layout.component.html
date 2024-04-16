@@ -1,14 +1,14 @@
 <div class="card border-0">
     <div class="card-body py-0">
-        <div *ngIf="entryObservations && entryObservations.length > 0" class="row g-2">
+        <div *ngIf="newObservations && newObservations.length > 0" class="row g-2">
             <div class="col d-flex flex-column container-max-w-sm">
                 <div class="row me-2 mb-2 d-flex flex-grow-1">
                     {{rowHeaderName}}
                 </div>
                 <div class="row me-2 mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions">
-                    {{rowDef[1]}}
+                    {{rowDef.name}}
                 </div>
-                <div *ngIf="formMetadata.validateTotal" class="row me-2 mb-2 d-flex flex-grow-1">
+                <div *ngIf="formDefinitions.formMetadata.validateTotal" class="row me-2 mb-2 d-flex flex-grow-1">
                     TOTAL
                 </div>
             </div>
@@ -16,20 +16,20 @@
                 *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
                 <!-- column name -->
                 <div class="row mb-2 d-flex flex-grow-1 ">
-                    {{colDef[1]}}
+                    {{colDef.name}}
                 </div>
 
                 <!-- entry fields -->
                 <div class="row mb-2 d-flex flex-grow-1"
                     *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                    <app-value-flag-input [id]="rowDef[0] +'-'+ colDef[0]" [elements]="elements"
+                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id" [elements]="formDefinitions.formMetadata.elementsMetadata"
                         [observation]="getEntryObservation(rowIndex,colIndex)" (valueChange)="onValueChange(colIndex)"
                         (inputBlur)="onInputBlur($event)"></app-value-flag-input>
                 </div>
 
                 <!-- total -->
-                <div *ngIf="formMetadata.validateTotal" class="row mb-2 d-flex flex-grow-1">
-                    <app-number-input *ngIf="entryTotals && entryTotals.length>0" [id]="colDef[0] +'-total'"
+                <div *ngIf="formDefinitions.formMetadata.validateTotal" class="row mb-2 d-flex flex-grow-1">
+                    <app-number-input *ngIf="entryTotals && entryTotals.length>0" [id]="colDef.id +'-total'"
                         [value]="entryTotals[colIndex].value" [errorMessage]="entryTotals[colIndex].errorMessage"
                         (valueChange)="onTotalValueChange(colIndex,$event)"
                         (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)"></app-number-input>

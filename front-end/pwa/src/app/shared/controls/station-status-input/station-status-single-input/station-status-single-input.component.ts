@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { StationStatusEnum } from 'src/app/core/models/enums/station-status.enum';
+import { StationStatusEnum } from 'src/app/core/models/stations/station-status.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({

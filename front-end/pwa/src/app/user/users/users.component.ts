@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ViewUserModel } from 'src/app/core/models/view-user.model';
+import { ViewUserModel } from 'src/app/core/models/users/view-user.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { UsersService } from 'src/app/core/services/users.service';
+import { UsersService } from 'src/app/core/services/users/users.service';
 
 
 @Component({

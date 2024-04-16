@@ -1,6 +1,6 @@
 import { Component, Output, EventEmitter, Input } from '@angular/core';
-import { StationElementLimitModel } from 'src/app/core/models/station-element-limit.model';
-import { StationElementsService } from 'src/app/core/services/station-elements.service';
+import { StationElementLimitModel } from 'src/app/core/models/stations/station-element-limit.model';
+import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 @Component({
