@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { ViewObservationLogModel } from 'src/app/core/models/observations/view-observation-log.model';
 import { ViewObservationLogQueryModel } from 'src/app/core/models/observations/view-observation-log-query.model';
@@ -9,14 +8,9 @@ import { take } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
 
-
 /**
- * validation interface local to this component only
+ * Component for data entry of observations
  */
-interface ValidationResponse {
-  isValid: boolean;
-  message: string;
-}
 
 @Component({
   selector: 'app-value-flag-input',
@@ -50,6 +44,8 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    // reset the log
+    this.obsLog = [];
   }
 
 
@@ -79,6 +75,8 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     // If there is a value input then validate
     if (value !== null) {
       this.validationResponse = this.checkValueLimitsValidity(value);
+
+      //If enforcement of limits is true and there is an error response then invalidate the observation
       if (this.enforceLimitCheck && !StringUtils.isNullOrEmpty(this.validationResponse)) {
         this.emitValueChange(false);
         return;
@@ -179,6 +177,10 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     return element.entryScaleFactor ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
+  private getFlag(inputFlag: string): FlagEnum | null {
+    return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
+  }
+
   /**
    * Raised when Enter key is pressed on the input component
    */
@@ -188,7 +190,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       this.onInputEntry('M');
     }
   }
-
 
 
   /** Raised when the comment component has its value changed */
@@ -203,7 +204,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     // Note the function is called twice, when drop down is opened and when it's closed
     // So this obsLog truthy check prevents unnecessary reloading
 
-    if (this.obsLog) {
+    if (this.obsLog && this.obsLog.length > 0) {
       // No need to reload the log
       return;
     }
@@ -244,9 +245,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
 
-  private getFlag(inputFlag: string): FlagEnum | null {
-    return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
-  }
+
 
 
 

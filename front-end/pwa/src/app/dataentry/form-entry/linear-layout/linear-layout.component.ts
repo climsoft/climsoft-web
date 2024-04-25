@@ -53,6 +53,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       this.observationsDefinitions = [];
     }
 
+    // TODO Debug why clear values is not being being raised.
     console.log(' operations called', changes);
     if (this.clearValues) {
       console.log('clear operations called');
