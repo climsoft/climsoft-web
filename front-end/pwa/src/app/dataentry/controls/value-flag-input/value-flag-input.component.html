@@ -1,7 +1,7 @@
 <app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [includeDropDownOption]="true"
-    [value]="observationDefinition.ValueFlagForDisplay" [dropDownOptionMaxHeight]="300"
-    [errorMessage]="validationResults? validationResults.message: ''" (valueChange)="onInputEntry($event)"
-    (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()" (dropDownOptionClick)="loadObservationLog()">
+    [value]="observationDefinition.valueFlagForDisplay" [dropDownOptionMaxHeight]="300"
+    [errorMessage]="validationResponse" (valueChange)="onInputEntry($event)"
+    (inputEnterKeyPress)="onEnterKeyPressed()" (dropDownOptionClick)="loadObservationLog()">
 
     <div class="card">
         <div class="card-body">

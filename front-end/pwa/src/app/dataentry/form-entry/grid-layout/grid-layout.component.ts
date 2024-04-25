@@ -1,7 +1,5 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core'; 
-import { CreateEntryFormModel } from 'src/app/core/models/sources/create-entry-form.model';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model'; 
-import { EntryFieldItem,  FormEntryUtil } from '../defintions/form-entry.util';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { FormEntryUtil } from '../defintions/form-entry.util';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
@@ -13,16 +11,17 @@ import { ObservationDefinition } from '../defintions/observation.definition';
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
-  @Input() formDefinitions!: FormEntryDefinition;
-  @Input() dbObservations!: CreateObservationModel[];
-  @Output() valueChange = new EventEmitter<CreateObservationModel>();
-  @Output() public enableSave = new EventEmitter<boolean>();
+  @Input() public formDefinitions!: FormEntryDefinition;
+  @Input() public clearValues!: boolean;
+
+  @Output() public valueChange = new EventEmitter<ObservationDefinition>();
+  @Output() public totalIsValid = new EventEmitter<boolean>();
 
   protected rowFieldDefinitions!: FieldEntryDefinition[];
   protected colFieldDefinitions!: FieldEntryDefinition[];
   protected observationsDefinitions!: ObservationDefinition[][];
-  protected entryTotals!: { value: number | null, errorMessage: string | null }[];
- 
+  protected totalErrorMessage!: string[];
+
 
   constructor() {
   }
@@ -33,42 +32,27 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
 
     //only proceed with seting up the control if all inputs have been set.
-    if (this.formDefinitions && this.dbObservations) {
-      this.setup();
+    if (this.formDefinitions) {
+      if (this.formDefinitions.formMetadata.fields.length < 0 || !this.formDefinitions.formMetadata.fields[1]) {
+        return;
+      }
+      this.rowFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
+      this.colFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
+      this.observationsDefinitions = this.formDefinitions.getEntryObsForGridLayout();
+      this.totalErrorMessage = new Array<string>(this.colFieldDefinitions.length);
     } else {
       this.observationsDefinitions = [];
     }
 
-  }
+    if (this.clearValues) {
+      console.log('clear operations called');
 
-
-
-  private setup(): void {
-
-    if (this.formDefinitions.formMetadata.fields.length < 0 || !this.formDefinitions.formMetadata.fields[1]) {
-      return;
+      this.clearValues = false;
     }
 
-    const rowFieldDefs: FieldEntryDefinition[] = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
-    const colFieldDefs: FieldEntryDefinition[] = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
-    const entryObservations: ObservationDefinition[][] = this.formDefinitions.getEntryObsForGridLayout();
-
-    this.rowFieldDefinitions = rowFieldDefs;
-    this.colFieldDefinitions = colFieldDefs;
-    this.observationsDefinitions = entryObservations;
-
-
-    if (this.formDefinitions.formMetadata.validateTotal) {
-      const entryTotals = [];
-      for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
-        entryTotals.push({ value: this.getColumnTotal(colIndex), errorMessage: '' });
-      }
-      this.entryTotals = entryTotals;
-
-    }
   }
 
-  protected get rowHeaderName(): string{
+  protected get rowHeaderName(): string {
     return this.formDefinitions.formMetadata.fields[0]
   }
 
@@ -76,48 +60,40 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     return this.observationsDefinitions[rowIndex][colIndex];
   }
 
-  protected onValueChange(colIndex: number): void {
+  protected onValueChange(observationDef: ObservationDefinition, colIndex: number): void {
+
+    this.valueChange.emit(observationDef);
+
+    // Only emit total validity if the definition metadata requires it
     if (this.formDefinitions.formMetadata.validateTotal) {
-      const entryTotal = this.entryTotals[colIndex];
-      entryTotal.errorMessage = null;
-      entryTotal.value = null;
+      this.totalErrorMessage[colIndex] = '';
+      this.totalIsValid.emit(false);
     }
 
-    this.enableSave.emit(!this.formDefinitions.formMetadata.validateTotal);
   }
 
-
-  protected onInputBlur(entryObservation: CreateObservationModel): void {
-    this.valueChange.emit(entryObservation);
-  }
 
   protected onTotalValueChange(colIndex: number, value: number | null): void {
-    this.entryTotals[colIndex].value = value;
-    // If no error, then emit true
-    // if error detected emit false
-    this.enableSave.emit(this.allColumnTotalsValid());
+    const expectedTotal = this.getColumnTotal(colIndex);
+    this.totalErrorMessage[colIndex] = '';
+
+    if (expectedTotal !== value) {
+      this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
+    }
+
+    // Check if there are any error messages 
+    this.totalIsValid.emit(!this.totalErrorMessage.some(item => (item !== undefined && item !== '')));
+    console.log("Total is valid: " , !this.totalErrorMessage.some(item => (item !== undefined && item !== '')))
   }
 
 
   private getColumnTotal(colIndex: number): number | null {
-    const colObservations: ObservationDefinition[] = []
+    const colObservations: ObservationDefinition[] = [];
     for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
       colObservations.push(this.observationsDefinitions[rowIndex][colIndex]);
     }
-    return FormEntryUtil.getTotal(colObservations, this.formDefinitions.formMetadata.elementsMetadata);
+    return FormEntryUtil.getTotalValuesOfObs(colObservations);
   }
 
-  private allColumnTotalsValid(): boolean {
-    for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
-      const expectedTotal = this.getColumnTotal(colIndex);
-      const entryTotal = this.entryTotals[colIndex];
-      entryTotal.errorMessage = FormEntryUtil.checkTotal(expectedTotal, entryTotal.value);
-      if (entryTotal.errorMessage) {
-        return false;
-      }
-    }
-
-    return true;
-  }
 
 }

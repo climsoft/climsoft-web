@@ -22,17 +22,16 @@
                 <!-- entry fields -->
                 <div class="row mb-2 d-flex flex-grow-1"
                     *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id" 
-                        [observationDefinition]="getObservationDef(rowIndex,colIndex)" (valueChange)="onValueChange(colIndex)"
-                        (inputBlur)="onInputBlur($event)"></app-value-flag-input>
+                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                        [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                        (valueChange)="onValueChange($event,colIndex)" />
                 </div>
 
                 <!-- total -->
                 <div *ngIf="formDefinitions.formMetadata.validateTotal" class="row mb-2 d-flex flex-grow-1">
-                    <app-number-input *ngIf="entryTotals && entryTotals.length>0" [id]="colDef.id +'-total'"
-                        [value]="entryTotals[colIndex].value" [errorMessage]="entryTotals[colIndex].errorMessage"
-                        (valueChange)="onTotalValueChange(colIndex,$event)"
-                        (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)"></app-number-input>
+                    <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
+                        [errorMessage]="totalErrorMessage[colIndex]" (valueChange)="onTotalValueChange(colIndex,$event)"
+                        (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
                 </div>
 
             </div>

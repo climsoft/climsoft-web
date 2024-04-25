@@ -6,13 +6,12 @@
 
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
         <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name" 
-          [observationDefinition]="getObservationDef(fieldDef)" (valueChange)="onValueChange()"
-          (inputBlur)="onInputBlur($event)"></app-value-flag-input>
+          [observationDefinition]="getObservationDef(fieldDef)" (valueChange)="onValueChange($event)"></app-value-flag-input>
       </div>
 
       <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.validateTotal" class="row mb-2">
-        <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
-          [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
+        <app-number-input [id]="'total'" [label]="'TOTAL'" 
+          [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
           (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
       </div>
 
@@ -24,11 +23,11 @@
 
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef.name"
       [label]="fieldDef.name" [observationDefinition]="getObservationDef(fieldDef)"
-      (valueChange)="onValueChange()" (inputBlur)="onInputBlur($event)"></app-value-flag-input>
+      (valueChange)="onValueChange($event)"></app-value-flag-input>
 
     <div *ngIf="formDefinitions.formMetadata.validateTotal" class="mb-2">
-      <app-number-input [id]="'total'" [label]="'TOTAL'" [value]="entryTotal.value"
-        [errorMessage]="entryTotal.errorMessage" (valueChange)="onTotalValueChange($event)"
+      <app-number-input [id]="'total'" [label]="'TOTAL'" 
+        [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
         (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
     </div>
 

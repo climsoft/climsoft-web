@@ -1,7 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { FormEntryUtil } from '../../form-entry/defintions/form-entry.util';
 import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
@@ -12,7 +10,9 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
 
 
-//validation interface local to this component only
+/**
+ * validation interface local to this component only
+ */
 interface ValidationResponse {
   isValid: boolean;
   message: string;
@@ -27,162 +27,180 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
   @Input() public observationDefinition!: ObservationDefinition;
-  @Output() public valueChange = new EventEmitter<CreateObservationModel>();
-  @Output() public inputBlur = new EventEmitter<CreateObservationModel>();
+  @Output() public valueChange = new EventEmitter<ObservationDefinition>();
 
-  protected validationResults!: ValidationResponse;
+  /** 
+   * Holds the validation response used by input component to display error.
+   * When not empty the observation validity should be false as well  
+   */
+
+  protected validationResponse: string = ''
+
+
+  /** 
+   * Holds the observation log used of the linked observation model
+   * Used by the log controls
+   */
   protected obsLog!: ViewObservationLogModel[];
 
   constructor(private observationService: ObservationsService) {
 
   }
   ngOnInit(): void {
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
   }
 
+
+  /**
+   * Event raised when input change is detected
+   * @param valueFlagInput e.g 200, 200E, M, empty
+   * @returns 
+   */
   protected onInputEntry(valueFlagInput: string): void {
 
-    //validate value flag
-    this.validationResults = this.validateValueFlagInput(valueFlagInput)
-
-    //check validation results
-    if (!this.validationResults.isValid) {
+    // Validate input format validity. If there is a response then entry is invalid
+    this.validationResponse = this.checkInputFormatValidity(valueFlagInput)
+    if (!StringUtils.isNullOrEmpty(this.validationResponse)) {
+      this.emitValueChange(false);
       return;
     }
 
-    //extract and set the value and flag
-    const extractedNumberString = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
-    const value: number | null = extractedNumberString[0];
-    const flagLetter: string | null = extractedNumberString[1] === null ? null : extractedNumberString[1].toUpperCase();
+    // Extract and set the value and flag
+    const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
 
-    //if value input then do QC
+    // Transform the value to actual scale 
+    const value: number | null = extractedScaledValFlag[0] === null ? null : this.getUnScaledValue(extractedScaledValFlag[0]);
+
+    // Transform the flag letter
+    const flagLetter: string | null = extractedScaledValFlag[1] === null ? null : extractedScaledValFlag[1].toUpperCase();
+
+    // If there is a value input then validate
     if (value !== null) {
-      this.validationResults = this.validateAndQCValue(value);
-      if (!this.validationResults.isValid) {
+      this.validationResponse = this.checkValueLimitsValidity(value);
+      if (!StringUtils.isNullOrEmpty(this.validationResponse)) {
+        this.emitValueChange(false);
         return;
       }
     }
 
-    //if flag input then validate
+    // If there is a flag input then validate
     if (flagLetter !== null) {
-      this.validationResults = this.validateAndQCFlag(value, flagLetter);
-      if (!this.validationResults.isValid) {
+      this.validationResponse = this.checkFlagValidity(value, flagLetter);
+      if (!StringUtils.isNullOrEmpty(this.validationResponse)) {
+        this.emitValueChange(false);
         return;
       }
     }
 
-    //set the value and flag
-    this.observationDefinition.observation.value = value === null ? null : this.getUnScaledValue(value);
-    this.observationDefinition.observation.flag = FormEntryUtil.checkFlagValidity(flagLetter);
+    // Set the value and flag to the observation model 
+    this.observationDefinition.setValueFlag(value, flagLetter ? this.getFlag(flagLetter) : null)
 
-
-    // Emit data change event
-    this.valueChange.emit(this.observationDefinition.observation);
+    // Emit observation data change event
+    this.emitValueChange(true);
 
   }
 
+  private emitValueChange(observationValidity: boolean): void {
+    this.observationDefinition.observationChangeIsValid = observationValidity;
+    this.valueChange.emit(this.observationDefinition);
+  }
 
-  //returns validation status and error message
-  private validateValueFlagInput(valueFlagInput: string): ValidationResponse {
+  /**
+   * Validates a value flag input by checking on acceptible formats
+   * @param valueFlagInput 
+   * @returns validation status and error message
+   */
+  private checkInputFormatValidity(valueFlagInput: string): string {
+    // Check for emptiness
     if (StringUtils.isNullOrEmpty(valueFlagInput, false)) {
-      return { isValid: true, message: '' };
+      return '';
     }
 
     // Check for white spaces.
     if (StringUtils.isNullOrEmpty(valueFlagInput, true)) {
-      return { isValid: false, message: 'Empty spaces not allowed' };
+      return 'Empty spaces not allowed';
     }
 
     // Check if it's all string. Applies when its flag M entered.
     if (StringUtils.doesNotContainNumericCharacters(valueFlagInput)) {
-      return { isValid: true, message: '' };
+      return '';
     }
 
     // Check for correct input format.
     if (!StringUtils.containsNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)) {
-      return { isValid: false, message: 'Incorrect input format not allowed' };
+      return 'Incorrect input format not allowed';
     }
 
     // Check for any decimals.
     const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
     if (splitNum !== null && String(splitNum).includes('.')) {
-      return { isValid: false, message: 'Decimals not allowed' };
+      return 'Decimals not allowed';
     }
 
-    return { isValid: true, message: '' };
+    return '';
   }
 
-  private validateAndQCValue(value: number): ValidationResponse {
-
-
-    // Transform the value to actual scale to validate the limits
-    value = this.getUnScaledValue(value);
-
-    let scaleFactor: number = 1;
+  private checkValueLimitsValidity(value: number): string {
 
     const element = this.observationDefinition.elementMetadata;
-    if (element.entryScaleFactor) {
-      scaleFactor = element.entryScaleFactor;
-    }
+
+    // Get the scale factor to use. An element may not have a scale factor
+    const scaleFactor: number = element.entryScaleFactor ? element.entryScaleFactor : 1;
 
     if (element.lowerLimit && value < element.lowerLimit) {
-      return { isValid: false, message: `Value less than lower limit ${element.lowerLimit * scaleFactor}` };
+      return `Value less than lower limit ${element.lowerLimit * scaleFactor}`;
     }
 
     if (element.upperLimit && value > element.upperLimit) {
-      return { isValid: false, message: `Value higher than upper limit ${element.upperLimit * scaleFactor}` };
+      return `Value higher than upper limit ${element.upperLimit * scaleFactor}`;
     }
 
-    return { isValid: true, message: '' };
+    return '';
   }
 
-
-  private validateAndQCFlag(value: number | null, flagId: string): ValidationResponse {
-    const flagFound: FlagEnum | null = FormEntryUtil.checkFlagValidity(flagId);
+  private checkFlagValidity(value: number | null, flag: string): string {
+    const flagFound: FlagEnum | null = this.getFlag(flag);
 
     if (!flagFound) {
-      return { isValid: false, message: 'Invalid Flag' };
+      return 'Invalid Flag';
     }
 
     if (value !== null && flagFound === FlagEnum.MISSING) {
-      return { isValid: false, message: 'Invalid Flag, M is used for missing value ONLY' };
+      return 'Invalid Flag, M is used for missing value ONLY';
     }
 
-    return { isValid: true, message: '' };
+    return '';
   }
 
-
-
-  // TODO. Deprecate this.
   private getUnScaledValue(scaledValue: number): number {
     const element = this.observationDefinition.elementMetadata;
-    return element.entryScaleFactor && element.entryScaleFactor !== 0 ? scaledValue / element.entryScaleFactor : scaledValue;
+    return element.entryScaleFactor ? scaledValue / element.entryScaleFactor : scaledValue;
   }
 
+  /**
+   * Raised when Enter key is pressed on the input component
+   */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
-    // TODO. this hard coded file should come from a config file?
-    if (!this.observationDefinition.ValueFlagForDisplay) {
+    if (!this.observationDefinition.valueFlagForDisplay) {
       this.onInputEntry('M');
     }
   }
 
-  protected onInputBlur(): void {
-    this.inputBlur.emit(this.observationDefinition.observation);
-  }
 
+
+  /** Raised when the comment component has its value changed */
   protected onCommentEntry(comment: string) {
     this.observationDefinition.observation.comment = comment;
-    this.valueChange.emit(this.observationDefinition.observation);
+    this.valueChange.emit(this.observationDefinition);
   }
 
+  /** Raised when the log component is displayed */
   protected loadObservationLog(): void {
 
-    // Note the function twice, when drop down is opened and when it's closed
+    // Note the function is called twice, when drop down is opened and when it's closed
     // So this obsLog truthy check prevents unnecessary reloading
 
     if (this.obsLog) {
@@ -190,6 +208,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
       return;
     }
 
+    // Create an observation log query dto.
     const query: ViewObservationLogQueryModel = {
       stationId: this.observationDefinition.observation.stationId,
       elementId: this.observationDefinition.observation.elementId,
@@ -202,13 +221,19 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     this.observationService.findObsLog(query).pipe(
       take(1)
     ).subscribe(data => {
-      // Convert the entry date time to current local time
+
+      // Transform the log data accordingly
       this.obsLog = data.map(item => {
 
-        if (item.value !== null) {
-          item.value = FormEntryUtil.getScaledValue(this.observationDefinition.elementMetadata, item.value);
+        // Display the values in scaled form 
+        if (item.value && this.observationDefinition.elementMetadata.entryScaleFactor) {
+          // To remove rounding errors use Math.floor()
+          item.value = Math.floor(item.value * this.observationDefinition.elementMetadata.entryScaleFactor);
         }
+
+        // Convert the entry date time to current local time
         item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime))
+
         return item;
 
       }
@@ -219,7 +244,9 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
 
-
+  private getFlag(inputFlag: string): FlagEnum | null {
+    return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
+  }
 
 
 
