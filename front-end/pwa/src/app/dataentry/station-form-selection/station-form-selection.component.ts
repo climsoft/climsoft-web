@@ -3,11 +3,11 @@ import { CreateUpdateStationModel } from '../../core/models/stations/create-upda
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/stations/station-forms.service'; 
+import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 
 export interface StationView extends CreateUpdateStationModel {
-  forms?: ViewSourceModel<string>[];
+  forms?: ViewSourceModel<object>[];
 }
 
 @Component({
@@ -32,7 +32,7 @@ export class StationFormSelectionComponent {
   }
 
   protected onSearchClick(): void {
-
+    // TODO.
   }
 
   protected loadStationForms(station: StationView): void {

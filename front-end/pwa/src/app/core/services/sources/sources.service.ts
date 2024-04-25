@@ -9,53 +9,54 @@ import { ViewSourceModel } from '../../models/sources/view-source.model';
 @Injectable({
   providedIn: 'root'
 })
-export class SourcesService {
+export class SourcesService  {
 
   endPointUrl: string = 'http://localhost:3000/sources';
 
   constructor(private http: HttpClient) { }
 
-  public getSource(sourceId: number): Observable<ViewSourceModel<string>> {
-    return this.http.get<ViewSourceModel<string>>(`${this.endPointUrl}/source/${sourceId}`)
+   /** TODO. Deprecate */
+  public find(sourceId: number): Observable<ViewSourceModel<object>> {
+    return this.http.get<ViewSourceModel<object>>(`${this.endPointUrl}/source/${sourceId}`)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getSources(sourceTypeEnum?: SourceTypeEnum): Observable<ViewSourceModel<string>[]> {
-    let url: string = this.endPointUrl;
+ 
+  public findAll(sourceTypeEnum?: SourceTypeEnum): Observable<ViewSourceModel<object>[]> {
+  
     if (sourceTypeEnum) {
-      url = `${this.endPointUrl}/source-type/${sourceTypeEnum}`
+      this.endPointUrl = `${this.endPointUrl}/source-type/${sourceTypeEnum}`
     }
 
-    return this.http.get<ViewSourceModel<string>[]>(this.endPointUrl)
+    return this.http.get<ViewSourceModel<object>[]>(this.endPointUrl)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public getForms(ids?: number[]): Observable<ViewSourceModel<string>[]> {
-    return this.getSources(SourceTypeEnum.FORM);
-  }
-
-  public createSource(source: CreateUpdateSourceModel<string>): Observable<ViewSourceModel<string>> {
-    return this.http.post<ViewSourceModel<string>>(this.endPointUrl, source)
+  
+ /** TODO. Deprecate */
+  public create(source: CreateUpdateSourceModel<object>): Observable<ViewSourceModel<object>> {
+    return this.http.post<ViewSourceModel<object>>(this.endPointUrl, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public updateSource(id: number, source: CreateUpdateSourceModel<string>): Observable<ViewSourceModel<string>> {
-    return this.http.patch<ViewSourceModel<string>>(`${this.endPointUrl}/${id}`, source)
+  public update(id: number, source: CreateUpdateSourceModel<object>): Observable<ViewSourceModel<object>> {
+    return this.http.patch<ViewSourceModel<object>>(`${this.endPointUrl}/${id}`, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public deleteSource(id: number): Observable<ViewSourceModel<string>> {
+   /** TODO. Deprecate */
+  private delete(id: number): Observable<number> {
     //todo use json as body of ids?
     const url = `${this.endPointUrl}/${id}`;
-    return this.http.delete<ViewSourceModel<string>>(url)
+    return this.http.delete<number>(url)
       .pipe(
         catchError(this.handleError)
       );

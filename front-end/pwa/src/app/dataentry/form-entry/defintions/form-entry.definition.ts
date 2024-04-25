@@ -1,34 +1,38 @@
-import { ExtraSelectorControlType, FieldType } from "src/app/core/models/sources/create-entry-form.model";
+import { FieldType } from "src/app/core/models/sources/create-entry-form.model";
 import { ViewEntryFormModel } from "src/app/core/models/sources/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
 import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
 import { ViewStationModel } from "src/app/core/models/stations/view-station.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
+import { ObservationDefinition } from "./observation.definition";
 
+/**
+ * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
+ */
 export class FormEntryDefinition {
 
-   public station: ViewStationModel;
-   public sourceId: number;
-   public formMetadata: ViewEntryFormModel;
+    public station: ViewStationModel;
+    public sourceId: number;
+    public formMetadata: ViewEntryFormModel;
 
-   /** value of the element selector */
-   public elementSelectorValue: number | null;
+    /** value of the element selector */
+    public elementSelectorValue: number | null;
 
     /** value of the year selector */
-   public yearSelectorValue: number;
+    public yearSelectorValue: number;
 
-   /** value of the month selector */
-   public monthSelectorValue: number;
+    /** value of the month selector */
+    public monthSelectorValue: number;
 
-   /** value of the day selector */
-   public daySelectorValue: number | null;
+    /** value of the day selector */
+    public daySelectorValue: number | null;
 
-   /** value of the hour selector */
-   public hourSelectorValue: number | null;
+    /** value of the hour selector */
+    public hourSelectorValue: number | null;
 
-     /** Observations in the database */
-  public dbObservations: CreateObservationModel[];
+    /** Observations in the database */
+    public dbObservations: CreateObservationModel[];
 
     constructor(station: ViewStationModel, sourceId: number, formMetadata: ViewEntryFormModel) {
         this.station = station;
@@ -88,9 +92,9 @@ export class FormEntryDefinition {
     }
 
     /** Gets the observations that will be used by the value flag controls in a linear layout */
-    public getEntryObsForLinearLayout(): CreateObservationModel[] {
+    public getEntryObsForLinearLayout(): ObservationDefinition[] {
 
-        const newObservations: CreateObservationModel[] = [];
+        const obsDefinitions: ObservationDefinition[] = [];
         const entryField: FieldType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
 
@@ -125,22 +129,22 @@ export class FormEntryDefinition {
 
             newObs.datetime = this.getObsDatetime(datetimeVars);
 
-            newObservations.push(this.getDBObsIfItExists(newObs));
+            obsDefinitions.push(this.createNewObsDef(this.checkAndGetDBObsIfItExists(newObs)));
 
         }
 
-        return newObservations;
+        return obsDefinitions;
     }
 
 
     /** Gets the observations that will be used by the value flag controls in a grid layout */
-    public getEntryObsForGridLayout(): CreateObservationModel[][] {
+    public getEntryObsForGridLayout(): ObservationDefinition[][] {
 
         if (this.formMetadata.fields.length < 2 || !this.formMetadata.fields[1]) {
             return []; // TODO, throw a dev error.
         }
 
-        const newObservations: CreateObservationModel[][] = [];
+        const newObservations: ObservationDefinition[][] = [];
         const rowEntryField: FieldType = this.formMetadata.fields[0];
         const colEntryField: FieldType = this.formMetadata.fields[1];
 
@@ -150,7 +154,7 @@ export class FormEntryDefinition {
         for (const rowFieldDef of rowEntryfieldDefs) {
 
             // Array to hold the observations in a row
-            const subArrEntryObservations: CreateObservationModel[] = [];
+            const subArrEntryObservations: ObservationDefinition[] = [];
 
             for (const colFieldDef of colEntryfieldDefs) {
 
@@ -190,7 +194,7 @@ export class FormEntryDefinition {
 
                 newObs.datetime = this.getObsDatetime(datetimeVars);
 
-                subArrEntryObservations.push(this.getDBObsIfItExists(newObs));
+                subArrEntryObservations.push(this.createNewObsDef(this.checkAndGetDBObsIfItExists(newObs)));
             }
 
             newObservations.push(subArrEntryObservations);
@@ -200,14 +204,12 @@ export class FormEntryDefinition {
         return newObservations;
     }
 
-
-
     private createEmptyObservation(): CreateObservationModel {
         return {
             stationId: '',
             sourceId: 0,
             elementId: 0,
-            elevation: 0, 
+            elevation: 0,
             datetime: '',
             value: null,
             flag: null,
@@ -216,9 +218,24 @@ export class FormEntryDefinition {
         };
     }
 
+    /**
+     * Creates a new observation definition from the observation model and the element metadata
+     * @param observation 
+     * @returns 
+     */
+    private createNewObsDef(observation: CreateObservationModel): ObservationDefinition {
+        const elementMetadata = this.formMetadata.elementsMetadata.find(items => items.id === observation.elementId);
+        if (!elementMetadata) {
+            //TODO. Through developer error.
+            throw new Error('Developer error: Element metadata NOT found');
+        }
+        return new ObservationDefinition(observation, elementMetadata);
+    }
 
-    /** Returns a date time string in an iso format.
-     * Date time UTC conversion is determing by the form metadata
+
+    /** 
+     * Returns a date time string in an iso format.
+     * Date time UTC conversion is determined by the form metadata utc setting
      */
     private getObsDatetime(datetimeVars: [number, number, number, number]): string {
         if (this.formMetadata.convertDateTimeToUTC) {
@@ -230,25 +247,22 @@ export class FormEntryDefinition {
     }
 
     /** Returns observation that is in the database if it exists, else the passed new observation */
-    private  getDBObsIfItExists(newObs: CreateObservationModel): CreateObservationModel {
+    private checkAndGetDBObsIfItExists(newObs: CreateObservationModel): CreateObservationModel {
         for (const dbObservation of this.dbObservations) {
-          // Look for the observation element id and date time.
-          if (
-            newObs.stationId === dbObservation.stationId &&
-            newObs.elementId === dbObservation.elementId &&
-            newObs.sourceId === dbObservation.sourceId &&
-            newObs.elevation === dbObservation.elevation &&
-            newObs.datetime === dbObservation.datetime &&
-            newObs.period === dbObservation.period) {
-            return dbObservation;
-          }
+            // Look for the observation element id and date time.
+            if (
+                newObs.stationId === dbObservation.stationId &&
+                newObs.elementId === dbObservation.elementId &&
+                newObs.sourceId === dbObservation.sourceId &&
+                newObs.elevation === dbObservation.elevation &&
+                newObs.datetime === dbObservation.datetime &&
+                newObs.period === dbObservation.period) {
+                return dbObservation;
+            }
         }
-    
+
         return newObs;
-    
-      }
+    }
 
-
-
-
+   
 }

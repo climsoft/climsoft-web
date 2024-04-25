@@ -1,16 +1,19 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service'; 
+import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationQueryModel } from 'src/app/core/models/observations/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { catchError, of, take } from 'rxjs';
-import { FormEntryDefinition } from './form-entry.definition';
+import { FormEntryDefinition } from './defintions/form-entry.definition';
 import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { ObservationDefinition } from './defintions/observation.definition';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -18,23 +21,24 @@ import { ViewStationModel } from 'src/app/core/models/stations/view-station.mode
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit {
-  /** Name of station */
+  /** Station details */
   protected station!: ViewStationModel;
-
-   /** Name of form */
-  protected formName!: string;
+  
+  /** Source (form) details */
+  protected source!: ViewSourceModel<ViewEntryFormModel>;
 
   /** Definitions used to determine form functionalities */
   protected formDefinitions!: FormEntryDefinition;
 
   /** Enables or disables save button */
-  protected enableSave: boolean = false;
+  protected enableSave: boolean = true;
 
-  /** Observations retrieved from database */
-  protected dbObservations!: CreateObservationModel[];
+  protected clearValues: boolean = false;
 
   /** Observations entered */
-  protected newObservations!: CreateObservationModel[];
+  protected newObservationDefs!: ObservationDefinition[];
+
+  private totalIsValid!: boolean;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -62,23 +66,24 @@ export class FormEntryComponent implements OnInit {
     this.formSourcesService.find(sourceId).pipe(
       take(1)
     ).subscribe((data) => {
-     
-      if (!data.extraMetadata) {
-        // TODO. Throw error?
-        return;
-      }
 
-      // Set form name
-      this.formName = data.name
+      // Set source
+      this.source = data
 
-      // Define initial definition
-      this.formDefinitions = new FormEntryDefinition(this.station, sourceId, data.extraMetadata);
-     
       // Load existing observation data
-      this.loadObservations();
+      this.loadObservations(this.getNewFormDefinition());
 
     });
 
+  }
+
+  private getNewFormDefinition() {
+    if (!this.source.extraMetadata) {
+      // TODO. Throw error?
+      throw new Error('Developer error. Source does not have entry form metadata')
+
+    }
+    return new FormEntryDefinition(this.station, this.source.id, this.source.extraMetadata);
   }
 
   /** Used to determine whether to display element selector */
@@ -86,52 +91,57 @@ export class FormEntryComponent implements OnInit {
     return this.formDefinitions.formMetadata.selectors.includes('ELEMENT');
   }
 
-   /** Used to determine whether to display date selector */
+  /** Used to determine whether to display date selector */
   protected get displayDateSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('DAY');
   }
 
-   /** Used to determine whether to display year-month selector */
+  /** Used to determine whether to display year-month selector */
   protected get displayYearMonthSelector(): boolean {
     return !this.displayDateSelector;
   }
 
-   /** Used to determine whether to display hour selector */
+  /** Used to determine whether to display hour selector */
   protected get displayHourSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
 
-   /** Gets default date value (YYYY-MM-DD) used by date selector */
+  /** Gets default date value (YYYY-MM-DD) used by date selector */
   protected get defaultDateValue(): string {
     return new Date().toISOString().slice(0, 10);
   }
 
-   /** Gets default year-month value (YYYY-MM) used by year-month selector */
+  /** Gets default year-month value (YYYY-MM) used by year-month selector */
   protected get defaultYearMonthValue(): string {
     return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
   }
 
   /** Loads any existing observations from the database */
-  private loadObservations() {
+  private loadObservations(newFormDefinitions: FormEntryDefinition) {
 
-    this.dbObservations = [];
-    this.newObservations = [];
-    this.formDefinitions.dbObservations = [];
+    this.newObservationDefs = [];
+    this.totalIsValid = newFormDefinitions.formMetadata.validateTotal ? false : true;
+    this.enableOrDisableSave();
 
-    this.observationService.findRaw(this.createObservationQuery(this.formDefinitions)).pipe(
+    this.observationService.findRaw(this.createObservationQuery(newFormDefinitions)).pipe(
       take(1),
       catchError(error => {
         console.error('Failed to load observation data', error);
         return of([]); // TODO. Appropriate fallback needed
       })
     ).subscribe(data => {
-      this.dbObservations = data;
-      this.formDefinitions.dbObservations = data;
+      // Set the new definitions to be used by the component
+      newFormDefinitions.dbObservations = data;
+      this.formDefinitions = newFormDefinitions;
     });
 
   }
 
-  /** Creates the observation query object for loading existing observations from the database */
+  /**
+   * Creates the observation query object for getting existing observations from the database.
+   * @param formDefinitions form defintions to use in creating the observation query dto.
+   * @returns 
+   */
   private createObservationQuery(formDefinitions: FormEntryDefinition): CreateObservationQueryModel {
     //get the data based on the selection filter
     const observationQuery: CreateObservationQueryModel = {
@@ -159,83 +169,135 @@ export class FormEntryComponent implements OnInit {
     return observationQuery;
   }
 
-  /** Event handler for element selector */
+  /**
+   * Handles changes in element selection by updating internal state
+   * @param id 
+   * @returns 
+   */
   public onElementChange(id: number | null): void {
     if (id === null) {
       return;
     }
-    this.formDefinitions.elementSelectorValue = id;
-    this.loadObservations();
+    const newFormDefinitions = this.getNewFormDefinition();
+    newFormDefinitions.elementSelectorValue = id;
+    this.loadObservations(newFormDefinitions);
   }
 
-    /** Event handler for year month selector */
+  /**
+   * Handles changes in year and month selection by updating internal state
+   * @param yearMonth 
+   * @returns 
+   */
   protected onYearMonthChange(yearMonth: string | null): void {
     if (yearMonth === null) {
       return;
     }
 
+    const newFormDefinitions = this.getNewFormDefinition();
     const date: Date = new Date(yearMonth);
-    this.formDefinitions.yearSelectorValue = date.getFullYear();
-    this.formDefinitions.monthSelectorValue = date.getMonth() + 1;
-    this.loadObservations();
+    newFormDefinitions.yearSelectorValue = date.getFullYear();
+    newFormDefinitions.monthSelectorValue = date.getMonth() + 1;
+    this.loadObservations(newFormDefinitions);
   }
 
-    /** Event handler for date selector */
+  /**
+   * Handles changes in year, month and day selection by updating internal state
+   * @param strDate 
+   * @returns 
+   */
   protected onDateChange(strDate: string | null): void {
     if (strDate === null) {
       return;
     }
+
+    const newFormDefinitions = this.getNewFormDefinition();
     const oDate: Date = new Date(strDate);
-    this.formDefinitions.yearSelectorValue = oDate.getFullYear();
-    this.formDefinitions.monthSelectorValue = oDate.getMonth() + 1;
-    this.formDefinitions.daySelectorValue = oDate.getDate();
-    this.loadObservations();
+    newFormDefinitions.yearSelectorValue = oDate.getFullYear();
+    newFormDefinitions.monthSelectorValue = oDate.getMonth() + 1;
+    newFormDefinitions.daySelectorValue = oDate.getDate();
+    this.loadObservations(newFormDefinitions);
 
   }
 
-    /** Event handler for hour selector */
+  /**
+   * Handles changes in hour selection by updating internal state
+   * @param hour 
+   * @returns 
+   */
   protected onHourChange(hour: number | null): void {
     if (hour === null) {
       return;
     }
-    this.formDefinitions.hourSelectorValue = hour;
-    this.loadObservations();
+    const newFormDefinitions = this.getNewFormDefinition();
+    newFormDefinitions.hourSelectorValue = hour;
+    this.loadObservations(newFormDefinitions);
   }
 
-    /** Event handler for observation entry controls */
-  protected onObservationEntry(newObservation: CreateObservationModel): void {
-    const index = this.newObservations.findIndex((data) => (data === newObservation))
+  /**
+ * Handles changes in observation definitions by updating the internal state and
+ * managing the ability to save based on the validity of changes.
+ * 
+ * @param observationDef The observation definition object to be processed.
+ */
+  protected onValueChange(observationDef: ObservationDefinition): void {
+    // Update or add the observation definition in the list
+    const index = this.newObservationDefs.findIndex(data => data === observationDef);
     if (index !== -1) {
-      this.newObservations[index] = newObservation;
+      // Update the existing observation definition if found
+      this.newObservationDefs[index] = observationDef;
     } else {
-      this.newObservations.push(newObservation);
+      // Add a new observation definition if not found
+      this.newObservationDefs.push(observationDef);
     }
 
+    // Determine the ability to save based on whether any observation changes a
+    this.enableOrDisableSave();
   }
 
-  protected onEnableSave(enableSave: boolean): void {
-    this.enableSave = enableSave;
+  protected onTotalIsValid(totalIsValid: boolean) {
+    this.totalIsValid = totalIsValid;
+    this.enableOrDisableSave();
   }
 
-    /** Event handler for save button */
+  /**
+   * Determine the ability to save based on whether there are changes and all observation changes are valid
+   */
+  private enableOrDisableSave(): void {
+    this.enableSave = this.totalIsValid && this.newObservationDefs.length > 0 && !this.newObservationDefs.some(data => !data.observationChangeIsValid);
+  }
+
+
+  /**
+   * Handles saving of observations by sending the data to the server and updating intenal state
+   */
   protected onSaveClick(): void {
-    this.enableSave = false;
-    this.observationService.save(this.newObservations).subscribe((data) => {
+
+    const newObservations: CreateObservationModel[] = this.newObservationDefs.map(item => (item.observation))
+    this.observationService.save(newObservations).subscribe((data) => {
 
       this.pagesDataService.showToast({
         title: 'Observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
       });
 
-      this.loadObservations();
+      this.loadObservations(this.formDefinitions);
 
     });
   }
 
-  protected onDeleteClick(): void {
-    this.location.back();
+  /**
+   * Handles changes in clear state and the internal state
+   */
+  protected onClearClick(): void {
+   
+    // TODO. Debug why the changes are not being propagated to the layout controls.
+
+    this.clearValues = true;
+    console.log('clear clicked',   this.clearValues)
+    this.enableOrDisableSave();
+    this.clearValues = false;
   }
 
-    /** Event handler for cancel button */
+  /** Event handler for cancel button */
   protected onCancelClick(): void {
     this.location.back();
   }

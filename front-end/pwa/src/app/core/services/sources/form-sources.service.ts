@@ -17,6 +17,14 @@ export class FormSourcesService {
 
   constructor(private http: HttpClient) { }
 
+  public findAll(): Observable<ViewSourceModel<ViewEntryFormModel>[]> {
+
+    return this.http.get<ViewSourceModel<ViewEntryFormModel>[]>(this.endPointUrl)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   public find(id: number): Observable<ViewSourceModel<ViewEntryFormModel>> {
     return this.http.get<ViewSourceModel<ViewEntryFormModel>>(`${this.endPointUrl}/${id}`)
       .pipe(
@@ -24,22 +32,22 @@ export class FormSourcesService {
       );
   }
 
-  public create(source: CreateUpdateSourceModel<string>): Observable<ViewSourceModel<CreateEntryFormModel>> {
-    return this.http.post<ViewSourceModel<CreateEntryFormModel>>(this.endPointUrl, source)
+  public create(source: CreateUpdateSourceModel<CreateEntryFormModel>): Observable<ViewSourceModel<ViewEntryFormModel>> {
+    return this.http.post<ViewSourceModel<ViewEntryFormModel>>(this.endPointUrl, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public update(id: number, source: CreateUpdateSourceModel<string>): Observable<ViewSourceModel<CreateEntryFormModel>> {
-    return this.http.patch<ViewSourceModel<CreateEntryFormModel>>(`${this.endPointUrl}/${id}`, source)
+  public update(id: number, source: CreateUpdateSourceModel<CreateEntryFormModel>): Observable<ViewSourceModel<ViewEntryFormModel>> {
+    return this.http.patch<ViewSourceModel<ViewEntryFormModel>>(`${this.endPointUrl}/${id}`, source)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public delete(id: number): Observable<ViewSourceModel<string>> {
-    return this.http.delete<ViewSourceModel<string>>(`${this.endPointUrl}/${id}`)
+  public delete(id: number): Observable<ViewSourceModel<ViewEntryFormModel>> {
+    return this.http.delete<ViewSourceModel<ViewEntryFormModel>>(`${this.endPointUrl}/${id}`)
       .pipe(
         catchError(this.handleError)
       );
