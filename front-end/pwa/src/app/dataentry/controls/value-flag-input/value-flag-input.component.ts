@@ -27,6 +27,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   @Input() public id: string | number = '';
   @Input() public label: string = '';
   @Input() public observationDefinition!: ObservationDefinition;
+  @Input() public enforceLimitCheck: boolean = true;
   @Output() public valueChange = new EventEmitter<ObservationDefinition>();
 
   /** 
@@ -35,7 +36,6 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
    */
 
   protected validationResponse: string = ''
-
 
   /** 
    * Holds the observation log used of the linked observation model
@@ -79,7 +79,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
     // If there is a value input then validate
     if (value !== null) {
       this.validationResponse = this.checkValueLimitsValidity(value);
-      if (!StringUtils.isNullOrEmpty(this.validationResponse)) {
+      if (this.enforceLimitCheck && !StringUtils.isNullOrEmpty(this.validationResponse)) {
         this.emitValueChange(false);
         return;
       }

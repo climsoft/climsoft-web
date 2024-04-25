@@ -70,8 +70,8 @@
          <!--Limits-->
          <div class="mb-3">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="allowDataEntryOnLimitCheckInvalid">
-                <label class="form-check-label" for="limits">Allow Entry if Limit Check Fails</label>
+                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
+                <label class="form-check-label" for="limits">Enforce Limit Checks</label>
             </div>
         </div>
         <!--------->
@@ -94,7 +94,7 @@
             <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
                 Save
             </button>
-            <button *ngIf="createUpdateSource && sourceId > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+            <button *ngIf="viewSource && sourceId > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
                 (click)="onDelete()">
                 Delete
             </button>

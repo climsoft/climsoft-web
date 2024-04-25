@@ -285,10 +285,12 @@ export class FormEntryComponent implements OnInit {
   }
 
   /**
-   * Clears all observations values and updates the internal state
+   * Handles changes in clear state and the internal state
    */
   protected onClearClick(): void {
    
+    // TODO. Debug why the changes are not being propagated to the layout controls.
+
     this.clearValues = true;
     console.log('clear clicked',   this.clearValues)
     this.enableOrDisableSave();

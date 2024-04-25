@@ -10,6 +10,8 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { take } from 'rxjs';
+import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
+import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
 
 @Component({
   selector: 'app-form-detail',
@@ -19,7 +21,7 @@ import { take } from 'rxjs';
 export class FormDetailComponent implements OnInit {
 
   protected sourceId: number = 0;
-  protected createUpdateSource!: CreateUpdateSourceModel<string>;
+  protected viewSource!: CreateUpdateSourceModel<ViewEntryFormModel>;
   protected formName: string = '';
   protected formDescription: string = '';
 
@@ -34,7 +36,7 @@ export class FormDetailComponent implements OnInit {
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
   protected convertDateTimeToUTC: boolean = true;
-  protected allowDataEntryOnLimitCheckInvalid: boolean = true;
+  protected enforceLimitCheck: boolean = true;
   protected validateTotal: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
@@ -44,7 +46,7 @@ export class FormDetailComponent implements OnInit {
   protected errorMessage: string = '';
 
   constructor(private pagesDataService: PagesDataService,
-    private sourceService: SourcesService, private location: Location, private route: ActivatedRoute) {
+    private formSourcesService: FormSourcesService, private location: Location, private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -52,29 +54,32 @@ export class FormDetailComponent implements OnInit {
     if (StringUtils.containsNumbersOnly(sourceId)) {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
-      this.sourceService.getSource(sourceId).subscribe((data) => {
+      this.formSourcesService.find(sourceId).pipe(
+        take(1)
+      ).subscribe((data) => {
+
         this.sourceId = data.id;
         // Important, deconstruct explicitly
-        this.createUpdateSource = { name: data.name, description: data.description, extraMetadata: data.extraMetadata, sourceType: data.sourceType };
+        this.viewSource = data;
         this.setControlValues(data);
       });
     } else {
       this.sourceId = 0;
-      this.createUpdateSource = { name: '', description: '', sourceType: SourceTypeEnum.FORM, extraMetadata: '' };
+      this.viewSource = { name: '', description: '', sourceType: SourceTypeEnum.FORM, extraMetadata: null };
       this.pagesDataService.setPageHeader('New Entry Form');
     }
   }
 
-  private setControlValues(source: CreateUpdateSourceModel<string>): void {
+  private setControlValues(source: CreateUpdateSourceModel<ViewEntryFormModel>): void {
     this.formName = source.name;
-    this.formDescription = this.createUpdateSource.description;
+    this.formDescription = this.viewSource.description;
 
     // Get form metadata
     // TODO. What should be done when this happens, though never expected
-    if (!this.createUpdateSource.extraMetadata) {
+    if (!this.viewSource.extraMetadata) {
       return;
     }
-    const entryForm: CreateEntryFormModel = JSON.parse(this.createUpdateSource.extraMetadata);
+    const entryForm: ViewEntryFormModel = this.viewSource.extraMetadata;
 
     const selectedSelectors: ExtraSelectorControlType[] = [];
     const possibleFields: ExtraSelectorControlType[] = [];
@@ -101,6 +106,7 @@ export class FormDetailComponent implements OnInit {
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
     this.convertDateTimeToUTC = entryForm.convertDateTimeToUTC;
+    this.enforceLimitCheck = entryForm.enforceLimitCheck;
     this.validateTotal = entryForm.validateTotal;
   }
 
@@ -117,8 +123,6 @@ export class FormDetailComponent implements OnInit {
     this.selectedFields = [];
     this.selectedLayout = this.getLayout(this.selectedFields);
   }
-
-
 
   public onFieldsSelected(selectedFields: ExtraSelectorControlType[]): void {
 
@@ -166,7 +170,7 @@ export class FormDetailComponent implements OnInit {
 
   protected onSave(): void {
 
-    if (!this.createUpdateSource) {
+    if (!this.viewSource) {
       this.errorMessage = 'Form not defined';
       return;
     }
@@ -211,9 +215,9 @@ export class FormDetailComponent implements OnInit {
       return;
     }
 
-    this.createUpdateSource.sourceType = SourceTypeEnum.FORM;
-    this.createUpdateSource.name = this.formName;
-    this.createUpdateSource.description = this.formDescription;
+    this.viewSource.sourceType = SourceTypeEnum.FORM;
+    this.viewSource.name = this.formName;
+    this.viewSource.description = this.formDescription;
 
     const entryForm: CreateEntryFormModel = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
@@ -223,31 +227,37 @@ export class FormDetailComponent implements OnInit {
       hours: this.selectedHourIds,
       period: this.selectedPeriodId,
       convertDateTimeToUTC: this.convertDateTimeToUTC,
-      allowDataEntryOnLimitCheckInvalid: this.allowDataEntryOnLimitCheckInvalid,
+      enforceLimitCheck: this.enforceLimitCheck,
       validateTotal: this.validateTotal,
       samplePaperImage: ''
     };
 
-    this.createUpdateSource.extraMetadata = JSON.stringify(entryForm);
+    const createUpdateSource: CreateUpdateSourceModel<CreateEntryFormModel> = {
+      name:  this.viewSource.name,
+      description:  this.viewSource.description,
+      extraMetadata: entryForm,
+      sourceType:  SourceTypeEnum.FORM
+    }
+ 
 
     if (this.sourceId === 0) {
-      this.sourceService.createSource(this.createUpdateSource).pipe(
+      this.formSourcesService.create(createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Details', message: `Form ${this.createUpdateSource.name} created`, type: 'success'
+            title: 'Form Details', message: `Form ${this.viewSource.name} created`, type: 'success'
           });
           this.location.back();
         }
       });
     } else {
-      this.sourceService.updateSource(this.sourceId, this.createUpdateSource).pipe(
+      this.formSourcesService.update(this.sourceId, createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Details', message: `Form ${this.createUpdateSource.name} updated`, type: 'success'
+            title: 'Form Details', message: `Form ${this.viewSource.name} updated`, type: 'success'
           });
           this.location.back();
         }
@@ -263,7 +273,7 @@ export class FormDetailComponent implements OnInit {
 
   protected onDelete(): void {
     //todo. prompt for confirmation first
-    this.sourceService.deleteSource(this.sourceId).subscribe((data) => {
+    this.formSourcesService.delete(this.sourceId).subscribe((data) => {
       this.location.back();
     });
 

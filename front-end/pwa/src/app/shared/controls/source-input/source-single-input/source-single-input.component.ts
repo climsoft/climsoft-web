@@ -14,8 +14,8 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ViewSourceModel<string>[];
-  protected selectedOption!: ViewSourceModel<string> | null;
+  protected options!: ViewSourceModel<object>[];
+  protected selectedOption!: ViewSourceModel<object> | null;
 
   constructor(private sourcesService: SourcesService) {
   
@@ -28,7 +28,7 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
 
     //load the sources once 
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.sourcesService.getSources().subscribe(data => {
+      this.sourcesService.findAll().subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });
@@ -45,11 +45,11 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: ViewSourceModel<string>): string {
+  protected optionDisplayFunction(option: ViewSourceModel<object>): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: ViewSourceModel<string> | null) {
+  protected onSelectedOptionChange(selectedOption: ViewSourceModel<object> | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

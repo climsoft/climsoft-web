@@ -1,8 +1,7 @@
-import { IsEnum, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { SourceTypeEnum } from '../../enums/source-type.enum';
-import { Type } from 'class-transformer';
 
-export class CreateUpdateSourceDto<T> {
+export class CreateUpdateSourceDto<T extends object> {
 
     @IsString()
     name: string;

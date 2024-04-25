@@ -23,16 +23,22 @@ export interface CreateEntryFormModel {
     /** Period for observation */
     period: number;
 
-    /** Determines whether entry date time should be converted to UTC or not. 
+    /** 
+     * Determines whether entry date time should be converted to UTC or not. 
      * If true, the entry date time will be sent to the server based on date time selection on the lcient
      * If false, entry date time will be converted to UTC before being sent to sever
      */
     convertDateTimeToUTC: boolean;
 
-    /** Determines whether to allow entries that don't pass observation limits */
-    allowDataEntryOnLimitCheckInvalid: boolean;
+    /** 
+     * Determines whether to allow entries that don't pass observation limits.
+     * If true, when limits are exceeded, data entry will not be allowed.
+     */
+    enforceLimitCheck: boolean;
 
-    /** Detrermines whether user is required type in observation total or not */
+    /**
+     * Determines whether user is required type in observation total or not.
+     */
     validateTotal: boolean;
 
     /** Sample paper image that resembles the form design */

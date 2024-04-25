@@ -1,4 +1,4 @@
-import { ExtraSelectorControlType, FieldType } from "src/app/core/models/sources/create-entry-form.model";
+import { FieldType } from "src/app/core/models/sources/create-entry-form.model";
 import { ViewEntryFormModel } from "src/app/core/models/sources/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
@@ -6,7 +6,6 @@ import { CreateObservationModel } from "src/app/core/models/observations/create-
 import { ViewStationModel } from "src/app/core/models/stations/view-station.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
-import { FlagEnum } from "src/app/core/models/observations/flag.enum";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations

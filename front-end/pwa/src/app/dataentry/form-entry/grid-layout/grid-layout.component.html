@@ -24,6 +24,7 @@
                     *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
                     <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                         [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                        [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
                         (valueChange)="onValueChange($event,colIndex)" />
                 </div>
 
