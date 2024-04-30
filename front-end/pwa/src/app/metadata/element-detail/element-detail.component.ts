@@ -1,11 +1,9 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { CreateElementModel } from 'src/app/core/models/elements/create-element.model';
+import { Observable, take } from 'rxjs';
 import { ElementDomainEnum } from 'src/app/core/models/elements/element-domain.enum';
 import { UpdateElementModel } from 'src/app/core/models/elements/update-element.model';
-import { ViewElementSubdomainModel } from 'src/app/core/models/elements/view-element-subdomain.model';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -17,10 +15,9 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./element-detail.component.scss']
 })
 export class ElementDetailComponent implements OnInit {
-  element!: ViewElementModel;
-  bNew: boolean = false;
-  bEnableSave: boolean = true;//todo. should be false by default
-
+  protected element!: ViewElementModel;
+  protected bNew: boolean = false;
+  protected bEnableSave: boolean = true;//todo. should be false by default
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -35,7 +32,7 @@ export class ElementDetailComponent implements OnInit {
 
     const elementId = this.route.snapshot.params["id"];
     if (StringUtils.containsNumbersOnly(elementId)) {
-      this.elementsService.getElement(elementId).subscribe((data) => {
+      this.elementsService.findOne(elementId).subscribe((data) => {
         this.element = data;
         this.bNew = false;
       });
@@ -58,7 +55,7 @@ export class ElementDetailComponent implements OnInit {
     }
   }
 
-  protected onSaveClick(): void {
+  protected onSave(): void {
 
     // TODO. do validations
 
@@ -81,7 +78,9 @@ export class ElementDetailComponent implements OnInit {
       saveSubscription = this.elementsService.update(this.element.id, updatedElement);
     }
 
-    saveSubscription.subscribe((data) => {
+    saveSubscription.pipe(
+      take(1)
+    ).subscribe((data) => {
       if (data) {
         this.element = data;
         this.pagesDataService.showToast({
@@ -95,7 +94,17 @@ export class ElementDetailComponent implements OnInit {
 
   }
 
-  protected onCancelClick(): void {
+  protected onDelete(): void {
+    this.elementsService.delete(this.element.id).pipe(take(1)).subscribe(data => {
+      if (data) {
+        this.pagesDataService.showToast({ title: "Element Deleted", message: `Element ${this.element.name} deleted`, type: "success" });
+        this.location.back();
+      }
+    });
+
+  }
+
+  protected onCancel(): void {
     this.location.back();
   }
 

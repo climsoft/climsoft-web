@@ -8,14 +8,17 @@ import { Component, Input, Output, EventEmitter, } from '@angular/core';
 })
 export class ToggleChevronComponent {
   @Input() public open: boolean = false;
+  @Input() public clickable: boolean = true;
   @Output() public opened = new EventEmitter<boolean>();
 
   constructor() {
   }
 
   protected onClick(): void {
-    this.open = !this.open;
-    this.opened.emit(this.open);
+    if(this.clickable){
+      this.open = !this.open;
+      this.opened.emit(this.open);
+    }    
   }
 
 

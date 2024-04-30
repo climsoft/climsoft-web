@@ -31,8 +31,14 @@ export class ElementsSelectorDialogComponent {
     this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
 
-    const elementSubscription: Observable<ViewElementModel[]> = this.showSelectedIdsOnly ? this.elementsService.getElements(this.selectedIds) : this.elementsService.getElements();
-    elementSubscription.subscribe(data => {
+    let saveSubscription: Observable<ViewElementModel[]>;
+    if(this.showSelectedIdsOnly){
+      saveSubscription = this.elementsService.findSome(this.selectedIds);
+    }else{
+      saveSubscription = this.elementsService.findAll();
+    }
+
+    saveSubscription.subscribe(data => {
       this.items = data
         .filter(item => !this.excludeIds.includes(item.id))
         .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));

@@ -43,7 +43,7 @@ export class FormSourcesService {
         let elements: ViewElementDto[] = [];
 
         if (dto.extraMetadata && dto.extraMetadata.elementIds.length > 0) {
-            elements = await this.elementsService.findElements(dto.extraMetadata.elementIds);
+            elements = await this.elementsService.findSome(dto.extraMetadata.elementIds);
         }
 
 

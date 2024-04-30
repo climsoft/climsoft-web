@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
-import { CreateUpdateStationModel } from '../../core/models/stations/create-update-station.model';
+import { CreateStationModel } from '../../core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 
-export interface StationView extends CreateUpdateStationModel {
+export interface StationView extends CreateStationModel {
   forms?: ViewSourceModel<object>[];
 }
 
@@ -25,7 +25,7 @@ export class StationFormSelectionComponent {
     private router: Router, private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsService.getStations().subscribe(data => {
+    this.stationsService.findAll().subscribe(data => {
       this.stations = data.map(station => ({ ...station }));
     });
 
@@ -37,7 +37,7 @@ export class StationFormSelectionComponent {
 
   protected loadStationForms(station: StationView): void {
     if (!station.forms) {
-      this.stationFormsService.getStationForms(station.id).subscribe(data => {
+      this.stationFormsService.find(station.id).subscribe(data => {
         station.forms = data;
       });
     }

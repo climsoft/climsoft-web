@@ -1,40 +1,46 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { StationsService } from '../../services/stations/stations.service';
-import { CreateUpdateStationDto } from '../../dtos/stations/create-update-station.dto';
+import { CreateStationDto } from '../../dtos/stations/create-update-station.dto';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
-import { Admin } from 'src/user/decorators/admin.decorator';
-import { Request } from 'express';
-import { AuthUtil } from 'src/user/services/auth.util';
+import { ViewStationDto } from 'src/metadata/dtos/stations/view-station.dto';
+import { UpdateStationDto } from 'src/metadata/dtos/stations/update-station.dto';
+import { BaseStringController } from 'src/shared/controllers/base-string.controller';
 
 @Controller('stations')
-export class StationsController {
+export class StationsController extends BaseStringController<CreateStationDto, UpdateStationDto, ViewStationDto> {
 
-  constructor(private readonly stationsService: StationsService) { }
+  constructor(private readonly stationsService: StationsService) {
+    super(stationsService);
+  }
 
   @Get()
-  getStations(
-    @Query('ids', AuthorisedStationsPipe) ids: string[]) {
-    return this.stationsService.findStations(ids);
+  find(
+    @Query('ids', AuthorisedStationsPipe) ids: string[]): Promise<ViewStationDto[]> {
+    if (ids && ids.length > 0) {
+      return this.stationsService.findSome(ids);
+    }
+
+    return this.stationsService.findAll();
   }
 
   @Get(':id')
-  getCharacteristics(
-    @Param('id', AuthorisedStationsPipe) id: string) {
-    return this.stationsService.findStation(id);
+  findOne(
+    @Param('id', AuthorisedStationsPipe) id: string): Promise<ViewStationDto> {
+    return this.stationsService.findOne(id);
   }
 
-  @Admin()
-  @Post()
-  saveCharacteristics(
-    @Req() request: Request,
-    @Body() stationDto: CreateUpdateStationDto) {
-    return this.stationsService.saveStation(stationDto, AuthUtil.getLoggedInUserId(request));
-  }
+  // @Admin()
+  // @Post()
+  // saveCharacteristics(
+  //   @Req() request: Request,
+  //   @Body() stationDto: CreateStationDto) {
+  //   return this.stationsService.create(stationDto, AuthUtil.getLoggedInUserId(request));
+  // }
 
-  @Admin()
-  @Delete(':id')
-  public delete(@Param('id') id: string) {
-      return this.stationsService.deleteStation(id);
-  }
+  // @Admin()
+  // @Delete(':id')
+  // public delete(@Param('id') id: string) {
+  //     return this.stationsService.delete(id);
+  // }
 
 }

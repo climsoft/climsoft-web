@@ -33,7 +33,7 @@ export class StationCharacteristicsComponent implements OnInit {
   }
 
   private loadStation(): void {
-    this.stationsService.getStationCharacteristics(this.stationId).pipe(
+    this.stationsService.findOne(this.stationId).pipe(
       take(1)
     ).subscribe((data) => {
       

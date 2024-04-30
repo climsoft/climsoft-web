@@ -1,10 +1,13 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { pipe, take } from 'rxjs';
+import { Observable, pipe, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
-import { CreateUpdateStationModel } from 'src/app/core/models/stations/create-update-station.model';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { UpdateElementModel } from 'src/app/core/models/elements/update-element.model';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -16,7 +19,8 @@ export class StationCharacteristicsEditDialogComponent {
 
   protected open: boolean = false;
   protected title: string = "";
-  protected station!: CreateUpdateStationModel;
+  protected station!: ViewStationModel;
+  protected bNew: boolean = false;
 
   constructor(
     private stationsService: StationsService,
@@ -29,10 +33,11 @@ export class StationCharacteristicsEditDialogComponent {
 
     if (stationId) {
       this.title = "Edit Station";
-      this.stationsService.getStationCharacteristics(stationId).pipe(
+      this.stationsService.findOne(stationId).pipe(
         take(1)
       ).subscribe((data) => {
         this.station = data;
+        this.bNew = false;
 
         if (this.station.dateEstablished) {
           this.station.dateEstablished = this.station.dateEstablished.substring(0, 10);
@@ -45,6 +50,7 @@ export class StationCharacteristicsEditDialogComponent {
       });
 
     } else {
+      this.bNew = true;
       this.title = "New Station";
       this.station = {
         id: "",
@@ -53,15 +59,19 @@ export class StationCharacteristicsEditDialogComponent {
         location: { x: 0, y: 0 },
         elevation: 0,
         stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
+        stationObsProcessingMethodName: '',
         stationObsEnvironmentId: null,
+        stationObsEnvironmentName:  null,
         stationObsFocusId: null,
+        stationObsFocusName:  null,
         wmoId: null,
         wigosId: null,
         icaoId: null,
         status: null,
         dateEstablished: null,
         dateClosed: null,
-        comment: ""
+        comment: ""     
+        
       };
     }
 
@@ -99,8 +109,7 @@ export class StationCharacteristicsEditDialogComponent {
     }
 
 
-    const createOrUpdateStation: CreateUpdateStationModel = {
-      id: this.station.id,
+    const updateStation: UpdateStationModel = {
       name: this.station.name,
       description: this.station.description,
       location: this.station.location,
@@ -117,11 +126,18 @@ export class StationCharacteristicsEditDialogComponent {
       comment: this.station.comment,
     }
 
-    this.stationsService.saveStationCharacteristics(createOrUpdateStation).pipe(
+    let saveSubscription: Observable<ViewStationModel>;
+    if (this.bNew) {
+      saveSubscription = this.stationsService.create({ ...updateStation, id: this.station.id });
+    } else {
+      saveSubscription = this.stationsService.update(this.station.id, updateStation);
+    }
+
+    saveSubscription.pipe(
       take(1)
     ).subscribe((data) => {
       if (data) {
-        const message: string = this.title === "Edit Station" ? "Station edited" : "Station created";
+        const message: string = this.bNew ? "New Station Created" : "Station Updated";
         this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: "success" });
         this.ok.emit("SUCCESS");
       }

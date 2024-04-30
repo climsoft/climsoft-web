@@ -1,30 +1,26 @@
-import { ConsoleLogger, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, In, Repository } from 'typeorm';
-import { StationEntity, StationLogVo } from '../../entities/stations/station.entity';
-import { CreateUpdateStationDto } from '../../dtos/stations/create-update-station.dto';
+import { In, Repository } from 'typeorm';
+import { StationEntity } from '../../entities/stations/station.entity';
+import { CreateStationDto } from '../../dtos/stations/create-update-station.dto';
 import { ViewStationDto } from '../../dtos/stations/view-station.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { IBaseStringService } from 'src/shared/services/base-string-service.interface';
+import { UpdateStationDto } from 'src/metadata/dtos/stations/update-station.dto'; 
 
 @Injectable()
-export class StationsService {
+export class StationsService implements IBaseStringService<CreateStationDto, UpdateStationDto, ViewStationDto> {
 
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
     ) { }
 
-    public async findStations(ids?: string[]): Promise<ViewStationDto[]> {
-        const findOptions: FindManyOptions<StationEntity> = {
+    public async findAll(): Promise<ViewStationDto[]> {
+        const entities = await this.stationRepo.find({
             order: {
                 id: "ASC"
             }
-        };
-
-        if (ids && ids.length > 0) {
-            findOptions.where = { id: In(ids) };
-        }
-
-        const entities = await this.stationRepo.find(findOptions);
+        });
 
         return entities.map(entity => {
             return this.createViewDto(entity);
@@ -32,12 +28,62 @@ export class StationsService {
 
     }
 
-    public async findStation(id: string): Promise<ViewStationDto> {
-        const entity = await this.getStationEntity(id);
+    public async findSome(ids: string[]): Promise<ViewStationDto[]> {
+        const entities = await this.stationRepo.find({
+            order: {
+                id: "ASC",
+            },
+            where: { id: In(ids) }
+        });
+
+        return entities.map(entity => {
+            return this.createViewDto(entity);
+        });
+
+    }
+
+    public async findOne(id: string): Promise<ViewStationDto> {
+        const entity = await this.getEntity(id);
         return this.createViewDto(entity);
     }
 
-    private async getStationEntity(id: string): Promise<StationEntity > {
+    public async create(createDto: CreateStationDto, userId: number): Promise<ViewStationDto> {
+
+        let entity: StationEntity | null = await this.stationRepo.findOneBy({
+            id: createDto.id,
+        });
+
+        if (entity) {
+            throw new NotFoundException(`Station #${createDto.id} exists `);
+        }
+
+        entity = this.stationRepo.create({
+            id: createDto.id,
+        });
+
+        this.updateStationEntity(entity, createDto, userId);
+
+        await this.stationRepo.save(entity);
+
+        // Retrieve the station with updated properties
+        return this.findOne(entity.id);
+    }
+
+    public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<ViewStationDto> {
+
+        const entity: StationEntity  = await this.getEntity(id);
+
+        this.updateStationEntity(entity, updateDto, userId);
+
+        return this.createViewDto(await this.stationRepo.save(entity));
+    }
+
+    public async delete(id: string, userId: number): Promise<string> {
+        await this.stationRepo.remove(await this.getEntity(id));
+        return id;
+    }
+
+    private async getEntity(id: string): Promise<StationEntity> {
         const entity = await this.stationRepo.findOneBy({
             id: id,
         });
@@ -48,28 +94,7 @@ export class StationsService {
         return entity;
     }
 
-    public async saveStation(createStationDto: CreateUpdateStationDto, userId: number): Promise<ViewStationDto> {
-
-        let stationEntity: StationEntity | null = await this.stationRepo.findOneBy({
-            id: createStationDto.id,
-        });
-
-        if (!stationEntity) {
-            stationEntity = this.stationRepo.create({
-                id: createStationDto.id,
-            });
-        }
-
-        this.updateStationEntity(stationEntity, createStationDto, userId);
-
-        return this.createViewDto(await this.stationRepo.save(stationEntity));
-    }
-
-    public async deleteStation(id: string) {
-        return this.stationRepo.remove(await this.getStationEntity(id));
-    }
-
-    private updateStationEntity(entity: StationEntity, dto: CreateUpdateStationDto, userId: number): void {
+    private updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.location = dto.location;
@@ -89,7 +114,7 @@ export class StationsService {
         entity.log = null;
     }
 
-    private createViewDto(entity: StationEntity): ViewStationDto {      
+    private createViewDto(entity: StationEntity): ViewStationDto {
         return {
             id: entity.id,
             name: entity.name,
@@ -97,7 +122,7 @@ export class StationsService {
             location: entity.location,
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
-            stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod) ,
+            stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod),
             stationObsEnvironmentId: entity.obsEnvironmentId,
             stationObsEnvironmentName: entity.obsEnvironment ? entity.obsEnvironment.name : null,
             stationObsFocusId: entity.obsFocusId,

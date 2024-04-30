@@ -1,6 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Observable, take } from 'rxjs';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
-import { CreateUpdateStationModel } from 'src/app/core/models/stations/create-update-station.model';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 
@@ -17,8 +19,8 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
   @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
-  protected options!: CreateUpdateStationModel[];
-  protected selectedOptions: CreateUpdateStationModel[] = [];
+  protected options!: ViewStationModel[];
+  protected selectedOptions: ViewStationModel[] = [];
 
   constructor(private stationsSevice: StationsService) {
 
@@ -34,7 +36,9 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
 
     //load the elements once
     if (!this.options || this.includeOnlyIds.length > 0) {
-      this.stationsSevice.getStations(this.includeOnlyIds).subscribe(data => {
+      const subscription: Observable<ViewStationModel[]> = this.includeOnlyIds.length > 0 ? this.stationsSevice.findSome(this.includeOnlyIds) : this.stationsSevice.findAll();
+
+      subscription.pipe(take(1)).subscribe(data => {
         this.options = data;
         this.setInputSelectedOptions();
       });
@@ -50,11 +54,11 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: CreateUpdateStationModel): string {
+  protected optionDisplayFunction(option: CreateStationModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: CreateUpdateStationModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: CreateStationModel[]) {
 
     this.selectedIds.length = 0;
     for (const option of selectedOptions) {

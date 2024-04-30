@@ -56,7 +56,7 @@ export class FormEntryComponent implements OnInit {
     const sourceId = +this.route.snapshot.params['sourceid'];
 
     // Get station name 
-    this.stationsService.getStationCharacteristics(stationId).pipe(
+    this.stationsService.findOne(stationId).pipe(
       take(1)
     ).subscribe(data => {
       this.station = data;
@@ -116,7 +116,10 @@ export class FormEntryComponent implements OnInit {
     return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
   }
 
-  /** Loads any existing observations from the database */
+  /**
+   * Loads any existing observations from the database
+   * @param newFormDefinitions 
+   */
   private loadObservations(newFormDefinitions: FormEntryDefinition) {
 
     this.newObservationDefs = [];
