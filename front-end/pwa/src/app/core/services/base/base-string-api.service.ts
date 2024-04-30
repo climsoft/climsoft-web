@@ -3,9 +3,12 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { BaseAPIService } from './base-api.service';
 
+/**
+ * C - create
+ * U - update
+ * V - View
+ */
 export abstract class BaseStringAPIService<C, U, V> extends BaseAPIService<C, U, V> {
-
-
 
   constructor(baseHttp: HttpClient, routeEndPoint: string) {
     super(baseHttp, routeEndPoint)

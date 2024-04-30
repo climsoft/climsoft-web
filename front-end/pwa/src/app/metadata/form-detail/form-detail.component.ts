@@ -54,7 +54,7 @@ export class FormDetailComponent implements OnInit {
     if (StringUtils.containsNumbersOnly(sourceId)) {
       this.pagesDataService.setPageHeader('Edit Entry Form');
       // Todo. handle errors where the source is not found for the given id
-      this.formSourcesService.find(sourceId).pipe(
+      this.formSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe((data) => {
 

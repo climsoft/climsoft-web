@@ -63,7 +63,7 @@ export class FormEntryComponent implements OnInit {
     });
 
     // Get form metadata
-    this.formSourcesService.find(sourceId).pipe(
+    this.formSourcesService.findOne(sourceId).pipe(
       take(1)
     ).subscribe((data) => {
 

@@ -13,7 +13,7 @@ import { BaseStringAPIService } from '../base/base-string-api.service';
 export class StationsService extends BaseStringAPIService<CreateStationModel, UpdateStationModel, ViewStationModel> {
 
   constructor(private http: HttpClient) {
-    super(http, 'elements')
+    super(http, 'stations')
   }
 
 }

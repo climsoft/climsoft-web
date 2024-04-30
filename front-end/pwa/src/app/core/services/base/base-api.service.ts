@@ -2,6 +2,11 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
+/**
+ * C - create
+ * U - update
+ * V - View
+ */
 export abstract class BaseAPIService<C,U, V> {
 
   protected readonly endPointUrl: string;
