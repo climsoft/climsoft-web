@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { CreateUpdateSourceModel } from 'src/app/core/models/sources/create-update-source.model';
-import { CreateUpdateStationModel } from 'src/app/core/models/stations/create-update-station.model';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 
@@ -18,8 +18,8 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
   @Input() public selectedId!: string | null;
   @Output() public selectedIdChange = new EventEmitter<string | null>();
 
-  protected options!: CreateUpdateStationModel[];
-  protected selectedOption!: CreateUpdateStationModel | null;
+  protected options!: CreateStationModel[];
+  protected selectedOption!: CreateStationModel | null;
 
   constructor(private stationsService: StationsService) {
 
@@ -32,7 +32,7 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
 
     //load the stations once. TODO. later do filter based on different conditions 
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.stationsService.getStations().subscribe(data => {
+      this.stationsService.findAll().subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });
@@ -49,11 +49,11 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: CreateUpdateStationModel): string {
+  protected optionDisplayFunction(option: CreateStationModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: CreateUpdateStationModel | null) {
+  protected onSelectedOptionChange(selectedOption: CreateStationModel | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

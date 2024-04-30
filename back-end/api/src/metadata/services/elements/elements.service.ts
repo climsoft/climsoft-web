@@ -8,55 +8,46 @@ import { ViewElementDto } from '../../dtos/elements/view-element.dto';
 import { CreateElementDto } from '../../dtos/elements/create-element.dto';
 import { ElementSubdomainEntity } from '../../entities/elements/element-subdomain.entity';
 import { ElementTypeEntity } from '../../entities/elements/element-type.entity';
-import { ElementDomainEnum } from '../../enums/element-domain.enum';
 import { ViewElementTypeDto } from '../../dtos/elements/view-element-type.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { IBaseNumberService } from 'src/shared/services/base-number-service.interface.';
 
 @Injectable()
-export class ElementsService {
+export class ElementsService implements IBaseNumberService<CreateElementDto,UpdateElementDto, ViewElementDto> {
     constructor(
         @InjectRepository(ElementEntity) private readonly elementRepo: Repository<ElementEntity>,
         @InjectRepository(ElementSubdomainEntity) private readonly elementSubdomainRepo: Repository<ElementSubdomainEntity>,
         @InjectRepository(ElementTypeEntity) private readonly elementTypeRepo: Repository<ElementTypeEntity>,
-    ) { }
+    ) {
 
-    public async findElements(ids?: number[]): Promise<ViewElementDto[]> {
-        const findOptions: FindManyOptions<ElementEntity> = {
+    }
+
+    public async findOne(id: number): Promise<ViewElementDto> {
+        return this.createViewDto(await this.getEntity(id));
+    }
+
+    public async findSome(ids: number[]): Promise<ViewElementDto[]> {
+        const entities = await this.elementRepo.find({
+            order: { id: "ASC" },
+            where: { id: In(ids) }
+        });
+
+        return entities.map(entity => {
+            return this.createViewDto(entity);
+        });
+    }
+    public async findAll(): Promise<ViewElementDto[]> {
+        const entities = await this.elementRepo.find({
             order: { id: "ASC" }
-        };
-
-        if (ids && ids.length > 0) {
-            findOptions.where = { id: In(ids) };
-        }
-
-        const entities = await this.elementRepo.find(findOptions);
+        });
 
         return entities.map(entity => {
             return this.createViewDto(entity);
         });
     }
 
-    public async findElement(id: number): Promise<ViewElementDto> {
-        return this.createViewDto(await this.getElementEntity(id));
-    }
 
-    public async updateElement(id: number, updateElementDto: UpdateElementDto, userId: number): Promise<ViewElementDto> {
-        const elementEntity: ElementEntity = await this.getElementEntity(id);
-        const oldChanges: ElementLogVo = this.getElementLogFromEntity(elementEntity);
-        const newChanges: ElementLogVo = this.getElementLogFromDto(updateElementDto, userId);
-
-        //if no changes, then no need to save
-        if (!ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
-            this.updateElementEntity(elementEntity, updateElementDto, userId, false);
-
-            await this.elementRepo.save(elementEntity);
-        }
-
-        return this.createViewDto(elementEntity);
-
-    }
-
-    public async saveElement(createDto: CreateElementDto, userId: number): Promise<ViewElementDto> {
+    public async create(createDto: CreateElementDto, userId: number): Promise<ViewElementDto> {
 
         let entity: ElementEntity | null = await this.elementRepo.findOneBy({
             id: createDto.id,
@@ -74,13 +65,29 @@ export class ElementsService {
 
         await this.elementRepo.save(entity);
 
-        // Retrieve the entity with updated type name before creating the view
-        return this.createViewDto(await this.getElementEntity(entity.id));
+        // Important. Retrieve the entity with updated properties like type name before creating the view
+        return this.findOne(entity.id);
 
     }
 
-    public async deleteElement(id: number) {
-        return this.elementRepo.remove(await this.getElementEntity(id));
+    public async update(id: number, updateDto: UpdateElementDto, userId: number): Promise<ViewElementDto> {
+        const entity: ElementEntity = await this.getEntity(id);
+        const oldChanges: ElementLogVo = this.getElementLogFromEntity(entity);
+        const newChanges: ElementLogVo = this.getElementLogFromDto(updateDto, userId);
+
+        //if no changes, then no need to save
+        if (!ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
+            this.updateElementEntity(entity, updateDto, userId, false);
+
+            await this.elementRepo.save(entity);
+        }
+
+        return this.createViewDto(entity);
+    }
+
+    public async delete(id: number, userId: number): Promise<number> {
+        await this.elementRepo.remove(await this.getEntity(id));
+        return id;
     }
 
     private getElementLogFromEntity(entity: ElementEntity): ElementLogVo {
@@ -139,7 +146,7 @@ export class ElementsService {
      * @param id 
      * @returns 
      */
-    private async getElementEntity(id: number): Promise<ElementEntity> {
+    private async getEntity(id: number): Promise<ElementEntity> {
         const elementEntity: ElementEntity | null = await this.elementRepo.findOneBy({
             id: id,
         });
@@ -169,6 +176,7 @@ export class ElementsService {
     }
 
 
+    // TODO. Move this to its own subdomain
     public async findElementSubdomains(): Promise<ElementSubdomainEntity[]> {
         const findOptions: FindManyOptions<ElementSubdomainEntity> = {
             order: { id: "ASC" }
@@ -181,6 +189,7 @@ export class ElementsService {
         return this.elementSubdomainRepo.find(findOptions);
     }
 
+    // Move this to its own subdomain
     public async findElementTypes(ids?: number[]): Promise<ViewElementTypeDto[]> {
         const findOptions: FindManyOptions<ElementTypeEntity> = {
             order: { id: "ASC" }

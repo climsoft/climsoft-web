@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 
@@ -31,7 +32,15 @@ export class ElementMultipleInputComponent implements OnInit, OnChanges {
 
     //load the elements once
     if (!this.options || this.includeOnlyIds.length>0) { 
-      this.elementsSevice.getElements(this.includeOnlyIds).subscribe(data => {
+
+      let saveSubscription: Observable<ViewElementModel[]>;
+      if(this.includeOnlyIds && this.includeOnlyIds.length>0){
+        saveSubscription = this.elementsSevice.findSome(this.includeOnlyIds);
+      }else{
+        saveSubscription = this.elementsSevice.findAll();
+      }
+
+      saveSubscription.subscribe(data => {
         this.options = data;
         this.setInputSelectedOptions();
       });

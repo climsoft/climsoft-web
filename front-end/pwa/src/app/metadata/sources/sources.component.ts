@@ -4,7 +4,7 @@ import { take } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesService } from 'src/app/core/services/sources/sources.service'; 
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-sources',
@@ -20,31 +20,59 @@ export class SourcesComponent {
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Sources Metadata');
-    this.loadSources();
+
+    // Get all sources 
+    this.sourceService.findAll().pipe(take(1)).subscribe((data) => {
+      this.sources = data;
+    });
+
   }
 
   ngOnInit(): void {
   }
 
-  private loadSources() {
-    //get data sources of source type forms
-    this.sourceService.findAll().pipe(take(1)).subscribe((data) => {
-      this.sources = data;       
-    });
-  }
 
-  protected onSourceClicked(dataClicked: ViewSourceModel<object>): void {
-    if (dataClicked.sourceType === SourceTypeEnum.FORM) {
-      this.router.navigate(['form-detail', dataClicked.id], { relativeTo: this.route.parent });
-    } else if (dataClicked.sourceType === SourceTypeEnum.IMPORT) {
-      // TODO.
+  protected onSourceClicked(source: ViewSourceModel<object>): void {
+
+    const sourceType: SourceTypeEnum = source.sourceType;
+    let routeName: string = '';
+
+    switch (sourceType) {
+      case SourceTypeEnum.FORM:
+        routeName = 'form-detail'
+        break;
+      case SourceTypeEnum.IMPORT:
+
+        break;
+      case SourceTypeEnum.DIGITAL:
+
+        break;
+      default:
+        throw new Error('Source type not supported');
     }
 
+    this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
+
   }
 
-  protected onNewSource(sourceType: string) {
-    if(sourceType === "Form"){
-      this.router.navigate(['form-detail', 'new'], { relativeTo: this.route.parent });
+  protected onNewSource(sourceTypeName: string) {
+
+    let routeName: string = '';
+
+    switch (sourceTypeName) {
+      case 'Form':
+        routeName = 'form-detail'
+        break;
+      case SourceTypeEnum.IMPORT:
+
+        break;
+      case SourceTypeEnum.DIGITAL:
+
+        break;
+      default:
+        throw new Error('Source type not supported');
     }
+
+    this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });
   }
 }

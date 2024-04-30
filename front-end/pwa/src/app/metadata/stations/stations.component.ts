@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CreateUpdateStationModel } from '../../core/models/stations/create-update-station.model';
+import { CreateStationModel } from '../../core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -36,12 +36,12 @@ export class StationsComponent implements OnInit {
     this.loadStations();
   }
 
-  protected onEditStationClick(station: CreateUpdateStationModel) {
+  protected onEditStationClick(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
 
   private loadStations(): void {
-    this.stationsService.getStations().pipe(
+    this.stationsService.findAll().pipe(
       take(1)
     ).subscribe(data => {
       this.stations = data;

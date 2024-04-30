@@ -29,8 +29,8 @@ export class ObservationsService {
 
         const obsEntities = await this.findProcessedObs(selectObsevationDto);
 
-        const stationEntities = await this.stationsService.findStations();
-        const elementEntities = await this.elementsService.findElements();
+        const stationEntities = await this.stationsService.findAll();
+        const elementEntities = await this.elementsService.findAll();
         const sourceEntities = await this.sourcesService.findAll();
 
         for (const obsEntity of obsEntities) {

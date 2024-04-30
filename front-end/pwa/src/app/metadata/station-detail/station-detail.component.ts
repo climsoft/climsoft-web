@@ -29,7 +29,7 @@ export class StationDetailComponent implements OnInit {
 
   protected onDeleteStation(): void {
 
-    //TODO. Show an are you sure dialog.
+    // TODO. Show an are you sure dialog.
 
     this.stationsService.delete(this.stationId).pipe(
       take(1)

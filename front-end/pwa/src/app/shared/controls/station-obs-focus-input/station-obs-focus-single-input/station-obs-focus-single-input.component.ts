@@ -28,7 +28,7 @@ export class StationObservationFocusSingleInputComponent  implements OnInit, OnC
 
     //load the elements once
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length>0)) { 
-      this.stationObsSevice.getStationObsFocuses(this.includeOnlyIds).subscribe(data => {
+      this.stationObsSevice.findAll(this.includeOnlyIds).subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });

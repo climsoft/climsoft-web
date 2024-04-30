@@ -27,7 +27,7 @@ export class StationFormsComponent implements OnInit {
   }
 
   protected loadForms(): void {
-    this.stationFormsService.getStationForms(this.stationId).subscribe((data) => {
+    this.stationFormsService.find(this.stationId).subscribe((data) => {
       this.forms = data;
     });
   }
@@ -72,8 +72,8 @@ export class StationFormsComponent implements OnInit {
     }
 
     const operation = action === 'ADD'
-      ? this.stationFormsService.saveStationForms(this.stationId, ids)
-      : this.stationFormsService.deleteStationForms(this.stationId, ids);
+      ? this.stationFormsService.update(this.stationId, ids)
+      : this.stationFormsService.delete(this.stationId, ids);
 
     return operation.pipe(
       tap(data => {

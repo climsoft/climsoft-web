@@ -34,21 +34,21 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     if (metadata.metatype === Array) {
 
-      const stationIds = this.getValidStations(value, user.authorisedStationIds);
+      const stationIds = this.checkValidStations(value, user.authorisedStationIds);
 
       if (stationIds) {
         return stationIds;
       } else {
-        throw new BadRequestException();
+        throw new BadRequestException('Not authorised to access station(s)');
       }
 
     }else if(metadata.metatype === String){
-      const stationIds = this.getValidStations([value], user.authorisedStationIds);
+      const stationIds = this.checkValidStations([value], user.authorisedStationIds);
 
       if (stationIds) {
         return stationIds[0];
       } else {
-        throw new BadRequestException();
+        throw new BadRequestException('Not authorised to access station(s)');
       }
     }
 
@@ -57,7 +57,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-  private getValidStations(requestedIds: string[] | null, authorisedIds: string[]): string[] | null {
+  private checkValidStations(requestedIds: string[] | null, authorisedIds: string[]): string[] | null {
     //If there are any requested ids, then validate them, if not then just return the authorised ids
     if (requestedIds && requestedIds.length > 0) {
         const isValid = requestedIds.every(id => authorisedIds.includes(id));

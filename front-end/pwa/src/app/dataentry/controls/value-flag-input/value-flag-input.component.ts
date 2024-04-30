@@ -182,7 +182,7 @@ export class ValueFlagInputComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Raised when Enter key is pressed on the input component
+   * Hnadles Enter key pressed
    */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag

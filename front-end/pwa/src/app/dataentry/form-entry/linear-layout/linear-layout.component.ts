@@ -1,7 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { FormEntryUtil } from '../defintions/form-entry.util';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
@@ -15,7 +14,10 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   @Input() public formDefinitions!: FormEntryDefinition;
   @Input() public clearValues!: boolean;
 
+  /** Emited when observation value is changed */
   @Output() public valueChange = new EventEmitter<ObservationDefinition>();
+
+  /** Emitted when observation value or total value is changed */
   @Output() public totalIsValid = new EventEmitter<boolean>();
 
   /** Holds entry fields needed for creating value flag components; elements, days, hours */
@@ -24,10 +26,10 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   /** Holds a copy of the entry fields in chunks of 5. Suitable for large screen displays */
   protected fieldDefinitionsChunks!: FieldEntryDefinition[][];
 
-  /** Holds all the observation definitions used to by created value flag components */
+  /** Holds all the observation definitions used  by created value flag components */
   protected observationsDefinitions!: ObservationDefinition[];
 
-  /** Holds the error message for total validation */
+  /** Holds the error message for total validation. Used by the total component */
   protected totalErrorMessage!: string;
 
   /** Used to determine the layout to be used depending on the screen size */
@@ -80,8 +82,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Gets the observation definition of the specified entry field definition.
-   * Used when creating value flag components in this component
+   * Gets the observation definition of the specified entry field definition. 
    * @param fieldDef 
    * @returns 
    */
@@ -91,13 +92,12 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Raised by value flag component when its value changes.
+   * Handles observation value changes
    * Clears any total error message  
    */
   protected onValueChange(observationDef: ObservationDefinition): void {
     this.valueChange.emit(observationDef);
   
-   
     // Only emit total validity if the definition metadata requires it
     if (this.formDefinitions.formMetadata.validateTotal) {
       this.totalErrorMessage = '';
@@ -108,7 +108,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
 
 
   /**
-   * Raised by the total component when its value changes
+   * Handles total value changes by updating the internal state and emiting totalIsValid state
    * @param value 
    */
   protected onTotalValueChange(value: number | null): void {

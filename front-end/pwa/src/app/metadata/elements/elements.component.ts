@@ -20,7 +20,7 @@ export class ElementsComponent {
 
     this.pagesDataService.setPageHeader('Elements Metadata');
 
-    this.elementsService.getElements().subscribe(data => {
+    this.elementsService.findAll().subscribe(data => {
       this.elements = data;
     });
 

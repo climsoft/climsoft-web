@@ -1,6 +1,6 @@
-import { CreateUpdateStationModel } from "./create-update-station.model";
+import { CreateStationModel } from "./create-station.model";
 
-export interface ViewStationModel extends CreateUpdateStationModel {
+export interface ViewStationModel extends CreateStationModel {
   stationObsProcessingMethodName: string;
   stationObsEnvironmentName: string | null;
   stationObsFocusName: string | null;
