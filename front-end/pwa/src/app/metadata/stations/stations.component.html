@@ -1,26 +1,23 @@
-<div class="container-fluid">
-  <div class="row d-flex justify-content-between align-items-center mb-3">
-    <div class="col">
-      <h4 class="fw-normal component-h1">Stations</h4>
-    </div>
-    <div class="col text-end">
-      <button type="button" class="btn btn-primary btn-sm" (click)="newStationClick()">
-        New Station
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between p-0 align-items-center">
+    <div class="fw-bold">Showing Stations</div>
+    <div class="mb-1">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+        Search
       </button>
+      <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="dlgEdit.openDialog()">New</button>
+      <app-station-characteristics-edit-dialog #dlgEdit (ok)="onNewStationAddedClick()" />
     </div>
   </div>
 
-  <app-data-list-view [dataSource]="stations" [bodyMembers]="['id', 'name']" [actions]="[
-    {
-      actionName: 'Edit',
-      actionCssClassName: 'btn-outline-primary',
-      actionIconCssClassName: 'bi-pen'
-    },
-    {
-      actionName: 'Links',
-      actionCssClassName: 'btn-outline-info',
-      actionIconCssClassName: 'bi-info'
-    }
-  ]" (dataActionClicked)="onStationClick($event)"></app-data-list-view>
+  <div class="card-body px-0">
+    <app-table-view [clickable]="true" [columnsData]="[ 
+      {id: 'id', name: 'Id'},
+       {id: 'name', name: 'Name'},
+       {id: 'stationObsProcessingMethodName', name: 'Method'},
+       {id: 'stationObsEnvironmentName', name: 'Environment'},
+       {id: 'stationObsFocusName', name: 'Focus'} ]" [rowsData]="stations"
+      (rowDataClicked)="onEditStationClick($event)"></app-table-view>
+  </div>
 
 </div>

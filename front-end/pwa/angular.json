@@ -28,7 +28,8 @@
 							"src/favicon.ico",
 							"src/assets"
 						],
-						"styles": [						
+						"styles": [		
+							"node_modules/leaflet/dist/leaflet.css",				
 							"src/styles.scss"
 						],
 						"scripts": []
@@ -91,7 +92,6 @@
 							"src/assets"
 						],
 						"styles": [
-							"@angular/material/prebuilt-themes/indigo-pink.css",
 							"src/styles.scss"
 						],
 						"scripts": []
@@ -101,6 +101,6 @@
 		}
 	},
 	"cli": {
-		"analytics": "d54008ca-5136-461c-86c5-a2d06c97b8b6"
+		"analytics": false
 	}
 }

@@ -1,0 +1,4 @@
+<span class="d-inline-flex flex-row cursor-pointer" (click)="onClick();">
+  <i class="bi" [ngClass]="{ 'bi-chevron-up':this.open, 'bi-chevron-down':!this.open }"></i>
+  <ng-content></ng-content>
+</span>

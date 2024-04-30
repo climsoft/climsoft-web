@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
-import { ObservationsController } from './observations.controller';
-import { ObservationsService } from './observations.service';
+import { ObservationsController } from './controllers/observations.controller';
+import { ObservationsService } from './services/observations.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ObservationEntity } from './observation.entity';
+import { ObservationEntity } from './entities/observation.entity';  
+import { ObservationUploadService } from './services/observation-upload.service';
+import { MetadataModule } from 'src/metadata/metadata.module'; 
+import { UserModule } from 'src/user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ObservationEntity])],
+  imports: [TypeOrmModule.forFeature([ObservationEntity]),  UserModule, MetadataModule],
   controllers: [ObservationsController],
-  providers: [ObservationsService]
+  providers: [ObservationsService,  ObservationUploadService]
 })
 export class ObservationModule {}

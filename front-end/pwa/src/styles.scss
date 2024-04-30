@@ -1,20 +1,27 @@
-
-// theme used by ng-select
-@import "~@ng-select/ng-select/themes/default.theme.css";
-
 /* Importing Bootstrap SCSS file. */
 @import "./node_modules/bootstrap/scss/bootstrap";
-
-/* Importing Datepicker SCSS file. */
-@import "node_modules/ngx-bootstrap/datepicker/bs-datepicker";
 
 /* Importing Bootstrap Icons CSS file. */
 @import "./node_modules/bootstrap-icons/font/bootstrap-icons";
 
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; background-color: #f5f7fb }
+html,
+body {
+    height: 100%;
+}
 
-.component-h1{
-    font-size: 1.3125rem;
+body {
+    margin: 0;
+    // font-family: Roboto, "Helvetica Neue", sans-serif;
+    font-family: arial, helvetica, verdana, sans-serif;
+    //font-size: 0.75rem; //12px
+    // background-color: #f5f7fb
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.table-group-divider {
+    border-top-color: #ddd;
 }

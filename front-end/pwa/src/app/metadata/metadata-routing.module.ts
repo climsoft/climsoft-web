@@ -1,8 +1,11 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router'; 
-import { FormBuilderComponent } from './form-builder/form-builder.component';
-import { FormsComponent } from './forms/forms.component';
+import { RouterModule, Routes } from '@angular/router';  
 import { StationsComponent } from './stations/stations.component';
+import { StationDetailComponent } from './station-detail/station-detail.component';
+import { ElementsComponent } from './elements/elements.component';
+import { ElementDetailComponent } from './element-detail/element-detail.component';
+import { FormDetailComponent } from './form-detail/form-detail.component';
+import { SourcesComponent } from './sources/sources.component';
 
 
 const routes: Routes = [
@@ -14,28 +17,34 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'forms',
+        redirectTo: 'elements',
         pathMatch: 'full',
       },
       {
-        path: 'forms',
-        component: FormsComponent, 
-        data: {
-          subComponent: true
-        }
+        path: 'elements',
+        component: ElementsComponent
       },
       {
-        path: 'form-builder',
-        component: FormBuilderComponent
+        path: 'element-detail/:id',
+        component: ElementDetailComponent
       },
       {
-        path: 'form-builder/:sourceid',
-        component: FormBuilderComponent
+        path: 'sources',
+        component: SourcesComponent
+      }, 
+      {
+        path: 'form-detail/:id',
+        component: FormDetailComponent
       },
       {
         path: 'stations',
         component: StationsComponent
-      }
+      },
+      {
+        path: 'station-detail/:id',
+        component: StationDetailComponent
+      },
+     
     ]
   }
  

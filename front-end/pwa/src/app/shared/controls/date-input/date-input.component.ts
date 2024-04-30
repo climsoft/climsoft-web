@@ -7,10 +7,15 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
 })
 export class DateInputComponent implements OnInit, OnChanges {
 
-  @Input() controlLabel: string = "Date";
-  //format expected is ISO 8601 date format (yyyy-MM-dd) 
-  @Input() value!: string;
-  @Output() valueChange = new EventEmitter<string>();
+  @Input() public label: string = '';
+  @Input() public disabled: boolean = false;
+  @Input() public hintMessage!: string;
+  @Input() public errorMessage!: string | null;
+  @Input() public value!: string|null;
+  @Output() public valueChange = new EventEmitter<string|null >();
+  @Output() public inputClick = new EventEmitter<string|null >();
+  @Output() public inputEnterKeyPress = new EventEmitter<string|null>();
+  @Output() public inputBlur = new EventEmitter<string|null >();
   maxDate: string = "";
 
   constructor() {
@@ -21,10 +26,22 @@ export class DateInputComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+   
+  }
+  protected onValueChange(value: string) {
+    this.valueChange.emit(value ? value : null);
   }
 
-  onInputEntry(selectedDate: string) {
-    this.valueChange.emit(selectedDate);
+  protected onInputClick(): void {
+    this.inputClick.emit(this.value);
+  }
+  
+  protected onEnterKeyPressed() {
+    this.inputEnterKeyPress.emit(this.value);
+  }
+
+  protected onInputBlur() {
+    this.inputBlur.emit(this.value);
   }
 
 }
