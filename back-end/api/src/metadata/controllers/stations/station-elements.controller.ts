@@ -13,7 +13,7 @@ export class StationElementsController {
 
   @Get('elements/:id')
   getElements(@Param('id', AuthorisedStationsPipe) id: string) {
-    return this.stationsService.findElements(id);
+    return this.stationsService.find(id);
   }
 
   @Admin()
@@ -22,7 +22,7 @@ export class StationElementsController {
     @Req() request: Request,
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) elementIds: number[]) {
-    return this.stationsService.saveElements(stationId, elementIds, AuthUtil.getLoggedInUserId(request));
+    return this.stationsService.save(stationId, elementIds, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()
@@ -30,7 +30,7 @@ export class StationElementsController {
   deleteElements(
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) elementIds: number[]) {
-    return this.stationsService.deleteElements(stationId, elementIds);
+    return this.stationsService.delete(stationId, elementIds);
   }
 
   @Get('element-limits/:stationId/:elementId/')

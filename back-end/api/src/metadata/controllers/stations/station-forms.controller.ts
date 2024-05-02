@@ -12,7 +12,7 @@ export class StationFormsController {
 
   @Get('forms/:id')
   getForms(@Param('id', AuthorisedStationsPipe) id: string) {
-    return this.stationFormsService.findForms(id);
+    return this.stationFormsService.find(id);
   }
 
   @Admin()
@@ -21,7 +21,7 @@ export class StationFormsController {
     @Req() request: Request,
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) formIds: number[]) {
-    return this.stationFormsService.saveForms(stationId, formIds, AuthUtil.getLoggedInUserId(request));
+    return this.stationFormsService.save(stationId, formIds, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()
@@ -29,7 +29,7 @@ export class StationFormsController {
   deleteForms(
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) elementIds: number[]) {
-    return this.stationFormsService.deleteForms(stationId, elementIds);
+    return this.stationFormsService.delete(stationId, elementIds);
   }
 
 

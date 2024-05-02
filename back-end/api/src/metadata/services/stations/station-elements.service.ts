@@ -15,13 +15,13 @@ export class StationElementsService {
         private elementsService: ElementsService) {
     }
 
-    public async findElements(stationId: string): Promise<ViewElementDto[]> {
+    public async find(stationId: string): Promise<ViewElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const elementIds: number[] = stationElementEntities.map(data => (data.elementId));
         return elementIds.length > 0 ? this.elementsService.findSome(elementIds) : [];
     }
 
-    public async saveElements(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {
+    public async save(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {
         //fetch existing station elements
         const existingElements = await this.stationElementsRepo.find({
             where: {
@@ -51,7 +51,7 @@ export class StationElementsService {
         return elementsSaved.map(data => data.elementId);
     }
 
-    public async deleteElements(stationId: string, elementId: number[]): Promise<number[]> {
+    public async delete(stationId: string, elementId: number[]): Promise<number[]> {
         //fetch existing station elements
         const existingElements = await this.stationElementsRepo.find({
             where: {
