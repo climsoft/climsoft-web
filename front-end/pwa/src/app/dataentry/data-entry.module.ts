@@ -1,6 +1,6 @@
 
 import { NgModule } from '@angular/core';
-import { DataEntryRoutingModule } from './dataentry-routing.module';
+import { DataEntryRoutingModule } from './data-entry-routing.module';
 import { SharedModule } from '../shared/shared.module';
 
 //------- app forms components -------

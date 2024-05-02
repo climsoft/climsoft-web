@@ -22,7 +22,7 @@ const routes: Routes = [
       },
       {
         path: 'elements',
-        component: ElementsComponent
+        component: ElementsComponent, 
       },
       {
         path: 'element-detail/:id',
@@ -30,7 +30,7 @@ const routes: Routes = [
       },
       {
         path: 'sources',
-        component: SourcesComponent
+        component: SourcesComponent, 
       }, 
       {
         path: 'form-detail/:id',
@@ -38,7 +38,7 @@ const routes: Routes = [
       },
       {
         path: 'stations',
-        component: StationsComponent
+        component: StationsComponent, 
       },
       {
         path: 'station-detail/:id',

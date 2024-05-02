@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { take } from 'rxjs';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -20,23 +21,20 @@ export class ElementsComponent {
 
     this.pagesDataService.setPageHeader('Elements Metadata');
 
-    this.elementsService.findAll().subscribe(data => {
+    this.elementsService.findAll().pipe(take(1)).subscribe(data => {
       this.elements = data;
     });
 
-
   }
 
-  ngOnInit() {
-  }
 
-  onSearchClick() { }
+  protected onSearch(): void { }
 
-  protected onNewElementClicked() {
+  protected onNewElement(): void {
     this.router.navigate(['element-detail', 'new'], { relativeTo: this.route.parent });
   }
-  
-  protected onEditElementClick(element: ViewElementModel) {
+
+  protected onEditElement(element: ViewElementModel): void {
     this.router.navigate(['element-detail', element.id], { relativeTo: this.route.parent });
   }
 
