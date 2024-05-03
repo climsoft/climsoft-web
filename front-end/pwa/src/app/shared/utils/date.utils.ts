@@ -5,13 +5,13 @@ export class DateUtils {
     /**
      * 
      * @param year 
-     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @param month Month is 0-indexed (0 for January, 11 for December)
      * @param prefix 
      * @returns 
      */
-    static getDaysInMonthList(year: number, month: number, prefix?: string): { id: number, name: string }[] {
+    static getDaysInMonthList(year: number, monthIndex: number, prefix?: string): { id: number, name: string }[] {
         const allDays: { id: number, name: string }[] = [];
-        const lastDay: number = new Date(year, month, 0).getDate();
+        const lastDay: number = DateUtils.getLastDayOfMonth(year, monthIndex);
 
         if (prefix === undefined) {
             prefix = "Day "
@@ -52,11 +52,11 @@ export class DateUtils {
     /**
      * 
      * @param year 
-     * @param month Month is 1-indexed (1 for January, 2 for February, etc.)
+     * @param monthIndex Month is 0-indexed (0 for January, 11 for December)
      * @returns 
      */
-    static getLastDayOfMonth(year: number, month: number): number {
-        return new Date(year, month, 0).getDate();
+    static getLastDayOfMonth(year: number, monthIndex: number): number {
+        return new Date(year, monthIndex, 0).getDate();
     }
 
     //takes a one-based month based

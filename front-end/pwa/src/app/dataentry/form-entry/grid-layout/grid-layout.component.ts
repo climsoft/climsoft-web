@@ -3,6 +3,7 @@ import { FormEntryUtil } from '../defintions/form-entry.util';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-grid-layout',
@@ -10,25 +11,30 @@ import { ObservationDefinition } from '../defintions/observation.definition';
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnInit, OnChanges {
-  @Input() public formDefinitions!: FormEntryDefinition;
-  @Input() public clearValues!: boolean;
+  @Input()
+  public formDefinitions!: FormEntryDefinition;
 
-   /** Emited when observation value is changed */
-  @Output() public valueChange = new EventEmitter<ObservationDefinition>();
+  @Input()
+  public clearValues!: boolean;
 
-   /** Emitted when observation value or total value is changed */
-  @Output() public totalIsValid = new EventEmitter<boolean>();
+  /** Emited when observation value is changed */
+  @Output()
+  public valueChange = new EventEmitter<ObservationDefinition>();
 
-   /** Holds row entry fields needed for creating value flag components; elements, days, hours */
+  /** Emitted when observation value or total value is changed */
+  @Output()
+  public totalIsValid = new EventEmitter<boolean>();
+
+  /** Holds row entry fields needed for creating value flag components; elements, days, hours */
   protected rowFieldDefinitions!: FieldEntryDefinition[];
 
-   /** Holds column entry fields needed for creating value flag components; elements, days, hours */
+  /** Holds column entry fields needed for creating value flag components; elements, days, hours */
   protected colFieldDefinitions!: FieldEntryDefinition[];
 
-   /** Holds all the observation definitions used  by created value flag components */
+  /** Holds all the observation definitions used  by created value flag components */
   protected observationsDefinitions!: ObservationDefinition[][];
 
-    /** Holds the error message for total validation. Used by the total components of each column */
+  /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
   constructor() {
@@ -101,7 +107,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
     // Get their total as the expected
     const expectedTotal = FormEntryUtil.getTotalValuesOfObs(colObservations);
-   
+
     // Clear previous error message of the column total
     this.totalErrorMessage[colIndex] = '';
 
@@ -112,6 +118,35 @@ export class GridLayoutComponent implements OnInit, OnChanges {
 
     // Check if there are any error messages 
     this.totalIsValid.emit(!this.totalErrorMessage.some(item => (item !== undefined && item !== '')));
+  }
+
+  /**
+  * Clears all the observation value fflags if they are not cleared and updates its internal state
+  */
+  protected onClear(): void {
+
+    for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
+      for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
+        const obsDef = this.observationsDefinitions[rowIndex][colIndex]
+
+        // Check if value flag is already empty
+        if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+          // Clear the value flag input
+          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.enforceLimitCheck);
+
+          // Raise the value change 
+          this.onValueChange(obsDef, colIndex);
+        }
+      }
+
+    }
+
+    // Set total as valid, because everything has been cleared
+    if (this.formDefinitions.formMetadata.validateTotal) {
+      this.totalIsValid.emit(true);
+    }
+
+
   }
 
 

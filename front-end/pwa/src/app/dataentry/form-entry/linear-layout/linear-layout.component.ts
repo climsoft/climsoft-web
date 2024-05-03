@@ -4,21 +4,24 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.s
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-linear-layout',
   templateUrl: './linear-layout.component.html',
   styleUrls: ['./linear-layout.component.scss']
 })
-export class LnearLayoutComponent implements OnInit, OnChanges {
-  @Input() public formDefinitions!: FormEntryDefinition;
-  @Input() public clearValues!: boolean;
+export class LnearLayoutComponent implements OnChanges {
+  @Input()
+  public formDefinitions!: FormEntryDefinition;
 
   /** Emited when observation value is changed */
-  @Output() public valueChange = new EventEmitter<ObservationDefinition>();
+  @Output()
+  public valueChange = new EventEmitter<ObservationDefinition>();
 
   /** Emitted when observation value or total value is changed */
-  @Output() public totalIsValid = new EventEmitter<boolean>();
+  @Output()
+  public totalIsValid = new EventEmitter<boolean>();
 
   /** Holds entry fields needed for creating value flag components; elements, days, hours */
   protected fieldDefinitions!: FieldEntryDefinition[];
@@ -41,9 +44,6 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     });
   }
 
-  ngOnInit(): void {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
     //only proceed with seting up the control if all inputs have been set.
     if (this.formDefinitions) {
@@ -53,16 +53,6 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
       this.observationsDefinitions = this.formDefinitions.getEntryObsForLinearLayout();
     } else {
       this.observationsDefinitions = [];
-    }
-
-    // TODO Debug why clear values is not being being raised.
-    console.log(' operations called', changes);
-    if (this.clearValues) {
-      console.log('clear operations called');
-      for (const obsDef of this.observationsDefinitions) {
-        obsDef.setValueFlag(null, null);
-      }
-      this.clearValues = false;
     }
 
   }
@@ -97,7 +87,7 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
    */
   protected onValueChange(observationDef: ObservationDefinition): void {
     this.valueChange.emit(observationDef);
-  
+
     // Only emit total validity if the definition metadata requires it
     if (this.formDefinitions.formMetadata.validateTotal) {
       this.totalErrorMessage = '';
@@ -105,7 +95,6 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     }
 
   }
-
 
   /**
    * Handles total value changes by updating the internal state and emiting totalIsValid state
@@ -123,7 +112,30 @@ export class LnearLayoutComponent implements OnInit, OnChanges {
     this.totalIsValid.emit(this.totalErrorMessage === '');
   }
 
+  /**
+   * Clears all the observation value fflags if they are not cleared and updates its internal state
+   */
+  protected onClear(): void {
+    this.observationsDefinitions.forEach(obsDef => {
+      // Check if value flag is already empty
+      if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+        // Clear the value flag input
+        obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.enforceLimitCheck);
 
+        // Raise the value change 
+        this.onValueChange(obsDef);
+      }
+
+      return obsDef;
+
+    });
+
+    // Set total as valid, because everything has been cleared
+    if (this.formDefinitions.formMetadata.validateTotal) {
+      this.totalIsValid.emit(true);
+    }
+
+  }
 
 
 }
