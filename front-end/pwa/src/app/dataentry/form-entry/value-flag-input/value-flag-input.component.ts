@@ -28,6 +28,9 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input()
   public enforceLimitCheck: boolean = true;
 
+  @Input()
+  public displayHistoryOption: boolean = false;
+
   @Output()
   public valueChange = new EventEmitter<ObservationDefinition>();
 

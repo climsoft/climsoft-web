@@ -31,7 +31,7 @@ export class SourcesComponent {
 
   protected onSearch(): void { }
 
-  protected onNewSource(sourceTypeName: string) {
+  protected onNewSource(sourceTypeName: 'Form'|'Import'|'Digital') {
 
     let routeName: string = '';
 
@@ -39,10 +39,10 @@ export class SourcesComponent {
       case 'Form':
         routeName = 'form-detail'
         break;
-      case SourceTypeEnum.IMPORT:
+      case 'Import':
 
         break;
-      case SourceTypeEnum.DIGITAL:
+      case 'Digital':
 
         break;
       default:

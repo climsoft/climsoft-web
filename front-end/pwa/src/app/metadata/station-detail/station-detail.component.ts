@@ -4,6 +4,8 @@ import { Location } from '@angular/common';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { take } from 'rxjs';
+import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 
 
 @Component({
@@ -13,6 +15,7 @@ import { take } from 'rxjs';
 })
 export class StationDetailComponent implements OnInit {
   protected stationId!: string;
+  protected stationIsManualorHybrid!: boolean;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -27,9 +30,13 @@ export class StationDetailComponent implements OnInit {
     this.stationId = this.route.snapshot.params['id'];
   }
 
-  protected onDeleteStation(): void {
+  protected onStationCharacteristicsChanged(station: ViewStationModel) {
+    this.stationIsManualorHybrid = station.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || station.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
+  }
 
-    // TODO. Show an are you sure dialog.
+  protected onDelete(): void {
+
+    // TODO. Show an 'are you sure dialog'.
 
     this.stationsService.delete(this.stationId).pipe(
       take(1)

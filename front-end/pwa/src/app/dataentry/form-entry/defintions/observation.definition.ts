@@ -81,7 +81,7 @@ export class ObservationDefinition {
 
         // If there is a flag input then validate
         if (flagLetter !== null) {
-            validationResponse = this.checkFlagValidity(value, flagLetter);
+            validationResponse = this.checkFlagLetterValidity(value, flagLetter);
             if (!StringUtils.isNullOrEmpty(validationResponse)) {
                 return validationResponse;
             }
@@ -159,13 +159,18 @@ export class ObservationDefinition {
     }
 
     /**
-     * Validates the flag. 
+     * Validates the flag letter. 
      * @param value 
-     * @param flag 
+     * @param flagLetter 
      * @returns empty string if valid
      */
-    private checkFlagValidity(value: number | null, flag: string): string {
-        const flagFound: FlagEnum | null = this.getFlag(flag);
+    private checkFlagLetterValidity(value: number | null, flagLetter: string): string {
+
+        if(flagLetter.length>1){
+            return 'Invalid Flag, single letter expected';
+        }
+
+        const flagFound: FlagEnum | null = this.getFlag(flagLetter);
 
         if (!flagFound) {
             return 'Invalid Flag';

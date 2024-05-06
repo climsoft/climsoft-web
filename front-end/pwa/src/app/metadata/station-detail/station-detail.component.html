@@ -5,7 +5,7 @@
             <div>Showing station details</div>
             <div>
                 <button type="button" class="btn btn-sm btn-outline-secondary"
-                    (click)="onDeleteStation()">Delete</button>
+                    (click)="onDelete()">Delete</button>
             </div>
         </div>
 
@@ -15,7 +15,7 @@
                 <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
             <div class="card-body  px-0" *ngIf="characteristicsToggle.open">
-                <app-station-characteristics [stationId]="stationId" />
+                <app-station-characteristics [stationId]="stationId" (valueChange)="onStationCharacteristicsChanged($event)"/>
             </div>
         </div>
         <!-- /end characteristics -->
@@ -32,7 +32,7 @@
         <!-- end elements -->
 
         <!-- forms -->
-        <div class="card border-0">
+        <div class="card border-0"  *ngIf="stationIsManualorHybrid">
             <div class="card-header px-0 fw-bold">
                 <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>

@@ -35,6 +35,8 @@ export class LnearLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total component */
   protected totalErrorMessage!: string;
 
+  protected displayHistoryOption: boolean = false;
+
   /** Used to determine the layout to be used depending on the screen size */
   protected largeScreen: boolean = true;
 
@@ -115,7 +117,18 @@ export class LnearLayoutComponent implements OnChanges {
   /**
    * Clears all the observation value fflags if they are not cleared and updates its internal state
    */
-  protected onClear(): void {
+  protected onOptions(option: 'Clear' | 'History'): void {
+    switch (option) {
+      case 'Clear':
+       this. clear();
+        break;
+      case 'History':
+        this.displayHistoryOption = !this.displayHistoryOption;
+        break; 
+    }
+  }
+
+  private clear(): void{
     this.observationsDefinitions.forEach(obsDef => {
       // Check if value flag is already empty
       if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
@@ -134,7 +147,6 @@ export class LnearLayoutComponent implements OnChanges {
     if (this.formDefinitions.formMetadata.validateTotal) {
       this.totalIsValid.emit(true);
     }
-
   }
 
 

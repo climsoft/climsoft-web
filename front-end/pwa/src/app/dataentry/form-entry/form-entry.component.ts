@@ -7,7 +7,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationQueryModel } from 'src/app/core/models/observations/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { catchError, of, take } from 'rxjs';
+import { catchError, of, switchMap, take } from 'rxjs';
 import { FormEntryDefinition } from './defintions/form-entry.definition';
 import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
@@ -54,24 +54,16 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
-    // Get station name 
+    // Get station name and switch to form metadata retrieval
     this.stationsService.findOne(stationId).pipe(
-      take(1)
-    ).subscribe(data => {
-      this.station = data;
-    });
-
-    // Get form metadata
-    this.formSourcesService.findOne(sourceId).pipe(
-      take(1)
-    ).subscribe((data) => {
-
-      // Set source
-      this.source = data
-
-      // Load existing observation data
+      take(1),
+      switchMap(stationData => {
+        this.station = stationData;
+        return this.formSourcesService.findOne(sourceId).pipe(take(1));
+      })
+    ).subscribe(sourceData => {
+      this.source = sourceData;
       this.loadObservations(this.getNewFormDefinition());
-
     });
 
   }
