@@ -1,12 +1,12 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between p-0 align-items-center">
+  <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
     <div class="fw-bold">Showing Stations</div>
     <div class="mb-1">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
       </button>
-      <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="dlgEdit.openDialog()">New</button>
-      <app-station-characteristics-edit-dialog #dlgEdit (ok)="onNewStationAddedClick()" />
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="dlgEdit.openDialog()">New</button>
+      <app-station-characteristics-edit-dialog #dlgEdit (ok)="loadStations()" />
     </div>
   </div>
 
@@ -17,7 +17,7 @@
        {id: 'stationObsProcessingMethodName', name: 'Method'},
        {id: 'stationObsEnvironmentName', name: 'Environment'},
        {id: 'stationObsFocusName', name: 'Focus'} ]" [rowsData]="stations"
-      (rowDataClicked)="onEditStationClick($event)"></app-table-view>
+      (rowDataClicked)="onEditStation($event)"></app-table-view>
   </div>
 
 </div>

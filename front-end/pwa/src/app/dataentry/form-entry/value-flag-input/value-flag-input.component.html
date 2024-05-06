@@ -1,4 +1,4 @@
-<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [includeDropDownOption]="true"
+<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [includeDropDownOption]="displayHistoryOption"
     [value]="observationDefinition.valueFlagForDisplay" [dropDownOptionMaxHeight]="300"
     [errorMessage]="validationResponse" (valueChange)="onInputEntry($event)"
     (inputEnterKeyPress)="onEnterKeyPressed()" (dropDownOptionClick)="loadObservationLog()">

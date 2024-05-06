@@ -27,7 +27,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     // Admins are allowed to access all or any station
     // Users that don't have authorised stations are also allowed to access all or any station
-    if (AuthUtil.sessionUserIsAdmin(this.request) || !user.authorisedStationIds) {
+    if (AuthUtil.sessionUserIsAdmin(this.request) || user.authorisedStationIds === null) {
       return value;
     }
 

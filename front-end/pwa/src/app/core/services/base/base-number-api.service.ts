@@ -15,20 +15,19 @@ export abstract class BaseNumberAPIService<C,U, V>   extends BaseAPIService<C, U
   }
 
   public override findSome(ids: number[]): Observable<V[]> {
-    return this.findSome(ids);
+    return super.findSome(ids);
   }
 
   public override findOne(id: number): Observable<V> {
-    return this.findOne(id);
+    return super.findOne(id);
   }
 
   public override update(id: number, updateDto: U): Observable<V> {
-    return this.update(id, updateDto);
+    return super.update(id, updateDto);
   }
 
-  public delete(id: number ): Observable< number > {
-    const url = `${this.endPointUrl}/${id}`;
-    return this.baseHttp.delete<number >(url)
+  public delete(id: number ): Observable< number > { 
+    return super.baseHttp.delete<number >(`${this.endPointUrl}/${id}`)
       .pipe(
         catchError(this.handleError)
       );

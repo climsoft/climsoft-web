@@ -100,31 +100,4 @@ export class SourcesService {
         }
     }
 
-    
- 
-
-    // async findSourcesBySourceTypes(sourceType?: SourceTypeEnum): Promise<ViewSourceDto<T>[]> {
-    //     let dtos: ViewSourceDto<T>[];
-
-    //     // TODO. Use the find sources
-
-    //     if (sourceType) {
-    //         const entities = await this.sourceRepo.find({
-    //             where: {
-    //                 sourceType: sourceType,
-    //             },
-    //         });
-
-    //         dtos = entities.map(source => {
-    //             return this.createViewDto(source);
-    //         });
-
-
-    //     } else {
-    //         dtos = await this.findAll();
-    //     }
-
-    //     return dtos;
-    // }
-
 }

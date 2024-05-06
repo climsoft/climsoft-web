@@ -11,7 +11,7 @@ import { take } from 'rxjs';
   templateUrl: './stations.component.html',
   styleUrls: ['./stations.component.scss']
 })
-export class StationsComponent implements OnInit {
+export class StationsComponent {
 
   stations!: ViewStationModel[];
 
@@ -27,26 +27,21 @@ export class StationsComponent implements OnInit {
 
   }
 
-  ngOnInit() {
-  }
-
-  protected onSearchClick() { }
-
-  protected onNewStationAddedClick() {
-    this.loadStations();
-  }
-
-  protected onEditStationClick(station: CreateStationModel) {
-    this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
-  }
-
-  private loadStations(): void {
+  protected loadStations(): void {
     this.stationsService.findAll().pipe(
       take(1)
     ).subscribe(data => {
       this.stations = data;
     });
   }
+ 
+  protected onSearch(): void { }
+
+  protected onEditStation(station: CreateStationModel) {
+    this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
+  }
+
+ 
 
 
 }

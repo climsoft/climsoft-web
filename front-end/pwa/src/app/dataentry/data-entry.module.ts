@@ -1,6 +1,6 @@
 
 import { NgModule } from '@angular/core';
-import { DataEntryRoutingModule } from './dataentry-routing.module';
+import { DataEntryRoutingModule } from './data-entry-routing.module';
 import { SharedModule } from '../shared/shared.module';
 
 //------- app forms components -------
@@ -9,7 +9,7 @@ import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
 import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
 import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
-import { ValueFlagInputComponent } from './controls/value-flag-input/value-flag-input.component';
+import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
 import { ViewEntryComponent } from './view-entry/view-entry.component';
 
 //------------------------------------

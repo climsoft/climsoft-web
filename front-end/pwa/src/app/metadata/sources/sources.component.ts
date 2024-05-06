@@ -19,6 +19,7 @@ export class SourcesComponent {
     private sourceService: SourcesService,
     private router: Router,
     private route: ActivatedRoute) {
+
     this.pagesDataService.setPageHeader('Sources Metadata');
 
     // Get all sources 
@@ -28,11 +29,30 @@ export class SourcesComponent {
 
   }
 
-  ngOnInit(): void {
+  protected onSearch(): void { }
+
+  protected onNewSource(sourceTypeName: 'Form'|'Import'|'Digital') {
+
+    let routeName: string = '';
+
+    switch (sourceTypeName) {
+      case 'Form':
+        routeName = 'form-detail'
+        break;
+      case 'Import':
+
+        break;
+      case 'Digital':
+
+        break;
+      default:
+        throw new Error('Source type not supported');
+    }
+
+    this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });
   }
 
-
-  protected onSourceClicked(source: ViewSourceModel<object>): void {
+  protected onEditSource(source: ViewSourceModel<object>): void {
 
     const sourceType: SourceTypeEnum = source.sourceType;
     let routeName: string = '';
@@ -53,26 +73,5 @@ export class SourcesComponent {
 
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
 
-  }
-
-  protected onNewSource(sourceTypeName: string) {
-
-    let routeName: string = '';
-
-    switch (sourceTypeName) {
-      case 'Form':
-        routeName = 'form-detail'
-        break;
-      case SourceTypeEnum.IMPORT:
-
-        break;
-      case SourceTypeEnum.DIGITAL:
-
-        break;
-      default:
-        throw new Error('Source type not supported');
-    }
-
-    this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });
   }
 }

@@ -5,10 +5,10 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   templateUrl: './drop-down-button.component.html',
   styleUrls: ['./drop-down-button.component.scss']
 })
-export class DropDownButtonComponent {
-  @Input() public dropDownItems!: string[];
+export class DropDownButtonComponent<T extends string> {
+  @Input() public dropDownItems!: T[];
   @Input() public translateX!: boolean ;
-  @Output() public dropDownOptionClick = new EventEmitter<string>();
+  @Output() public dropDownOptionClick = new EventEmitter<T>();
 
   protected displayDropDown: boolean = false;
 
@@ -16,7 +16,7 @@ export class DropDownButtonComponent {
     this.displayDropDown = !this.displayDropDown;
   }
 
-  protected onDropDownItemClick(dropDownItem: string) {
+  protected onDropDownItemClick(dropDownItem: T) {
     this.closeDropdown();
     this.dropDownOptionClick.emit(dropDownItem);
   }

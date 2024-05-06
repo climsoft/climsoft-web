@@ -12,43 +12,6 @@ export class ElementsController extends BaseNumberController<CreateElementDto, U
     super(elementsService);
   }
 
-  // @Get()
-  // public findAll(
-  //   @Query('ids',
-  //     new DefaultValuePipe([]),
-  //     new ParseArrayPipe({ items: Number, separator: "," })) ids: number[]) {
-  //   return this.elementsService.findAll(ids);
-  // }
-
-  // @Get(':id')
-  // public find(@Param('id', ParseIntPipe) id: number) {
-  //   return this.elementsService.findOne(id);
-  // }
-
-  // @Admin()
-  // @Post()
-  // public create(
-  //   @Req() request: Request,
-  //   @Body() dto: CreateElementDto) {
-  //   return this.elementsService.create(dto, AuthUtil.getLoggedInUserId(request));
-  // }
-
-  // @Admin()
-  // @Patch(':id')
-  // public update(
-  //   @Req() request: Request,
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() dto: UpdateElementDto) {
-  //   return this.elementsService.update(id, dto, AuthUtil.getLoggedInUserId(request));
-  // }
-
-  // @Admin()
-  // @Delete(':id')
-  // public delete(@Param('id', ParseIntPipe) id: number) {
-  //   return this.elementsService.delete(id);
-  // }
-
-
 
 }
 

@@ -7,6 +7,7 @@ import { ViewStationDto } from '../../dtos/stations/view-station.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { IBaseStringService } from 'src/shared/services/base-string-service.interface';
 import { UpdateStationDto } from 'src/metadata/dtos/stations/update-station.dto'; 
+import { StationObsProcessingMethodEnum } from 'src/metadata/enums/station-obs-processing-method.enum';
 
 @Injectable()
 export class StationsService implements IBaseStringService<CreateStationDto, UpdateStationDto, ViewStationDto> {

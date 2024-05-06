@@ -7,13 +7,14 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationQueryModel } from 'src/app/core/models/observations/create-observation-query.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { catchError, of, take } from 'rxjs';
+import { catchError, of, switchMap, take } from 'rxjs';
 import { FormEntryDefinition } from './defintions/form-entry.definition';
 import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { ObservationDefinition } from './defintions/observation.definition';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 @Component({
   selector: 'app-form-entry',
@@ -23,7 +24,7 @@ import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.
 export class FormEntryComponent implements OnInit {
   /** Station details */
   protected station!: ViewStationModel;
-  
+
   /** Source (form) details */
   protected source!: ViewSourceModel<ViewEntryFormModel>;
 
@@ -32,8 +33,6 @@ export class FormEntryComponent implements OnInit {
 
   /** Enables or disables save button */
   protected enableSave: boolean = true;
-
-  protected clearValues: boolean = false;
 
   /** Observations entered */
   protected newObservationDefs!: ObservationDefinition[];
@@ -55,24 +54,16 @@ export class FormEntryComponent implements OnInit {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
-    // Get station name 
+    // Get station name and switch to form metadata retrieval
     this.stationsService.findOne(stationId).pipe(
-      take(1)
-    ).subscribe(data => {
-      this.station = data;
-    });
-
-    // Get form metadata
-    this.formSourcesService.findOne(sourceId).pipe(
-      take(1)
-    ).subscribe((data) => {
-
-      // Set source
-      this.source = data
-
-      // Load existing observation data
+      take(1),
+      switchMap(stationData => {
+        this.station = stationData;
+        return this.formSourcesService.findOne(sourceId).pipe(take(1));
+      })
+    ).subscribe(sourceData => {
+      this.source = sourceData;
       this.loadObservations(this.getNewFormDefinition());
-
     });
 
   }
@@ -163,7 +154,7 @@ export class FormEntryComponent implements OnInit {
     if (formDefinitions.daySelectorValue) {
       observationQuery.datetimes = [new Date(year, monthIndex, formDefinitions.daySelectorValue, hours[0], 0, 0, 0).toISOString()];
     } else {
-      const lastDay: number = new Date(year, monthIndex, 0).getDate();
+      const lastDay: number = DateUtils.getLastDayOfMonth(year, monthIndex);
       observationQuery.datetimes = [];
       for (let i = 1; i <= lastDay; i++) {
         observationQuery.datetimes.push(new Date(year, monthIndex, i, hours[0], 0, 0, 0).toISOString());
@@ -257,6 +248,10 @@ export class FormEntryComponent implements OnInit {
     this.enableOrDisableSave();
   }
 
+  /**
+   * Handles validation of total input from the layouts
+   * @param totalIsValid 
+   */
   protected onTotalIsValid(totalIsValid: boolean) {
     this.totalIsValid = totalIsValid;
     this.enableOrDisableSave();
@@ -269,13 +264,18 @@ export class FormEntryComponent implements OnInit {
     this.enableSave = this.totalIsValid && this.newObservationDefs.length > 0 && !this.newObservationDefs.some(data => !data.observationChangeIsValid);
   }
 
-
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
-  protected onSaveClick(): void {
+  protected onSave(): void {
 
+    // Important, disable the save button. Useful for waiting the save results.
+    this.enableSave = false;
+
+    // Create required observation dtos 
     const newObservations: CreateObservationModel[] = this.newObservationDefs.map(item => (item.observation))
+
+    // Send to server for saving
     this.observationService.save(newObservations).subscribe((data) => {
 
       this.pagesDataService.showToast({
@@ -287,21 +287,11 @@ export class FormEntryComponent implements OnInit {
     });
   }
 
+
   /**
-   * Handles changes in clear state and the internal state
+   * Handles cancel event and routes the application back to previous route page
    */
-  protected onClearClick(): void {
-   
-    // TODO. Debug why the changes are not being propagated to the layout controls.
-
-    this.clearValues = true;
-    console.log('clear clicked',   this.clearValues)
-    this.enableOrDisableSave();
-    this.clearValues = false;
-  }
-
-  /** Event handler for cancel button */
-  protected onCancelClick(): void {
+  protected onCancel(): void {
     this.location.back();
   }
 

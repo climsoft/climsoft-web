@@ -15,22 +15,21 @@ export abstract class BaseStringAPIService<C, U, V> extends BaseAPIService<C, U,
   }
 
   public override findSome(ids: string[]): Observable<V[]> {
-    return this.findSome(ids);
+    return super.findSome(ids);
   }
 
   public override findOne(id: string): Observable<V> {
-    return this.findOne(id);
+    return super.findOne(id);
   }
 
   public override update(id: string, updateDto: U): Observable<V> {
-    return this.update(id, updateDto);
+    return super.update(id, updateDto);
   }
 
-  public delete(id: string): Observable<string> {
-    const url = `${this.endPointUrl}/${id}`;
-    return this.baseHttp.delete<string>(url)
+  public delete(id: string): Observable<string> { 
+    return super.baseHttp.delete<string>(`${this.endPointUrl}/${id}`)
       .pipe(
-        catchError(this.handleError)
+        catchError(super.handleError)
       );
   }
 
