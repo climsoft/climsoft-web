@@ -4,7 +4,8 @@
         <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
             <div class="fw-bold">Fields</div>
             <div class="mb-1">
-                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onClear()">Clear</button>
+                <app-drop-down-button [dropDownItems]="['Clear','History']" (dropDownOptionClick)="onOptions($event)"
+                    [translateX]="true">Options</app-drop-down-button>
             </div>
         </div>
 
@@ -34,6 +35,7 @@
                         <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                             [observationDefinition]="getObservationDef(rowIndex,colIndex)"
                             [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
+                            [displayHistoryOption]="displayHistoryOption"
                             (valueChange)="onValueChange($event,colIndex)" />
                     </div>
 

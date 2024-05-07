@@ -37,6 +37,8 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
+  protected displayHistoryOption: boolean = false;
+
   constructor() {
   }
 
@@ -120,10 +122,25 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     this.totalIsValid.emit(!this.totalErrorMessage.some(item => (item !== undefined && item !== '')));
   }
 
+   /**
+   * Updates its internal state depending on the options passed
+   * @param option  'Clear' | 'History'
+   */
+   protected onOptions(option: 'Clear' | 'History'): void {
+    switch (option) {
+      case 'Clear':
+        this.clear();
+        break;
+      case 'History':
+        this.displayHistoryOption = !this.displayHistoryOption;
+        break;
+    }
+  }
+
   /**
   * Clears all the observation value fflags if they are not cleared and updates its internal state
   */
-  protected onClear(): void {
+  private clear(): void {
 
     for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
       for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {

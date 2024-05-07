@@ -115,20 +115,21 @@ export class LnearLayoutComponent implements OnChanges {
   }
 
   /**
-   * Clears all the observation value fflags if they are not cleared and updates its internal state
+   * Updates its internal state depending on the options passed
+   * @param option  'Clear' | 'History'
    */
   protected onOptions(option: 'Clear' | 'History'): void {
     switch (option) {
       case 'Clear':
-       this. clear();
+        this.clear();
         break;
       case 'History':
         this.displayHistoryOption = !this.displayHistoryOption;
-        break; 
+        break;
     }
   }
 
-  private clear(): void{
+  private clear(): void {
     this.observationsDefinitions.forEach(obsDef => {
       // Check if value flag is already empty
       if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
