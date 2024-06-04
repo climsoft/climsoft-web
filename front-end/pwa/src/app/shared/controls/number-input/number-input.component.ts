@@ -8,8 +8,8 @@ import { StringUtils } from '../../utils/string.utils';
   styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnInit, OnChanges {
-
-  @Input() label: string = '';
+  @Input() id!: string | number;
+  @Input() label!: string;
   @Input() disabled: boolean = false;
   @Input() hintMessage!: string;
   @Input() errorMessage!: string | null;

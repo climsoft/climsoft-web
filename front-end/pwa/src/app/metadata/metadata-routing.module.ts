@@ -6,6 +6,7 @@ import { ElementsComponent } from './elements/elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { FormDetailComponent } from './form-detail/form-detail.component';
 import { SourcesComponent } from './sources/sources.component';
+import { ImportDetailComponent } from './import-detail/import-detail.component';
 
 
 const routes: Routes = [
@@ -43,6 +44,10 @@ const routes: Routes = [
       {
         path: 'station-detail/:id',
         component: StationDetailComponent
+      },
+      {
+        path: 'import-detail/:id',
+        component: ImportDetailComponent
       },
      
     ]

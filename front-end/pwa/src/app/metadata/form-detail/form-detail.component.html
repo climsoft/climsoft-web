@@ -2,15 +2,13 @@
     <div class="card-body px-0">
         <!--form name -->
         <div class="mb-3">
-            <app-text-input [label]="'Name'" [(value)]="formName">
-            </app-text-input>
+            <app-text-input [label]="'Name'" [(value)]="formName"/>
         </div>
         <!--------->
 
         <!--form description -->
         <div class="mb-3">
-            <app-text-input [label]="'Description'" [(value)]="formDescription">
-            </app-text-input>
+            <app-text-input [label]="'Description'" [(value)]="formDescription"/>
         </div>
         <!--------->
 
@@ -18,7 +16,7 @@
         <div class="mb-3">
             <app-selector-multiple-input [label]="'Extra Selectors'" [errorMessage]="selectorsErrorMessage"
                 [options]="possibleSelectors" [selectedOptions]="selectedSelectors"
-                (selectedOptionsChange)="onSelectorsSelected($event)"></app-selector-multiple-input>
+                (selectedOptionsChange)="onSelectorsSelected($event)"/>
         </div>
         <!--------->
 
@@ -26,43 +24,42 @@
         <div class="mb-3">
             <app-selector-multiple-input [label]="'Fields'" [errorMessage]="fieldsErrorMessage"
                 [options]="possibleFields" [selectedOptions]="selectedFields"
-                (selectedOptionsChange)="onFieldsSelected($event)"></app-selector-multiple-input>
+                (selectedOptionsChange)="onFieldsSelected($event)"/>
         </div>
         <!--------->
 
         <!--layout -->
         <div class="mb-3">
-            <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout">
-            </app-text-input>
+            <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout"/> 
         </div>
         <!--------->
 
         <!--elements-->
         <div class="mb-3">
             <app-element-multiple-input [errorMessage]="elementsErrorMessage"
-                [(selectedIds)]="selectedElementIds"></app-element-multiple-input>
+                [(selectedIds)]="selectedElementIds"/>
         </div>
         <!--------->
 
         <!--period-->
         <div class="mb-3">
             <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
-                (selectedIdChange)="onPeriodSelected($event)"></app-period-single-input>
+                (selectedIdChange)="onPeriodSelected($event)"/>
         </div>
         <!--------->
 
         <!--hours-->
         <div class="mb-3">
             <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage" [selectedIds]="selectedHourIds"
-                (selectedIdsChange)="onHoursSelected($event)"></app-hour-multiple-input>
+                (selectedIdsChange)="onHoursSelected($event)"/>
         </div>
         <!--------->
 
-        <!--UTC-->
+        <!--TODO change this to UTC time difference-->
         <div class="mb-3">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" value="" id="utc" [(ngModel)]="convertDateTimeToUTC">
-                <label class="form-check-label" for="utc"> Convert Date Time To UTC </label>
+                <label class="form-check-label" for="utc">Convert Date Time To UTC </label>
             </div>
         </div>
         <!--------->
@@ -79,8 +76,8 @@
         <!--Total-->
         <div class="mb-3">
             <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="validateTotal" [(ngModel)]="validateTotal">
-                <label class="form-check-label" for="validateTotal"> Validate Total </label>
+                <input class="form-check-input" type="checkbox" value="" id="validateTotal" [(ngModel)]="validateTotal"/>
+                <label class="form-check-label" for="validateTotal">Validate Total </label>
             </div>
         </div>
         <!--------->

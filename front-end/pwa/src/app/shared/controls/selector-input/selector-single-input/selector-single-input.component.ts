@@ -6,7 +6,8 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-single-input.component.scss']
 })
 export class SelectorSingleInputComponent<T> implements OnChanges {
-  @Input() public label: string = '';
+  @Input() public id!: string|number;
+  @Input() public label!: string;
   @Input() public placeholder: string | null = null;
   @Input() public errorMessage: string = '';
   @Input() public options: T[] = [];
