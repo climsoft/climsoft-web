@@ -31,7 +31,7 @@ export class SourcesComponent {
 
   protected onSearch(): void { }
 
-  protected onNewSource(sourceTypeName: 'Form'|'Import'|'Digital') {
+  protected onNewSource(sourceTypeName: 'Form'|'Import') {
 
     let routeName: string = '';
 
@@ -40,10 +40,7 @@ export class SourcesComponent {
         routeName = 'form-detail'
         break;
       case 'Import':
-
-        break;
-      case 'Digital':
-
+        routeName = 'import-detail'
         break;
       default:
         throw new Error('Source type not supported');
@@ -62,11 +59,8 @@ export class SourcesComponent {
         routeName = 'form-detail'
         break;
       case SourceTypeEnum.IMPORT:
-
-        break;
-      case SourceTypeEnum.DIGITAL:
-
-        break;
+        routeName = 'import-detail'
+        break; 
       default:
         throw new Error('Source type not supported');
     }

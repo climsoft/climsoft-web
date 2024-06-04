@@ -9,8 +9,9 @@ import { ElementsService } from 'src/app/core/services/elements/elements.service
   styleUrls: ['./element-single-input.component.scss']
 })
 export class ElementSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Element';
-  @Input() errorMessage: string = '';
+  @Input() public id!: string | number;
+  @Input() public label!: string;
+  @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();

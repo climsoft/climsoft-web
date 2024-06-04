@@ -18,6 +18,10 @@ export class ObservationEntity extends BaseEntity {
   @PrimaryColumn({ type: "int", name: "source_id" })
   sourceId: number;
 
+  /**
+   * Elevation in reference to the station surface. 
+   * Can above or below the station surface depending on the element.
+   */
   @PrimaryColumn({ type: "float" })
   elevation: number;
 

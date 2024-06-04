@@ -15,6 +15,7 @@ import { StationFormsComponent } from './station-detail/station-forms/station-fo
 import { StationLimitsComponent } from './station-detail/station-limits/station-limits.component';
 import { SourcesComponent } from './sources/sources.component';
 import { StationCharacteristicsEditDialogComponent } from './station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
+import { ImportDetailComponent } from './import-detail/import-detail.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { StationCharacteristicsEditDialogComponent } from './station-detail/stat
     StationFormsComponent,
     StationLimitsComponent,
     StationCharacteristicsEditDialogComponent,
+    ImportDetailComponent,
  
   ],
   imports: [

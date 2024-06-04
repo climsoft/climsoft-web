@@ -14,10 +14,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   @Input()
   public formDefinitions!: FormEntryDefinition;
 
-  @Input()
-  public clearValues!: boolean;
-
-  /** Emited when observation value is changed */
+  /** Emitted when observation value is changed */
   @Output()
   public valueChange = new EventEmitter<ObservationDefinition>();
 
@@ -57,12 +54,6 @@ export class GridLayoutComponent implements OnInit, OnChanges {
       this.totalErrorMessage = new Array<string>(this.colFieldDefinitions.length);
     } else {
       this.observationsDefinitions = [];
-    }
-
-    if (this.clearValues) {
-      console.log('clear operations called');
-
-      this.clearValues = false;
     }
 
   }

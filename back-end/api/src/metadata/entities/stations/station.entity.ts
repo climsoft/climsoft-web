@@ -18,9 +18,10 @@ export class StationEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: 'point', transformer: new PointColumnTransformer() })
-  //@Index({ spatial: true }) // TODO, index this after the move to POSTGIS
-  location: PointDTO;
+  // TODO. Create a separate table for station history. Important for tracking station movements
+  // Station location table is important when it comes to moving stations like aircrafts.
+  @Column({ type: 'point', transformer: new PointColumnTransformer() })  
+  location: PointDTO; //@Index({ spatial: true }) // TODO, index this after the move to POSTGIS
 
   @Column({ type: 'float' })
   elevation: number;  // Elevation of station above mean sea level.

@@ -2,6 +2,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 //--------------------------------
 
 //--------- components ------------
@@ -12,7 +13,6 @@ import { YearInputComponent } from './controls/year-input/year-input.component';
 import { MonthInputComponent } from './controls/month-input/month-input.component';
 import { DayInputComponent } from './controls/day-input/day-input.component'; 
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
 import { DialogComponent } from './controls/dialog/dialog.component';
@@ -41,6 +41,7 @@ import { DropDownComponent } from './controls/drop-down/drop-down.component';
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
 import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
+import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 
 //--------------------------------
   
@@ -59,6 +60,7 @@ const controlsComponents = [
   NumberInputComponent,
   SelectorInputComponent,
   DateInputComponent,
+  CheckBoxInputComponent,
 
   YearInputComponent,
   MonthInputComponent,

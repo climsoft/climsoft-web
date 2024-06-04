@@ -15,7 +15,7 @@ export class LnearLayoutComponent implements OnChanges {
   @Input()
   public formDefinitions!: FormEntryDefinition;
 
-  /** Emited when observation value is changed */
+  /** Emitted when observation value is changed */
   @Output()
   public valueChange = new EventEmitter<ObservationDefinition>();
 
@@ -129,6 +129,9 @@ export class LnearLayoutComponent implements OnChanges {
     }
   }
 
+  /**
+  * Clears all the observation value fflags if they are not cleared and updates its internal state
+  */
   private clear(): void {
     this.observationsDefinitions.forEach(obsDef => {
       // Check if value flag is already empty
