@@ -81,7 +81,6 @@ export class ElementStructure {
 export class PeriodStructure {
     columnPosition?: number;
     defaultPeriod?: number;
-
 }
 
 

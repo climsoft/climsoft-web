@@ -7,6 +7,8 @@ import { Component } from '@angular/core';
 })
 export class ImportDetailComponent {
 
+  //TODO. Left here
+
   protected stationColPosition: number | null = null;
   protected elementColPositions: number[] = [];
   protected elementIds: number[] = [];
@@ -22,7 +24,7 @@ export class ImportDetailComponent {
 
   protected onElementColumnSelection(option : 'SINGLE' | 'MULTIPLE'):void{
 
-    
+
 
   }
 
