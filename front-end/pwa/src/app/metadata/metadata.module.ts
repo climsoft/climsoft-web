@@ -2,20 +2,22 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
-import { FormDetailComponent } from './form-detail/form-detail.component';
-import { StationsComponent } from './stations/stations.component';
-import { StationDetailComponent } from './station-detail/station-detail.component';
+import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
+import { StationsComponent } from './stations-components/stations/stations.component';
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ElementsComponent } from './elements/elements.component';
-import { StationCharacteristicsComponent } from './station-detail/station-characteristics/station-characteristics.component';
-import { StationFormsComponent } from './station-detail/station-forms/station-forms.component';
-import { StationLimitsComponent } from './station-detail/station-limits/station-limits.component';
-import { SourcesComponent } from './sources/sources.component';
-import { StationCharacteristicsEditDialogComponent } from './station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
-import { ImportDetailComponent } from './import-detail/import-detail.component';
+import { SourcesComponent } from './sources-components/sources/sources.component';
+import { ImportStationDialogComponent } from './stations-components/station-edits-components/import-station-dialog/import-station-dialog.component';
+import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
+import { StationCharacteristicsComponent } from './stations-components/station-detail/station-characteristics/station-characteristics.component';
+import { StationFormsComponent } from './stations-components/station-detail/station-forms/station-forms.component';
+import { StationLimitsComponent } from './stations-components/station-detail/station-limits/station-limits.component';
+import { StationCharacteristicsEditDialogComponent } from './stations-components/station-edits-components/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
+import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
+import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component';
 
 @NgModule({
   declarations: [
@@ -24,17 +26,21 @@ import { ImportDetailComponent } from './import-detail/import-detail.component';
     StationElementLimitsInputDialogComponent,
 
     SourcesComponent,
-    FormDetailComponent,
+    FormSourceDetailComponent,
+    ImportSourceDetailComponent,
+
     StationsComponent,
     StationDetailComponent,
+    StationCharacteristicsEditDialogComponent,
+    ImportStationDialogComponent,
   
     ElementDetailComponent,
     ElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
     StationLimitsComponent,
-    StationCharacteristicsEditDialogComponent,
-    ImportDetailComponent,
+    ImportStationComponent,
+ 
  
   ],
   imports: [

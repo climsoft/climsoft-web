@@ -2,10 +2,9 @@
 
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../../core/models/sources/create-entry-form.model';
-import { CreateUpdateSourceModel } from '../../core/models/sources/create-update-source.model';
-import { ActivatedRoute } from '@angular/router';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../../../core/models/sources/create-entry-form.model';
+import { CreateUpdateSourceModel } from '../../../core/models/sources/create-update-source.model';
+import { ActivatedRoute } from '@angular/router'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
@@ -14,11 +13,11 @@ import { FormSourcesService } from 'src/app/core/services/sources/form-sources.s
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
 
 @Component({
-  selector: 'app-form-detail',
-  templateUrl: './form-detail.component.html',
-  styleUrls: ['./form-detail.component.scss']
+  selector: 'app-form-source-detail',
+  templateUrl: './form-source-detail.component.html',
+  styleUrls: ['./form-source-detail.component.scss']
 })
-export class FormDetailComponent implements OnInit {
+export class FormSourceDetailComponent implements OnInit {
 
   protected sourceId: number = 0;
   protected viewSource!: CreateUpdateSourceModel<ViewEntryFormModel>;

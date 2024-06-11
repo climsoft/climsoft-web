@@ -37,10 +37,10 @@ export class SourcesComponent {
 
     switch (sourceTypeName) {
       case 'Form':
-        routeName = 'form-detail'
+        routeName = 'form-source-detail';
         break;
       case 'Import':
-        routeName = 'import-detail'
+        routeName = 'import-source-detail';
         break;
       default:
         throw new Error('Source type not supported');
