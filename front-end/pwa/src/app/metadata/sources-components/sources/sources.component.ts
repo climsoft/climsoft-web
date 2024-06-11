@@ -56,10 +56,10 @@ export class SourcesComponent {
 
     switch (sourceType) {
       case SourceTypeEnum.FORM:
-        routeName = 'form-detail'
+        routeName = 'form-source-detail'
         break;
       case SourceTypeEnum.IMPORT:
-        routeName = 'import-detail'
+        routeName = 'import-source-detail'
         break; 
       default:
         throw new Error('Source type not supported');
