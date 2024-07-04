@@ -1,6 +1,6 @@
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
 
-export class CreateImportTabularSourceDTO {
+
+export interface CreateImportTabularSourceModel {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -12,38 +12,31 @@ export class CreateImportTabularSourceDTO {
     periodDefinition: PeriodDefinition;
 
     /** Whether to fetch elevation and its column position */
-    @IsNumber()
     elevationColumnPosition?: number;
 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
     /**Determines the UTC difference. When zero, no conversion of dates will be done */
-    @IsInt()
     utcDifference: number;
 
     /**
      * Determines whether to scale the values. 
      * To be used when data being imported is not scaled
      */
-    @IsBoolean()
     scaleValues: boolean;
 
     /**
      * Number of rows to skip.
      */
-    @IsInt()
     rowsToSkip: number;
 
     /**
      * Auto applies to all tabular file formats like CSV, XLXS.
      * The others apply to CSV files only
      */
-    @IsString()
     delimiters: 'auto' | ',' | '|';
 
-    @IsOptional()
-    @IsString()
     sampleImage: string;
 
 }
@@ -52,12 +45,11 @@ export class CreateImportTabularSourceDTO {
  * Station column is optional.
  * If specified, it must be a single.
  */
-export class StationDefinition {
+export interface StationDefinition {
 
     /**
      * Represents the column position.
      */
-    @IsInt()
     columnPosition: number;
 
     /**
@@ -75,7 +67,7 @@ export class StationDefinition {
  * Element and Value column specifications.
  * Must be either a single or multiple columns.
  */
-export class ElementAndValueDefinition {
+export interface ElementAndValueDefinition {
 
     /**
      * Used when there is only a single element column. 
@@ -123,7 +115,7 @@ export class ElementAndValueDefinition {
  * When columnPosition is not specified then the defaultPeriod should be specified, that is, 
  * either columnPosition or defaultPeriod must be provided, but not both.
  */
-export class PeriodDefinition {
+export interface PeriodDefinition {
     columnPosition?: number;
     defaultPeriod?: number;
 }
@@ -132,7 +124,7 @@ export class PeriodDefinition {
  * When dateInSingleColumn is not specified then  dateInMultipleColumn should be specified, that is,
  * either dateInSingleColumn or dateInMultipleColumn must be provided, but not both.
  */
-export class DateTimeDefinition {
+export interface DateTimeDefinition {
 
     dateInSingleColumn?: {
 
@@ -166,12 +158,10 @@ export class HourDefinition {
     /**
      * If provided, then defaultHour will not be used.
      */
-    @IsInt()
     hourColumnPosition?: number;
 
     /**
      * Should be provided when hourColumnPosition is not provided.
      */
-    @IsInt()
     defaultHour?: number;
 }

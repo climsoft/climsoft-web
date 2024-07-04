@@ -1,1 +1,99 @@
-<p>Import source  Detail works</p>
+<div class="card border-0">
+    <div class="card-body px-0">
+
+         <!--Stations-->
+        <div class="mb-3">           
+            <app-check-box-input #station [label]="'Station Column'" [value]="stationColPosition !==null" />
+            <div class="ms-4"> <app-number-input  *ngIf="station.value" [label]="'Station Column Position'" [(value)]="stationColPosition" /></div>
+        </div>
+        <!--------->
+
+        <!--Elements-->
+        <div class="mb-3">
+
+            <div class="form-check form-check-inline">
+                <input #singleElement class="form-check-input" type="radio"  id="singleElement" name="elementRDO" 
+                [checked]="elementColPositions.length <= 1" (change)="onElementColumnSelection('SINGLE')">
+                <label class="form-check-label" for="singleElement">Single Element Column</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input   #multipleElement  class="form-check-input" type="radio"  id="multipleElement" name="elementRDO"
+                 [checked]="elementColPositions.length > 1" (change)="onElementColumnSelection('MULTIPLE')">
+                <label class="form-check-label" for="multipleElement">Multiple Element Columns</label>
+            </div>   
+            <div class="ms-4"> 
+                <app-number-input *ngIf="elementColPositions.length <= 1" [label]="'Element Column Position'" [(value)]="formDescription" />
+
+                <table *ngIf="elementColPositions.length > 1"  class="table table-sm w-50">
+                    <thead>
+                        <tr>                        
+                            <th>Column Position</th>
+                            <th>Element</th>                           
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let elementCol of elementColPositions; let index">
+                            <td><app-number-input  [id]="elementCol + '_position'" [value]="elementCol" /></td>
+                            <td> <app-element-single-input [id] = "elementCol + '_element'" [selectedId]="elementIds[index]"/>  </td>                          
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            
+        </div>
+        <!--------->
+
+
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
+                <label class="form-check-label" for="limits">Include Period Column(s)</label>
+            </div>
+
+            <app-number-input [label]="'Period Column Position'" [(value)]="formDescription" />
+
+            <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" />
+        </div>
+
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
+                <label class="form-check-label" for="limits">Include Elevation Column</label>
+            </div>
+
+            <app-number-input [label]="'Elevation Column Position'" [(value)]="formDescription" />
+        </div>
+
+
+        <!--UTC Time Difference -->
+        <div class="mb-3">
+            <app-text-input [label]="'UTC Time Difference'" [(value)]="utcTimeDifference" />
+        </div>
+        <!--------->
+
+        <!--Scale-->
+        <div class="mb-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="scale" [(ngModel)]="enforceLimitCheck">
+                <label class="form-check-label" for="scale">Scale Data</label>
+            </div>
+        </div>
+        <!--------->
+
+
+        <!--Rows To Skip-->
+        <div class="mb-3">
+            <app-text-input [label]="'Rows To Skip'" [(value)]="utcTimeDifference" />
+        </div>
+        <!--------->
+
+        <!--Delimeters-->
+        <div class="mb-3">
+            <app-text-input [label]="'Delimeters'" [(value)]="utcTimeDifference" />
+        </div>
+        <!--------->
+
+
+
+    </div>
