@@ -4,6 +4,7 @@ import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
 import { ViewEntryComponent } from './view-entry/view-entry.component';
+import { ImportSelectionComponent } from './import-selection/import-selection.component';
 
 
 const routes: Routes = [
@@ -25,6 +26,10 @@ const routes: Routes = [
       {
         path: 'form-entry/:stationid/:sourceid',
         component: FormEntryComponent
+      },
+      {
+        path: 'import-selection',
+        component: ImportSelectionComponent
       },
       {
         path: 'import-entry',

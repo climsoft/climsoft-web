@@ -13,6 +13,7 @@ export class CreateImportTabularSourceDTO {
     /** Whether to fetch elevation and its column position */
     elevationColumnPosition?: number;
 
+    /** Date time columns and formats */
     datetimeStructure: DateTimeStructure;
 
     valueColumnPosition: number;
@@ -29,8 +30,14 @@ export class CreateImportTabularSourceDTO {
      */
     scaleValues: boolean;
 
+    /**
+     * Number of rows to skip.
+     */
     rowsToSkip: number;
 
+    /**
+     * 
+     */
     delimiters: string;
 
 }
@@ -82,8 +89,6 @@ export class PeriodStructure {
     columnPosition?: number;
     defaultPeriod?: number;
 }
-
-
 
 export class DateTimeStructure {
 

@@ -32,12 +32,12 @@ export class HomeComponent implements OnInit, OnDestroy {
         {
           name: 'Forms',
           url: '/station-form-selection',
-          featureTitle: 'Data Entry'
+          featureTitle: 'Form Data Entry'
         },
         {
           name: 'Import',
-          url: '/import-entry',
-          featureTitle: 'Import Data'
+          url: '/import-selection',
+          featureTitle: 'Import Data Entry'
         },
         {
           name: 'Inventory',

@@ -11,6 +11,7 @@ import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.compon
 import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
 import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
 import { ViewEntryComponent } from './view-entry/view-entry.component';
+import { ImportSelectionComponent } from './import-selection/import-selection.component';
 
 //------------------------------------
 
@@ -25,7 +26,8 @@ import { ViewEntryComponent } from './view-entry/view-entry.component';
     GridLayoutComponent,
     LnearLayoutComponent,
     ValueFlagInputComponent,
-    ViewEntryComponent, 
+    ViewEntryComponent,
+    ImportSelectionComponent, 
 
   ],
   imports: [

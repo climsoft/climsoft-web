@@ -1,12 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';  
-import { StationsComponent } from './stations/stations.component';
-import { StationDetailComponent } from './station-detail/station-detail.component';
+import { StationsComponent } from './stations-components/stations/stations.component';
 import { ElementsComponent } from './elements/elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
-import { FormDetailComponent } from './form-detail/form-detail.component';
-import { SourcesComponent } from './sources/sources.component';
-import { ImportDetailComponent } from './import-detail/import-detail.component';
+import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
+import { SourcesComponent } from './sources-components/sources/sources.component';
+import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
+import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
+import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component';
 
 
 const routes: Routes = [
@@ -34,8 +35,12 @@ const routes: Routes = [
         component: SourcesComponent, 
       }, 
       {
-        path: 'form-detail/:id',
-        component: FormDetailComponent
+        path: 'form-source-detail/:id',
+        component: FormSourceDetailComponent
+      },
+      {
+        path: 'import-source-detail/:id',
+        component: ImportSourceDetailComponent
       },
       {
         path: 'stations',
@@ -46,9 +51,10 @@ const routes: Routes = [
         component: StationDetailComponent
       },
       {
-        path: 'import-detail/:id',
-        component: ImportDetailComponent
+        path: 'import-station',
+        component: ImportStationComponent
       },
+   
      
     ]
   }

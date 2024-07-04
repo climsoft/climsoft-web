@@ -1,12 +1,16 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
     <div class="fw-bold">Showing Stations</div>
-    <div class="mb-1">
+    <div class="mb-1 d-flex">
       <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
       </button>
-      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="dlgEdit.openDialog()">New</button>
-      <app-station-characteristics-edit-dialog #dlgEdit (ok)="loadStations()" />
+
+      <app-drop-down-button [dropDownItems]="['Add','Import']"
+        (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()"
+        [translateX]="true">New</app-drop-down-button>
+      <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
+
     </div>
   </div>
 

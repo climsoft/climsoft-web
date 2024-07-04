@@ -1,11 +1,8 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { Observable, pipe, take } from 'rxjs';
+import { Component, EventEmitter,  Output } from '@angular/core';
+import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
-import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { UpdateElementModel } from 'src/app/core/models/elements/update-element.model';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 
@@ -22,9 +19,7 @@ export class StationCharacteristicsEditDialogComponent {
   protected station!: ViewStationModel;
   protected bNew: boolean = false;
 
-  constructor(
-    private stationsService: StationsService,
-    private pagesDataService: PagesDataService,) { }
+  constructor( private stationsService: StationsService, private pagesDataService: PagesDataService,) { }
 
 
   public openDialog(stationId?: string): void {
@@ -61,17 +56,17 @@ export class StationCharacteristicsEditDialogComponent {
         stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
         stationObsProcessingMethodName: '',
         stationObsEnvironmentId: null,
-        stationObsEnvironmentName:  null,
+        stationObsEnvironmentName: null,
         stationObsFocusId: null,
-        stationObsFocusName:  null,
+        stationObsFocusName: null,
         wmoId: null,
         wigosId: null,
         icaoId: null,
         status: null,
         dateEstablished: null,
         dateClosed: null,
-        comment: ""     
-        
+        comment: ""
+
       };
     }
 
