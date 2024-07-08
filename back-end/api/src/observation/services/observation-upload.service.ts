@@ -8,7 +8,7 @@ import { isNumber } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { FlagEnum } from '../enums/flag.enum';
-import { CreateImportTabularSourceDTO } from 'src/metadata/dtos/sources/create-import-source-tabular.dto';
+import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
 
 interface UploadedObservationDto extends CreateObservationDto {
     status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
@@ -148,24 +148,35 @@ export class ObservationUploadService {
     }
 
     private addElementAndValueColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
-        if (source.elementDefinition) {
+        if (source.elementAndValueDefinition) {
 
-            if (source.elementDefinition.elementsInSingleColumn) {
+            if (source.elementAndValueDefinition.noElement) {
+              
+                columns.splice(source.elementAndValueDefinition.noElement.valueColumnPosition - 1, 0, "value VARCHAR");
 
-                columns.splice(source.elementDefinition.elementsInSingleColumn.elementColumnPosition - 1, 0, "element_id VARCHAR");
-
-                columns.splice(source.elementDefinition.elementsInSingleColumn.valueColumnPosition - 1, 0, "value VARCHAR");
-
-                if (source.elementDefinition.elementsInSingleColumn.flagColumnPosition) {
-                    columns.splice(source.elementDefinition.elementsInSingleColumn.flagColumnPosition - 1, 0, "flag VARCHAR");
+                if (source.elementAndValueDefinition.noElement.flagColumnPosition) {
+                    columns.splice(source.elementAndValueDefinition.noElement.flagColumnPosition - 1, 0, "flag VARCHAR");
                 } 
 
 
-            } else if (source.elementDefinition.elementsInMultipleColumns) {
+            } else if (source.elementAndValueDefinition.hasElement) {
 
-                for (const el of source.elementDefinition.elementsInMultipleColumns) {
-                    columns.splice(el.columnPosition - 1, 0, el.dbElementId + " VARCHAR");
+                if(source.elementAndValueDefinition.hasElement.singleColumn){
+
+                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1, 0, "element VARCHAR");
+
+                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1, 0, "value VARCHAR");
+
+                    if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition) {
+                        columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1, 0, "flag VARCHAR");
+                    } 
+
+                }else if(source.elementAndValueDefinition.hasElement.multipleColumn){
+                    for (const el of source.elementAndValueDefinition.hasElement.multipleColumn) {
+                        columns.splice(el.columnPosition - 1, 0, el.databaseId + " VARCHAR");
+                    }
                 }
+                
 
             } 
         }
@@ -187,20 +198,24 @@ export class ObservationUploadService {
 
     private addDateColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
       
-        if (source.datetimeDefinition.dateInSingleColumn) {
-            columns.splice(source.datetimeDefinition.dateInSingleColumn.dateColumnPosition - 1, 0, "date_time VARCHAR");
+        if (source.datetimeDefinition.dateTimeColumnPostion !== undefined) {
+            columns.splice(source.datetimeDefinition.dateTimeColumnPostion - 1, 0, "date_time VARCHAR");
 
-            if (source.datetimeDefinition.dateInSingleColumn.hourStructure?.hourColumnPosition) {
-                columns.splice(source.datetimeDefinition.dateInSingleColumn.hourStructure.hourColumnPosition - 1, 0, "hour VARCHAR");
+          
+        }else  if (source.datetimeDefinition.dateTimeInMultipleColumn) {
+
+            if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn){
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.dateColumnPosition - 1, 0, "date VARCHAR");
+
+            }else  if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn){
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.yearColumnPosition - 1, 0, "year VARCHAR");
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.monthColumnPosition - 1, 0, "month VARCHAR");
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.dayColumnPosition - 1, 0, "day VARCHAR");
+
             }
-        }else  if (source.datetimeDefinition.dateInMultipleColumn) {
-
-            columns.splice(source.datetimeDefinition.dateInMultipleColumn.yearColumnPosition - 1, 0, "year VARCHAR");
-            columns.splice(source.datetimeDefinition.dateInMultipleColumn.monthColumnPosition - 1, 0, "month VARCHAR");
-            columns.splice(source.datetimeDefinition.dateInMultipleColumn.dayColumnPosition - 1, 0, "day VARCHAR");
-           
-            if (source.datetimeDefinition.dateInMultipleColumn.hourStructure.hourColumnPosition) {
-                columns.splice(source.datetimeDefinition.dateInMultipleColumn.hourStructure.hourColumnPosition - 1, 0, "hour VARCHAR");
+            
+            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition) {
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition - 1, 0, "hour VARCHAR");
             }
 
         }

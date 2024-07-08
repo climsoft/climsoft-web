@@ -1,0 +1,11 @@
+<div *ngIf="datetimeDefinition">
+    <app-radio-buttons-input [inline]="true" [groupName]="'dateDefinition'"
+        [groupItems]="[{ label:'Date Time in Single Column'}, { label:'Date Time in Multiple Column'}]"
+        (checkedValueChange)="onDatetimeSelection($event)" />
+
+    <div *ngIf="datetimeDefinition.dateTimeColumnPostion !== undefined" class="ms-4">
+        <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position:'"
+            [(value)]="datetimeDefinition.dateTimeColumnPostion" />
+    </div>
+
+</div>

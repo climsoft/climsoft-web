@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { SourcesService } from '../../services/sources/sources.service';
-import { CreateUpdateSourceDto } from '../../dtos/sources/create-update-source.dto';
+import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { Admin } from 'src/user/decorators/admin.decorator'; 
+import { SourcesService } from '../services/sources.service';
 
 
 
@@ -15,7 +15,7 @@ export class SourcesController {
         return this.sourcesService.findAll();
     }
 
-    /** TODO. Deprecate this route handler after implementing controllers for import and machine sources */
+    /** TODO. Deprecate this route handler after implementing controllers for import sources */
     @Get('/source/:id')
     public find(@Param('id', ParseIntPipe) id: number) {
         return this.sourcesService.find(id);
@@ -26,7 +26,7 @@ export class SourcesController {
     //     return this.sourcesService.findSourcesBySourceTypes(id);
     // }
 
-    /** TODO. Deprecate this route handler after implementing controllers for import and machine sources */
+    /** TODO. Deprecate this route handler after implementing controllers for import sources */
     @Admin()
     @Post()
     public create(@Body() createSourceDto: CreateUpdateSourceDto<object>) {

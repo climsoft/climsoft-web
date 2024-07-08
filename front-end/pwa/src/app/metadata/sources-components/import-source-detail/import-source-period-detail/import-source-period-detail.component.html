@@ -1,0 +1,16 @@
+<div *ngIf="periodDefinition" >
+    <app-radio-buttons-input [inline]="true" [groupName]="'periodStatus'"
+        [groupItems]="[{ label:'Includes Period'}, { label:'Does Not Include Period'}]"
+        (checkedValueChange)="onPeriodStatusSelection($event)" />
+
+    <div class="ms-4">
+
+        <app-number-input *ngIf="periodDefinition.columnPosition !== undefined" [label]="'Column Position'"
+            [(value)]="periodDefinition.columnPosition" />
+
+        <app-number-input *ngIf="periodDefinition.defaultPeriod !== undefined" [label]="'Default Period (Minutes)'"
+            [(value)]="periodDefinition.defaultPeriod" />
+
+    </div>
+
+</div>

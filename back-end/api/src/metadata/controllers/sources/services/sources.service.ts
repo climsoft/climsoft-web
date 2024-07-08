@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { SourceEntity } from '../../entities/sources/source.entity';
+import { Injectable, NotFoundException } from '@nestjs/common'; 
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUpdateSourceDto } from '../../dtos/sources/create-update-source.dto';
-import { ViewSourceDto } from '../../dtos/sources/view-source.dto'; 
+import { InjectRepository } from '@nestjs/typeorm'; 
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { ViewSourceDto } from '../dtos/view-source.dto';
+import { SourceEntity } from 'src/metadata/entities/sources/source.entity';
+import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 
 // TODO refactor this service later
 
@@ -59,7 +59,7 @@ export class SourcesService {
         const entity = this.sourceRepo.create({ 
             name: dto.name, 
             description: dto.description,
-            extraMetadata: dto.extraMetadata? JSON.stringify (dto.extraMetadata): null,         
+            extraMetadata: JSON.stringify (dto.extraMetadata),         
             sourceType: dto.sourceType
          });
 
@@ -94,7 +94,7 @@ export class SourcesService {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            extraMetadata: entity.extraMetadata ? JSON.parse(entity.extraMetadata ): null,
+            extraMetadata:  JSON.parse(entity.extraMetadata ),
             sourceType: entity.sourceType,
             sourceTypeName: StringUtils.capitalizeFirstLetter(entity.sourceType),
         }

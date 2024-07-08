@@ -54,14 +54,14 @@ export class AuthorisedStationsPipe implements PipeTransform {
     }
 
     // ---------------------------
-    // TODO.
-    if (metadata.metatype === CreateObservationQueryDto) {
-      console.log('observation trial (===): ', CreateObservationQueryDto);
-    }
-    //TODO
-    if (metadata.metatype instanceof CreateObservationQueryDto) {
-      console.log('observation trial (instanceof): ', CreateObservationQueryDto);
-    }
+    // // TODO.
+    // if (metadata.metatype === CreateObservationQueryDto) {
+    //   console.log('observation trial (===): ', CreateObservationQueryDto);
+    // }
+    // //TODO
+    // if (metadata.metatype instanceof CreateObservationQueryDto) {
+    //   console.log('observation trial (instanceof): ', CreateObservationQueryDto);
+    // }
     // ---------------------------
 
 

@@ -1,0 +1,7 @@
+<ng-container *ngIf="groupName">
+    <div class="form-check" [class.form-check-inline]="inline" *ngFor="let item of groupItems; let i = index;">
+        <input class="form-check-input" type="radio" [id]="item.label" [name]="groupName" [checked]="item.checked"
+            (change)="onValueChange(i,$any($event.target).checked)">
+        <label class="form-check-label" [for]="item.label">{{item.label}}</label>
+    </div>
+</ng-container>

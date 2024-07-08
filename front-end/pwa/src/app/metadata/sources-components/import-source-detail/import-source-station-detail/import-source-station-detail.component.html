@@ -1,0 +1,38 @@
+<div>
+    <app-check-box-input [label]="'Includes Stations'" [value]="stationDefinition !== undefined"
+        (valueChange)="onIncludeStation($event)" />
+    <div class="ms-4" *ngIf="stationDefinition !== undefined">
+        <div class="mb-2">
+            <app-number-input [label]="'Column Position'" [(value)]="stationDefinition.columnPosition" />
+        </div>
+        <div>
+            <div class="mb-2">
+                <app-check-box-input [label]="'Fetch Specific Stations'"
+                    [value]="stationDefinition.stationsToFetch !==undefined"
+                    (valueChange)="onFetchStationsChange($event)" />
+            </div>
+            <table *ngIf="stationDefinition.stationsToFetch" class="table table-sm w-50 ms-4">
+                <thead>
+                    <tr>
+                        <th>Source ID</th>
+                        <th>Database ID</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr *ngFor="let item of stationDefinition.stationsToFetch; let i = index">
+                        <td>
+                            <app-text-input [id]="i + 'source_station_id'" [(value)]="item.sourceId" />
+                        </td>
+                        <td>
+                            <app-station-single-input [id]="i + 'database_station_id'" [(selectedId)]="item.databaseId"
+                                (selectedIdChange)="onStationToFetchDatabaseIdEntry(i)" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+
+</div>

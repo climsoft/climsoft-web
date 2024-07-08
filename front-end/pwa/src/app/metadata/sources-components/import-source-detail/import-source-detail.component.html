@@ -1,99 +1,106 @@
-<div class="card border-0">
+<div *ngIf="viewSource" class="card border-0">
     <div class="card-body px-0">
 
-         <!--Stations-->
-        <div class="mb-3">           
-            <app-check-box-input #station [label]="'Station Column'" [value]="stationColPosition !==null" />
-            <div class="ms-4"> <app-number-input  *ngIf="station.value" [label]="'Station Column Position'" [(value)]="stationColPosition" /></div>
+        <!-- name -->
+        <div class="mb-3">
+            <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
         </div>
         <!--------->
+
+        <hr class="border border-secondary border-1">
+
+        <!-- description -->
+        <div class="mb-3">
+            <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
+        </div>
+        <!--------->
+
+        <hr class="border border-secondary border-1">
+
+        <!--Station-->
+        <div class="mb-3">
+            <app-import-source-station-detail [stationDefinition]="viewSource.extraMetadata .stationDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
 
         <!--Elements-->
         <div class="mb-3">
-
-            <div class="form-check form-check-inline">
-                <input #singleElement class="form-check-input" type="radio"  id="singleElement" name="elementRDO" 
-                [checked]="elementColPositions.length <= 1" (change)="onElementColumnSelection('SINGLE')">
-                <label class="form-check-label" for="singleElement">Single Element Column</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input   #multipleElement  class="form-check-input" type="radio"  id="multipleElement" name="elementRDO"
-                 [checked]="elementColPositions.length > 1" (change)="onElementColumnSelection('MULTIPLE')">
-                <label class="form-check-label" for="multipleElement">Multiple Element Columns</label>
-            </div>   
-            <div class="ms-4"> 
-                <app-number-input *ngIf="elementColPositions.length <= 1" [label]="'Element Column Position'" [(value)]="formDescription" />
-
-                <table *ngIf="elementColPositions.length > 1"  class="table table-sm w-50">
-                    <thead>
-                        <tr>                        
-                            <th>Column Position</th>
-                            <th>Element</th>                           
-                        </tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <tr *ngFor="let elementCol of elementColPositions; let index">
-                            <td><app-number-input  [id]="elementCol + '_position'" [value]="elementCol" /></td>
-                            <td> <app-element-single-input [id] = "elementCol + '_element'" [selectedId]="elementIds[index]"/>  </td>                          
-                        </tr>
-                    </tbody>
-                </table>
-
-            </div>
-            
+            <app-import-source-element-and-value-detail
+                [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
         </div>
-        <!--------->
 
+        <hr class="border border-secondary border-1">
 
+        <!--Period-->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
-                <label class="form-check-label" for="limits">Include Period Column(s)</label>
-            </div>
-
-            <app-number-input [label]="'Period Column Position'" [(value)]="formDescription" />
-
-            <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" />
+            <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata .periodDefinition" />
         </div>
 
+        <hr class="border border-secondary border-1">
+
+        <!--Elevation-->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
-                <label class="form-check-label" for="limits">Include Elevation Column</label>
-            </div>
+            <app-check-box-input [label]="'Includes Elevation'"
+                [value]="viewSource.extraMetadata .elevationColumnPosition !== undefined"
+                (valueChange)="onIncludeElevation($event)" />
 
-            <app-number-input [label]="'Elevation Column Position'" [(value)]="formDescription" />
+            <div class="ms-4" *ngIf="viewSource.extraMetadata .elevationColumnPosition !== undefined">
+                <app-number-input [label]="'Column Position'"
+                    [(value)]="viewSource.extraMetadata .elevationColumnPosition" />
+            </div>
         </div>
 
+        <hr class="border border-secondary border-1">
+
+        <!--Date time-->
+        <div class="mb-3">
+            <app-import-source-date-detail [datetimeDefinition]="viewSource.extraMetadata.datetimeDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
 
         <!--UTC Time Difference -->
         <div class="mb-3">
-            <app-text-input [label]="'UTC Time Difference'" [(value)]="utcTimeDifference" />
+            <app-number-input [label]="'UTC Time Difference'" [(value)]="viewSource.extraMetadata .utcDifference" />
         </div>
-        <!--------->
 
-        <!--Scale-->
+        <hr class="border border-secondary border-1">
+
+        <!--Scale values -->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="scale" [(ngModel)]="enforceLimitCheck">
-                <label class="form-check-label" for="scale">Scale Data</label>
-            </div>
+            <app-check-box-input [label]="'Scale Values'" [(value)]="viewSource.extraMetadata .scaleValues" />
         </div>
-        <!--------->
 
+        <hr class="border border-secondary border-1">
 
-        <!--Rows To Skip-->
+        <!--Rows To Skip -->
         <div class="mb-3">
-            <app-text-input [label]="'Rows To Skip'" [(value)]="utcTimeDifference" />
+            <app-number-input [label]="'Rows To Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
         </div>
-        <!--------->
+
+        <hr class="border border-secondary border-1">
 
         <!--Delimeters-->
         <div class="mb-3">
-            <app-text-input [label]="'Delimeters'" [(value)]="utcTimeDifference" />
+            <!-- TODO -->
+            <app-selector-single-input [label]="'Delimeters'" [options]="['Auto']" [selectedOption]="'Auto'" [optionDisplayFn]="displayDelimitersFn" />
         </div>
-        <!--------->
-
-
 
     </div>
+
+
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+        <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
+            Save
+        </button>
+        <button *ngIf="viewSource && viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+            (click)="onDelete()">
+            Delete
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
+            Cancel
+        </button>
+    </div>
+
+</div>

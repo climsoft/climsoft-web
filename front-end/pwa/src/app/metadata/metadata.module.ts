@@ -17,7 +17,11 @@ import { StationFormsComponent } from './stations-components/station-detail/stat
 import { StationLimitsComponent } from './stations-components/station-detail/station-limits/station-limits.component';
 import { StationCharacteristicsEditDialogComponent } from './stations-components/station-edits-components/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
 import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
-import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component';
+import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component'; 
+import { ImportSourceStationDetailComponent } from './sources-components/import-source-detail/import-source-station-detail/import-source-station-detail.component';
+import { ImportSourceElementAndValueDetailComponent } from './sources-components/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
+import { ImportSourcePeriodDetailComponent } from './sources-components/import-source-detail/import-source-period-detail/import-source-period-detail.component';
+import { ImportSourceDateDetailComponent } from './sources-components/import-source-detail/import-source-date-detail/import-source-date-detail.component'; 
 
 @NgModule({
   declarations: [
@@ -39,7 +43,11 @@ import { ImportStationComponent } from './stations-components/station-edits-comp
     StationCharacteristicsComponent,
     StationFormsComponent,
     StationLimitsComponent,
-    ImportStationComponent,
+    ImportStationComponent, 
+    ImportSourceStationDetailComponent,
+    ImportSourceElementAndValueDetailComponent,
+    ImportSourcePeriodDetailComponent,
+    ImportSourceDateDetailComponent, 
  
  
   ],

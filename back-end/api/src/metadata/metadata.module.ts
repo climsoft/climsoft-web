@@ -6,9 +6,8 @@ import { StationsService } from './services/stations/stations.service';
 import { ElementsController } from './controllers/elements/elements.controller';
 import { ElementEntity } from './entities/elements/element.entity';
 import { ElementsService } from './services/elements/elements.service';
-import { SourceEntity } from './entities/sources/source.entity';
-import { SourcesService } from 'src/metadata/services/sources/sources.service';
-import { SourcesController } from 'src/metadata/controllers/sources/sources.controller';
+import { SourceEntity } from './entities/sources/source.entity'; 
+import { SourcesController } from 'src/metadata/controllers/sources/controllers/sources.controller';
 import { StationElementEntity } from './entities/stations/station-element.entity';
 import { StationFormEntity } from './entities/stations/station-form.entity';
 import { InstrumentEntity } from './entities/instruments/instrument.entity';
@@ -28,8 +27,11 @@ import { StationObsFocusesService } from './services/stations/station-obs-focuse
 import { StationObsFocusesController } from './controllers/stations/station-obs-focuses.controller';
 import { ElementTypesController } from './controllers/elements/elements-types.controller';
 import { ElementSubdomainsController } from './controllers/elements/elements-subdomains.controller';
-import { FormSourcesController } from './controllers/sources/form-sources.controller';
-import { FormSourcesService } from './services/sources/form-sources.service';
+import { FormSourcesController } from './controllers/sources/controllers/form-sources.controller';
+import { FormSourcesService } from './controllers/sources/services/form-sources.service';
+import { SourcesService } from './controllers/sources/services/sources.service';
+import { ImportSourcesService } from './controllers/sources/services/import-sources.service';
+import { ImportSourcesController } from './controllers/sources/controllers/import-sources.controller';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -51,6 +53,8 @@ import { FormSourcesService } from './services/sources/form-sources.service';
         ElementSubdomainsController,
         SourcesController,
         FormSourcesController,
+        ImportSourcesController,
+        ImportSourcesController,
         StationObsEnvsController,
         StationObsFocusesController,
         StationsController,
@@ -60,6 +64,7 @@ import { FormSourcesService } from './services/sources/form-sources.service';
         ElementsService,
         SourcesService,
         FormSourcesService,
+        ImportSourcesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
@@ -71,6 +76,7 @@ import { FormSourcesService } from './services/sources/form-sources.service';
         ElementsService, 
         SourcesService,
         FormSourcesService,
+        ImportSourcesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,

@@ -42,6 +42,7 @@ import { ElementDomainSingleInputComponent } from './controls/element-domain-inp
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
 import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
+import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
 
 //--------------------------------
   
@@ -61,6 +62,7 @@ const controlsComponents = [
   SelectorInputComponent,
   DateInputComponent,
   CheckBoxInputComponent,
+  RadioButtonsInputComponent,
 
   YearInputComponent,
   MonthInputComponent,
@@ -110,6 +112,7 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
+   
   
   ],
   imports: [

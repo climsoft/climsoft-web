@@ -12,8 +12,8 @@ export class SourceEntity {
     @Column({ type: "varchar" })
     description: string;
 
-    @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
-    extraMetadata: string | null;
+    @Column({ type: "jsonb", name: "extra_metadata"})
+    extraMetadata: string ;
 
     @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type"})
     @Index()
