@@ -13,28 +13,35 @@
         <div class="mb-3">
             <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
         </div>
-        <!--------->
+
+        <hr class="border border-secondary border-1">
+
+        <!--Rows To Skip -->
+        <div class="mb-3">
+            <app-number-input [label]="'Rows To Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Delimeters-->
+        <div class="mb-3">
+            <!-- TODO -->
+            <app-selector-single-input [label]="'Delimeters'" [options]="['Auto']" [selectedOption]="'Auto'"
+                [optionDisplayFn]="displayDelimitersFn" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Scale values -->
+        <div class="mb-3">
+            <app-check-box-input [label]="'Scale Values'" [(value)]="viewSource.extraMetadata.scaleValues" />
+        </div>
 
         <hr class="border border-secondary border-1">
 
         <!--Station-->
         <div class="mb-3">
-            <app-import-source-station-detail [stationDefinition]="viewSource.extraMetadata .stationDefinition" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Elements-->
-        <div class="mb-3">
-            <app-import-source-element-and-value-detail
-                [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Period-->
-        <div class="mb-3">
-            <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata .periodDefinition" />
+            <app-import-source-station-detail [(stationDefinition)]="viewSource.extraMetadata .stationDefinition" />
         </div>
 
         <hr class="border border-secondary border-1">
@@ -53,6 +60,13 @@
 
         <hr class="border border-secondary border-1">
 
+        <!--Period-->
+        <div class="mb-3">
+            <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata .periodDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
         <!--Date time-->
         <div class="mb-3">
             <app-import-source-date-detail [datetimeDefinition]="viewSource.extraMetadata.datetimeDefinition" />
@@ -67,25 +81,12 @@
 
         <hr class="border border-secondary border-1">
 
-        <!--Scale values -->
+        <!--Elements-->
         <div class="mb-3">
-            <app-check-box-input [label]="'Scale Values'" [(value)]="viewSource.extraMetadata .scaleValues" />
+            <app-import-source-element-and-value-detail
+                [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
         </div>
 
-        <hr class="border border-secondary border-1">
-
-        <!--Rows To Skip -->
-        <div class="mb-3">
-            <app-number-input [label]="'Rows To Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Delimeters-->
-        <div class="mb-3">
-            <!-- TODO -->
-            <app-selector-single-input [label]="'Delimeters'" [options]="['Auto']" [selectedOption]="'Auto'" [optionDisplayFn]="displayDelimitersFn" />
-        </div>
 
     </div>
 

@@ -9,6 +9,7 @@ import { StationsService } from 'src/app/core/services/stations/stations.service
 })
 export class StationSingleInputComponent implements OnInit, OnChanges {
 
+  @Input() public id!: string;
   @Input() public label!: string;
   @Input() public errorMessage!: string;
   @Input() public placeholder: string | null = null;

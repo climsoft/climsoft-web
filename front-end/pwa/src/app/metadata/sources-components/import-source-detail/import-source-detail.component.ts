@@ -40,6 +40,7 @@ export class ImportSourceDetailComponent implements OnInit {
         take(1)
       ).subscribe((data) => {
         this.viewSource = data;
+        console.log({data});
       });
 
     } else {

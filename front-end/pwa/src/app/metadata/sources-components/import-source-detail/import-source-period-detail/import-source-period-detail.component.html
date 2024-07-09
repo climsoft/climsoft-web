@@ -1,6 +1,6 @@
 <div *ngIf="periodDefinition" >
-    <app-radio-buttons-input [inline]="true" [groupName]="'periodStatus'"
-        [groupItems]="[{ label:'Includes Period'}, { label:'Does Not Include Period'}]"
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'periodStatus'"
+        [groupItems]="[{ label:'Includes Period', checked: periodDefinition.columnPosition !== undefined}, { label:'Does Not Include Period', checked: periodDefinition.defaultPeriod !== undefined}]"
         (checkedValueChange)="onPeriodStatusSelection($event)" />
 
     <div class="ms-4">

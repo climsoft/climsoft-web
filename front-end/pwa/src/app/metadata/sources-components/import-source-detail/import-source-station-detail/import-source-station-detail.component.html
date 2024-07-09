@@ -3,7 +3,7 @@
         (valueChange)="onIncludeStation($event)" />
     <div class="ms-4" *ngIf="stationDefinition !== undefined">
         <div class="mb-2">
-            <app-number-input [label]="'Column Position'" [(value)]="stationDefinition.columnPosition" />
+            <app-number-input [id]="'station_column_position'" [label]="'Column Position'" [(value)]="stationDefinition.columnPosition" />
         </div>
         <div>
             <div class="mb-2">
@@ -11,7 +11,7 @@
                     [value]="stationDefinition.stationsToFetch !==undefined"
                     (valueChange)="onFetchStationsChange($event)" />
             </div>
-            <table *ngIf="stationDefinition.stationsToFetch" class="table table-sm w-50 ms-4">
+            <table *ngIf="stationDefinition.stationsToFetch" class="table table-sm ms-2">
                 <thead>
                     <tr>
                         <th>Source ID</th>
@@ -19,15 +19,15 @@
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
-                    <tr *ngFor="let item of stationDefinition.stationsToFetch; let i = index">
+                    <tr *ngFor="let item of fetchStationsHolder; let i = index;">
                         <td>
-                            <app-text-input [id]="i + 'source_station_id'" [(value)]="item.sourceId" />
+                            <app-text-input [id]="i + '_source_station_id'" [(value)]="item.sourceId" (valueChange)="onStationToFetchEntry()" />
                         </td>
                         <td>
-                            <app-station-single-input [id]="i + 'database_station_id'" [(selectedId)]="item.databaseId"
-                                (selectedIdChange)="onStationToFetchDatabaseIdEntry(i)" />
-                        </td>
-                    </tr>
+                            <app-station-single-input [id]="i + '_database_station_id'" [(selectedId)]="item.databaseId"
+                                (selectedIdChange)="onStationToFetchEntry()" />
+                        </td>                        
+                    </tr>                   
                 </tbody>
             </table>
         </div>

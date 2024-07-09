@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { PeriodDefinition } from '../../../../core/models/sources/create-import-source-tabular.model';
 
 @Component({

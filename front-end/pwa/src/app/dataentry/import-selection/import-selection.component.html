@@ -1,4 +1,16 @@
-<p>import-selection works!</p>
+<div class="card border-0">
+    <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
+        <div class="fw-bold">Showing Import Sources</div>
+        <div class="mb-1 d-flex">
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onSearch()">
+                Search
+            </button>
+        </div>
+    </div>
 
-<a routerLink="/data-entry/import-entry">Next</a>
-<app-import-entry></app-import-entry>
+    <div class="card-body px-0">
+        <app-table-view [clickable]="true"
+            [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'description', name: 'Description'} ]"
+            [rowsData]="sources" (rowDataClicked)="onSourceClick($event)" />
+    </div>
+</div>

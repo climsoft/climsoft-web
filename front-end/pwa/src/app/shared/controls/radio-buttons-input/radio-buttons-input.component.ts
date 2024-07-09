@@ -8,6 +8,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 export class RadioButtonsInputComponent implements OnChanges {
 
   @Input() inline: boolean= false;
+  @Input() asButtons: boolean= false;
   @Input() groupName!: string;
   @Input() groupItems!: { label: string, checked?: boolean, hintMessage?: string }[];
   @Input() checkedValue!: string;
