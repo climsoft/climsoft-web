@@ -28,12 +28,15 @@ To deploy the Climsoft Web application for development purposes, follow these st
    ```
 
 3. **Backend API Setup**:
-   Navigate to `back-end/api` and run the commands below to install NestJS dependencies and and launch the backend API with hot-reload enabled:
+   Navigate to `back-end/api` and run the commands below to install NestJS dependencies, launch the backend API with hot-reload enabled and execute seeding migration scripts:
    ```bash
    npm install
    ```
-    ```bash
+   ```bash
    nest start --watch
+   ```
+   ```bash
+   npx typeorm migration:run -d dist/typeorm.config.js
    ```
 
 4. **Frontend Setup**:
