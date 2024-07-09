@@ -2,6 +2,7 @@ import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransfor
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
+import { CreateObservationQueryDto } from 'src/observation/dtos/create-observation-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
@@ -17,7 +18,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
   // This will iprove on consistency.
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('AuthorisedStationsPipe',"value: ", value," metadata: ", metadata);
+    console.log('AuthorisedStationsPipe', "value: ", value, " metadata: ", metadata, ' typeof: ', typeof metadata.metatype);
 
     const user = AuthUtil.getSessionUser(this.request);
     if (!user) {
@@ -42,7 +43,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
         throw new BadRequestException('Not authorised to access station(s)');
       }
 
-    }else if(metadata.metatype === String){
+    } else if (metadata.metatype === String) {
       const stationIds = this.checkValidStations([value], user.authorisedStationIds);
 
       if (stationIds) {
@@ -52,6 +53,18 @@ export class AuthorisedStationsPipe implements PipeTransform {
       }
     }
 
+    // ---------------------------
+    // // TODO.
+    // if (metadata.metatype === CreateObservationQueryDto) {
+    //   console.log('observation trial (===): ', CreateObservationQueryDto);
+    // }
+    // //TODO
+    // if (metadata.metatype instanceof CreateObservationQueryDto) {
+    //   console.log('observation trial (instanceof): ', CreateObservationQueryDto);
+    // }
+    // ---------------------------
+
+
 
     //todo. do validation
     return value;
@@ -60,12 +73,12 @@ export class AuthorisedStationsPipe implements PipeTransform {
   private checkValidStations(requestedIds: string[] | null, authorisedIds: string[]): string[] | null {
     //If there are any requested ids, then validate them, if not then just return the authorised ids
     if (requestedIds && requestedIds.length > 0) {
-        const isValid = requestedIds.every(id => authorisedIds.includes(id));
-        return isValid ? requestedIds : null;
+      const isValid = requestedIds.every(id => authorisedIds.includes(id));
+      return isValid ? requestedIds : null;
     } else {
-        return authorisedIds;
+      return authorisedIds;
     }
-}
+  }
 
 
 }

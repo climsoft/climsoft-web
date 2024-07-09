@@ -1,0 +1,123 @@
+<div>
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'elementStatus'" [groupItems]="[
+            { label:'Includes Elements', checked:  elementAndValueDefinition.hasElement !== undefined}, 
+        { label:'Does Not Include Elements', checked: elementAndValueDefinition.noElement !== undefined}]"
+        (checkedValueChange)="onElementStatusSelection($event)" />
+
+    <div class="ms-4 mt-3">
+        <!--includes elements-->
+        <div *ngIf="elementAndValueDefinition.hasElement">
+
+            <app-radio-buttons-input [inline]="true" [groupName]="'hasElementSelection'" [groupItems]="[{ label:'Single Column', checked: elementAndValueDefinition.hasElement.singleColumn  !== undefined}, 
+        { label:'Multiple Column', checked: elementAndValueDefinition.hasElement.multipleColumn  !== undefined}]"
+                (checkedValueChange)="onElementColumnsSelection($event)" />
+
+
+            <!--single column elements-->
+            <div *ngIf="elementAndValueDefinition.hasElement.singleColumn" class="ms-4">
+                <div class="mt-2">
+                    <app-number-input [label]="'Element Column Position'"
+                        [(value)]="elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition" />
+
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Fetch Specific Elements'"
+                            [value]="elementAndValueDefinition.hasElement.singleColumn.elementsToFetch !== undefined"
+                            (valueChange)="onSingleFetchElementsChange($event)" />
+
+                        <table *ngIf="elementAndValueDefinition.hasElement.singleColumn.elementsToFetch"
+                            class="table table-sm ms-2">
+                            <thead>
+                                <tr>
+                                    <th>Source ID</th>
+                                    <th>Database ID</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider">
+                                <tr *ngFor="let item of elementToFetchsHolder; let i = index">
+                                    <td>
+                                        <app-text-input [id]="i + '_source_element_id'" [(value)]="item.sourceId"
+                                            (valueChange)="onSingleElementsToFetchEntry()" />
+                                    </td>
+                                    <td>
+                                        <app-element-single-input [id]="i + '_database_element_id'"
+                                            [(selectedId)]="item.databaseId"
+                                            (selectedIdChange)="onSingleElementsToFetchEntry()" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                </div>
+
+                <div class="mt-2">
+                    <app-number-input [label]="'Value Column Position'"
+                    [(value)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
+                </div>
+            
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Includes Flag'"
+                        [value]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined"
+                        (valueChange)="onSingleElementIncludesFlag($event)" />
+                    <div class="ms-2" *ngIf="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined">
+                        <app-number-input [label]="'Column Position'"
+                            [(value)]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition" />
+
+                    </div>
+                </div>
+
+
+            </div>
+
+            <!--multiple column elements-->
+            <table *ngIf="elementAndValueDefinition.hasElement.multipleColumn" class="table table-sm ms-2">
+                <thead>
+                    <tr>
+                        <th>Column Position</th>
+                        <th>Database ID</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr *ngFor="let item of elementColumnsHolder; let i = index;">
+                        <td>
+                            <app-number-input [id]="i + 'multiple_element_column_position'"
+                                [(value)]="item.columnPosition" />
+                        </td>
+                        <td>
+                            <app-element-single-input [id]="i + '_multiple_database_element_id'"
+                                [(selectedId)]="item.databaseId" (selectedIdChange)="onMultipleElementsEntry()" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+        <!--------->
+
+        <!-- no elements -->
+        <div *ngIf="elementAndValueDefinition.noElement" class="ms-4">
+
+            <app-element-single-input [label]="'Element:'"
+                [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
+
+            <app-number-input [label]="'Value Column Position'"
+                [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
+
+            <div>
+                <app-check-box-input [label]="'Includes Flag'"
+                    [value]="elementAndValueDefinition.noElement.flagColumnPosition  !== undefined"
+                    (valueChange)="onNoElementIncludesFlag($event)" />
+                <div *ngIf="elementAndValueDefinition.noElement.flagColumnPosition !== undefined">
+                    <app-number-input [label]="'Column Position'"
+                        [(value)]="elementAndValueDefinition.noElement.flagColumnPosition" />
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+</div>

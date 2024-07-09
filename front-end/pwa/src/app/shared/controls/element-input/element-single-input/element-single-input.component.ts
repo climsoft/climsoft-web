@@ -14,7 +14,7 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected options!: ViewElementModel[] ;
   protected selectedOption!: ViewElementModel | null;
@@ -63,8 +63,7 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
     } else {
-      //this.selectedId = null;
-      this.selectedIdChange.emit(null);
+      this.selectedIdChange.emit(-1);
     }
 
   }

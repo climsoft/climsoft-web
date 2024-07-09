@@ -5,21 +5,23 @@ import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/obs
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { ElementsService } from 'src/metadata/services/elements/elements.service';
-import { SourcesService } from 'src/metadata/services/sources/sources.service';
+import { ElementsService } from 'src/metadata/services/elements/elements.service'; 
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { StationsService } from 'src/metadata/services/stations/stations.service';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
+import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
 
 @Injectable()
 export class ObservationsService {
 
-    constructor(@InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
+    constructor(
+        @InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
         private readonly stationsService: StationsService,
-        private readonly elementsService: ElementsService, private readonly sourcesService: SourcesService,
+        private readonly elementsService: ElementsService, 
+        private readonly sourcesService: SourcesService,
     ) { }
 
 

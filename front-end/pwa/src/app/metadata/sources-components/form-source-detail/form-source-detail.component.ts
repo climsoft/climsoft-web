@@ -4,13 +4,14 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../../../core/models/sources/create-entry-form.model';
 import { CreateUpdateSourceModel } from '../../../core/models/sources/create-update-source.model';
-import { ActivatedRoute } from '@angular/router'; 
+import { ActivatedRoute } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { take } from 'rxjs';
 import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 
 @Component({
   selector: 'app-form-source-detail',
@@ -19,8 +20,8 @@ import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.
 })
 export class FormSourceDetailComponent implements OnInit {
 
+  protected viewSource!: ViewSourceModel<ViewEntryFormModel>;
   protected sourceId: number = 0;
-  protected viewSource!: CreateUpdateSourceModel<ViewEntryFormModel>;
   protected formName: string = '';
   protected formDescription: string = '';
 
@@ -44,28 +45,50 @@ export class FormSourceDetailComponent implements OnInit {
   protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
-  constructor(private pagesDataService: PagesDataService,
-    private formSourcesService: FormSourcesService, private location: Location, private route: ActivatedRoute) {
+  constructor(
+    private pagesDataService: PagesDataService,
+    private formSourcesService: FormSourcesService,
+    private location: Location,
+    private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Entry Form');
+      this.pagesDataService.setPageHeader('Edit Form Definitions');
       // Todo. handle errors where the source is not found for the given id
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe((data) => {
 
         this.sourceId = data.id;
-        // Important, deconstruct explicitly
         this.viewSource = data;
         this.setControlValues(data);
       });
     } else {
       this.sourceId = 0;
-      this.viewSource = { name: '', description: '', sourceType: SourceTypeEnum.FORM, extraMetadata: null };
-      this.pagesDataService.setPageHeader('New Entry Form');
+      this.viewSource = { 
+        id:0,
+        name: '', 
+        description: '', 
+        sourceType: SourceTypeEnum.FORM, 
+        sourceTypeName: SourceTypeEnum.FORM,
+        extraMetadata: {
+          selectors: ['DAY','HOUR'],
+          fields: ['ELEMENT'],
+          layout: 'LINEAR',
+          elementIds: [],
+          hours: [],
+          period: 1440,
+          convertDateTimeToUTC: false,
+          enforceLimitCheck: false,
+          validateTotal: false,
+          samplePaperImage: '',
+          elementsMetadata:[]
+        }
+      
+      };
+      this.pagesDataService.setPageHeader('New Form Definitions');
     }
   }
 
@@ -232,12 +255,11 @@ export class FormSourceDetailComponent implements OnInit {
     };
 
     const createUpdateSource: CreateUpdateSourceModel<CreateEntryFormModel> = {
-      name:  this.viewSource.name,
-      description:  this.viewSource.description,
+      name: this.viewSource.name,
+      description: this.viewSource.description,
       extraMetadata: entryForm,
-      sourceType:  SourceTypeEnum.FORM
+      sourceType: SourceTypeEnum.FORM
     }
- 
 
     if (this.sourceId === 0) {
       this.formSourcesService.create(createUpdateSource).pipe(
@@ -245,7 +267,7 @@ export class FormSourceDetailComponent implements OnInit {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Details', message: `Form ${this.viewSource.name} created`, type: 'success'
+            title: 'Form Definitions', message: `Form ${this.viewSource.name} definitions saved`, type: 'success'
           });
           this.location.back();
         }
@@ -256,7 +278,7 @@ export class FormSourceDetailComponent implements OnInit {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Details', message: `Form ${this.viewSource.name} updated`, type: 'success'
+            title: 'Form Definitions', message: `Form  ${this.viewSource.name} definitions updated`, type: 'success'
           });
           this.location.back();
         }
@@ -266,16 +288,16 @@ export class FormSourceDetailComponent implements OnInit {
 
   }
 
-  protected onCancel(): void {
-    this.location.back();
-  }
-
   protected onDelete(): void {
     //todo. prompt for confirmation first
     this.formSourcesService.delete(this.sourceId).subscribe((data) => {
       this.location.back();
     });
 
+  }
+
+  protected onCancel(): void {
+    this.location.back();
   }
 
   private validSelectors(selectors: ExtraSelectorControlType[]): boolean {

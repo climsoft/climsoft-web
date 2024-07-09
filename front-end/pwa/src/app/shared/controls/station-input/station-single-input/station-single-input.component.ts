@@ -1,7 +1,5 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { CreateUpdateSourceModel } from 'src/app/core/models/sources/create-update-source.model';
-import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model'; 
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 
 @Component({
@@ -11,12 +9,13 @@ import { StationsService } from 'src/app/core/services/stations/stations.service
 })
 export class StationSingleInputComponent implements OnInit, OnChanges {
 
-  @Input() public label: string = 'Station';
-  @Input() public errorMessage: string = '';
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public errorMessage!: string;
   @Input() public placeholder: string | null = null;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: string | null;
-  @Output() public selectedIdChange = new EventEmitter<string | null>();
+  @Output() public selectedIdChange = new EventEmitter<string>();
 
   protected options!: CreateStationModel[];
   protected selectedOption!: CreateStationModel | null;
@@ -59,7 +58,7 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
       this.selectedIdChange.emit(selectedOption.id);
     } else {
       //this.selectedId = null;
-      this.selectedIdChange.emit(null);
+      this.selectedIdChange.emit('');
     }
 
   }

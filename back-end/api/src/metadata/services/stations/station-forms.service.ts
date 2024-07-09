@@ -2,9 +2,9 @@ import { In, Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DateUtils } from "src/shared/utils/date.utils";
-import { StationFormEntity } from "../../entities/stations/station-form.entity";
-import { SourcesService } from "../sources/sources.service";
-import { ViewSourceDto } from "../../dtos/sources/view-source.dto";
+import { StationFormEntity } from "../../entities/stations/station-form.entity"; 
+import { ViewSourceDto } from "../../controllers/sources/dtos/view-source.dto";
+import { SourcesService } from "src/metadata/controllers/sources/services/sources.service";
 
 @Injectable()
 export class StationFormsService {

@@ -6,8 +6,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./check-box-input.component.scss']
 })
 export class CheckBoxInputComponent {
-  @Input() label: string = '';
-  @Input() disabled: boolean = false;
+  @Input() label: string = ''; 
   @Input() hintMessage!: string;
   @Input() value!: boolean ;
   @Output() valueChange = new EventEmitter<boolean>();
@@ -16,8 +15,7 @@ export class CheckBoxInputComponent {
   }
 
   protected onValueChange(value: boolean) {
-    this.value = value;
-    this.valueChange.emit(this.value);
+    this.valueChange.emit(value);
   }
 
 }

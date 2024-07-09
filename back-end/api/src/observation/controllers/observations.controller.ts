@@ -43,7 +43,7 @@ export class ObservationsController {
   uploadFile(@UploadedFile(
     new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 10000000 }), //around 10mb
+        new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
         new FileTypeValidator({ fileType: 'text/csv' }),
       ],
     }),

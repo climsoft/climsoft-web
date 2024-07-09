@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUpdateSourceDto } from '../../dtos/sources/create-update-source.dto';
-import { ViewSourceDto } from '../../dtos/sources/view-source.dto';
-import { SourceTypeEnum } from '../../enums/source-type.enum';
-import { CreateEntryFormDTO } from '../../dtos/sources/create-entry-form.dto';
-import { SourcesService } from './sources.service';
-import { ViewEntryFormDTO } from 'src/metadata/dtos/sources/view-entry-form.dto';
-import { ElementsService } from '../elements/elements.service';
+import { SourceTypeEnum } from '../../../enums/source-type.enum';
+import { ViewEntryFormDTO } from 'src/metadata/controllers/sources/dtos/view-entry-form.dto';
+import { ElementsService } from '../../../services/elements/elements.service';
 import { ViewElementDto } from 'src/metadata/dtos/elements/view-element.dto';
 import { SourceEntity } from 'src/metadata/entities/sources/source.entity';
 import { FindOptionsWhere } from 'typeorm';
+import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
+import { ViewSourceDto } from '../dtos/view-source.dto';
+import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
+import { SourcesService } from './sources.service';
 
 
 @Injectable()
@@ -73,7 +73,7 @@ export class FormSourcesService {
             id: dto.id,
             name: dto.name,
             description: dto.description,
-            extraMetadata: dto.extraMetadata ? { ...dto.extraMetadata, elementsMetadata: elementsMetadata } : null,
+            extraMetadata: { ...dto.extraMetadata, elementsMetadata: elementsMetadata },
             sourceType: dto.sourceType,
             sourceTypeName: dto.sourceTypeName,
         };

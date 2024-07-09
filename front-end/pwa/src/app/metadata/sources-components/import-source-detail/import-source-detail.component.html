@@ -1,1 +1,107 @@
-<p>Import source  Detail works</p>
+<div *ngIf="viewSource" class="card border-0">
+    <div class="card-body px-0">
+
+        <!-- name -->
+        <div class="mb-3">
+            <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
+        </div>
+        <!--------->
+
+        <hr class="border border-secondary border-1">
+
+        <!-- description -->
+        <div class="mb-3">
+            <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Rows To Skip -->
+        <div class="mb-3">
+            <app-number-input [label]="'Rows To Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Delimeters-->
+        <div class="mb-3">
+            <!-- TODO -->
+            <app-selector-single-input [label]="'Delimeters'" [options]="['Auto']" [selectedOption]="'Auto'"
+                [optionDisplayFn]="displayDelimitersFn" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Scale values -->
+        <div class="mb-3">
+            <app-check-box-input [label]="'Scale Values'" [(value)]="viewSource.extraMetadata.scaleValues" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Station-->
+        <div class="mb-3">
+            <app-import-source-station-detail [(stationDefinition)]="viewSource.extraMetadata .stationDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Elevation-->
+        <div class="mb-3">
+            <app-check-box-input [label]="'Includes Elevation'"
+                [value]="viewSource.extraMetadata .elevationColumnPosition !== undefined"
+                (valueChange)="onIncludeElevation($event)" />
+
+            <div class="ms-4" *ngIf="viewSource.extraMetadata .elevationColumnPosition !== undefined">
+                <app-number-input [label]="'Column Position'"
+                    [(value)]="viewSource.extraMetadata .elevationColumnPosition" />
+            </div>
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Period-->
+        <div class="mb-3">
+            <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata .periodDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Date time-->
+        <div class="mb-3">
+            <app-import-source-date-detail [datetimeDefinition]="viewSource.extraMetadata.datetimeDefinition" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--UTC Time Difference -->
+        <div class="mb-3">
+            <app-number-input [label]="'UTC Time Difference'" [(value)]="viewSource.extraMetadata .utcDifference" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <!--Elements-->
+        <div class="mb-3">
+            <app-import-source-element-and-value-detail
+                [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
+        </div>
+
+
+    </div>
+
+
+    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
+        <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
+            Save
+        </button>
+        <button *ngIf="viewSource && viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+            (click)="onDelete()">
+            Delete
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
+            Cancel
+        </button>
+    </div>
+
+</div>

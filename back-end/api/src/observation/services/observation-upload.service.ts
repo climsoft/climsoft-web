@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
@@ -8,6 +8,7 @@ import { isNumber } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { FlagEnum } from '../enums/flag.enum';
+import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
 
 interface UploadedObservationDto extends CreateObservationDto {
     status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
@@ -50,10 +51,10 @@ export class ObservationUploadService {
 
                 const stationId: string = row[0];
                 const elementId: number = parseInt(row[1]);
-                const sourceId:  number = parseInt(row[2]);
-                const elevation: number =  row[3];
-                const datetime: string =  row[4].toString();
-                const period:  number = parseInt(row[5]);
+                const sourceId: number = parseInt(row[2]);
+                const elevation: number = row[3];
+                const datetime: string = row[4].toString();
+                const period: number = parseInt(row[5]);
 
                 let value: number | null = null;
                 let flag: FlagEnum | null = null;
@@ -65,7 +66,7 @@ export class ObservationUploadService {
 
                 if (StringUtils.containsNumbersOnly(row[7])) {
                     //TODO. validate the flag
-                    flag =row[7];
+                    flag = row[7];
                 }
 
                 if (row[8]) {
@@ -74,7 +75,7 @@ export class ObservationUploadService {
 
 
 
-                if(value === null && flag === null){
+                if (value === null && flag === null) {
                     continue;
                 }
 
@@ -108,7 +109,7 @@ export class ObservationUploadService {
         //this.saveFile(userId, JSON.stringify(observationDtos));
 
         //return `success, ${savedEntities.length}`;
-        return JSON.stringify(`success, ${savedEntities.length}`) ;
+        return JSON.stringify(`success, ${savedEntities.length}`);
     }
 
 
@@ -121,5 +122,107 @@ export class ObservationUploadService {
             // file written successfully
         });
     }
+
+
+    //-----------------------
+
+    private createColumns(source: CreateImportTabularSourceDTO): void {
+        const columns: string[] = [];
+
+        this.addStationColumn(source, columns);
+        this.addElementAndValueColumn(source, columns);
+        this.addPeriodColumn(source, columns);
+        this.addElevationColumn(source, columns);
+        this.addDateColumn(source, columns);
+
+        //TODO. Create the table SQL
+        
+
+    }
+
+
+    private addStationColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+        if (source.stationDefinition) {
+            columns.splice(source.stationDefinition.columnPosition - 1, 0, "station_id VARCHAR");
+        }
+    }
+
+    private addElementAndValueColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+        if (source.elementAndValueDefinition) {
+
+            if (source.elementAndValueDefinition.noElement) {
+              
+                columns.splice(source.elementAndValueDefinition.noElement.valueColumnPosition - 1, 0, "value VARCHAR");
+
+                if (source.elementAndValueDefinition.noElement.flagColumnPosition) {
+                    columns.splice(source.elementAndValueDefinition.noElement.flagColumnPosition - 1, 0, "flag VARCHAR");
+                } 
+
+
+            } else if (source.elementAndValueDefinition.hasElement) {
+
+                if(source.elementAndValueDefinition.hasElement.singleColumn){
+
+                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1, 0, "element VARCHAR");
+
+                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1, 0, "value VARCHAR");
+
+                    if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition) {
+                        columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1, 0, "flag VARCHAR");
+                    } 
+
+                }else if(source.elementAndValueDefinition.hasElement.multipleColumn){
+                    for (const el of source.elementAndValueDefinition.hasElement.multipleColumn) {
+                        columns.splice(el.columnPosition - 1, 0, el.databaseId + " VARCHAR");
+                    }
+                }
+                
+
+            } 
+        }
+    }
+
+    private addPeriodColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+
+        if (source.periodDefinition.columnPosition) {
+            columns.splice(source.periodDefinition.columnPosition - 1, 0, "period VARCHAR");
+        }
+
+    }
+
+    private addElevationColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+        if (source.elevationColumnPosition) {
+            columns.splice(source.elevationColumnPosition - 1, 0, "elevation VARCHAR");
+        }
+    }
+
+    private addDateColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+      
+        if (source.datetimeDefinition.dateTimeColumnPostion !== undefined) {
+            columns.splice(source.datetimeDefinition.dateTimeColumnPostion - 1, 0, "date_time VARCHAR");
+
+          
+        }else  if (source.datetimeDefinition.dateTimeInMultipleColumn) {
+
+            if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn){
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.dateColumnPosition - 1, 0, "date VARCHAR");
+
+            }else  if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn){
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.yearColumnPosition - 1, 0, "year VARCHAR");
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.monthColumnPosition - 1, 0, "month VARCHAR");
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.dayColumnPosition - 1, 0, "day VARCHAR");
+
+            }
+            
+            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition) {
+                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition - 1, 0, "hour VARCHAR");
+            }
+
+        }
+
+       
+    }
+
+  
 
 }

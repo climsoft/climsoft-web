@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
-import { CreateUpdateSourceDto } from '../../dtos/sources/create-update-source.dto';
+import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { CreateEntryFormDTO } from 'src/metadata/dtos/sources/create-entry-form.dto';
-import { FormSourcesService } from 'src/metadata/services/sources/form-sources.service';
+import { CreateEntryFormDTO } from 'src/metadata/controllers/sources/dtos/create-entry-form.dto';
+import { FormSourcesService } from 'src/metadata/controllers/sources/services/form-sources.service';
 
 @Controller('form-sources')
 export class FormSourcesController {

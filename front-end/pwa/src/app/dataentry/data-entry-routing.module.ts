@@ -32,7 +32,7 @@ const routes: Routes = [
         component: ImportSelectionComponent
       },
       {
-        path: 'import-entry',
+        path: 'import-entry/:sourceid',
         component: ImportEntryComponent
       },
       {
