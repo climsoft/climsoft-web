@@ -21,7 +21,7 @@ export class ImportSelectionComponent {
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.pagesDataService.setPageHeader('Select Import Sources ');
+    this.pagesDataService.setPageHeader('Select Import Source');
 
     // Get all sources 
     this.sourceService.findAll().pipe(take(1)).subscribe((data) => {

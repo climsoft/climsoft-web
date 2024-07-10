@@ -1,4 +1,4 @@
-import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, ParseArrayPipe, ParseFilePipe, Post, Query, Req, Session, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseIntPipe, Post, Query, Req, Session, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -38,31 +38,25 @@ export class ObservationsController {
     return this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Post('upload')
+  @Post('/upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(@UploadedFile(
-    new ParseFilePipe({
+  uploadFile(
+    @Req() request: Request,
+    @Param('sourceid', ParseIntPipe) sourceId: number,
+    @UploadedFile(  new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
         new FileTypeValidator({ fileType: 'text/csv' }),
-      ],
-    }),
-  ) file: Express.Multer.File, @Session() session: Record<string, any>) {
+      ] })
+     ) file: Express.Multer.File) {
 
-    //session.userId = session.userId ? session.userId : 1;
-    return this.observationUpload.processFile(session, file);
+  
+    return this.observationUpload.processFile( sourceId, file, AuthUtil.getLoggedInUserId(request));
+
+   
+   
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() observationDto: CreateObservationDto) {
-  //   return this.observationsService.update(id, observationDto);
-  // }
 
-  //todo. these delete has been left here for reference purposes.
-  //a delete command can have a body
-  // @Delete(':id')
-  // delete(@Param('id') id: string,@Body() observations: CreateObservationDto[]) {
-  //   return this.observationsService.remove(id);
-  // }
 
 }
