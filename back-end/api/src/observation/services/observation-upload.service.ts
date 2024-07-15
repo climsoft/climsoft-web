@@ -13,6 +13,9 @@ import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/d
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as duckdb from 'duckdb';
+import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
+import { ViewSourceDto } from 'src/metadata/controllers/sources/dtos/view-source.dto';
+import { CreateImportSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
 
 
 interface UploadedObservationDto extends CreateObservationDto {
@@ -23,37 +26,76 @@ interface UploadedObservationDto extends CreateObservationDto {
 export class ObservationUploadService {
 
     private db: duckdb.Database;
+    private tempFilesFolderPath: string;
 
-    constructor(private readonly observationsService: ObservationsService) {
+    constructor(
+        private observationsService: ObservationsService,
+        private sourcesService: SourcesService) {
+
+        this.setupFolder()
+
         this.db = new duckdb.Database(':memory:');
 
-        this.db.all("SELECT * FROM duckdb_settings() WHERE name = 'threads';", function (err, res) {
-            if (err) {
-                console.warn(err);
-                return;
-            }
-            console.log('duckdb res: ',res)
-        });
+        // this.db.all("SELECT * FROM duckdb_settings() WHERE name = 'threads';", function (err, res) {
+        //     if (err) {
+        //         console.warn(err);
+        //         return;
+        //     }
+        //     console.log('duckdb res: ', res)
+        // });
     }
 
-    async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
-       // console.log('Uploaded File: ', file);
-
+    async setupFolder(): Promise<void> {
+        this.tempFilesFolderPath = path.resolve('./tmp');
+        // For windows platform, replace the backslashes with forward slashes.
+        this.tempFilesFolderPath = this.tempFilesFolderPath.replaceAll("\\", "\/");
+        // Check if the temporary directory exist. 
         try {
-            await fs.access('./tmp', fs.constants.F_OK)
-        } catch (err) {
-            console.error('tmp folder not found: ', err);
-            await fs.mkdir('./tmp');
+            await fs.access(this.tempFilesFolderPath, fs.constants.F_OK)
+        } catch (err1) {
+            // If it doesn't create the directory.
+            try {
+                await fs.mkdir(this.tempFilesFolderPath);
+            } catch (err2) {
+                console.error("Could not create temporary folder: ", err2);
+                // TODO. Throw appropriiate error.
+            }
+
         }
 
+    }
+
+
+    async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
+
+        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_observations_upload${path.extname(file.originalname)}`;
+
+
+        // Save the file to the temporary directory
         try {
-            await fs.writeFile(`./tmp/user_${userId}_observations_upload${path.extname(file.originalname)}`, file.buffer);
+            await fs.writeFile(`${newFileName}`, file.buffer);
         } catch (err) {
             console.error('Could not save user file', err);
             // TODO. Through an error.
         }
 
-        console.log("Source Id", sourceId)
+        // Get the source using the source id
+        const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
+        if (sourceDefinition.format === "TABULAR") {
+            this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, newFileName);
+        } else {
+            return JSON.stringify('error: source not supported yet.');
+        }
+
+        console.log("Source Id", sourceId);
+        //TODO. Left here.
+
+        //Get source
+        //Create the table.
+        //TODO. Later do the actual import status through server sent events in the front end to check progress of duckdb import operation.
+
+
+
 
 
         return JSON.stringify('success');
@@ -63,18 +105,58 @@ export class ObservationUploadService {
 
     //-----------------------
 
-    private createColumns(source: CreateImportTabularSourceDTO): void {
+    private importTabularSource(source: CreateImportTabularSourceDTO, fileName: string): void {
         const columns: string[] = [];
 
-        this.addStationColumn(source, columns);
-        this.addElementAndValueColumn(source, columns);
-        this.addPeriodColumn(source, columns);
-        this.addElevationColumn(source, columns);
-        this.addDateColumn(source, columns);
 
-        //TODO. Create the table SQL
+        const tableName: string = path.basename(fileName, path.extname(fileName));
+        const params: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
+
+        if (source.delimiter) {
+            params.push(`delim = '${source.delimiter}'`);
+        }
+
+        const sql: string = `CREATE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${params.join(",")})`;
+
+        console.log('sql: ', sql);
+
+        // if (1 === 1) {
+        //     return;
+        // }
+
+        this.db.run(sql,  (err) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                this.GetFileColumns(tableName);
 
 
+            });
+    }
+
+    private GetFileColumns(tableName: string) {
+        this.db.all(`DESCRIBE SELECT * FROM ${tableName}`,  (err, res)=> {
+            if (err) {
+                console.warn(err);
+                return;
+            }
+            console.log('describe response: ', res);
+
+            // TODO. Left here
+        });
+    }
+
+    private createColumns(sourceDefinition: CreateImportTabularSourceDTO): string[] {
+        const columns: string[] = this.createColumns(sourceDefinition);
+
+        this.addStationColumn(sourceDefinition, columns);
+        this.addElementAndValueColumn(sourceDefinition, columns);
+        this.addPeriodColumn(sourceDefinition, columns);
+        this.addElevationColumn(sourceDefinition, columns);
+        this.addDateColumn(sourceDefinition, columns);
+
+        return columns;
     }
 
 

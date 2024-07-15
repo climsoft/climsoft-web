@@ -39,11 +39,10 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     rowsToSkip: number;
 
     /**
-     * Auto applies to all tabular file formats like CSV, XLXS.
-     * The others apply to CSV files only
+     * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
     @IsString()
-    delimiters: 'auto' | ',' | '|';
+    delimiter?: ',' | '|'; // TODO find a way of including \t
 
     @IsOptional()
     @IsString()
