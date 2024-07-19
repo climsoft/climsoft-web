@@ -21,6 +21,9 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
+    @IsNumber()
+    commentColumnPosition?: number;
+
     /**Determines the UTC difference. When zero, no conversion of dates will be done */
     @IsInt()
     utcDifference: number;

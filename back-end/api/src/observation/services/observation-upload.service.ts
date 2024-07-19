@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
 
 
-import { CreateObservationDto } from '../dtos/create-observation.dto'; 
-import { ObservationsService } from './observations.service'; 
+import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { ObservationsService } from './observations.service';
 import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
-import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service'; 
+import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
 import { CreateImportSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
 
 
-interface UploadedObservationDto extends CreateObservationDto {
-    status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
-}
+
 
 @Injectable()
 export class ObservationUploadService {
 
     private db: Database;
     private tempFilesFolderPath: string;
+    // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
+    private readonly STATIONID: keyof CreateObservationDto = "stationId";
+    private readonly ELEMENTID: keyof CreateObservationDto = "elementId";
+    private readonly SOURCEID: keyof CreateObservationDto = "sourceId";
+    private readonly ELEVATION: keyof CreateObservationDto = "elevation";
+    private readonly DATETIME: keyof CreateObservationDto = "datetime";
+    private readonly PERIOD: keyof CreateObservationDto = "period";
+    private readonly VALUE: keyof CreateObservationDto = "value";
+    private readonly FLAG: keyof CreateObservationDto = "flag";
+    private readonly COMMENT: keyof CreateObservationDto = "comment";
 
     constructor(
         private observationsService: ObservationsService,
@@ -65,7 +73,7 @@ export class ObservationUploadService {
             await fs.writeFile(`${newFileName}`, file.buffer);
         } catch (err) {
             console.error('Could not save user file', err);
-            // TODO. Through an error.
+            // TODO. Handle the error.
             throw new Error("Could not save user file");
         }
 
@@ -73,10 +81,10 @@ export class ObservationUploadService {
         const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
 
         if (sourceDefinition.format === "TABULAR") {
-            this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, newFileName);
+            this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
         } else {
             console.error('Source not supported yet');
-            // TODO. Throw correct error.
+            // TODO. Handle the error.
             throw new Error("Source not supported yet");
         }
 
@@ -84,9 +92,10 @@ export class ObservationUploadService {
     }
 
 
-    private async importTabularSource(source: CreateImportTabularSourceDTO, fileName: string) {
+    private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number) {
 
         try {
+
             const tableName: string = path.basename(fileName, path.extname(fileName));
             const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
 
@@ -99,25 +108,44 @@ export class ObservationUploadService {
 
             // Process columns data
             let sql: string;
-            sql = this.alterStationColumn(source, tableName);
+            //Add source column
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.SOURCEID} INTEGER DEFAULT ${sourceId};`;
+            // Add the rest of the columns
+            sql = sql + this.alterStationColumn(source, tableName);
             sql = sql + this.alterElementAndValueColumn(source, tableName);
             sql = sql + this.alterPeriodColumn(source, tableName);
             sql = sql + this.alterElevationColumn(source, tableName);
             sql = sql + this.alterDateColumn(source, tableName);
+            sql = sql + this.alterCommentColumn(source, tableName);
 
-            console.log('SQL', sql);
+            //console.log('SQL', sql);
+
+            const startTime = new Date().getTime();
 
             await this.db.exec(sql);
 
-            const colNames = await this.db.all(`DESCRIBE SELECT * FROM ${tableName}`);
+            const rows = await this.db.all(`SELECT * FROM ${tableName};`);
 
-            console.log('Column names', colNames)
+            console.log("DuckDB took: ", new Date().getTime() - startTime);
 
-            //this.db.all(`SELECT * FROM ${tableName}`);
+            //console.warn("sample dto: ", rows[0]);
+            //console.log('Trying to save: ', rows.length);
+            try {
+                await this.observationsService.save2(rows as CreateObservationDto[], userId);
+            } catch (err) {
+                console.error("Import save error: ", err);
+            }
+
+
+            // Delete the table 
+            await this.db.run(`DROP TABLE ${tableName};`);
+
+            // Delete the file
+            await fs.unlink(fileName);
+
         } catch (error) {
-            console.error("Import error: ", error);
-            // TODO, Throw correct error 
-            throw error;
+            console.error("File Import(DuckDB level) error : ", error);
+            // TODO, Log the error
         }
 
     }
@@ -127,15 +155,15 @@ export class ObservationUploadService {
         let sql: string;
 
         if (source.stationDefinition) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.stationDefinition.columnPosition - 1} TO station_id;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN station_id SET NOT NULL;`;
+            sql = `ALTER TABLE ${tableName} RENAME column${source.stationDefinition.columnPosition - 1} TO ${this.STATIONID};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.STATIONID} SET NOT NULL;`;
 
             if (source.stationDefinition.stationsToFetch) {
                 // TODO. SQL for getting the stations to fetch only.
             }
 
         } else if (defaultStationId) {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN station_id VARCHAR DEFAULT ${defaultStationId};`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATIONID} VARCHAR DEFAULT ${defaultStationId};`;
         } else {
             throw new Error("Station must be provided");
         }
@@ -150,12 +178,15 @@ export class ObservationUploadService {
 
         if (source.elementAndValueDefinition.noElement) {
 
-            sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.valueColumnPosition - 1} TO value;`;
+            sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.valueColumnPosition - 1} TO ${this.VALUE};`;
 
-            if (source.elementAndValueDefinition.noElement.flagColumnPosition) {
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.flagColumnPosition - 1} TO flag;`;
+            if (source.elementAndValueDefinition.noElement.flagColumnPosition !== undefined) {
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.flagColumnPosition - 1} TO ${this.FLAG};`;
+                // TODO. Should validate the flag at this point, using the flag enumerators
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG} SET DEFAULT NULL;`;
+
             } else {
-                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN flag VARCHAR DEFAULT NULL;`;
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
             }
 
 
@@ -165,27 +196,30 @@ export class ObservationUploadService {
 
                 //--------------------------
                 // Element column
-                sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1} TO element_id;`;
+                sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1} TO ${this.ELEMENTID};`;
                 if (source.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch) {
                     // TODO. SQL for getting the elements to fetch
                 }
-                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN element_id SET NOT NULL;`;
-                sql = sql + `ALTER TABLE ${tableName} ALTER element_id TYPE REAL;`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENTID} SET NOT NULL;`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENTID} TYPE REAL;`;
                 //--------------------------
 
                 //--------------------------
                 // Value column
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1} TO value;`;
-                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN value SET DEFAULT NULL;`;
-                sql = sql + `ALTER TABLE ${tableName} ALTER value TYPE REAL;`;
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1} TO ${this.VALUE};`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE} SET DEFAULT NULL;`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE} TYPE REAL;`;
                 //--------------------------
 
                 //--------------------------
                 // Flag column
-                if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition) {
-                    sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1} TO flag;`
+                if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined) {
+                    sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1} TO ${this.FLAG};`
+                    // TODO. Should validate the flag at this point, using the flag enumerators
+                    sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG} SET DEFAULT NULL;`;
+
                 } else {
-                    sql = sql + `ALTER TABLE ${tableName} ADD COLUMN flag VARCHAR DEFAULT NULL;`;
+                    sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
                 }
                 //--------------------------
 
@@ -209,26 +243,26 @@ export class ObservationUploadService {
 
         let sql: string = "";
 
-        if (source.periodDefinition.columnPosition) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.periodDefinition.columnPosition - 1} TO period;`
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN period SET NOT NULL;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER period TYPE INTEGER;`;
+        if (source.periodDefinition.columnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.periodDefinition.columnPosition - 1} TO ${this.PERIOD};`
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD} TYPE INTEGER;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN period INTEGER DEFAULT ${source.periodDefinition.defaultPeriod};`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.PERIOD} INTEGER DEFAULT ${source.periodDefinition.defaultPeriod};`;
         }
 
         return sql;
 
     }
 
-    private  alterElevationColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private alterElevationColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
-        if (source.elevationColumnPosition) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.elevationColumnPosition - 1} TO elevation;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN elevation SET NOT NULL;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER elevation REAL INTEGER;`;
+        if (source.elevationColumnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.elevationColumnPosition - 1} TO ${this.ELEVATION};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} TYPE REAL;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN elevation REAL DEFAULT 0;`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION} REAL DEFAULT 0;`;
         }
 
         return sql;
@@ -238,8 +272,9 @@ export class ObservationUploadService {
 
         let sql: string = "";
         if (source.datetimeDefinition.dateTimeColumnPostion !== undefined) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.datetimeDefinition.dateTimeColumnPostion - 1} TO date_time;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN date_time SET NOT NULL;`;
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${source.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATETIME};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATETIME} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATETIME} TYPE TIMESTAMP_S;`;
 
             //TODO. Left here. Convert the datetime.
 
@@ -255,10 +290,24 @@ export class ObservationUploadService {
 
             }
 
-            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition) {
+            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition !== undefined) {
                 //columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition - 1, 0, "hour");
             }
 
+        }
+
+        return sql;
+    }
+
+
+    private alterCommentColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = "";
+        if (source.commentColumnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT} SET DEFAULT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT} TYPE VARCHAR;`;
+        } else {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT} VARCHAR DEFAULT NULL;`;
         }
 
         return sql;

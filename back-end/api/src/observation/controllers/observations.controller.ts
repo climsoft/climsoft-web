@@ -35,7 +35,7 @@ export class ObservationsController {
   save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
-    return this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
+    return this.observationsService.save1(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
   @Post('/upload/:sourceid')
@@ -49,12 +49,8 @@ export class ObservationsController {
         new FileTypeValidator({ fileType: 'text/csv' }),
       ] })
      ) file: Express.Multer.File) {
-
-  
-    return this.observationUpload.processFile( sourceId, file, AuthUtil.getLoggedInUserId(request));
-
-   
-   
+ 
+    return this.observationUpload.processFile( sourceId, file, AuthUtil.getLoggedInUserId(request));   
   }
 
 
