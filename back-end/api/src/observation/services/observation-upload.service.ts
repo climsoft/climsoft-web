@@ -66,36 +66,36 @@ export class ObservationUploadService {
 
     async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
 
-        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_observations_upload${path.extname(file.originalname)}`;
+        // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() threw a bug
+        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}_${path.extname(file.originalname)}`;
 
         // Save the file to the temporary directory
         try {
             await fs.writeFile(`${newFileName}`, file.buffer);
         } catch (err) {
-            console.error('Could not save user file', err);
-            // TODO. Handle the error.
-            throw new Error("Could not save user file");
+            throw new Error("Could not save user file: " + err);
         }
 
         // Get the source definition using the source id
         const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
 
         if (sourceDefinition.format === "TABULAR") {
-            this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
+            await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
         } else {
-            console.error('Source not supported yet');
-            // TODO. Handle the error.
             throw new Error("Source not supported yet");
         }
 
-        return JSON.stringify('success');
+        try {
+            // Delete the file.
+            // TODO. Investigate why sometimes the file is not deleted. Node puts a lock on it.
+            await fs.unlink(newFileName);
+        } catch (err) {
+            throw new Error("Could not delete user file: " + err);
+        }
     }
 
-
     private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number) {
-
         try {
-
             const tableName: string = path.basename(fileName, path.extname(fileName));
             const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
 
@@ -104,7 +104,6 @@ export class ObservationUploadService {
             }
 
             await this.db.run(`CREATE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")})`);
-
 
             // Process columns data
             let sql: string;
@@ -118,8 +117,6 @@ export class ObservationUploadService {
             sql = sql + this.alterDateColumn(source, tableName);
             sql = sql + this.alterCommentColumn(source, tableName);
 
-            //console.log('SQL', sql);
-
             const startTime = new Date().getTime();
 
             await this.db.exec(sql);
@@ -128,24 +125,19 @@ export class ObservationUploadService {
 
             console.log("DuckDB took: ", new Date().getTime() - startTime);
 
-            //console.warn("sample dto: ", rows[0]);
-            //console.log('Trying to save: ', rows.length);
             try {
-                await this.observationsService.save2(rows as CreateObservationDto[], userId);
+                await this.observationsService.save(rows as CreateObservationDto[], userId);
             } catch (err) {
-                console.error("Import save error: ", err);
+                throw new Error("Import save error: " + err);
             }
 
 
             // Delete the table 
             await this.db.run(`DROP TABLE ${tableName};`);
 
-            // Delete the file
-            await fs.unlink(fileName);
 
         } catch (error) {
-            console.error("File Import(DuckDB level) error : ", error);
-            // TODO, Log the error
+            throw new Error("Import(DuckDB level) error : " + error);
         }
 
     }

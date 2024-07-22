@@ -14,7 +14,7 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 export class ObservationsController {
   constructor(
     private readonly observationsService: ObservationsService,
-    private readonly observationUpload: ObservationUploadService,) { }
+    private readonly observationUpload: ObservationUploadService) { }
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: ViewObservationQueryDTO) {
@@ -32,25 +32,33 @@ export class ObservationsController {
   }
 
   @Post()
-  save(
+  async save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
-    return this.observationsService.save1(observationDtos, AuthUtil.getLoggedInUserId(request));
+    await this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
+    return { message: "success" };
   }
 
   @Post('/upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
-  uploadFile(
+  async uploadFile(
     @Req() request: Request,
     @Param('sourceid', ParseIntPipe) sourceId: number,
-    @UploadedFile(  new ParseFilePipe({
+    @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
         new FileTypeValidator({ fileType: 'text/csv' }),
-      ] })
-     ) file: Express.Multer.File) {
- 
-    return this.observationUpload.processFile( sourceId, file, AuthUtil.getLoggedInUserId(request));   
+      ]
+    })
+    ) file: Express.Multer.File) { 
+
+    try{
+      await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request));
+      return { message: "success" };
+    }catch(error){
+      return { message: `error: ${error}`  };
+    }
+   
   }
 
 

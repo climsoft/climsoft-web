@@ -266,7 +266,7 @@ export class ObservationsService {
     }
 
 
-    public async save2(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<void> {
+    public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<string> {
 
         let startTime = new Date().getTime();
 
@@ -306,6 +306,8 @@ export class ObservationsService {
             await this.insertUser(batch); 
         } 
         console.log("Saving entities took: ", new Date().getTime() - startTime);
+
+        return "success";
  
     }
 
