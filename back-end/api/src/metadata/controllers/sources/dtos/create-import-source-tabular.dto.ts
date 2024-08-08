@@ -21,6 +21,9 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
+    @IsNumber()
+    commentColumnPosition?: number;
+
     /**Determines the UTC difference. When zero, no conversion of dates will be done */
     @IsInt()
     utcDifference: number;
@@ -39,11 +42,10 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     rowsToSkip: number;
 
     /**
-     * Auto applies to all tabular file formats like CSV, XLXS.
-     * The others apply to CSV files only
+     * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
     @IsString()
-    delimiters: 'auto' | ',' | '|';
+    delimiter?: ',' | '|'; // TODO find a way of including \t
 
     @IsOptional()
     @IsString()

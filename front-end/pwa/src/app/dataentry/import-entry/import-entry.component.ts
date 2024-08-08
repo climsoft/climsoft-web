@@ -1,7 +1,12 @@
+import { Location } from '@angular/common';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { Subscription, finalize } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription, finalize, take } from 'rxjs';
+import { CreateImportSourceModel } from 'src/app/core/models/sources/create-import-source.model';
+import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
 
 @Component({
   selector: 'app-import-entry',
@@ -10,81 +15,79 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class ImportEntryComponent implements OnInit {
 
-
+  protected viewSource!: ViewSourceModel<CreateImportSourceModel>;
+  protected uploadFeedback: string = "Upload File";
+  protected uploadError!: boolean;
   protected uploadProgress!: number | null;
-  protected uploadSub!: Subscription | null;
-  protected filePath: string = '';
 
-  constructor(private pagesDataService: PagesDataService, private http: HttpClient) {
-    this.pagesDataService.setPageHeader('Import Data');
+  constructor(
+    private pagesDataService: PagesDataService,
+    private importSourcesService: ImportSourcesService,
+    private http: HttpClient,
+    private route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
-  }
-
-  protected onFileSelected(event: any) {
-    if (event.target.files.length > 0 && event.target.files[0]) {
-      this.uploadFile(event.target.files[0] as File);
-    }
-  }
-
-  protected onCancelUpload(): void {
-    if (this.uploadSub) {
-      this.uploadSub.unsubscribe();
-    }
-    this.reset();
-  }
-
-  private uploadFile(selectedFile: File): void {
-    const formData = new FormData();
-    formData.append('file', selectedFile);
-
-    const upload$ = this.http.post("http://localhost:3000/observations/upload", formData, {
-      reportProgress: true,
-      observe: 'events'
-    })
-      .pipe(
-        finalize(() => this.reset())
-      );
-
-    this.uploadSub = upload$.subscribe(event => {
-      if (event.type == HttpEventType.UploadProgress) {
-        if (event.total) {
-          this.uploadProgress = Math.round(100 * (event.loaded / event.total));
-          console.log('progress', this.uploadProgress);
-        }
-      } else if (event.type == HttpEventType.Response) {
-
-        this.filePath = '';
-
-        if (!event.body) {
-          //todo. something wrong
-          return;
-        }
-
-        let response: string = event.body.toString();
-        if (response.includes('success')) {
-          const dataSaved: number = parseInt(response.split(',')[1]);
-
-          this.pagesDataService.showToast({
-            title: 'Imported Data', message: `${dataSaved} observation${dataSaved === 1 ? '' : 's'} saved`, type: 'success'
-          });
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Import Error', message: response, type: 'error'
-          });
-        }
-
-
-
-      }
+    const sourceId = this.route.snapshot.params['id'];
+    // Todo. handle errors where the source is not found for the given id
+    this.importSourcesService.findOne(sourceId).pipe(
+      take(1)
+    ).subscribe((data) => {
+      this.viewSource = data;
+      this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
     });
 
   }
 
-  private reset(): void {
-    this.uploadProgress = null;
-    this.uploadSub = null;
+  protected onFileSelected(fileInputEvent: any): void {
+
+    if (fileInputEvent.target.files.length === 0) {
+      return;
+    }
+
+    this.uploadFeedback = "Uploading file: 0" 
+    this.uploadError = false;
+
+    const selectedFile = fileInputEvent.target.files[0] as File;
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    this.http.post(
+      "http://localhost:3000/observations/upload/" + this.viewSource.id,
+      formData,
+      {
+        reportProgress: true,
+        observe: 'events'
+      }).subscribe(event => {
+        if (event.type == HttpEventType.UploadProgress) {
+          if (event.total) {
+            this.uploadProgress = Math.round(100 * (event.loaded / event.total));
+            if (this.uploadProgress < 100) {
+              this.uploadFeedback = "Uploading file: " + this.uploadProgress;
+            } else {
+              this.uploadFeedback = "Processing file...";
+            }
+          }
+        } else if (event.type == HttpEventType.Response) {
+         // Clear the file input
+         fileInputEvent.target.value = null;
+
+          if (!event.body) {
+            this.uploadFeedback = "Something went wrong!";
+            this.uploadError = true;
+            return;
+          }
+
+          let response: string = (event.body as any).message;
+          if (response === 'success') {
+            this.uploadFeedback = "Imported Data Saved!";
+          } else {
+            this.uploadFeedback = response;
+            this.uploadError = true;
+          }
+
+        }
+      });
+
   }
 
 

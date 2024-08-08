@@ -21,15 +21,15 @@ export class CreateObservationDto {
     @IsInt()
     period: number;
 
-    @IsOptional() 
+    @IsOptional() // TODO. Not sure if this correctly represents null.
     @IsNumber()
     value: number | null;
 
-    @IsOptional()
+    @IsOptional() // TODO. Not sure if this correctly represents null.
     @IsEnum(FlagEnum, { message: 'flag must be a valid FlagEnum value or null' })
     flag: FlagEnum | null;
  
-    @IsOptional()
+    @IsOptional() // TODO. Not sure if this correctly represents null.
     @IsString()
     comment: string | null;
 

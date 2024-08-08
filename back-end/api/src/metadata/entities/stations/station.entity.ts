@@ -19,9 +19,10 @@ export class StationEntity extends BaseEntity {
   description: string;
 
   // TODO. Create a separate table for station history. Important for tracking station movements
-  // Station location table is important when it comes to moving stations like aircrafts.
+  // Reason as to why station location table is important when it comes to moving stations like aircrafts.
+  // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
   @Column({ type: 'point', transformer: new PointColumnTransformer() })  
-  location: PointDTO; //@Index({ spatial: true }) // TODO, index this after the move to POSTGIS
+  location: PointDTO; //@Index({ spatial: true }) // TODO, later it may be important to index this after the move to POSTGIS, when dealing with many stations 
 
   @Column({ type: 'float' })
   elevation: number;  // Elevation of station above mean sea level.
@@ -66,14 +67,6 @@ export class StationEntity extends BaseEntity {
    @Column({ type: "int", name: "climate_zone_id", nullable: true })
    climateZoneId: number | null;
 
-  //TODO. Implement after creating the models relevant to drainage basin
-  @Column({ type: "int", name: "drainage_basin_id", nullable: true })
-  drainageBasinId: number | null;
-
-  // TODO
-  @Column({ type: "int", name: "administrative_unit_id", nullable: true })
-  administrativeUnitId: number | null; //province, county, district. Lowest form of self government
-
   // TODO
   @Column({ type: "int", name: "organisation_id", nullable: true })
   organisationId: number | null; // name of organisation that owns the station.
@@ -92,9 +85,9 @@ export class StationEntity extends BaseEntity {
   icaoId: string | null;
 
   // TODO
-  @Column({ type: 'varchar', name: "time_zone", nullable: true })
+  @Column({ type: 'int', name: "time_zone", nullable: true })
   @Index()
-  timeZone: string | null;
+  timeZone: number | null;
 
   @Column({ type: "enum", enum: StationStatusEnum, nullable: true })
   @Index()

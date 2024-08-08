@@ -1,228 +1,310 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import fs from 'node:fs';
-import { parse } from 'csv-parse';
+import { Injectable } from '@nestjs/common';
+
+
 import { CreateObservationDto } from '../dtos/create-observation.dto';
-import { Index } from 'typeorm';
 import { ObservationsService } from './observations.service';
-import { isNumber } from 'class-validator';
-import { StringUtils } from 'src/shared/utils/string.utils';
-import { QCStatusEnum } from '../enums/qc-status.enum';
-import { FlagEnum } from '../enums/flag.enum';
 import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
 
-interface UploadedObservationDto extends CreateObservationDto {
-    status: 'NEW' | 'UPDATE' | 'SAME' | 'INVALID';
-}
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import { Database } from "duckdb-async";
+import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
+import { CreateImportSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
+
+
+
 
 @Injectable()
 export class ObservationUploadService {
 
-    constructor(private readonly observationsService: ObservationsService) { }
+    private db: Database;
+    private tempFilesFolderPath: string;
+    // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
+    private readonly STATIONID: keyof CreateObservationDto = "stationId";
+    private readonly ELEMENTID: keyof CreateObservationDto = "elementId";
+    private readonly SOURCEID: keyof CreateObservationDto = "sourceId";
+    private readonly ELEVATION: keyof CreateObservationDto = "elevation";
+    private readonly DATETIME: keyof CreateObservationDto = "datetime";
+    private readonly PERIOD: keyof CreateObservationDto = "period";
+    private readonly VALUE: keyof CreateObservationDto = "value";
+    private readonly FLAG: keyof CreateObservationDto = "flag";
+    private readonly COMMENT: keyof CreateObservationDto = "comment";
 
-    async processFile(session: Record<string, any>, file: Express.Multer.File): Promise<string> {
-        const observationDtos: CreateObservationDto[] = [];
-        let index: number = 0;
+    constructor(
+        private observationsService: ObservationsService,
+        private sourcesService: SourcesService) {
+
+        this.setupDuckDB();
+        this.setupFolder();
+
+    }
+
+    async setupFolder(): Promise<void> {
+        this.tempFilesFolderPath = path.resolve('./tmp');
+        // For windows platform, replace the backslashes with forward slashes.
+        this.tempFilesFolderPath = this.tempFilesFolderPath.replaceAll("\\", "\/");
+        // Check if the temporary directory exist. 
+        try {
+            await fs.access(this.tempFilesFolderPath, fs.constants.F_OK)
+        } catch (err1) {
+            // If it doesn't create the directory.
+            try {
+                await fs.mkdir(this.tempFilesFolderPath);
+            } catch (err2) {
+                console.error("Could not create temporary folder: ", err2);
+                // TODO. Throw appropriiate error.
+                throw err2;
+            }
+
+        }
+
+    }
+
+    async setupDuckDB() {
+        this.db = await Database.create(":memory:");
+    }
+
+    async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
+
+        // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() threw a bug
+        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}_${path.extname(file.originalname)}`;
+
+        // Save the file to the temporary directory
+        try {
+            await fs.writeFile(`${newFileName}`, file.buffer);
+        } catch (err) {
+            throw new Error("Could not save user file: " + err);
+        }
+
+        // Get the source definition using the source id
+        const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
+
+        if (sourceDefinition.format === "TABULAR") {
+            await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
+        } else {
+            throw new Error("Source not supported yet");
+        }
 
         try {
-            const parser = parse(file.buffer);
-            for await (const row of parser) {
+            // Delete the file.
+            // TODO. Investigate why sometimes the file is not deleted. Node puts a lock on it.
+            await fs.unlink(newFileName);
+        } catch (err) {
+            throw new Error("Could not delete user file: " + err);
+        }
+    }
 
-                index = index + 1;
+    private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number) {
+        try {
+            const tableName: string = path.basename(fileName, path.extname(fileName));
+            const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
 
-                //console.log('row', row,'index', index)
-
-                if (index === 1) {
-                    if (row.length !== 9 ||
-                        !row[0].toLowerCase().includes('station') ||
-                        !row[1].toLowerCase().includes('element') ||
-                        !row[2].toLowerCase().includes('source') ||
-                        !row[3].toLowerCase().includes('level') ||
-                        !row[4].toLowerCase().includes('date') ||
-                        !row[5].toLowerCase().includes('period') ||
-                        !row[6].toLowerCase().includes('value') ||
-                        !row[7].toLowerCase().includes('flag') ||
-                        !row[8].toLowerCase().includes('comment')) {
-                        return 'invalid file format';
-                    }
-
-                    continue;
-
-                }
-
-                const stationId: string = row[0];
-                const elementId: number = parseInt(row[1]);
-                const sourceId: number = parseInt(row[2]);
-                const elevation: number = row[3];
-                const datetime: string = row[4].toString();
-                const period: number = parseInt(row[5]);
-
-                let value: number | null = null;
-                let flag: FlagEnum | null = null;
-                let comment: string | null = null;
-
-                if (StringUtils.containsNumbersOnly(row[6])) {
-                    value = parseFloat(row[6]);
-                }
-
-                if (StringUtils.containsNumbersOnly(row[7])) {
-                    //TODO. validate the flag
-                    flag = row[7];
-                }
-
-                if (row[8]) {
-                    comment = row[8].toString();
-                }
-
-
-
-                if (value === null && flag === null) {
-                    continue;
-                }
-
-
-                const uploadedDto: UploadedObservationDto = {
-                    stationId: stationId, elementId: elementId, sourceId: sourceId, elevation: elevation, datetime: datetime, period: period, value: value, flag: flag, comment: comment, status: 'NEW',
-                }
-
-                observationDtos.push(uploadedDto);
-
+            if (source.delimiter) {
+                importParams.push(`delim = '${source.delimiter}'`);
             }
+
+            await this.db.run(`CREATE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")})`);
+
+            // Process columns data
+            let sql: string;
+            //Add source column
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.SOURCEID} INTEGER DEFAULT ${sourceId};`;
+            // Add the rest of the columns
+            sql = sql + this.alterStationColumn(source, tableName);
+            sql = sql + this.alterElementAndValueColumn(source, tableName);
+            sql = sql + this.alterPeriodColumn(source, tableName);
+            sql = sql + this.alterElevationColumn(source, tableName);
+            sql = sql + this.alterDateColumn(source, tableName);
+            sql = sql + this.alterCommentColumn(source, tableName);
+
+            const startTime = new Date().getTime();
+
+            await this.db.exec(sql);
+
+            const rows = await this.db.all(`SELECT * FROM ${tableName};`);
+
+            console.log("DuckDB took: ", new Date().getTime() - startTime);
+
+            try {
+                await this.observationsService.save(rows as CreateObservationDto[], userId);
+            } catch (err) {
+                throw new Error("Import save error: " + err);
+            }
+
+
+            // Delete the table 
+            await this.db.run(`DROP TABLE ${tableName};`);
+
 
         } catch (error) {
-            console.log(`error found at row ${index}: ${error}`);
-
-            return `error found at row ${index}: ${error}`;
+            throw new Error("Import(DuckDB level) error : " + error);
         }
 
-
-        if (observationDtos.length === 0) {
-            //throw error;
-            return 'no content found';
-        }
-
-        //TODO. pass correct user id
-        const savedEntities = await this.observationsService.save(observationDtos, 1);
-
-
-
-        //todo. later this may be necessary
-        //this.saveFile(userId, JSON.stringify(observationDtos));
-
-        //return `success, ${savedEntities.length}`;
-        return JSON.stringify(`success, ${savedEntities.length}`);
     }
 
+    private alterStationColumn(source: CreateImportTabularSourceDTO, tableName: string, defaultStationId?: string): string {
 
-    private saveFile(session: Record<string, any>, fileContent: string): void {
-        const userId = session.user.id;
-        fs.writeFile(`C:/Users/patoe/Downloads/${userId}.json`, fileContent, err => {
-            if (err) {
-                console.error('Error when saving file:', err);
-            }
-            // file written successfully
-        });
-    }
+        let sql: string;
 
-
-    //-----------------------
-
-    private createColumns(source: CreateImportTabularSourceDTO): void {
-        const columns: string[] = [];
-
-        this.addStationColumn(source, columns);
-        this.addElementAndValueColumn(source, columns);
-        this.addPeriodColumn(source, columns);
-        this.addElevationColumn(source, columns);
-        this.addDateColumn(source, columns);
-
-        //TODO. Create the table SQL
-        
-
-    }
-
-
-    private addStationColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
         if (source.stationDefinition) {
-            columns.splice(source.stationDefinition.columnPosition - 1, 0, "station_id VARCHAR");
+            sql = `ALTER TABLE ${tableName} RENAME column${source.stationDefinition.columnPosition - 1} TO ${this.STATIONID};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.STATIONID} SET NOT NULL;`;
+
+            if (source.stationDefinition.stationsToFetch) {
+                // TODO. SQL for getting the stations to fetch only.
+            }
+
+        } else if (defaultStationId) {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATIONID} VARCHAR DEFAULT ${defaultStationId};`;
+        } else {
+            throw new Error("Station must be provided");
         }
+
+        return sql;
+
     }
 
-    private addElementAndValueColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
-        if (source.elementAndValueDefinition) {
 
-            if (source.elementAndValueDefinition.noElement) {
-              
-                columns.splice(source.elementAndValueDefinition.noElement.valueColumnPosition - 1, 0, "value VARCHAR");
+    private alterElementAndValueColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = "";
 
-                if (source.elementAndValueDefinition.noElement.flagColumnPosition) {
-                    columns.splice(source.elementAndValueDefinition.noElement.flagColumnPosition - 1, 0, "flag VARCHAR");
-                } 
+        if (source.elementAndValueDefinition.noElement) {
+
+            sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.valueColumnPosition - 1} TO ${this.VALUE};`;
+
+            if (source.elementAndValueDefinition.noElement.flagColumnPosition !== undefined) {
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.noElement.flagColumnPosition - 1} TO ${this.FLAG};`;
+                // TODO. Should validate the flag at this point, using the flag enumerators
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG} SET DEFAULT NULL;`;
+
+            } else {
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
+            }
 
 
-            } else if (source.elementAndValueDefinition.hasElement) {
+        } else if (source.elementAndValueDefinition.hasElement) {
 
-                if(source.elementAndValueDefinition.hasElement.singleColumn){
+            if (source.elementAndValueDefinition.hasElement.singleColumn) {
 
-                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1, 0, "element VARCHAR");
-
-                    columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1, 0, "value VARCHAR");
-
-                    if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition) {
-                        columns.splice(source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1, 0, "flag VARCHAR");
-                    } 
-
-                }else if(source.elementAndValueDefinition.hasElement.multipleColumn){
-                    for (const el of source.elementAndValueDefinition.hasElement.multipleColumn) {
-                        columns.splice(el.columnPosition - 1, 0, el.databaseId + " VARCHAR");
-                    }
+                //--------------------------
+                // Element column
+                sql = `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition - 1} TO ${this.ELEMENTID};`;
+                if (source.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch) {
+                    // TODO. SQL for getting the elements to fetch
                 }
-                
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENTID} SET NOT NULL;`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENTID} TYPE REAL;`;
+                //--------------------------
 
-            } 
+                //--------------------------
+                // Value column
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition - 1} TO ${this.VALUE};`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE} SET DEFAULT NULL;`;
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE} TYPE REAL;`;
+                //--------------------------
+
+                //--------------------------
+                // Flag column
+                if (source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined) {
+                    sql = sql + `ALTER TABLE ${tableName} RENAME column${source.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition - 1} TO ${this.FLAG};`
+                    // TODO. Should validate the flag at this point, using the flag enumerators
+                    sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG} SET DEFAULT NULL;`;
+
+                } else {
+                    sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
+                }
+                //--------------------------
+
+
+
+            } else if (source.elementAndValueDefinition.hasElement.multipleColumn) {
+                // TODO. Write sql for stacking the multiple element column values
+                for (const el of source.elementAndValueDefinition.hasElement.multipleColumn) {
+                    //columns.splice(el.columnPosition - 1, 0, el.databaseId + "");
+                }
+            }
+
+
         }
+
+        return sql;
+
     }
 
-    private addPeriodColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
+    private alterPeriodColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
 
-        if (source.periodDefinition.columnPosition) {
-            columns.splice(source.periodDefinition.columnPosition - 1, 0, "period VARCHAR");
+        let sql: string = "";
+
+        if (source.periodDefinition.columnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.periodDefinition.columnPosition - 1} TO ${this.PERIOD};`
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD} TYPE INTEGER;`;
+        } else {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.PERIOD} INTEGER DEFAULT ${source.periodDefinition.defaultPeriod};`;
         }
+
+        return sql;
 
     }
 
-    private addElevationColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
-        if (source.elevationColumnPosition) {
-            columns.splice(source.elevationColumnPosition - 1, 0, "elevation VARCHAR");
+    private alterElevationColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = "";
+        if (source.elevationColumnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.elevationColumnPosition - 1} TO ${this.ELEVATION};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} TYPE REAL;`;
+        } else {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION} REAL DEFAULT 0;`;
         }
+
+        return sql;
     }
 
-    private addDateColumn(source: CreateImportTabularSourceDTO, columns: string[]) {
-      
+    private alterDateColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+
+        let sql: string = "";
         if (source.datetimeDefinition.dateTimeColumnPostion !== undefined) {
-            columns.splice(source.datetimeDefinition.dateTimeColumnPostion - 1, 0, "date_time VARCHAR");
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${source.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATETIME};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATETIME} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATETIME} TYPE TIMESTAMP_S;`;
 
-          
-        }else  if (source.datetimeDefinition.dateTimeInMultipleColumn) {
+            //TODO. Left here. Convert the datetime.
 
-            if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn){
-                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.dateColumnPosition - 1, 0, "date VARCHAR");
+        } else if (source.datetimeDefinition.dateTimeInMultipleColumn) {
 
-            }else  if(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn){
-                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.yearColumnPosition - 1, 0, "year VARCHAR");
-                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.monthColumnPosition - 1, 0, "month VARCHAR");
-                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.dayColumnPosition - 1, 0, "day VARCHAR");
+            if (source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn) {
+                // columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.dateColumnPosition - 1, 0, "date");
+
+            } else if (source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn) {
+                // columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.yearColumnPosition - 1, 0, "year");
+                //  columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.monthColumnPosition - 1, 0, "month");
+                //  columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn.dayColumnPosition - 1, 0, "day");
 
             }
-            
-            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition) {
-                columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition - 1, 0, "hour VARCHAR");
+
+            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition !== undefined) {
+                //columns.splice(source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition - 1, 0, "hour");
             }
 
         }
 
-       
+        return sql;
     }
 
-  
+
+    private alterCommentColumn(source: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = "";
+        if (source.commentColumnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT} SET DEFAULT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT} TYPE VARCHAR;`;
+        } else {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT} VARCHAR DEFAULT NULL;`;
+        }
+
+        return sql;
+    }
+
+
 
 }

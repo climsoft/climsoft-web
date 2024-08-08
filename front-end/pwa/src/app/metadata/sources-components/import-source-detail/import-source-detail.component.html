@@ -25,9 +25,17 @@
 
         <!--Delimeters-->
         <div class="mb-3">
+            <app-check-box-input [label]="'Includes Delimeters'"
+            [value]="viewSource.extraMetadata .delimiter !== undefined"
+            (valueChange)="onIncludeDelimters($event)" />
+
+        <div class="ms-4" *ngIf="viewSource.extraMetadata .delimiter !== undefined">
             <!-- TODO -->
-            <app-selector-single-input [label]="'Delimeters'" [options]="['Auto']" [selectedOption]="'Auto'"
+            <app-selector-single-input [label]="'Delimeters'" [options]="[',', '|']" [selectedOption]="','"
                 [optionDisplayFn]="displayDelimitersFn" />
+        </div>
+
+           
         </div>
 
         <hr class="border border-secondary border-1">

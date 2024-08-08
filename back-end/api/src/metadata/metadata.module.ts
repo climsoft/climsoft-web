@@ -32,6 +32,8 @@ import { FormSourcesService } from './controllers/sources/services/form-sources.
 import { SourcesService } from './controllers/sources/services/sources.service';
 import { ImportSourcesService } from './controllers/sources/services/import-sources.service';
 import { ImportSourcesController } from './controllers/sources/controllers/import-sources.controller';
+import { AdminRegionsEntity } from './entities/Regions/admin-region.entity';
+import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -41,6 +43,8 @@ import { ImportSourcesController } from './controllers/sources/controllers/impor
         SourceEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
+        AdminRegionsEntity,
+        DrainageBasinEntity,
         StationObsEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,

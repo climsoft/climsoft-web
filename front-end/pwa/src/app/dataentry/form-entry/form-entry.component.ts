@@ -278,11 +278,22 @@ export class FormEntryComponent implements OnInit {
     // Send to server for saving
     this.observationService.save(newObservations).subscribe((data) => {
 
-      this.pagesDataService.showToast({
-        title: 'Observations', message: `${data.length} observation${data.length === 1 ? '' : 's'} saved`, type: 'success'
-      });
+      console.log("results: ", data)
+      if(data){
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} saved`, type: 'success'
+        });
+  
+        this.loadObservations(this.formDefinitions);
+      }else{
 
-      this.loadObservations(this.formDefinitions);
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+        });
+
+      }
+
+    
 
     });
   }

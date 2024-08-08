@@ -32,11 +32,10 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
      */
     rowsToSkip: number;
 
-    /**
-     * Auto applies to all tabular file formats like CSV, XLXS.
-     * The others apply to CSV files only
+     /**
+     * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
-    delimiters: 'auto' | ',' | '|';
+    delimiter?: ',' | '|'; // TODO find a way of including \t
 
     sampleImage: string;
 

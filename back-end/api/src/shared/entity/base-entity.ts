@@ -3,7 +3,7 @@ import { UserEntity } from "src/user/entities/user.entity";
 
 export abstract class BaseEntity {
     // Expose entry_user_id directly. Useful when updating the entry_user_id field without having to fetch from the database
-    @Column({ type: "int", name: "entry_user_id", nullable: true })
+    @Column({ name: "entry_user_id", type: "int", nullable: true })
     entryUserId: number | null;
 
     @ManyToOne(() => UserEntity, { nullable: true, onDelete: "SET NULL" }) // This makes the relationship itself nullable
@@ -17,7 +17,7 @@ export abstract class BaseEntity {
     // Note, we are NOT using the UpdateDateColumn() because we store this field as part of the log (in the log column) when saving an entity in the database.
     // So it's important to have this set at the application layer rather than the database.  
     // Setting of default timestamp is useful for seeding migrations which populate the database with default values like elements.
-    @Column({ type: "timestamptz", name: "entry_date_time", default: () => "CURRENT_TIMESTAMP" })
+    @Column({ name: "entry_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
     entryDateTime: Date;
 }
 

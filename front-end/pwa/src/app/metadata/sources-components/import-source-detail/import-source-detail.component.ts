@@ -63,7 +63,7 @@ export class ImportSourceDetailComponent implements OnInit {
           utcDifference: 0,
           scaleValues: false,
           rowsToSkip: 0,
-          delimiters: 'auto',
+          delimiter: undefined,
           sampleImage: '',
         }
       };
@@ -73,6 +73,10 @@ export class ImportSourceDetailComponent implements OnInit {
 
   protected onIncludeElevation(include: boolean): void {
     this.viewSource.extraMetadata.elevationColumnPosition = include ? 0 : undefined;
+  }
+
+  protected onIncludeDelimters(include: boolean): void {
+    this.viewSource.extraMetadata.delimiter = include ? "," : undefined;
   }
 
   protected displayDelimitersFn(option: string): string {

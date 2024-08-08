@@ -5,7 +5,7 @@ import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/obs
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { ElementsService } from 'src/metadata/services/elements/elements.service'; 
+import { ElementsService } from 'src/metadata/services/elements/elements.service';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { StationsService } from 'src/metadata/services/stations/stations.service';
 import { QCStatusEnum } from '../enums/qc-status.enum';
@@ -20,7 +20,7 @@ export class ObservationsService {
     constructor(
         @InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
         private readonly stationsService: StationsService,
-        private readonly elementsService: ElementsService, 
+        private readonly elementsService: ElementsService,
         private readonly sourcesService: SourcesService,
     ) { }
 
@@ -169,13 +169,14 @@ export class ObservationsService {
             elementId: queryDto.elementId,
             sourceId: queryDto.sourceId,
             period: queryDto.period,
-            datetime: new Date(queryDto.datetime),
-            deleted: false
+            datetime: new Date(queryDto.datetime)
         });
 
         if (!entity) {
             throw new NotFoundException('Observation not found');
         }
+
+        console.log("entity log: ", entity.log, " type of: ", typeof entity.log);
 
         let log: ViewObservationLogDto[] = [];
 
@@ -212,7 +213,8 @@ export class ObservationsService {
     }
 
 
-    public async save(createObservationDtoArray: CreateObservationDto[], userId: number) {
+    public async save1(createObservationDtoArray: CreateObservationDto[], userId: number) {
+
         const obsEntities: ObservationEntity[] = [];
 
         let newEntity: boolean;
@@ -239,7 +241,7 @@ export class ObservationsService {
             } else {
 
                 //TODO. Move this validation to a pipe validator
-                if(createObservationDto.value === null && createObservationDto.flag === null){
+                if (createObservationDto.value === null && createObservationDto.flag === null) {
                     continue;
                 }
 
@@ -262,6 +264,71 @@ export class ObservationsService {
 
         return this.observationRepo.save(obsEntities);
     }
+
+
+    public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<string> {
+
+        let startTime = new Date().getTime();
+
+        const obsEntities: Partial<ObservationEntity>[] = [];
+        for (const dto of createObservationDtoArray) {
+
+            const entity: ObservationEntity = this.observationRepo.create({
+                stationId: dto.stationId,
+                elementId: dto.elementId,
+                sourceId: dto.sourceId,
+                elevation: dto.elevation,
+                datetime: new Date(dto.datetime),
+                period: dto.period,
+                value: dto.value,
+                flag: dto.flag,
+                qcStatus: QCStatusEnum.NO_QC_TESTS_DONE,
+                comment: dto.comment,
+                final: false,
+                entryUserId: userId,
+                deleted: (dto.value === null && dto.flag === null), // TODo. I'm not sure if this is the correct way to perform deletes
+                entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()
+               
+            });
+            
+            
+            obsEntities.push(entity);
+        }
+
+        console.log("DTO transformation took: ", new Date().getTime() - startTime);
+ 
+
+        startTime = new Date().getTime();
+
+        const batchSize = 1000; // bacthsize of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < obsEntities.length; i += batchSize) {
+            const batch = obsEntities.slice(i, i + batchSize);
+            await this.insertUser(batch); 
+        } 
+        console.log("Saving entities took: ", new Date().getTime() - startTime);
+
+        return "success";
+ 
+    }
+
+
+    async insertUser(observationsData: Partial<ObservationEntity>[]): Promise<void> {
+        await this.observationRepo
+            .createQueryBuilder()
+            .insert()
+            .into(ObservationEntity)
+            .values(observationsData)
+            .orUpdate(
+                ["value", "flag", "qc_status", "final", "comment", "deleted", "entry_user_id"],
+                ["station_id", "element_id", "source_id", "elevation", "date_time", "period"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
+
 
 
     private getEntityValsAsLogVO(entity: ObservationEntity): UpdateObservationValuesLogVo {
@@ -290,21 +357,15 @@ export class ObservationsService {
 
     private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto, userId: number, newEntity: boolean): void {
 
-        // If its a new entity, then no need to set log.
-        // If its an existing entity, log the previous values and log(if there was an existing log)
-        // Note, log has to be set before updating the new values to the entity, because we are logging previous values.
-        entity.log = newEntity ? null : ObjectUtils.getNewLog<UpdateObservationValuesLogVo>(entity.log, this.getEntityValsAsLogVO(entity));
-
-        // Then set the new values
-        entity.period = dto.period;
+        // Then set the new values 
         entity.value = dto.value;
         entity.flag = dto.flag;
         entity.qcStatus = QCStatusEnum.NO_QC_TESTS_DONE;
         entity.comment = dto.comment;
         entity.final = false;
         entity.entryUserId = userId;
-        entity.deleted = (entity.value === null && entity.flag === null)
-        entity.entryDateTime = new Date();
+        entity.deleted = (entity.value === null && entity.flag === null); // TODo. I'm not sure if this is the correct way to perform deletes
+        entity.entryDateTime = new Date(); // Will be sent to database in utc, that is, new Date().toISOString()
     }
 
 

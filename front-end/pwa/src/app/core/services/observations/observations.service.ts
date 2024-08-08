@@ -15,7 +15,7 @@ import { ViewObservationLogModel } from '../../models/observations/view-observat
 })
 export class ObservationsService {
 
-  endPointUrl: string = "http://localhost:3000/observations";
+  private endPointUrl: string = "http://localhost:3000/observations";
 
   constructor(private http: HttpClient) { }
 
@@ -59,12 +59,11 @@ export class ObservationsService {
       );
   }
 
-  public save(observations: CreateObservationModel[]): Observable<ViewObservationModel[]> {
-    //console.log("saving", observations);
-    return this.http.post<ViewObservationModel[]>(this.endPointUrl, observations)
+  public save(observations: CreateObservationModel[]) {
+    return this.http.post(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
-      );
+      ); 
   }
 
   public delete(ids: number[]): Observable<ViewObservationModel[]> {
