@@ -9,6 +9,7 @@ import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
 import { CreateUpdateSourceModel } from 'src/app/core/models/sources/create-update-source.model';
+import { FormatEnum, ServerTypeEnum } from 'src/app/core/models/sources/create-import-source.model';
 
 
 @Component({
@@ -54,7 +55,8 @@ export class ImportSourceDetailComponent implements OnInit {
         sourceType: SourceTypeEnum.IMPORT,
         sourceTypeName: SourceTypeEnum.IMPORT,
         extraMetadata: {
-          format:'TABULAR' ,
+          serverType: ServerTypeEnum.LOCAL, 
+          format:FormatEnum.TABULAR ,
           stationDefinition: undefined,
           elementAndValueDefinition: {},
           periodDefinition: {},

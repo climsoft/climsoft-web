@@ -1,9 +1,11 @@
 import { IsBoolean, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
-import { CreateImportSourceDTO } from "./create-import-source.dto";
+import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from "./create-import-source.dto";
 
 export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
 
-    format: "TABULAR" | "KEYVALUE"= "TABULAR";
+    serverType: ServerTypeEnum;
+
+    format: FormatEnum;
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;

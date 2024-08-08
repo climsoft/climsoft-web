@@ -9,7 +9,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
 import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
-import { CreateImportSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
+import { CreateImportSourceDTO, FormatEnum } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
 
 
 
@@ -79,7 +79,7 @@ export class ObservationUploadService {
         // Get the source definition using the source id
         const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
 
-        if (sourceDefinition.format === "TABULAR") {
+        if (sourceDefinition.format === FormatEnum.TABULAR) {
             await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
         } else {
             throw new Error("Source not supported yet");
