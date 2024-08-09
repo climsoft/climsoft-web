@@ -3,7 +3,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator'; 
 import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
 import { CreateUpdateSourceDto } from 'src/metadata/controllers/sources/dtos/create-update-source.dto';
-import { CreateImportSourceDTO } from '../dtos/create-import-source.dto';
+import { CreateImportSourceDTO, FormatEnum } from '../dtos/create-import-source.dto';
 
 
 @Injectable()
@@ -23,7 +23,7 @@ export class ValidateImportSourcePipe implements PipeTransform {
 
     const parentObject: CreateUpdateSourceDto<CreateImportSourceDTO> = value as CreateUpdateSourceDto<CreateImportSourceDTO> ;
 
-    if(parentObject.extraMetadata && parentObject.extraMetadata.format && parentObject.extraMetadata.format === 'TABULAR'){
+    if(parentObject.extraMetadata && parentObject.extraMetadata.format && parentObject.extraMetadata.format === FormatEnum.TABULAR){
       const object: CreateUpdateSourceDto<CreateImportTabularSourceDTO> = plainToInstance( CreateUpdateSourceDto<CreateImportTabularSourceDTO>, value);
 
       const errors = await validate(object);

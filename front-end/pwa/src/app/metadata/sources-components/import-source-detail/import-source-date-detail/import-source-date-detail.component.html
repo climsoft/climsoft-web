@@ -1,12 +1,18 @@
 <div *ngIf="datetimeDefinition">
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateDefinition'" [groupItems]="[
         { label:'Date Time in Single Column',checked: datetimeDefinition.dateTimeColumnPostion !== undefined}, 
-        { label:'Date Time in Multiple Column', checked: datetimeDefinition.dateTimeInMultipleColumn !== undefined}]"
+        { label:'Date Time in Multiple Columns', checked: datetimeDefinition.dateTimeInMultipleColumn !== undefined}]"
         (checkedValueChange)="onDatetimeSelection($event)" />
 
-    <div *ngIf="datetimeDefinition.dateTimeColumnPostion !== undefined" class="ms-4">
-        <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position:'"
-            [(value)]="datetimeDefinition.dateTimeColumnPostion" />
+    <div class="ms-4">
+        <div *ngIf="datetimeDefinition.dateTimeColumnPostion !== undefined">
+            <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position (values in format YYYY-MM-DD HH:SS)'"
+                [(value)]="datetimeDefinition.dateTimeColumnPostion" />
+        </div>
+        <div *ngIf="datetimeDefinition.dateTimeInMultipleColumn !== undefined">
+            Not yet supported
+        </div>
+
     </div>
 
 </div>

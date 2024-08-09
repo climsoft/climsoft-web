@@ -47,12 +47,19 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
      * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
     @IsString()
-    delimiter?: ',' | '|'; // TODO find a way of including \t
+    delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
+
+    missingValueFlagDefinition: MissingFlagDefinition;
 
     @IsOptional()
     @IsString()
     sampleImage: string;
 
+}
+
+export class MissingFlagDefinition {
+    importMissingValue: boolean;
+    missingValueFlag: string;
 }
 
 /**

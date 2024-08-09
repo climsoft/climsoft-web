@@ -19,8 +19,12 @@ export class ImportSourceDateDetailComponent {
 
     if (dateStatus === 'Date Time in Single Column') {
       this.datetimeDefinition.dateTimeColumnPostion = 0;
-    } else if (dateStatus === 'Date Time in Multiple Column') {
-      //this.datetimeDefinition.dateTimeInMultipleColumn = {};
+    } else if (dateStatus === 'Date Time in Multiple Columns') {
+      this.datetimeDefinition.dateTimeInMultipleColumn = {
+        dateInSingleColumn: undefined,
+        dateInMultipleColumn: undefined,
+        hourDefinition: {}
+      };
     }
   }
 

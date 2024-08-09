@@ -33,7 +33,6 @@ export class ImportSourceDetailComponent implements OnInit {
     const sourceId = this.route.snapshot.params['id'];
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
-
       this.pagesDataService.setPageHeader('Edit Import Definitions');
 
       // Todo. handle errors where the source is not found for the given id
@@ -41,13 +40,11 @@ export class ImportSourceDetailComponent implements OnInit {
         take(1)
       ).subscribe((data) => {
         this.viewSource = data;
-        console.log({data});
+        console.log({ data });
       });
 
     } else {
-
       this.pagesDataService.setPageHeader('New Import Definitions');
-
       this.viewSource = {
         id: 0,
         name: '',
@@ -55,17 +52,32 @@ export class ImportSourceDetailComponent implements OnInit {
         sourceType: SourceTypeEnum.IMPORT,
         sourceTypeName: SourceTypeEnum.IMPORT,
         extraMetadata: {
-          serverType: ServerTypeEnum.LOCAL, 
-          format:FormatEnum.TABULAR ,
+          serverType: ServerTypeEnum.LOCAL,
+          format: FormatEnum.TABULAR,
           stationDefinition: undefined,
-          elementAndValueDefinition: {},
-          periodDefinition: {},
+          elementAndValueDefinition: {
+            hasElement: {
+              singleColumn: {
+                elementColumnPosition: 1,
+                valueColumnPosition: 1
+              }
+            }
+          },
+          periodDefinition: {
+            columnPosition: 1
+          },
           elevationColumnPosition: undefined,
-          datetimeDefinition: {},
+          datetimeDefinition: {
+            dateTimeColumnPostion: 1
+          },
           utcDifference: 0,
           scaleValues: false,
-          rowsToSkip: 0,
+          rowsToSkip: 1,
           delimiter: undefined,
+          missingValueFlagDefinition: {
+            importMissingValue: false,
+            missingValueFlag: ''
+          },
           sampleImage: '',
         }
       };
@@ -73,21 +85,13 @@ export class ImportSourceDetailComponent implements OnInit {
     }
   }
 
-  protected onIncludeElevation(include: boolean): void {
-    this.viewSource.extraMetadata.elevationColumnPosition = include ? 0 : undefined;
-  }
-
-  protected onIncludeDelimters(include: boolean): void {
-    this.viewSource.extraMetadata.delimiter = include ? "," : undefined;
-  }
-
-  protected displayDelimitersFn(option: string): string {
-    return option;
-
+  protected onServerTypeSelected(serverType: ServerTypeEnum | null): void {
+    if (serverType !== null) {
+      this.viewSource.extraMetadata.serverType = serverType;
+    }
   }
 
   protected onSave(): void {
-
     const createUpdateSource: CreateUpdateSourceModel<CreateImportTabularSourceModel> = {
       name: this.viewSource.name,
       description: this.viewSource.description,

@@ -35,11 +35,19 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
      /**
      * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
-    delimiter?: ',' | '|'; // TODO find a way of including \t
+    delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
+
+    missingValueFlagDefinition: MissingFlagDefinition;
 
     sampleImage: string;
 
 }
+
+export interface MissingFlagDefinition {
+    importMissingValue: boolean;
+    missingValueFlag: string;
+}
+
 
 /**
  * Station column is optional.
@@ -80,7 +88,6 @@ export interface ElementAndValueDefinition {
         singleColumn?: {
 
             elementColumnPosition: number,
-
             /**
              * The elements to fetch and matches the source ids to the database element ids. 
              * It is optional, meaning fetch all as database element ids.

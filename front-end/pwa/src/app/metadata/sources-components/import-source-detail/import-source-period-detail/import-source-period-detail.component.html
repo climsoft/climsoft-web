@@ -5,10 +5,10 @@
 
     <div class="ms-4">
 
-        <app-number-input *ngIf="periodDefinition.columnPosition !== undefined" [label]="'Column Position'"
+        <app-number-input *ngIf="periodDefinition.columnPosition !== undefined" [label]="'Column Position (values in minutes)'"
             [(value)]="periodDefinition.columnPosition" />
 
-        <app-number-input *ngIf="periodDefinition.defaultPeriod !== undefined" [label]="'Default Period (Minutes)'"
+        <app-number-input *ngIf="periodDefinition.defaultPeriod !== undefined" [label]="'Default Period (in minutes)'"
             [(value)]="periodDefinition.defaultPeriod" />
 
     </div>

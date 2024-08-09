@@ -4,11 +4,11 @@ export interface CreateImportSourceModel {
 }
 
 export enum ServerTypeEnum {
-    LOCAL = "form",
+    LOCAL = "local",
     BASE_STATION = "base_station",
     MESSAGE_SWITCH = "message_switch",
     DATABASE = "database",
-    API = "api"
+    WEB_SERVER = "web_server"
 }
 
 export enum FormatEnum {

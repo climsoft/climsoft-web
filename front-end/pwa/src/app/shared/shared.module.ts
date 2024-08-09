@@ -43,6 +43,7 @@ import { ElementSubdomainSingleInputComponent } from './controls/element-subdoma
 import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
+import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
 
 //--------------------------------
   
@@ -95,11 +96,12 @@ const controlsComponents = [
 
   DropDownButtonComponent,
   DropDownComponent, 
-
   
   ElementDomainSingleInputComponent,  
   ElementSubdomainSingleInputComponent,
   ElementTypeSingleInputComponent,
+
+  ServerTypeInputComponent,
 
 ];
 
@@ -112,7 +114,6 @@ const directives = [
   declarations: [
     ...controlsComponents,
     ...directives,
-   
   
   ],
   imports: [
