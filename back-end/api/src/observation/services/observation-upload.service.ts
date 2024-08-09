@@ -69,7 +69,7 @@ export class ObservationUploadService {
     async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
 
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() threw a bug
-             const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
+        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
         // Save the file to the temporary directory
         try {
@@ -98,9 +98,6 @@ export class ObservationUploadService {
 
     private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number) {
         try {
-
-            console.log("file name:" + fileName)
-            
             const tableName: string = path.basename(fileName, path.extname(fileName));
             const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
 
@@ -108,11 +105,10 @@ export class ObservationUploadService {
                 importParams.push(`delim = '${source.delimiter}'`);
             }
 
-
             // await this.db.run(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
 
             // Read csv to duckdb for processing
-            let sql: string = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`
+            let sql: string = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`;
 
             //Add source column
             sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.SOURCEID} INTEGER DEFAULT ${sourceId};`;
@@ -170,7 +166,7 @@ export class ObservationUploadService {
 
                 // Delete any record that is not supposed to be fetched.    
                 const sourceStationIds: string[] = allStationIds.map(item => (item.sourceId));
-                sql = sql + `DELETE FROM ${tableName} WHERE ${this.STATIONID} NOT IN ( ${sourceStationIds.join(', ')} );`
+                sql = sql + `DELETE FROM ${tableName} WHERE ${this.STATIONID} NOT IN ( ${sourceStationIds.join(', ')} );`;
 
                 // Update the source station ids with the equivalent database ids
                 for (const station of allStationIds) {
@@ -218,7 +214,7 @@ export class ObservationUploadService {
 
                     // Delete any record that is not supposed to be fetched.    
                     const sourceElementIds: string[] = allElementIds.map(item => (item.sourceId));
-                    sql = sql + `DELETE FROM ${tableName} WHERE ${this.ELEMENTID} NOT IN ( ${sourceElementIds.join(', ')} );`
+                    sql = sql + `DELETE FROM ${tableName} WHERE ${this.ELEMENTID} NOT IN ( ${sourceElementIds.join(', ')} );`;
 
                     // Update the source element ids with the equivalent database ids
                     for (const element of allElementIds) {
@@ -235,9 +231,8 @@ export class ObservationUploadService {
                 //--------------------------
                 // Flag column
                 if (singleColumn.flagColumnPosition !== undefined) {
-                    sql = sql + `ALTER TABLE ${tableName} RENAME column${singleColumn.flagColumnPosition - 1} TO ${this.FLAG};`
+                    sql = sql + `ALTER TABLE ${tableName} RENAME column${singleColumn.flagColumnPosition - 1} TO ${this.FLAG};`;
                     // TODO. Should we validate the flag at this point using the flag enumerators?
-
                 } else {
                     sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
                 }
@@ -258,8 +253,11 @@ export class ObservationUploadService {
 
                 // Change the values of the element column
                 for (const element of multipleColumn) {
-                    sql = sql + `UPDATE ${tableName} SET ${this.ELEMENTID} = ${element.databaseId} WHERE ${this.ELEMENTID} = 'column${element.columnPosition - 1}';`
+                    sql = sql + `UPDATE ${tableName} SET ${this.ELEMENTID} = ${element.databaseId} WHERE ${this.ELEMENTID} = 'column${element.columnPosition - 1}';`;
                 }
+
+                // Add flag column
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
 
             }
 
@@ -268,19 +266,15 @@ export class ObservationUploadService {
 
             // Convert the element contents to integers
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENTID} TYPE INTEGER;`;
-
-            // Add flag column
-            sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG} VARCHAR DEFAULT NULL;`;
-
         }
 
-        const missingValueFlagDefinition =  source.missingValueFlagDefinition
+        const missingValueFlagDefinition = source.missingValueFlagDefinition;
         if (missingValueFlagDefinition.importMissingValue) {
             // Set missing flag if missing are allowed to be imported.
             sql = sql + `UPDATE ${tableName} SET ${this.VALUE} = NULL, ${this.FLAG} = ${FlagEnum.MISSING} WHERE ${this.VALUE} = '${missingValueFlagDefinition.missingValueFlag}';`;
         } else {
             // Delete all missing values if not allowed.
-            sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE} = NULL OR ${this.VALUE} = '${missingValueFlagDefinition.missingValueFlag}'`;
+            sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE} = NULL OR ${this.VALUE} = '${missingValueFlagDefinition.missingValueFlag}';`;
         }
 
         // Convert the value column to decimals       
