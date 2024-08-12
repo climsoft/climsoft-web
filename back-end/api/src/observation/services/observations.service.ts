@@ -287,10 +287,8 @@ export class ObservationsService {
                 final: false,
                 entryUserId: userId,
                 deleted: (dto.value === null && dto.flag === null), // TODo. I'm not sure if this is the correct way to perform deletes
-                entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()
-               
-            });
-            
+                entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
+            });            
             
             obsEntities.push(entity);
         }

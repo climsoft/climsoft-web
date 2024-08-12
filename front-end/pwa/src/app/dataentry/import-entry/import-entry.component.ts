@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription, finalize, take } from 'rxjs';
+import { Subscription, catchError, finalize, take, throwError } from 'rxjs';
 import { CreateImportSourceModel } from 'src/app/core/models/sources/create-import-source.model';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
@@ -57,7 +57,12 @@ export class ImportEntryComponent implements OnInit {
       {
         reportProgress: true,
         observe: 'events'
-      }).subscribe(event => {
+      }).pipe(
+        catchError( error => {
+          console.log("Error returned: ", error);
+          return throwError(() => new Error('Something bad happened. Please try again later.'));
+        } )
+      ).subscribe(event => {
         if (event.type == HttpEventType.UploadProgress) {
           if (event.total) {
             this.uploadProgress = Math.round(100 * (event.loaded / event.total));

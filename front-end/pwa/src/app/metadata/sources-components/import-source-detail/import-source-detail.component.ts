@@ -122,12 +122,10 @@ export class ImportSourceDetailComponent implements OnInit {
           });
           this.location.back();
         }
-
       });
     }
 
   }
-
 
 
   protected onDelete(): void {

@@ -107,19 +107,16 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
     //If it's the last control add new placeholder for visibility of the entry controls
     const last = this.elementColumnsHolder[this.elementColumnsHolder.length - 1];
-    if (last.databaseId !== 0) {
+    if ( last.columnPosition !==0 && last.databaseId !== 0) {
 
-      // Set the new valid values
+      // Set the new valid values from the place holder
       this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
 
       //Add new placholder values
       this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
-
     }
 
-
   }
-
 
   protected onNoElementIncludesFlag(include: boolean): void {
     if (this.elementAndValueDefinition.noElement) {

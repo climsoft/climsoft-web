@@ -51,7 +51,7 @@ export class ImportSourceStationDetailComponent implements OnChanges {
     const last = this.fetchStationsHolder[this.fetchStationsHolder.length - 1];
     if (last.sourceId !== '' && last.databaseId !== '') {
 
-      // Set the new valid values
+      // Set the new valid values from the place holder
       this.stationDefinition.stationsToFetch = [...this.fetchStationsHolder];
 
       //Add new placholder values
