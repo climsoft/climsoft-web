@@ -280,33 +280,38 @@ export class ObservationsService {
                 elevation: dto.elevation,
                 datetime: new Date(dto.datetime),
                 period: dto.period,
-                value: dto.value,
+                // Values from duckdb come with floating point precision issue (e.g 1.005 being 1.004999)
+                // So adjust the value with the EPSILON then round of to 2 d.p
+                // TODO. Should we always limit values to 2 d.p?
+                value: dto.value === null ? null : Math.round((dto.value + Number.EPSILON) * 100) / 100,
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NO_QC_TESTS_DONE,
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,
-                deleted: (dto.value === null && dto.flag === null), // TODo. I'm not sure if this is the correct way to perform deletes
+                deleted: (dto.value === null && dto.flag === null), // TODo. Not sure if this is the correct way to perform deletes
                 entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
-            });            
-            
+            });
+
             obsEntities.push(entity);
         }
 
         console.log("DTO transformation took: ", new Date().getTime() - startTime);
- 
+
+        console.log("first dto", createObservationDtoArray[0], "first entity", obsEntities[0])
+
 
         startTime = new Date().getTime();
 
         const batchSize = 1000; // bacthsize of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
-            await this.insertUser(batch); 
-        } 
+            await this.insertUser(batch);
+        }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
         return "success";
- 
+
     }
 
 

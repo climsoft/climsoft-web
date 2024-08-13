@@ -129,9 +129,8 @@ export class ObservationUploadService {
             // Note, it is important for the element and value alterations to be last because for multiple elements option, 
             // the column positions are changed when stacking the data into a single element column.
             alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(source, tableName);
+            //console.log('Execute: ', alterSQLs);
 
-
-            console.log('Execute: ', alterSQLs);
             let startTime = new Date().getTime();
             // Execute the duckdb DDL SQL commands
             await this.db.exec(alterSQLs);
