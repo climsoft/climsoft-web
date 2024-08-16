@@ -169,10 +169,8 @@ export class ObservationUploadService {
         // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
 
         const sourceColumnNames: string[] = (await this.db.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
-        console.log("Formated source column names: " + sourceColumnNames);
         let sql: string = "";
         for (let i = 0; i < sourceColumnNames.length; i++) {
-            //sql="";
             sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
         }
         return sql;
@@ -193,7 +191,7 @@ export class ObservationUploadService {
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.STATION_ID_PROPERTY_NAME} SET NOT NULL;`;
 
         } else if (stationId) {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATION_ID_PROPERTY_NAME} VARCHAR DEFAULT ${stationId};`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATION_ID_PROPERTY_NAME} VARCHAR DEFAULT '${stationId}';`;
         } else {
             throw new Error("Station must be provided");
         }
