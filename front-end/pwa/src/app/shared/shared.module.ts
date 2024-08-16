@@ -44,6 +44,7 @@ import { ElementTypeSingleInputComponent } from './controls/element-type-input/e
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
 import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
+import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 
 //--------------------------------
   
@@ -102,6 +103,7 @@ const controlsComponents = [
   ElementTypeSingleInputComponent,
 
   ServerTypeInputComponent,
+  FlagSingleInputComponent,
 
 ];
 

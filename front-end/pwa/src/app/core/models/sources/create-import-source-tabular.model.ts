@@ -1,8 +1,9 @@
+import { FlagEnum } from "../observations/flag.enum";
 import { CreateImportSourceModel } from "./create-import-source.model";
 
 
 export interface CreateImportTabularSourceModel extends CreateImportSourceModel {
-    
+
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
 
@@ -32,9 +33,9 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
      */
     rowsToSkip: number;
 
-     /**
-     * Applies to csv file formats onl e.g CSV, DAT, TSV.
-     */
+    /**
+    * Applies to csv file formats onl e.g CSV, DAT, TSV.
+    */
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
 
     missingValueFlagDefinition: MissingFlagDefinition;
@@ -94,7 +95,7 @@ export interface ElementAndValueDefinition {
              */
             elementsToFetch?: { sourceId: string, databaseId: number }[],
             valueColumnPosition: number,
-            flagColumnPosition?: number
+            flagDefinition?: FlagDefinition
         },
 
         /**
@@ -129,7 +130,7 @@ export interface ElementAndValueDefinition {
         valueColumnPosition: number,
 
         /** Flag column position. Optional */
-        flagColumnPosition?: number,
+        flagDefinition?: FlagDefinition,
     };
 
 }
@@ -141,6 +142,11 @@ export interface ElementAndValueDefinition {
 export interface PeriodDefinition {
     columnPosition?: number;
     defaultPeriod?: number;
+}
+
+export interface FlagDefinition {
+    flagColumnPosition: number;
+    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
 }
 
 /**

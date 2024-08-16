@@ -1,5 +1,6 @@
 import { IsBoolean, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
 import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from "./create-import-source.dto";
+import { FlagEnum } from "src/observation/enums/flag.enum";
 
 export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
 
@@ -109,7 +110,7 @@ export class ElementAndValueDefinition {
              */
             elementsToFetch?: { sourceId: string, databaseId: number }[],
             valueColumnPosition: number,
-            flagColumnPosition?: number
+            flagDefinition?: FlagDefinition
         },
 
         /**
@@ -144,7 +145,7 @@ export class ElementAndValueDefinition {
         valueColumnPosition: number,
 
         /** Flag column position. Optional */
-        flagColumnPosition?: number,
+        flagDefinition?: FlagDefinition,
     };
 
 
@@ -160,16 +161,21 @@ export class PeriodDefinition {
     defaultPeriod?: number;
 }
 
+export class FlagDefinition {
+    flagColumnPosition: number;
+    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
+}
+
 /**
  * When dateTimeColumnPostion is not specified then  dateInMultipleColumn should be specified, that is,
  * either dateTimeColumnPostion or dateInMultipleColumn must be provided, but not both.
  */
 export class DateTimeDefinition {
 
-     /**
-     * The date time column position
-     * Expected format: 'yyyy-mm-dd hh:mm:ss'
-     */
+    /**
+    * The date time column position
+    * Expected format: 'yyyy-mm-dd hh:mm:ss'
+    */
     dateTimeColumnPostion?: number;
 
     dateTimeInMultipleColumn?: {

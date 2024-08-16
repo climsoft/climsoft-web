@@ -44,6 +44,7 @@ export class ObservationsController {
   async uploadFile(
     @Req() request: Request,
     @Param('sourceid', ParseIntPipe) sourceId: number,
+    @Param('stationid') stationId: string,
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
@@ -53,7 +54,7 @@ export class ObservationsController {
     ) file: Express.Multer.File) { 
 
     try{
-      await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request));
+      await this.observationUpload.processFile(sourceId,  file, AuthUtil.getLoggedInUserId(request), stationId);
       return { message: "success" };
     }catch(error){
       return { message: `error: ${error}`  };

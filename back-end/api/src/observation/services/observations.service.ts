@@ -298,9 +298,6 @@ export class ObservationsService {
 
         console.log("DTO transformation took: ", new Date().getTime() - startTime);
 
-        console.log("first dto", createObservationDtoArray[0], "first entity", obsEntities[0])
-
-
         startTime = new Date().getTime();
 
         const batchSize = 1000; // bacthsize of 1000 seems to be safer (incase there are comments) and faster.

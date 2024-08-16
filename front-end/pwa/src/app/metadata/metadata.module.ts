@@ -24,7 +24,8 @@ import { ImportSourcePeriodDetailComponent } from './sources-components/import-s
 import { ImportSourceDateDetailComponent } from './sources-components/import-source-detail/import-source-date-detail/import-source-date-detail.component'; 
 import { ImportSourceDelimeterDetailComponent } from './sources-components/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
 import { ImportSourceElevationDetailComponent } from './sources-components/import-source-detail/import-source-elevation-detail/import-source-elevation-detail.component';
-import { ImportSourceMissingFlagDetailComponent } from './sources-components/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component'; 
+import { ImportSourceMissingFlagDetailComponent } from './sources-components/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
+import { ImportSourceFlagDetailComponent } from './sources-components/import-source-detail/import-source-flag-detail/import-source-flag-detail.component'; 
 
 @NgModule({
   declarations: [
@@ -53,7 +54,8 @@ import { ImportSourceMissingFlagDetailComponent } from './sources-components/imp
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
     ImportSourceElevationDetailComponent,
-    ImportSourceMissingFlagDetailComponent, 
+    ImportSourceMissingFlagDetailComponent,
+    ImportSourceFlagDetailComponent, 
  
  
   ],

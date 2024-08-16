@@ -38,10 +38,8 @@ export class ObservationUploadService {
         private observationsService: ObservationsService,
         private elementsService: ElementsService,
     ) {
-
         this.setupDuckDB();
         this.setupFolder();
-
     }
 
     async setupDuckDB() {
@@ -69,8 +67,8 @@ export class ObservationUploadService {
 
     }
 
-  
-    async processFile(sourceId: number, file: Express.Multer.File, userId: number) {
+
+    async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
 
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
         const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
@@ -86,7 +84,7 @@ export class ObservationUploadService {
         const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
 
         if (sourceDefinition.serverType === ServerTypeEnum.LOCAL && sourceDefinition.format === FormatEnum.TABULAR) {
-            await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId);
+            await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId,stationId);
         } else {
             throw new Error("Source not supported yet");
         }
@@ -101,7 +99,7 @@ export class ObservationUploadService {
         }
     }
 
-    private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number, defaultStationId?: string) {
+    private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number, stationId?: string) {
         try {
             const tableName: string = path.basename(fileName, path.extname(fileName));
             const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
@@ -110,18 +108,18 @@ export class ObservationUploadService {
             }
 
             // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-            // TODO. Should we create a temporary table, will it have a significance?
+            // TODO. Should we create a temporary table, will it have any significance?
             await this.db.exec(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
 
             let alterSQLs: string;
-            // Rename all columns correctly
+            // Rename all columns to use the expected suffix column indices
             alterSQLs = await this.getRenameColumnNamesSQL(tableName);
 
             // Add source column
             alterSQLs = alterSQLs + `ALTER TABLE ${tableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
 
             // Add the rest of the columns
-            alterSQLs = alterSQLs + this.getAlterStationColumnSQL(source, tableName, defaultStationId);
+            alterSQLs = alterSQLs + this.getAlterStationColumnSQL(source, tableName, stationId);
             alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(source, tableName);
             alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(source, tableName);
             alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(source, tableName);
@@ -129,7 +127,8 @@ export class ObservationUploadService {
             // Note, it is important for the element and value alterations to be last because for multiple elements option, 
             // the column positions are changed when stacking the data into a single element column.
             alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(source, tableName);
-            //console.log('Execute: ', alterSQLs);
+
+            //console.log("alterSQLs: ", alterSQLs);
 
             let startTime = new Date().getTime();
             // Execute the duckdb DDL SQL commands
@@ -139,7 +138,7 @@ export class ObservationUploadService {
             if (source.scaleValues) {
                 startTime = new Date().getTime();
                 // Scale values if indicated, execute the scale values SQL
-                await this.db.exec(await this.getScaleValueSQL( tableName));
+                await this.db.exec(await this.getScaleValueSQL(tableName));
                 console.log("DuckDB scaling took: ", new Date().getTime() - startTime);
             }
 
@@ -156,10 +155,8 @@ export class ObservationUploadService {
                 throw new Error("Saving Data Failed: " + error);
             }
 
-
             // Delete the table 
             await this.db.run(`DROP TABLE ${tableName};`);
-
         } catch (error) {
             console.error("File Import Failed: " + error)
             throw new Error("File Import Failed: " + error);
@@ -167,20 +164,21 @@ export class ObservationUploadService {
     }
 
     private async getRenameColumnNamesSQL(tableName: string): Promise<string> {
-
         // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
-        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'.
+        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'. 
         // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
 
         const sourceColumnNames: string[] = (await this.db.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
+        console.log("Formated source column names: " + sourceColumnNames);
         let sql: string = "";
         for (let i = 0; i < sourceColumnNames.length; i++) {
+            //sql="";
             sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
         }
         return sql;
     }
 
-    private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, defaultStationId?: string): string {
+    private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {
         let sql: string;
         if (source.stationDefinition) {
             const stationDefinition = source.stationDefinition;
@@ -188,25 +186,14 @@ export class ObservationUploadService {
             sql = `ALTER TABLE ${tableName} RENAME column${stationDefinition.columnPosition - 1} TO ${this.STATION_ID_PROPERTY_NAME};`;
 
             if (stationDefinition.stationsToFetch) {
-                // Enclose the source and database ids in single quotes to conform to SQL strings
-                const allStationIds: { sourceId: string, databaseId: string }[] = stationDefinition.stationsToFetch.map(
-                    item => ({ sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }));
-
-                // Delete any record that is not supposed to be fetched.    
-                const sourceStationIds: string[] = allStationIds.map(item => (item.sourceId));
-                sql = sql + `DELETE FROM ${tableName} WHERE ${this.STATION_ID_PROPERTY_NAME} NOT IN ( ${sourceStationIds.join(', ')} );`;
-
-                // Update the source station ids with the equivalent database ids
-                for (const station of allStationIds) {
-                    sql = sql + `UPDATE ${tableName} SET ${this.STATION_ID_PROPERTY_NAME} = ${station.databaseId} WHERE ${this.STATION_ID_PROPERTY_NAME} = ${station.sourceId};`;
-                }
+                sql = sql + this.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch);
             }
 
             // Ensure there are no nulls in the station column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.STATION_ID_PROPERTY_NAME} SET NOT NULL;`;
 
-        } else if (defaultStationId) {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATION_ID_PROPERTY_NAME} VARCHAR DEFAULT ${defaultStationId};`;
+        } else if (stationId) {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.STATION_ID_PROPERTY_NAME} VARCHAR DEFAULT ${stationId};`;
         } else {
             throw new Error("Station must be provided");
         }
@@ -219,35 +206,33 @@ export class ObservationUploadService {
         if (source.elementAndValueDefinition.noElement) {
             const noElement = source.elementAndValueDefinition.noElement
 
-            // Rename value column
-            sql = `ALTER TABLE ${tableName} RENAME column${noElement.valueColumnPosition - 1} TO ${this.VALUE_PROPERTY_NAME};`;
+            // Add the element id column with the default element
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${noElement.databaseId};`;
 
-            //Add flag column
-            if (noElement.flagColumnPosition !== undefined) {
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${noElement.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
-                // TODO. Should validate the flag at this point, using the flag enumerators??
+            // Rename value column
+            sql = sql + `ALTER TABLE ${tableName} RENAME column${noElement.valueColumnPosition - 1} TO ${this.VALUE_PROPERTY_NAME};`;
+
+            // Add flag column
+            if (noElement.flagDefinition) {
+                const flagDefinition = noElement.flagDefinition;
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
+
+                if (flagDefinition.flagsToFetch) {
+                    sql = sql + this.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch);
+                }
+
             } else {
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
             }
         } else if (source.elementAndValueDefinition.hasElement) {
-            if (source.elementAndValueDefinition.hasElement.singleColumn) {
-                const singleColumn = source.elementAndValueDefinition.hasElement.singleColumn;
+            const hasElement = source.elementAndValueDefinition.hasElement;
+            if (hasElement.singleColumn) {
+                const singleColumn = hasElement.singleColumn;
                 //--------------------------
                 // Element column
                 sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
                 if (singleColumn.elementsToFetch) {
-                    // Enclose the source and database ids in single quotes to conform to SQL strings
-                    const allElementIds: { sourceId: string, databaseId: string }[] = singleColumn.elementsToFetch.map(
-                        item => ({ sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }));
-
-                    // Delete any record that is not supposed to be fetched.    
-                    const sourceElementIds: string[] = allElementIds.map(item => (item.sourceId));
-                    sql = sql + `DELETE FROM ${tableName} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} NOT IN ( ${sourceElementIds.join(', ')} );`;
-
-                    // Update the source element ids with the equivalent database ids
-                    for (const element of allElementIds) {
-                        sql = sql + `UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.sourceId};`;
-                    }
+                    sql = sql + this.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch);
                 }
                 //--------------------------
 
@@ -258,20 +243,25 @@ export class ObservationUploadService {
 
                 //--------------------------
                 // Flag column
-                if (singleColumn.flagColumnPosition !== undefined) {
-                    sql = sql + `ALTER TABLE ${tableName} RENAME column${singleColumn.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
-                    // TODO. Should we validate the flag at this point using the flag enumerators?
+                if (singleColumn.flagDefinition !== undefined) {
+                    const flagDefinition = singleColumn.flagDefinition;
+                    sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
+
+                    if (flagDefinition.flagsToFetch) {
+                        sql = sql + this.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch);
+                    }
+
                 } else {
                     sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
                 }
                 //--------------------------
-            } else if (source.elementAndValueDefinition.hasElement.multipleColumn) {
-                const multipleColumn = source.elementAndValueDefinition.hasElement.multipleColumn;
+            } else if (hasElement.multipleColumn) {
+                const multipleColumn = hasElement.multipleColumn;
                 const colNames: string[] = multipleColumn.map(item => (`column${item.columnPosition - 1}`));
 
                 // Stack the data from the multiple element columns. This will create a new table with 2 columns for elements and values
                 const tableNameStacked = `${tableName}_stacked`;
-                sql = sql + `CREATE OR REPLACE TABLE ${tableNameStacked} AS SELECT * FROM ${tableName} UNPIVOT ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
+                sql = sql + `CREATE OR REPLACE TABLE ${tableNameStacked} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
 
                 // Drop previous unstacked table table
                 sql = sql + `DROP TABLE ${tableName};`;
@@ -286,7 +276,6 @@ export class ObservationUploadService {
 
                 // Add flag column
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
-
             }
 
             // Ensure there are no null elements
@@ -309,7 +298,26 @@ export class ObservationUploadService {
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE REAL;`;
 
         return sql;
+    }
 
+    private getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[]): string {
+        // TODO. Is it even necessary to check with to add single quotes? Does it affect the duckdb performance?
+        valuesToFetch = valuesToFetch.map(item => {
+            console.log("type of value", typeof item.databaseId);
+            if (typeof item.databaseId === "string") {
+            }
+            return { sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }
+        });
+
+        // Delete any record that is not supposed to be fetched .    
+        let sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+
+        // Update the source element ids with the equivalent database ids
+        for (const value of valuesToFetch) {
+            sql = sql + `UPDATE ${tableName} SET ${columnName} = ${value.databaseId} WHERE ${columnName} = ${value.sourceId};`;
+        }
+
+        return sql;
     }
 
     private getAlterPeriodColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
@@ -380,7 +388,7 @@ export class ObservationUploadService {
         return sql;
     }
 
-    private async getScaleValueSQL( tableName: string): Promise<string> {
+    private async getScaleValueSQL(tableName: string): Promise<string> {
         const elementIdsToScale: number[] = (await this.db.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
         const elements: ViewElementDto[] = await this.elementsService.findSome(elementIdsToScale);
         let scalingSQLs: string = ""

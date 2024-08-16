@@ -56,15 +56,8 @@
                 </div>
 
                 <div class="mt-2">
-                    <app-check-box-input [label]="'Includes Flag'"
-                        [value]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined"
-                        (valueChange)="onSingleElementIncludesFlag($event)" />
-                    <div class="ms-2"
-                        *ngIf="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined">
-                        <app-number-input [label]="'Column Position'"
-                            [(value)]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition" />
-
-                    </div>
+                    <app-import-source-flag-detail
+                        [flagDefinition]="elementAndValueDefinition.hasElement.singleColumn.flagDefinition" />
                 </div>
 
 
@@ -98,24 +91,17 @@
 
         <!-- no elements -->
         <div *ngIf="elementAndValueDefinition.noElement" class="ms-4">
-
-            <app-element-single-input [label]="'Element:'"
-                [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
-
-            <app-number-input [label]="'Value Column Position'"
-                [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
-
-            <div>
-                <app-check-box-input [label]="'Includes Flag'"
-                    [value]="elementAndValueDefinition.noElement.flagColumnPosition  !== undefined"
-                    (valueChange)="onNoElementIncludesFlag($event)" />
-                <div *ngIf="elementAndValueDefinition.noElement.flagColumnPosition !== undefined">
-                    <app-number-input [label]="'Column Position'"
-                        [(value)]="elementAndValueDefinition.noElement.flagColumnPosition" />
-
-                </div>
+            <div class="mt-2">
+                <app-element-single-input [label]="'Element:'"
+                    [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
             </div>
-
+            <div class="mt-2">
+                <app-number-input [label]="'Value Column Position'"
+                    [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
+            </div>
+            <div class="mt-2">
+                <app-import-source-flag-detail [flagDefinition]="elementAndValueDefinition.noElement.flagDefinition" />
+            </div>
         </div>
     </div>
 

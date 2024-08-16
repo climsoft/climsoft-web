@@ -61,11 +61,7 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
     }
   }
 
-  protected onSingleElementIncludesFlag(include: boolean): void {
-    if (this.elementAndValueDefinition.hasElement?.singleColumn) {
-      this.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition = include ? 0 : undefined;
-    }
-  }
+
 
   protected onSingleFetchElementsChange(fetch: boolean) {
 
@@ -94,9 +90,7 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
       //Add new placholder values
       this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
-
     }
-
   }
 
   protected onMultipleElementsEntry(): void {
@@ -107,7 +101,7 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
     //If it's the last control add new placeholder for visibility of the entry controls
     const last = this.elementColumnsHolder[this.elementColumnsHolder.length - 1];
-    if ( last.columnPosition !==0 && last.databaseId !== 0) {
+    if (last.columnPosition !== 0 && last.databaseId !== 0) {
 
       // Set the new valid values from the place holder
       this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
@@ -116,12 +110,6 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
       this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
     }
 
-  }
-
-  protected onNoElementIncludesFlag(include: boolean): void {
-    if (this.elementAndValueDefinition.noElement) {
-      this.elementAndValueDefinition.noElement.flagColumnPosition = include ? 0 : undefined;
-    }
   }
 
 }
