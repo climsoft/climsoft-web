@@ -1,0 +1,39 @@
+<div>
+    <app-check-box-input [label]="'Includes Flag'"
+        [value]="flagDefinition !== undefined"
+        (valueChange)="onIncludesFlag($event)" />
+    <div class="ms-2" *ngIf="flagDefinition">
+        <app-number-input [label]="'Column Position'"
+            [(value)]="flagDefinition.flagColumnPosition" />
+
+            <div class="mt-2">
+                <app-check-box-input [label]="'Fetch Specific Elements'"
+                    [value]="flagDefinition.flagsToFetch !== undefined"
+                    (valueChange)="onFetchFlagsChange($event)" />
+
+                <table *ngIf="flagDefinition.flagsToFetch"
+                    class="table table-sm ms-2">
+                    <thead>
+                        <tr>
+                            <th>Source ID</th>
+                            <th>Database ID</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let item of flagsToFetchHolder; let i = index">
+                            <td>
+                                <app-text-input [id]="i + '_source_flag_id'" [(value)]="item.sourceId"
+                                    (valueChange)="onFlagsToFetchEntry()" />
+                            </td>
+                            <td>
+                                <app-flag-single-input [id]="i + '_database_flag_id'"
+                                    [selectedId]="item.databaseId"
+                                    (selectedIdChange)="onFlagEntry( i, $event)" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+    </div>
+</div>

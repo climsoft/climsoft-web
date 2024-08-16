@@ -1,8 +1,9 @@
+import { FlagEnum } from "../observations/flag.enum";
 import { CreateImportSourceModel } from "./create-import-source.model";
 
 
 export interface CreateImportTabularSourceModel extends CreateImportSourceModel {
-    
+
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
 
@@ -32,14 +33,22 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
      */
     rowsToSkip: number;
 
-     /**
-     * Applies to csv file formats onl e.g CSV, DAT, TSV.
-     */
-    delimiter?: ',' | '|'; // TODO find a way of including \t
+    /**
+    * Applies to csv file formats onl e.g CSV, DAT, TSV.
+    */
+    delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
+
+    missingValueFlagDefinition: MissingFlagDefinition;
 
     sampleImage: string;
 
 }
+
+export interface MissingFlagDefinition {
+    importMissingValue: boolean;
+    missingValueFlag: string;
+}
+
 
 /**
  * Station column is optional.
@@ -80,14 +89,13 @@ export interface ElementAndValueDefinition {
         singleColumn?: {
 
             elementColumnPosition: number,
-
             /**
              * The elements to fetch and matches the source ids to the database element ids. 
              * It is optional, meaning fetch all as database element ids.
              */
             elementsToFetch?: { sourceId: string, databaseId: number }[],
             valueColumnPosition: number,
-            flagColumnPosition?: number
+            flagDefinition?: FlagDefinition
         },
 
         /**
@@ -122,7 +130,7 @@ export interface ElementAndValueDefinition {
         valueColumnPosition: number,
 
         /** Flag column position. Optional */
-        flagColumnPosition?: number,
+        flagDefinition?: FlagDefinition,
     };
 
 }
@@ -134,6 +142,11 @@ export interface ElementAndValueDefinition {
 export interface PeriodDefinition {
     columnPosition?: number;
     defaultPeriod?: number;
+}
+
+export interface FlagDefinition {
+    flagColumnPosition: number;
+    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
 }
 
 /**

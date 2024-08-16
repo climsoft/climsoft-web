@@ -6,10 +6,10 @@ import { ElementAndValueDefinition } from '../../../../core/models/sources/creat
   templateUrl: './import-source-element-and-value-detail.component.html',
   styleUrls: ['./import-source-element-and-value-detail.component.scss']
 })
-export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
+export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
   @Input()
-  public elementAndValueDefinition!: ElementAndValueDefinition ;
+  public elementAndValueDefinition!: ElementAndValueDefinition;
 
   protected elementColumnsHolder!: { columnPosition: number, databaseId: number }[];
   protected elementToFetchsHolder!: { sourceId: string, databaseId: number }[];
@@ -22,18 +22,18 @@ export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
         this.elementColumnsHolder = [... this.elementAndValueDefinition.hasElement.multipleColumn];
         //Add new placholder values
         this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
-      } 
+      }
 
-      if ( this.elementAndValueDefinition.hasElement.singleColumn?.elementsToFetch) {
+      if (this.elementAndValueDefinition.hasElement.singleColumn?.elementsToFetch) {
         this.elementToFetchsHolder = [... this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch];
         //Add new placholder values
         this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
       }
 
-    
+
     }
   }
-  
+
   protected onElementStatusSelection(elementSelectionStatus: string): void {
     this.elementAndValueDefinition.noElement = undefined;
     this.elementAndValueDefinition.hasElement = undefined;
@@ -54,18 +54,14 @@ export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
     this.elementAndValueDefinition.hasElement.multipleColumn = undefined;
     this.elementColumnsHolder = [{ columnPosition: 0, databaseId: 0 }];
 
-    if (elementColumnStatus === 'Single Column') {
+    if (elementColumnStatus === 'In Single Column') {
       this.elementAndValueDefinition.hasElement.singleColumn = { elementColumnPosition: 0, valueColumnPosition: 0 };
-    } else if (elementColumnStatus === 'Multiple Column') { 
+    } else if (elementColumnStatus === 'In Multiple Columns') {
       this.elementAndValueDefinition.hasElement.multipleColumn = [];
     }
   }
 
-  protected onSingleElementIncludesFlag(include: boolean): void {
-    if (this.elementAndValueDefinition.hasElement?.singleColumn) {
-      this.elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition = include ? 0 : undefined;
-    }
-  }
+
 
   protected onSingleFetchElementsChange(fetch: boolean) {
 
@@ -76,7 +72,7 @@ export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
     // Add new placeholder for visibility of the entry controls if stations are specified
     this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch = fetch ? [] : undefined;
 
-    this.elementToFetchsHolder = [{ sourceId:'', databaseId: 0 }]; 
+    this.elementToFetchsHolder = [{ sourceId: '', databaseId: 0 }];
   }
 
   protected onSingleElementsToFetchEntry(): void {
@@ -85,18 +81,16 @@ export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
       return;
     }
 
-      //If it's the last control add new placeholder for visibility of the entry controls
-      const last = this.elementToFetchsHolder[this.elementToFetchsHolder.length - 1];
-      if (last.sourceId !== '' && last.databaseId !== 0 ) {
-  
-        // Set the new valid values
-        this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch= [...this.elementToFetchsHolder];
-  
-        //Add new placholder values
-        this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
-  
-      }
+    //If it's the last control add new placeholder for visibility of the entry controls
+    const last = this.elementToFetchsHolder[this.elementToFetchsHolder.length - 1];
+    if (last.sourceId !== '' && last.databaseId !== 0) {
 
+      // Set the new valid values
+      this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch = [...this.elementToFetchsHolder];
+
+      //Add new placholder values
+      this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
+    }
   }
 
   protected onMultipleElementsEntry(): void {
@@ -105,26 +99,17 @@ export class ImportSourceElementAndValueDetailComponent  implements OnChanges{
       return;
     }
 
-      //If it's the last control add new placeholder for visibility of the entry controls
-      const last = this.elementColumnsHolder[this.elementColumnsHolder.length - 1];
-      if (last.databaseId !== 0 ) {
-  
-        // Set the new valid values
-        this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
-  
-        //Add new placholder values
-        this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
-  
-      }
+    //If it's the last control add new placeholder for visibility of the entry controls
+    const last = this.elementColumnsHolder[this.elementColumnsHolder.length - 1];
+    if (last.columnPosition !== 0 && last.databaseId !== 0) {
 
+      // Set the new valid values from the place holder
+      this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
 
-  }
-
-
-  protected onNoElementIncludesFlag(include: boolean): void {
-    if (this.elementAndValueDefinition.noElement) {
-      this.elementAndValueDefinition.noElement.flagColumnPosition = include ? 0 : undefined;
+      //Add new placholder values
+      this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
     }
+
   }
 
 }

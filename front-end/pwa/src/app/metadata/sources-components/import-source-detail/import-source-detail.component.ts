@@ -9,6 +9,7 @@ import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
 import { CreateUpdateSourceModel } from 'src/app/core/models/sources/create-update-source.model';
+import { FormatEnum, ServerTypeEnum } from 'src/app/core/models/sources/create-import-source.model';
 
 
 @Component({
@@ -32,7 +33,6 @@ export class ImportSourceDetailComponent implements OnInit {
     const sourceId = this.route.snapshot.params['id'];
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
-
       this.pagesDataService.setPageHeader('Edit Import Definitions');
 
       // Todo. handle errors where the source is not found for the given id
@@ -40,13 +40,11 @@ export class ImportSourceDetailComponent implements OnInit {
         take(1)
       ).subscribe((data) => {
         this.viewSource = data;
-        console.log({data});
+        console.log({ data });
       });
 
     } else {
-
       this.pagesDataService.setPageHeader('New Import Definitions');
-
       this.viewSource = {
         id: 0,
         name: '',
@@ -54,16 +52,32 @@ export class ImportSourceDetailComponent implements OnInit {
         sourceType: SourceTypeEnum.IMPORT,
         sourceTypeName: SourceTypeEnum.IMPORT,
         extraMetadata: {
-          format:'TABULAR' ,
+          serverType: ServerTypeEnum.LOCAL,
+          format: FormatEnum.TABULAR,
           stationDefinition: undefined,
-          elementAndValueDefinition: {},
-          periodDefinition: {},
+          elementAndValueDefinition: {
+            hasElement: {
+              singleColumn: {
+                elementColumnPosition: 1,
+                valueColumnPosition: 1
+              }
+            }
+          },
+          periodDefinition: {
+            columnPosition: 1
+          },
           elevationColumnPosition: undefined,
-          datetimeDefinition: {},
+          datetimeDefinition: {
+            dateTimeColumnPostion: 1
+          },
           utcDifference: 0,
           scaleValues: false,
-          rowsToSkip: 0,
+          rowsToSkip: 1,
           delimiter: undefined,
+          missingValueFlagDefinition: {
+            importMissingValue: false,
+            missingValueFlag: ''
+          },
           sampleImage: '',
         }
       };
@@ -71,21 +85,13 @@ export class ImportSourceDetailComponent implements OnInit {
     }
   }
 
-  protected onIncludeElevation(include: boolean): void {
-    this.viewSource.extraMetadata.elevationColumnPosition = include ? 0 : undefined;
-  }
-
-  protected onIncludeDelimters(include: boolean): void {
-    this.viewSource.extraMetadata.delimiter = include ? "," : undefined;
-  }
-
-  protected displayDelimitersFn(option: string): string {
-    return option;
-
+  protected onServerTypeSelected(serverType: ServerTypeEnum | null): void {
+    if (serverType !== null) {
+      this.viewSource.extraMetadata.serverType = serverType;
+    }
   }
 
   protected onSave(): void {
-
     const createUpdateSource: CreateUpdateSourceModel<CreateImportTabularSourceModel> = {
       name: this.viewSource.name,
       description: this.viewSource.description,
@@ -116,12 +122,10 @@ export class ImportSourceDetailComponent implements OnInit {
           });
           this.location.back();
         }
-
       });
     }
 
   }
-
 
 
   protected onDelete(): void {

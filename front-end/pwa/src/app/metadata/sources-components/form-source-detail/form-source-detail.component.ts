@@ -60,21 +60,20 @@ export class FormSourceDetailComponent implements OnInit {
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe((data) => {
-
         this.sourceId = data.id;
         this.viewSource = data;
         this.setControlValues(data);
       });
     } else {
       this.sourceId = 0;
-      this.viewSource = { 
-        id:0,
-        name: '', 
-        description: '', 
-        sourceType: SourceTypeEnum.FORM, 
+      this.viewSource = {
+        id: 0,
+        name: '',
+        description: '',
+        sourceType: SourceTypeEnum.FORM,
         sourceTypeName: SourceTypeEnum.FORM,
         extraMetadata: {
-          selectors: ['DAY','HOUR'],
+          selectors: ['DAY', 'HOUR'],
           fields: ['ELEMENT'],
           layout: 'LINEAR',
           elementIds: [],
@@ -84,9 +83,9 @@ export class FormSourceDetailComponent implements OnInit {
           enforceLimitCheck: false,
           validateTotal: false,
           samplePaperImage: '',
-          elementsMetadata:[]
+          elementsMetadata: []
         }
-      
+
       };
       this.pagesDataService.setPageHeader('New Form Definitions');
     }
@@ -97,7 +96,7 @@ export class FormSourceDetailComponent implements OnInit {
     this.formDescription = this.viewSource.description;
 
     // Get form metadata
-    // TODO. What should be done when this happens, though never expected
+    // TODO. What should be done when this happens, though it's never expected
     if (!this.viewSource.extraMetadata) {
       return;
     }
@@ -154,7 +153,6 @@ export class FormSourceDetailComponent implements OnInit {
 
     this.selectedFields = selectedFields;
     this.selectedLayout = this.getLayout(this.selectedFields);
-
   }
 
   private getLayout(fields: ExtraSelectorControlType[]): LayoutType {

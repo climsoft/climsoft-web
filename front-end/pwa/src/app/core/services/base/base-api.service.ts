@@ -61,6 +61,6 @@ export abstract class BaseAPIService<C,U, V> {
       console.error(`Backend returned code ${error.status}, body was: `, error.error);
     }
     // Return an observable with a user-facing error message.
-    return throwError(() => new Error('Something bad happened; please try again later.'));
+    return throwError(() => new Error('Something bad happened. Please try again later.'));
   }
 }

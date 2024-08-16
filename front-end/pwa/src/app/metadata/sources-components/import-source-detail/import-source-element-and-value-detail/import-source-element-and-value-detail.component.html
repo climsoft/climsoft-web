@@ -1,22 +1,23 @@
 <div>
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'elementStatus'" [groupItems]="[
             { label:'Includes Elements', checked:  elementAndValueDefinition.hasElement !== undefined}, 
-        { label:'Does Not Include Elements', checked: elementAndValueDefinition.noElement !== undefined}]"
+            { label:'Does Not Include Elements', checked: elementAndValueDefinition.noElement !== undefined}]"
         (checkedValueChange)="onElementStatusSelection($event)" />
 
     <div class="ms-4 mt-3">
         <!--includes elements-->
         <div *ngIf="elementAndValueDefinition.hasElement">
 
-            <app-radio-buttons-input [inline]="true" [groupName]="'hasElementSelection'" [groupItems]="[{ label:'Single Column', checked: elementAndValueDefinition.hasElement.singleColumn  !== undefined}, 
-        { label:'Multiple Column', checked: elementAndValueDefinition.hasElement.multipleColumn  !== undefined}]"
-                (checkedValueChange)="onElementColumnsSelection($event)" />
+            <app-radio-buttons-input [inline]="true" [groupName]="'hasElementSelection'"
+                [groupItems]="[
+                { label:'In Single Column', checked: elementAndValueDefinition.hasElement.singleColumn  !== undefined}, 
+                { label:'In Multiple Columns', checked: elementAndValueDefinition.hasElement.multipleColumn  !== undefined}]" (checkedValueChange)="onElementColumnsSelection($event)" />
 
 
             <!--single column elements-->
             <div *ngIf="elementAndValueDefinition.hasElement.singleColumn" class="ms-4">
                 <div class="mt-2">
-                    <app-number-input [label]="'Element Column Position'"
+                    <app-number-input [label]="'Elements Column Position'"
                         [(value)]="elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition" />
 
                     <div class="mt-2">
@@ -47,24 +48,16 @@
                             </tbody>
                         </table>
                     </div>
-
-
                 </div>
 
                 <div class="mt-2">
-                    <app-number-input [label]="'Value Column Position'"
-                    [(value)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
+                    <app-number-input [label]="'Values Column Position'"
+                        [(value)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
                 </div>
-            
-                <div class="mt-2">
-                    <app-check-box-input [label]="'Includes Flag'"
-                        [value]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined"
-                        (valueChange)="onSingleElementIncludesFlag($event)" />
-                    <div class="ms-2" *ngIf="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition !== undefined">
-                        <app-number-input [label]="'Column Position'"
-                            [(value)]="elementAndValueDefinition.hasElement.singleColumn.flagColumnPosition" />
 
-                    </div>
+                <div class="mt-2">
+                    <app-import-source-flag-detail
+                        [flagDefinition]="elementAndValueDefinition.hasElement.singleColumn.flagDefinition" />
                 </div>
 
 
@@ -98,24 +91,17 @@
 
         <!-- no elements -->
         <div *ngIf="elementAndValueDefinition.noElement" class="ms-4">
-
-            <app-element-single-input [label]="'Element:'"
-                [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
-
-            <app-number-input [label]="'Value Column Position'"
-                [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
-
-            <div>
-                <app-check-box-input [label]="'Includes Flag'"
-                    [value]="elementAndValueDefinition.noElement.flagColumnPosition  !== undefined"
-                    (valueChange)="onNoElementIncludesFlag($event)" />
-                <div *ngIf="elementAndValueDefinition.noElement.flagColumnPosition !== undefined">
-                    <app-number-input [label]="'Column Position'"
-                        [(value)]="elementAndValueDefinition.noElement.flagColumnPosition" />
-
-                </div>
+            <div class="mt-2">
+                <app-element-single-input [label]="'Element:'"
+                    [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
             </div>
-
+            <div class="mt-2">
+                <app-number-input [label]="'Value Column Position'"
+                    [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
+            </div>
+            <div class="mt-2">
+                <app-import-source-flag-detail [flagDefinition]="elementAndValueDefinition.noElement.flagDefinition" />
+            </div>
         </div>
     </div>
 

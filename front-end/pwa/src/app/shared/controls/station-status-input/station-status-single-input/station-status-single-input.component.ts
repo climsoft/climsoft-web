@@ -7,7 +7,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   templateUrl: './station-status-single-input.component.html',
   styleUrls: ['./station-status-single-input.component.scss']
 })
-export class StationStatusSingleInputComponent implements OnInit, OnChanges {
+export class StationStatusSingleInputComponent implements OnChanges {
   @Input() public label: string = 'Status';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: StationStatusEnum[];
@@ -21,9 +21,6 @@ export class StationStatusSingleInputComponent implements OnInit, OnChanges {
 
   }
 
-  ngOnInit(): void {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
 
 
@@ -33,7 +30,7 @@ export class StationStatusSingleInputComponent implements OnInit, OnChanges {
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = Object.values(StationStatusEnum).filter(
+      this.options = this.options.filter(
         data => this.includeOnlyIds.includes(data));
     }
 

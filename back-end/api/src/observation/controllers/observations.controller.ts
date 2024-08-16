@@ -50,15 +50,37 @@ export class ObservationsController {
         new FileTypeValidator({ fileType: 'text/csv' }),
       ]
     })
-    ) file: Express.Multer.File) { 
-
-    try{
+    ) file: Express.Multer.File) {
+    try {
       await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request));
       return { message: "success" };
-    }catch(error){
-      return { message: `error: ${error}`  };
+    } catch (error) {
+      return { message: `error: ${error}` };
     }
-   
+
+  }
+
+  @Post('/upload/:sourceid/:stationid')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFileForStation(
+    @Req() request: Request,
+    @Param('sourceid', ParseIntPipe) sourceId: number,
+    @Param('stationid') stationId: string,
+    @UploadedFile(new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
+        new FileTypeValidator({ fileType: 'text/csv' }),
+      ]
+    })
+    ) file: Express.Multer.File) {
+
+    try {
+      await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request), stationId);
+      return { message: "success" };
+    } catch (error) {
+      return { message: `error: ${error}` };
+    }
+
   }
 
 

@@ -16,86 +16,85 @@
 
         <hr class="border border-secondary border-1">
 
-        <!--Rows To Skip -->
         <div class="mb-3">
-            <app-number-input [label]="'Rows To Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
+            <app-server-type-input [label]="'Server Type'" [selectedId]="viewSource.extraMetadata.serverType"
+                (selectedIdChange)="onServerTypeSelected($event)"></app-server-type-input>
         </div>
 
-        <hr class="border border-secondary border-1">
+        <div *ngIf="viewSource.extraMetadata.serverType === 'local'">
+            <hr class="border border-secondary border-1">
 
-        <!--Delimeters-->
-        <div class="mb-3">
-            <app-check-box-input [label]="'Includes Delimeters'"
-            [value]="viewSource.extraMetadata .delimiter !== undefined"
-            (valueChange)="onIncludeDelimters($event)" />
+            <!--Rows To Skip -->
+            <div class="mb-3">
+                <app-number-input [label]="'Rows to Skip'" [(value)]="viewSource.extraMetadata .rowsToSkip" />
+            </div>
 
-        <div class="ms-4" *ngIf="viewSource.extraMetadata .delimiter !== undefined">
-            <!-- TODO -->
-            <app-selector-single-input [label]="'Delimeters'" [options]="[',', '|']" [selectedOption]="','"
-                [optionDisplayFn]="displayDelimitersFn" />
-        </div>
+            <hr class="border border-secondary border-1">
 
-           
-        </div>
+            <!--Delimeters-->
+            <div class="mb-3">
+                <app-import-source-delimeter-detail [(delimiter)]="viewSource.extraMetadata.delimiter" />
+            </div>
 
-        <hr class="border border-secondary border-1">
+            <hr class="border border-secondary border-1">
 
-        <!--Scale values -->
-        <div class="mb-3">
-            <app-check-box-input [label]="'Scale Values'" [(value)]="viewSource.extraMetadata.scaleValues" />
-        </div>
+            <!--Station-->
+            <div class="mb-3">
+                <app-import-source-station-detail [(stationDefinition)]="viewSource.extraMetadata.stationDefinition" />
+            </div>
 
-        <hr class="border border-secondary border-1">
+            <hr class="border border-secondary border-1">
 
-        <!--Station-->
-        <div class="mb-3">
-            <app-import-source-station-detail [(stationDefinition)]="viewSource.extraMetadata .stationDefinition" />
-        </div>
+            <!--Elevation-->
+            <div class="mb-3">
+                <app-import-source-elevation-detail
+                    [(elevationColumnPosition)]="viewSource.extraMetadata.elevationColumnPosition" />
+            </div>
 
-        <hr class="border border-secondary border-1">
+            <hr class="border border-secondary border-1">
 
-        <!--Elevation-->
-        <div class="mb-3">
-            <app-check-box-input [label]="'Includes Elevation'"
-                [value]="viewSource.extraMetadata .elevationColumnPosition !== undefined"
-                (valueChange)="onIncludeElevation($event)" />
+            <!--Period-->
+            <div class="mb-3">
+                <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata.periodDefinition" />
+            </div>
 
-            <div class="ms-4" *ngIf="viewSource.extraMetadata .elevationColumnPosition !== undefined">
-                <app-number-input [label]="'Column Position'"
-                    [(value)]="viewSource.extraMetadata .elevationColumnPosition" />
+            <hr class="border border-secondary border-1">
+
+            <!--Date time-->
+            <div class="mb-3">
+                <app-import-source-date-detail [datetimeDefinition]="viewSource.extraMetadata.datetimeDefinition" />
+            </div>
+
+            <hr class="border border-secondary border-1">
+
+            <!--UTC Time Difference -->
+            <div class="mb-3">
+                <app-number-input [label]="'UTC Time Difference'" [(value)]="viewSource.extraMetadata .utcDifference" />
+            </div>
+
+            <hr class="border border-secondary border-1">
+
+            <!--Elements-->
+            <div class="mb-3">
+                <app-import-source-element-and-value-detail
+                    [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
+            </div>
+
+            <hr class="border border-secondary border-1">
+
+            <!--Missing Values-->
+            <div class="mb-3">
+                <app-import-source-missing-flag-detail [missingValueFlagDefinition]="viewSource.extraMetadata.missingValueFlagDefinition"/>
+            </div>
+
+            <hr class="border border-secondary border-1">
+
+            <!--Scale values -->
+            <div class="mb-3">
+                <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'"
+                    [(value)]="viewSource.extraMetadata.scaleValues" />
             </div>
         </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Period-->
-        <div class="mb-3">
-            <app-import-source-period-detail [periodDefinition]="viewSource.extraMetadata .periodDefinition" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Date time-->
-        <div class="mb-3">
-            <app-import-source-date-detail [datetimeDefinition]="viewSource.extraMetadata.datetimeDefinition" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--UTC Time Difference -->
-        <div class="mb-3">
-            <app-number-input [label]="'UTC Time Difference'" [(value)]="viewSource.extraMetadata .utcDifference" />
-        </div>
-
-        <hr class="border border-secondary border-1">
-
-        <!--Elements-->
-        <div class="mb-3">
-            <app-import-source-element-and-value-detail
-                [elementAndValueDefinition]="viewSource.extraMetadata .elementAndValueDefinition" />
-        </div>
-
-
     </div>
 
 

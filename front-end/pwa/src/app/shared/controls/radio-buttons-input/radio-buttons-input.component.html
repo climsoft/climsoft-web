@@ -1,8 +1,8 @@
 <ng-container *ngIf="groupName">
-    <div class="form-check" [class.form-check-inline]="inline" *ngFor="let item of groupItems; let i = index;">
-        <input [ngClass]="{'form-check-input': !asButtons , 'btn-check' : asButtons  }" type="radio" [id]="item.label"
-            [name]="groupName" [checked]="item.checked" (change)="onValueChange(i,$any($event.target).checked)">
-        <label [ngClass]="{'form-check-label': !asButtons , 'btn btn-outline-secondary' : asButtons  }"
-            [for]="item.label">{{item.label}}</label>
-    </div>
+        <div class="form-check ps-0 ms-0 me-2" [class.form-check-inline]="inline" *ngFor="let item of groupItems; let i = index;">
+            <input [class.ms-0]="!asButtons" [ngClass]="{'form-check-input': !asButtons , 'btn-check' : asButtons  }" type="radio" [id]="item.label"
+                [name]="groupName" [checked]="item.checked" (change)="onValueChange(i,$any($event.target).checked)">
+            <label [class.ms-2]="!asButtons" [ngClass]="{'form-check-label': !asButtons , 'btn btn-outline-secondary' : asButtons  }"
+                [for]="item.label">{{item.label}}</label>
+        </div>
 </ng-container>
