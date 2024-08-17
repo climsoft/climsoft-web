@@ -92,14 +92,15 @@ export class ImportSourceDetailComponent implements OnInit {
   }
 
   protected onSave(): void {
+
+    // TODO. Validate the definitions, for instance, making sure column positions are unique.
+
     const createUpdateSource: CreateUpdateSourceModel<CreateImportTabularSourceModel> = {
       name: this.viewSource.name,
       description: this.viewSource.description,
       extraMetadata: this.viewSource.extraMetadata,
       sourceType: SourceTypeEnum.IMPORT
     };
-
-    console.log('import source', createUpdateSource);
 
     if (this.viewSource.id === 0) {
       this.importSourcesService.create(createUpdateSource).pipe(
@@ -126,7 +127,6 @@ export class ImportSourceDetailComponent implements OnInit {
     }
 
   }
-
 
   protected onDelete(): void {
     //todo. prompt for confirmation first

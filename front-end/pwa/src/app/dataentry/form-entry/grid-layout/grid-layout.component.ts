@@ -80,7 +80,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     this.valueChange.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
-    if (this.formDefinitions.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
       this.totalErrorMessage[colIndex] = '';
       this.totalIsValid.emit(false);
     }
@@ -140,7 +140,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
         // Check if value flag is already empty
         if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
           // Clear the value flag input
-          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.enforceLimitCheck);
+          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
 
           // Raise the value change 
           this.onValueChange(obsDef, colIndex);
@@ -150,7 +150,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     }
 
     // Set total as valid, because everything has been cleared
-    if (this.formDefinitions.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
       this.totalIsValid.emit(true);
     }
 

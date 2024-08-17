@@ -91,7 +91,7 @@ export class LnearLayoutComponent implements OnChanges {
     this.valueChange.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
-    if (this.formDefinitions.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
       this.totalErrorMessage = '';
       this.totalIsValid.emit(false);
     }
@@ -118,37 +118,52 @@ export class LnearLayoutComponent implements OnChanges {
    * Updates its internal state depending on the options passed
    * @param option  'Clear' | 'History'
    */
-  protected onOptions(option: 'Clear' | 'History'): void {
+  protected onOptions(option: 'Assign Same Value'|'Clear Values'|'Show Value History'): void {
     switch (option) {
-      case 'Clear':
+      case 'Clear Values':
         this.clear();
         break;
-      case 'History':
+      case 'Show Value History':
         this.displayHistoryOption = !this.displayHistoryOption;
         break;
     }
+  }
+
+  protected assignSameValue(input: string): void{
+    for(const obsDef of  this.observationsDefinitions){
+      // Check if value flag is  empty
+      if (StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+       // Set the new the value flag input
+       obsDef.setValueFlagFromInput(input, this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
+
+       // Raise the value change 
+       this.onValueChange(obsDef);
+     }
+ }    
+
+ // Set total as valid, because everything has been cleared
+ if (this.formDefinitions.formMetadata.requireTotalInput) {
+   this.totalIsValid.emit(true);
+ }
   }
 
   /**
   * Clears all the observation value fflags if they are not cleared and updates its internal state
   */
   private clear(): void {
-    this.observationsDefinitions.forEach(obsDef => {
-      // Check if value flag is already empty
-      if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
-        // Clear the value flag input
-        obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.enforceLimitCheck);
-
-        // Raise the value change 
-        this.onValueChange(obsDef);
-      }
-
-      return obsDef;
-
-    });
+    for(const obsDef of  this.observationsDefinitions){
+         // Check if value flag is already empty
+         if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+          // Clear the value flag input
+          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
+  
+          // Raise the value change 
+          this.onValueChange(obsDef);
+        }
+    }    
 
     // Set total as valid, because everything has been cleared
-    if (this.formDefinitions.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
       this.totalIsValid.emit(true);
     }
   }

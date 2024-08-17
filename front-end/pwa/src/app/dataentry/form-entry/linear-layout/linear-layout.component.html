@@ -5,8 +5,11 @@
     <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
       <div class="fw-bold">Fields</div>
       <div class="mb-1">
-        <app-drop-down-button [dropDownItems]="['Clear','History']" (dropDownOptionClick)="onOptions($event)"
+        <app-drop-down-button [dropDownItems]="[ 'Assign Same Value','Clear Values','Show Value History']"
+          (dropDownOptionClick)=" $event === 'Assign Same Value'? dlgSameValue.openDialog(): onOptions($event)"
           [translateX]="true">Options</app-drop-down-button>
+        <app-input-dialog #dlgSameValue [title]="'Assign Same Value'" [inputLabel]="'Enter value'"
+          (ok)="assignSameValue($event)"/>
       </div>
     </div>
 
@@ -19,12 +22,11 @@
           <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
             <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
               [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
-              [displayHistoryOption] = "displayHistoryOption"
-              [observationDefinition]="getObservationDef(fieldDef)"
+              [displayHistoryOption]="displayHistoryOption" [observationDefinition]="getObservationDef(fieldDef)"
               (valueChange)="onValueChange($event)"></app-value-flag-input>
           </div>
 
-          <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.validateTotal"
+          <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.requireTotalInput"
             class="row mb-2">
             <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
               (valueChange)="onTotalValueChange($event)"
@@ -42,7 +44,7 @@
           [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
           (valueChange)="onValueChange($event)"></app-value-flag-input>
 
-        <div *ngIf="formDefinitions.formMetadata.validateTotal" class="mb-2">
+        <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
           <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
             (valueChange)="onTotalValueChange($event)"
             (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>

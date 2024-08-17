@@ -38,8 +38,8 @@ export class CreateEntryFormDTO {
    * If true, the entry date time will be sent to the server based on date time selection on the lcient
    * If false, entry date time will be converted to UTC before being sent to sever
    */
-  @IsBoolean()
-  convertDateTimeToUTC: boolean;
+  @IsInt()
+  utcDifference: number;
 
   /** 
    * Determines whether to allow entries that don't pass observation limits.
@@ -49,14 +49,19 @@ export class CreateEntryFormDTO {
   enforceLimitCheck: boolean;
 
   /**
-  * Determines whether user is required type in observation total or not.
+   * Determines whether to allow missing values or not.
+   * If true, entry of missing values will be allowed
+   */
+  allowMissingValue: boolean;
+
+  /**
+  * Determines whether user is required to type in observation total or not.
   */
   @IsBoolean()
-  validateTotal: boolean;
+  requireTotalInput: boolean;
 
   /** Sample paper image that resembles the form design */
   @IsOptional()
   @IsString()
-  samplePaperImage: string; // TODO. Change this to sampleImage to make it consistent with the import source
-
+  sampleImage: string;
 }

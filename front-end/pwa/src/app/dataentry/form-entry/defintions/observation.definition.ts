@@ -10,7 +10,6 @@ export class ObservationDefinition {
     public observation: CreateObservationModel;
     public elementMetadata: ViewElementModel;
     public observationChangeIsValid: boolean;
-
     public valueFlagForDisplay: string | null = null;
 
     constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel) {
@@ -31,6 +30,7 @@ export class ObservationDefinition {
         const flagStr = this.observation.flag !== null ? this.observation.flag[0].toUpperCase() : '';
 
         this.valueFlagForDisplay = valueStr + flagStr;
+        console.log(this.valueFlagForDisplay)
     }
 
     public getScaledValue(): number | null {
@@ -50,12 +50,12 @@ export class ObservationDefinition {
      * @param enforceLimitCheck whether to enforce limit check or not
      * @returns empty string if value flag contents are valid, else returns the error message.
      */
-    public setValueFlagFromInput(valueFlagInput: string, enforceLimitCheck: boolean): string {
-
+    public setValueFlagFromInput(valueFlagInput: string, allowMissingValues: boolean, enforceLimitCheck: boolean): string {
         this.observationChangeIsValid = false;
+        this.valueFlagForDisplay = valueFlagInput;
 
         // Validate input format validity. If there is a response then entry is invalid
-        let validationResponse = this.checkInputFormatValidity(valueFlagInput)
+        let validationResponse = this.checkInputFormatValidity(valueFlagInput, allowMissingValues)
         if (!StringUtils.isNullOrEmpty(validationResponse)) {
             return validationResponse;
         }
@@ -81,7 +81,7 @@ export class ObservationDefinition {
 
         // If there is a flag input then validate
         if (flagLetter !== null) {
-            validationResponse = this.checkFlagLetterValidity(value, flagLetter);
+            validationResponse = this.checkFlagLetterValidity(value, flagLetter, allowMissingValues);
             if (!StringUtils.isNullOrEmpty(validationResponse)) {
                 return validationResponse;
             }
@@ -105,10 +105,10 @@ export class ObservationDefinition {
      * @param valueFlagInput 
      * @returns empty string if valid
      */
-    private checkInputFormatValidity(valueFlagInput: string): string {
+    private checkInputFormatValidity(valueFlagInput: string, allowMissingValues: boolean): string {
         // Check for emptiness
-        if (StringUtils.isNullOrEmpty(valueFlagInput, false)) {
-            return '';
+        if (StringUtils.isNullOrEmpty(valueFlagInput, false)) {           
+            return allowMissingValues ? '' : 'Missing value not allowed';
         }
 
         // Check for white spaces.
@@ -164,21 +164,30 @@ export class ObservationDefinition {
      * @param flagLetter 
      * @returns empty string if valid
      */
-    private checkFlagLetterValidity(value: number | null, flagLetter: string): string {
+    private checkFlagLetterValidity(value: number | null, flagLetter: string, allowMissingValues: boolean): string {
 
-        if(flagLetter.length>1){
+        if (flagLetter.length > 1) {
             return 'Invalid Flag, single letter expected';
         }
 
         const flagFound: FlagEnum | null = this.getFlag(flagLetter);
-
         if (!flagFound) {
             return 'Invalid Flag';
         }
 
+        if( !allowMissingValues && flagFound === FlagEnum.MISSING){
+            return 'Missing value not allowed';
+        }
+
         if (value !== null && flagFound === FlagEnum.MISSING) {
             return 'Invalid Flag, M is used for missing value ONLY';
+        } 
+
+        if (value === null && flagFound !== FlagEnum.MISSING) {
+            return 'Invalid Flag, use M flag for missing value';
         }
+
+       
 
         return '';
     }

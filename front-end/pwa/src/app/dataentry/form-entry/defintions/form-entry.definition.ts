@@ -76,7 +76,7 @@ export class FormEntryDefinition {
             case 'DAY':
                 //create field definitions for days of the selected month only
                 //note, there is no days selection in the form builder
-                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue-1);
+                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue - 1);
                 break;
             case 'HOUR':
                 //create field definitions for the selected hours only
@@ -232,19 +232,24 @@ export class FormEntryDefinition {
         return new ObservationDefinition(observation, elementMetadata);
     }
 
-
     /** 
      * Returns a date time string in an iso format.
      * Date time UTC conversion is determined by the form metadata utc setting
+     * Parameter represents year, month, day and hour
      */
     private getObsDatetime(datetimeVars: [number, number, number, number]): string {
-        if (this.formMetadata.convertDateTimeToUTC) {
-            return new Date(datetimeVars[0], datetimeVars[1] - 1, datetimeVars[2], datetimeVars[3], 0, 0).toISOString();
-        } else {
-            return `${datetimeVars[0]}-${StringUtils.addLeadingZero(datetimeVars[1])}-${StringUtils.addLeadingZero(datetimeVars[2])}T${datetimeVars[3]}:00:000Z`;
-
-        }
+        const [year, month, day, hour] = datetimeVars;
+        const utcDifference = this.formMetadata.utcDifference;
+    
+        const adjustedHour = utcDifference !== 0 ? hour + utcDifference : hour;
+    
+        const strObsDatetime = utcDifference !== 0 
+            ? new Date(year, month - 1, day, adjustedHour, 0, 0).toISOString()
+            : `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
+    
+        return strObsDatetime;
     }
+    
 
     /** Returns observation that is in the database if it exists, else the passed new observation */
     private checkAndGetDBObsIfItExists(newObs: CreateObservationModel): CreateObservationModel {
@@ -264,5 +269,5 @@ export class FormEntryDefinition {
         return newObs;
     }
 
-   
+
 }

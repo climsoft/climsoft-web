@@ -267,7 +267,6 @@ export class ObservationsService {
 
 
     public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<string> {
-
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
@@ -289,7 +288,8 @@ export class ObservationsService {
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,
-                deleted: (dto.value === null && dto.flag === null), // TODo. Not sure if this is the correct way to perform deletes
+                // TODO. Write a validator to make sure that either value or flag should be present 
+                deleted: (dto.value === null && dto.flag === null), 
                 entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
             });
 

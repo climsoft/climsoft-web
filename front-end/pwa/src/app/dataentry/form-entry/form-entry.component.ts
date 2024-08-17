@@ -114,7 +114,7 @@ export class FormEntryComponent implements OnInit {
   private loadObservations(newFormDefinitions: FormEntryDefinition) {
 
     this.newObservationDefs = [];
-    this.totalIsValid = newFormDefinitions.formMetadata.validateTotal ? false : true;
+    this.totalIsValid = newFormDefinitions.formMetadata.requireTotalInput ? false : true;
     this.enableOrDisableSave();
 
     this.observationService.findRaw(this.createObservationQuery(newFormDefinitions)).pipe(
