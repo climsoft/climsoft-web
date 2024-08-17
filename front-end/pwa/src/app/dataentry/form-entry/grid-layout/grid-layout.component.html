@@ -18,7 +18,7 @@
                     <div class="row me-2 mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions">
                         {{rowDef.name}}
                     </div>
-                    <div *ngIf="formDefinitions.formMetadata.validateTotal" class="row me-2 mb-2 d-flex flex-grow-1">
+                    <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row me-2 mb-2 d-flex flex-grow-1">
                         TOTAL
                     </div>
                 </div>
@@ -40,7 +40,7 @@
                     </div>
 
                     <!-- total -->
-                    <div *ngIf="formDefinitions.formMetadata.validateTotal" class="row mb-2 d-flex flex-grow-1">
+                    <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row mb-2 d-flex flex-grow-1">
                         <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
                             [errorMessage]="totalErrorMessage[colIndex]"
                             (valueChange)="onTotalValueChange(colIndex,$event)"

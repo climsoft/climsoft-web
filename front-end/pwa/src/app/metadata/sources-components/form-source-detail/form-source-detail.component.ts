@@ -35,9 +35,10 @@ export class FormSourceDetailComponent implements OnInit {
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
-  protected convertDateTimeToUTC: boolean = true;
+  protected utcDifference: number = 0;
   protected enforceLimitCheck: boolean = true;
-  protected validateTotal: boolean = false;
+  protected allowMissingValue: boolean = false;
+  protected requireTotalInput: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
   protected elementsErrorMessage: string = '';
@@ -79,10 +80,11 @@ export class FormSourceDetailComponent implements OnInit {
           elementIds: [],
           hours: [],
           period: 1440,
-          convertDateTimeToUTC: false,
+          utcDifference: 0,
           enforceLimitCheck: false,
-          validateTotal: false,
-          samplePaperImage: '',
+          allowMissingValue: false,
+          requireTotalInput: false,
+          sampleImage: '',
           elementsMetadata: []
         }
 
@@ -126,9 +128,10 @@ export class FormSourceDetailComponent implements OnInit {
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
-    this.convertDateTimeToUTC = entryForm.convertDateTimeToUTC;
+    this.utcDifference = entryForm.utcDifference;
     this.enforceLimitCheck = entryForm.enforceLimitCheck;
-    this.validateTotal = entryForm.validateTotal;
+    this.allowMissingValue = entryForm.allowMissingValue;
+    this.requireTotalInput = entryForm.requireTotalInput;
   }
 
   public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
@@ -246,10 +249,11 @@ export class FormSourceDetailComponent implements OnInit {
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
       period: this.selectedPeriodId,
-      convertDateTimeToUTC: this.convertDateTimeToUTC,
+      utcDifference: this.utcDifference,
       enforceLimitCheck: this.enforceLimitCheck,
-      validateTotal: this.validateTotal,
-      samplePaperImage: ''
+      allowMissingValue : this.allowMissingValue,
+      requireTotalInput: this.requireTotalInput,
+      sampleImage: ''
     };
 
     const createUpdateSource: CreateUpdateSourceModel<CreateEntryFormModel> = {

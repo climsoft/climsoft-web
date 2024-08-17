@@ -50,12 +50,14 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     @IsString()
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
 
+    /**
+     * Missing value definition
+     */
     missingValueFlagDefinition: MissingFlagDefinition;
 
     @IsOptional()
     @IsString()
     sampleImage: string;
-
 }
 
 export class MissingFlagDefinition {

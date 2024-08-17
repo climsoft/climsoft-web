@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { ViewObservationLogModel } from 'src/app/core/models/observations/view-observation-log.model';
 import { ViewObservationLogQueryModel } from 'src/app/core/models/observations/view-observation-log-query.model';
@@ -24,6 +24,9 @@ export class ValueFlagInputComponent implements OnChanges {
 
   @Input()
   public observationDefinition!: ObservationDefinition;
+
+  @Input()
+  public allowMissingValues: boolean = false;
 
   @Input()
   public enforceLimitCheck: boolean = true;
@@ -60,7 +63,7 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onInputEntry(valueFlagInput: string): void {
     // Validate input format validity. If there is a response then entry is invalid
-    this.validationResponse = this.observationDefinition.setValueFlagFromInput(valueFlagInput, this.enforceLimitCheck);
+    this.validationResponse = this.observationDefinition.setValueFlagFromInput(valueFlagInput, this.allowMissingValues, this.enforceLimitCheck);
     this.valueChange.emit(this.observationDefinition);
   }
 

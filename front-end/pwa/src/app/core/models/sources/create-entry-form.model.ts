@@ -4,7 +4,6 @@ export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type LayoutType = 'LINEAR' | 'GRID';
 
 export interface CreateEntryFormModel {
-
     /** Defines the extra entry selectors used by the form to get data */
     selectors: [ExtraSelectorControlType, ExtraSelectorControlType?];
 
@@ -28,7 +27,7 @@ export interface CreateEntryFormModel {
      * If true, the entry date time will be sent to the server based on date time selection on the lcient
      * If false, entry date time will be converted to UTC before being sent to sever
      */
-    convertDateTimeToUTC: boolean;
+    utcDifference: number;
 
     /** 
      * Determines whether to allow entries that don't pass observation limits.
@@ -37,11 +36,16 @@ export interface CreateEntryFormModel {
     enforceLimitCheck: boolean;
 
     /**
-     * Determines whether user is required type in observation total or not.
+     * Determines whether to allow missing values or not.
+     * If true, entry of missing values will be allowed.
      */
-    validateTotal: boolean;
+    allowMissingValue: boolean;
+
+    /**
+     * Determines whether user is required to type in observation total or not.
+     */
+    requireTotalInput: boolean;
 
     /** Sample paper image that resembles the form design */
-    samplePaperImage: string;
-
+    sampleImage: string;
 }

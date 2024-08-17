@@ -4,13 +4,15 @@
         <div class="mb-3">
             <app-text-input [label]="'Name'" [(value)]="formName" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
         <!--form description -->
         <div class="mb-3">
             <app-text-input [label]="'Description'" [(value)]="formDescription" />
         </div>
-        <!--------->
+       
+        <hr class="border border-secondary border-1">
 
         <!--entry selectors-->
         <div class="mb-3">
@@ -18,7 +20,8 @@
                 [options]="possibleSelectors" [selectedOptions]="selectedSelectors"
                 (selectedOptionsChange)="onSelectorsSelected($event)" />
         </div>
-        <!--------->
+       
+        <hr class="border border-secondary border-1">
 
         <!--entry fields-->
         <div class="mb-3">
@@ -26,63 +29,65 @@
                 [options]="possibleFields" [selectedOptions]="selectedFields"
                 (selectedOptionsChange)="onFieldsSelected($event)" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
         <!--layout -->
         <div class="mb-3">
             <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
         <!--elements-->
         <div class="mb-3">
             <app-element-multiple-input [errorMessage]="elementsErrorMessage" [(selectedIds)]="selectedElementIds" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
         <!--period-->
         <div class="mb-3">
             <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
                 (selectedIdChange)="onPeriodSelected($event)" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
         <!--hours-->
         <div class="mb-3">
             <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage"
                 [selectedIds]="selectedHourIds" (selectedIdsChange)="onHoursSelected($event)" />
         </div>
-        <!--------->
+       
+        <hr class="border border-secondary border-1">
 
-        <!--TODO change this to UTC time difference-->
+        <!--UTC time difference-->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="utc" [(ngModel)]="convertDateTimeToUTC">
-                <label class="form-check-label" for="utc">Convert Date Time To UTC </label>
-            </div>
+            <app-number-input [label]="'UTC Time Difference'" [(value)]="utcDifference" />
         </div>
-        <!--------->
+       
+        <hr class="border border-secondary border-1">
 
-        <!--Limits-->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="limits" [(ngModel)]="enforceLimitCheck">
-                <label class="form-check-label" for="limits">Enforce Limit Checks</label>
-            </div>
+            <app-check-box-input [label]="'Allow Missing Values'" [(value)]="allowMissingValue" />
         </div>
-        <!--------->
+       
+        <hr class="border border-secondary border-1">
 
         <!--Total-->
         <div class="mb-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" id="validateTotal"
-                    [(ngModel)]="validateTotal" />
-                <label class="form-check-label" for="validateTotal">Validate Total </label>
-            </div>
+            <app-check-box-input [label]="'Require Total Input'" [(value)]="requireTotalInput" />
         </div>
-        <!--------->
+        
+        <hr class="border border-secondary border-1">
 
-        <!-- todo. link the error to individual controls and possibly use bootstrap alert component-->
+        <!--Limits-->
+        <div class="mb-3">
+            <app-check-box-input [label]="'Enforce Limit Checks'" [(value)]="enforceLimitCheck" />
+        </div>
+
+        <!-- TODO. link the error to individual controls and possibly use bootstrap alert component-->
         <div class="mb-3" style="color: red;">
             {{ errorMessage }}
         </div>
