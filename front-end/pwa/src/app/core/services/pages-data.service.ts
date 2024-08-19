@@ -7,7 +7,7 @@ import { BehaviorSubject, Subject, Observable } from 'rxjs';
 export interface ToastEvent {
   title: string;
   message: string;
-  type: 'success' | 'error' | 'warning';
+  type: 'success' | 'error' | 'warning' | 'info';
 }
 
 @Injectable({

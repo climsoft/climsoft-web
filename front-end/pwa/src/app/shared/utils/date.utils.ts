@@ -23,6 +23,17 @@ export class DateUtils {
         return allDays;
     }
 
+       /**
+     * 
+     * @param year 
+     * @param monthIndex Month is 0-indexed (0 for January, 11 for December)
+     * @returns 
+     */
+       static getLastDayOfMonth(year: number, monthIndex: number): number {
+        // The zero day will make the date object to automatically roll back to the last day of the previous month 
+        return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
     static getHours(hourIds?: number[]): { id: number, name: string }[] {
         const allHours: { id: number, name: string }[] = [];
         for (let i = 0; i <= 23; i++) {
@@ -49,15 +60,7 @@ export class DateUtils {
     }
 
 
-    /**
-     * 
-     * @param year 
-     * @param monthIndex Month is 0-indexed (0 for January, 11 for December)
-     * @returns 
-     */
-    static getLastDayOfMonth(year: number, monthIndex: number): number {
-        return new Date(year, monthIndex, 0).getDate();
-    }
+ 
 
     //takes a one-based month based
     static getDateInSQLFormat(year: number, month: number, day: number, hour: number, minute: number, second: number): string {

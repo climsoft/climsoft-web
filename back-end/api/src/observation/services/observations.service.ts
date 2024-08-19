@@ -13,6 +13,7 @@ import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto'
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
+import { NumberUtils } from 'src/shared/utils/number.utils';
 
 @Injectable()
 export class ObservationsService {
@@ -114,7 +115,6 @@ export class ObservationsService {
     }
 
     private setProcessedObsDateFilter(selectObsevationDto: ViewObservationQueryDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
-
         if (selectObsevationDto.fromDate && selectObsevationDto.toDate) {
 
             if (selectObsevationDto.fromDate === selectObsevationDto.toDate) {
@@ -128,21 +128,16 @@ export class ObservationsService {
         } else if (selectObsevationDto.toDate) {
             selectOptions.datetime = LessThanOrEqual(new Date(selectObsevationDto.toDate))
         }
-
-
     }
 
-
     public async findRawObs(queryDto: CreateObservationQueryDto): Promise<CreateObservationDto[]> {
-
-        //TODO. Think about elevation
-
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
             sourceId: queryDto.sourceId,
-            period: queryDto.period,
+            elevation: queryDto.elevation,
             datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
+            period: queryDto.period,           
             deleted: false
         });
 
@@ -212,60 +207,6 @@ export class ObservationsService {
         return log;
     }
 
-
-    public async save1(createObservationDtoArray: CreateObservationDto[], userId: number) {
-
-        const obsEntities: ObservationEntity[] = [];
-
-        let newEntity: boolean;
-        let observationEntity;
-        for (const createObservationDto of createObservationDtoArray) {
-            newEntity = false;
-            observationEntity = await this.observationRepo.findOneBy({
-                stationId: createObservationDto.stationId,
-                elementId: createObservationDto.elementId,
-                sourceId: createObservationDto.sourceId,
-                elevation: createObservationDto.elevation,
-                datetime: new Date(createObservationDto.datetime),
-                period: createObservationDto.period,
-            });
-
-            if (observationEntity) {
-                const oldChanges: UpdateObservationValuesLogVo = this.getEntityValsAsLogVO(observationEntity);
-                const newChanges: UpdateObservationValuesLogVo = this.getObservationLogFromDto(createObservationDto, userId);
-
-                if (ObjectUtils.areObjectsEqual<UpdateObservationValuesLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
-                    continue;
-                }
-
-            } else {
-
-                //TODO. Move this validation to a pipe validator
-                if (createObservationDto.value === null && createObservationDto.flag === null) {
-                    continue;
-                }
-
-                newEntity = true;
-                observationEntity = this.observationRepo.create({
-                    stationId: createObservationDto.stationId,
-                    elementId: createObservationDto.elementId,
-                    sourceId: createObservationDto.sourceId,
-                    elevation: createObservationDto.elevation,
-                    datetime: createObservationDto.datetime,
-                    period: createObservationDto.period,
-                });
-
-            }
-
-
-            this.updateObservationEntity(observationEntity, createObservationDto, userId, newEntity);
-            obsEntities.push(observationEntity);
-        }
-
-        return this.observationRepo.save(obsEntities);
-    }
-
-
     public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<string> {
         let startTime = new Date().getTime();
 
@@ -280,9 +221,9 @@ export class ObservationsService {
                 datetime: new Date(dto.datetime),
                 period: dto.period,
                 // Values from duckdb come with floating point precision issue (e.g 1.005 being 1.004999)
-                // So adjust the value with the EPSILON then round of to 2 d.p
-                // TODO. Should we always limit values to 2 d.p?
-                value: dto.value === null ? null : Math.round((dto.value + Number.EPSILON) * 100) / 100,
+                // So adjust the value with the EPSILON then round of to 4 d.p
+                // TODO. Should we always limit values to 4 d.p? Do we have climate and hydrology observations that have more than 4 d.p?
+                value: dto.value === null ? null : NumberUtils.roundOff(dto.value, 4),
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NO_QC_TESTS_DONE,
                 comment: dto.comment,
@@ -295,6 +236,7 @@ export class ObservationsService {
 
             obsEntities.push(entity);
         }
+
 
         console.log("DTO transformation took: ", new Date().getTime() - startTime);
 
@@ -311,8 +253,7 @@ export class ObservationsService {
 
     }
 
-
-    async insertUser(observationsData: Partial<ObservationEntity>[]): Promise<void> {
+    private async insertUser(observationsData: Partial<ObservationEntity>[]): Promise<void> {
         await this.observationRepo
             .createQueryBuilder()
             .insert()
@@ -327,48 +268,5 @@ export class ObservationsService {
             )
             .execute();
     }
-
-
-
-
-    private getEntityValsAsLogVO(entity: ObservationEntity): UpdateObservationValuesLogVo {
-        return {
-            value: entity.value,
-            flag: entity.flag,
-            final: entity.final,
-            comment: entity.comment,
-            entryUserId: entity.entryUserId,
-            deleted: entity.deleted,
-            entryDateTime: entity.entryDateTime.toISOString()
-        };
-    }
-
-    private getObservationLogFromDto(dto: CreateObservationDto, userId: number): UpdateObservationValuesLogVo {
-        return {
-            value: dto.value,
-            flag: dto.flag,
-            final: false,
-            comment: dto.comment,
-            entryUserId: userId,
-            deleted: false,
-            entryDateTime: new Date().toISOString()
-        };
-    }
-
-    private updateObservationEntity(entity: ObservationEntity, dto: CreateObservationDto, userId: number, newEntity: boolean): void {
-
-        // Then set the new values 
-        entity.value = dto.value;
-        entity.flag = dto.flag;
-        entity.qcStatus = QCStatusEnum.NO_QC_TESTS_DONE;
-        entity.comment = dto.comment;
-        entity.final = false;
-        entity.entryUserId = userId;
-        entity.deleted = (entity.value === null && entity.flag === null); // TODo. I'm not sure if this is the correct way to perform deletes
-        entity.entryDateTime = new Date(); // Will be sent to database in utc, that is, new Date().toISOString()
-    }
-
-
-
 
 }

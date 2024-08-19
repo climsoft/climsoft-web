@@ -1,56 +1,35 @@
-<div class="card border-0">
-
-  <div class="card-body p-0">
-
-    <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-      <div class="fw-bold">Fields</div>
-      <div class="mb-1">
-        <app-drop-down-button [dropDownItems]="[ 'Assign Same Value','Clear Values','Show Value History']"
-          (dropDownOptionClick)=" $event === 'Assign Same Value'? dlgSameValue.openDialog(): onOptions($event)"
-          [translateX]="true">Options</app-drop-down-button>
-        <app-input-dialog #dlgSameValue [title]="'Assign Same Value'" [inputLabel]="'Enter value'"
-          (ok)="assignSameValue($event)"/>
-      </div>
-    </div>
-
-    <div *ngIf="observationsDefinitions && observationsDefinitions.length>0" class="mt-2 mx-2">
-      <!-- For large screens, use the grid system and
+<div *ngIf="observationsDefinitions && observationsDefinitions.length>0">
+  <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
-      <div *ngIf="largeScreen" class="row g-4">
-        <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks; let i = index">
+  <div *ngIf="largeScreen" class="row g-4">
+    <div class="col" *ngFor="let chunkArray of fieldDefinitionsChunks; let i = index">
 
-          <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
-            <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
-              [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
-              [displayHistoryOption]="displayHistoryOption" [observationDefinition]="getObservationDef(fieldDef)"
-              (valueChange)="onValueChange($event)"></app-value-flag-input>
-          </div>
-
-          <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.requireTotalInput"
-            class="row mb-2">
-            <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
-              (valueChange)="onTotalValueChange($event)"
-              (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- For small screens, just use a column flex container -->
-      <div *ngIf="!largeScreen" class="d-flex flex-column">
-
-        <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef.name"
-          [label]="fieldDef.name" [observationDefinition]="getObservationDef(fieldDef)"
-          [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
+      <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray">
+        <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
+          [displayHistoryOption]="displayHistoryOption" [observationDefinition]="getObservationDef(fieldDef)"
           (valueChange)="onValueChange($event)"></app-value-flag-input>
-
-        <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
-          <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
-            (valueChange)="onTotalValueChange($event)"
-            (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
-        </div>
-
       </div>
+
+      <div *ngIf="i === this.fieldDefinitionsChunks.length - 1 && formDefinitions.formMetadata.requireTotalInput"
+        class="row mb-2">
+        <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
+          (valueChange)="onTotalValueChange($event)"
+          (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- For small screens, just use a column flex container -->
+  <div *ngIf="!largeScreen" class="d-flex flex-column">
+
+    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions" [id]="fieldDef.name"
+      [label]="fieldDef.name" [observationDefinition]="getObservationDef(fieldDef)"
+      (valueChange)="onValueChange($event)"></app-value-flag-input>
+
+    <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
+      <app-number-input [id]="'total'" [label]="'TOTAL'" [errorMessage]="totalErrorMessage"
+        (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalValueChange($event)"></app-number-input>
     </div>
 
   </div>

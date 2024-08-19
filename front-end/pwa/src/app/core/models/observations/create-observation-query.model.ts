@@ -1,7 +1,8 @@
 export interface CreateObservationQueryModel {
     stationId: string;
-    sourceId: number;
     elementIds: number[];
-    period: number;
+    sourceId: number;
+    elevation: number;   
     datetimes: string[];
+    period: number;
 }

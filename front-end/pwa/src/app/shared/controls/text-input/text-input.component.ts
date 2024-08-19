@@ -40,7 +40,6 @@ export class TextInputComponent implements OnChanges {
   }
 
   protected onValueChange(value: string): void {
-    //this.userChange = true;
     this.value = value;
     this.valueChange.emit(value);
   }
@@ -48,7 +47,8 @@ export class TextInputComponent implements OnChanges {
   protected onInputClick(): void {
     this.inputClick.emit(this.value ? this.value.toString() : '');
   }
-  protected onEnterKeyPressed() {
+
+  protected onEnterKeyPressed(): void {
     this.inputEnterKeyPress.emit(this.value ? this.value.toString() : '');
   }
 

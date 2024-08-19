@@ -32,12 +32,13 @@ export class FormEntryComponent implements OnInit {
   protected formDefinitions!: FormEntryDefinition;
 
   /** Enables or disables save button */
-  protected enableSave: boolean = true;
-
-  /** Observations entered */
-  protected newObservationDefs!: ObservationDefinition[];
+  protected enableSave: boolean = false;
 
   private totalIsValid!: boolean;
+
+  protected displayHistoryOption: boolean = false;
+
+  protected refreshLayout: boolean = false;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -63,18 +64,9 @@ export class FormEntryComponent implements OnInit {
       })
     ).subscribe(sourceData => {
       this.source = sourceData;
-      this.loadObservations(this.getNewFormDefinition());
+      this.formDefinitions = new FormEntryDefinition(this.station, this.source.id, this.source.extraMetadata);
+      this.loadObservations();
     });
-
-  }
-
-  private getNewFormDefinition() {
-    if (!this.source.extraMetadata) {
-      // TODO. Throw error?
-      throw new Error('Developer error. Source does not have entry form metadata')
-
-    }
-    return new FormEntryDefinition(this.station, this.source.id, this.source.extraMetadata);
   }
 
   /** Used to determine whether to display element selector */
@@ -107,61 +99,43 @@ export class FormEntryComponent implements OnInit {
     return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
   }
 
+  protected get utcDifference(): string {
+    const utcDiff: number = this.formDefinitions.formMetadata.utcDifference;
+    let strUtcDiff: string = "in";
+
+    if (utcDiff > 0) {
+      strUtcDiff = `+${utcDiff}`;
+    } else if (utcDiff < 0) {
+      strUtcDiff = `-${Math.abs(utcDiff)}`;
+    }
+
+    return ` (${strUtcDiff} UTC)`;
+  }
+
   /**
    * Loads any existing observations from the database
    * @param newFormDefinitions 
    */
-  private loadObservations(newFormDefinitions: FormEntryDefinition) {
+  private loadObservations() {
+    // Reset controls
+    this.totalIsValid = false;
+    this.enableSave = false;
+    this.refreshLayout = false;
 
-    this.newObservationDefs = [];
-    this.totalIsValid = newFormDefinitions.formMetadata.requireTotalInput ? false : true;
-    this.enableOrDisableSave();
-
-    this.observationService.findRaw(this.createObservationQuery(newFormDefinitions)).pipe(
+    this.observationService.findRaw(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
       catchError(error => {
         console.error('Failed to load observation data', error);
         return of([]); // TODO. Appropriate fallback needed
       })
     ).subscribe(data => {
-      // Set the new definitions to be used by the component
-      newFormDefinitions.dbObservations = data;
-      this.formDefinitions = newFormDefinitions;
+      this.formDefinitions.createEntryObsDefs(data);
+      this.refreshLayout = true;
     });
 
   }
 
-  /**
-   * Creates the observation query object for getting existing observations from the database.
-   * @param formDefinitions form defintions to use in creating the observation query dto.
-   * @returns 
-   */
-  private createObservationQuery(formDefinitions: FormEntryDefinition): CreateObservationQueryModel {
-    //get the data based on the selection filter
-    const observationQuery: CreateObservationQueryModel = {
-      stationId: formDefinitions.station.id,
-      sourceId: formDefinitions.sourceId,
-      period: formDefinitions.formMetadata.period,
-      elementIds: formDefinitions.elementValuesForDBQuerying,
-      datetimes: []
-    };
 
-    const year = formDefinitions.yearSelectorValue;
-    const monthIndex = formDefinitions.monthSelectorValue - 1;
-    const hours = formDefinitions.hourValuesForDBQuerying
-
-    // If day value is defined then just define a single data time else define all date times for the entire month
-    if (formDefinitions.daySelectorValue) {
-      observationQuery.datetimes = [new Date(year, monthIndex, formDefinitions.daySelectorValue, hours[0], 0, 0, 0).toISOString()];
-    } else {
-      const lastDay: number = DateUtils.getLastDayOfMonth(year, monthIndex);
-      observationQuery.datetimes = [];
-      for (let i = 1; i <= lastDay; i++) {
-        observationQuery.datetimes.push(new Date(year, monthIndex, i, hours[0], 0, 0, 0).toISOString());
-      }
-    }
-    return observationQuery;
-  }
 
   /**
    * Handles changes in element selection by updating internal state
@@ -172,9 +146,9 @@ export class FormEntryComponent implements OnInit {
     if (id === null) {
       return;
     }
-    const newFormDefinitions = this.getNewFormDefinition();
-    newFormDefinitions.elementSelectorValue = id;
-    this.loadObservations(newFormDefinitions);
+
+    this.formDefinitions.elementSelectorValue = id;
+    this.loadObservations();
   }
 
   /**
@@ -187,11 +161,10 @@ export class FormEntryComponent implements OnInit {
       return;
     }
 
-    const newFormDefinitions = this.getNewFormDefinition();
     const date: Date = new Date(yearMonth);
-    newFormDefinitions.yearSelectorValue = date.getFullYear();
-    newFormDefinitions.monthSelectorValue = date.getMonth() + 1;
-    this.loadObservations(newFormDefinitions);
+    this.formDefinitions.yearSelectorValue = date.getFullYear();
+    this.formDefinitions.monthSelectorValue = date.getMonth() + 1;
+    this.loadObservations();
   }
 
   /**
@@ -204,12 +177,11 @@ export class FormEntryComponent implements OnInit {
       return;
     }
 
-    const newFormDefinitions = this.getNewFormDefinition();
     const oDate: Date = new Date(strDate);
-    newFormDefinitions.yearSelectorValue = oDate.getFullYear();
-    newFormDefinitions.monthSelectorValue = oDate.getMonth() + 1;
-    newFormDefinitions.daySelectorValue = oDate.getDate();
-    this.loadObservations(newFormDefinitions);
+    this.formDefinitions.yearSelectorValue = oDate.getFullYear();
+    this.formDefinitions.monthSelectorValue = oDate.getMonth() + 1;
+    this.formDefinitions.daySelectorValue = oDate.getDate();
+    this.loadObservations();
 
   }
 
@@ -222,9 +194,9 @@ export class FormEntryComponent implements OnInit {
     if (hour === null) {
       return;
     }
-    const newFormDefinitions = this.getNewFormDefinition();
-    newFormDefinitions.hourSelectorValue = hour;
-    this.loadObservations(newFormDefinitions);
+
+    this.formDefinitions.hourSelectorValue = hour;
+    this.loadObservations();
   }
 
   /**
@@ -234,16 +206,6 @@ export class FormEntryComponent implements OnInit {
  * @param observationDef The observation definition object to be processed.
  */
   protected onValueChange(observationDef: ObservationDefinition): void {
-    // Update or add the observation definition in the list
-    const index = this.newObservationDefs.findIndex(data => data === observationDef);
-    if (index !== -1) {
-      // Update the existing observation definition if found
-      this.newObservationDefs[index] = observationDef;
-    } else {
-      // Add a new observation definition if not found
-      this.newObservationDefs.push(observationDef);
-    }
-
     // Determine the ability to save based on whether any observation changes a
     this.enableOrDisableSave();
   }
@@ -261,8 +223,68 @@ export class FormEntryComponent implements OnInit {
    * Determine the ability to save based on whether there are changes and all observation changes are valid
    */
   private enableOrDisableSave(): void {
-    this.enableSave = this.totalIsValid && this.newObservationDefs.length > 0 && !this.newObservationDefs.some(data => !data.observationChangeIsValid);
+    if (!this.formDefinitions) {
+      this.enableSave = false;
+      return;
+    }
+
+    // Set total as valid, because everything has been cleared
+    if (this.formDefinitions.formMetadata.requireTotalInput && !this.totalIsValid) {
+      this.enableSave = false;
+      return;
+    }
+
+    for (const obsDef of this.formDefinitions.allObsDefs) {
+      // Check for change validit 
+      if (!obsDef.observationChangeIsValid) {
+        this.enableSave = false;
+        return;
+      }
+    }
+
+    this.enableSave = true;
   }
+
+
+  /**
+   * Updates its internal state depending on the options passed
+   * @param option  'Clear' | 'History'
+   */
+  protected onOptions(option: 'Assign Same Value' | 'Clear Values' | 'Show Value History'): void {
+    switch (option) {
+      case 'Clear Values':
+        this.clear();
+        break;
+      case 'Show Value History':
+        this.displayHistoryOption = !this.displayHistoryOption;
+        break;
+    }
+  }
+
+  protected assignSameValue(input: string): void {
+    for (const obsDef of this.formDefinitions.allObsDefs) {
+      // Check if value flag is  empty
+      if (StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+        // Set the new the value flag input
+        obsDef.updateValueFlagFromUserInput(input);
+      }
+    }
+
+    this.enableOrDisableSave();
+  }
+
+  /**
+  * Clears all the observation value fflags if they are not cleared and updates its internal state
+  */
+  private clear(): void {
+    for (const obsDef of this.formDefinitions.allObsDefs) {
+      // Clear the value flag input
+      obsDef.updateValueFlagFromUserInput('');
+    }
+
+    this.enableOrDisableSave();
+  }
+
 
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
@@ -273,31 +295,28 @@ export class FormEntryComponent implements OnInit {
     this.enableSave = false;
 
     // Create required observation dtos 
-    const newObservations: CreateObservationModel[] = this.newObservationDefs.map(item => (item.observation))
+    const newObservations: CreateObservationModel[] = this.formDefinitions.allObsDefs.filter(item => item.observationChanged).map(item => item.observation);
+
+    if (newObservations.length === 0) {
+      this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: 'info' });
+      return;
+    }
 
     // Send to server for saving
     this.observationService.save(newObservations).subscribe((data) => {
-
-      console.log("results: ", data)
-      if(data){
+      if (data) {
         this.pagesDataService.showToast({
           title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} saved`, type: 'success'
         });
-  
-        this.loadObservations(this.formDefinitions);
-      }else{
 
+        this.loadObservations();
+      } else {
         this.pagesDataService.showToast({
           title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} NOT saved`, type: 'error'
         });
-
       }
-
-    
-
     });
   }
-
 
   /**
    * Handles cancel event and routes the application back to previous route page

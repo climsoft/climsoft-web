@@ -1,6 +1,4 @@
 export class StringUtils {
-
-
     public static isNullOrEmpty(input: string | null, trimWhiteSpace?: boolean) {
         if (input === null) {
             return true;
@@ -10,7 +8,6 @@ export class StringUtils {
         }
         return input.length === 0;
     }
-
 
     public static containsNumbersOnly(input: string): boolean {
         // Regular expression to match numeric, decimal, negative, or positive numbers
@@ -66,9 +63,4 @@ export class StringUtils {
     public static capitalizeFirstLetter(str: string): string {
         return str? str[0].toUpperCase() + str.slice(1) : "";
     }
-
-
-
-
-
 }
