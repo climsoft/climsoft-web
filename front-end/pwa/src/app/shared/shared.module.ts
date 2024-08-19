@@ -45,6 +45,7 @@ import { CheckBoxInputComponent } from './controls/check-box-input/check-box-inp
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
 import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
 import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
+import { PageInputComponent } from './controls/page-input/page-input.component';
 
 //--------------------------------
   
@@ -82,28 +83,23 @@ const controlsComponents = [
   ElementMultipleInputComponent,
   HourSingleInputComponent,
   HourMultipleInputComponent,
-
   YearMonthInputComponent,
-
   PeriodSingleInputComponent,
   SourceSingleInputComponent,
-
   StationSingleInputComponent,
   StationMultipleInputComponent,
   StationObsMethodSingleInputComponent,
   StationObsEnvSingleInputComponent,
   StationObservationFocusSingleInputComponent,
   StationStatusSingleInputComponent,
-
   DropDownButtonComponent,
-  DropDownComponent, 
-  
+  DropDownComponent,   
   ElementDomainSingleInputComponent,  
   ElementSubdomainSingleInputComponent,
   ElementTypeSingleInputComponent,
-
   ServerTypeInputComponent,
   FlagSingleInputComponent,
+  PageInputComponent,
 
 ];
 
@@ -115,12 +111,10 @@ const directives = [
 @NgModule({
   declarations: [
     ...controlsComponents,
-    ...directives,
-  
+    ...directives,  
   ],
   imports: [
     ...angularModules,
-
   ],
   providers: [
    

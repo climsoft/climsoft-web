@@ -273,7 +273,7 @@ export class ObservationDefinition {
                 }
 
                 // Convert the entry date time to current local time
-                item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime))
+                item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime), true)
                 return item;
             }
             )

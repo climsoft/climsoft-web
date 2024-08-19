@@ -5,6 +5,8 @@ interface Period {
   name: string;
 }
 
+
+// TODO. Make this control to be editable
 @Component({
   selector: 'app-period-single-input',
   templateUrl: './period-single-input.component.html',
@@ -54,13 +56,15 @@ export class PeriodSingleInputComponent  implements OnInit, OnChanges  {
 
   private getPeriods(): Period[] {
     const periods: Period[] = [];
+    periods.push({ id: 5, name: "5 minute" });
+    periods.push({ id: 10, name: "10 minute" });
     periods.push({ id: 15, name: "15 minute" });
     periods.push({ id: 30, name: "30 minute" });
     periods.push({ id: 60, name: "1 hour" });
     periods.push({ id: 180, name: "3 hours" });
     periods.push({ id: 360, name: "6 hours" });
     periods.push({ id: 720, name: "12 hours" });
-    periods.push({ id: 1440, name: "24 hours" });
+    periods.push({ id: 1440, name: "Daily" });
     return periods;
   }
 

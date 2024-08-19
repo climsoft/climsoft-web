@@ -23,13 +23,13 @@ export class DateUtils {
         return allDays;
     }
 
-       /**
-     * 
-     * @param year 
-     * @param monthIndex Month is 0-indexed (0 for January, 11 for December)
-     * @returns 
-     */
-       static getLastDayOfMonth(year: number, monthIndex: number): number {
+    /**
+  * 
+  * @param year 
+  * @param monthIndex Month is 0-indexed (0 for January, 11 for December)
+  * @returns 
+  */
+    static getLastDayOfMonth(year: number, monthIndex: number): number {
         // The zero day will make the date object to automatically roll back to the last day of the previous month 
         return new Date(year, monthIndex + 1, 0).getDate();
     }
@@ -60,39 +60,36 @@ export class DateUtils {
     }
 
 
- 
-
     //takes a one-based month based
-    static getDateInSQLFormat(year: number, month: number, day: number, hour: number, minute: number, second: number): string {
+    public static getDateInSQLFormat(year: number, month: number, day: number, hour: number, minute: number, second: number): string {
         return `${year.toString()}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)} ${StringUtils.addLeadingZero(hour)}:${StringUtils.addLeadingZero(minute)}:${StringUtils.addLeadingZero(second)}`
     }
 
-    static getDateInSQLFormatFromDate(date: Date): string {
+    public static getDateInSQLFormatFromDate(date: Date, useUTC: boolean): string {
         const pad = (num: number): string => num.toString().padStart(2, '0');
+        const getYear = useUTC ? date.getUTCFullYear() : date.getFullYear();
+        const getMonth = pad((useUTC ? date.getUTCMonth() : date.getMonth()) + 1); // getMonth() is zero-based
+        const getDay = pad(useUTC ? date.getUTCDate() : date.getDate());
+        const getHours = pad(useUTC ? date.getUTCHours() : date.getHours());
+        const getMinutes = pad(useUTC ? date.getUTCMinutes() : date.getMinutes());
+        const getSeconds = pad(useUTC ? date.getUTCSeconds() : date.getSeconds());
+        const getMilliseconds = (useUTC ? date.getUTCMilliseconds() : date.getMilliseconds()).toString().padStart(3, '0');
+      
+        return `${getYear}-${getMonth}-${getDay} ${getHours}:${getMinutes}:${getSeconds}.${getMilliseconds}`;
+      }
+      
 
-        const year = date.getFullYear();
-        const month = pad(date.getMonth() + 1); // getMonth() is zero-based
-        const day = pad(date.getDate());
-        const hours = pad(date.getHours());
-        const minutes = pad(date.getMinutes());
-        const seconds = pad(date.getSeconds());
-        const milliseconds = date.getMilliseconds().toString().padStart(3, '0');
 
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-
-    }
-
-
-    static getDayFromSQLDate(sqlDate: string): number {
+      public static getDayFromSQLDate(sqlDate: string): number {
         return Number(sqlDate.substring(8, 10));
     }
 
-    static getHourFromSQLDate(sqlDate: string): number {
+    public static getHourFromSQLDate(sqlDate: string): number {
         return Number(sqlDate.substring(11, 13));
     }
 
     //monthId is 1 index based
-    static getMonthName(monthId: number): string {
+    public static getMonthName(monthId: number): string {
         const monthNames: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
         if (monthId >= 1 && monthId <= 12) {
