@@ -12,8 +12,9 @@ interface Period {
   templateUrl: './period-single-input.component.html',
   styleUrls: ['./period-single-input.component.scss']
 })
-export class PeriodSingleInputComponent  implements OnInit, OnChanges  {
-  @Input() public label: string = 'Period';
+export class PeriodSingleInputComponent implements OnChanges {
+  @Input() public id: string = '';
+  @Input() public label: string = '';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
@@ -22,12 +23,7 @@ export class PeriodSingleInputComponent  implements OnInit, OnChanges  {
   protected options!: Period[];
   protected selectedOption!: Period | null;
 
-  constructor() {
-
-  }
-
-  ngOnInit(): void {
-  }
+  constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
 

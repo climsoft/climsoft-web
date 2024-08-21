@@ -57,7 +57,7 @@ export class StringUtils {
     public static addLeadingZero(num: number): string {
         // Check if the number is a single digit (between 0 and 9)
         // If the number is not a single digit, convert it to a string without adding a leading '0'
-        return num >= 0 && num <= 9 ? `0${num}` : num.toString();
+        return num.toString().padStart(2, '0');
     }
 
     public static capitalizeFirstLetter(str: string): string {

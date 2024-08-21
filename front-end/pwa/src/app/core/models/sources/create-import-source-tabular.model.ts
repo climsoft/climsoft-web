@@ -1,8 +1,7 @@
 import { FlagEnum } from "../observations/flag.enum";
-import { CreateImportSourceModel } from "./create-import-source.model";
+import { ImportDefinitionValidity } from "./create-import-source.model";
 
-
-export interface CreateImportTabularSourceModel extends CreateImportSourceModel {
+export interface CreateImportTabularSourceModel extends  ImportDefinitionValidity{
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -19,15 +18,6 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
-    /**Determines the UTC difference. When zero, no conversion of dates will be done */
-    utcDifference: number;
-
-    /**
-     * Determines whether to scale the values. 
-     * To be used when data being imported is not scaled
-     */
-    scaleValues: boolean;
-
     /**
      * Number of rows to skip.
      */
@@ -38,16 +28,8 @@ export interface CreateImportTabularSourceModel extends CreateImportSourceModel 
     */
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
 
-    missingValueFlagDefinition: MissingFlagDefinition;
-
-    sampleImage: string;
-
 }
 
-export interface MissingFlagDefinition {
-    importMissingValue: boolean;
-    missingValueFlag: string;
-}
 
 
 /**

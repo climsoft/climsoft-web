@@ -4,17 +4,15 @@ import { ActivatedRoute } from '@angular/router';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { CreateObservationQueryModel } from 'src/app/core/models/observations/create-observation-query.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils'; 
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { catchError, of, switchMap, take } from 'rxjs';
 import { FormEntryDefinition } from './defintions/form-entry.definition';
-import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { ObservationDefinition } from './defintions/observation.definition';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
-import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model'; 
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-form-entry',
@@ -26,7 +24,7 @@ export class FormEntryComponent implements OnInit {
   protected station!: ViewStationModel;
 
   /** Source (form) details */
-  protected source!: ViewSourceModel<ViewEntryFormModel>;
+  protected source!: ViewSourceModel;
 
   /** Definitions used to determine form functionalities */
   protected formDefinitions!: FormEntryDefinition;
@@ -42,7 +40,7 @@ export class FormEntryComponent implements OnInit {
 
   constructor
     (private pagesDataService: PagesDataService,
-      private formSourcesService: FormSourcesService,
+      private sourcesService: SourcesService,
       private stationsService: StationsService,
       private observationService: ObservationsService,
       private route: ActivatedRoute,
@@ -60,31 +58,39 @@ export class FormEntryComponent implements OnInit {
       take(1),
       switchMap(stationData => {
         this.station = stationData;
-        return this.formSourcesService.findOne(sourceId).pipe(take(1));
+        return this.sourcesService.findOne(sourceId).pipe(take(1));
       })
     ).subscribe(sourceData => {
-      this.source = sourceData;
-      this.formDefinitions = new FormEntryDefinition(this.station, this.source.id, this.source.extraMetadata);
+      this.source = sourceData; 
+      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.definitions as ViewEntryFormModel);
       this.loadObservations();
     });
   }
 
-  /** Used to determine whether to display element selector */
+  /**
+   * Used to determine whether to display element selector 
+   */
   protected get displayElementSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('ELEMENT');
   }
 
-  /** Used to determine whether to display date selector */
+  /**
+   * Used to determine whether to display date selector
+   */
   protected get displayDateSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('DAY');
   }
 
-  /** Used to determine whether to display year-month selector */
+  /**
+   * Used to determine whether to display year-month selector
+   */
   protected get displayYearMonthSelector(): boolean {
     return !this.displayDateSelector;
   }
 
-  /** Used to determine whether to display hour selector */
+  /**
+   * Used to determine whether to display hour selector
+   */
   protected get displayHourSelector(): boolean {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
@@ -94,13 +100,15 @@ export class FormEntryComponent implements OnInit {
     return new Date().toISOString().slice(0, 10);
   }
 
-  /** Gets default year-month value (YYYY-MM) used by year-month selector */
+  /**
+   * Gets default year-month value (YYYY-MM) used by year-month selector
+   */
   protected get defaultYearMonthValue(): string {
     return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
   }
 
   protected get utcDifference(): string {
-    const utcDiff: number = this.formDefinitions.formMetadata.utcDifference;
+    const utcDiff: number = this.source.utcOffset;
     let strUtcDiff: string = "in";
 
     if (utcDiff > 0) {
@@ -114,7 +122,6 @@ export class FormEntryComponent implements OnInit {
 
   /**
    * Loads any existing observations from the database
-   * @param newFormDefinitions 
    */
   private loadObservations() {
     // Reset controls
@@ -134,8 +141,6 @@ export class FormEntryComponent implements OnInit {
     });
 
   }
-
-
 
   /**
    * Handles changes in element selection by updating internal state
@@ -290,7 +295,6 @@ export class FormEntryComponent implements OnInit {
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
-
     // Important, disable the save button. Useful for waiting the save results.
     this.enableSave = false;
 

@@ -14,7 +14,7 @@ export class StationFormsService {
         private sourcesService: SourcesService) {
     }
 
-    public async find(stationId: string): Promise<ViewSourceDto<object>[]> {
+    public async find(stationId: string): Promise<ViewSourceDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
         const stationFormIds: number[] = stationForms.map(form => form.sourceId);
         return stationFormIds.length > 0 ? await this.sourcesService.findSourcesByIds(stationFormIds) : [];

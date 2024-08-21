@@ -2,12 +2,12 @@ import { Location } from '@angular/common';
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subscription, catchError, finalize, take, throwError } from 'rxjs';
+import {  catchError,  take, throwError } from 'rxjs';
 import { CreateImportTabularSourceModel } from 'src/app/core/models/sources/create-import-source-tabular.model';
 import { CreateImportSourceModel, FormatEnum } from 'src/app/core/models/sources/create-import-source.model';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-import-entry',
@@ -15,7 +15,7 @@ import { ImportSourcesService } from 'src/app/core/services/sources/import-sourc
   styleUrls: ['./import-entry.component.scss']
 })
 export class ImportEntryComponent implements OnInit {
-  protected viewSource!: ViewSourceModel<CreateImportSourceModel>;
+  protected viewSource!: ViewSourceModel;
 
   protected uploadMessage: string = "Upload File";
   protected uploadError: boolean = false;
@@ -27,7 +27,7 @@ export class ImportEntryComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: ImportSourcesService,
+    private importSourcesService: SourcesService,
     private http: HttpClient,
     private route: ActivatedRoute) {
   }
@@ -41,8 +41,8 @@ export class ImportEntryComponent implements OnInit {
       this.viewSource = data;
       this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
 
-      if (this.viewSource.extraMetadata.format === FormatEnum.TABULAR) {
-        const tabularSource: CreateImportTabularSourceModel = this.viewSource.extraMetadata as CreateImportTabularSourceModel;
+      if ((this.viewSource.definitions  as CreateImportSourceModel).format === FormatEnum.TABULAR) {
+        const tabularSource: CreateImportTabularSourceModel = this.viewSource.definitions as CreateImportTabularSourceModel;
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });

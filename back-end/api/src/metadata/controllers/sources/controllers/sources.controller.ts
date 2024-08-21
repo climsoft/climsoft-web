@@ -1,9 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
-import { Admin } from 'src/user/decorators/admin.decorator'; 
+import { Admin } from 'src/user/decorators/admin.decorator';
 import { SourcesService } from '../services/sources.service';
-
-
+import { SourceTypeEnum } from 'src/metadata/enums/source-type.enum';
 
 @Controller('sources')
 export class SourcesController {
@@ -15,32 +14,28 @@ export class SourcesController {
         return this.sourcesService.findAll();
     }
 
-    /** TODO. Deprecate this route handler after implementing controllers for import sources */
-    @Get('/source/:id')
+    @Get(':id')
     public find(@Param('id', ParseIntPipe) id: number) {
         return this.sourcesService.find(id);
     }
 
-    // @Get('/source-type/:id')     // TODO validate enum. 
-    // public findSourcesOfType(@Param('id') id: SourceTypeEnum) {
-    //     return this.sourcesService.findSourcesBySourceTypes(id);
-    // }
+    @Get('/source-type/:id')
+    public findSourcesOfType(@Param('id') id: SourceTypeEnum) { // TODO validate enum. 
+        return this.sourcesService.findSourcesByType(id);
+    }
 
-    /** TODO. Deprecate this route handler after implementing controllers for import sources */
     @Admin()
     @Post()
-    public create(@Body() createSourceDto: CreateUpdateSourceDto<object>) {
+    public create(@Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
         return this.sourcesService.create(createSourceDto);
     }
 
-    /** TODO. Deprecate this route handler after implementing controllers for import and machine sources */
     @Admin()
     @Patch(':id')
-    public update(@Param('id', ParseIntPipe) id: number, @Body() createSourceDto: CreateUpdateSourceDto<object>) {
+    public update(@Param('id', ParseIntPipe) id: number, @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
         return this.sourcesService.update(id, createSourceDto);
     }
 
-     /** TODO. Deprecate this route handler after implementing controllers for import and machine sources */
     @Admin()
     @Delete(':id')
     public delete(@Param('id', ParseIntPipe) id: number) {

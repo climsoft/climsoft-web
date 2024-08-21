@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MissingFlagDefinition } from 'src/app/core/models/sources/create-import-source-tabular.model';
+import { Component, Input } from '@angular/core';
+
 
 @Component({
   selector: 'app-import-source-missing-flag-detail',
@@ -8,9 +8,10 @@ import { MissingFlagDefinition } from 'src/app/core/models/sources/create-import
 })
 export class ImportSourceMissingFlagDetailComponent {
   @Input()
-  public missingValueFlagDefinition!: MissingFlagDefinition;
+  public allowMissingValue!: boolean;
 
-  protected onImportMissingValue(include: boolean): void {
-    this.missingValueFlagDefinition.importMissingValue = include;
-  }
+  @Input()
+  public sourceMissingValueFlags!: string;
+
+ 
 }

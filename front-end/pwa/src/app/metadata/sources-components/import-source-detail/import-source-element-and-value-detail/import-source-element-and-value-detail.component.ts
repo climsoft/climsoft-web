@@ -16,8 +16,6 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.elementAndValueDefinition && this.elementAndValueDefinition.hasElement) {
-
-
       if (this.elementAndValueDefinition.hasElement.multipleColumn) {
         this.elementColumnsHolder = [... this.elementAndValueDefinition.hasElement.multipleColumn];
         //Add new placholder values

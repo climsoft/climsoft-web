@@ -12,7 +12,7 @@
 
   <div class="card-body px-0">
     <app-table-view [clickable]="true"
-      [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'sourceTypeName', name: 'Type'}, {id: 'description', name: 'Description'} ]"
+      [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'sourceType', name: 'Type'}, {id: 'description', name: 'Description'} ]"
       [rowsData]="sources" (rowDataClicked)="onEditSource($event)" />
   </div>
 </div>

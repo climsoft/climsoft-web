@@ -1,6 +1,5 @@
 import { CreateUpdateSourceModel } from "./create-update-source.model";
 
-export interface ViewSourceModel<T extends object> extends CreateUpdateSourceModel<T>  {
+export interface ViewSourceModel extends CreateUpdateSourceModel  {
     id: number;
-    sourceTypeName: string;
 }

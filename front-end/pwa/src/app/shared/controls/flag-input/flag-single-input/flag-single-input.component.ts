@@ -8,7 +8,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./flag-single-input.component.scss']
 })
 export class FlagSingleInputComponent implements OnChanges {
-  @Input() public label: string = 'Flag';
+  @Input() public label: string = '';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: FlagEnum[];
   @Input() public selectedId!: FlagEnum | null;

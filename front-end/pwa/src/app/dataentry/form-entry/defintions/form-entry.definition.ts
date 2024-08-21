@@ -7,6 +7,7 @@ import { ViewStationModel } from "src/app/core/models/stations/view-station.mode
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { CreateObservationQueryModel } from "src/app/core/models/observations/create-observation-query.model";
+import { ViewSourceModel } from "src/app/core/models/sources/view-source.model";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
@@ -14,7 +15,7 @@ import { CreateObservationQueryModel } from "src/app/core/models/observations/cr
 export class FormEntryDefinition {
 
     public station: ViewStationModel;
-    public sourceId: number;
+    public source: ViewSourceModel;
     public formMetadata: ViewEntryFormModel;
 
     /** value of the element selector */
@@ -36,9 +37,9 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationDefinition[] = [];
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
-    constructor(station: ViewStationModel, sourceId: number, formMetadata: ViewEntryFormModel) {
+    constructor(station: ViewStationModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel) {
         this.station = station;
-        this.sourceId = sourceId;
+        this.source = source;
         this.formMetadata = formMetadata;
 
         // Set the selectors values based on defined selectors in the form metadata
@@ -224,7 +225,7 @@ export class FormEntryDefinition {
     private createEmptyObservation(): CreateObservationModel {
         return {
             stationId: this.station.id,
-            sourceId: this.sourceId,
+            sourceId: this.source.id,
             elementId: 0,
             elevation: 0,
             datetime: '',
@@ -247,7 +248,7 @@ export class FormEntryDefinition {
             throw new Error('Developer error: Element metadata NOT found');
         }
 
-        return new ObservationDefinition(observation, elementMetadata, this.formMetadata.allowMissingValue, this.formMetadata.enforceLimitCheck);
+        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, this.formMetadata.enforceLimitCheck, true);
     }
 
     private findEquivalentDBObservation(newObs: CreateObservationModel, dbObservations: CreateObservationModel[]): CreateObservationModel | null {
@@ -276,7 +277,7 @@ export class FormEntryDefinition {
         //get the data based on the selection filter
         const observationQuery: CreateObservationQueryModel = {
             stationId: this.station.id,
-            sourceId: this.sourceId,
+            sourceId: this.source.id,
             period: this.formMetadata.period,
             elevation: 0,
             elementIds: this.elementSelectorValue == null ? this.formMetadata.elementIds : [this.elementSelectorValue],
@@ -311,7 +312,8 @@ export class FormEntryDefinition {
    */
     private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
-        hour = hour + this.formMetadata.utcDifference;
+        hour = hour + this.source.utcOffset;
+        const pad = (num: number): string =>  StringUtils.addLeadingZero(num);
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 

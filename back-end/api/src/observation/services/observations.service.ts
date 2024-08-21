@@ -1,10 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, FindManyOptions, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import { ObservationEntity, UpdateObservationValuesLogVo } from '../entities/observation.entity';
+import { Between, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
-import { ObjectUtils } from 'src/shared/utils/object.util';
 import { ElementsService } from 'src/metadata/services/elements/elements.service';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { StationsService } from 'src/metadata/services/stations/stations.service';
@@ -28,10 +27,13 @@ export class ObservationsService {
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
 
+        // TODO. Below code should be optimised using SQL INNER JOINS when querying.
+
         const obsView: ViewObservationDto[] = [];
 
-        const obsEntities = await this.findProcessedObs(selectObsevationDto);
+        const obsEntities = await this.findObsEntities(selectObsevationDto);
 
+        // TODO. Later use inner joins, this will make the loading of metadata redundant. 
         const stationEntities = await this.stationsService.findAll();
         const elementEntities = await this.elementsService.findAll();
         const sourceEntities = await this.sourcesService.findAll();
@@ -39,6 +41,15 @@ export class ObservationsService {
         for (const obsEntity of obsEntities) {
 
             const viewObs: ViewObservationDto = new ViewObservationDto();
+            viewObs.stationId = obsEntity.stationId;
+            viewObs.elementId = obsEntity.elementId;
+            viewObs.sourceId = obsEntity.sourceId;
+            viewObs.elevation = obsEntity.elevation;
+            viewObs.period = obsEntity.period;
+            viewObs.datetime = obsEntity.datetime.toISOString();
+            viewObs.value = obsEntity.value;
+            viewObs.flag = obsEntity.flag;
+            viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
 
             const station = stationEntities.find(data => data.id === obsEntity.stationId);
             if (station) {
@@ -55,12 +66,6 @@ export class ObservationsService {
                 viewObs.sourceName = source.name;
             }
 
-            viewObs.elevation = obsEntity.elevation;
-            viewObs.period = obsEntity.period;
-            viewObs.datetime = obsEntity.datetime.toISOString();
-            viewObs.value = obsEntity.value;
-            viewObs.flag = obsEntity.flag;
-
             obsView.push(viewObs);
         }
 
@@ -69,7 +74,7 @@ export class ObservationsService {
     }
 
 
-    private async findProcessedObs(selectObsevationDto: ViewObservationQueryDTO) {
+    private async findObsEntities(selectObsevationDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationIds) {
@@ -82,7 +87,7 @@ export class ObservationsService {
 
         if (selectObsevationDto.sourceIds) {
             whereOptions.sourceId = In(selectObsevationDto.sourceIds);
-        }
+        } 
 
         if (selectObsevationDto.period) {
             whereOptions.period = selectObsevationDto.period;
@@ -115,19 +120,28 @@ export class ObservationsService {
     }
 
     private setProcessedObsDateFilter(selectObsevationDto: ViewObservationQueryDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
+        let dateOperator: FindOperator<Date> | null = null;
         if (selectObsevationDto.fromDate && selectObsevationDto.toDate) {
-
             if (selectObsevationDto.fromDate === selectObsevationDto.toDate) {
-                selectOptions.datetime = new Date(selectObsevationDto.fromDate);
+                dateOperator = Equal(new Date(selectObsevationDto.fromDate));
             } else {
-                selectOptions.datetime = Between(new Date(selectObsevationDto.fromDate), new Date(selectObsevationDto.toDate));
+                dateOperator = Between(new Date(selectObsevationDto.fromDate), new Date(selectObsevationDto.toDate));
             }
 
         } else if (selectObsevationDto.fromDate) {
-            selectOptions.datetime = MoreThanOrEqual(new Date(selectObsevationDto.fromDate))
+            dateOperator = MoreThanOrEqual(new Date(selectObsevationDto.fromDate))
         } else if (selectObsevationDto.toDate) {
-            selectOptions.datetime = LessThanOrEqual(new Date(selectObsevationDto.toDate))
+            dateOperator = LessThanOrEqual(new Date(selectObsevationDto.toDate))
         }
+
+        if (dateOperator !== null) {
+            if (selectObsevationDto.useEntryDate) {
+                selectOptions.entryDateTime = dateOperator;
+            } else {
+                selectOptions.datetime = dateOperator;
+            }
+        }
+
     }
 
     public async findRawObs(queryDto: CreateObservationQueryDto): Promise<CreateObservationDto[]> {
@@ -137,7 +151,7 @@ export class ObservationsService {
             sourceId: queryDto.sourceId,
             elevation: queryDto.elevation,
             datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
-            period: queryDto.period,           
+            period: queryDto.period,
             deleted: false
         });
 
@@ -230,7 +244,7 @@ export class ObservationsService {
                 final: false,
                 entryUserId: userId,
                 // TODO. Write a validator to make sure that either value or flag should be present 
-                deleted: (dto.value === null && dto.flag === null), 
+                deleted: (dto.value === null && dto.flag === null),
                 entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
             });
 

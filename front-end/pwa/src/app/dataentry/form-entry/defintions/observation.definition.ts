@@ -13,12 +13,25 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
  * Holds the definitions used by the value flag component for data display and entry validations
  */
 export class ObservationDefinition {
-    private _observation: CreateObservationModel;
     private elementMetadata: ViewElementModel;
-    private allowMissingValues: boolean;
-    private enforceLimitCheck: boolean
+    private _observation: CreateObservationModel;
     private _valueFlagForDisplay: string = "";
     private _valueFlagForDisplayDB: string = "";
+    
+    /**
+     * Determines whether to invalidate missing value input
+     */
+    private allowMissingValues: boolean;
+
+    /**
+     * Determines whether to enforce limit checks or not.
+     */
+    private enforceLimitCheck: boolean
+    /**
+     * Determines whether the value input will be scaled or not (using the element entry factor).
+     * Also determines whether _valueFlagForDisplay will be ins scaled or unscaled format. 
+     */
+    private scaleValue: boolean;
 
     /**
      * Holds the observation log used of the linked observation model.
@@ -31,11 +44,12 @@ export class ObservationDefinition {
      */
     private _validationErrorMessage: string = "";
 
-    constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel, allowMissingValues: boolean, enforceLimitCheck: boolean) {
+    constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel, allowMissingValues: boolean, enforceLimitCheck: boolean, scaleValue: boolean) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
         this.allowMissingValues = allowMissingValues;
         this.enforceLimitCheck = enforceLimitCheck;
+        this.scaleValue = scaleValue;
         this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
         this._valueFlagForDisplayDB = this._valueFlagForDisplay;
     }
@@ -89,14 +103,14 @@ export class ObservationDefinition {
         const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
 
         // Transform the value to actual scale 
-        const scaledValue: number | null = extractedScaledValFlag[0] === null ? null : this.getScaledValue(extractedScaledValFlag[0]);
+        const value: number | null = extractedScaledValFlag[0] === null ? null : this.getValueBasedOnScaleDefintion(extractedScaledValFlag[0]);
 
         // Transform the flag letter
         const flagLetter: string | null = extractedScaledValFlag[1] === null ? null : extractedScaledValFlag[1].toUpperCase();
 
         // If there is a value input then validate
-        if (scaledValue !== null) {
-            this._validationErrorMessage = this.checkValueLimitsValidity(scaledValue);
+        if (value !== null) {
+            this._validationErrorMessage = this.checkValueLimitsValidity(value);
 
             //If enforcement of limits is true and there is an error response then invalidate the observation
             if (this.enforceLimitCheck && !StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
@@ -106,21 +120,21 @@ export class ObservationDefinition {
 
         // If there is a flag input then validate
         if (flagLetter !== null) {
-            this._validationErrorMessage = this.checkFlagLetterValidity(scaledValue, flagLetter);
+            this._validationErrorMessage = this.checkFlagLetterValidity(value, flagLetter);
             if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
                 return;
             }
         }
 
         // Set the value and flag to the observation model 
-        this.observation.value = scaledValue;
+        this.observation.value = value;
         this.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
         this._validationErrorMessage = "";
         this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
     }
 
     private getValueFlagForDisplay(value: number | null, flag: FlagEnum | null): string {
-        const unScaledValue: number | null = this.getUnScaledValue(value);
+        const unScaledValue: number | null = this.scaleValue? this.getUnScaledValue(value): value;
         const valueStr = unScaledValue === null ? '' : unScaledValue.toString();
         const flagStr = flag === null ? '' : flag[0].toUpperCase();
         return valueStr + flagStr;
@@ -130,20 +144,21 @@ export class ObservationDefinition {
     /**
      * Used internally to scale the value from the user input.
      * By default, values are asssumed to be unscaled when input by user, e.g 105 instead of 10.5, that's why this is is false.
-     * @param unScaledValue 
+     * @param value 
      * @returns 
      */
-    private getScaledValue(unScaledValue: number): number {
+    private getValueBasedOnScaleDefintion(value: number): number {
+        if (!this.scaleValue) {
+            return value;
+        }
+
         const element = this.elementMetadata;
-        return element.entryScaleFactor ? unScaledValue / element.entryScaleFactor : unScaledValue;
+        return element.entryScaleFactor ? value / element.entryScaleFactor : value;
     }
 
     public getUnScaledValue(value: number | null): number | null {
-        if (value && this.elementMetadata.entryScaleFactor) {
-            // To remove rounding errors use number utils round off
-            return NumberUtils.roundOff(value * this.elementMetadata.entryScaleFactor, 4);
-        }
-        return this.observation.value;
+          // To remove rounding errors use number utils round off
+        return value && this.elementMetadata.entryScaleFactor? NumberUtils.roundOff(value * this.elementMetadata.entryScaleFactor, 4): value;
     }
 
 
@@ -175,8 +190,8 @@ export class ObservationDefinition {
 
         // Check for any decimals.
         const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
-        if (splitNum !== null && String(splitNum).includes('.')) {
-            return 'Decimals not allowed';
+        if (splitNum !== null) {
+            if(this.scaleValue && String(splitNum).includes('.')) return 'Decimals not allowed';
         }
 
         return '';
@@ -267,7 +282,7 @@ export class ObservationDefinition {
             // Transform the log data accordingly
             this._observationLog = data.map(item => {
                 // Display the values in scaled form 
-                if (item.value && this.elementMetadata.entryScaleFactor) {
+                if ( this.scaleValue && item.value && this.elementMetadata.entryScaleFactor) {
                     // To remove rounding errors number utils round off
                     item.value = this.getUnScaledValue(item.value);
                 }

@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
-import { CreateImportSourceModel } from 'src/app/core/models/sources/create-import-source.model';
+import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-import-selection',
@@ -13,18 +13,18 @@ import { ImportSourcesService } from 'src/app/core/services/sources/import-sourc
 })
 export class ImportSelectionComponent {
 
-  protected sources: ViewSourceModel<CreateImportSourceModel>[] = [];
+  protected sources: ViewSourceModel[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourceService: ImportSourcesService,
+    private sourceService: SourcesService,
     private router: Router,
     private route: ActivatedRoute) {
 
     this.pagesDataService.setPageHeader('Select Import Source');
 
     // Get all sources 
-    this.sourceService.findAll().pipe(take(1)).subscribe((data) => {
+    this.sourceService.findBySourceType(SourceTypeEnum.IMPORT).pipe(take(1)).subscribe((data) => {
       this.sources = data;
     });
 
@@ -32,7 +32,7 @@ export class ImportSelectionComponent {
 
   protected onSearch(): void { }
 
-  protected onSourceClick(source: ViewSourceModel<object>): void {
+  protected onSourceClick(source: ViewSourceModel): void {
     this.router.navigate(['import-entry', source.id], { relativeTo: this.route.parent });
   }
 

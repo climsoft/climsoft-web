@@ -1,13 +1,9 @@
-import { FlagEnum } from "../enums/flag.enum";
+import { CreateObservationDto } from "./create-observation.dto";
 
 
-export class ViewObservationDto {
+export class ViewObservationDto extends CreateObservationDto {
     stationName: string;
     elementAbbrv: string;
     sourceName: string;
-    elevation: number;
-    datetime: string;
-    period: number;
-    value: number | null;
-    flag: FlagEnum | null;
+    entryDatetime: string;
 }

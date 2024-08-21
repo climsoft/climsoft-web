@@ -9,7 +9,7 @@ import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/sta
 import { Observable, filter, from, map, pipe, take } from 'rxjs';
 
 export interface StationView extends CreateStationModel {
-  forms?: ViewSourceModel<object>[];
+  forms?: ViewSourceModel[];
 }
 
 @Component({

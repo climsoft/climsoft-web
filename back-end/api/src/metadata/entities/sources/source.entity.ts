@@ -1,23 +1,33 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "../../enums/source-type.enum";
+import { CreateUpdateSourceDto, SourceDefinitionValidity } from "src/metadata/controllers/sources/dtos/create-update-source.dto";
 
 @Entity("sources")
 export class SourceEntity {
-    @PrimaryGeneratedColumn({ type: "int" })
+    @PrimaryGeneratedColumn({  name: "id", type: "int" })
     id: number;
 
-    @Column({ type: "varchar", unique: true })
+    @Column({  name: "name", type: "varchar", unique: true })
     name: string;
 
-    @Column({ type: "varchar" })
+    @Column({ name: "description", type: "varchar" })
     description: string;
 
-    @Column({ type: "jsonb", name: "extra_metadata"})
-    extraMetadata: string ;
-
-    @Column({ type: "enum", enum: SourceTypeEnum, name: "source_type"})
+    @Column({name: "source_type", type: "enum", enum: SourceTypeEnum})
     @Index()
     sourceType: SourceTypeEnum; 
+
+    @Column({name: "utc_offset", type: "int" })
+    utcOffset: number;
+
+    @Column({name: "allow_missing_value", type: "boolean" })
+    allowMissingValue: boolean;
+
+    @Column({name: "sample_image", type: "varchar" })
+    sampleImage: string;
+
+    @Column({  name: "definitions", type: "jsonb"})
+    definitions: SourceDefinitionValidity ;
 }
 
 

@@ -1,7 +1,6 @@
 
 import { CreateUpdateSourceDto } from "./create-update-source.dto";
 
-export class ViewSourceDto<T extends object> extends CreateUpdateSourceDto<T> {
+export class ViewSourceDto extends CreateUpdateSourceDto {
     id: number; 
-    sourceTypeName: string;
 }

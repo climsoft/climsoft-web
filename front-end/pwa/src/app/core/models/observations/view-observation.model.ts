@@ -1,12 +1,9 @@
+import { CreateObservationModel } from "./create-observation.model";
 import { FlagEnum } from "./flag.enum";
 
-export interface ViewObservationModel {
+export interface ViewObservationModel extends CreateObservationModel {
     stationName: string;
     elementAbbrv: string;
     sourceName: string;
-    elevation: number;
-    datetime: string; 
-    period: number;
-    value: number | null;
-    flag: FlagEnum | null;
+    entryDatetime: string;
 }

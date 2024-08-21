@@ -1,12 +1,8 @@
-import { IsBoolean, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
-import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from "./create-import-source.dto";
+import { IsInt, IsString } from "class-validator";
 import { FlagEnum } from "src/observation/enums/flag.enum";
+import { ImportDefinitionValidity } from "./create-import-source.dto";
 
-export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
-
-    serverType: ServerTypeEnum;
-
-    format: FormatEnum;
+export class CreateImportTabularSourceDTO implements ImportDefinitionValidity {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -18,25 +14,14 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     periodDefinition: PeriodDefinition;
 
     /** Whether to fetch elevation and its column position */
-    @IsNumber()
+    @IsInt()
     elevationColumnPosition?: number;
 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
-    @IsNumber()
-    commentColumnPosition?: number;
-
-    /**Determines the UTC difference. When zero, no conversion of dates will be done */
     @IsInt()
-    utcDifference: number;
-
-    /**
-     * Determines whether to scale the values. 
-     * To be used when data being imported is not scaled
-     */
-    @IsBoolean()
-    scaleValues: boolean;
+    commentColumnPosition?: number;
 
     /**
      * Number of rows to skip.
@@ -50,20 +35,13 @@ export class CreateImportTabularSourceDTO implements CreateImportSourceDTO {
     @IsString()
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
 
-    /**
-     * Missing value definition
-     */
-    missingValueFlagDefinition: MissingFlagDefinition;
+    isValid(): boolean {
+        // TODO
+        return true;
+    }
 
-    @IsOptional()
-    @IsString()
-    sampleImage: string;
 }
 
-export class MissingFlagDefinition {
-    importMissingValue: boolean;
-    missingValueFlag: string;
-}
 
 /**
  * Station column is optional.

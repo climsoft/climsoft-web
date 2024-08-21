@@ -7,9 +7,9 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
-import { ImportSourcesService } from 'src/app/core/services/sources/import-sources.service';
 import { CreateUpdateSourceModel } from 'src/app/core/models/sources/create-update-source.model';
-import { FormatEnum, ServerTypeEnum } from 'src/app/core/models/sources/create-import-source.model';
+import { CreateImportSourceModel, FormatEnum, ServerTypeEnum } from 'src/app/core/models/sources/create-import-source.model';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 
 @Component({
@@ -19,12 +19,12 @@ import { FormatEnum, ServerTypeEnum } from 'src/app/core/models/sources/create-i
 })
 export class ImportSourceDetailComponent implements OnInit {
 
-  protected viewSource!: ViewSourceModel<CreateImportTabularSourceModel>;
+  protected viewSource!: ViewSourceModel;
   protected errorMessage: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: ImportSourcesService,
+    private importSourcesService: SourcesService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -40,54 +40,67 @@ export class ImportSourceDetailComponent implements OnInit {
         take(1)
       ).subscribe((data) => {
         this.viewSource = data;
-        console.log({ data });
       });
 
     } else {
       this.pagesDataService.setPageHeader('New Import Definitions');
+
+      const defaultTabularDefs: CreateImportTabularSourceModel = {
+        rowsToSkip: 1,
+        delimiter: undefined,
+        stationDefinition: undefined,
+        elementAndValueDefinition: {
+          hasElement: {
+            singleColumn: {
+              elementColumnPosition: 1,
+              valueColumnPosition: 1
+            }
+          }
+        },
+        periodDefinition: {
+          columnPosition: 1
+        },
+        elevationColumnPosition: undefined,
+        datetimeDefinition: {
+          dateTimeColumnPostion: 1
+        },
+        isValid: () => true
+      }
+
+      const defaultImportSourceDefs: CreateImportSourceModel = {
+        serverType: ServerTypeEnum.LOCAL,
+        format: FormatEnum.TABULAR,
+        scaleValues: false,
+        sourceMissingValueFlags: '',
+        importDefinitions: defaultTabularDefs,
+        isValid: () => true
+      }
+
       this.viewSource = {
         id: 0,
         name: '',
         description: '',
         sourceType: SourceTypeEnum.IMPORT,
-        sourceTypeName: SourceTypeEnum.IMPORT,
-        extraMetadata: {
-          serverType: ServerTypeEnum.LOCAL,
-          format: FormatEnum.TABULAR,
-          stationDefinition: undefined,
-          elementAndValueDefinition: {
-            hasElement: {
-              singleColumn: {
-                elementColumnPosition: 1,
-                valueColumnPosition: 1
-              }
-            }
-          },
-          periodDefinition: {
-            columnPosition: 1
-          },
-          elevationColumnPosition: undefined,
-          datetimeDefinition: {
-            dateTimeColumnPostion: 1
-          },
-          utcDifference: 0,
-          scaleValues: false,
-          rowsToSkip: 1,
-          delimiter: undefined,
-          missingValueFlagDefinition: {
-            importMissingValue: false,
-            missingValueFlag: ''
-          },
-          sampleImage: '',
-        }
+        allowMissingValue: false,
+        sampleImage: '',
+        utcOffset: 0,
+        definitions: defaultImportSourceDefs
       };
 
     }
   }
 
+  protected get importSource(): CreateImportSourceModel {
+    return this.viewSource.definitions as CreateImportSourceModel;
+  }
+
+  protected get tabularImportSource(): CreateImportTabularSourceModel {
+    return this.importSource.importDefinitions as CreateImportTabularSourceModel;
+  }
+
   protected onServerTypeSelected(serverType: ServerTypeEnum | null): void {
     if (serverType !== null) {
-      this.viewSource.extraMetadata.serverType = serverType;
+      this.importSource.serverType = serverType;
     }
   }
 
@@ -95,12 +108,17 @@ export class ImportSourceDetailComponent implements OnInit {
 
     // TODO. Validate the definitions, for instance, making sure column positions are unique.
 
-    const createUpdateSource: CreateUpdateSourceModel<CreateImportTabularSourceModel> = {
+    const createUpdateSource: CreateUpdateSourceModel = {
       name: this.viewSource.name,
       description: this.viewSource.description,
-      extraMetadata: this.viewSource.extraMetadata,
-      sourceType: SourceTypeEnum.IMPORT
+      sourceType: SourceTypeEnum.IMPORT,
+      allowMissingValue: this.viewSource.allowMissingValue,
+      sampleImage: this.viewSource.sampleImage,
+      utcOffset: this.viewSource.utcOffset,
+      definitions: this.viewSource.definitions
     };
+
+    // console.log('saved', createUpdateSource)
 
     if (this.viewSource.id === 0) {
       this.importSourcesService.create(createUpdateSource).pipe(
@@ -131,7 +149,11 @@ export class ImportSourceDetailComponent implements OnInit {
   protected onDelete(): void {
     //todo. prompt for confirmation first
     this.importSourcesService.delete(this.viewSource.id).subscribe((data) => {
-      this.location.back();
+      if (data) {
+        this.location.back();
+      } else {
+        // TODO. show not deleted
+      }
     });
   }
 

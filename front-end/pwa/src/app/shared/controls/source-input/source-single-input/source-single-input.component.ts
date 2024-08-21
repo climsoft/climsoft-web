@@ -14,8 +14,8 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ViewSourceModel<object>[];
-  protected selectedOption!: ViewSourceModel<object> | null;
+  protected options!: ViewSourceModel[];
+  protected selectedOption!: ViewSourceModel | null;
 
   constructor(private sourcesService: SourcesService) {
   
@@ -45,11 +45,11 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
     }
   }
 
-  protected optionDisplayFunction(option: ViewSourceModel<object>): string {
+  protected optionDisplayFunction(option: ViewSourceModel): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: ViewSourceModel<object> | null) {
+  protected onSelectedOptionChange(selectedOption: ViewSourceModel | null) {
     if (selectedOption) {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);

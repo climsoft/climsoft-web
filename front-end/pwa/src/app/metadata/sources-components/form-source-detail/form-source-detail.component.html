@@ -1,15 +1,15 @@
-<div class="card border-0">
+<div *ngIf="viewSource" class="card border-0">
     <div class="card-body px-0">
         <!--form name -->
         <div class="mb-3">
-            <app-text-input [label]="'Name'" [(value)]="formName" />
+            <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
         </div>
         
         <hr class="border border-secondary border-1">
 
         <!--form description -->
         <div class="mb-3">
-            <app-text-input [label]="'Description'" [(value)]="formDescription" />
+            <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
         </div>
        
         <hr class="border border-secondary border-1">
@@ -48,7 +48,7 @@
 
         <!--period-->
         <div class="mb-3">
-            <app-period-single-input [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
+            <app-period-single-input [label]="'Period'" [includeOnlyIds]="[60, 180, 360, 720, 1440]" [selectedId]="selectedPeriodId"
                 (selectedIdChange)="onPeriodSelected($event)" />
         </div>
         
@@ -62,9 +62,9 @@
        
         <hr class="border border-secondary border-1">
 
-        <!--UTC time difference-->
+        <!--UTC Offset-->
         <div class="mb-3">
-            <app-number-input [label]="'UTC Time Difference'" [(value)]="utcDifference" />
+            <app-number-input [label]="'UTC Offset'" [(value)]="utcDifference" />
         </div>
        
         <hr class="border border-secondary border-1">
@@ -98,7 +98,7 @@
         <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
             Save
         </button>
-        <button *ngIf="viewSource && sourceId > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
+        <button *ngIf="viewSource && viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
             (click)="onDelete()">
             Delete
         </button>
