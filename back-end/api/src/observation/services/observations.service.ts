@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -50,6 +50,7 @@ export class ObservationsService {
             viewObs.value = obsEntity.value;
             viewObs.flag = obsEntity.flag;
             viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
+            viewObs.comment = obsEntity.comment;
 
             const station = stationEntities.find(data => data.id === obsEntity.stationId);
             if (station) {
@@ -75,6 +76,39 @@ export class ObservationsService {
 
 
     private async findObsEntities(selectObsevationDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.setProcessedFilter(selectObsevationDto);
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            order: {
+                stationId: "ASC",
+                elementId: "ASC",
+                sourceId: "ASC",
+                elevation: "ASC",
+                datetime: "ASC"
+            },
+            where: whereOptions
+        };
+
+        // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
+        if (!selectObsevationDto.page || !selectObsevationDto.pageSize || selectObsevationDto.pageSize >= 1000) {
+            throw new BadRequestException("You must specify page and page size. Page size must be less than 100")
+        }
+
+
+        if (selectObsevationDto.page && selectObsevationDto.pageSize) {
+            findOptions.skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
+            findOptions.take = selectObsevationDto.pageSize
+        }
+
+
+        return this.observationRepo.find(findOptions);
+    }
+
+    public async countEntities(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.setProcessedFilter(selectObsevationDto);
+        return this.observationRepo.countBy(whereOptions)
+    }
+
+    private setProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationIds) {
@@ -87,7 +121,7 @@ export class ObservationsService {
 
         if (selectObsevationDto.sourceIds) {
             whereOptions.sourceId = In(selectObsevationDto.sourceIds);
-        } 
+        }
 
         if (selectObsevationDto.period) {
             whereOptions.period = selectObsevationDto.period;
@@ -96,27 +130,7 @@ export class ObservationsService {
         this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);
 
         whereOptions.deleted = false;
-
-        const findOptions: FindManyOptions<ObservationEntity> = {
-            order: {
-                stationId: "ASC",
-                elementId: "ASC",
-                sourceId: "ASC",
-                elevation: "ASC",
-                datetime: "ASC"
-            },
-            where: whereOptions
-        };
-
-
-        if (selectObsevationDto.page && selectObsevationDto.pageSize) {
-            findOptions.skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
-            findOptions.take = selectObsevationDto.pageSize
-        }
-
-        return this.observationRepo.find(findOptions);
-
-
+        return whereOptions;
     }
 
     private setProcessedObsDateFilter(selectObsevationDto: ViewObservationQueryDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
@@ -237,7 +251,8 @@ export class ObservationsService {
                 // Values from duckdb come with floating point precision issue (e.g 1.005 being 1.004999)
                 // So adjust the value with the EPSILON then round of to 4 d.p
                 // TODO. Should we always limit values to 4 d.p? Do we have climate and hydrology observations that have more than 4 d.p?
-                value: dto.value === null ? null : NumberUtils.roundOff(dto.value, 4),
+                // TODO. Investigate how to deal with this issue.
+                value: dto.value === null ? null : NumberUtils.roundOff(dto.value, 1),
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NO_QC_TESTS_DONE,
                 comment: dto.comment,

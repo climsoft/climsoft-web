@@ -20,9 +20,7 @@ export class ImportSelectionComponent {
     private sourceService: SourcesService,
     private router: Router,
     private route: ActivatedRoute) {
-
     this.pagesDataService.setPageHeader('Select Import Source');
-
     // Get all sources 
     this.sourceService.findBySourceType(SourceTypeEnum.IMPORT).pipe(take(1)).subscribe((data) => {
       this.sources = data;

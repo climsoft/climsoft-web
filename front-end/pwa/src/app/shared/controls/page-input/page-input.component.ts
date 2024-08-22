@@ -1,38 +1,62 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { PageInputDefinition } from './page-input-definition';
 
 @Component({
   selector: 'app-page-input',
   templateUrl: './page-input.component.html',
   styleUrls: ['./page-input.component.scss']
 })
-export class PageInputComponent  implements  OnChanges  {
+export class PageInputComponent implements OnChanges {
 
   @Input()
-  public totalRowCount!: number ;
+  public pageInputDefinition!: PageInputDefinition;
 
-  @Input()
-  public visibleRowCount!: 31 |365;
+  @Output()
+  public pageInputDefinitionChange = new EventEmitter<void>();
 
-  @Output() public pageChange = new EventEmitter<number >();
-  @Output() public rowChange = new EventEmitter<number >();
-
-  protected possibleVisibleRows: number[] = [31, 365];
-  protected page!: number;
-  protected pages!: number[];
+  protected displayVisibleRowsDropDown: boolean = false;
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    if(this.totalRowCount && this.visibleRowCount){
-      //todo calculate the pages and set them
+  }
+
+  protected onFirst(): void {
+    if (this.pageInputDefinition.onFirst()) {
+      this.pageInputDefinitionChange.emit();
+    }
+  }
+
+  protected onPrevious(): void {
+    if (this.pageInputDefinition.onPrevious()) {
+      this.pageInputDefinitionChange.emit();
+    }
+  }
+
+  protected onNext(): void {
+    if (this.pageInputDefinition.onNext()) {
+      this.pageInputDefinitionChange.emit();
     }
 
   }
 
-  protected onPageSelection(pageSelection: number): void{
-
+  protected onLast(): void {
+    if (this.pageInputDefinition.onLast()) {
+      this.pageInputDefinitionChange.emit();
+    }
   }
 
-  protected onRowSelection(pageSelection: number): void{
-
+  protected closeVisibleRowsDropDown(): void {
+    this.displayVisibleRowsDropDown = false;
   }
+
+  protected onDisplayVisibleRowsDropDown(): void {
+    this.displayVisibleRowsDropDown = true;
+  }
+
+  protected onPageSizeSelection(pageSizeSelection: string): void {
+    this.pageInputDefinition.setPageSize(pageSizeSelection === '31' ? 31 : 365)
+    this.closeVisibleRowsDropDown();
+    this.pageInputDefinitionChange.emit();
+  }
+
 }

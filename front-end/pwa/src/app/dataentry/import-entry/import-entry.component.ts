@@ -24,6 +24,7 @@ export class ImportEntryComponent implements OnInit {
 
   protected showStationSelection: boolean = false;
   protected selectedStationId!: string | null;
+  protected disableUpload: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -40,9 +41,10 @@ export class ImportEntryComponent implements OnInit {
     ).subscribe((data) => {
       this.viewSource = data;
       this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
+      const importSource: CreateImportSourceModel =this.viewSource.definitions  as CreateImportSourceModel;
 
-      if ((this.viewSource.definitions  as CreateImportSourceModel).format === FormatEnum.TABULAR) {
-        const tabularSource: CreateImportTabularSourceModel = this.viewSource.definitions as CreateImportTabularSourceModel;
+      if (importSource.format === FormatEnum.TABULAR) {
+        const tabularSource: CreateImportTabularSourceModel = importSource.importDefinitions as CreateImportTabularSourceModel;
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });
@@ -60,6 +62,7 @@ export class ImportEntryComponent implements OnInit {
       return;
     }
 
+    this.disableUpload = true;
     this.showUploadProgress = true;
     this.uploadProgress = 0;
     this.uploadError = false;
@@ -96,6 +99,7 @@ export class ImportEntryComponent implements OnInit {
             this.uploadMessage = this.uploadProgress < 100 ? "Uploading file..." : "Processing file...";
           }
         } else if (event.type === HttpEventType.Response) {
+          this.disableUpload = false;
           // Clear the file input
           fileInputEvent.target.value = null;
 

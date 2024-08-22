@@ -18,9 +18,8 @@ export class RadioButtonsInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
     if (this.groupItems && this.checkedValue) {
-      const valueFound = this.groupItems.find(item => { item.label === this.checkedValue });
+      const valueFound = this.groupItems.find(item =>  (item.label === this.checkedValue) );
       if (valueFound) {
         valueFound.checked = true;
       }

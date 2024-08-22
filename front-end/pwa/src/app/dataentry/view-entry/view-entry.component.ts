@@ -11,6 +11,7 @@ import { take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
+import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
 
 
 @Component({
@@ -32,10 +33,10 @@ export class ViewEntryComponent {
   private elementsMetadata: ViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
 
-  protected totalRowCount: number = 0 ;
-  protected visibleRowCount: 31 |365 = 31;
+  protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
   protected enableSave: boolean = false;
- 
+
+  private observationFilter!: ViewObservationQueryModel;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -58,43 +59,57 @@ export class ViewEntryComponent {
     this.useEntryDate = selection === 'Entry Date';
   }
 
-
-  protected onViewClick(): void {
-    //get the data based on the selection filter
-    const observationFilter: ViewObservationQueryModel = {};
+  protected refresh(): void {
+    // Get the data based on the selection filter
+    this.observationFilter = {};
 
     if (this.stationId) {
-      observationFilter.stationIds = [this.stationId];
+      this.observationFilter.stationIds = [this.stationId];
     }
 
     if (this.sourceId) {
-      observationFilter.sourceIds = [this.sourceId];
+      this.observationFilter.sourceIds = [this.sourceId];
     }
 
     if (this.elementId) {
-      observationFilter.elementIds = [this.elementId];
+      this.observationFilter.elementIds = [this.elementId];
     }
 
     if (this.period) {
-      observationFilter.period = this.period;
+      this.observationFilter.period = this.period;
     }
 
     // TODO. Investigate. If this is set to false, the dto is sets it true for some reasons
-    // So I'm only setting to true (making it to defined) when its to be set to true.
+    // So only setting to true (making it to defined) when its to be set to true.
     // When this.useEntryDate is false then don't define it, to avoid the bug defined above.
-    if(this.useEntryDate){
-      observationFilter.useEntryDate =true;
+    if (this.useEntryDate) {
+      this.observationFilter.useEntryDate = true;
     }
 
     if (this.fromDate) {
-      observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
+      this.observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
     }
 
     if (this.toDate) {
-      observationFilter.toDate = `${this.toDate}T23:00:00Z`;
+      this.observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 
-    this.observationService.findProcessed(observationFilter).subscribe(data => {
+    this.observationsDefs = [];
+    this.pageInputDefinition.setTotalRowCount(0)
+    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(count => {
+      this.pageInputDefinition.setTotalRowCount(count);
+      if (count > 0) {
+        this.loadData();
+      }
+    });
+
+  } 
+
+  protected loadData(): void {
+    this.observationsDefs = [];
+    this.observationFilter.page = this.pageInputDefinition.page;
+    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
       this.observationsDefs = data.map(viewObservationModel => {
         const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
@@ -109,8 +124,8 @@ export class ViewEntryComponent {
 
         return new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, false);
       });
+      
     });
-
   }
 
 
@@ -123,36 +138,45 @@ export class ViewEntryComponent {
   }
 
 
-
   protected onSave(): void {
     this.enableSave = false;
-  // Create required observation dtos 
-  const newObservations: CreateObservationModel[] = this.observationsDefs.filter(item => item.observationChanged).map(item => {
-   const v = item.observation as ViewObservationModel;
-   const c: CreateObservationModel = {...v};
-   return c;
-  });
+    // Create required observation dtos 
+    const newObservations: CreateObservationModel[] = this.observationsDefs.filter(item => item.observationChanged).map(item => {
+      // Important. Explicitly convert the view model to create model
+      const viewModel = item.observation as ViewObservationModel;
+      return {
+        stationId: viewModel.stationId,
+        elementId: viewModel.elementId,
+        sourceId: viewModel.sourceId,
+        elevation: viewModel.elevation,
+        datetime: viewModel.datetime,
+        period: viewModel.period,
+        value: viewModel.value,
+        flag: viewModel.flag,
+        comment: viewModel.comment
+      };
+    });
 
-  if (newObservations.length === 0) {
-    this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: 'info' });
-    return;
-  }
-
-  // Send to server for saving
-  this.observationService.save(newObservations).subscribe((data) => {
-    this.enableSave = true;
-    if (data) {
-      this.pagesDataService.showToast({
-        title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} saved`, type: 'success'
-      });
-
-      this.onViewClick();
-    } else {
-      this.pagesDataService.showToast({
-        title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} NOT saved`, type: 'error'
-      });
+    if (newObservations.length === 0) {
+      this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: 'info' });
+      return;
     }
-  });
+
+    // Send to server for saving
+    this.observationService.save(newObservations).subscribe((data) => {
+      this.enableSave = true;
+      if (data) {
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} saved`, type: 'success'
+        });
+
+        this.refresh();
+      } else {
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+        });
+      }
+    });
   }
 
 }

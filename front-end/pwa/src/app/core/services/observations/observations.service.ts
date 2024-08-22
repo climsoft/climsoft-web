@@ -31,6 +31,7 @@ export class ObservationsService {
           httpParams = httpParams.set(key, value.join(','));
         } else {
           // Convert non-array values to string
+          // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
           httpParams = httpParams.set(key, value.toString());
         }
       }
@@ -38,15 +39,22 @@ export class ObservationsService {
     return httpParams;
   }
 
-  public findRaw(observationQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(observationQuery) })
+  public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public findProcessed(observationQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(observationQuery) })
+  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public findRaw(createObsQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(createObsQuery) })
       .pipe(
         catchError(this.handleError)
       );

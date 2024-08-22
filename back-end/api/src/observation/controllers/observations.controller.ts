@@ -17,13 +17,18 @@ export class ObservationsController {
     private readonly observationUpload: ObservationUploadService) { }
 
   @Get()
-  getProcessed(@Query(AuthorisedStationsPipe) selectObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.findProcessed(selectObsevationQuery);
+  getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.findProcessed(viewObsevationQuery);
+  }
+ 
+  @Get('/count')
+  getCount(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.countEntities(viewObsevationQuery);
   }
 
   @Get('/raw')
-  getRaw(@Query(AuthorisedStationsPipe) selectObsevationQuery: CreateObservationQueryDto) {
-    return this.observationsService.findRawObs(selectObsevationQuery);
+  getRaw(@Query(AuthorisedStationsPipe) createObsevationQuery: CreateObservationQueryDto) {
+    return this.observationsService.findRawObs(createObsevationQuery);
   }
 
   @Get('/log')

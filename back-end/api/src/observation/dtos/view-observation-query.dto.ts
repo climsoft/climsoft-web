@@ -37,7 +37,7 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @IsInt()
-    page?: number;
+    page?: number; // TODO. Validate to make sure it is never less than 0
 
     @IsOptional()
     @IsInt()   
