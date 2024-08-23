@@ -1,0 +1,17 @@
+.entry-table-container {
+     /* Adjust the height as needed */
+    height: calc(100vh - 430px);   
+    overflow-y: auto;
+}
+
+.entry-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    /* or your preferred background color */
+    /*background-color: white; */
+   
+    /* Optional: adds a shadow for better separation */
+    /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); */
+}

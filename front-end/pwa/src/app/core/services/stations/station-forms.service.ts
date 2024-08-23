@@ -12,9 +12,9 @@ export class StationFormsService {
 
   constructor(private http: HttpClient) { }
 
-  public find(stationId: string): Observable<ViewSourceModel<object>[]> {
+  public find(stationId: string): Observable<ViewSourceModel[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
-    return this.http.get<ViewSourceModel<object>[]>(url)
+    return this.http.get<ViewSourceModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );

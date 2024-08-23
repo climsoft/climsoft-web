@@ -5,6 +5,7 @@ import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-sources',
@@ -12,14 +13,13 @@ import { SourcesService } from 'src/app/core/services/sources/sources.service';
   styleUrls: ['./sources.component.scss']
 })
 export class SourcesComponent {
-  protected sources: ViewSourceModel<object>[] = [];
+  protected sources: ViewSourceModel[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
     private sourceService: SourcesService,
     private router: Router,
     private route: ActivatedRoute) {
-
     this.pagesDataService.setPageHeader('Sources Metadata');
 
     // Get all sources 
@@ -32,9 +32,7 @@ export class SourcesComponent {
   protected onSearch(): void { }
 
   protected onNewSource(sourceTypeName: 'Form'|'Import') {
-
     let routeName: string = '';
-
     switch (sourceTypeName) {
       case 'Form':
         routeName = 'form-source-detail';
@@ -49,8 +47,7 @@ export class SourcesComponent {
     this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });
   }
 
-  protected onEditSource(source: ViewSourceModel<object>): void {
-
+  protected onEditSource(source: ViewSourceModel): void {
     const sourceType: SourceTypeEnum = source.sourceType;
     let routeName: string = '';
 
@@ -66,6 +63,5 @@ export class SourcesComponent {
     }
 
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
-
   }
 }

@@ -6,9 +6,9 @@
         Search
       </button>
 
-      <app-drop-down-button [dropDownItems]="['Add','Import']"
+      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
         (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()"
-        [translateX]="true">New</app-drop-down-button>
+        [translateX]="true"/>
       <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
 
     </div>

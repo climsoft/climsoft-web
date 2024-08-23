@@ -5,7 +5,6 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { ViewStationDto } from 'src/metadata/dtos/stations/view-station.dto';
 import { UpdateStationDto } from 'src/metadata/dtos/stations/update-station.dto';
 import { BaseStringController } from 'src/shared/controllers/base-string.controller';
-import { StationObsProcessingMethodEnum } from 'src/metadata/enums/station-obs-processing-method.enum';
 
 @Controller('stations')
 export class StationsController extends BaseStringController<CreateStationDto, UpdateStationDto, ViewStationDto> {

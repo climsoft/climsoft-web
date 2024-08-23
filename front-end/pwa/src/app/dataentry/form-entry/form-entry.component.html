@@ -23,8 +23,9 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
-            <app-hour-single-input [label]="'Hour'" [includeOnlyIds]="formDefinitions.formMetadata.hours"
-              [selectedId]="formDefinitions.hourSelectorValue" (selectedIdChange)="onHourChange($event)" />
+            <app-hour-single-input [label]="'Hour'+ utcDifference "
+              [includeOnlyIds]="formDefinitions.formMetadata.hours" [selectedId]="formDefinitions.hourSelectorValue"
+              (selectedIdChange)="onHourChange($event)" />
           </div>
 
         </div>
@@ -32,19 +33,42 @@
     </div>
 
     <!-- entry fields -->
-    <div>
-      <!-- list layout -->
-      <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'" [formDefinitions]="formDefinitions"
-        (valueChange)="onValueChange($event)" (totalIsValid)="onTotalIsValid($event)" />
-      <!-- ----------- -->
+    <div class="card border-0">
+      <div class="card-body p-0">
+
+        <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
+          <div class="fw-bold">Fields</div>
+          <div class="mb-1">
+            <app-drop-down-button [dropDownItems]="[ 'Assign Same Value','Clear Values','Show Value History']"
+              (dropDownOptionClick)=" $event === 'Assign Same Value'? dlgSameValue.openDialog(): onOptions($event)"
+              [translateX]="true">Options</app-drop-down-button>
+            <app-input-dialog #dlgSameValue [title]="'Assign Same Value'" [inputLabel]="'Enter value'"
+              (ok)="assignSameValue($event)" />
+          </div>
+        </div>
+
+        <div class="mt-2 mx-2">
+          <!-- list layout -->
+          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
+            [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
+            [displayHistoryOption]="displayHistoryOption" (valueChange)="onValueChange($event)"
+            (totalIsValid)="onTotalIsValid($event)" />
+          <!-- ----------- -->
 
 
-      <!-- table layout -->
-      <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formDefinitions]="formDefinitions"
-        (valueChange)="onValueChange($event)" (totalIsValid)="onTotalIsValid($event)">
-      </app-grid-layout>
-      <!-- ----------- -->
+          <!-- table layout -->
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formDefinitions]="formDefinitions"
+            [refreshLayout]="refreshLayout" [displayHistoryOption]="displayHistoryOption"
+            (valueChange)="onValueChange($event)" (totalIsValid)="onTotalIsValid($event)">
+          </app-grid-layout>
+          <!-- ----------- -->
+
+        </div>
+
+
+      </div>
     </div>
+
 
   </div>
 

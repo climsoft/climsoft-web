@@ -1,60 +1,37 @@
-<div class="card border-0">
-    <div class="card-body p-0">
-
-        <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-            <div class="fw-bold">Fields</div>
-            <div class="mb-1">
-                <app-drop-down-button [dropDownItems]="['Clear','History']" (dropDownOptionClick)="onOptions($event)"
-                    [translateX]="true">Options</app-drop-down-button>
+<div>
+    <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0" class="row g-2">
+        <div class="col d-flex flex-column container-max-w-sm">
+            <div class="row me-2 mb-2 d-flex flex-grow-1">
+                {{rowHeaderName}}
+            </div>
+            <div class="row me-2 mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions">
+                {{rowDef.name}}
+            </div>
+            <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row me-2 mb-2 d-flex flex-grow-1">
+                TOTAL
             </div>
         </div>
-
-        <div class="mt-2 mx-4">
-            <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0" class="row g-2">
-                <div class="col d-flex flex-column container-max-w-sm">
-                    <div class="row me-2 mb-2 d-flex flex-grow-1">
-                        {{rowHeaderName}}
-                    </div>
-                    <div class="row me-2 mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions">
-                        {{rowDef.name}}
-                    </div>
-                    <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row me-2 mb-2 d-flex flex-grow-1">
-                        TOTAL
-                    </div>
-                </div>
-                <div class="col d-flex flex-column container-max-w-sm"
-                    *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                    <!-- column name -->
-                    <div class="row mb-2 d-flex flex-grow-1 ">
-                        {{colDef.name}}
-                    </div>
-
-                    <!-- entry fields -->
-                    <div class="row mb-2 d-flex flex-grow-1"
-                        *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                        <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                            [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                            [enforceLimitCheck]="formDefinitions.formMetadata.enforceLimitCheck"
-                            [displayHistoryOption]="displayHistoryOption"
-                            (valueChange)="onValueChange($event,colIndex)" />
-                    </div>
-
-                    <!-- total -->
-                    <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row mb-2 d-flex flex-grow-1">
-                        <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
-                            [errorMessage]="totalErrorMessage[colIndex]"
-                            (valueChange)="onTotalValueChange(colIndex,$event)"
-                            (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
-                    </div>
-
-                </div>
+        <div class="col d-flex flex-column container-max-w-sm"
+            *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+            <!-- column name -->
+            <div class="row mb-2 d-flex flex-grow-1 ">
+                {{colDef.name}}
             </div>
+
+            <!-- entry fields -->
+            <div class="row mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
+                <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                    [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                    [displayHistoryOption]="displayHistoryOption" (valueChange)="onValueChange($event,colIndex)" />
+            </div>
+
+            <!-- total -->
+            <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row mb-2 d-flex flex-grow-1">
+                <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
+                    [errorMessage]="totalErrorMessage[colIndex]" (valueChange)="onTotalValueChange(colIndex,$event)"
+                    (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
+            </div>
+
         </div>
-
-
-
-
-
     </div>
-
 </div>

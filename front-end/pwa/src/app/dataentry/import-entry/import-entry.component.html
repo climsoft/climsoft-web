@@ -10,7 +10,7 @@
     </div>
     <div>
       <input #fileUpload type="file" style="display: none;" [accept]="'text/csv'" (change)="onFileSelected($event)">
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="fileUpload.click()">
+      <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload" (click)="fileUpload.click()">
         Upload File
       </button>
     </div>

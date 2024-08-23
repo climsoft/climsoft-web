@@ -14,9 +14,12 @@ export class CreateObservationQueryDto {
     elementIds: number[];
 
     @IsInt()
-    period: number;
+    elevation: number;
 
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsDateString({}, { each: true })
     datetimes: string[];
+
+    @IsInt()
+    period: number;
 }

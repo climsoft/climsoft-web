@@ -1,10 +1,8 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormEntryUtil } from '../defintions/form-entry.util';
+import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-linear-layout',
@@ -14,6 +12,12 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 export class LnearLayoutComponent implements OnChanges {
   @Input()
   public formDefinitions!: FormEntryDefinition;
+
+  @Input()
+  public refreshLayout!: boolean;
+
+  @Input()
+  public displayHistoryOption!: boolean;
 
   /** Emitted when observation value is changed */
   @Output()
@@ -35,8 +39,6 @@ export class LnearLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total component */
   protected totalErrorMessage!: string;
 
-  protected displayHistoryOption: boolean = false;
-
   /** Used to determine the layout to be used depending on the screen size */
   protected largeScreen: boolean = true;
 
@@ -47,16 +49,12 @@ export class LnearLayoutComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //only proceed with seting up the control if all inputs have been set.
-    if (this.formDefinitions) {
+    if (changes["refreshLayout"] && this.refreshLayout) {
       // Set up the field definitions for both layouts and the observation definitions for value flag components
       this.fieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
-      this.observationsDefinitions = this.formDefinitions.getEntryObsForLinearLayout();
-    } else {
-      this.observationsDefinitions = [];
+      this.observationsDefinitions = this.formDefinitions.obsDefsForLinearLayout;
     }
-
   }
 
   /**
@@ -95,7 +93,6 @@ export class LnearLayoutComponent implements OnChanges {
       this.totalErrorMessage = '';
       this.totalIsValid.emit(false);
     }
-
   }
 
   /**
@@ -103,7 +100,7 @@ export class LnearLayoutComponent implements OnChanges {
    * @param value 
    */
   protected onTotalValueChange(value: number | null): void {
-    const expectedTotal = FormEntryUtil.getTotalValuesOfObs(this.observationsDefinitions);
+    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(this.observationsDefinitions);
     this.totalErrorMessage = '';
 
     if (expectedTotal !== value) {
@@ -112,60 +109,6 @@ export class LnearLayoutComponent implements OnChanges {
 
     // If no error, then emit true. If error detected emit false
     this.totalIsValid.emit(this.totalErrorMessage === '');
-  }
-
-  /**
-   * Updates its internal state depending on the options passed
-   * @param option  'Clear' | 'History'
-   */
-  protected onOptions(option: 'Assign Same Value'|'Clear Values'|'Show Value History'): void {
-    switch (option) {
-      case 'Clear Values':
-        this.clear();
-        break;
-      case 'Show Value History':
-        this.displayHistoryOption = !this.displayHistoryOption;
-        break;
-    }
-  }
-
-  protected assignSameValue(input: string): void{
-    for(const obsDef of  this.observationsDefinitions){
-      // Check if value flag is  empty
-      if (StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
-       // Set the new the value flag input
-       obsDef.setValueFlagFromInput(input, this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
-
-       // Raise the value change 
-       this.onValueChange(obsDef);
-     }
- }    
-
- // Set total as valid, because everything has been cleared
- if (this.formDefinitions.formMetadata.requireTotalInput) {
-   this.totalIsValid.emit(true);
- }
-  }
-
-  /**
-  * Clears all the observation value fflags if they are not cleared and updates its internal state
-  */
-  private clear(): void {
-    for(const obsDef of  this.observationsDefinitions){
-         // Check if value flag is already empty
-         if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
-          // Clear the value flag input
-          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
-  
-          // Raise the value change 
-          this.onValueChange(obsDef);
-        }
-    }    
-
-    // Set total as valid, because everything has been cleared
-    if (this.formDefinitions.formMetadata.requireTotalInput) {
-      this.totalIsValid.emit(true);
-    }
   }
 
 

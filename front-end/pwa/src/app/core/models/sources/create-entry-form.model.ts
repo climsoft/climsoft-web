@@ -1,9 +1,10 @@
+import { CreateUpdateSourceModel, SourceDefinitionValidity } from "./create-update-source.model";
 
 export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type LayoutType = 'LINEAR' | 'GRID';
 
-export interface CreateEntryFormModel {
+export interface CreateEntryFormModel extends SourceDefinitionValidity {
     /** Defines the extra entry selectors used by the form to get data */
     selectors: [ExtraSelectorControlType, ExtraSelectorControlType?];
 
@@ -22,30 +23,17 @@ export interface CreateEntryFormModel {
     /** Period for observation */
     period: number;
 
-    /** 
-     * Determines whether entry date time should be converted to UTC or not. 
-     * If true, the entry date time will be sent to the server based on date time selection on the lcient
-     * If false, entry date time will be converted to UTC before being sent to sever
-     */
-    utcDifference: number;
 
-    /** 
+    /**
      * Determines whether to allow entries that don't pass observation limits.
      * If true, when limits are exceeded, data entry will not be allowed.
+     * Note, this is only enforced on the front end.
      */
     enforceLimitCheck: boolean;
 
     /**
-     * Determines whether to allow missing values or not.
-     * If true, entry of missing values will be allowed.
-     */
-    allowMissingValue: boolean;
-
-    /**
      * Determines whether user is required to type in observation total or not.
+     * Note, this is only enforced on the front end.
      */
     requireTotalInput: boolean;
-
-    /** Sample paper image that resembles the form design */
-    sampleImage: string;
 }

@@ -1,8 +1,7 @@
 <div>
-    <app-check-box-input [label]="'Import Missing Values'" [value]="missingValueFlagDefinition.importMissingValue"
-        (valueChange)="onImportMissingValue($event)" />
+    <app-check-box-input [label]="'Import Missing Values'" [(value)]="allowMissingValue"  />
         
         <hr class="border border-secondary border-1">
 
-    <app-text-input [label]="'Missing Value Flag'" [(value)]="missingValueFlagDefinition.missingValueFlag" />
+    <app-text-input [label]="'Missing Value Flags'" [(value)]="sourceMissingValueFlags" />
 </div>

@@ -36,8 +36,7 @@ import { StationObsMethodSingleInputComponent } from './controls/station-obs-met
 import { StationObsEnvSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-env-single-input.component';
 import { StationObservationFocusSingleInputComponent } from './controls/station-obs-focus-input/station-obs-focus-single-input/station-obs-focus-single-input.component';
 import { StationStatusSingleInputComponent } from './controls/station-status-input/station-status-single-input/station-status-single-input.component';
-import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
-import { DropDownComponent } from './controls/drop-down/drop-down.component';
+import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
 import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
@@ -45,6 +44,8 @@ import { CheckBoxInputComponent } from './controls/check-box-input/check-box-inp
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
 import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
 import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
+import { PageInputComponent } from './controls/page-input/page-input.component';
+import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 
 //--------------------------------
   
@@ -82,28 +83,23 @@ const controlsComponents = [
   ElementMultipleInputComponent,
   HourSingleInputComponent,
   HourMultipleInputComponent,
-
   YearMonthInputComponent,
-
   PeriodSingleInputComponent,
   SourceSingleInputComponent,
-
   StationSingleInputComponent,
   StationMultipleInputComponent,
   StationObsMethodSingleInputComponent,
   StationObsEnvSingleInputComponent,
   StationObservationFocusSingleInputComponent,
   StationStatusSingleInputComponent,
-
-  DropDownButtonComponent,
-  DropDownComponent, 
-  
+  DropDownButtonComponent,    
   ElementDomainSingleInputComponent,  
   ElementSubdomainSingleInputComponent,
   ElementTypeSingleInputComponent,
-
   ServerTypeInputComponent,
   FlagSingleInputComponent,
+  PageInputComponent,
+  DropDownContainerComponent, 
 
 ];
 
@@ -115,12 +111,10 @@ const directives = [
 @NgModule({
   declarations: [
     ...controlsComponents,
-    ...directives,
-  
+    ...directives, 
   ],
   imports: [
     ...angularModules,
-
   ],
   providers: [
    

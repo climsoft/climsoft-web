@@ -1,6 +1,7 @@
-<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [includeDropDownOption]="displayHistoryOption"
-    [value]="observationDefinition.valueFlagForDisplay" [dropDownOptionMaxHeight]="300"
-    [errorMessage]="validationResponse" (valueChange)="onInputEntry($event)"
+<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [disabled]="disableValueFlagEntry"
+    [includeDropDownOption]="displayHistoryOption" [value]="observationDefinition.valueFlagForDisplay"
+    [dropDownOptionMaxHeight]="300" [errorMessage]="observationDefinition.validationErrorMessage"
+    [showChanges]="showChanges" (valueChange)="onInputEntry($event)"
     (inputEnterKeyPress)="onEnterKeyPressed()" (dropDownOptionClick)="loadObservationLog()">
 
     <div class="card">
@@ -10,7 +11,7 @@
                 <app-text-input [label]="'New Comment'" (valueChange)="onCommentEntry( $event)"></app-text-input>
             </div>
 
-            <div *ngIf="obsLog && obsLog.length>0">
+            <div *ngIf="observationDefinition.observationLog.length>0">
                 <div>History</div>
                 <table class="table table-striped table-hover">
                     <thead>
@@ -25,7 +26,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let row of obsLog ">
+                        <tr *ngFor="let row of observationDefinition.observationLog ">
                             <td>{{ row.value }}</td>
                             <td>{{ row.flag }}</td>
                             <td>{{ row.final }}</td>

@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           featureTitle: 'Import Data Entry'
         },
         {
-          name: 'Inventory',
+          name: 'Manage Data',
           url: '/view-entry',
           featureTitle: 'View Entries'
         }
@@ -67,6 +67,11 @@ export class HomeComponent implements OnInit, OnDestroy {
           name: 'Stations',
           url: '/stations',
           featureTitle: 'Stations'
+        },
+        {
+          name: 'Regions',
+          url: '/regions',
+          featureTitle: 'Regions'
         }
       ]
     },
@@ -133,9 +138,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private showToast(currentToast: ToastEvent) {
-
     this.toasts.push(currentToast);
-
     // automatically hide the toast after 3 seconds
     setTimeout(() => {
       if (this.toasts.length > 0) {
@@ -143,7 +146,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.toasts.splice(0, 1);
       }
     }, 3000);
-
   }
 
   private setAllowedNavigationLinks(role: UserRoleEnum): void {

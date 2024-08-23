@@ -1,6 +1,6 @@
 <div class="d-flex vh-100 overflow-hidden">
   <!-- Menu Content -->
-  <div class="flex-shrink-0 overflow-y-auto  border-light shadow-sm"
+  <div class="flex-shrink-0 overflow-y-auto border-light shadow-sm"
     [ngClass]="{'nav-container-open': bOpenSideNav,'nav-container-close': !bOpenSideNav}">
 
     <div class="navbar sticky-top shadow-sm bg-light p-0">
@@ -72,7 +72,7 @@
         <div class="card-header">
           {{ toast.title }}
         </div>
-        <div class="card-body text-success">
+        <div class="card-body" [ngClass]="'text-' + toast.type">
           {{ toast.message }}
         </div>
       </div>

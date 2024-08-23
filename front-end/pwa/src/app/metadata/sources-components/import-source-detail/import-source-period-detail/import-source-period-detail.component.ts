@@ -12,7 +12,6 @@ export class ImportSourcePeriodDetailComponent {
   public periodDefinition!: PeriodDefinition;
 
   protected onPeriodStatusSelection(elementStatus: string): void {
-   
     this.periodDefinition.columnPosition = undefined;
     this.periodDefinition.defaultPeriod = undefined;
 
@@ -20,6 +19,12 @@ export class ImportSourcePeriodDetailComponent {
       this.periodDefinition.columnPosition = 0
     } else if (elementStatus === 'Does Not Include Period') {
       this.periodDefinition.defaultPeriod = 0;
+    }
+  }
+
+  protected onPeriodSelected(selectedPeriod: number | null): void{
+    if(selectedPeriod !== null){
+      this.periodDefinition.defaultPeriod = selectedPeriod;
     }
 
   }

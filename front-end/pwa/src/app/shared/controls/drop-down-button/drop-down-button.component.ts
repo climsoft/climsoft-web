@@ -6,9 +6,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./drop-down-button.component.scss']
 })
 export class DropDownButtonComponent<T extends string> {
-  @Input() public dropDownItems!: T[];
-  @Input() public translateX!: boolean ;
-  @Output() public dropDownOptionClick = new EventEmitter<T>();
+  @Input() 
+  public buttonText: string='';
+  @Input() 
+  public dropDownItems!: T[];
+  @Input() 
+  public translateX!: boolean ;
+  @Output() 
+  public dropDownOptionClick = new EventEmitter<T>();
 
   protected displayDropDown: boolean = false;
 

@@ -27,11 +27,7 @@ import { StationObsFocusesService } from './services/stations/station-obs-focuse
 import { StationObsFocusesController } from './controllers/stations/station-obs-focuses.controller';
 import { ElementTypesController } from './controllers/elements/elements-types.controller';
 import { ElementSubdomainsController } from './controllers/elements/elements-subdomains.controller';
-import { FormSourcesController } from './controllers/sources/controllers/form-sources.controller';
-import { FormSourcesService } from './controllers/sources/services/form-sources.service';
 import { SourcesService } from './controllers/sources/services/sources.service';
-import { ImportSourcesService } from './controllers/sources/services/import-sources.service';
-import { ImportSourcesController } from './controllers/sources/controllers/import-sources.controller';
 import { AdminRegionsEntity } from './entities/Regions/admin-region.entity';
 import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
 
@@ -56,9 +52,6 @@ import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
         ElementTypesController,
         ElementSubdomainsController,
         SourcesController,
-        FormSourcesController,
-        ImportSourcesController,
-        ImportSourcesController,
         StationObsEnvsController,
         StationObsFocusesController,
         StationsController,
@@ -67,8 +60,6 @@ import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
     providers: [
         ElementsService,
         SourcesService,
-        FormSourcesService,
-        ImportSourcesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
@@ -79,8 +70,6 @@ import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
     exports: [
         ElementsService, 
         SourcesService,
-        FormSourcesService,
-        ImportSourcesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,

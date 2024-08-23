@@ -12,7 +12,7 @@ import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 })
 export class StationFormsComponent implements OnInit {
   @Input() public stationId!: string;
-  protected forms!: ViewSourceModel<object>[];
+  protected forms!: ViewSourceModel[];
 
   public constructor(
     private stationFormsService: StationFormsService,

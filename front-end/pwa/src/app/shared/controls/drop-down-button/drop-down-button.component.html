@@ -1,10 +1,14 @@
-<div appCloseDropDown (closeDropdown)="closeDropdown()" >
-    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onButtonClick()">
-        <ng-content></ng-content>
+<app-drop-down-container [translateX]="translateX" [(displayDropDown)]="displayDropDown">
+    <button main-content type="button" class="btn btn-outline-secondary btn-sm" (click)="onButtonClick()">
+        {{buttonText}}
     </button>
-    <app-drop-down *ngIf="displayDropDown && dropDownItems" [translateX]="translateX">
-        <div class="list-group rounded-0" *ngFor="let item of dropDownItems">
-            <button type="button" class="list-group-item list-group-item-action" (click)="onDropDownItemClick(item)">{{item}}</button>
+    <div drop-down-content>
+        <div *ngIf="dropDownItems" >
+            <div class="list-group rounded-0" *ngFor="let item of dropDownItems">
+                <button type="button" class="list-group-item list-group-item-action"
+                    (click)="onDropDownItemClick(item)">{{item}}</button>
+            </div>
         </div>
-    </app-drop-down>
-</div>
+    </div>
+   
+</app-drop-down-container>

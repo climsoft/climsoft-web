@@ -14,6 +14,7 @@ import { error } from 'node:console';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/services/elements/elements.service';
 import { ViewElementDto } from 'src/metadata/dtos/elements/view-element.dto';
+import { ViewSourceDto } from 'src/metadata/controllers/sources/dtos/view-source.dto';
 
 
 
@@ -81,10 +82,12 @@ export class ObservationUploadService {
         }
 
         // Get the source definition using the source id
-        const sourceDefinition: CreateImportSourceDTO = (await this.sourcesService.find(sourceId)).extraMetadata as CreateImportSourceDTO;
+        const sourceDef = await this.sourcesService.find(sourceId);
+        const importSourceDef = sourceDef.definitions as CreateImportSourceDTO;
 
-        if (sourceDefinition.serverType === ServerTypeEnum.LOCAL && sourceDefinition.format === FormatEnum.TABULAR) {
-            await this.importTabularSource(sourceDefinition as CreateImportTabularSourceDTO, sourceId, newFileName, userId,stationId);
+        if (importSourceDef.serverType === ServerTypeEnum.LOCAL && importSourceDef.format === FormatEnum.TABULAR) {
+
+            await this.importTabularSource(sourceDef, newFileName, userId, stationId);
         } else {
             throw new Error("Source not supported yet");
         }
@@ -99,12 +102,17 @@ export class ObservationUploadService {
         }
     }
 
-    private async importTabularSource(source: CreateImportTabularSourceDTO, sourceId: number, fileName: string, userId: number, stationId?: string) {
+    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
         try {
+            const sourceId: number = sourceDef.id;
+            const importDef: CreateImportSourceDTO = sourceDef.definitions as CreateImportSourceDTO;
+            const tabularDef: CreateImportTabularSourceDTO = importDef.importDefinitions as CreateImportTabularSourceDTO;
+           
+
             const tableName: string = path.basename(fileName, path.extname(fileName));
-            const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${source.rowsToSkip}`];
-            if (source.delimiter) {
-                importParams.push(`delim = '${source.delimiter}'`);
+            const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
+            if (tabularDef.delimiter) {
+                importParams.push(`delim = '${tabularDef.delimiter}'`);
             }
 
             // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
@@ -119,14 +127,14 @@ export class ObservationUploadService {
             alterSQLs = alterSQLs + `ALTER TABLE ${tableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
 
             // Add the rest of the columns
-            alterSQLs = alterSQLs + this.getAlterStationColumnSQL(source, tableName, stationId);
-            alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(source, tableName);
-            alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(source, tableName);
-            alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(source, tableName);
-            alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(source, tableName);
+            alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tableName, stationId);
+            alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(tabularDef, tableName);
+            alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(tabularDef, tableName);
+            alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef,tabularDef, tableName);
+            alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tableName);
             // Note, it is important for the element and value alterations to be last because for multiple elements option, 
             // the column positions are changed when stacking the data into a single element column.
-            alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(source, tableName);
+            alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tableName);
 
             //console.log("alterSQLs: ", alterSQLs);
 
@@ -135,7 +143,7 @@ export class ObservationUploadService {
             await this.db.exec(alterSQLs);
             console.log("DuckDB alters took: ", new Date().getTime() - startTime);
 
-            if (source.scaleValues) {
+            if (importDef.scaleValues) {
                 startTime = new Date().getTime();
                 // Scale values if indicated, execute the scale values SQL
                 await this.db.exec(await this.getScaleValueSQL(tableName));
@@ -199,10 +207,10 @@ export class ObservationUploadService {
         return sql;
     }
 
-    private getAlterElementAndValueColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterElementAndValueColumnSQL(sourceDef: ViewSourceDto,importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
-        if (source.elementAndValueDefinition.noElement) {
-            const noElement = source.elementAndValueDefinition.noElement
+        if (tabularDef.elementAndValueDefinition.noElement) {
+            const noElement = tabularDef.elementAndValueDefinition.noElement
 
             // Add the element id column with the default element
             sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${noElement.databaseId};`;
@@ -222,8 +230,8 @@ export class ObservationUploadService {
             } else {
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
             }
-        } else if (source.elementAndValueDefinition.hasElement) {
-            const hasElement = source.elementAndValueDefinition.hasElement;
+        } else if (tabularDef.elementAndValueDefinition.hasElement) {
+            const hasElement = tabularDef.elementAndValueDefinition.hasElement;
             if (hasElement.singleColumn) {
                 const singleColumn = hasElement.singleColumn;
                 //--------------------------
@@ -283,13 +291,12 @@ export class ObservationUploadService {
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER;`;
         }
 
-        const missingValueFlagDefinition = source.missingValueFlagDefinition;
-        if (missingValueFlagDefinition.importMissingValue) {
+        if (sourceDef.allowMissingValue) {
             // Set missing flag if missing are allowed to be imported.
-            sql = sql + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${missingValueFlagDefinition.missingValueFlag}';`;
+            sql = sql + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${importDef.sourceMissingValueFlags}';`;
         } else {
             // Delete all missing values if not allowed.
-            sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${missingValueFlagDefinition.missingValueFlag}';`;
+            sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${importDef.sourceMissingValueFlags}';`;
         }
 
         // Convert the value column to decimals       
@@ -342,22 +349,22 @@ export class ObservationUploadService {
         return sql;
     }
 
-    private getAlterDateTimeColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto,importDef: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
-        if (source.datetimeDefinition.dateTimeColumnPostion !== undefined) {
+        if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
             // Rename the date time column
-            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${source.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${importDef.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
             // Convert all values to a valid sql timestamp that ignores the microseconds
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
-        } else if (source.datetimeDefinition.dateTimeInMultipleColumn) {
-            if (source.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn) {
-            } else if (source.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn) {
+        } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
+            if (importDef.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn) {
+            } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn) {
             }
 
-            if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition !== undefined) {
-            } else if (source.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.defaultHour !== undefined) {
+            if (importDef.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition !== undefined) {
+            } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.defaultHour !== undefined) {
             }
         }
 
@@ -366,10 +373,10 @@ export class ObservationUploadService {
         }
 
         // If date times are not in UTC then convert them to utc
-        if (source.utcDifference > 0) {
-            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${source.utcDifference} HOUR;`;
-        } else if (source.utcDifference < 0) {
-            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${Math.abs(source.utcDifference)} HOUR;`;
+        if (sourceDef.utcOffset > 0) {
+            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${sourceDef.utcOffset} HOUR;`;
+        } else if (sourceDef.utcOffset < 0) {
+            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
         }
 
         return sql;

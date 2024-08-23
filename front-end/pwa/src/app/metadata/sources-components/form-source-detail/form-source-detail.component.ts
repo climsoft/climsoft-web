@@ -9,9 +9,9 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { take } from 'rxjs';
-import { FormSourcesService } from 'src/app/core/services/sources/form-sources.service';
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({
   selector: 'app-form-source-detail',
@@ -20,10 +20,7 @@ import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 })
 export class FormSourceDetailComponent implements OnInit {
 
-  protected viewSource!: ViewSourceModel<ViewEntryFormModel>;
-  protected sourceId: number = 0;
-  protected formName: string = '';
-  protected formDescription: string = '';
+  protected viewSource!: ViewSourceModel;
 
   protected possibleSelectors: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
   protected possibleFields: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
@@ -48,7 +45,7 @@ export class FormSourceDetailComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private formSourcesService: FormSourcesService,
+    private formSourcesService: SourcesService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -61,49 +58,17 @@ export class FormSourceDetailComponent implements OnInit {
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe((data) => {
-        this.sourceId = data.id;
         this.viewSource = data;
-        this.setControlValues(data);
+        this.setControlValues(this.viewSource.definitions as ViewEntryFormModel);
       });
     } else {
-      this.sourceId = 0;
-      this.viewSource = {
-        id: 0,
-        name: '',
-        description: '',
-        sourceType: SourceTypeEnum.FORM,
-        sourceTypeName: SourceTypeEnum.FORM,
-        extraMetadata: {
-          selectors: ['DAY', 'HOUR'],
-          fields: ['ELEMENT'],
-          layout: 'LINEAR',
-          elementIds: [],
-          hours: [],
-          period: 1440,
-          utcDifference: 0,
-          enforceLimitCheck: false,
-          allowMissingValue: false,
-          requireTotalInput: false,
-          sampleImage: '',
-          elementsMetadata: []
-        }
-
-      };
+      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
+      this.viewSource = { id: 0, name: '', description: '', sourceType: SourceTypeEnum.FORM, utcOffset: 0, allowMissingValue: false, sampleImage: '', definitions: entryForm };
       this.pagesDataService.setPageHeader('New Form Definitions');
     }
   }
 
-  private setControlValues(source: CreateUpdateSourceModel<ViewEntryFormModel>): void {
-    this.formName = source.name;
-    this.formDescription = this.viewSource.description;
-
-    // Get form metadata
-    // TODO. What should be done when this happens, though it's never expected
-    if (!this.viewSource.extraMetadata) {
-      return;
-    }
-    const entryForm: ViewEntryFormModel = this.viewSource.extraMetadata;
-
+  private setControlValues(entryForm: ViewEntryFormModel): void {
     const selectedSelectors: ExtraSelectorControlType[] = [];
     const possibleFields: ExtraSelectorControlType[] = [];
     const selectedFields: ExtraSelectorControlType[] = [];
@@ -128,9 +93,9 @@ export class FormSourceDetailComponent implements OnInit {
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
-    this.utcDifference = entryForm.utcDifference;
+    this.utcDifference = this.viewSource.utcOffset;
     this.enforceLimitCheck = entryForm.enforceLimitCheck;
-    this.allowMissingValue = entryForm.allowMissingValue;
+    this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
   }
 
@@ -198,12 +163,12 @@ export class FormSourceDetailComponent implements OnInit {
       return;
     }
 
-    if (!this.formName) {
+    if (!this.viewSource.name) {
       this.errorMessage = 'Enter form name';
       return;
     }
 
-    if (!this.formDescription) {
+    if (!this.viewSource.description) {
       this.errorMessage = 'Enter form description';
       return;
     }
@@ -238,10 +203,6 @@ export class FormSourceDetailComponent implements OnInit {
       return;
     }
 
-    this.viewSource.sourceType = SourceTypeEnum.FORM;
-    this.viewSource.name = this.formName;
-    this.viewSource.description = this.formDescription;
-
     const entryForm: CreateEntryFormModel = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
@@ -249,21 +210,22 @@ export class FormSourceDetailComponent implements OnInit {
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
       period: this.selectedPeriodId,
-      utcDifference: this.utcDifference,
       enforceLimitCheck: this.enforceLimitCheck,
-      allowMissingValue : this.allowMissingValue,
       requireTotalInput: this.requireTotalInput,
-      sampleImage: ''
+      isValid: () => true
     };
 
-    const createUpdateSource: CreateUpdateSourceModel<CreateEntryFormModel> = {
+    const createUpdateSource: CreateUpdateSourceModel = {
       name: this.viewSource.name,
       description: this.viewSource.description,
-      extraMetadata: entryForm,
-      sourceType: SourceTypeEnum.FORM
+      sourceType: SourceTypeEnum.FORM,
+      utcOffset: this.utcDifference,
+      allowMissingValue: this.allowMissingValue,
+      sampleImage: '',
+      definitions: entryForm
     }
 
-    if (this.sourceId === 0) {
+    if (this.viewSource.id === 0) {
       this.formSourcesService.create(createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
@@ -275,7 +237,7 @@ export class FormSourceDetailComponent implements OnInit {
         }
       });
     } else {
-      this.formSourcesService.update(this.sourceId, createUpdateSource).pipe(
+      this.formSourcesService.update(this.viewSource.id, createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
@@ -284,7 +246,6 @@ export class FormSourceDetailComponent implements OnInit {
           });
           this.location.back();
         }
-
       });
     }
 
@@ -292,8 +253,13 @@ export class FormSourceDetailComponent implements OnInit {
 
   protected onDelete(): void {
     //todo. prompt for confirmation first
-    this.formSourcesService.delete(this.sourceId).subscribe((data) => {
-      this.location.back();
+    this.formSourcesService.delete(this.viewSource.id).subscribe((data) => {
+      if(data){
+        this.location.back();
+      }else{
+        //TODO. Show error
+      }
+      
     });
 
   }

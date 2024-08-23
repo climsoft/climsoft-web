@@ -1,25 +1,31 @@
-import { Injectable, NotFoundException } from '@nestjs/common'; 
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm'; 
-import { StringUtils } from 'src/shared/utils/string.utils';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
 import { SourceEntity } from 'src/metadata/entities/sources/source.entity';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
+import { SourceTypeEnum } from 'src/metadata/enums/source-type.enum';
+import { ElementsService } from 'src/metadata/services/elements/elements.service';
+import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
+import { ViewElementDto } from 'src/metadata/dtos/elements/view-element.dto';
+import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 
 // TODO refactor this service later
 
 @Injectable()
 export class SourcesService {
 
-    constructor(@InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
+    constructor(
+        @InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
+        private elementsService: ElementsService
     ) { }
 
 
-    public async find<T extends object>(id: number): Promise<ViewSourceDto<T>> {
+    public async find(id: number): Promise<ViewSourceDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll<T extends object>(selectOptions?: FindOptionsWhere<SourceEntity>): Promise<ViewSourceDto<T>[]> {
+    public async findAll(selectOptions?: FindOptionsWhere<SourceEntity>): Promise<ViewSourceDto[]> {
         const findOptions: FindManyOptions<SourceEntity> = {
             order: {
                 id: "ASC"
@@ -31,15 +37,24 @@ export class SourcesService {
         }
 
         const sourceEntities = await this.sourceRepo.find(findOptions);
-        return sourceEntities.map(source => {
-            return this.createViewDto(source);
-        });
+        const dtos: ViewSourceDto[] = []
+        for (const entity of sourceEntities) {
+            dtos.push(await this.createViewDto(entity));
+        }
+        return dtos;
     }
 
-    public async findSourcesByIds<T extends object>(ids: number[]): Promise<ViewSourceDto<T>[]> {
+    public async findSourcesByIds(ids: number[]): Promise<ViewSourceDto[]> {
         const findOptionsWhere: FindOptionsWhere<SourceEntity> = {
             id: In(ids)
-        }; 
+        };
+        return this.findAll(findOptionsWhere);
+    }
+
+    public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceDto[]> {
+        const findOptionsWhere: FindOptionsWhere<SourceEntity> = {
+            sourceType: sourceType
+        };
         return this.findAll(findOptionsWhere);
     }
 
@@ -54,14 +69,17 @@ export class SourcesService {
         return entity;
     }
 
-    public async create<T extends object>(dto: CreateUpdateSourceDto<T>): Promise<ViewSourceDto<T>> {
+    public async create(dto: CreateUpdateSourceDto): Promise<ViewSourceDto> {
         //source entity will be created with an auto incremented id
-        const entity = this.sourceRepo.create({ 
-            name: dto.name, 
+        const entity = this.sourceRepo.create({
+            name: dto.name,
             description: dto.description,
-            extraMetadata: JSON.stringify (dto.extraMetadata),         
-            sourceType: dto.sourceType
-         });
+            sourceType: dto.sourceType,
+            utcOffset: dto.utcOffset,
+            allowMissingValue: dto.allowMissingValue,
+            sampleImage: dto.sampleImage,
+            definitions: dto.definitions
+        });
 
         await this.sourceRepo.save(entity);
 
@@ -69,35 +87,46 @@ export class SourcesService {
 
     }
 
-    public async update<T extends object>(id: number, sourceDto: CreateUpdateSourceDto<T>) {
+    public async update(id: number, dto: CreateUpdateSourceDto) {
         const source = await this.findEntity(id);
+        source.name = dto.name;
+        source.description = dto.description;
+        source.sourceType = dto.sourceType;
+        source.utcOffset = dto.utcOffset;
+        source.allowMissingValue = dto.allowMissingValue;
+        source.sampleImage = dto.sampleImage;
+        source.definitions = dto.definitions;
 
-        // TODO. Later Implement logging.
-
-        source.name = sourceDto.name;
-        source.description = sourceDto.description;
-        source.extraMetadata = JSON.stringify(sourceDto.extraMetadata) ;
-        source.sourceType = sourceDto.sourceType
-
+        // TODO. Later Implement logging of changes in the database.
         return this.sourceRepo.save(source);
     }
 
-    public async delete(id: number): |Promise<number> {
+    public async delete(id: number): Promise<number> {
         const source = await this.findEntity(id);
         await this.sourceRepo.remove(source);
         return id;
     }
 
-    private createViewDto<T extends object>(entity: SourceEntity): ViewSourceDto<T> {
-
-        return {
+    private async createViewDto(entity: SourceEntity): Promise<ViewSourceDto> {
+        const dto: ViewSourceDto = {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            extraMetadata:  JSON.parse(entity.extraMetadata ),
             sourceType: entity.sourceType,
-            sourceTypeName: StringUtils.capitalizeFirstLetter(entity.sourceType),
+            utcOffset: entity.utcOffset,
+            allowMissingValue: entity.allowMissingValue,
+            sampleImage: entity.sampleImage,
+            definitions: entity.definitions,
         }
+
+        if (dto.sourceType == SourceTypeEnum.FORM) {
+            const createEntryFormDTO: CreateEntryFormDTO = dto.definitions as CreateEntryFormDTO
+            const elementsMetadata: ViewElementDto[] = await this.elementsService.findSome(createEntryFormDTO.elementIds);
+            const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
+            dto.definitions = viewEntryForm;
+        }
+
+        return dto;
     }
 
 }

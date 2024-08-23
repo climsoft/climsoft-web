@@ -16,8 +16,8 @@ export class NumberInputComponent implements OnInit, OnChanges {
   @Input() value!: number | null;
   @Output() valueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
-  @Output() public inputEnterKeyPress = new EventEmitter<number | null>();
-  @Output() public inputBlur = new EventEmitter<number | null>();
+  @Output() public inputEnterKeyPress = new EventEmitter<number>();
+  @Output() public inputBlur = new EventEmitter<number>();
 
   constructor() {
   }
@@ -30,23 +30,26 @@ export class NumberInputComponent implements OnInit, OnChanges {
 
   protected onValueChange(value: string) {
     if (StringUtils.containsNumbersOnly(value)) {
-      //this.value = +value;
+      this.value = +value;
       this.valueChange.emit(+value);
-    } else {
-      //this.value = null
-    }
-   
+    } 
+
   }
 
   protected onInputClick(): void {
     this.inputClick.emit(this.value);
   }
-  protected onEnterKeyPressed() {
-    this.inputEnterKeyPress.emit(this.value);
+
+  protected onEnterKeyPressed(): void {
+    if (this.value !== null) {
+      this.inputEnterKeyPress.emit(this.value);
+    }
   }
 
-  protected onInputBlur() {
-    this.inputBlur.emit(this.value);
+  protected onInputBlur(): void {
+    if (this.value !== null) {
+      this.inputBlur.emit(this.value);
+    }
   }
 
 

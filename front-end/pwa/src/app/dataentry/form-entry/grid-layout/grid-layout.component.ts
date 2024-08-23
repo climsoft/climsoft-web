@@ -1,18 +1,22 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormEntryUtil } from '../defintions/form-entry.util';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-grid-layout',
   templateUrl: './grid-layout.component.html',
   styleUrls: ['./grid-layout.component.scss']
 })
-export class GridLayoutComponent implements OnInit, OnChanges {
+export class GridLayoutComponent implements OnChanges {
   @Input()
   public formDefinitions!: FormEntryDefinition;
+
+  @Input()
+  public refreshLayout!: boolean;
+
+  @Input()
+  public displayHistoryOption!: boolean;
 
   /** Emitted when observation value is changed */
   @Output()
@@ -34,24 +38,18 @@ export class GridLayoutComponent implements OnInit, OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
-  protected displayHistoryOption: boolean = false;
-
-  constructor() {
-  }
-
-  ngOnInit(): void {
-  }
+  constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //only proceed with seting up the control if all inputs have been set.
-    if (this.formDefinitions) {
+    if (changes["refreshLayout"] && this.refreshLayout) {
       if (this.formDefinitions.formMetadata.fields.length < 0 || !this.formDefinitions.formMetadata.fields[1]) {
         return;
       }
       this.rowFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.colFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
-      this.observationsDefinitions = this.formDefinitions.getEntryObsForGridLayout();
-      this.totalErrorMessage = new Array<string>(this.colFieldDefinitions.length);
+      this.observationsDefinitions = this.formDefinitions.obsDefsForGridLayout;
+      // Important to statically fill with undefined values for working with 'some' and 'every' array functions
+      this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     } else {
       this.observationsDefinitions = [];
     }
@@ -99,7 +97,7 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     }
 
     // Get their total as the expected
-    const expectedTotal = FormEntryUtil.getTotalValuesOfObs(colObservations);
+    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(colObservations);
 
     // Clear previous error message of the column total
     this.totalErrorMessage[colIndex] = '';
@@ -109,53 +107,9 @@ export class GridLayoutComponent implements OnInit, OnChanges {
       this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
     }
 
-    // Check if there are any error messages 
-    this.totalIsValid.emit(!this.totalErrorMessage.some(item => (item !== undefined && item !== '')));
+    this.totalIsValid.emit(this.totalErrorMessage.every(str => str === ''));
   }
 
-   /**
-   * Updates its internal state depending on the options passed
-   * @param option  'Clear' | 'History'
-   */
-   protected onOptions(option: 'Clear' | 'History'): void {
-    switch (option) {
-      case 'Clear':
-        this.clear();
-        break;
-      case 'History':
-        this.displayHistoryOption = !this.displayHistoryOption;
-        break;
-    }
-  }
-
-  /**
-  * Clears all the observation value fflags if they are not cleared and updates its internal state
-  */
-  private clear(): void {
-
-    for (let colIndex = 0; colIndex < this.colFieldDefinitions.length; colIndex++) {
-      for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
-        const obsDef = this.observationsDefinitions[rowIndex][colIndex]
-
-        // Check if value flag is already empty
-        if (!StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
-          // Clear the value flag input
-          obsDef.setValueFlagFromInput('', this.formDefinitions.formMetadata.allowMissingValue, this.formDefinitions.formMetadata.enforceLimitCheck);
-
-          // Raise the value change 
-          this.onValueChange(obsDef, colIndex);
-        }
-      }
-
-    }
-
-    // Set total as valid, because everything has been cleared
-    if (this.formDefinitions.formMetadata.requireTotalInput) {
-      this.totalIsValid.emit(true);
-    }
-
-
-  }
 
 
 }

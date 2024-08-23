@@ -2,83 +2,85 @@ import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransfor
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
+import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-query.dto';
 import { CreateObservationQueryDto } from 'src/observation/dtos/create-observation-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
+  constructor(@Inject(REQUEST) private readonly request: Request) {}
 
-  // TODO. Not sure if this is an acceptable way of getting the request object froom a pipe.
-  // Check if there are better ways of getting the request object or in this case the session in a pipe.
-  constructor(@Inject(REQUEST) private readonly request: Request) {
+  public transform(value: any, metadata: ArgumentMetadata) {
+    const user = AuthUtil.getSessionUser(this.request);
+
+    // If user is not logged in, return the value. Authorization will be handled by another pipe.
+    if (!user) return value;
+
+    // If user is admin or has no restrictions on authorized stations, return the value.
+    if (AuthUtil.sessionUserIsAdmin(this.request) || user.authorisedStationIds === null) return value;
+
+    // Ensure metatype is available
+    if (!metadata.metatype) {
+      throw new BadRequestException('Could not determine how to authorize stations');
+    }
+
+    // Handle different types of metatype
+    switch (metadata.metatype.name) {
+      case 'Array':
+        return this.handleArray(value, user.authorisedStationIds);
+
+      case 'String':
+        return this.handleString(value, user.authorisedStationIds);
+
+      case ViewObservationQueryDTO.name:
+        return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, user.authorisedStationIds);
+
+      case CreateObservationQueryDto.name:
+        return this.handleCreateObservationQueryDto(value as CreateObservationQueryDto, user.authorisedStationIds);
+
+      default:
+        throw new BadRequestException('Could not determine how to authorize stations');
+    }
   }
 
-
-  // TODO. Modify this pipe to ensure that the generic type is always returned.
-  // When its an array expected and was not passed, yet the user is allowed access to stations, return an empty array.
-  // This will iprove on consistency.
-  public transform(value: any, metadata: ArgumentMetadata) {
-
-    console.log('AuthorisedStationsPipe', "value: ", value, " metadata: ", metadata, ' typeof: ', typeof metadata.metatype);
-
-    const user = AuthUtil.getSessionUser(this.request);
-    if (!user) {
-      return value;
-    }
-
-
-    // Admins are allowed to access all or any station
-    // Users that don't have authorised stations are also allowed to access all or any station
-    if (AuthUtil.sessionUserIsAdmin(this.request) || user.authorisedStationIds === null) {
-      return value;
-    }
-
-
-    if (metadata.metatype === Array) {
-
-      const stationIds = this.checkValidStations(value, user.authorisedStationIds);
-
-      if (stationIds) {
-        return stationIds;
-      } else {
+  private handleArray(value: any, authorisedStationIds: string[]): string[] {
+    if (value) {
+      if (!this.allAreAuthorisedStations(value, authorisedStationIds)) {
         throw new BadRequestException('Not authorised to access station(s)');
       }
-
-    } else if (metadata.metatype === String) {
-      const stationIds = this.checkValidStations([value], user.authorisedStationIds);
-
-      if (stationIds) {
-        return stationIds[0];
-      } else {
-        throw new BadRequestException('Not authorised to access station(s)');
-      }
+    } else {
+      value = authorisedStationIds;
     }
-
-    // ---------------------------
-    // // TODO.
-    // if (metadata.metatype === CreateObservationQueryDto) {
-    //   console.log('observation trial (===): ', CreateObservationQueryDto);
-    // }
-    // //TODO
-    // if (metadata.metatype instanceof CreateObservationQueryDto) {
-    //   console.log('observation trial (instanceof): ', CreateObservationQueryDto);
-    // }
-    // ---------------------------
-
-
-
-    //todo. do validation
     return value;
   }
 
-  private checkValidStations(requestedIds: string[] | null, authorisedIds: string[]): string[] | null {
-    //If there are any requested ids, then validate them, if not then just return the authorised ids
-    if (requestedIds && requestedIds.length > 0) {
-      const isValid = requestedIds.every(id => authorisedIds.includes(id));
-      return isValid ? requestedIds : null;
+  private handleString(value: any, authorisedStationIds: string[]): string {
+    if (value && this.allAreAuthorisedStations([value], authorisedStationIds)) {
+      return value;
     } else {
-      return authorisedIds;
+      throw new BadRequestException('Not authorised to access station(s)');
+    }    
+  }
+
+  private handleViewObservationQueryDTO(value: ViewObservationQueryDTO, authorisedStationIds: string[]): ViewObservationQueryDTO {
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to access station(s)');
+      }
+    } else {
+      value.stationIds = authorisedStationIds;
+    }
+    return value;
+  }
+
+  private handleCreateObservationQueryDto(value: CreateObservationQueryDto, authorisedStationIds: string[]): CreateObservationQueryDto {
+    if (value && this.allAreAuthorisedStations([value.stationId], authorisedStationIds)) {
+      return value;
+    } else {
+      throw new BadRequestException('Not authorised to access station(s)');
     }
   }
 
-
+  private allAreAuthorisedStations(requestedIds: string[], authorisedIds: string[]): boolean {
+    return requestedIds.every(id => authorisedIds.includes(id));
+  }
 }

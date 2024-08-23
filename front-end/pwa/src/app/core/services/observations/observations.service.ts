@@ -9,6 +9,7 @@ import { CreateObservationModel } from '../../models/observations/create-observa
 import { CreateObservationQueryModel } from '../../models/observations/create-observation-query.model';
 import { ViewObservationLogQueryModel } from '../../models/observations/view-observation-log-query.model';
 import { ViewObservationLogModel } from '../../models/observations/view-observation-log.model';
+import { DeleteObservationModel } from '../../models/observations/delete-observation.model';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +32,7 @@ export class ObservationsService {
           httpParams = httpParams.set(key, value.join(','));
         } else {
           // Convert non-array values to string
+          // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
           httpParams = httpParams.set(key, value.toString());
         }
       }
@@ -38,15 +40,22 @@ export class ObservationsService {
     return httpParams;
   }
 
-  public findRaw(observationQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(observationQuery) })
+  public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public findProcessed(observationQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(observationQuery) })
+  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public findRaw(createObsQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(createObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -60,17 +69,28 @@ export class ObservationsService {
   }
 
   public save(observations: CreateObservationModel[]) {
-    return this.http.post(this.endPointUrl, observations)
+    return this.http.put(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
       ); 
   }
 
-  public delete(ids: number[]): Observable<ViewObservationModel[]> {
-    //todo use json as body of ids?
-    //const url = `${this.endPointUrl}/${id}`; 
-    const url = '';
-    return this.http.delete<ViewObservationModel[]>(url, { body: ids })
+  public restore(observations: DeleteObservationModel[]): Observable<number> {
+    return this.http.patch<number>(`${this.endPointUrl}/soft`, { body: observations })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public softDelete(observations: DeleteObservationModel[]): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/hard`, { body: observations })
       .pipe(
         catchError(this.handleError)
       );
