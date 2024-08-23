@@ -6,15 +6,18 @@ import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChange
   styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent implements OnChanges {
+  // TODO. Combine these 3 properties into a 'drop down definition'
   @Input() public includeDropDownOption: boolean = false;
   @Input() public dropDownOptionMaxHeight: number = 200;
   @Input() public includeCancelOption: boolean = false;
+
   @Input() public type: string = "text";
   @Input() public id!: string | number;
   @Input() public label!: string;
   @Input() public placeholder: string | null = null;
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
+  @Input() public showChanges: boolean = false;
   @Input() public hintMessage: string = "";
   @Input() public errorMessage: string | null = "";
   @Input() public value: string | number | null = "";

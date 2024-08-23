@@ -296,18 +296,18 @@ export class ObservationsService {
             .execute();
     }
 
-    public async softDelete(obsDtos: DeleteObservationDto[],  userId: number): Promise<number> {
-       return this.softDeleteOrRestore(obsDtos, true, userId)
+    public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
+        return this.softDeleteOrRestore(obsDtos, true, userId)
     }
 
-    public async restore(obsDtos: DeleteObservationDto[],  userId: number): Promise<number> {
+    public async restore(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
         return this.softDeleteOrRestore(obsDtos, false, userId)
-     }
+    }
 
     private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deleteObs: boolean, userId: number): Promise<number> {
         let succesfulChanges: number = 0;
         for (const dto of obsDtos) {
-            const updateResult =await this.observationRepo
+            const result = await this.observationRepo
                 .createQueryBuilder()
                 .update(ObservationEntity)
                 .set({
@@ -321,8 +321,10 @@ export class ObservationsService {
                 .andWhere('period = :period', { period: dto.period })
                 .execute();
 
-                console.log('updateResult', updateResult)
+            if (result.affected) {
                 succesfulChanges = succesfulChanges + 1;
+            }
+
         }
         return succesfulChanges;
     }
@@ -330,7 +332,7 @@ export class ObservationsService {
     public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
         let succesfulChanges: number = 0;
         for (const dto of deleteObsDtos) {
-            const deleteResult = await this.observationRepo.createQueryBuilder()
+            const result = await this.observationRepo.createQueryBuilder()
                 .delete()
                 .from(ObservationEntity)
                 .where('station_id = :station_id', { key1: dto.stationId })
@@ -341,11 +343,12 @@ export class ObservationsService {
                 .andWhere('period = :period', { key2: dto.period })
                 .execute();
 
-            console.log('deleteResult', deleteResult)
-            succesfulChanges = succesfulChanges + 1;
+            if (result.affected) {
+                succesfulChanges = succesfulChanges + 1;
+            }
         }
 
-return succesfulChanges;
+        return succesfulChanges;
     }
 
 

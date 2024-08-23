@@ -58,6 +58,10 @@ export class ObservationDefinition {
         return this._valueFlagForDisplay;
     }
 
+    public get valueFlagForDisplayDB(): string {
+        return this._valueFlagForDisplayDB;
+    }
+
     public get observation(): CreateObservationModel {
         return this._observation;
     }

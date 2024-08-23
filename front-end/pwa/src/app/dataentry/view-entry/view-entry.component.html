@@ -64,9 +64,14 @@
     <div class="card-header  d-flex justify-content-between px-0 py-1 align-items-center">
       <div class="fw-bold ms-1">Showing Entries</div>
       <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-        <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']" (dropDownOptionClick)="onOptionsSelected($event)"
-        [translateX]="false"/>
+        <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']"
+          (dropDownOptionClick)="onOptionsSelected($event)" [translateX]="false" />
+        <div class="vr mx-2"></div>
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
+        <div *ngIf="numOfChanges" class="d-flex align-items-center">
+          <div class="vr mx-2"></div>
+          <div class=" text-success me-2">Total Changes: {{numOfChanges}}</div>
+        </div>
       </div>
     </div>
 
@@ -100,11 +105,12 @@
             <td>
               <div class="px-2">
                 <app-value-flag-input [id]="i + '_vf'" [displayHistoryOption]="true"
-                  [observationDefinition]="obsEntry.obsDef" />
+                  [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="obsEntry.delete"
+                  (valueChange)="onUserInput()" />
               </div>
             </td>
             <td>
-              <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete" />
+              <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete" (valueChange)="onUserInput()" />
             </td>
 
           </tr>

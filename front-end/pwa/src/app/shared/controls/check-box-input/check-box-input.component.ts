@@ -16,6 +16,7 @@ export class CheckBoxInputComponent {
   }
 
   protected onValueChange(value: boolean) {
+    this.value = value;
     this.valueChange.emit(value);
   }
 

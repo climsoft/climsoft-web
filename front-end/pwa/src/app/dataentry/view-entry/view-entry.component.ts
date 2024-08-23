@@ -43,6 +43,7 @@ export class ViewEntryComponent {
   protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
+  protected numOfChanges: number = 0;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -112,6 +113,8 @@ export class ViewEntryComponent {
   }
 
   protected loadData(): void {
+    this.enableSave = false;
+    this.numOfChanges = 0;
     this.observationsEntries = [];
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
@@ -154,17 +157,24 @@ export class ViewEntryComponent {
     return periodFound ? periodFound.name : minutes + 'mins';
   }
 
-
   protected onOptionsSelected(optionSlected: 'Delete All'): void {
     switch (optionSlected) {
-      case 'Delete All':   
-        this.observationsEntries.forEach(item => {item.delete = true});
+      case 'Delete All':
+        this.observationsEntries.forEach(item => { item.delete = true });
         break;
       default:
         throw new Error("Developer error. Option not supported");
     }
   }
 
+  protected onUserInput() {
+    this.numOfChanges = 0;
+    for (const obsEntry of this.observationsEntries) {
+      if (obsEntry.delete || obsEntry.newElementId || obsEntry.newStationId || obsEntry.obsDef.observationChanged) {
+        this.numOfChanges++;
+      }
+    }
+  }
 
   protected onSave(): void {
     this.deleteObservations();

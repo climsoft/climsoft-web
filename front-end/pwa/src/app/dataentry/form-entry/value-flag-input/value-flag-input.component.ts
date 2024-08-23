@@ -1,9 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
-import { ViewObservationLogModel } from 'src/app/core/models/observations/view-observation-log.model';
-import { ViewObservationLogQueryModel } from 'src/app/core/models/observations/view-observation-log-query.model';
-import { take } from 'rxjs';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationDefinition } from '../defintions/observation.definition';
 
 /**
@@ -17,7 +13,7 @@ import { ObservationDefinition } from '../defintions/observation.definition';
 })
 export class ValueFlagInputComponent implements OnChanges {
   @Input()
-  public id: string | number = '';
+  public id: string = '';
 
   @Input()
   public label: string = '';
@@ -28,10 +24,13 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input()
   public displayHistoryOption: boolean = false;
 
+  @Input()
+  public disableValueFlagEntry: boolean = false;
+
   @Output()
   public valueChange = new EventEmitter<ObservationDefinition>();
 
-  protected disableValueFlagEntry: boolean = false;
+  protected showChanges: boolean = false;
 
   constructor(private observationService: ObservationsService) { }
 
@@ -51,6 +50,10 @@ export class ValueFlagInputComponent implements OnChanges {
     // Validate input format validity. If there is a response then entry is invalid
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
     this.valueChange.emit(this.observationDefinition);
+
+    // Show changes when user has input a valid changed value.
+    // Note this is placed here because we want to show the change only after user input.
+    this.showChanges = this.observationDefinition.observationChangeIsValid && this.observationDefinition.observationChanged;
   }
 
   /**
