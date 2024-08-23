@@ -305,6 +305,7 @@ export class ObservationsService {
     }
 
     private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deleteObs: boolean, userId: number): Promise<number> {
+        // TODO. Later optimise this. Change it to accomodate batch inserts.
         let succesfulChanges: number = 0;
         for (const dto of obsDtos) {
             const result = await this.observationRepo
@@ -330,6 +331,7 @@ export class ObservationsService {
     }
 
     public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
+        // TODO. Later optimise this. Change it to accomodate batch inserts.
         let succesfulChanges: number = 0;
         for (const dto of deleteObsDtos) {
             const result = await this.observationRepo.createQueryBuilder()
