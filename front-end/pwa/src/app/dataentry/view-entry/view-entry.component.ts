@@ -3,16 +3,23 @@ import { ViewObservationQueryModel } from 'src/app/core/models/observations/view
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationDefinition } from '../form-entry/defintions/observation.definition';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
-import { take } from 'rxjs';
+import { defer, take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
+import { getPossiblePeriods, Period } from 'src/app/shared/controls/period-input/period-single-input/Periods';
+import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 
+interface ObservationEntry {
+  obsDef: ObservationDefinition;
+  delete: boolean;
+  newStationId: string;
+  newElementId: number;
+}
 
 @Component({
   selector: 'app-view-entry',
@@ -29,14 +36,13 @@ export class ViewEntryComponent {
   protected toDate: string | null = null;
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
-  protected observationsDefs: ObservationDefinition[] = [];
+  protected observationsEntries: ObservationEntry[] = [];
   private elementsMetadata: ViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
-
+  private periods: Period[] = getPossiblePeriods();
   protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
-  protected enableSave: boolean = false;
-
   private observationFilter!: ViewObservationQueryModel;
+  protected enableSave: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -94,7 +100,7 @@ export class ViewEntryComponent {
       this.observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 
-    this.observationsDefs = [];
+    this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0)
     this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(count => {
       this.pageInputDefinition.setTotalRowCount(count);
@@ -103,15 +109,15 @@ export class ViewEntryComponent {
       }
     });
 
-  } 
+  }
 
   protected loadData(): void {
-    this.observationsDefs = [];
+    this.observationsEntries = [];
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
     this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
-      this.observationsDefs = data.map(viewObservationModel => {
+      this.observationsEntries = data.map(viewObservationModel => {
         const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
         if (!elementMetadata) {
           throw new Error("Developer error: Element not found.");
@@ -122,9 +128,15 @@ export class ViewEntryComponent {
           throw new Error("Developer error: Source not found.");
         }
 
-        return new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, false);
+        return {
+          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, false),
+          newStationId: '',
+          newElementId: 0,
+          delete: false
+        }
+
       });
-      
+
     });
   }
 
@@ -137,43 +149,110 @@ export class ViewEntryComponent {
     return strDateTime.replace('T', ' ').replace('Z', '');
   }
 
+  protected getPeriodName(minutes: number): string {
+    const periodFound = this.periods.find(item => item.id === minutes);
+    return periodFound ? periodFound.name : minutes + 'mins';
+  }
+
+
+  protected onOptionsSelected(optionSlected: 'Delete All'): void {
+    switch (optionSlected) {
+      case 'Delete All':   
+        this.observationsEntries.forEach(item => {item.delete = true});
+        break;
+      default:
+        throw new Error("Developer error. Option not supported");
+    }
+  }
+
 
   protected onSave(): void {
+    this.deleteObservations();
+    this.updatedObservations();
+  }
+
+
+  private updatedObservations(): void {
     this.enableSave = false;
     // Create required observation dtos 
-    const newObservations: CreateObservationModel[] = this.observationsDefs.filter(item => item.observationChanged).map(item => {
-      // Important. Explicitly convert the view model to create model
-      const viewModel = item.observation as ViewObservationModel;
-      return {
-        stationId: viewModel.stationId,
-        elementId: viewModel.elementId,
-        sourceId: viewModel.sourceId,
-        elevation: viewModel.elevation,
-        datetime: viewModel.datetime,
-        period: viewModel.period,
-        value: viewModel.value,
-        flag: viewModel.flag,
-        comment: viewModel.comment
-      };
-    });
+    const changedObs: CreateObservationModel[] = []
+    for (const obsEntry of this.observationsEntries) {
+      // Get observation entries that have not been deleted nor tehir station or or element id changed.
+      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
+        // Important. Explicitly convert the view model to create model
+        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
+        changedObs.push({
+          stationId: viewModel.stationId,
+          elementId: viewModel.elementId,
+          sourceId: viewModel.sourceId,
+          elevation: viewModel.elevation,
+          datetime: viewModel.datetime,
+          period: viewModel.period,
+          value: viewModel.value,
+          flag: viewModel.flag,
+          comment: viewModel.comment
+        })
+      }
+    }
 
-    if (newObservations.length === 0) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: 'info' });
+
+    if (changedObs.length === 0) {
       return;
     }
 
     // Send to server for saving
-    this.observationService.save(newObservations).subscribe((data) => {
+    this.observationService.save(changedObs).subscribe((data) => {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} saved`, type: 'success'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: 'success'
         });
 
         this.refresh();
       } else {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+        });
+      }
+    });
+  }
+
+  private deleteObservations(): void {
+    this.enableSave = false;
+    // Create required observation dtos 
+    const deletedObs: DeleteObservationModel[] = []
+    for (const obsEntry of this.observationsEntries) {
+      if (obsEntry.delete) {
+        // Important. Explicitly convert the view model to create model
+        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
+        deletedObs.push({
+          stationId: viewModel.stationId,
+          elementId: viewModel.elementId,
+          sourceId: viewModel.sourceId,
+          elevation: viewModel.elevation,
+          datetime: viewModel.datetime,
+          period: viewModel.period
+        })
+      }
+    }
+
+
+    if (deletedObs.length === 0) {
+      return;
+    }
+
+    // Send to server for saving
+    this.observationService.softDelete(deletedObs).subscribe((data) => {
+      this.enableSave = true;
+      if (data) {
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: 'success'
+        });
+
+        this.refresh();
+      } else {
+        this.pagesDataService.showToast({
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: 'error'
         });
       }
     });

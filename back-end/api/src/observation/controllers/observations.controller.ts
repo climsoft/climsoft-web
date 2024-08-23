@@ -1,4 +1,4 @@
-import { Body, Controller, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseIntPipe, Post, Query, Req, Session, UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseIntPipe,  Patch,  Post, Put, Query, Req,  UploadedFile, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -9,6 +9,8 @@ import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
+import { DeleteObservationDto } from '../dtos/delete-observation.dto';
+import { Admin } from 'src/user/decorators/admin.decorator';
 
 @Controller('observations')
 export class ObservationsController {
@@ -36,13 +38,14 @@ export class ObservationsController {
     return this.observationsService.findObsLog(viewObsevationQuery);
   }
 
-  @Post()
+  @Put()
   async save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
     await this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
     return { message: "success" };
   }
+
 
   @Post('/upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
@@ -86,6 +89,28 @@ export class ObservationsController {
       return { message: `error: ${error}` };
     }
 
+  }
+
+  
+  @Patch()
+  async restore(
+      @Req() request: Request, 
+      @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]){
+        return this.observationsService.restore(observationDtos,  AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Delete('/soft')
+  async softDelete(
+      @Req() request: Request,
+      @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]){
+      return this.observationsService.softDelete(observationDtos,  AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Delete('/hard')
+  async hardDelete(
+      @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]){
+      return this.observationsService.hardDelete(observationDtos);
   }
 
 

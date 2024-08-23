@@ -1,10 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
-
-interface Period {
-  id: number;
-  name: string;
-}
-
+import { getPossiblePeriods, Period } from './Periods';
 
 // TODO. Make this control to be editable
 @Component({
@@ -31,11 +26,11 @@ export class PeriodSingleInputComponent implements OnChanges {
 
     //load options once
     if (!this.options) {
-      this.options = this.getPeriods();
+      this.options = getPossiblePeriods();
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = this.getPeriods().filter(data => this.includeOnlyIds.includes(data.id));
+      this.options = getPossiblePeriods().filter(data => this.includeOnlyIds.includes(data.id));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
@@ -48,20 +43,6 @@ export class PeriodSingleInputComponent implements OnChanges {
 
     }
 
-  }
-
-  private getPeriods(): Period[] {
-    const periods: Period[] = [];
-    periods.push({ id: 5, name: "5 minute" });
-    periods.push({ id: 10, name: "10 minute" });
-    periods.push({ id: 15, name: "15 minute" });
-    periods.push({ id: 30, name: "30 minute" });
-    periods.push({ id: 60, name: "1 hour" });
-    periods.push({ id: 180, name: "3 hours" });
-    periods.push({ id: 360, name: "6 hours" });
-    periods.push({ id: 720, name: "12 hours" });
-    periods.push({ id: 1440, name: "Daily" });
-    return periods;
   }
 
   protected optionDisplayFunction(option: Period): string {

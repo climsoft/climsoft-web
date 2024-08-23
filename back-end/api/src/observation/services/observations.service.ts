@@ -13,6 +13,7 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
 import { NumberUtils } from 'src/shared/utils/number.utils';
+import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -235,7 +236,7 @@ export class ObservationsService {
         return log;
     }
 
-    public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<string> {
+    public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
@@ -274,15 +275,12 @@ export class ObservationsService {
         const batchSize = 1000; // bacthsize of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
-            await this.insertUser(batch);
+            await this.insertOrUpdateObsValues(batch);
         }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
-
-        return "success";
-
     }
 
-    private async insertUser(observationsData: Partial<ObservationEntity>[]): Promise<void> {
+    private async insertOrUpdateObsValues(observationsData: Partial<ObservationEntity>[]): Promise<void> {
         await this.observationRepo
             .createQueryBuilder()
             .insert()
@@ -297,5 +295,59 @@ export class ObservationsService {
             )
             .execute();
     }
+
+    public async softDelete(obsDtos: DeleteObservationDto[],  userId: number): Promise<number> {
+       return this.softDeleteOrRestore(obsDtos, true, userId)
+    }
+
+    public async restore(obsDtos: DeleteObservationDto[],  userId: number): Promise<number> {
+        return this.softDeleteOrRestore(obsDtos, false, userId)
+     }
+
+    private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deleteObs: boolean, userId: number): Promise<number> {
+        let succesfulChanges: number = 0;
+        for (const dto of obsDtos) {
+            const updateResult =await this.observationRepo
+                .createQueryBuilder()
+                .update(ObservationEntity)
+                .set({
+                    deleted: deleteObs,
+                    entryUserId: userId
+                }).where('station_id = :station_id', { station_id: dto.stationId })
+                .andWhere('element_id = :element_id', { element_id: dto.elementId })
+                .andWhere('source_id = :source_id', { source_id: dto.sourceId })
+                .andWhere('elevation = :elevation', { elevation: dto.elevation })
+                .andWhere('date_time = :date_time', { date_time: dto.datetime })
+                .andWhere('period = :period', { period: dto.period })
+                .execute();
+
+                console.log('updateResult', updateResult)
+                succesfulChanges = succesfulChanges + 1;
+        }
+        return succesfulChanges;
+    }
+
+    public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
+        let succesfulChanges: number = 0;
+        for (const dto of deleteObsDtos) {
+            const deleteResult = await this.observationRepo.createQueryBuilder()
+                .delete()
+                .from(ObservationEntity)
+                .where('station_id = :station_id', { key1: dto.stationId })
+                .andWhere('element_id = :element_id', { key2: dto.elementId })
+                .andWhere('source_id = :source_id', { key2: dto.sourceId })
+                .andWhere('elevation = :elevation', { key2: dto.elevation })
+                .andWhere('date_time = :date_time', { key2: dto.datetime })
+                .andWhere('period = :period', { key2: dto.period })
+                .execute();
+
+            console.log('deleteResult', deleteResult)
+            succesfulChanges = succesfulChanges + 1;
+        }
+
+return succesfulChanges;
+    }
+
+
 
 }

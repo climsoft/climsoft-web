@@ -101,7 +101,7 @@ export class SourcesService {
         return this.sourceRepo.save(source);
     }
 
-    public async delete(id: number): | Promise<number> {
+    public async delete(id: number): Promise<number> {
         const source = await this.findEntity(id);
         await this.sourceRepo.remove(source);
         return id;

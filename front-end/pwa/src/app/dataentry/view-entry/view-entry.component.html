@@ -7,6 +7,12 @@
       <li class="nav-item">
         <a class="nav-link" href="#">Missing Data</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">QC Data</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">Deleted Data</a>
+      </li>
     </ul>
   </div>
 
@@ -47,8 +53,6 @@
 
       </div>
 
-
-
     </div>
 
     <div class="d-flex justify-content-end mb-2 me-1">
@@ -60,12 +64,10 @@
     <div class="card-header  d-flex justify-content-between px-0 py-1 align-items-center">
       <div class="fw-bold ms-1">Showing Entries</div>
       <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-        <button type="button" class="btn btn-outline-secondary btn-sm mx-2">
-          Advanced Edit
-        </button>
+        <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']" (dropDownOptionClick)="onOptionsSelected($event)"
+        [translateX]="false"/>
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
       </div>
-
     </div>
 
     <div class="mt-2 entry-table-container">
@@ -77,29 +79,34 @@
             <th>Element</th>
             <th>Source</th>
             <th>Elevation</th>
-            <th>Date Time (UTC)</th>
+            <th>Date Time</th>
             <th>Period</th>
+            <th>Entry Date Time</th>
             <th>Value & Flag</th>
-            <th>Entry Date Time (UTC)</th>
+            <th>Delete</th>
           </tr>
         </thead>
-        <tbody class="table-group-divider  overflow-y-scroll">
+        <tbody class="table-group-divider overflow-y-scroll">
 
-          <tr *ngFor="let obsDef of observationsDefs; let i = index;">
+          <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
             <td>{{i + 1}}</td>
-            <td> {{ asViewObservationModel(obsDef).stationName }}</td>
-            <td>{{ asViewObservationModel(obsDef).elementAbbrv }}</td>
-            <td>{{ asViewObservationModel(obsDef).sourceName }}</td>
-            <td>{{ obsDef.observation.elevation }}</td>
-            <td>{{ getFormattedDatetime(obsDef.observation.datetime) }}</td>
-            <td>{{ obsDef.observation.period }}</td>
+            <td> {{ asViewObservationModel(obsEntry.obsDef).stationName }}</td>
+            <td>{{ asViewObservationModel(obsEntry.obsDef).elementAbbrv }}</td>
+            <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>
+            <td>{{ obsEntry.obsDef.observation.elevation }}</td>
+            <td>{{ getFormattedDatetime(obsEntry.obsDef.observation.datetime) }}</td>
+            <td>{{ getPeriodName(obsEntry.obsDef.observation.period) }}</td>
+            <td>{{ getFormattedDatetime(asViewObservationModel(obsEntry.obsDef).entryDatetime) }}</td>
             <td>
               <div class="px-2">
-                <app-value-flag-input [id]="i + ''" [displayHistoryOption]="true" [observationDefinition]="obsDef" />
+                <app-value-flag-input [id]="i + '_vf'" [displayHistoryOption]="true"
+                  [observationDefinition]="obsEntry.obsDef" />
               </div>
-
             </td>
-            <td>{{ getFormattedDatetime(asViewObservationModel(obsDef).entryDatetime) }}</td>
+            <td>
+              <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete" />
+            </td>
+
           </tr>
         </tbody>
       </table>

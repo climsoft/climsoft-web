@@ -3,12 +3,12 @@ import { UserEntity } from "src/user/entities/user.entity";
 
 export abstract class BaseEntity {
     // Expose entry_user_id directly. Useful when updating the entry_user_id field without having to fetch from the database
-    @Column({ name: "entry_user_id", type: "int", nullable: true })
-    entryUserId: number | null;
+    @Column({ name: "entry_user_id", type: "int", nullable: false })
+    entryUserId: number ;
 
-    @ManyToOne(() => UserEntity, { nullable: true, onDelete: "SET NULL" }) // This makes the relationship itself nullable
+    @ManyToOne(() => UserEntity, { nullable: false, onDelete: "RESTRICT" }) // This restricts deleting of users that have entered records
     @JoinColumn({ name: "entry_user_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
-    entryUser: UserEntity | null;
+    entryUser: UserEntity ;
 
 
 
