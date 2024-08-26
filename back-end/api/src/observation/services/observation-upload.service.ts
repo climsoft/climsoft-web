@@ -1,21 +1,17 @@
 import { Injectable } from '@nestjs/common';
-
-
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
-import { CreateImportTabularSourceDTO } from 'src/metadata/controllers/sources/dtos/create-import-source-tabular.dto';
+import { SourcesService } from 'src/metadata/sources/services/sources.service';
+import { FlagEnum } from '../enums/flag.enum'; 
+import { ViewElementDto } from 'src/metadata/elements/dtos/view-element.dto';
+import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
-import { SourcesService } from 'src/metadata/controllers/sources/services/sources.service';
-import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from 'src/metadata/controllers/sources/dtos/create-import-source.dto';
-import { error } from 'node:console';
-import { FlagEnum } from '../enums/flag.enum';
-import { ElementsService } from 'src/metadata/services/elements/elements.service';
-import { ViewElementDto } from 'src/metadata/dtos/elements/view-element.dto';
-import { ViewSourceDto } from 'src/metadata/controllers/sources/dtos/view-source.dto';
-
+import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
+import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
+import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 
 
 
