@@ -1,36 +1,35 @@
 import { Module } from '@nestjs/common';
-import { StationEntity } from './entities/stations/station.entity';
+import { StationEntity } from './stations/entities/station.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StationsController } from './controllers/stations/stations.controller';
-import { StationsService } from './services/stations/stations.service';
-import { ElementsController } from './controllers/elements/elements.controller';
-import { ElementEntity } from './entities/elements/element.entity';
-import { ElementsService } from './services/elements/elements.service';
-import { SourceEntity } from './entities/sources/source.entity'; 
-import { SourcesController } from 'src/metadata/controllers/sources/controllers/sources.controller';
-import { StationElementEntity } from './entities/stations/station-element.entity';
-import { StationFormEntity } from './entities/stations/station-form.entity';
-import { InstrumentEntity } from './entities/instruments/instrument.entity';
-import { InstrumentTypeEntity } from './entities/instruments/instrument-type.entity';
-import { ElementSubdomainEntity } from './entities/elements/element-subdomain.entity';
-import { ElementTypeEntity } from './entities/elements/element-type.entity';
+import { StationsController } from './stations/controllers/stations.controller';
+import { StationsService } from './stations/services/stations.service';
+import { ElementsController } from './elements/controllers/elements.controller';
+import { ElementEntity } from './elements/entities/element.entity'; 
+import { SourcesController } from 'src/metadata/sources/controllers/sources.controller';
+import { StationElementEntity } from './stations/entities/station-element.entity';
+import { StationFormEntity } from './stations/entities/station-form.entity';
+import { InstrumentEntity } from './instruments/entities/instrument.entity';
+import { InstrumentTypeEntity } from './instruments/entities/instrument-type.entity';
+import { ElementSubdomainEntity } from './elements/entities/element-subdomain.entity';
+import { ElementTypeEntity } from './elements/entities/element-type.entity';
 import { UserModule } from 'src/user/user.module';
-import { StationElementsService } from './services/stations/station-elements.service';
-import { StationElementsController } from './controllers/stations/station-elements.controller';
-import { StationFormsController } from './controllers/stations/station-forms.controller';
-import { StationFormsService } from './services/stations/station-forms.service';
-import { StationObsEnvironmentEntity } from './entities/stations/station-observation-environment.entity';
-import { StationObservationFocusEntity } from './entities/stations/station-observation-focus.entity';
-import { StationObsEnvsController } from './controllers/stations/station-obs-envs.controller';
-import { StationObsEnvService } from './services/stations/station-obs-env.service';
-import { StationObsFocusesService } from './services/stations/station-obs-focuses.service';
-import { StationObsFocusesController } from './controllers/stations/station-obs-focuses.controller';
-import { ElementTypesController } from './controllers/elements/elements-types.controller';
-import { ElementSubdomainsController } from './controllers/elements/elements-subdomains.controller';
-import { SourcesService } from './controllers/sources/services/sources.service';
-import { AdminRegionsEntity } from './entities/Regions/admin-region.entity';
-import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
-
+import { StationElementsService } from './stations/services/station-elements.service';
+import { StationElementsController } from './stations/controllers/station-elements.controller';
+import { StationFormsController } from './stations/controllers/station-forms.controller';
+import { StationFormsService } from './stations/services/station-forms.service';
+import { StationObsEnvironmentEntity } from './stations/entities/station-observation-environment.entity';
+import { StationObservationFocusEntity } from './stations/entities/station-observation-focus.entity';
+import { StationObsEnvsController } from './stations/controllers/station-obs-envs.controller';
+import { StationObsEnvService } from './stations/services/station-obs-env.service';
+import { StationObsFocusesService } from './stations/services/station-obs-focuses.service';
+import { StationObsFocusesController } from './stations/controllers/station-obs-focuses.controller';
+import { ElementTypesController } from './elements/controllers/elements-types.controller';
+import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
+import { SourcesService } from './sources/services/sources.service';
+import { RegionsEntity } from './regions/entities/region.entity'; 
+import { SourceEntity } from './sources/entities/source.entity';
+import { ElementsService } from './elements/services/elements.service';
+ 
 @Module({
     imports: [TypeOrmModule.forFeature([
         ElementSubdomainEntity,
@@ -39,8 +38,7 @@ import { DrainageBasinEntity } from './entities/Regions/drainage-basin.entity';
         SourceEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
-        AdminRegionsEntity,
-        DrainageBasinEntity,
+        RegionsEntity, 
         StationObsEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,
