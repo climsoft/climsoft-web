@@ -12,7 +12,7 @@ export class CreateUpdateSourceDto{
     //@ValidateNested()
     //@Type(function () { return this._type(); }) 
     @IsOptional() // TODO. Temporary until we implement validate nested
-    definitions: SourceDefinitionValidity; //TODO. Implement validations
+    parameters: SourceParametersValidity; //TODO. Implement validations
 
     @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
     sourceType: SourceTypeEnum;
@@ -37,6 +37,6 @@ export class CreateUpdateSourceDto{
     sampleImage: string;
 }
 
-export interface SourceDefinitionValidity{
+export interface SourceParametersValidity{
   isValid(): boolean;
 }

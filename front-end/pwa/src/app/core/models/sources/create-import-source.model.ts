@@ -1,6 +1,6 @@
-import { SourceDefinitionValidity } from "./create-update-source.model";
+import { SourceParametersValidity } from "./create-update-source.model";
 
-export interface CreateImportSourceModel extends SourceDefinitionValidity {
+export interface CreateImportSourceModel extends SourceParametersValidity {
     serverType: ServerTypeEnum;
     
     format: FormatEnum;
@@ -17,7 +17,7 @@ export interface CreateImportSourceModel extends SourceDefinitionValidity {
       */
      sourceMissingValueFlags: string;
 
-     importDefinitions: ImportDefinitionValidity;
+     importParameters: ImportParametersValidity;
 }
 
 export enum ServerTypeEnum {
@@ -34,7 +34,7 @@ export enum FormatEnum {
     KEYVALUE = "key_value"
 }
 
-export interface ImportDefinitionValidity {
+export interface ImportParametersValidity {
     isValid(): boolean;
 }
 

@@ -37,12 +37,12 @@ export class ObservationEntity extends BaseEntity {
   @Column({ name: "flag", type: "enum", enum: FlagEnum, nullable: true })
   flag: FlagEnum | null;
 
-  @Column({ name: "qc_status", type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NO_QC_TESTS_DONE })
+  @Column({ name: "qc_status", type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NONE })
   @Index()
   qcStatus: QCStatusEnum;
 
-  @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
-  qcTestLog: string | null;
+  @Column({ name: "qc_fails_log", type: "jsonb", nullable: true })
+  qcFailsLog: QCFailLogVo | null;
 
   @Column({ name: "final", type: "boolean", default: false })
   @Index()
@@ -81,4 +81,10 @@ export interface UpdateObservationValuesLogVo extends BaseLogVo {
   final: boolean;
   comment: string | null;
   deleted: boolean;
+}
+
+export interface QCFailLogVo {
+  qc_id: number;
+  enforcedBy?: number;
+  enforcedDate?: Date;
 }

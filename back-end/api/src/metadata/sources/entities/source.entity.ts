@@ -1,6 +1,6 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm"; 
 import { SourceTypeEnum } from "src/metadata/sources/enums/source-type.enum";
-import { SourceDefinitionValidity } from "../dtos/create-update-source.dto";
+import { SourceParametersValidity } from "../dtos/create-update-source.dto";
 
 @Entity("sources")
 export class SourceEntity {
@@ -26,8 +26,8 @@ export class SourceEntity {
     @Column({name: "sample_image", type: "varchar" })
     sampleImage: string;
 
-    @Column({  name: "definitions", type: "jsonb"})
-    definitions: SourceDefinitionValidity ;
+    @Column({  name: "parameters", type: "jsonb"})
+    parameters: SourceParametersValidity ;
 }
 
 

@@ -1,12 +1,12 @@
 import { Transform } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
-import { SourceDefinitionValidity } from "./create-update-source.dto";
+import { SourceParametersValidity } from "./create-update-source.dto";
 
 export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type LayoutType = 'LINEAR' | 'GRID';
 
-export class CreateEntryFormDTO implements SourceDefinitionValidity {
+export class CreateEntryFormDTO implements SourceParametersValidity {
 
   /** Defines the extra entry selectors used by the form to get data */
   // TODO. Do validations

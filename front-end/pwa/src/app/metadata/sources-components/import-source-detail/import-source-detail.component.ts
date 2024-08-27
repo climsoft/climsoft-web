@@ -72,7 +72,7 @@ export class ImportSourceDetailComponent implements OnInit {
         format: FormatEnum.TABULAR,
         scaleValues: false,
         sourceMissingValueFlags: '',
-        importDefinitions: defaultTabularDefs,
+        importParameters: defaultTabularDefs,
         isValid: () => true
       }
 
@@ -84,18 +84,18 @@ export class ImportSourceDetailComponent implements OnInit {
         allowMissingValue: false,
         sampleImage: '',
         utcOffset: 0,
-        definitions: defaultImportSourceDefs
+        parameters: defaultImportSourceDefs
       };
 
     }
   }
 
   protected get importSource(): CreateImportSourceModel {
-    return this.viewSource.definitions as CreateImportSourceModel;
+    return this.viewSource.parameters as CreateImportSourceModel;
   }
 
   protected get tabularImportSource(): CreateImportTabularSourceModel {
-    return this.importSource.importDefinitions as CreateImportTabularSourceModel;
+    return this.importSource.importParameters as CreateImportTabularSourceModel;
   }
 
   protected onServerTypeSelected(serverType: ServerTypeEnum | null): void {
@@ -115,7 +115,7 @@ export class ImportSourceDetailComponent implements OnInit {
       allowMissingValue: this.viewSource.allowMissingValue,
       sampleImage: this.viewSource.sampleImage,
       utcOffset: this.viewSource.utcOffset,
-      definitions: this.viewSource.definitions
+      parameters: this.viewSource.parameters
     };
 
     // console.log('saved', createUpdateSource)

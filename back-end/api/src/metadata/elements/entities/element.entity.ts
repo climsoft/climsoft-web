@@ -19,8 +19,22 @@ export class ElementEntity extends BaseEntity {
   @Column({ type: "varchar" })
   units: string;
 
+  //---------------------------
+  // TODO. Call this column, element_type_id?
   @Column({ type: "int", name: "type_id" })
   typeId: number;
+  // ManyToOne relationship with ElementTypeEntity
+  @ManyToOne(() => ElementTypeEntity, {
+    onDelete: "CASCADE",
+
+    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
+    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
+    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
+    eager: true,
+  })
+  @JoinColumn({ name: "type_id" })
+  elementType: ElementTypeEntity;
+  //---------------------------
 
   @Column({ type: "int", name: "lower_limit", nullable: true })
   lowerLimit: number | null;
@@ -37,25 +51,13 @@ export class ElementEntity extends BaseEntity {
   @Column({ type: "jsonb", nullable: true })
   log: ElementLogVo[] | null;
 
-  // ManyToOne relationship with ElementTypeEntity
-  @ManyToOne(() => ElementTypeEntity, {
-    onDelete: "CASCADE",
-
-    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
-    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
-    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
-    eager: true,
-  })
-  @JoinColumn({ name: "type_id" })
-  elementType: ElementTypeEntity;
-
 }
 
 export interface ElementLogVo extends BaseLogVo {
   abbreviation: string;
-  name: string; 
-  description: string; 
-  units: string; 
+  name: string;
+  description: string;
+  units: string;
   typeId: number;
   lowerLimit: number | null;
   upperLimit: number | null;

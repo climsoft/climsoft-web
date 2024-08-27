@@ -1,4 +1,5 @@
-import { ElementDomainEnum } from "../enums/element-domain.enum";
+import { ElementDomainEnum } from "../../enums/element-domain.enum";
+
 
 export class ViewElementDto {
     id: number;

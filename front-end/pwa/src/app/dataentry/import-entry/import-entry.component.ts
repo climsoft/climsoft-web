@@ -41,10 +41,10 @@ export class ImportEntryComponent implements OnInit {
     ).subscribe((data) => {
       this.viewSource = data;
       this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
-      const importSource: CreateImportSourceModel =this.viewSource.definitions  as CreateImportSourceModel;
+      const importSource: CreateImportSourceModel =this.viewSource.parameters  as CreateImportSourceModel;
 
       if (importSource.format === FormatEnum.TABULAR) {
-        const tabularSource: CreateImportTabularSourceModel = importSource.importDefinitions as CreateImportTabularSourceModel;
+        const tabularSource: CreateImportTabularSourceModel = importSource.importParameters as CreateImportTabularSourceModel;
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });

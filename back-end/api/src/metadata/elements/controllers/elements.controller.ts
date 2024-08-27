@@ -1,9 +1,9 @@
 import { Controller } from '@nestjs/common'; 
-import { CreateElementDto } from '../dtos/create-element.dto';
 import { BaseNumberController } from 'src/shared/controllers/base-number.controller';
-import { ViewElementDto } from 'src/metadata/elements/dtos/view-element.dto';
-import { UpdateElementDto } from 'src/metadata/elements/dtos/update-element.dto';
+import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
 import { ElementsService } from '../services/elements.service';
+import { ViewElementDto } from '../dtos/elements/view-element.dto';
+import { CreateElementDto } from '../dtos/elements/create-element.dto';
 
 @Controller("elements")
 export class ElementsController extends BaseNumberController<CreateElementDto, UpdateElementDto, ViewElementDto> {

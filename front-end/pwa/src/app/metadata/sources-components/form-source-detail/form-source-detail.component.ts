@@ -59,11 +59,11 @@ export class FormSourceDetailComponent implements OnInit {
         take(1)
       ).subscribe((data) => {
         this.viewSource = data;
-        this.setControlValues(this.viewSource.definitions as ViewEntryFormModel);
+        this.setControlValues(this.viewSource.parameters as ViewEntryFormModel);
       });
     } else {
       const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
-      this.viewSource = { id: 0, name: '', description: '', sourceType: SourceTypeEnum.FORM, utcOffset: 0, allowMissingValue: false, sampleImage: '', definitions: entryForm };
+      this.viewSource = { id: 0, name: '', description: '', sourceType: SourceTypeEnum.FORM, utcOffset: 0, allowMissingValue: false, sampleImage: '', parameters: entryForm };
       this.pagesDataService.setPageHeader('New Form Definitions');
     }
   }
@@ -222,7 +222,7 @@ export class FormSourceDetailComponent implements OnInit {
       utcOffset: this.utcDifference,
       allowMissingValue: this.allowMissingValue,
       sampleImage: '',
-      definitions: entryForm
+      parameters: entryForm
     }
 
     if (this.viewSource.id === 0) {

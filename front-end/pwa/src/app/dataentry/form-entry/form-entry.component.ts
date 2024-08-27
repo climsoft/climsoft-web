@@ -62,7 +62,7 @@ export class FormEntryComponent implements OnInit {
       })
     ).subscribe(sourceData => {
       this.source = sourceData; 
-      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.definitions as ViewEntryFormModel);
+      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel);
       this.loadObservations();
     });
   }

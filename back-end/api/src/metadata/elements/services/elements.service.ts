@@ -1,16 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, In, Repository } from 'typeorm';
-import { ElementEntity, ElementLogVo } from '../../elements/entities/element.entity';
-import { UpdateElementDto } from '../../elements/dtos/update-element.dto';
+import { ElementEntity, ElementLogVo } from '../../elements/entities/element.entity'; 
 import { ObjectUtils } from 'src/shared/utils/object.util';
-import { ViewElementDto } from '../../elements/dtos/view-element.dto';
-import { CreateElementDto } from '../../elements/dtos/create-element.dto';
 import { ElementSubdomainEntity } from '../../elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from '../../elements/entities/element-type.entity';
-import { ViewElementTypeDto } from '../../elements/dtos/view-element-type.dto';
+import { ViewElementTypeDto } from '../dtos/elements/view-element-type.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { IBaseNumberService } from 'src/shared/services/base-number-service.interface.';
+import { ViewElementDto } from '../dtos/elements/view-element.dto';
+import { CreateElementDto } from '../dtos/elements/create-element.dto';
+import { UpdateElementDto } from '../dtos/elements/update-element.dto';
 
 @Injectable()
 export class ElementsService implements IBaseNumberService<CreateElementDto,UpdateElementDto, ViewElementDto> {

@@ -255,7 +255,7 @@ export class ObservationsService {
                 // TODO. Investigate how to deal with this issue.
                 value: dto.value === null ? null : NumberUtils.roundOff(dto.value, 1),
                 flag: dto.flag,
-                qcStatus: QCStatusEnum.NO_QC_TESTS_DONE,
+                qcStatus: QCStatusEnum.NONE,
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,

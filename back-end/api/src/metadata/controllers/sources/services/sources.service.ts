@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewSourceDto } from '../dtos/view-source.dto'; 
-import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
-import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum'; 
-import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
-import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
-import { SourceEntity } from '../entities/source.entity';
+import { SourceEntity } from '../../../sources/entities/source.entity';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
+import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum';
+import { CreateUpdateSourceDto } from 'src/metadata/sources/dtos/create-update-source.dto';
+import { CreateEntryFormDTO } from 'src/metadata/sources/dtos/create-entry-form.dto';
 import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
+import { ViewEntryFormDTO } from 'src/metadata/sources/dtos/view-entry-form.dto';
 
 // TODO refactor this service later
 

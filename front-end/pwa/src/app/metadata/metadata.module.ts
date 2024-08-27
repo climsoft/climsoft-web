@@ -25,7 +25,9 @@ import { ImportSourceDateDetailComponent } from './sources-components/import-sou
 import { ImportSourceDelimeterDetailComponent } from './sources-components/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
 import { ImportSourceElevationDetailComponent } from './sources-components/import-source-detail/import-source-elevation-detail/import-source-elevation-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './sources-components/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
-import { ImportSourceFlagDetailComponent } from './sources-components/import-source-detail/import-source-flag-detail/import-source-flag-detail.component'; 
+import { ImportSourceFlagDetailComponent } from './sources-components/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
+import { QualityControlComponent } from './element-detail/quality-control/quality-control.component';
+import { QualityControlTestTypeInputComponent } from './element-detail/quality-control/quality-control-test-type-input/quality-control-test-type-input.component';
 
 @NgModule({
   declarations: [
@@ -55,8 +57,9 @@ import { ImportSourceFlagDetailComponent } from './sources-components/import-sou
     ImportSourceDelimeterDetailComponent,
     ImportSourceElevationDetailComponent,
     ImportSourceMissingFlagDetailComponent,
-    ImportSourceFlagDetailComponent, 
- 
+    ImportSourceFlagDetailComponent,
+    QualityControlComponent,
+    QualityControlTestTypeInputComponent,
  
   ],
   imports: [
