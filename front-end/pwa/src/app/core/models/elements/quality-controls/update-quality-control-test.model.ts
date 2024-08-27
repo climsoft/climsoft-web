@@ -1,4 +1,4 @@
-import { CreateQualityControlTestModel } from "./quality-controls/create-quality-control-test.model";
+import { CreateQualityControlTestModel } from "./create-quality-control-test.model";
 
 export interface UpdateQualityControlTestDto extends CreateQualityControlTestModel {
     id: number;
