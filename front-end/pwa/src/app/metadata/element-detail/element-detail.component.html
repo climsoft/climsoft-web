@@ -1,6 +1,14 @@
 <div *ngIf="element" class="card border-0">
   <div class="card-body p-0">
-    <div class="card-title fw-bold">Showing element details</div>
+
+     <!-- header -->
+     <div class="card-title fw-bold d-flex justify-content-between">
+      <div>Showing element details</div>
+      <div>
+          <button type="button" class="btn btn-sm btn-outline-danger"
+              (click)="onDelete()">Delete</button>
+      </div>
+  </div>
 
     <!-- characteristics -->
     <div class="card border-0">
@@ -8,38 +16,24 @@
         <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
       </div>
       <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
-
-        <div class="mb-3">
-          <app-number-input [label]="'Id'" [disabled]="!bNew" [value]="element.id" (valueChange)="onElementIdEntry($event)" />
-        </div>
-
-        <div class="mb-3">
-          <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
-        </div>
-
-        <div class="mb-3">
-          <app-text-input [label]="'Name'" [(value)]="element.name" />
-        </div>
-
-        <div class="mb-3">
-          <app-text-input [label]="'Description'" [(value)]="element.description" />
-        </div>
-
-        <div class="mb-3">
-          <app-text-input [label]="'Units'" [(value)]="element.units" />
-        </div>
-
-        <div class="mb-3">
-          <app-element-type-single-input [selectedId]="element.typeId" (selectedIdChange)="onTypeChange($event)" />
-        </div>
-
-
+        <app-element-characteristics [elementId]="element.id" />
       </div>
     </div>
     <!-- /end characteristics -->
 
-    <!-- Data Ingestion Validations -->
+    <!-- QC -->
     <div class="card border-0">
+      <div class="card-header px-0 fw-bold">
+        <app-toggle-chevron #qcTestsToggle>Quality Control Tests</app-toggle-chevron>
+      </div>
+      <div class="card-body px-0" *ngIf="qcTestsToggle.open">
+        <app-qc-tests [elementId]="element.id" />
+      </div>
+    </div>
+    <!-- end Data Ingestion Validations -->
+
+    <!-- Data Ingestion Validations -->
+    <!-- <div class="card border-0">
       <div class="card-header px-0 fw-bold">
         <app-toggle-chevron #validationsToggle>Data Entry Validations</app-toggle-chevron>
       </div>
@@ -52,29 +46,12 @@
           <app-number-input [label]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
         </div>
 
-        <div class="mb-3">
-          <app-number-input [label]="'Entry scale factor'" [(value)]="element.entryScaleFactor"></app-number-input>
-        </div>
-        <div class="mb-3">
-          <app-text-input [label]="'Comment'" [(value)]="element.comment"></app-text-input>
-        </div>
       </div>
-
-    </div>
+    </div> -->
     <!-- end Data Ingestion Validations -->
 
   </div>
 
-  <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSave()" [disabled]="!bEnableSave">
-      Save
-    </button>
-    
-    <button *ngIf="!bNew" type="button" class="btn btn-sm btn-outline-danger me-2" (click)="onDelete()">
-      Delete
-    </button>
-
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">Cancel</button>
-  </div>
+  
 
 </div>

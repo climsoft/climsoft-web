@@ -1,0 +1,11 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [cancelButtonLabel]="'Cancel'"
+    (okClick)="onOkClick()">
+
+    <div *ngIf="updateQcTest" >
+        <app-qc-test-type-input [selectedId]="updateQcTest.qcTestType"
+        (selectedIdChange)="onQCTestTypeSelected($event)" />
+
+    <app-qc-test-range-threshold-params *ngIf="isRangeThreshold" [rangeThresholdQCTestParameters]="rangeThresholdParam" />
+    </div>
+
+</app-dialog>

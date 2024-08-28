@@ -1,8 +1,10 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post } from '@nestjs/common'; 
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { SourcesService } from '../services/sources.service';
 import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
+import { Request } from 'express';
+import { AuthUtil } from 'src/user/services/auth.util';
 
 @Controller('sources')
 export class SourcesController {
@@ -26,8 +28,10 @@ export class SourcesController {
 
     @Admin()
     @Post()
-    public create(@Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
-        return this.sourcesService.create(createSourceDto);
+    public create(
+        @Req() request: Request,
+        @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
+        return this.sourcesService.create(createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
@@ -40,7 +44,7 @@ export class SourcesController {
     @Delete(':id')
     public delete(@Param('id', ParseIntPipe) id: number) {
         return this.sourcesService.delete(id);
-    } 
+    }
 
 
 }

@@ -1,9 +1,9 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { InstrumentTypeEntity } from "./instrument-type.entity";
+import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 
 @Entity("instruments")
-export class InstrumentEntity {
+export class InstrumentEntity extends AppBaseEntity {
 
     @PrimaryGeneratedColumn({ type: "int" })
     id: number;
@@ -20,7 +20,7 @@ export class InstrumentEntity {
     @Column({ type: "varchar", nullable: true })
     status: string;
 
-    @Column({ type: "timestamptz", name: "status_change_date", transformer: new DateTimeColumn() })
+    @Column({ type: "timestamptz", name: "status_change_date", nullable: true })
     statusChangeDate: string | null;
 
     @Column({ type: "varchar", name: "last_maintenance_date", nullable: true })
@@ -28,12 +28,6 @@ export class InstrumentEntity {
 
     @Column({ type: "varchar", nullable: true })
     comment: string | null;
-
-    @Column({ type: "int", name: "entry_user_id" })
-    entryUserId: number;
-
-    @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
-    entryDateTime: string;
 
     @Column({ type: "jsonb", nullable: true })
     log: string | null;

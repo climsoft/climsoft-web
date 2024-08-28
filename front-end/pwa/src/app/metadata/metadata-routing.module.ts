@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';  
 import { StationsComponent } from './stations-components/stations/stations.component';
-import { ElementsComponent } from './elements/elements.component';
+import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
 import { SourcesComponent } from './sources-components/sources/sources.component';
@@ -24,7 +24,7 @@ const routes: Routes = [
       },
       {
         path: 'elements',
-        component: ElementsComponent, 
+        component: ViewElementsComponent, 
       },
       {
         path: 'element-detail/:id',

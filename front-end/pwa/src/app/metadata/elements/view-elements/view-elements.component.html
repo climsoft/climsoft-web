@@ -1,0 +1,27 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
+    <div class="fw-bold">Showing Elements</div>
+    <div class="mb-1 d-flex">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
+        Search
+      </button>
+
+      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
+        (dropDownOptionClick)="$event === 'Add'? dlgAddElement.openDialog():onImportElements()" [translateX]="true" />
+      <app-element-characteristics-input-dialog #dlgAddElement (ok)="loadElements()" />
+    </div>
+  </div>
+
+  <div class="card-body px-0">
+    <app-table-view [clickable]="true" [columnsData]="[ 
+          {id: 'id', name: 'Id'},
+          {id: 'abbreviation', name: 'Abbreviation'}, 
+          {id: 'name', name: 'Name'}, 
+          {id: 'domain', name: 'Domain'},
+          {id: 'subdomainName', name: 'Subdomain'}, 
+          {id: 'typeName', name: 'Type'},
+          {id: 'description', name: 'Description'}  ]" [rowsData]="elements"
+      (rowDataClicked)="onEditElement($event)" />
+  </div>
+
+</div>

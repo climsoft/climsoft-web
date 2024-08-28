@@ -1,4 +1,4 @@
-import { ElementDomainEnum } from "../../enums/element-domain.enum";
+import { ElementDomainEnum } from "./element-domain.enum";
 
 
 export class ViewElementDto {

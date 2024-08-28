@@ -8,7 +8,7 @@ import { FormSelectorDialogComponent } from './controls/form-selector-dialog/for
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
-import { ElementsComponent } from './elements/elements.component';
+import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { SourcesComponent } from './sources-components/sources/sources.component';
 import { ImportStationDialogComponent } from './stations-components/station-edits-components/import-station-dialog/import-station-dialog.component';
 import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
@@ -26,8 +26,13 @@ import { ImportSourceDelimeterDetailComponent } from './sources-components/impor
 import { ImportSourceElevationDetailComponent } from './sources-components/import-source-detail/import-source-elevation-detail/import-source-elevation-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './sources-components/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './sources-components/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
-import { QualityControlComponent } from './element-detail/quality-control/quality-control.component';
-import { QualityControlTestTypeInputComponent } from './element-detail/quality-control/quality-control-test-type-input/quality-control-test-type-input.component';
+import { QCTestsComponent } from './element-detail/qc-tests/qc-tests.component';
+import { QCTestInputDialogComponent } from './element-detail/qc-test-input-dialog/qc-test-input-dialog.component';
+import { QCTestTypeInputComponent } from './element-detail/qc-test-input-dialog/qc-test-type-input/qc-test-type-input.component';
+import { QCTestRangeThresholdParamsComponent } from './element-detail/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
+import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
+import { ElementCharacteristicsComponent } from './element-detail/element-characteristics/element-characteristics.component';
+
 
 @NgModule({
   declarations: [
@@ -45,7 +50,7 @@ import { QualityControlTestTypeInputComponent } from './element-detail/quality-c
     ImportStationDialogComponent,
   
     ElementDetailComponent,
-    ElementsComponent,
+    ViewElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
     StationLimitsComponent,
@@ -58,9 +63,12 @@ import { QualityControlTestTypeInputComponent } from './element-detail/quality-c
     ImportSourceElevationDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceFlagDetailComponent,
-    QualityControlComponent,
-    QualityControlTestTypeInputComponent,
- 
+    QCTestsComponent,
+    QCTestInputDialogComponent,
+    QCTestTypeInputComponent,
+    QCTestRangeThresholdParamsComponent,
+    ElementCharacteristicsInputDialogComponent,
+    ElementCharacteristicsComponent 
   ],
   imports: [
     SharedModule,

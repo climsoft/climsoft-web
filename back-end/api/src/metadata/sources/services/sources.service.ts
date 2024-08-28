@@ -37,7 +37,7 @@ export class SourcesService {
         }
 
         const sourceEntities = await this.sourceRepo.find(findOptions);
-        const dtos: ViewSourceDto[] = []
+        const dtos: ViewSourceDto[] = [];
         for (const entity of sourceEntities) {
             dtos.push(await this.createViewDto(entity));
         }
@@ -69,7 +69,7 @@ export class SourcesService {
         return entity;
     }
 
-    public async create(dto: CreateUpdateSourceDto): Promise<ViewSourceDto> {
+    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
         //source entity will be created with an auto incremented id
         const entity = this.sourceRepo.create({
             name: dto.name,
@@ -78,7 +78,8 @@ export class SourcesService {
             utcOffset: dto.utcOffset,
             allowMissingValue: dto.allowMissingValue,
             sampleImage: dto.sampleImage,
-            parameters: dto.parameters
+            parameters: dto.parameters,
+            entryUserId: userId
         });
 
         await this.sourceRepo.save(entity);

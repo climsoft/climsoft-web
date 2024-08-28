@@ -1,0 +1,14 @@
+<div>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+            (click)="dlgQcEdit.openDialog(elementId)">Add</button>
+        <app-qc-test-input-dialog #dlgQcEdit (ok)="onQCTestInput()" />
+
+    </div>
+
+    <app-table-view *ngIf="qcTests" [clickable]="true" [columnsData]="[ 
+                    {id: 'qcTypeName', name: 'Type'},
+                    {id: 'description', name: 'Description'}   
+                    ]" [rowsData]="qcTests" (rowDataClicked)="onClick($event)" />
+
+</div>

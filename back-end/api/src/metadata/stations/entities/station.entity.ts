@@ -1,4 +1,4 @@
-import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
@@ -8,7 +8,7 @@ import { PointDTO } from "src/shared/dtos/point.dto";
 import { PointColumnTransformer } from "src/shared/column-transformers/point-transformer";
 
 @Entity("stations")
-export class StationEntity extends BaseEntity {
+export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;
 

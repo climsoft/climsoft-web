@@ -1,10 +1,10 @@
-import { BaseEntity } from "src/shared/entity/base-entity";
+import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationEntity } from "./station.entity";  
 import { SourceEntity } from "src/metadata/sources/entities/source.entity";
 
 @Entity("station_forms")
-export class StationFormEntity extends BaseEntity {
+export class StationFormEntity extends AppBaseEntity {
 
     @PrimaryColumn({ type: "varchar" ,name: "station_id"})
     stationId: string;

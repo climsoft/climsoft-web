@@ -1,9 +1,9 @@
-import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementTypeEntity } from "./element-type.entity";
 
 @Entity("elements")
-export class ElementEntity extends BaseEntity {
+export class ElementEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
   id: number;
 

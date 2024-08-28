@@ -12,7 +12,8 @@ import { UpdateStationModel } from 'src/app/core/models/stations/update-station.
   styleUrls: ['./station-characteristics-edit-dialog.component.scss']
 })
 export class StationCharacteristicsEditDialogComponent {
-  @Output() public ok = new EventEmitter<"SUCCESS" | "ERROR">();
+  @Output() 
+  public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
   protected title: string = "";
@@ -23,9 +24,7 @@ export class StationCharacteristicsEditDialogComponent {
 
 
   public openDialog(stationId?: string): void {
-
     this.open = true;
-
     if (stationId) {
       this.title = "Edit Station";
       this.stationsService.findOne(stationId).pipe(
@@ -70,18 +69,6 @@ export class StationCharacteristicsEditDialogComponent {
       };
     }
 
-  }
-
-  protected onLongitudeChange(longitude: number | null): void {
-    this.station.location.x = longitude ? longitude : 0;
-  }
-
-  protected onLatitudeChange(latitude: number | null): void {
-    this.station.location.y = latitude ? latitude : 0;
-  }
-
-  protected onElevationChange(elevation: number | null): void {
-    this.station.elevation = elevation ? elevation : 0;
   }
 
   protected onStationObsChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {
@@ -131,11 +118,18 @@ export class StationCharacteristicsEditDialogComponent {
     saveSubscription.pipe(
       take(1)
     ).subscribe((data) => {
+      let message: string;
+      let messageType: 'success' | 'error';
       if (data) {
-        const message: string = this.bNew ? "New Station Created" : "Station Updated";
-        this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: "success" });
-        this.ok.emit("SUCCESS");
+         message = this.bNew ? "New Station Created" : "Station Updated";
+         messageType= 'success';
+      }else{
+        message= "Error in saving element";
+        messageType= 'error';
       }
+
+      this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });
+      this.ok.emit();
     });
 
 
