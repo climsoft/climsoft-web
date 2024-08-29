@@ -63,7 +63,7 @@ export class QCTestsService {
         });
 
         if (!entity) {
-            throw new NotFoundException(`Source #${id} not found`);
+            throw new NotFoundException(`QC Test #${id} not found`);
         }
         return entity;
     }

@@ -11,8 +11,8 @@ import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
-import { getPossiblePeriods, Period } from 'src/app/shared/controls/period-input/period-single-input/Periods';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
+import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -39,7 +39,7 @@ export class ViewEntryComponent {
   protected observationsEntries: ObservationEntry[] = [];
   private elementsMetadata: ViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
-  private periods: Period[] = getPossiblePeriods();
+  private periods: Period[] = PeriodsUtil.possiblePeriods;
   protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;

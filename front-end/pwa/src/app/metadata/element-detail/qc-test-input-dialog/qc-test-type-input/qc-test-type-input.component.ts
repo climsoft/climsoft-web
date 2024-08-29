@@ -46,16 +46,7 @@ export class QCTestTypeInputComponent  implements OnChanges  {
   }
 
   protected optionDisplayFunction(option: QCTestTypeEnum): string {
-    let wordToDsiplay: string;
-    const splitWords: string[] = option.split('_');
-    if (splitWords.length > 1) {
-      wordToDsiplay = splitWords.map(word => // Capitalise the first letter of each word
-       ( word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() )
-      ).join(' ');
-    } else {
-      wordToDsiplay = StringUtils.capitalizeFirstLetter(option) ;
-    }
-    return wordToDsiplay;
+    return StringUtils.formatEnumForDisplay(option);
   }
 
   protected onSelectedOptionChange(selectedOption: QCTestTypeEnum | null) {

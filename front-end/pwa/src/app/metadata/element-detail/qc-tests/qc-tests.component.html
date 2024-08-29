@@ -6,9 +6,29 @@
 
     </div>
 
-    <app-table-view *ngIf="qcTests" [clickable]="true" [columnsData]="[ 
-                    {id: 'qcTypeName', name: 'Type'},
-                    {id: 'description', name: 'Description'}   
-                    ]" [rowsData]="qcTests" (rowDataClicked)="onClick($event)" />
+    <div class="mt-2">
+        <table class="table table-striped table-sm table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 2%;"></th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Real Time</th>
+                    <th>Parameters</th>
+                    <th>Disabled</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="dlgQcEdit.openDialog(elementId, row)">
+                    <td><i class="bi bi-arrow-right-short"></i></td>
+                    <td>{{row.formattedQCTestTypeName}}</td>
+                    <td>{{row.formattedObsPeriod}}</td>
+                    <td>{{ row.realTime }}</td> 
+                    <td>{{row.formattedParameters}}</td>
+                    <td>{{row.disabled}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 </div>

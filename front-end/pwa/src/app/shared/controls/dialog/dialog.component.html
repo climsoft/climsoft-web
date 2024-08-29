@@ -11,11 +11,14 @@
         </div>
 
         <div class="card-footer bg-transparent d-flex justify-content-end">
-            <button *ngIf="okButtonLabel" type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onOkClick()">
+            <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                 {{okButtonLabel}}
             </button>
-            <button *ngIf="cancelButtonLabel" type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">
+            <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="onCancelClick()">
                 {{cancelButtonLabel }}
+            </button>
+            <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="onDeleteClick()">
+                {{deleteButtonLabel }}
             </button>
         </div>
 

@@ -71,7 +71,6 @@ export class ObservationEntity extends AppBaseEntity {
   @ManyToOne(() => SourceEntity, { onDelete: "CASCADE" })
   @JoinColumn({ name: "source_id" })
   source: SourceEntity;
-
 }
 
 //when changing qc, we will use the qc log

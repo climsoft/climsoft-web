@@ -15,7 +15,7 @@ import { UpdateQCTestModel } from '../../models/elements/qc-tests/update-qc-test
 export class QCTestsService extends BaseNumberAPIService<CreateQCTestModel, CreateQCTestModel, UpdateQCTestModel> {
 
   constructor(private http: HttpClient) {
-    super(http, 'qc-tests')
+    super(http, 'qc-tests');
   }
 
   public findQCTestByType(sourceTypeEnum: SourceTypeEnum): Observable<UpdateQCTestModel[]> {

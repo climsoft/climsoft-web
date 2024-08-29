@@ -1,10 +1,5 @@
-export interface Period {
-    id: number;
-    name: string;
-}
-
-export function getPossiblePeriods(): Period[] {
-    return [
+export class PeriodsUtil {
+    public static possiblePeriods: Period[] = [
         { id: 5, name: "5 mins" },
         { id: 10, name: "10 mins" },
         { id: 15, name: "15 mins" },
@@ -22,4 +17,13 @@ export function getPossiblePeriods(): Period[] {
         { id: 525600, name: "365 Days" },
         { id: 527040, name: "366 Days" }
     ];
+
+    public static findPeriod(minutes: number): Period | undefined {
+        return this.possiblePeriods.find(item => item.id === minutes)
+    }
+}
+
+export interface Period {
+    id: number;
+    name: string;
 }

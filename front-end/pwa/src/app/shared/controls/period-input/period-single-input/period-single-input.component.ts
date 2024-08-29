@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
-import { getPossiblePeriods, Period } from './Periods';
+import { Period, PeriodsUtil } from './Periods.util';
 
 // TODO. Make this control to be editable
 @Component({
@@ -26,11 +26,11 @@ export class PeriodSingleInputComponent implements OnChanges {
 
     //load options once
     if (!this.options) {
-      this.options = getPossiblePeriods();
+      this.options = PeriodsUtil.possiblePeriods;
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = getPossiblePeriods().filter(data => this.includeOnlyIds.includes(data.id));
+      this.options = PeriodsUtil.possiblePeriods.filter(data => this.includeOnlyIds.includes(data.id));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
