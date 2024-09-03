@@ -52,10 +52,6 @@ export class QCTestsComponent implements OnChanges {
             break;
           case QCTestTypeEnum.RELATIONAL_COMPARISON:
             break;
-          case QCTestTypeEnum.DIFFERENCE_THRESHOLD:
-            break;
-          case QCTestTypeEnum.SUMMATION_THRESHOLD:
-            break;
           case QCTestTypeEnum.DIURNAL:
             break;
           case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:

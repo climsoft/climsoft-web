@@ -75,7 +75,6 @@ export class QCTestsService {
             elementId: dto.elementId,
             observationPeriod: dto.observationPeriod,
             parameters: dto.parameters,
-            realTime: dto.realTime,
             disabled: dto.disabled,
             comment: dto.comment,
             entryUserId: userId
@@ -93,7 +92,6 @@ export class QCTestsService {
         qctest.elementId = dto.elementId;
         qctest.observationPeriod = dto.observationPeriod;
         qctest.parameters = dto.parameters;
-        qctest.realTime = dto.realTime;
         qctest.disabled = dto.disabled;
         qctest.comment = dto.comment;
 
@@ -114,7 +112,6 @@ export class QCTestsService {
             elementId: entity.elementId,
             observationPeriod: entity.observationPeriod,
             parameters: entity.parameters,
-            realTime: entity.realTime,
             disabled: entity.disabled,
             comment: entity.comment
         };

@@ -45,7 +45,6 @@ export class QCTestInputDialogComponent {
         elementId: elementId,
         observationPeriod: null,
         parameters: limitTest,
-        realTime: true,
         disabled: false,
         comment: null
       };
@@ -83,7 +82,6 @@ export class QCTestInputDialogComponent {
       elementId: this.updateQcTest.elementId,
       observationPeriod: this.updateQcTest.observationPeriod,
       parameters: this.updateQcTest.parameters,
-      realTime: this.updateQcTest.realTime,
       disabled: this.updateQcTest.disabled,
       comment: this.updateQcTest.comment
     }

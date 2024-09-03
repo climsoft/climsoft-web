@@ -16,9 +16,6 @@ export class CreateQCTestDto {
     parameters: QCTestParametersValidity;
 
     @IsBoolean()
-    realTime: boolean;
-
-    @IsBoolean()
     disabled: boolean;
 
     @IsOptional() // TODO. Not sure if this correctly represent nulls

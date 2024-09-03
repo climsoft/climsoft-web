@@ -5,7 +5,6 @@ export interface CreateQCTestModel {
     elementId: number;
     observationPeriod: number | null;
     parameters: QCTestParametersValidity;
-    realTime: boolean;
     disabled: boolean;
     comment: string | null;
 }

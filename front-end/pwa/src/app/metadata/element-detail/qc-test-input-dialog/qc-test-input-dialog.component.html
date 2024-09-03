@@ -18,10 +18,6 @@
         </div>
 
         <div class="mt-2">
-            <app-check-box-input [label]="'Real time'" [(value)]="updateQcTest.realTime" />
-        </div>
-
-        <div class="mt-2">
             <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
                 [rangeThresholdQCTestParameters]="rangeThresholdParam" />
         </div>

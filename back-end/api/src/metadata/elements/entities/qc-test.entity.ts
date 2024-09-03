@@ -30,9 +30,6 @@ export class QCTestEntity extends AppBaseEntity {
   @Column({ name: "parameters", type: "jsonb" })
   parameters: QCTestParametersValidity;
 
-  @Column({ name: "real_time", type: "boolean", default: false })
-  realTime: boolean;
-
   @Column({ name: "disabled", type: "boolean", default: false })
   disabled: boolean;
 

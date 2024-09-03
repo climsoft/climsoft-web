@@ -19,6 +19,7 @@ import { UserModule } from './user/user.module';
       database: process.env.DB_NAME ? process.env.DB_NAME : "climsoft",
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: true, // your entities will be synced with the database(TODO: disable in production)
+      // TODO. Investigate whether we should increase the connection pool size after monitoring the connection pool utilisation.
     }),
 
   ],

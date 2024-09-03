@@ -22,8 +22,7 @@
                 <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="dlgQcEdit.openDialog(elementId, row)">
                     <td><i class="bi bi-arrow-right-short"></i></td>
                     <td>{{row.formattedQCTestTypeName}}</td>
-                    <td>{{row.formattedObsPeriod}}</td>
-                    <td>{{ row.realTime }}</td> 
+                    <td>{{row.formattedObsPeriod}}</td> 
                     <td>{{row.formattedParameters}}</td>
                     <td>{{row.disabled}}</td>
                 </tr>
