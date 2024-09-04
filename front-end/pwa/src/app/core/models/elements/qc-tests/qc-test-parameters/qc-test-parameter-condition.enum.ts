@@ -1,4 +1,4 @@
-export enum QCParameterConditionEnum {
+export enum QCTestParamConditionEnum {
     EQUAL = "=",
     GREAT_THAN = ">", 
     LESS_THAN = "<",

@@ -17,7 +17,7 @@ export class QCTestTypeInputComponent  implements OnChanges  {
   @Input() 
   public selectedId!: QCTestTypeEnum | null;
   @Output() 
-  public selectedIdChange = new EventEmitter<QCTestTypeEnum | null>();
+  public selectedIdChange = new EventEmitter<QCTestTypeEnum>();
 
   protected options!: QCTestTypeEnum[];
   protected selectedOption!: QCTestTypeEnum | null;
@@ -50,8 +50,9 @@ export class QCTestTypeInputComponent  implements OnChanges  {
   }
 
   protected onSelectedOptionChange(selectedOption: QCTestTypeEnum | null) {
-    this.selectedOption = selectedOption;
-    this.selectedIdChange.emit(selectedOption ? selectedOption : null);
-
+    if(selectedOption !== null){
+      this.selectedOption = selectedOption;
+      this.selectedIdChange.emit(selectedOption);
+    }
   }
 }

@@ -1,0 +1,26 @@
+<div>
+   
+    <div class="mt-2">
+        <app-qc-test-condition-input [label]="'Primary Condition'" [(selectedId)]="contextualQCTestParameters.primaryCheck.condition" />
+   </div>
+
+   <div class="mt-2">
+    <app-number-input [label]="'Primary Value'" [(value)]="contextualQCTestParameters.primaryCheck.value" />
+</div>
+
+    <div class="mt-2">
+        <app-element-single-input [label]="'Reference Element'" [(selectedId)]="contextualQCTestParameters.referenceElementId" />
+    </div>
+
+    <div class="mt-2">
+         <app-qc-test-condition-input [label]="'Reference Condition'" [(selectedId)]="contextualQCTestParameters.referenceCheck.condition" />
+    </div>
+
+    <div class="mt-2">
+        <app-number-input [label]="'Reference Value'" [(value)]="contextualQCTestParameters.referenceCheck.value" />
+    </div>
+
+
+ 
+
+</div>

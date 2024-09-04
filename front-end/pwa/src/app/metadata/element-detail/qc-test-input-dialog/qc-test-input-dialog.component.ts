@@ -1,12 +1,17 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { CreateQCTestModel } from 'src/app/core/models/elements/qc-tests/create-qc-test.model';
+import { ContextualQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-parameters.model';
+import { FlatLineQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-parameters.model';
+import { QCTestParamConditionEnum } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/qc-test-parameter-condition.enum';
 import { RangeThresholdQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-parameters.model';
+import { RelationalQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-parameters.model';
+import { RepeatedValueQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-parameters.model';
+import { SpikeQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-parameters.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
 import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
 
 @Component({
   selector: 'app-qc-test-input-dialog',
@@ -38,13 +43,13 @@ export class QCTestInputDialogComponent {
       });
     } else {
       this.title = "New QC Test";
-      const limitTest: RangeThresholdQCTestParametersModel = { lowerLimit: 0, upperLimit: 0, isValid: () => true };
+      const rangeThreshold: RangeThresholdQCTestParametersModel = { lowerLimit: 0, upperLimit: 0, isValid: () => true };
       this.updateQcTest = {
         id: 0,
         qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
         elementId: elementId,
         observationPeriod: null,
-        parameters: limitTest,
+        parameters: rangeThreshold,
         disabled: false,
         comment: null
       };
@@ -54,14 +59,87 @@ export class QCTestInputDialogComponent {
   protected get isRangeThreshold(): boolean {
     return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.RANGE_THRESHOLD;
   }
+
   protected get rangeThresholdParam(): RangeThresholdQCTestParametersModel {
     return this.updateQcTest.parameters as RangeThresholdQCTestParametersModel;
   }
 
-  protected onQCTestTypeSelected(qcTestTypeId: QCTestTypeEnum | null): void {
-    if (qcTestTypeId) {
-      this.updateQcTest.qcTestType = qcTestTypeId;
+  protected get isRepeatedValue(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.REPEATED_VALUE;
+  }
+
+  protected get rangerepeatedValueParam(): RepeatedValueQCTestParametersModel {
+    return this.updateQcTest.parameters as RepeatedValueQCTestParametersModel;
+  }
+
+  protected get isSpike(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.SPIKE;
+  }
+
+  protected get spikeParam(): SpikeQCTestParametersModel {
+    return this.updateQcTest.parameters as SpikeQCTestParametersModel;
+  }
+
+  protected get isFlatLine(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.FLAT_LINE;
+  }
+
+  protected get flatLineParam(): FlatLineQCTestParametersModel {
+    return this.updateQcTest.parameters as FlatLineQCTestParametersModel;
+  }
+
+
+  protected get isRelationalComparison(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.RELATIONAL_COMPARISON;
+  }
+
+  protected get relationalComparisonParam(): RelationalQCTestParametersModel {
+    return this.updateQcTest.parameters as RelationalQCTestParametersModel;
+  }
+
+  protected get isContextualConsistenty(): boolean {
+    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.CONTEXTUAL_CONSISTENCY;
+  }
+
+  protected get contextualConsistentyParam(): ContextualQCTestParametersModel {
+    return this.updateQcTest.parameters as ContextualQCTestParametersModel;
+  }
+
+  protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum | null): void {
+    if (qcTestType === null) {
+      return;
     }
+
+    switch (qcTestType) {
+      case QCTestTypeEnum.RANGE_THRESHOLD:
+        const rangeThreshold: RangeThresholdQCTestParametersModel = { lowerLimit: 0, upperLimit: 0, isValid: () => true };
+        this.updateQcTest.parameters = rangeThreshold;
+        break;
+      case QCTestTypeEnum.REPEATED_VALUE:
+        const repeatedValue: RepeatedValueQCTestParametersModel = { consecutiveRecords: 3, isValid: () => true };
+        this.updateQcTest.parameters = repeatedValue;
+        break;
+      case QCTestTypeEnum.FLAT_LINE:
+        const flatLine: FlatLineQCTestParametersModel = { consecutiveRecords: 0, range: 0.5, isValid: () => true };
+        this.updateQcTest.parameters = flatLine;
+        break;
+      case QCTestTypeEnum.SPIKE:
+        const spike: SpikeQCTestParametersModel = { consecutiveRecords: 0, difference: 0, isValid: () => true };
+        this.updateQcTest.parameters = spike;
+        break;
+      case QCTestTypeEnum.RELATIONAL_COMPARISON:
+        const relational: RelationalQCTestParametersModel = { referenceElementId: 1, condition: QCTestParamConditionEnum.GREAT_THAN, isValid: () => true };
+        this.updateQcTest.parameters = relational;
+        break;
+      case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
+        //TODO. Left here
+        break;
+      default:
+        throw new Error('Developer error. QC test not supported.')
+    }
+
+    this.updateQcTest.qcTestType = qcTestType;
+
   }
 
   protected onPeriodState(selection: string): void {

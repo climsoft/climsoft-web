@@ -20,6 +20,22 @@
         <div class="mt-2">
             <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
                 [rangeThresholdQCTestParameters]="rangeThresholdParam" />
+
+                <app-qc-test-repeated-value-params *ngIf="isRepeatedValue"
+                [repeatedValueQCTestParameters]="rangerepeatedValueParam" />
+
+                <app-qc-test-flat-line-params *ngIf="isFlatLine"
+                [flatLineQCTestParameters]="flatLineParam" />
+
+                <app-qc-test-spike-params *ngIf="isSpike"
+                [spikeQCTestParameters]="spikeParam" />
+
+                <app-qc-test-relational-params *ngIf="isRelationalComparison"
+                [relationalQCTestParameters]="relationalComparisonParam" />
+
+                <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
+                [contextualQCTestParameters]="contextualConsistentyParam" />
+
         </div>
 
         <div class="mt-2">
