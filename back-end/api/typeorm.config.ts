@@ -4,9 +4,10 @@ import { SeedElementTypes1710833156699 } from "src/migrations/1710833156699-Seed
 import { SeedElements1710833167092 } from "src/migrations/1710833167092-SeedElements";
 import { SeedObservationEnvironments1711195885141 } from "src/migrations/1711195885141-SeedObservationEnvironments";
 import { SeedObservationFocuses1711196308488 } from "src/migrations/1711196308488-SeedObservationFocuses";
+import { ObservationTriggers1721359627445 } from "src/migrations/1721359627445-ObservationTriggers";
 import { DataSource } from "typeorm";
 
-// Tto run execute the migrations, run; npx typeorm migration:run -d dist/typeorm.config.js
+// To run execute the migrations, run; npx typeorm migration:run -d dist/typeorm.config.js
 // This should be done after building the application and when the database already exists.
 // To revert the migrations, run: typeorm migration:revert -d dist/typeorm.config.js
 // If you need to revert multiple migrations you must call this command multiple times.
@@ -26,5 +27,6 @@ export default new DataSource({
     SeedElements1710833167092,
     SeedObservationEnvironments1711195885141,
     SeedObservationFocuses1711196308488,
+    ObservationTriggers1721359627445
   ],
-});
+}); 

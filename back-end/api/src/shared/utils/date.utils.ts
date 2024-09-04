@@ -10,7 +10,7 @@ export class DateUtils {
      */
     static getDaysInMonthList(year: number, month: number): { [key: string]: any }[] {
         const allDays: { [key: string]: any }[] = [];
-        const lastDay: number = DateUtils.getLastDayOfMonth(year,month);
+        const lastDay: number = DateUtils.getLastDayOfMonth(year, month);
         for (let i = 1; i <= lastDay; i++) {
             allDays.push({ id: i, name: `Day ${i.toString().padStart(2, '0')}` });
         }
@@ -36,7 +36,8 @@ export class DateUtils {
      * @returns 
      */
     static getLastDayOfMonth(year: number, month: number): number {
-        return new Date(year, month, 0).getDate();
+        // The zero day will make the date object to automatically roll back to the last day of the previous month
+        return new Date(year, month + 1, 0).getDate();
     }
 
     static getTodayDateInSQLFormat(): string {

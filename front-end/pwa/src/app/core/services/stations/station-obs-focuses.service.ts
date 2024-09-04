@@ -15,7 +15,7 @@ export class StationObsFocusesService {
   constructor(private http: HttpClient) { }
 
 
-  public getStationObsFocuses(ids?: number[]): Observable<ViewStationObsFocusModel[]> {
+  public findAll(ids?: number[]): Observable<ViewStationObsFocusModel[]> {
     let params: HttpParams = new HttpParams();
     
     if (ids && ids.length > 0) {

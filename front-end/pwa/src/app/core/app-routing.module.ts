@@ -5,6 +5,7 @@ import { HomeComponent } from './home/home.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { LoginComponent } from './login/login.component';
 import { authGuard } from './guards/auth.guard';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 const routes: Routes = [
   {
@@ -23,7 +24,7 @@ const routes: Routes = [
       },
       {
         path: 'dataentry',
-        loadChildren: () => import('../dataentry/dataentry.module').then((m) => m.DataEntryModule)
+        loadChildren: () => import('../dataentry/data-entry.module').then((m) => m.DataEntryModule)
       },
       {
         path: 'metadata',
@@ -38,6 +39,10 @@ const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+  },
+  {
+    path: '**',
+    component: NotFoundComponent,
   }
 ];
 

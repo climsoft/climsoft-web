@@ -1,6 +1,4 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
-import { FormEntryUtil } from '../defintions/form-entry.util';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
@@ -10,44 +8,50 @@ import { ObservationDefinition } from '../defintions/observation.definition';
   templateUrl: './grid-layout.component.html',
   styleUrls: ['./grid-layout.component.scss']
 })
-export class GridLayoutComponent implements OnInit, OnChanges {
-  @Input() public formDefinitions!: FormEntryDefinition;
-  @Input() public clearValues!: boolean;
+export class GridLayoutComponent implements OnChanges {
+  @Input()
+  public formDefinitions!: FormEntryDefinition;
 
-  @Output() public valueChange = new EventEmitter<ObservationDefinition>();
-  @Output() public totalIsValid = new EventEmitter<boolean>();
+  @Input()
+  public refreshLayout!: boolean;
 
+  @Input()
+  public displayHistoryOption!: boolean;
+
+  /** Emitted when observation value is changed */
+  @Output()
+  public valueChange = new EventEmitter<ObservationDefinition>();
+
+  /** Emitted when observation value or total value is changed */
+  @Output()
+  public totalIsValid = new EventEmitter<boolean>();
+
+  /** Holds row entry fields needed for creating value flag components; elements, days, hours */
   protected rowFieldDefinitions!: FieldEntryDefinition[];
+
+  /** Holds column entry fields needed for creating value flag components; elements, days, hours */
   protected colFieldDefinitions!: FieldEntryDefinition[];
+
+  /** Holds all the observation definitions used  by created value flag components */
   protected observationsDefinitions!: ObservationDefinition[][];
+
+  /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
-
-  constructor() {
-  }
-
-  ngOnInit(): void {
-  }
+  constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
-
-    //only proceed with seting up the control if all inputs have been set.
-    if (this.formDefinitions) {
+    if (changes["refreshLayout"] && this.refreshLayout) {
       if (this.formDefinitions.formMetadata.fields.length < 0 || !this.formDefinitions.formMetadata.fields[1]) {
         return;
       }
       this.rowFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.colFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
-      this.observationsDefinitions = this.formDefinitions.getEntryObsForGridLayout();
-      this.totalErrorMessage = new Array<string>(this.colFieldDefinitions.length);
+      this.observationsDefinitions = this.formDefinitions.obsDefsForGridLayout;
+      // Important to statically fill with undefined values for working with 'some' and 'every' array functions
+      this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     } else {
       this.observationsDefinitions = [];
-    }
-
-    if (this.clearValues) {
-      console.log('clear operations called');
-
-      this.clearValues = false;
     }
 
   }
@@ -56,44 +60,56 @@ export class GridLayoutComponent implements OnInit, OnChanges {
     return this.formDefinitions.formMetadata.fields[0]
   }
 
+  /**
+   * Gets the observation definition of the specified row and column index.
+   * @param rowIndex 
+   * @param colIndex 
+   * @returns 
+   */
   protected getObservationDef(rowIndex: number, colIndex: number): ObservationDefinition {
     return this.observationsDefinitions[rowIndex][colIndex];
   }
 
+  /**
+  * Handles observation value changes
+  * Clears any total error message  
+  */
   protected onValueChange(observationDef: ObservationDefinition, colIndex: number): void {
-
     this.valueChange.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
-    if (this.formDefinitions.formMetadata.validateTotal) {
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
       this.totalErrorMessage[colIndex] = '';
       this.totalIsValid.emit(false);
     }
 
   }
 
-
+  /**
+     * Handles total value changes by updating the internal state and emiting totalIsValid state
+     * @param value 
+     */
   protected onTotalValueChange(colIndex: number, value: number | null): void {
-    const expectedTotal = this.getColumnTotal(colIndex);
-    this.totalErrorMessage[colIndex] = '';
-
-    if (expectedTotal !== value) {
-      this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
-    }
-
-    // Check if there are any error messages 
-    this.totalIsValid.emit(!this.totalErrorMessage.some(item => (item !== undefined && item !== '')));
-    console.log("Total is valid: " , !this.totalErrorMessage.some(item => (item !== undefined && item !== '')))
-  }
-
-
-  private getColumnTotal(colIndex: number): number | null {
+    // Get all observation in the column
     const colObservations: ObservationDefinition[] = [];
     for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
       colObservations.push(this.observationsDefinitions[rowIndex][colIndex]);
     }
-    return FormEntryUtil.getTotalValuesOfObs(colObservations);
+
+    // Get their total as the expected
+    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(colObservations);
+
+    // Clear previous error message of the column total
+    this.totalErrorMessage[colIndex] = '';
+
+    // If expected total is not equal to the input total then set error message
+    if (expectedTotal !== value) {
+      this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
+    }
+
+    this.totalIsValid.emit(this.totalErrorMessage.every(str => str === ''));
   }
+
 
 
 }

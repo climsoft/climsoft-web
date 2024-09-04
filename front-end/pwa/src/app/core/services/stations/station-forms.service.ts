@@ -1,7 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core'; 
 import { Observable, catchError, throwError } from 'rxjs';
-import { CreateUpdateSourceModel } from '../../models/sources/create-update-source.model';
 import { ViewSourceModel } from '../../models/sources/view-source.model';
 
 @Injectable({
@@ -13,15 +12,15 @@ export class StationFormsService {
 
   constructor(private http: HttpClient) { }
 
-  public getStationForms(stationId: string): Observable<ViewSourceModel<object>[]> {
+  public find(stationId: string): Observable<ViewSourceModel[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
-    return this.http.get<ViewSourceModel<object>[]>(url)
+    return this.http.get<ViewSourceModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );
   }
 
- public saveStationForms(stationId: string, formIds: number[]): Observable<number[]> {
+ public update(stationId: string, formIds: number[]): Observable<number[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
     return this.http.post<number[]>(url, formIds)
       .pipe(
@@ -29,7 +28,7 @@ export class StationFormsService {
       );
   }
 
-  public deleteStationForms(stationId: string, formIds: number[]): Observable<number[]> {
+  public delete(stationId: string, formIds: number[]): Observable<number[]> {
     const url = `${this.endPointUrl}/forms/${stationId}`;
     return this.http.delete<number[]>(url, { body: formIds })
       .pipe(

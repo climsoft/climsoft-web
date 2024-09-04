@@ -8,7 +8,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 //--------------------------------------------
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { DataEntryModule } from '../dataentry/dataentry.module';
+import { DataEntryModule } from '../dataentry/data-entry.module';
 //--------------------------------------------
 
 //------------components------------------------------
@@ -19,6 +19,7 @@ import { LoginComponent } from './login/login.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { PasswordResetComponent } from './password-reset/password-reset.component';
 import { AccountVerificationComponent } from './account-verification/account-verification.component';
+import { NotFoundComponent } from './not-found/not-found.component';
 
 
 @NgModule({
@@ -29,6 +30,7 @@ import { AccountVerificationComponent } from './account-verification/account-ver
     LoginComponent,
     PasswordResetComponent,
     AccountVerificationComponent,
+    NotFoundComponent,
 
   ],
   imports: [

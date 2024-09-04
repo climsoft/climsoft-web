@@ -1,0 +1,10 @@
+<div>
+    <app-check-box-input [label]="'Specify Delimeter'" [value]="delimiter !== undefined"
+        (valueChange)="onIncludeDelimters($event)" />
+
+    <div class="ms-4" *ngIf="delimiter !== undefined">
+        <!-- TODO -->
+        <app-selector-single-input [label]="'Delimeter'" [options]="[',', '|']" [selectedOption]="','"
+            [optionDisplayFn]="displayDelimitersFn" />
+    </div>
+</div>

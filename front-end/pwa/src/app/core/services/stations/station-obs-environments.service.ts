@@ -15,7 +15,7 @@ export class StationObsEnvironmentsService {
   constructor(private http: HttpClient) { }
 
 
-  public getStationObsEnvironments(ids?: number[]): Observable<ViewStationObsEnvModel[]> {
+  public findAll(ids?: number[]): Observable<ViewStationObsEnvModel[]> {
     let params: HttpParams = new HttpParams();
     
     if (ids && ids.length > 0) {

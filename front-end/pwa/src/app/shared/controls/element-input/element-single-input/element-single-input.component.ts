@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 
@@ -8,11 +9,12 @@ import { ElementsService } from 'src/app/core/services/elements/elements.service
   styleUrls: ['./element-single-input.component.scss']
 })
 export class ElementSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Element';
-  @Input() errorMessage: string = '';
+  @Input() public id!: string | number;
+  @Input() public label!: string;
+  @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected options!: ViewElementModel[] ;
   protected selectedOption!: ViewElementModel | null;
@@ -27,7 +29,15 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
 
     //load the elements once
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length>0)) { 
-      this.elementsSevice.getElements(this.includeOnlyIds).subscribe(data => {
+     
+      let saveSubscription: Observable<ViewElementModel[]>;
+      if(this.includeOnlyIds && this.includeOnlyIds.length>0){
+        saveSubscription = this.elementsSevice.findSome(this.includeOnlyIds);
+      }else{
+        saveSubscription = this.elementsSevice.findAll();
+      }
+
+      saveSubscription.subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });
@@ -53,8 +63,7 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
       //this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
     } else {
-      //this.selectedId = null;
-      this.selectedIdChange.emit(null);
+      this.selectedIdChange.emit(-1);
     }
 
   }

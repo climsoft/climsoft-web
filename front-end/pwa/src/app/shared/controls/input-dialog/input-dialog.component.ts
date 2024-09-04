@@ -9,15 +9,15 @@ export class InputDialogComponent {
   @Input() title: string = '';
   @Input() inputLabel: string = '';
   @Output() ok = new EventEmitter<string>();
-  open: boolean = false;
-  value: string = '';
+  public open: boolean = false;
+  protected value: string = '';
 
-  openDialog(value?: string) {
+  public openDialog(value?: string) {
     this.open = true;
     this.value = value ?? '';
   }
 
-  onOkClick(): void {
+  protected onOkClick(): void {
     this.ok.emit(this.value);
   }
 

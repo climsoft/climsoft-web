@@ -1,11 +1,12 @@
 import { Transform } from "class-transformer";
-import { IsDateString, IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDateString, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ViewObservationQueryDTO {
    
     @IsOptional()
-    @IsString()
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
+    @IsString({each: true })
     stationIds?: string[];
 
     @IsOptional()
@@ -23,6 +24,10 @@ export class ViewObservationQueryDTO {
     period?: number;
 
     @IsOptional()
+    @IsBoolean()
+    useEntryDate?: boolean;
+
+    @IsOptional()
     @IsDateString()   
     fromDate?: string; 
 
@@ -32,7 +37,7 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @IsInt()
-    page?: number;
+    page?: number; // TODO. Validate to make sure it is never less than 0
 
     @IsOptional()
     @IsInt()   

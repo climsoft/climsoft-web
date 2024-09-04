@@ -1,0 +1,7 @@
+<div class="position-relative w-100" appCloseDropDown (closeDropdown)="closeDropdown()">
+    <ng-content select="[main-content]"></ng-content>
+    <div *ngIf="displayDropDown" class="position-absolute overflow-auto border border-dark rounded custom-drop-down min-w-100"
+        [class.translate-x]="translateX" [style.max-height.px]="maxHeight">
+        <ng-content select="[drop-down-content]"></ng-content>
+    </div> 
+</div>

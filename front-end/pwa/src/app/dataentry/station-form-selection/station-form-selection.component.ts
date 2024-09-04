@@ -1,13 +1,15 @@
 import { Component } from '@angular/core';
-import { CreateUpdateStationModel } from '../../core/models/stations/create-update-station.model';
+import { CreateStationModel } from '../../core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { Observable, filter, from, map, pipe, take } from 'rxjs';
 
-export interface StationView extends CreateUpdateStationModel {
-  forms?: ViewSourceModel<object>[];
+export interface StationView extends CreateStationModel {
+  forms?: ViewSourceModel[];
 }
 
 @Component({
@@ -23,11 +25,14 @@ export class StationFormSelectionComponent {
     private stationsService: StationsService,
     private stationFormsService: StationFormsService,
     private router: Router, private route: ActivatedRoute) {
+
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsService.getStations().subscribe(data => {
-      this.stations = data.map(station => ({ ...station }));
-    });
+    this.stationsService.findByObsProcessingMethod([StationObsProcessingMethodEnum.MANUAL, StationObsProcessingMethodEnum.HYBRID]).pipe(
+      take(1)).subscribe(data => {
+        this.stations = data.map(item => ({ ...item }));
+      });
+
 
   }
 
@@ -37,7 +42,7 @@ export class StationFormSelectionComponent {
 
   protected loadStationForms(station: StationView): void {
     if (!station.forms) {
-      this.stationFormsService.getStationForms(station.id).subscribe(data => {
+      this.stationFormsService.find(station.id).subscribe(data => {
         station.forms = data;
       });
     }
