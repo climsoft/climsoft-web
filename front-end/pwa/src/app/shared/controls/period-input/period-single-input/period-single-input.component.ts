@@ -13,7 +13,7 @@ export class PeriodSingleInputComponent implements OnChanges {
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected options!: Period[];
   protected selectedOption!: Period | null;
@@ -52,11 +52,8 @@ export class PeriodSingleInputComponent implements OnChanges {
   protected onSelectedOptionChange(selectedOption: Period | null) {
     //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
     if (selectedOption) {
-      //this.selectedId = selectedOption.id;
+      this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
-    } else {
-      //this.selectedId = null;
-      this.selectedIdChange.emit(null);
     }
 
   }

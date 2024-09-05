@@ -3,7 +3,7 @@ import { QCTestTypeEnum } from "./qc-test-type.enum";
 export interface CreateQCTestModel {
     qcTestType: QCTestTypeEnum;
     elementId: number;
-    observationPeriod: number | null;
+    observationPeriod: number;
     parameters: QCTestParametersValidity;
     disabled: boolean;
     comment: string | null;

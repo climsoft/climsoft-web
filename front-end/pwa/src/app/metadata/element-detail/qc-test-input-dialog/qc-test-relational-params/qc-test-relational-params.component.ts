@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { RelationalQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-parameters.model';
+import { RelationalQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-relational-params',
@@ -8,6 +8,6 @@ import { RelationalQCTestParametersModel } from 'src/app/core/models/elements/qc
 })
 export class QCTestRelationalParamsComponent {
 @Input()
-public relationalQCTestParameters!:  RelationalQCTestParametersModel; 
+public relationalQCTestParameters!:  RelationalQCTestParamsModel; 
  
 }

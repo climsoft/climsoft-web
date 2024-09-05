@@ -1,45 +1,40 @@
-<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="true"
+<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
     (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
     <div *ngIf="updateQcTest">
-        <app-qc-test-type-input [selectedId]="updateQcTest.qcTestType"
-            (selectedIdChange)="onQCTestTypeSelected($event)" />
-
-        <div class="mt-2">
-            <app-radio-buttons-input #periodChoice [groupName]="'qc_test_period'"
-                [groupItems]=" [{ label: 'All observation periods', checked: true }, {label: 'Specific observation period'}]"
-                [asButtons]="false" [inline]="true"
-                [checkedValue]="updateQcTest.observationPeriod === null? 'All observation periods': 'Specific observation period' "
-                (checkedValueChange)="onPeriodState($event)" />
-            <div class="mt-1 ms-2">
-                <app-period-single-input *ngIf="periodChoice.checkedValue === 'Specific observation period'"
-                    [id]="'obs_period_selector'" [(selectedId)]="updateQcTest.observationPeriod" />
-            </div>
+        <div>
+            <app-qc-test-type-input [selectedId]="updateQcTest.qcTestType"
+                (selectedIdChange)="onQCTestTypeSelected($event)" />
         </div>
 
         <div class="mt-2">
-            <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
-                [rangeThresholdQCTestParameters]="rangeThresholdParam" />
+            <app-period-single-input [label]="'Observation Period'" [(selectedId)]="updateQcTest.observationPeriod" />
+        </div>
+
+        <div class="mt-2 card border-1">
+            <div class="card-body">
+                <div class="card-title">Parameters</div>
+                <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
+                    [rangeThresholdQCTestParameters]="rangeThresholdParam" />
 
                 <app-qc-test-repeated-value-params *ngIf="isRepeatedValue"
-                [repeatedValueQCTestParameters]="rangerepeatedValueParam" />
+                    [repeatedValueQCTestParameters]="rangerepeatedValueParam" />
 
-                <app-qc-test-flat-line-params *ngIf="isFlatLine"
-                [flatLineQCTestParameters]="flatLineParam" />
+                <app-qc-test-flat-line-params *ngIf="isFlatLine" [flatLineQCTestParameters]="flatLineParam" />
 
-                <app-qc-test-spike-params *ngIf="isSpike"
-                [spikeQCTestParameters]="spikeParam" />
+                <app-qc-test-spike-params *ngIf="isSpike" [spikeQCTestParameters]="spikeParam" />
 
                 <app-qc-test-relational-params *ngIf="isRelationalComparison"
-                [relationalQCTestParameters]="relationalComparisonParam" />
+                    [relationalQCTestParameters]="relationalComparisonParam" />
 
                 <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
-                [contextualQCTestParameters]="contextualConsistentyParam" />
+                    [contextualQCTestParameters]="contextualConsistentyParam" />
+            </div>
 
         </div>
 
         <div class="mt-2">
-            <app-check-box-input [label]="'Disabled'" [(value)]="updateQcTest.disabled" />
+            <app-check-box-input [label]="'Disable'" [(value)]="updateQcTest.disabled" />
         </div>
         <div class="mt-2">
             <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />

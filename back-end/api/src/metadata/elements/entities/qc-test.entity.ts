@@ -9,7 +9,7 @@ export class QCTestEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
-  @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum, })
+  @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum })
   @Index()
   qcTestType: QCTestTypeEnum;
 
@@ -23,9 +23,9 @@ export class QCTestEntity extends AppBaseEntity {
   element: ElementEntity;
   //-----------------------
 
-  @Column({ name: "observation_period", type: "int", nullable: true })
+  @Column({ name: "observation_period", type: "int" })
   @Index()
-  observationPeriod: number | null;
+  observationPeriod: number;
 
   @Column({ name: "parameters", type: "jsonb" })
   parameters: QCTestParametersValidity;

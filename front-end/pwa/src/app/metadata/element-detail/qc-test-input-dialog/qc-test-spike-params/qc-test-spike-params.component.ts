@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { SpikeQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-parameters.model';
+import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-spike-params',
@@ -8,6 +8,6 @@ import { SpikeQCTestParametersModel } from 'src/app/core/models/elements/qc-test
 })
 export class QCTestSpikeParamsComponent {
 @Input()
-public spikeQCTestParameters!:  SpikeQCTestParametersModel; 
+public spikeQCTestParameters!:  SpikeQCTestParamsModel; 
 
 }

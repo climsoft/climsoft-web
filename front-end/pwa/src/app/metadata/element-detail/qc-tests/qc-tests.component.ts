@@ -1,6 +1,11 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { RangeThresholdQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-parameters.model';
+import { ContextualQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model';
+import { FlatLineQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-params.model';
+import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
+import { RelationalQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-params.model';
+import { RepeatedValueQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-params.model';
+import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
 import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service';
@@ -41,31 +46,38 @@ export class QCTestsComponent implements OnChanges {
         let formattedParameters: string = '';
         switch (item.qcTestType) {
           case QCTestTypeEnum.RANGE_THRESHOLD:
-            const rangeQCParams = item.parameters as RangeThresholdQCTestParametersModel;
-            formattedParameters = `Lower limit = ${rangeQCParams.lowerLimit} and upper limit = ${rangeQCParams.upperLimit}`;
-            break;
-          case QCTestTypeEnum.FLAT_LINE:
-            break;
-          case QCTestTypeEnum.SPIKE:
+            const rangeParams = item.parameters as RangeThresholdQCTestParamsModel;
+            formattedParameters = `{ Lower limit : ${rangeParams.lowerLimit} } { Upper limit : ${rangeParams.upperLimit} }`;
             break;
           case QCTestTypeEnum.REPEATED_VALUE:
+            const repeatedValueParams = item.parameters as RepeatedValueQCTestParamsModel;
+            formattedParameters = `{ Consecutive records : ${repeatedValueParams.consecutiveRecords} }`;
+            break;
+          case QCTestTypeEnum.FLAT_LINE:
+            const flatLineParams = item.parameters as FlatLineQCTestParamsModel;
+            formattedParameters = `{ Consecutive records : ${flatLineParams.consecutiveRecords} } { Range Threshold : ${flatLineParams.rangeThreshold} }`;
+            break;
+          case QCTestTypeEnum.SPIKE:
+            const spikeParams = item.parameters as SpikeQCTestParamsModel;
+            formattedParameters = `{ Consecutive records : ${spikeParams.consecutiveRecords} } { Spike Threshold : ${spikeParams.spikeThreshold} }`;
             break;
           case QCTestTypeEnum.RELATIONAL_COMPARISON:
+            const relationalParams = item.parameters as RelationalQCTestParamsModel;
+            formattedParameters = `{ Reference Element : ${relationalParams.referenceElementId} } { Condition : ${relationalParams.condition} }`;
             break;
           case QCTestTypeEnum.DIURNAL:
             break;
           case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
+            const contextualParams = item.parameters as ContextualQCTestParamsModel;
+            formattedParameters = `{ Reference Element : ${contextualParams.referenceElementId} } { Reference check : {condition: ${contextualParams.referenceCheck.condition} value: ${contextualParams.referenceCheck.value} }  }  { Reference check : {condition: ${contextualParams.primaryCheck.condition} value: ${contextualParams.primaryCheck.value} }  } `;
             break;
           default:
             throw new Error("Developer error. QC test type not supported.")
         }
 
 
-        let formattedObsPeriod: string = 'All';
-        if (item.observationPeriod !== null) {
-          const obsPeriodName = PeriodsUtil.findPeriod(item.observationPeriod)?.name.toLowerCase();
-          formattedObsPeriod = obsPeriodName ? obsPeriodName : item.observationPeriod.toString()
-        }
+        const obsPeriodName = PeriodsUtil.findPeriod(item.observationPeriod)?.name.toLowerCase();
+        const formattedObsPeriod = obsPeriodName ? obsPeriodName : item.observationPeriod.toString()
 
         return {
           ...item,

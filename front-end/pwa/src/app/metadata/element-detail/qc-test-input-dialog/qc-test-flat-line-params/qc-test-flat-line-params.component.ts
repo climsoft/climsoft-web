@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { FlatLineQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-parameters.model';
-import { RepeatedValueQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-parameters.model';
+import { FlatLineQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-flat-line-params',
@@ -9,6 +8,6 @@ import { RepeatedValueQCTestParametersModel } from 'src/app/core/models/elements
 })
 export class QCTestFlatLineParamsComponent {
 @Input()
-public flatLineQCTestParameters!:  FlatLineQCTestParametersModel; 
+public flatLineQCTestParameters!:  FlatLineQCTestParamsModel; 
 
 }

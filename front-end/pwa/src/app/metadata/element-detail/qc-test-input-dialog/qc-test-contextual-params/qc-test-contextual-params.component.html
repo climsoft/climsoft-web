@@ -1,26 +1,32 @@
 <div>
-   
-    <div class="mt-2">
-        <app-qc-test-condition-input [label]="'Primary Condition'" [(selectedId)]="contextualQCTestParameters.primaryCheck.condition" />
-   </div>
+    <div class="card border-1">
+        <div class="card-body">
+            <div class="card-title">Primary Element</div>
+            <div class="mt-2">
+                <app-qc-test-condition-input [label]="'Condition'"
+                    [(selectedId)]="contextualQCTestParameters.primaryCheck.condition" />
+            </div>
 
-   <div class="mt-2">
-    <app-number-input [label]="'Primary Value'" [(value)]="contextualQCTestParameters.primaryCheck.value" />
-</div>
-
-    <div class="mt-2">
-        <app-element-single-input [label]="'Reference Element'" [(selectedId)]="contextualQCTestParameters.referenceElementId" />
+            <div class="mt-2">
+                <app-number-input [label]="'Value'" [(value)]="contextualQCTestParameters.primaryCheck.value" />
+            </div>
+        </div>
     </div>
 
-    <div class="mt-2">
-         <app-qc-test-condition-input [label]="'Reference Condition'" [(selectedId)]="contextualQCTestParameters.referenceCheck.condition" />
+    <div class="card border-1 mt-2">
+        <div class="card-body">
+            <div class="card-title">Reference Element</div>
+            <div class="mt-2">
+                <app-element-single-input [label]="'Element'"
+                    [(selectedId)]="contextualQCTestParameters.referenceElementId" />
+            </div>
+            <div class="mt-2">
+                <app-qc-test-condition-input [label]="'Condition'"
+                    [(selectedId)]="contextualQCTestParameters.referenceCheck.condition" />
+            </div>
+            <div class="mt-2">
+                <app-number-input [label]="'Value'" [(value)]="contextualQCTestParameters.referenceCheck.value" />
+            </div>
+        </div>
     </div>
-
-    <div class="mt-2">
-        <app-number-input [label]="'Reference Value'" [(value)]="contextualQCTestParameters.referenceCheck.value" />
-    </div>
-
-
- 
-
 </div>

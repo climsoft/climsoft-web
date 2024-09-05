@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { RepeatedValueQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-parameters.model';
+import { RepeatedValueQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-repeated-value-params',
@@ -8,6 +8,6 @@ import { RepeatedValueQCTestParametersModel } from 'src/app/core/models/elements
 })
 export class QCTestRepeatedValueParamsComponent {
 @Input()
-public repeatedValueQCTestParameters!:  RepeatedValueQCTestParametersModel; 
+public repeatedValueQCTestParameters!:  RepeatedValueQCTestParamsModel; 
 
 }

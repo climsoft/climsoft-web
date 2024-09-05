@@ -1,7 +1,6 @@
 import { QCTestParametersValidity } from "../create-qc-test.model";
 
-export interface SpikeQCTestParametersModel extends QCTestParametersValidity {
+export interface RepeatedValueQCTestParamsModel extends QCTestParametersValidity {
     consecutiveRecords: number;
-    difference: number;
 }
 

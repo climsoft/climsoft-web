@@ -8,9 +8,8 @@ export class CreateQCTestDto {
     @IsInt()
     elementId: number;
 
-    @IsOptional() // TODO. Not sure if this correctly represent nulls
     @IsInt()
-    observationPeriod: number | null;
+    observationPeriod: number;
 
     @IsOptional() // TODO. Temporary until we implement validate nested
     parameters: QCTestParametersValidity;

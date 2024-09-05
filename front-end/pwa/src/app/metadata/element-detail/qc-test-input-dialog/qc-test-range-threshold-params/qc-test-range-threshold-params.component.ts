@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { RangeThresholdQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-parameters.model';
+import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-range-threshold-params',
@@ -8,6 +8,6 @@ import { RangeThresholdQCTestParametersModel } from 'src/app/core/models/element
 })
 export class QCTestRangeThresholdParamsComponent {
 @Input()
-public rangeThresholdQCTestParameters!:  RangeThresholdQCTestParametersModel; 
+public rangeThresholdQCTestParameters!:  RangeThresholdQCTestParamsModel; 
 
 }

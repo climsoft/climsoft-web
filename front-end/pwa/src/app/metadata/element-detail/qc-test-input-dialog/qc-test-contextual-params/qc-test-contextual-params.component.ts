@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { ContextualQCTestParametersModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-parameters.model';
+import { ContextualQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model';
 
 @Component({
   selector: 'app-qc-test-contextual-params',
@@ -8,6 +8,6 @@ import { ContextualQCTestParametersModel } from 'src/app/core/models/elements/qc
 })
 export class QCTestContextualParamsComponent {
 @Input()
-public contextualQCTestParameters!:  ContextualQCTestParametersModel; 
+public contextualQCTestParameters!:  ContextualQCTestParamsModel; 
  
 }

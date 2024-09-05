@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { QCTestParamConditionEnum } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/qc-test-parameter-condition.enum';
+import { QCTestParamConditionEnum } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/qc-test-param-condition.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
