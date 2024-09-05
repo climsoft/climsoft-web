@@ -251,34 +251,10 @@ DECLARE
     fail_log JSONB;
 BEGIN
 	-- Decode the JSON parameters to extract reference_id and condition
-	qc_test_reference_id := (qc_test.parameters->>'referenceElementid')::INT4;
+	qc_test_reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
 	qc_test_condition := (qc_test.parameters->>'condition')::VARCHAR;
 
-	IF qc_test.observation_period IS NULL THEN
-			-- TODO. Remove this part, observation period should never be null for this test
-			FOR reference_value IN
-        		SELECT value FROM observations
-								WHERE station_id = observation_record.station_id
-								AND element_id = qc_test_reference_id
-								AND source_id = observation_record.source_id
-								AND elevation = observation_record.elevation
-								AND date_time = observation_record.date_time
-    		LOOP
-        		BEGIN
-						-- Evaluate the condition
-						IF NOT func_passes_qc_test_condition(observation_record.value, reference_value, qc_test_condition) THEN
-							-- Prepare the QC fail log
-							all_qc_fails_log := all_qc_fails_log || jsonb_build_object(
-                            								'qc_test_id', qc_test.id,
-                            								'test_type', 'relational_comparison',
-                            								'reference_value', reference_value
-                        									);
-						END IF;
-            
-        		END;
-    		END LOOP;
-	ELSE
-			SELECT value INTO reference_value
+	SELECT value INTO reference_value
 			FROM observations
 			WHERE station_id = observation_record.station_id
 				AND element_id = qc_test_reference_id
@@ -293,11 +269,9 @@ BEGIN
 				-- Prepare the QC fail log
 				all_qc_fails_log := all_qc_fails_log || jsonb_build_object(
                             								'qc_test_id', qc_test.id,
-                            								'test_type', 'relational_comparison',
-                            								'reference_value', reference_value
+                            								'test_type', 'relational_comparison'
                         									);
 			END IF;
-	END IF;
     
     -- Return null if there are no QC fails
 	RETURN NULLIF(all_qc_fails_log, '[]'::JSONB);
