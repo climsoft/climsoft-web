@@ -26,7 +26,7 @@
 
             <!--Rows To Skip -->
             <div class="mb-3">
-                <app-number-input [label]="'Rows to Skip'" [(value)]="tabularImportSource.rowsToSkip" />
+                <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportSource.rowsToSkip" />
             </div>
 
             <hr class="border border-secondary border-1">
@@ -78,7 +78,7 @@
 
             <!--UTC Time Difference -->
             <div class="mb-3">
-                <app-number-input [label]="'UTC Offset'" [(value)]="viewSource.utcOffset" />
+                <app-number-input [label]="'UTC Offset'" [(numValue)]="viewSource.utcOffset" />
             </div>
 
             <hr class="border border-secondary border-1">

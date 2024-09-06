@@ -8,7 +8,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 //--------------------------------------------
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { DataEntryModule } from '../dataentry/data-entry.module';
+import { DataEntryModule } from '../data-entry/data-entry.module';
 //--------------------------------------------
 
 //------------components------------------------------

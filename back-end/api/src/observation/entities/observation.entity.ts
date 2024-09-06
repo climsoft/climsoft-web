@@ -15,9 +15,6 @@ export class ObservationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "element_id", type: "int" })
   elementId: number;
 
-  @PrimaryColumn({ name: "source_id", type: "int" })
-  sourceId: number;
-
   /**
    * Elevation in reference to the station surface. 
    * Can above or below the station surface depending on the element.
@@ -31,6 +28,9 @@ export class ObservationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "period", type: "int" })
   period: number;
 
+  @PrimaryColumn({ name: "source_id", type: "int" })
+  sourceId: number;
+  
   @Column({ name: "value", type: "float", nullable: true })
   value: number | null;
 

@@ -6,7 +6,7 @@
     <div class="ms-4">
 
         <app-number-input *ngIf="periodDefinition.columnPosition !== undefined"
-            [label]="'Column Position (values in minutes)'" [(value)]="periodDefinition.columnPosition" />
+            [label]="'Column Position (values in minutes)'" [(numValue)]="periodDefinition.columnPosition" />
 
         <app-period-single-input *ngIf="periodDefinition.defaultPeriod !== undefined" [label]="'Default Period'"
             [selectedId]="periodDefinition.defaultPeriod" (selectedIdChange)="onPeriodSelected($event)" />

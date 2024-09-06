@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
 import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
-import { ViewEntryComponent } from './view-entry/view-entry.component';
+import { ManageDataComponent } from './manage-data/manage-data.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 
 
@@ -36,8 +36,8 @@ const routes: Routes = [
         component: ImportEntryComponent
       },
       {
-        path: 'view-entry',
-        component: ViewEntryComponent
+        path: 'manage-data',
+        component: ManageDataComponent
       },
     ]
   }

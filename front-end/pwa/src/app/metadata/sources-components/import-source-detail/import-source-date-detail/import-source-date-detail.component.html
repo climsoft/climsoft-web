@@ -7,7 +7,7 @@
     <div class="ms-4">
         <div *ngIf="datetimeDefinition.dateTimeColumnPostion !== undefined">
             <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position (values in format YYYY-MM-DD HH:SS)'"
-                [(value)]="datetimeDefinition.dateTimeColumnPostion" />
+                [(numValue)]="datetimeDefinition.dateTimeColumnPostion" />
         </div>
         <div *ngIf="datetimeDefinition.dateTimeInMultipleColumn !== undefined">
             Not yet supported

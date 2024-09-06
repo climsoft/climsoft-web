@@ -3,6 +3,6 @@
         (valueChange)="onIncludeElevation($event)" />
 
     <div class="ms-4" *ngIf="elevationColumnPosition !== undefined">
-        <app-number-input [label]="'Column Position'" [(value)]="elevationColumnPosition" />
+        <app-number-input [label]="'Column Position'" [(numValue)]="elevationColumnPosition" />
     </div>
 </div>

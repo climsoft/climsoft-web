@@ -22,16 +22,17 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-view-entry',
-  templateUrl: './view-entry.component.html',
-  styleUrls: ['./view-entry.component.scss']
+  selector: 'app-manage-data',
+  templateUrl: './manage-data.component.html',
+  styleUrls: ['./manage-data.component.scss']
 })
-export class ViewEntryComponent {
+export class ManageDataComponent {
 
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
   protected period: number | null = null;
+  protected elevation: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
   protected hour: number | null = null;
@@ -62,6 +63,7 @@ export class ViewEntryComponent {
     });
   }
 
+
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';
   }
@@ -70,20 +72,24 @@ export class ViewEntryComponent {
     // Get the data based on the selection filter
     this.observationFilter = {};
 
-    if (this.stationId) {
+    if (this.stationId !== null) {
       this.observationFilter.stationIds = [this.stationId];
     }
 
-    if (this.sourceId) {
-      this.observationFilter.sourceIds = [this.sourceId];
-    }
-
-    if (this.elementId) {
+    if (this.elementId !== null) {
       this.observationFilter.elementIds = [this.elementId];
     }
 
-    if (this.period) {
+    if (this.period !== null) {
       this.observationFilter.period = this.period;
+    }
+
+    if (this.elevation !== null) {
+      this.observationFilter.elevation = this.elevation;
+    }
+
+    if (this.sourceId !== null) {
+      this.observationFilter.sourceIds = [this.sourceId];
     }
 
     // TODO. Investigate. If this is set to false, the dto is sets it true for some reasons
@@ -93,11 +99,11 @@ export class ViewEntryComponent {
       this.observationFilter.useEntryDate = true;
     }
 
-    if (this.fromDate) {
+    if (this.fromDate !== null) {
       this.observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
     }
 
-    if (this.toDate) {
+    if (this.toDate !== null) {
       this.observationFilter.toDate = `${this.toDate}T23:00:00Z`;
     }
 

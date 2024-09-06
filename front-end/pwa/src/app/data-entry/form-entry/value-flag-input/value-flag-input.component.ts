@@ -36,8 +36,10 @@ export class ValueFlagInputComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["observationDefinition"]) {
-      // Disable entry of future date times
-      this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
+      // Disable entry of future dates, excluding hour because the observation date times are in UTC.
+      const obsDate = new Date(this.observationDefinition.observation.datetime);
+      const nowDate = new Date();
+      this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
     }
   }
 

@@ -10,7 +10,7 @@ import { StationFormSelectionComponent } from './station-form-selection/station-
 import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
 import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
 import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
-import { ViewEntryComponent } from './view-entry/view-entry.component';
+import { ManageDataComponent } from './manage-data/manage-data.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 
 //------------------------------------
@@ -26,7 +26,7 @@ import { ImportSelectionComponent } from './import-selection/import-selection.co
     GridLayoutComponent,
     LnearLayoutComponent,
     ValueFlagInputComponent,
-    ViewEntryComponent,
+    ManageDataComponent,
     ImportSelectionComponent, 
 
   ],

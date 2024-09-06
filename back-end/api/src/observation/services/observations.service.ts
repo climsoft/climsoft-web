@@ -120,12 +120,16 @@ export class ObservationsService {
             whereOptions.elementId = In(selectObsevationDto.elementIds);
         }
 
-        if (selectObsevationDto.sourceIds) {
-            whereOptions.sourceId = In(selectObsevationDto.sourceIds);
-        }
-
         if (selectObsevationDto.period) {
             whereOptions.period = selectObsevationDto.period;
+        }
+
+        if (selectObsevationDto.elevation !== undefined) {
+            whereOptions.elevation = selectObsevationDto.elevation;
+        }
+
+        if (selectObsevationDto.sourceIds) {
+            whereOptions.sourceId = In(selectObsevationDto.sourceIds);
         }
 
         this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);

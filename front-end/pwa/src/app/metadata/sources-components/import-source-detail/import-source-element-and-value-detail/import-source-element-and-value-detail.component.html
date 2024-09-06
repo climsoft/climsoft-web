@@ -18,7 +18,7 @@
             <div *ngIf="elementAndValueDefinition.hasElement.singleColumn" class="ms-4">
                 <div class="mt-2">
                     <app-number-input [label]="'Elements Column Position'"
-                        [(value)]="elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition" />
+                        [(numValue)]="elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition" />
 
                     <div class="mt-2">
                         <app-check-box-input [label]="'Fetch Specific Elements'"
@@ -52,7 +52,7 @@
 
                 <div class="mt-2">
                     <app-number-input [label]="'Values Column Position'"
-                        [(value)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
+                        [(numValue)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
                 </div>
 
                 <div class="mt-2">
@@ -75,7 +75,7 @@
                     <tr *ngFor="let item of elementColumnsHolder; let i = index;">
                         <td>
                             <app-number-input [id]="i + 'multiple_element_column_position'"
-                                [(value)]="item.columnPosition" />
+                                [(numValue)]="item.columnPosition" />
                         </td>
                         <td>
                             <app-element-single-input [id]="i + '_multiple_database_element_id'"
@@ -97,7 +97,7 @@
             </div>
             <div class="mt-2">
                 <app-number-input [label]="'Value Column Position'"
-                    [(value)]="elementAndValueDefinition.noElement.valueColumnPosition" />
+                    [(numValue)]="elementAndValueDefinition.noElement.valueColumnPosition" />
             </div>
             <div class="mt-2">
                 <app-import-source-flag-detail [flagDefinition]="elementAndValueDefinition.noElement.flagDefinition" />

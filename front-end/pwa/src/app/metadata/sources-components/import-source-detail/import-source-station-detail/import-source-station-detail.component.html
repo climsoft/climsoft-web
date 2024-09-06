@@ -3,7 +3,7 @@
         (valueChange)="onIncludeStation($event)" />
     <div class="ms-4" *ngIf="stationDefinition !== undefined">
         <div class="mb-2">
-            <app-number-input [id]="'station_column_position'" [label]="'Column Position'" [(value)]="stationDefinition.columnPosition" />
+            <app-number-input [id]="'station_column_position'" [label]="'Column Position'" [(numValue)]="stationDefinition.columnPosition" />
         </div>
         <div>
             <div class="mb-2">

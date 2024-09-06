@@ -28,11 +28,15 @@
       </div>
 
       <div class="col-auto mb-2">
-        <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
+        <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
       </div>
 
       <div class="col-auto mb-2">
-        <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
+        <app-number-input [label]="'Elevation'" [(value)]="elevation" />
+      </div>
+
+      <div class="col-auto mb-2">
+        <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
       </div>
 
       <div class="col-auto mb-2">

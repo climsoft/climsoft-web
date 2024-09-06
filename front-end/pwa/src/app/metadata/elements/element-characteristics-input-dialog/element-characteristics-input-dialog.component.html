@@ -1,7 +1,7 @@
 <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" (okClick)="onOkClick()">
     <div *ngIf="element">
         <div class="mb-3">
-            <app-number-input [label]="'Id'" [disabled]="!bNew" [(value)]="element.id" />
+            <app-number-input [label]="'Id'" [disabled]="!bNew" [(numValue)]="element.id" />
           </div>
   
           <div class="mb-3">
