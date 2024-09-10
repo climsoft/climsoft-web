@@ -39,11 +39,10 @@
         <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
           <div class="fw-bold">Fields</div>
           <div class="mb-1">
-            <app-drop-down-button [dropDownItems]="[ 'Assign Same Value','Clear Values','Show Value History']"
-              (dropDownOptionClick)=" $event === 'Assign Same Value'? dlgSameValue.openDialog(): onOptions($event)"
-              [translateX]="true">Options</app-drop-down-button>
-            <app-input-dialog #dlgSameValue [title]="'Assign Same Value'" [inputLabel]="'Enter value'"
-              (ok)="assignSameValue($event)" />
+            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Show History']"
+              (dropDownOptionClick)=" $event === 'Same Input'? dlgSameInput.open = true: onOptions($event)"
+              [translateX]="true" [buttonText]="'Options'" />
+              <app-assign-same-input  #dlgSameInput (ok)="assignSameValue($event)"/>
           </div>
         </div>
 

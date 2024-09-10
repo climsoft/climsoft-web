@@ -25,6 +25,11 @@ export class NumberInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['numValue']) {
+      this.value = this.numValue;
+    } else if (changes['value'] && this.value !== null && StringUtils.containsNumbersOnly(this.value.toString())) {
+      this.numValue = +this.value;
+    }
   }
 
   protected onValueChange(value: string) {

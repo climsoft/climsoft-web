@@ -53,7 +53,7 @@ export class QCTestInputDialogComponent {
         this.updateQcTest = data;
       });
     } else {
-      const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerLimit: 0, upperLimit: 0, isValid: () => true };
+      const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
       this.updateQcTest = {
         id: 0,
         qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
@@ -121,7 +121,7 @@ export class QCTestInputDialogComponent {
 
     switch (qcTestType) {
       case QCTestTypeEnum.RANGE_THRESHOLD:
-        const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerLimit: 0, upperLimit: 0, isValid: () => true };
+        const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
         this.updateQcTest.parameters = rangeThreshold;
         break;
       case QCTestTypeEnum.REPEATED_VALUE:

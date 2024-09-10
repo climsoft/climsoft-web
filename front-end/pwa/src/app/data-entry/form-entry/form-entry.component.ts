@@ -13,6 +13,7 @@ import { ObservationDefinition } from './defintions/observation.definition';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model'; 
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SameInputStruct } from './assign-same-input/assign-same-input.component';
 
 @Component({
   selector: 'app-form-entry',
@@ -255,24 +256,26 @@ export class FormEntryComponent implements OnInit {
    * Updates its internal state depending on the options passed
    * @param option  'Clear' | 'History'
    */
-  protected onOptions(option: 'Assign Same Value' | 'Clear Values' | 'Show Value History'): void {
+  protected onOptions(option: 'Same Input' | 'Clear Input' | 'Show History'): void {
     switch (option) {
-      case 'Clear Values':
+      case 'Clear Input':
         this.clear();
         break;
-      case 'Show Value History':
+      case 'Show History':
         this.displayHistoryOption = !this.displayHistoryOption;
         break;
     }
   }
 
-  protected assignSameValue(input: string): void {
+  protected assignSameValue(input: SameInputStruct): void {
     for (const obsDef of this.formDefinitions.allObsDefs) {
-      // Check if value flag is  empty
+      // Check if value flag is empty
       if (StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
         // Set the new the value flag input
-        obsDef.updateValueFlagFromUserInput(input);
+        obsDef.updateValueFlagFromUserInput(input.valueFlag); 
+        obsDef.updateCommentInput(input.comment);
       }
+
     }
 
     this.enableOrDisableSave();
@@ -285,6 +288,7 @@ export class FormEntryComponent implements OnInit {
     for (const obsDef of this.formDefinitions.allObsDefs) {
       // Clear the value flag input
       obsDef.updateValueFlagFromUserInput('');
+      obsDef.updateCommentInput('');
     }
 
     this.enableOrDisableSave();

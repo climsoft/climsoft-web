@@ -65,16 +65,16 @@ CREATE OR REPLACE FUNCTION func_perform_range_threshold_test(
     qc_test RECORD
 ) RETURNS JSONB AS $$
 DECLARE
-    lower_limit FLOAT8;
-    upper_limit FLOAT8;
+    lower_threshold FLOAT8;
+    upper_threshold FLOAT8;
     fail_log JSONB;
 BEGIN
     -- Decode the JSON parameters to extract lower and upper limits
-    lower_limit := (qc_test.parameters->>'lowerLimit')::FLOAT8;
-    upper_limit := (qc_test.parameters->>'upperLimit')::FLOAT8;
+    lower_threshold := (qc_test.parameters->>'lowerThreshold')::FLOAT8;
+    upper_threshold := (qc_test.parameters->>'upperThreshold')::FLOAT8;
 
     -- Perform the range check
-    IF observation_value < lower_limit OR observation_value > upper_limit THEN
+    IF observation_value < lower_threshold OR observation_value > upper_threshold THEN
         -- Prepare the QC fail log
         fail_log := jsonb_build_object(
                         'qc_test_id', qc_test.id,

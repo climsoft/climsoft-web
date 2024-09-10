@@ -47,19 +47,24 @@ export class QCTestsComponent implements OnChanges {
         switch (item.qcTestType) {
           case QCTestTypeEnum.RANGE_THRESHOLD:
             const rangeParams = item.parameters as RangeThresholdQCTestParamsModel;
-            formattedParameters = `{ Lower limit : ${rangeParams.lowerLimit} } { Upper limit : ${rangeParams.upperLimit} }`;
+            formattedParameters = `{ Lower threshold : ${rangeParams.lowerThreshold} } { Upper threshold : ${rangeParams.upperThreshold} }`;
             break;
           case QCTestTypeEnum.REPEATED_VALUE:
             const repeatedValueParams = item.parameters as RepeatedValueQCTestParamsModel;
-            formattedParameters = `{ Consecutive records : ${repeatedValueParams.consecutiveRecords} }`;
+            let excludeStr = '';
+            if(repeatedValueParams.excludeRange){
+              const excludeRange = repeatedValueParams.excludeRange;
+              excludeStr = `{ Exclude range: { Lower threshold: ${excludeRange.lowerThreshold} } { Upper threshold: ${excludeRange.upperThreshold} } } `
+            }
+            formattedParameters = `{ Consecutive records : ${repeatedValueParams.consecutiveRecords} } ${excludeStr}`;
             break;
           case QCTestTypeEnum.FLAT_LINE:
             const flatLineParams = item.parameters as FlatLineQCTestParamsModel;
-            formattedParameters = `{ Consecutive records : ${flatLineParams.consecutiveRecords} } { Range Threshold : ${flatLineParams.rangeThreshold} }`;
+            formattedParameters = `{ Consecutive records : ${flatLineParams.consecutiveRecords} } { Range threshold : ${flatLineParams.rangeThreshold} }`;
             break;
           case QCTestTypeEnum.SPIKE:
             const spikeParams = item.parameters as SpikeQCTestParamsModel;
-            formattedParameters = `{ Consecutive records : ${spikeParams.consecutiveRecords} } { Spike Threshold : ${spikeParams.spikeThreshold} }`;
+            formattedParameters = `{ Consecutive records : ${spikeParams.consecutiveRecords} } { Spike threshold : ${spikeParams.spikeThreshold} }`;
             break;
           case QCTestTypeEnum.RELATIONAL_COMPARISON:
             const relationalParams = item.parameters as RelationalQCTestParamsModel;

@@ -72,7 +72,7 @@ export class ValueFlagInputComponent implements OnChanges {
    * Raised when the comment component has its value changed
    */
   protected onCommentEntry(comment: string): void {
-    this.observationDefinition.observation.comment = comment;
+    this.observationDefinition.updateCommentInput(comment);
     this.valueChange.emit(this.observationDefinition);
   }
 

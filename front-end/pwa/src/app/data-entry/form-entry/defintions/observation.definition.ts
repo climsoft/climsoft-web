@@ -17,7 +17,7 @@ export class ObservationDefinition {
     private _observation: CreateObservationModel;
     private _valueFlagForDisplay: string = "";
     private _valueFlagForDisplayDB: string = "";
-    
+
     /**
      * Determines whether to invalidate missing value input
      */
@@ -83,6 +83,14 @@ export class ObservationDefinition {
         return this._valueFlagForDisplay !== this._valueFlagForDisplayDB;
     }
 
+    public get comment(): string | null {
+        return this.observation.comment;
+    }
+
+    public updateCommentInput(comment: string): void {
+        this.observation.comment = StringUtils.isNullOrEmpty(comment) ? null : comment;
+    }
+
     /**
      * Checks validity of the value flag input and if valid sets it as the new value for observation value and flag.
      * Updates it's internal state depending on the validity of the value flag input
@@ -138,7 +146,7 @@ export class ObservationDefinition {
     }
 
     private getValueFlagForDisplay(value: number | null, flag: FlagEnum | null): string {
-        const unScaledValue: number | null = this.scaleValue? this.getUnScaledValue(value): value;
+        const unScaledValue: number | null = this.scaleValue ? this.getUnScaledValue(value) : value;
         const valueStr = unScaledValue === null ? '' : unScaledValue.toString();
         const flagStr = flag === null ? '' : flag[0].toUpperCase();
         return valueStr + flagStr;
@@ -161,8 +169,8 @@ export class ObservationDefinition {
     }
 
     public getUnScaledValue(value: number | null): number | null {
-          // To remove rounding errors use number utils round off
-        return value && this.elementMetadata.entryScaleFactor? NumberUtils.roundOff(value * this.elementMetadata.entryScaleFactor, 4): value;
+        // To remove rounding errors use number utils round off
+        return value && this.elementMetadata.entryScaleFactor ? NumberUtils.roundOff(value * this.elementMetadata.entryScaleFactor, 4) : value;
     }
 
 
@@ -195,7 +203,7 @@ export class ObservationDefinition {
         // Check for any decimals.
         const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
         if (splitNum !== null) {
-            if(this.scaleValue && String(splitNum).includes('.')) return 'Decimals not allowed';
+            if (this.scaleValue && String(splitNum).includes('.')) return 'Decimals not allowed';
         }
 
         return '';
@@ -286,7 +294,7 @@ export class ObservationDefinition {
             // Transform the log data accordingly
             this._observationLog = data.map(item => {
                 // Display the values in scaled form 
-                if ( this.scaleValue && item.value && this.elementMetadata.entryScaleFactor) {
+                if (this.scaleValue && item.value && this.elementMetadata.entryScaleFactor) {
                     // To remove rounding errors number utils round off
                     item.value = this.getUnScaledValue(item.value);
                 }

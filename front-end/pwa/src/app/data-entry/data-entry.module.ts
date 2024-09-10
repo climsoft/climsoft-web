@@ -12,6 +12,11 @@ import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.c
 import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
 import { ManageDataComponent } from './manage-data/manage-data.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
+import { EditDataComponent } from './manage-data/edit-data/edit-data.component';
+import { QCDataComponent } from './manage-data/qc-data/qc-data.component';
+import { MissingDataComponent } from './manage-data/missing-data/missing-data.component';
+import { DeletedDataComponent } from './manage-data/deleted-data/deleted-data.component';
+import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 
 //------------------------------------
 
@@ -20,15 +25,18 @@ import { ImportSelectionComponent } from './import-selection/import-selection.co
 
   declarations: [
     ImportEntryComponent,
-
     StationFormSelectionComponent,
     FormEntryComponent,
     GridLayoutComponent,
     LnearLayoutComponent,
     ValueFlagInputComponent,
+    AssignSameInputComponent,
     ManageDataComponent,
-    ImportSelectionComponent, 
-
+    ImportSelectionComponent,
+    EditDataComponent,
+    QCDataComponent,
+    MissingDataComponent,
+    DeletedDataComponent
   ],
   imports: [
     DataEntryRoutingModule,
