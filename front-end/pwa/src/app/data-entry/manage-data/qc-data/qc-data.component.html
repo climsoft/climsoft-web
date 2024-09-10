@@ -1,53 +1,37 @@
 <div class="card border-0">
-    <div class="card border-0 p-0">
-        <div class="card-header mb-2 p-1 fw-bold">Filter</div>
-        <div class="card-body p-0 mt-2">
-            <div class="row g-2 px-2">
-                <div class="col-auto mb-2">
-                    <app-station-single-input [label]="'Station'" [(selectedId)]="stationId" />
-                </div>
+    <!-- title -->
+    <div class="card-title fw-bold d-flex justify-content-between">
+        Quality control
+    </div>
 
-                <div class="col-auto mb-2">
-                    <app-element-single-input [label]="'Element'" [(selectedId)]="elementId" />
-                </div>
+    <!-- QC status -->
+    <div class="card border-0">
+        <div class="card-header px-0 fw-bold">
+            <app-toggle-chevron #QCstatusToggle [open]="true">View QC status</app-toggle-chevron>
+        </div>
+        <div *ngIf="QCstatusToggle.open" class="card-body px-0">
 
-                <div class="col-auto mb-2">
-                    <app-number-input [label]="'Elevation'" [(value)]="elevation" />
-                </div>
-
-                <div class="col-auto mb-2">
-                    <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
-                </div>
-
-                <div class="col-auto mb-2">
-                    <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
-                </div>
-
-                <div class="col-auto mb-2">
-                    <div class="row">
-                        <div class="col-auto">
-                            Observation Date:
-                        </div>                        
-                    </div>
-                    <div class="row">
-                        <div class="col-auto">
-                            <app-date-input [id]="'from_date'" [(value)]="fromDate" />
-                        </div>
-                        <div class="col-auto d-flex align-items-center ">To</div>
-                        <div class="col-auto">
-                            <app-date-input [id]="'to_date'" [(value)]="toDate" />
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onViewClick()">
-                    View
-                </button>
-            </div>
         </div>
     </div>
+
+    <!-- Perform QC -->
+    <div class="card border-0">
+        <div class="card-header px-0 fw-bold">
+            <app-toggle-chevron #PerformQCToggle>Perform QC Tests</app-toggle-chevron>
+        </div>
+        <div *ngIf="PerformQCToggle.open" class="card-body px-0">
+
+        </div>
+    </div>
+
+    <!-- Edit Data QC -->
+    <div class="card border-0">
+        <div class="card-header px-0 fw-bold">
+            <app-toggle-chevron #editDataQCToggle>View/Edit Data with QC Issues</app-toggle-chevron>
+        </div>
+        <div *ngIf="editDataQCToggle.open" class="card-body px-0">
+            <app-edit-qc-data />
+        </div>
+    </div>
+
 </div>

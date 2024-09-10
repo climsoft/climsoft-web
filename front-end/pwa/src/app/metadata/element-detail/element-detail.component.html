@@ -1,14 +1,12 @@
 <div *ngIf="element" class="card border-0">
   <div class="card-body p-0">
-
-     <!-- header -->
-     <div class="card-title fw-bold d-flex justify-content-between">
+    <!-- title -->
+    <div class="card-title fw-bold d-flex justify-content-between">
       <div>Showing element details - {{ element.name }}</div>
       <div>
-          <button type="button" class="btn btn-sm btn-outline-danger"
-              (click)="onDelete()">Delete</button>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="onDelete()">Delete</button>
       </div>
-  </div>
+    </div>
 
     <!-- characteristics -->
     <div class="card border-0">
@@ -30,6 +28,7 @@
         <app-qc-tests [elementId]="element.id" />
       </div>
     </div>
+
     <!-- end Data Ingestion Validations -->
 
     <!-- Data Ingestion Validations -->
@@ -52,6 +51,6 @@
 
   </div>
 
-  
+
 
 </div>

@@ -28,9 +28,9 @@ interface ObservationEntry {
 })
 export class ManageDataComponent {
 
-  protected activeTab: 'edit' | 'missing' | 'qc' | 'deleted' = 'edit';
+  protected activeTab: 'edit' | 'missing' | 'qc' | 'source' | 'deleted' = 'edit';
 
-  protected onTabClick(selectedTab: 'edit' | 'missing' | 'qc' | 'deleted' = 'edit'): void {
+  protected onTabClick(selectedTab: 'edit' | 'missing' | 'qc' | 'source' | 'deleted' = 'edit'): void {
     this.activeTab = selectedTab;
   }
 

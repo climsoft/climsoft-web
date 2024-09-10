@@ -17,6 +17,7 @@ import { QCDataComponent } from './manage-data/qc-data/qc-data.component';
 import { MissingDataComponent } from './manage-data/missing-data/missing-data.component';
 import { DeletedDataComponent } from './manage-data/deleted-data/deleted-data.component';
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
+import { EditQCDataComponent } from './manage-data/qc-data/edit-qc-data/edit-qc-data.component';
 
 //------------------------------------
 
@@ -35,6 +36,7 @@ import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-
     ImportSelectionComponent,
     EditDataComponent,
     QCDataComponent,
+    EditQCDataComponent,
     MissingDataComponent,
     DeletedDataComponent
   ],
