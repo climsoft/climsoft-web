@@ -24,13 +24,13 @@ BEGIN
             -- Determine which QC test to perform based on the qc_test_type
             CASE qc_test.qc_test_type
                 WHEN 'range_threshold' THEN
-                    qc_fail_log := func_perform_range_threshold_test(observation_record.value, qc_test);
+                    qc_fail_log := func_perform_range_threshold_test(observation_record, qc_test);
                 WHEN 'repeated_value' THEN
-                    qc_fail_log := func_perform_repeated_value_test(observation_record.value, qc_test);
+                    qc_fail_log := func_perform_repeated_value_test(observation_record, qc_test);
                 WHEN 'flat_line' THEN
-                    qc_fail_log := func_perform_flat_line_test(observation_record.value, qc_test);
+                    qc_fail_log := func_perform_flat_line_test(observation_record, qc_test);
                 WHEN 'spike' THEN
-                    qc_fail_log := func_perform_spike_test(observation_record.value, qc_test);
+                    qc_fail_log := func_perform_spike_test(observation_record, qc_test);
                 WHEN 'relational_comparison' THEN
                     qc_fail_log := func_perform_relational_comparison_test(observation_record, qc_test);
 
@@ -93,10 +93,23 @@ CREATE OR REPLACE FUNCTION func_perform_repeated_value_test(
 ) RETURNS JSONB AS $$
 DECLARE
     consecutive_records INT4;
+	exclude_range JSONB;
+	lower_threshold FLOAT8;
+	upper_threshold FLOAT8;
 	last_values FLOAT8[];
 	match_count INT4 := 0;
     fail_log JSONB;
 BEGIN
+	-- Return NULL if the record value falls within the exclude range.
+	IF qc_test.parameters ? 'excludeRange' THEN
+		exclude_range := qc_test.parameters->>'excludeRange'::JSONB;
+		lower_threshold := exclude_range->>'lowerThreshold';
+		upper_threshold := exclude_range->>'upperThreshold';
+		IF observation_record.value >= lower_threshold AND observation_record.value <= upper_threshold THEN
+        	RETURN NULL;
+		END IF;
+	END IF;
+
     -- Extract consecutiveRecords from the qc_test parameters
     consecutive_records := (qc_test.parameters->>'consecutiveRecords')::INT4;
 
