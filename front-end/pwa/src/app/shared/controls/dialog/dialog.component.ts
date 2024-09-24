@@ -7,13 +7,41 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 })
 export class DialogComponent {
 
-  @Input() title!: string;
-  @Input() okButtonLabel: string = 'Ok';
-  @Input() cancelButtonLabel: string = 'Cancel';
-  @Input() open: boolean = false;
-  @Output() openChange = new EventEmitter<boolean>();
-  @Output() okClick = new EventEmitter();
-  @Output() cancelClick = new EventEmitter();
+  @Input()
+  title!: string;
+
+  @Input()
+  okButtonLabel: string = 'Ok';
+
+  @Input()
+  cancelButtonLabel: string = 'Cancel';
+
+  @Input()
+  deleteButtonLabel: string = 'Delete';
+
+  @Input()
+  displayOkOption: boolean = true;
+
+  @Input()
+  displayCancelOption: boolean = true;
+
+  @Input()
+  displayDeleteOption: boolean = false;
+
+  @Input()
+  open: boolean = false;
+
+  @Output()
+  openChange = new EventEmitter<boolean>();
+
+  @Output()
+  okClick = new EventEmitter();
+
+  @Output()
+  cancelClick = new EventEmitter();
+
+  @Output()
+  deleteClick = new EventEmitter();
 
   public openDialog() {
     this.open = true;
@@ -27,6 +55,11 @@ export class DialogComponent {
   protected onCancelClick(): void {
     this.onClose();
     this.cancelClick.emit();
+  }
+
+  protected onDeleteClick(): void {
+    this.onClose();
+    this.deleteClick.emit();
   }
 
   private onClose(): void {

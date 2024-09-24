@@ -1,7 +1,7 @@
 import { FlagEnum } from "../observations/flag.enum";
-import { ImportDefinitionValidity } from "./create-import-source.model";
+import { ImportParametersValidity } from "./create-import-source.model";
 
-export interface CreateImportTabularSourceModel extends  ImportDefinitionValidity{
+export interface CreateImportTabularSourceModel extends  ImportParametersValidity{
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;

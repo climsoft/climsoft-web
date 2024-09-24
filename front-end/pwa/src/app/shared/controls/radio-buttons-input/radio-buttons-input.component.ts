@@ -29,7 +29,8 @@ export class RadioButtonsInputComponent implements OnChanges {
   protected onValueChange(index: number, newCheckedStatus: boolean) {
     const item = this.groupItems[index];
     item.checked = newCheckedStatus;
-    this.checkedValueChange.emit(item.label);
+    this.checkedValue = item.label;
+    this.checkedValueChange.emit(this.checkedValue);
   }
 
 }

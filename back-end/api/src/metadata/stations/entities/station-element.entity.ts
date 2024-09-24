@@ -1,11 +1,11 @@
-import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementEntity } from "../../elements/entities/element.entity"; 
 import { InstrumentEntity } from "../../instruments/entities/instrument.entity";
 import { StationEntity } from "./station.entity";
 
 @Entity("station_elements")
-export class StationElementEntity extends BaseEntity {
+export class StationElementEntity extends AppBaseEntity {
 
     @PrimaryColumn({ type: "varchar", name: "station_id" })
     stationId: string;

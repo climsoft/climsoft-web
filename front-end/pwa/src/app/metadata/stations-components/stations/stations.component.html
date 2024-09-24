@@ -7,16 +7,14 @@
       </button>
 
       <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
-        (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()"
-        [translateX]="true"/>
+        (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()" [translateX]="true" />
       <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
-
     </div>
   </div>
 
   <div class="card-body px-0">
     <app-table-view [clickable]="true" [columnsData]="[ 
-      {id: 'id', name: 'Id'},
+       {id: 'id', name: 'Id'},
        {id: 'name', name: 'Name'},
        {id: 'stationObsProcessingMethodName', name: 'Method'},
        {id: 'stationObsEnvironmentName', name: 'Environment'},

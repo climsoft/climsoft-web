@@ -63,4 +63,17 @@ export class StringUtils {
     public static capitalizeFirstLetter(str: string): string {
         return str? str[0].toUpperCase() + str.slice(1) : "";
     }
+
+    public static formatEnumForDisplay(option: string): string {
+        let wordToDisplay: string;
+        const splitWords: string[] = option.split('_');
+        if (splitWords.length > 1) {
+          wordToDisplay = splitWords.map(word => // Capitalise the first letter of each word
+           ( word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() )
+          ).join(' ');
+        } else {
+          wordToDisplay = StringUtils.capitalizeFirstLetter(option) ;
+        }
+        return wordToDisplay;
+      }
 }

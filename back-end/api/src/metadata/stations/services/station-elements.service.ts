@@ -4,8 +4,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ObjectUtils } from "src/shared/utils/object.util";
 import { DateUtils } from "src/shared/utils/date.utils"; 
-import { ViewElementDto } from "../../elements/dtos/view-element.dto";
 import { ElementsService } from "src/metadata/elements/services/elements.service";
+import { ViewElementDto } from "src/metadata/elements/dtos/elements/view-element.dto";
 
 @Injectable()
 export class StationElementsService {

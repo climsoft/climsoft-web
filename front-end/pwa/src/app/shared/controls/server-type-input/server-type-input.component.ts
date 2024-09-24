@@ -47,20 +47,16 @@ export class ServerTypeInputComponent implements OnChanges {
     const splitWords: string[] = option.split('_');
     if (splitWords.length > 1) {
       wordToDsiplay = splitWords.map(word => // Capitalise the first letter of each word
-        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        (word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       ).join(' ');
     } else {
-      wordToDsiplay = option
+      wordToDsiplay = StringUtils.capitalizeFirstLetter(option) ;
     }
-    return StringUtils.capitalizeFirstLetter(wordToDsiplay);
+    return wordToDsiplay;
   }
 
   protected onSelectedOptionChange(selectedOption: ServerTypeEnum | null) {
-    if (selectedOption) {
-      this.selectedIdChange.emit(selectedOption);
-    } else {
-      this.selectedIdChange.emit(null);
-    }
-
+    this.selectedOption = selectedOption;
+    this.selectedIdChange.emit(selectedOption ? selectedOption : null);
   }
 }

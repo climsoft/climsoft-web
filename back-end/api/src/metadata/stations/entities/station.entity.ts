@@ -1,39 +1,39 @@
-import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
-import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";  
+import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";
 import { PointDTO } from "src/shared/dtos/point.dto";
 import { PointColumnTransformer } from "src/shared/column-transformers/point-transformer";
 
 @Entity("stations")
-export class StationEntity extends BaseEntity {
-  @PrimaryColumn({ type: 'varchar' })
+export class StationEntity extends AppBaseEntity {
+  @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({ name: "name", type: 'varchar', unique: true })
   name: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: "description", type: 'varchar' })
   description: string;
 
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.
   // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
-  @Column({ type: 'point', transformer: new PointColumnTransformer() })  
+  @Column({ name: "location", type: 'point', transformer: new PointColumnTransformer() })
   location: PointDTO; //@Index({ spatial: true }) // TODO, later it may be important to index this after the move to POSTGIS, when dealing with many stations 
 
   @Column({ type: 'float' })
   @Index()
   elevation: number;  // Elevation of station above mean sea level.
 
-  @Column({ type: "enum", enum: StationObsProcessingMethodEnum, name: "observation_processing_method", nullable: true })
+  @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum, nullable: true })
   @Index()
   obsProcessingMethod: StationObsProcessingMethodEnum;
 
   //---------------
-  @Column({ type: 'int', name: "observation_environment_id", nullable: true })
+  @Column({ name: "observation_environment_id", type: 'int', nullable: true })
   obsEnvironmentId: number | null;
 
   @ManyToOne(() => StationObsEnvironmentEntity, {
@@ -49,7 +49,7 @@ export class StationEntity extends BaseEntity {
   //---------------
 
   //---------------
-  @Column({ type: 'int', name: "observation_focus_id", nullable: true })
+  @Column({ name: "observation_focus_id", type: 'int', nullable: true })
   obsFocusId: number | null;
 
   @ManyToOne(() => StationObsFocusEntity, {
@@ -64,48 +64,48 @@ export class StationEntity extends BaseEntity {
   obsFocus: StationObsFocusEntity | null;
   //---------------
 
-   //TODO. implement based on koppen climate classification.
-   @Column({ type: "int", name: "climate_zone_id", nullable: true })
-   climateZoneId: number | null;
+  //TODO. implement based on koppen climate classification.
+  @Column({ name: "climate_zone_id", type: "int", nullable: true })
+  climateZoneId: number | null;
 
-  // TODO
-  @Column({ type: "int", name: "organisation_id", nullable: true })
+  // TODO. Relationship and the organisations table
+  @Column({ name: "organisation_id", type: "int", nullable: true })
   organisationId: number | null; // name of organisation that owns the station.
 
-  // TODO
-  @Column({ type: 'int', name: "network_affiliation_id", nullable: true })
+  // TODO. Relation and the affilition table
+  @Column({ name: "network_affiliation_id", type: 'int', nullable: true })
   networkAffiliationId: number | null; // network affiliation that the station shares data with.
 
-  @Column({ type: 'varchar', nullable: true, unique: true })
+  @Column({ name: "wmo_id", type: 'varchar', nullable: true, unique: true })
   wmoId: string | null;
 
-  @Column({ type: 'varchar', nullable: true, unique: true })
+  @Column({ name: "wigos_id", type: 'varchar', nullable: true, unique: true })
   wigosId: string | null;
 
-  @Column({ type: 'varchar', nullable: true, unique: true })
+  @Column({ name: "icao_id", type: 'varchar', nullable: true, unique: true })
   icaoId: string | null;
 
   // TODO
-  @Column({ type: 'int', name: "time_zone", nullable: true })
+  @Column({ name: "time_zone", type: 'int', nullable: true })
   @Index()
   timeZone: number | null;
 
-  @Column({ type: "enum", enum: StationStatusEnum, nullable: true })
+  @Column({ name: "status", type: "enum", enum: StationStatusEnum, nullable: true })
   @Index()
   status: StationStatusEnum | null;
 
-  @Column({ type: "timestamptz", name: "date_established", nullable: true })
+  @Column({ name: "date_established", type: "timestamptz", nullable: true })
   @Index()
   dateEstablished: Date | null;
 
-  @Column({ type: 'timestamptz', name: "date_closed", nullable: true })
+  @Column({ name: "date_closed", type: 'timestamptz', nullable: true })
   @Index()
   dateClosed: Date | null;
 
-  @Column({ type: 'varchar', nullable: true })
+  @Column({ name: "comment", type: 'varchar', nullable: true })
   comment: string | null;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ name: "log", type: 'jsonb', nullable: true })
   log: StationLogVo[] | null;
 
 }

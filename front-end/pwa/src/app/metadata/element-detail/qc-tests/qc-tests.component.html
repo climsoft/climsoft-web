@@ -1,0 +1,31 @@
+<div>
+    <div class="d-flex justify-content-end">
+        <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+            (click)="dlgQcEdit.openDialog(elementId)">Add</button>
+        <app-qc-test-input-dialog #dlgQcEdit (ok)="onQCTestInput()" />
+    </div>
+
+    <div class="mt-2">
+        <table class="table table-striped table-sm table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 2%;"></th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Parameters</th>
+                    <th>Disabled</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="dlgQcEdit.openDialog(elementId, row)">
+                    <td><i class="bi bi-arrow-right-short"></i></td>
+                    <td>{{row.formattedQCTestTypeName}}</td>
+                    <td>{{row.formattedObsPeriod}}</td> 
+                    <td>{{row.formattedParameters}}</td>
+                    <td>{{row.disabled}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>

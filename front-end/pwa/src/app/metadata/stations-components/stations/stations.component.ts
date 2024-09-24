@@ -12,7 +12,6 @@ import { take } from 'rxjs';
   styleUrls: ['./stations.component.scss']
 })
 export class StationsComponent {
-
   protected stations!: ViewStationModel[];
 
   constructor(
@@ -20,11 +19,8 @@ export class StationsComponent {
     private stationsService: StationsService,
     private router: Router,
     private route: ActivatedRoute) {
-
     this.pagesDataService.setPageHeader('Stations Metadata');
-
     this.loadStations();
-
   }
 
   protected loadStations(): void {
@@ -35,7 +31,9 @@ export class StationsComponent {
     });
   }
  
-  protected onSearch(): void { }
+  protected onSearch(): void {
+    // TODO.
+   }
 
   protected onImportStations(): void {
     this.router.navigate(['import-station'], { relativeTo: this.route.parent }); 
@@ -44,6 +42,5 @@ export class StationsComponent {
   protected onEditStation(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
-
 
 }

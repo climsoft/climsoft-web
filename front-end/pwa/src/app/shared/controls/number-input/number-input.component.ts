@@ -7,33 +7,40 @@ import { StringUtils } from '../../utils/string.utils';
   templateUrl: './number-input.component.html',
   styleUrls: ['./number-input.component.scss']
 })
-export class NumberInputComponent implements OnInit, OnChanges {
+export class NumberInputComponent implements OnChanges {
   @Input() id!: string | number;
   @Input() label!: string;
   @Input() disabled: boolean = false;
   @Input() hintMessage!: string;
   @Input() errorMessage!: string | null;
   @Input() value!: number | null;
-  @Output() valueChange = new EventEmitter<number>();
+  @Input() numValue!: number;
+  @Output() valueChange = new EventEmitter<number | null>();
+  @Output() numValueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
-  @Output() public inputEnterKeyPress = new EventEmitter<number>();
-  @Output() public inputBlur = new EventEmitter<number>();
+  @Output() public inputEnterKeyPress = new EventEmitter<number | null>();
+  @Output() public inputBlur = new EventEmitter<number | null>();
 
   constructor() {
   }
 
-  ngOnInit(): void {
-  }
-
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['numValue']) {
+      this.value = this.numValue;
+    } else if (changes['value'] && this.value !== null && StringUtils.containsNumbersOnly(this.value.toString())) {
+      this.numValue = +this.value;
+    }
   }
 
   protected onValueChange(value: string) {
-    if (StringUtils.containsNumbersOnly(value)) {
+    if (StringUtils.isNullOrEmpty(value)) {
+      this.value = null;
+    } else if (StringUtils.containsNumbersOnly(value)) {
       this.value = +value;
-      this.valueChange.emit(+value);
-    } 
-
+      this.numValue = this.value;
+      this.numValueChange.emit(this.numValue);
+    }
+    this.valueChange.emit(this.value);
   }
 
   protected onInputClick(): void {
@@ -41,17 +48,11 @@ export class NumberInputComponent implements OnInit, OnChanges {
   }
 
   protected onEnterKeyPressed(): void {
-    if (this.value !== null) {
-      this.inputEnterKeyPress.emit(this.value);
-    }
+    this.inputEnterKeyPress.emit(this.value);
   }
 
   protected onInputBlur(): void {
-    if (this.value !== null) {
-      this.inputBlur.emit(this.value);
-    }
+    this.inputBlur.emit(this.value);
   }
-
-
 
 }

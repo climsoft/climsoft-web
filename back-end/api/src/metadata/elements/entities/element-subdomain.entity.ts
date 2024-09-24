@@ -1,5 +1,5 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
-import { ElementDomainEnum } from "../enums/element-domain.enum";
+import { ElementDomainEnum } from "../dtos/elements/element-domain.enum";
 
 @Entity("element_subdomains")
 export class ElementSubdomainEntity {

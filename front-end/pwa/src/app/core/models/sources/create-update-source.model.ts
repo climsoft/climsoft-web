@@ -3,7 +3,7 @@ import { SourceTypeEnum } from "./source-type.enum";
 export interface CreateUpdateSourceModel {
   name: string;
   description: string;
-  definitions: SourceDefinitionValidity; //json
+  parameters: SourceParametersValidity; //json
   sourceType: SourceTypeEnum;
 
   /** 
@@ -23,6 +23,6 @@ export interface CreateUpdateSourceModel {
   sampleImage: string;
 }
 
-export interface SourceDefinitionValidity{
+export interface SourceParametersValidity{
   isValid(): boolean;
 }

@@ -4,7 +4,7 @@
         (valueChange)="onIncludesFlag($event)" />
     <div class="ms-2" *ngIf="flagDefinition">
         <app-number-input [label]="'Column Position'"
-            [(value)]="flagDefinition.flagColumnPosition" />
+            [(numValue)]="flagDefinition.flagColumnPosition" />
 
             <div class="mt-2">
                 <app-check-box-input [label]="'Fetch Specific Flags'"

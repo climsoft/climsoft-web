@@ -1,0 +1,31 @@
+<div class="card border-0">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <button class="nav-link active"  [class.active] = "activeTab === 'edit'" (click)="onTabClick('edit')">View/Edit Data</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'source'" (click)="onTabClick('source')">Source Check</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'missing'" (click)="onTabClick('missing')">Missing Data</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'qc'" (click)="onTabClick('qc')">QC Data</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'deleted'" (click)="onTabClick('deleted')">Deleted Data</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-0 mt-2">
+    <app-edit-data *ngIf="activeTab === 'edit' " />
+    <app-source-check *ngIf="activeTab === 'source' " />
+    <app-missing-data *ngIf="activeTab === 'missing' " />
+    <app-qc-data *ngIf="activeTab === 'qc' " />  
+    <app-deleted-data *ngIf="activeTab === 'deleted' " />
+  </div>
+
+
+</div>

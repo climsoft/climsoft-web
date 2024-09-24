@@ -3,7 +3,6 @@ import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
 import { FlagEnum } from '../enums/flag.enum'; 
-import { ViewElementDto } from 'src/metadata/elements/dtos/view-element.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 import * as fs from 'node:fs/promises';
@@ -12,6 +11,7 @@ import { Database } from "duckdb-async";
 import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
 import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
+import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
 
 
 
@@ -79,7 +79,7 @@ export class ObservationUploadService {
 
         // Get the source definition using the source id
         const sourceDef = await this.sourcesService.find(sourceId);
-        const importSourceDef = sourceDef.definitions as CreateImportSourceDTO;
+        const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
 
         if (importSourceDef.serverType === ServerTypeEnum.LOCAL && importSourceDef.format === FormatEnum.TABULAR) {
 
@@ -101,8 +101,8 @@ export class ObservationUploadService {
     private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
         try {
             const sourceId: number = sourceDef.id;
-            const importDef: CreateImportSourceDTO = sourceDef.definitions as CreateImportSourceDTO;
-            const tabularDef: CreateImportTabularSourceDTO = importDef.importDefinitions as CreateImportTabularSourceDTO;
+            const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
+            const tabularDef: CreateImportTabularSourceDTO = importDef.importParameters as CreateImportTabularSourceDTO;
            
 
             const tableName: string = path.basename(fileName, path.extname(fileName));

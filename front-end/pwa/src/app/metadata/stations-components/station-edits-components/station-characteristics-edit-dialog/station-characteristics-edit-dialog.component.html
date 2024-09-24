@@ -13,18 +13,15 @@
         </div>
 
         <div class="mb-3">
-            <app-number-input [label]="'Longitude'" [value]="station.location.x"
-                (valueChange)="onLongitudeChange($event)" />
+            <app-number-input [label]="'Longitude'" [(numValue)]="station.location.x" />
         </div>
 
         <div class="mb-3">
-            <app-number-input [label]="'Latitude'" [value]="station.location.y"
-                (valueChange)="onLatitudeChange($event)" />
+            <app-number-input [label]="'Latitude'" [(numValue)]="station.location.y" />
         </div>
 
         <div class="mb-3">
-            <app-number-input [label]="'Elevation'" [value]="station.elevation"
-                (valueChange)="onElevationChange($event)" />
+            <app-number-input [label]="'Elevation'" [(numValue)]="station.elevation" />
         </div>
 
         <div class="mb-3">

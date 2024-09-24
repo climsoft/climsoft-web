@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsDateString, IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDateString, IsDecimal, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ViewObservationQueryDTO {
@@ -11,17 +11,21 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
-    @IsInt( {each: true })
-    sourceIds?: number[]; 
-
-    @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds?: number[];
 
     @IsOptional()
     @IsInt()   
     period?: number;
+
+    @IsOptional()
+    @IsDecimal()   
+    elevation?: number;
+    
+    @IsOptional()
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @IsInt( {each: true })
+    sourceIds?: number[]; 
 
     @IsOptional()
     @IsBoolean()

@@ -21,8 +21,6 @@ export class FlagSingleInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
-
     //load options once
     if (!this.options) {
       this.options = Object.values(FlagEnum);;

@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { StationsController } from './stations/controllers/stations.controller';
 import { StationsService } from './stations/services/stations.service';
 import { ElementsController } from './elements/controllers/elements.controller';
-import { ElementEntity } from './elements/entities/element.entity'; 
+import { ElementEntity } from './elements/entities/element.entity';
 import { SourcesController } from 'src/metadata/sources/controllers/sources.controller';
 import { StationElementEntity } from './stations/entities/station-element.entity';
 import { StationFormEntity } from './stations/entities/station-form.entity';
@@ -26,10 +26,13 @@ import { StationObsFocusesController } from './stations/controllers/station-obs-
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
 import { SourcesService } from './sources/services/sources.service';
-import { RegionsEntity } from './regions/entities/region.entity'; 
+import { RegionsEntity } from './regions/entities/region.entity';
 import { SourceEntity } from './sources/entities/source.entity';
 import { ElementsService } from './elements/services/elements.service';
- 
+import { QCTestEntity } from './elements/entities/qc-test.entity';
+import { QCTestsController } from './elements/controllers/qc-tests.controller';
+import { QCTestsService } from './elements/services/qc-tests.service';
+
 @Module({
     imports: [TypeOrmModule.forFeature([
         ElementSubdomainEntity,
@@ -38,12 +41,13 @@ import { ElementsService } from './elements/services/elements.service';
         SourceEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
-        RegionsEntity, 
+        RegionsEntity,
         StationObsEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,
         StationElementEntity,
         StationFormEntity,
+        QCTestEntity
     ]), UserModule],
     controllers: [
         ElementsController,
@@ -54,7 +58,9 @@ import { ElementsService } from './elements/services/elements.service';
         StationObsFocusesController,
         StationsController,
         StationElementsController,
-        StationFormsController,],
+        StationFormsController,
+        QCTestsController
+    ],
     providers: [
         ElementsService,
         SourcesService,
@@ -62,16 +68,19 @@ import { ElementsService } from './elements/services/elements.service';
         StationObsFocusesService,
         StationsService,
         StationElementsService,
-        StationFormsService],
+        StationFormsService,
+        QCTestsService
+    ],
 
     // TODO. Check if these need to be exported
     exports: [
-        ElementsService, 
+        ElementsService,
         SourcesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
         StationElementsService,
-        StationFormsService]
+        StationFormsService,
+        QCTestsService]
 })
 export class MetadataModule { }

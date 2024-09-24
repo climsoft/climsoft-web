@@ -1,10 +1,10 @@
-import { CreateUpdateSourceModel, SourceDefinitionValidity } from "./create-update-source.model";
+import { CreateUpdateSourceModel, SourceParametersValidity } from "./create-update-source.model";
 
 export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type LayoutType = 'LINEAR' | 'GRID';
 
-export interface CreateEntryFormModel extends SourceDefinitionValidity {
+export interface CreateEntryFormModel extends SourceParametersValidity {
     /** Defines the extra entry selectors used by the form to get data */
     selectors: [ExtraSelectorControlType, ExtraSelectorControlType?];
 

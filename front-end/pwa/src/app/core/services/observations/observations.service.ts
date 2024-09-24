@@ -54,6 +54,19 @@ export class ObservationsService {
       );
   }
 
+  public findDeleted(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/deleted`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public countDeleted(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count-deleted`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
   public findRaw(createObsQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
     return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(createObsQuery) })
       .pipe(
@@ -76,7 +89,7 @@ export class ObservationsService {
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.patch<number>(`${this.endPointUrl}/soft`, { body: observations })
+    return this.http.patch<number>(`${this.endPointUrl}/restore`, observations)
       .pipe(
         catchError(this.handleError)
       );

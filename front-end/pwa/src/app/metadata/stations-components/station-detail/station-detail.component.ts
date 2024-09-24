@@ -14,8 +14,7 @@ import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/sta
   styleUrls: ['./station-detail.component.scss']
 })
 export class StationDetailComponent implements OnInit {
-  protected stationId!: string;
-  protected stationIsManualorHybrid!: boolean;
+  protected station!: ViewStationModel;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -27,22 +26,30 @@ export class StationDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.stationId = this.route.snapshot.params['id'];
+    const stationId = this.route.snapshot.params['id'];
+    this.stationsService.findOne(stationId).pipe(
+      take(1)
+    ).subscribe((data) => {
+      if (data) {
+        this.station = data;
+      }
+    });
   }
 
-  protected onStationCharacteristicsChanged(station: ViewStationModel) {
-    this.stationIsManualorHybrid = station.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || station.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
+
+  protected get isManualorHybridStation(): boolean {
+    return this.station.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || this.station.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
   }
 
   protected onDelete(): void {
 
     // TODO. Show an 'are you sure dialog'.
 
-    this.stationsService.delete(this.stationId).pipe(
+    this.stationsService.delete(this.station.id).pipe(
       take(1)
     ).subscribe((data) => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.stationId} deleted`, type: "success" });
+        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: "success" });
         this.location.back();
       }
     });

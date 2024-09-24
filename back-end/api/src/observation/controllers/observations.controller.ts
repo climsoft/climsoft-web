@@ -20,12 +20,22 @@ export class ObservationsController {
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.findProcessed(viewObsevationQuery);
+    return this.observationsService.findProcessed(viewObsevationQuery,false);
   }
  
   @Get('/count')
-  getCount(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.countEntities(viewObsevationQuery);
+  count(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.countEntities(viewObsevationQuery,false);
+  }
+
+  @Get('/deleted')
+  getDeleted(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.findProcessed(viewObsevationQuery,true);
+  }
+ 
+  @Get('/count-deleted')
+  countDeleted(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.countEntities(viewObsevationQuery,true);
   }
 
   @Get('/raw')
@@ -92,7 +102,7 @@ export class ObservationsController {
   }
 
   
-  @Patch()
+  @Patch('/restore')
   async restore(
       @Req() request: Request, 
       @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]){

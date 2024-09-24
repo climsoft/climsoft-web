@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
-import { getPossiblePeriods, Period } from './Periods';
+import { Period, PeriodsUtil } from './Periods.util';
 
 // TODO. Make this control to be editable
 @Component({
@@ -13,7 +13,7 @@ export class PeriodSingleInputComponent implements OnChanges {
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected options!: Period[];
   protected selectedOption!: Period | null;
@@ -26,11 +26,11 @@ export class PeriodSingleInputComponent implements OnChanges {
 
     //load options once
     if (!this.options) {
-      this.options = getPossiblePeriods();
+      this.options = PeriodsUtil.possiblePeriods;
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = getPossiblePeriods().filter(data => this.includeOnlyIds.includes(data.id));
+      this.options = PeriodsUtil.possiblePeriods.filter(data => this.includeOnlyIds.includes(data.id));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
@@ -52,11 +52,8 @@ export class PeriodSingleInputComponent implements OnChanges {
   protected onSelectedOptionChange(selectedOption: Period | null) {
     //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
     if (selectedOption) {
-      //this.selectedId = selectedOption.id;
+      this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
-    } else {
-      //this.selectedId = null;
-      this.selectedIdChange.emit(null);
     }
 
   }

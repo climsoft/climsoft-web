@@ -1,6 +1,7 @@
-<div *ngIf="stationId" class="card border-0">
+<div *ngIf="station" class="card border-0">
     <div class="card-body p-0">
 
+        <!-- header -->
         <div class="card-title fw-bold d-flex justify-content-between">
             <div>Showing station details</div>
             <div>
@@ -15,7 +16,7 @@
                 <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
             <div class="card-body  px-0" *ngIf="characteristicsToggle.open">
-                <app-station-characteristics [stationId]="stationId" (valueChange)="onStationCharacteristicsChanged($event)"/>
+                <app-station-characteristics [stationId]="station.id"/>
             </div>
         </div>
         <!-- /end characteristics -->
@@ -26,18 +27,18 @@
                 <app-toggle-chevron #elementsToggle>Elements</app-toggle-chevron>
             </div>
             <div class="card-body  px-0" *ngIf="elementsToggle.open">
-                <app-station-limits [stationId]="stationId" />
+                <app-station-limits [stationId]="station.id" />
             </div>
         </div>
         <!-- end elements -->
 
         <!-- forms -->
-        <div class="card border-0"  *ngIf="stationIsManualorHybrid">
+        <div class="card border-0"  *ngIf="isManualorHybridStation">
             <div class="card-header px-0 fw-bold">
                 <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>
-            <div class="card-body  px-0" *ngIf="formsToggle.open">
-                <app-station-forms [stationId]="stationId" />
+            <div class="card-body px-0" *ngIf="formsToggle.open">
+                <app-station-forms [stationId]="station.id" />
             </div>
         </div>
         <!-- end forms -->

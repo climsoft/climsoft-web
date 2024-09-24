@@ -1,8 +1,8 @@
-import { DateTimeColumn } from "src/shared/column-transformers/date-time-column.transformer";
+import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("instrument_types")
-export class InstrumentTypeEntity {
+export class InstrumentTypeEntity extends AppBaseEntity {
 
     @PrimaryColumn({ type: "int" })
     id: string;
@@ -54,12 +54,6 @@ export class InstrumentTypeEntity {
 
     @Column({ type: "varchar", nullable: true })
     comment: string | null;
-
-    @Column({ type: "int", name: "entry_user_id" })
-    entryUserId: number;
-
-    @Column({ type: "timestamptz", name: "entry_date_time", transformer: new DateTimeColumn() })
-    entryDateTime: string;
 
     @Column({ type: "json", nullable: true })
     log: string | null;

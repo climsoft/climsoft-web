@@ -25,7 +25,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     },
     {
       name: 'Data Entry',
-      url: '/dataentry',
+      url: '/data-entry',
       icon: 'bi bi-file-earmark-text',
       open: false,
       children: [
@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         },
         {
           name: 'Manage Data',
-          url: '/view-entry',
+          url: '/manage-data',
           featureTitle: 'View Entries'
         }
       ]

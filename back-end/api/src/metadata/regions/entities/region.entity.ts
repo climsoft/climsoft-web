@@ -1,9 +1,9 @@
-import { BaseEntity, BaseLogVo } from "src/shared/entity/base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, PrimaryColumn } from "typeorm"; 
 import { RegionTypeEnum } from "../enums/region-types.enum";
 
 @Entity("regions")
-export class RegionsEntity extends BaseEntity {
+export class RegionsEntity extends AppBaseEntity {
   @PrimaryColumn({ type: 'int' })
   id: number;
 

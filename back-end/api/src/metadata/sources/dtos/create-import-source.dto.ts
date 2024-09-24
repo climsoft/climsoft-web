@@ -1,7 +1,7 @@
-import { SourceDefinitionValidity } from "./create-update-source.dto";
+import { SourceParametersValidity } from "./create-update-source.dto";
 
 
-export class CreateImportSourceDTO implements SourceDefinitionValidity {
+export class CreateImportSourceDTO implements SourceParametersValidity {
     serverType: ServerTypeEnum;
     format: FormatEnum;
 
@@ -17,10 +17,10 @@ export class CreateImportSourceDTO implements SourceDefinitionValidity {
      */
     sourceMissingValueFlags: string;
 
-    importDefinitions: ImportDefinitionValidity;
+    importParameters: ImportParametersValidity;
 
     isValid(): boolean { 
-        return this.importDefinitions.isValid();
+        return this.importParameters.isValid();
     }
 }
 
@@ -38,6 +38,6 @@ export enum FormatEnum {
     KEYVALUE = "key_value"
 }
 
-export interface ImportDefinitionValidity {
+export interface ImportParametersValidity {
     isValid(): boolean;
 }

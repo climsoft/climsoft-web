@@ -5,10 +5,10 @@ import { ViewSourceDto } from '../dtos/view-source.dto';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum'; 
 import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
-import { ViewElementDto } from 'src/metadata/elements/dtos/view-element.dto';
 import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 import { SourceEntity } from '../entities/source.entity';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
 
 // TODO refactor this service later
 
@@ -37,7 +37,7 @@ export class SourcesService {
         }
 
         const sourceEntities = await this.sourceRepo.find(findOptions);
-        const dtos: ViewSourceDto[] = []
+        const dtos: ViewSourceDto[] = [];
         for (const entity of sourceEntities) {
             dtos.push(await this.createViewDto(entity));
         }
@@ -69,7 +69,7 @@ export class SourcesService {
         return entity;
     }
 
-    public async create(dto: CreateUpdateSourceDto): Promise<ViewSourceDto> {
+    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
         //source entity will be created with an auto incremented id
         const entity = this.sourceRepo.create({
             name: dto.name,
@@ -78,7 +78,8 @@ export class SourcesService {
             utcOffset: dto.utcOffset,
             allowMissingValue: dto.allowMissingValue,
             sampleImage: dto.sampleImage,
-            definitions: dto.definitions
+            parameters: dto.parameters,
+            entryUserId: userId
         });
 
         await this.sourceRepo.save(entity);
@@ -95,7 +96,7 @@ export class SourcesService {
         source.utcOffset = dto.utcOffset;
         source.allowMissingValue = dto.allowMissingValue;
         source.sampleImage = dto.sampleImage;
-        source.definitions = dto.definitions;
+        source.parameters = dto.parameters;
 
         // TODO. Later Implement logging of changes in the database.
         return this.sourceRepo.save(source);
@@ -116,14 +117,14 @@ export class SourcesService {
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
             sampleImage: entity.sampleImage,
-            definitions: entity.definitions,
+            parameters: entity.parameters,
         }
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
-            const createEntryFormDTO: CreateEntryFormDTO = dto.definitions as CreateEntryFormDTO
+            const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
             const elementsMetadata: ViewElementDto[] = await this.elementsService.findSome(createEntryFormDTO.elementIds);
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
-            dto.definitions = viewEntryForm;
+            dto.parameters = viewEntryForm;
         }
 
         return dto;

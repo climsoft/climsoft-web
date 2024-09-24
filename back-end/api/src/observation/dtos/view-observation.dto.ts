@@ -6,4 +6,5 @@ export class ViewObservationDto extends CreateObservationDto {
     elementAbbrv: string;
     sourceName: string;
     entryDatetime: string;
+    final: boolean;
 }
