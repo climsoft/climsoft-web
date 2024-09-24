@@ -18,6 +18,9 @@ import { MissingDataComponent } from './manage-data/missing-data/missing-data.co
 import { DeletedDataComponent } from './manage-data/deleted-data/deleted-data.component';
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 import { EditQCDataComponent } from './manage-data/qc-data/edit-qc-data/edit-qc-data.component';
+import { SourceCheckComponent } from './manage-data/source-check/source-check.component';
+import { EditSameObservationsComponent } from './manage-data/source-check/edit-same-observations/edit-same-observations.component';
+import { EditDifferentObservationsComponent } from './manage-data/source-check/edit-different-observations/edit-different-observations.component';
 
 //------------------------------------
 
@@ -37,6 +40,9 @@ import { EditQCDataComponent } from './manage-data/qc-data/edit-qc-data/edit-qc-
     EditDataComponent,
     QCDataComponent,
     EditQCDataComponent,
+    SourceCheckComponent,
+    EditSameObservationsComponent,
+    EditDifferentObservationsComponent,
     MissingDataComponent,
     DeletedDataComponent
   ],

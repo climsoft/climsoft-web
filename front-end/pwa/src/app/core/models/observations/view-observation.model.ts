@@ -6,4 +6,5 @@ export interface ViewObservationModel extends CreateObservationModel {
     elementAbbrv: string;
     sourceName: string;
     entryDatetime: string;
+    final: boolean;
 }

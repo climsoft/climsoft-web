@@ -16,17 +16,15 @@
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-source-single-input [label]="'Source'" [(selectedId)]="sourceId" />
-                </div>
-
-                <div class="col-auto mb-2">
                     <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
                 </div>
 
                 <div class="col-auto mb-2">
                     <div class="row">
                         <div class="col-auto">
-                            Observation Date:
+                            <app-radio-buttons-input [inline]="true" [asButtons]="false" [groupName]="'filter_dates'"
+                                [groupItems]="[{ label:'Observation Date', checked:  true},{ label:'Entry Date'}]"
+                                (checkedValueChange)="onDateToUseSelection($event)" />
                         </div>
                     </div>
                     <div class="row">

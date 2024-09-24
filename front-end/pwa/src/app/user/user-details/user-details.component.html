@@ -25,10 +25,17 @@
           (selectedIdChange)="onRoleSelection($event)" />
       </div>
 
-      <div class="mb-3" *ngIf="userRoleIsNotAdmin">
-        <app-station-multiple-input [label]="'Authorised stations'" [placeholder]="'All stations'"
-          [selectedIds]="user.authorisedStationIds? user.authorisedStationIds: []"
-          (selectedIdsChange)="onStationsSelection($event)" />
+      <div *ngIf="userRoleIsNotAdmin">
+        <div class="mb-3">
+          <app-station-multiple-input [label]="'Authorised stations'" [placeholder]="'All stations'"
+            [selectedIds]="user.authorisedStationIds? user.authorisedStationIds: []"
+            (selectedIdsChange)="onStationsSelection($event)" />
+        </div>
+
+        <div class="mb-3">
+          <app-element-multiple-input [label]="'Elements authorised to download data'" />
+        </div>
+
       </div>
 
       <div class="mb-3">

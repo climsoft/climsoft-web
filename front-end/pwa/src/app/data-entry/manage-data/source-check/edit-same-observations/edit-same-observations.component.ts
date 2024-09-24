@@ -22,11 +22,13 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-edit-qc-data',
-  templateUrl: './edit-qc-data.component.html',
-  styleUrls: ['./edit-qc-data.component.scss']
+  selector: 'app-edit-same-observations',
+  templateUrl: './edit-same-observations.component.html',
+  styleUrls: ['./edit-same-observations.component.scss']
 })
-export class EditQCDataComponent {
+export class EditSameObservationsComponent {
+
+  protected totalRecords: number = 0;
 
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
@@ -63,9 +65,61 @@ export class EditQCDataComponent {
     });
   }
 
+  protected loadData(): void {
+    this.enableSave = false;
+    this.numOfChanges = 0;
+    this.observationsEntries = [];
+    this.observationFilter.page = this.pageInputDefinition.page;
+    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
+      this.enableSave = true;
+      this.observationsEntries = data.map(viewObservationModel => {
+        const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
+        if (!elementMetadata) {
+          throw new Error("Developer error: Element not found.");
+        }
+
+        const sourceMetadata = this.sourcessMetadata.find(item => item.id === viewObservationModel.sourceId);
+        if (!sourceMetadata) {
+          throw new Error("Developer error: Source not found.");
+        }
+
+        return {
+          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, false),
+          newStationId: '',
+          newElementId: 0,
+          delete: false
+        }
+
+      });
+
+    });
+  }
+
+  protected onDateToUseSelection(selection: string): void {
+    this.useEntryDate = selection === 'Entry Date';
+  }
+
+  
+  protected asViewObservationModel(observationsDef: ObservationDefinition): ViewObservationModel {
+    return (observationsDef.observation as ViewObservationModel);
+  }
+
+  protected getFormattedDatetime(strDateTime: string): string {
+    return strDateTime.replace('T', ' ').replace('Z', '');
+  }
+
+  protected getPeriodName(minutes: number): string {
+    const periodFound = this.periods.find(item => item.id === minutes);
+    return periodFound ? periodFound.name : minutes + 'mins';
+  }
 
   protected onViewClick(): void {
     
+  }
+
+  protected onPush(): void{
+
   }
 
 }

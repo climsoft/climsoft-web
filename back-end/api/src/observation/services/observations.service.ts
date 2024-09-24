@@ -25,14 +25,11 @@ export class ObservationsService {
         private readonly sourcesService: SourcesService,
     ) { }
 
-
-    public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
-
+    public async findProcessed(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<ViewObservationDto[]> {
         // TODO. Below code should be optimised using SQL INNER JOINS when querying.
 
         const obsView: ViewObservationDto[] = [];
-
-        const obsEntities = await this.findObsEntities(selectObsevationDto);
+        const obsEntities = await this.findObsEntities(selectObsevationDto, deletedRecords);
 
         // TODO. Later use inner joins, this will make the loading of metadata redundant. 
         const stationEntities = await this.stationsService.findAll();
@@ -40,7 +37,6 @@ export class ObservationsService {
         const sourceEntities = await this.sourcesService.findAll();
 
         for (const obsEntity of obsEntities) {
-
             const viewObs: ViewObservationDto = new ViewObservationDto();
             viewObs.stationId = obsEntity.stationId;
             viewObs.elementId = obsEntity.elementId;
@@ -50,8 +46,9 @@ export class ObservationsService {
             viewObs.datetime = obsEntity.datetime.toISOString();
             viewObs.value = obsEntity.value;
             viewObs.flag = obsEntity.flag;
-            viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
             viewObs.comment = obsEntity.comment;
+            viewObs.final = obsEntity.final;
+            viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
 
             const station = stationEntities.find(data => data.id === obsEntity.stationId);
             if (station) {
@@ -72,52 +69,51 @@ export class ObservationsService {
         }
 
         return obsView;
-
     }
 
 
-    private async findObsEntities(selectObsevationDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
-        const whereOptions: FindOptionsWhere<ObservationEntity> = this.setProcessedFilter(selectObsevationDto);
-        const findOptions: FindManyOptions<ObservationEntity> = {
-            order: {
-                stationId: "ASC",
-                elementId: "ASC",
-                sourceId: "ASC",
-                elevation: "ASC",
-                datetime: "ASC"
-            },
-            where: whereOptions
-        };
-
+    private async findObsEntities(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
         if (!selectObsevationDto.page || !selectObsevationDto.pageSize || selectObsevationDto.pageSize >= 1000) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than 100")
         }
 
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto, deletedRecords);
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            order: {
+                stationId: "ASC",
+                elementId: "ASC",
+                elevation: "ASC",
+                period: "ASC",
+                datetime: "ASC",
+                sourceId: "ASC"
+            },
+            where: whereOptions
+        };
 
         if (selectObsevationDto.page && selectObsevationDto.pageSize) {
             findOptions.skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
-            findOptions.take = selectObsevationDto.pageSize
+            findOptions.take = selectObsevationDto.pageSize;
         }
 
 
         return this.observationRepo.find(findOptions);
     }
 
-    public async countEntities(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
-        const whereOptions: FindOptionsWhere<ObservationEntity> = this.setProcessedFilter(selectObsevationDto);
+    public async countEntities(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<number> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto, deletedRecords);
         return this.observationRepo.countBy(whereOptions)
     }
 
-    private setProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
+    private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): FindOptionsWhere<ObservationEntity> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationIds) {
-            whereOptions.stationId = In(selectObsevationDto.stationIds);
+            whereOptions.stationId = selectObsevationDto.stationIds.length === 1 ? selectObsevationDto.stationIds[0] : In(selectObsevationDto.stationIds);
         }
 
         if (selectObsevationDto.elementIds) {
-            whereOptions.elementId = In(selectObsevationDto.elementIds);
+            whereOptions.elementId = selectObsevationDto.elementIds.length === 1 ? selectObsevationDto.elementIds[0] : In(selectObsevationDto.elementIds);
         }
 
         if (selectObsevationDto.period) {
@@ -129,12 +125,12 @@ export class ObservationsService {
         }
 
         if (selectObsevationDto.sourceIds) {
-            whereOptions.sourceId = In(selectObsevationDto.sourceIds);
+            whereOptions.sourceId = selectObsevationDto.sourceIds.length === 1 ? selectObsevationDto.sourceIds[0] : In(selectObsevationDto.sourceIds);
         }
 
         this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);
 
-        whereOptions.deleted = false;
+        whereOptions.deleted = deletedRecords;
         return whereOptions;
     }
 
@@ -148,9 +144,9 @@ export class ObservationsService {
             }
 
         } else if (selectObsevationDto.fromDate) {
-            dateOperator = MoreThanOrEqual(new Date(selectObsevationDto.fromDate))
+            dateOperator = MoreThanOrEqual(new Date(selectObsevationDto.fromDate));
         } else if (selectObsevationDto.toDate) {
-            dateOperator = LessThanOrEqual(new Date(selectObsevationDto.toDate))
+            dateOperator = LessThanOrEqual(new Date(selectObsevationDto.toDate));
         }
 
         if (dateOperator !== null) {
@@ -320,10 +316,10 @@ export class ObservationsService {
                     entryUserId: userId
                 }).where('station_id = :station_id', { station_id: dto.stationId })
                 .andWhere('element_id = :element_id', { element_id: dto.elementId })
-                .andWhere('source_id = :source_id', { source_id: dto.sourceId })
                 .andWhere('elevation = :elevation', { elevation: dto.elevation })
                 .andWhere('date_time = :date_time', { date_time: dto.datetime })
                 .andWhere('period = :period', { period: dto.period })
+                .andWhere('source_id = :source_id', { source_id: dto.sourceId })
                 .execute();
 
             if (result.affected) {
@@ -341,12 +337,12 @@ export class ObservationsService {
             const result = await this.observationRepo.createQueryBuilder()
                 .delete()
                 .from(ObservationEntity)
-                .where('station_id = :station_id', { key1: dto.stationId })
-                .andWhere('element_id = :element_id', { key2: dto.elementId })
-                .andWhere('source_id = :source_id', { key2: dto.sourceId })
-                .andWhere('elevation = :elevation', { key2: dto.elevation })
-                .andWhere('date_time = :date_time', { key2: dto.datetime })
-                .andWhere('period = :period', { key2: dto.period })
+                .where('station_id = :station_id', { station_id: dto.stationId })
+                .andWhere('element_id = :element_id', { element_id: dto.elementId })
+                .andWhere('elevation = :elevation', { elevation: dto.elevation })
+                .andWhere('date_time = :date_time', { date_time: dto.datetime })
+                .andWhere('period = :period', { period: dto.period })
+                .andWhere('source_id = :source_id', { source_id: dto.sourceId })
                 .execute();
 
             if (result.affected) {

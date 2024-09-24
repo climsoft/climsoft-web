@@ -12,7 +12,7 @@ import { CreateObservationModel } from 'src/app/core/models/observations/create-
 import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
-import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
+import { ObservationDefinition } from '../../../form-entry/defintions/observation.definition';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -22,11 +22,11 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-qc-data',
-  templateUrl: './qc-data.component.html',
-  styleUrls: ['./qc-data.component.scss']
+  selector: 'app-edit-different-observations',
+  templateUrl: './edit-different-observations.component.html',
+  styleUrls: ['./edit-different-observations.component.scss']
 })
-export class QCDataComponent {
+export class EditDifferentObservationsComponent {
 
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
@@ -64,6 +64,10 @@ export class QCDataComponent {
   }
 
 
+  protected onDateToUseSelection(selection: string): void {
+    this.useEntryDate = selection === 'Entry Date';
+  }
+  
   protected onViewClick(): void {
     
   }

@@ -77,8 +77,6 @@ export class DateUtils {
       
         return `${getYear}-${getMonth}-${getDay} ${getHours}:${getMinutes}:${getSeconds}.${getMilliseconds}`;
       }
-      
-
 
       public static getDayFromSQLDate(sqlDate: string): number {
         return Number(sqlDate.substring(8, 10));

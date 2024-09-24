@@ -43,7 +43,9 @@ export class EditDataComponent {
   protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
+  protected enableView: boolean = true;
   protected numOfChanges: number = 0;
+  protected allBoundariesIndices: number[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -51,7 +53,7 @@ export class EditDataComponent {
     private sourcesService: SourcesService,
     private observationService: ObservationsService
   ) {
-    this.pagesDataService.setPageHeader('Manage Data');
+
 
     this.elementService.findAll().pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
@@ -107,8 +109,10 @@ export class EditDataComponent {
     }
 
     this.observationsEntries = [];
-    this.pageInputDefinition.setTotalRowCount(0)
+    this.pageInputDefinition.setTotalRowCount(0);
+    this.enableView = false;
     this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(count => {
+      this.enableView = true;
       this.pageInputDefinition.setTotalRowCount(count);
       if (count > 0) {
         this.loadData();
@@ -120,12 +124,13 @@ export class EditDataComponent {
   protected loadData(): void {
     this.enableSave = false;
     this.numOfChanges = 0;
+    this.allBoundariesIndices = [];
     this.observationsEntries = [];
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
     this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
-      this.observationsEntries = data.map(viewObservationModel => {
+      const observationsEntries = data.map(viewObservationModel => {
         const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
         if (!elementMetadata) {
           throw new Error("Developer error: Element not found.");
@@ -145,9 +150,34 @@ export class EditDataComponent {
 
       });
 
+      this.setRowBoundaryLineSettongs(observationsEntries);
+      this.observationsEntries = observationsEntries;
+
     });
   }
 
+  protected setRowBoundaryLineSettongs(observationsEntries: ObservationEntry[]): void {
+    const obsIdentifierMap = new Map<string, number>();
+
+    for (let i = 0; i < observationsEntries.length; i++) {
+      const obs = observationsEntries[i].obsDef.observation;
+      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.elevation}-${obs.period}-${obs.datetime}`;
+      // Update the map with the latest index for each unique identifier
+      obsIdentifierMap.set(obsIdentifier, i);
+    }
+
+    // set all last occurrence indices as boundaries
+    this.allBoundariesIndices = Array.from(obsIdentifierMap.values());
+    // If length indices array is the same as entries, then no need to show boundaries
+    if (observationsEntries.length === this.allBoundariesIndices.length) {
+      this.allBoundariesIndices = [];
+    }
+  }
+
+
+  protected includeLowerBoundaryLine(index: number): boolean {
+    return this.allBoundariesIndices.includes(index);
+  }
 
   protected asViewObservationModel(observationsDef: ObservationDefinition): ViewObservationModel {
     return (observationsDef.observation as ViewObservationModel);
@@ -170,6 +200,8 @@ export class EditDataComponent {
       default:
         throw new Error("Developer error. Option not supported");
     }
+
+    this.onUserInput();
   }
 
   protected onUserInput() {
@@ -190,7 +222,7 @@ export class EditDataComponent {
   private updatedObservations(): void {
     this.enableSave = false;
     // Create required observation dtos 
-    const changedObs: CreateObservationModel[] = []
+    const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
       // Get observation entries that have not been deleted nor tehir station or or element id changed.
       if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
@@ -235,7 +267,7 @@ export class EditDataComponent {
   private deleteObservations(): void {
     this.enableSave = false;
     // Create required observation dtos 
-    const deletedObs: DeleteObservationModel[] = []
+    const deletedObs: DeleteObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
       if (obsEntry.delete) {
         // Important. Explicitly convert the view model to create model
