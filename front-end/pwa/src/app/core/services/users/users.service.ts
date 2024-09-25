@@ -4,13 +4,14 @@ import { Observable } from 'rxjs';
 import { ViewUserModel } from '../../models/users/view-user.model';
 import { CreateUserModel } from '../../models/users/create-user.model';
 import { ChangePasswordModel } from '../../models/users/change-password.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
 
-  private endPointUrl: string = " http://localhost:3000/users";
+  private endPointUrl: string = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) { }
 

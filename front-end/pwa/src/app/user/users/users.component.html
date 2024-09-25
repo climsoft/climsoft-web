@@ -32,16 +32,17 @@
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="cursor-pointer" *ngFor="let user of users" >
+                <tr class="cursor-pointer" *ngFor="let user of users">
                     <td (click)="onEditUserClick(user)"><i class="bi bi-arrow-right-short"></i></td>
                     <td (click)="onEditUserClick(user)">{{ user.name }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.email }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.phone }}</td>
-                    <td (click)="onEditUserClick(user)">{{ user.role }}</td>
+                    <td (click)="onEditUserClick(user)">{{ getFormattedUserRole(user.role) }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.disabled }}</td>
                     <td>
-                        <button class="btn btn-outline-secondary btn-sm" (click)="passwordChangeDialog.open = true">Change Password</button>
-                        <app-password-change #passwordChangeDialog [userId]="user.id" [userEmail]="user.email"/>         
+                        <button class="btn btn-outline-secondary btn-sm"
+                            (click)="passwordChangeDialog.open = true">Change Password</button>
+                        <app-password-change #passwordChangeDialog [userId]="user.id" [userEmail]="user.email" />
                     </td>
                 </tr>
             </tbody>

@@ -1,11 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { UserRoleEnum } from 'src/app/core/models/users/user-role.enum';
-
-
-interface Role {
-  id: UserRoleEnum;
-  name: string;
-}
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-user-role-single-input',
@@ -19,8 +14,8 @@ export class UserRoleSingleInputComponent {
   @Input() public selectedId!: UserRoleEnum | null;
   @Output() public selectedIdChange = new EventEmitter<UserRoleEnum | null>();
 
-  protected options!: Role[];
-  protected selectedOption!: Role | null;
+  protected options!: UserRoleEnum[];
+  protected selectedOption!: UserRoleEnum | null;
 
   constructor() {
 
@@ -35,16 +30,16 @@ export class UserRoleSingleInputComponent {
 
     //load options once
     if (!this.options) {
-      this.options = this.getRoles();
+      this.options = Object.values(UserRoleEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = this.getRoles().filter(data => this.includeOnlyIds.includes(data.id));
+      this.options = Object.values(UserRoleEnum).filter(item => this.includeOnlyIds.includes(item));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
     if (this.selectedId) {
-      const found = this.options.find(period => period.id === this.selectedId);
+      const found = this.options.find(item => item === this.selectedId);
       if (found && found !== this.selectedOption) {
         //console.log('setting found: ', found)
         this.selectedOption = found;
@@ -54,28 +49,13 @@ export class UserRoleSingleInputComponent {
 
   }
 
-  private getRoles(): Role[] {
-    const roles: Role[] = [];
-    roles.push({ id: UserRoleEnum.ADMINISTRATOR, name: 'Administrator' });
-    roles.push({ id: UserRoleEnum.APPROVER, name: 'Approver' });
-    roles.push({ id: UserRoleEnum.ENTRY_CLERK, name: 'Entry Clerk' });
-    roles.push({ id: UserRoleEnum.VIEWER, name: 'Viewer' }); 
-    return roles;
+
+  protected optionDisplayFunction(option: UserRoleEnum): string {
+    return StringUtils.formatEnumForDisplay(option);
   }
 
-  protected optionDisplayFunction(option: Role): string {
-    return option.name;
-  }
-
-  protected onSelectedOptionChange(selectedOption: Role | null) {
-    //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
-    if (selectedOption) {
-      //this.selectedId = selectedOption.id;
-      this.selectedIdChange.emit(selectedOption.id);
-    } else {
-      //this.selectedId = null;
-      this.selectedIdChange.emit(null);
-    }
-
+  protected onSelectedOptionChange(selectedOption: UserRoleEnum | null) {
+    this.selectedOption = selectedOption;
+    this.selectedIdChange.emit(selectedOption);
   }
 }

@@ -24,7 +24,7 @@ export class ServerTypeInputComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //load options once
     if (!this.options) {
-      this.options = Object.values(ServerTypeEnum);;
+      this.options = Object.values(ServerTypeEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
@@ -43,16 +43,7 @@ export class ServerTypeInputComponent implements OnChanges {
   }
 
   protected optionDisplayFunction(option: ServerTypeEnum): string {
-    let wordToDsiplay: string;
-    const splitWords: string[] = option.split('_');
-    if (splitWords.length > 1) {
-      wordToDsiplay = splitWords.map(word => // Capitalise the first letter of each word
-        (word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      ).join(' ');
-    } else {
-      wordToDsiplay = StringUtils.capitalizeFirstLetter(option) ;
-    }
-    return wordToDsiplay;
+    return StringUtils.formatEnumForDisplay (option);
   }
 
   protected onSelectedOptionChange(selectedOption: ServerTypeEnum | null) {

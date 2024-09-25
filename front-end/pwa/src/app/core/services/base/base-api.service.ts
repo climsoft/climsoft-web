@@ -1,6 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 /**
  * C - create
@@ -12,7 +13,7 @@ export abstract class BaseAPIService<C,U, V> {
   protected readonly endPointUrl: string;
 
   constructor(protected baseHttp: HttpClient, routeEndPoint: string) {
-    this.endPointUrl = `http://localhost:3000/${routeEndPoint}`
+    this.endPointUrl = `${environment.apiUrl}/${routeEndPoint}`
   }
 
   public findAll(): Observable<V[]> {
