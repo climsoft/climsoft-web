@@ -17,13 +17,13 @@ async function bootstrap() {
   app.use(
     session({
       name: 'ssid',
-      secret: 'my-secret',
+      secret: 'climsoft-secret',
       resave: false,
       saveUninitialized: false,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24, // set to 24 hours
         sameSite: false,
-        secure: false //TODO change this to true in production,
+        secure: false //TODO set to true only when using HTTPS
       },
     }),
   );
