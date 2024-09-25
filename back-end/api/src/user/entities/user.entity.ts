@@ -16,20 +16,23 @@ export class UserEntity {
   @Column({ type: "varchar", unique: true })
   phone: string;
 
-  @Column({ type: "varchar" })
-  password: string;
+  @Column({ name: "hashed_password", type: "varchar" })
+  hashedPassword: string;
 
   @Column({ type: "enum", enum: UserRoleEnum})
   role: UserRoleEnum;
 
   @Column({ type: "varchar", array: true, name: "authorised_station_ids", nullable: true })
-  authorisedStationIds: string[] | null;
+  authorisedStationIds: string[] | null; 
+
+  @Column({ name: "can_download_data", type: "boolean", default: false })
+  canDownloadData: boolean;
+
+  @Column({ type: "int", array: true, name: "authorised_element_ids", nullable: true })
+  authorisedElementIds: number[] | null;
 
   @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
   extraMetadata: string | null; //TODO. Structure will be determined later
-
-  @Column({ type: "boolean", default: true })
-  reset: boolean;
 
   @Column({ type: "boolean", default: false })
   disabled: boolean;

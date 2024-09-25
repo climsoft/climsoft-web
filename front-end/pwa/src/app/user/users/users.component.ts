@@ -21,7 +21,7 @@ export class UsersComponent {
 
     this.pagesDataService.setPageHeader('Users');
 
-    this.usersService.getUsers().subscribe(data => {
+    this.usersService.findAll().subscribe(data => {
       this.users = data;
     });
 

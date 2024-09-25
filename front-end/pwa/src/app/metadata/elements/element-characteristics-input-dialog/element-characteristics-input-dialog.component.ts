@@ -38,7 +38,7 @@ export class ElementCharacteristicsInputDialogComponent {
     } else {
       this.title = "New Element";
       this.bNew = true;
-      this.element = { id: 0, abbreviation: '', name: '', description: '', units: '', typeId: 0, typeName: '', lowerLimit: null, upperLimit: null, entryScaleFactor: null, comment: null, subdomainName: '', domain: ElementDomainEnum.ATMOSPHERE };
+      this.element = { id: 0, abbreviation: '', name: '', description: '', units: '', typeId: 0, typeName: '', entryScaleFactor: 0, comment: null, subdomainName: '', domain: ElementDomainEnum.ATMOSPHERE };
     }
 
   }
@@ -58,8 +58,6 @@ export class ElementCharacteristicsInputDialogComponent {
       description: this.element.description,
       units: this.element.units,
       typeId: this.element.typeId,
-      lowerLimit: this.element.lowerLimit,
-      upperLimit: this.element.upperLimit,
       entryScaleFactor: this.element.entryScaleFactor,
       comment: this.element.comment
     }

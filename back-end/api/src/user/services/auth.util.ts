@@ -4,11 +4,12 @@ import { LoggedInUserModel } from 'src/user/model/logged-in-user.model';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { UserRoleEnum } from '../enums/user-roles.enum';
 import { NotFoundException } from '@nestjs/common';
+import { ViewUserDto } from '../dtos/view-user.dto';
 
 
 export class AuthUtil {
 
-    public static createNewSessionUser(request: Request, userEntity: UserEntity): LoggedInUserModel {
+    public static createNewSessionUser(request: Request, userEntity: ViewUserDto): LoggedInUserModel {
         //if user found then set the user session  
         const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? userEntity.authorisedStationIds : null;
         const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0

@@ -14,7 +14,7 @@ export class TextInputComponent implements OnChanges {
   @Input() public type: string = "text";
   @Input() public id!: string | number;
   @Input() public label!: string;
-  @Input() public placeholder: string | null = null;
+  @Input() public placeholder!: string;
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public showChanges: boolean = false;

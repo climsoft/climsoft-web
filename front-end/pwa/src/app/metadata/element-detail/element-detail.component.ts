@@ -36,7 +36,7 @@ export class ElementDetailComponent implements OnInit {
         this.bNew = false;
       });
     } else {
-      this.element = { id: 0, abbreviation: '', name: '', description: '', units: '', typeId: 0, typeName: '', lowerLimit: null, upperLimit: null, entryScaleFactor: null, comment: null, subdomainName: '', domain: ElementDomainEnum.ATMOSPHERE };
+      this.element = { id: 0, abbreviation: '', name: '', description: '', units: '', typeId: 0, typeName: '', entryScaleFactor: 0, comment: null, subdomainName: '', domain: ElementDomainEnum.ATMOSPHERE };
       this.bNew = true;
     }
   }

@@ -1,4 +1,4 @@
-<div *ngIf="user" class="card border-0">
+<div *ngIf="viewUser" class="card border-0">
 
   <div class="card-header d-flex justify-content-between p-0 align-items-center mb-3">
     <div class="fw-bold">Showing user details</div>
@@ -9,40 +9,42 @@
     <div>
 
       <div class="mb-3">
-        <app-text-input [label]="'Name'" [value]="user.name" [(value)]="user.name" />
+        <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
       </div>
 
       <div class="mb-3">
-        <app-text-input [label]="'Email'" [(value)]="user.email" />
+        <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
       </div>
 
       <div class="mb-3">
-        <app-text-input [label]="'Phone'" [(value)]="user.phone" />
+        <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
       </div>
 
       <div class="mb-3">
-        <app-user-role-single-input [label]="'Role'" [selectedId]="user.role"
+        <app-user-role-single-input [label]="'Role'" [selectedId]="viewUser.role"
           (selectedIdChange)="onRoleSelection($event)" />
       </div>
 
       <div *ngIf="userRoleIsNotAdmin">
         <div class="mb-3">
           <app-station-multiple-input [label]="'Authorised stations'" [placeholder]="'All stations'"
-            [selectedIds]="user.authorisedStationIds? user.authorisedStationIds: []"
+            [selectedIds]="viewUser.authorisedStationIds? viewUser.authorisedStationIds: []"
             (selectedIdsChange)="onStationsSelection($event)" />
         </div>
 
         <div class="mb-3">
-          <app-element-multiple-input [label]="'Elements authorised to download data'" />
+          <app-check-box-input [label]="'User can download data'" [(value)]="viewUser.canDownloadData" />
+          <div *ngIf="viewUser.canDownloadData" class="ms-2">
+            <app-element-multiple-input [label]="'Authorised Elements'" [placeholder]="'All elements'"
+              [selectedIds]="viewUser.authorisedElementIds? viewUser.authorisedElementIds : []"
+              (selectedIdsChange)="onElementsSelection($event)" />
+          </div>
         </div>
 
       </div>
 
       <div class="mb-3">
-        <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="validateTotal" [(ngModel)]="user.disabled">
-          <label class="form-check-label" for="validateTotal">Disabled </label>
-        </div>
+        <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
       </div>
 
     </div>
