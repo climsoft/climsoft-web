@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CreateUpdateSourceModel } from '../../models/sources/create-update-source.model';
 import { SourceTypeEnum } from '../../models/sources/source-type.enum';
-import { ViewSourceModel } from '../../models/sources/view-source.model';
 import { BaseNumberAPIService } from '../base/base-number-api.service';
 import { CreateQCTestModel } from '../../models/elements/qc-tests/create-qc-test.model';
 import { UpdateQCTestModel } from '../../models/elements/qc-tests/update-qc-test.model';
+import { QCTestTypeEnum } from '../../models/elements/qc-tests/qc-test-type.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +17,8 @@ export class QCTestsService extends BaseNumberAPIService<CreateQCTestModel, Crea
     super(http, 'qc-tests');
   }
 
-  public findQCTestByType(sourceTypeEnum: SourceTypeEnum): Observable<UpdateQCTestModel[]> {
-    return this.http.get<UpdateQCTestModel[]>(`${this.endPointUrl}/qc-test-type/${sourceTypeEnum}`)
+  public findQCTestByType(qcTestTypeEnum: QCTestTypeEnum): Observable<UpdateQCTestModel[]> {
+    return this.http.get<UpdateQCTestModel[]>(`${this.endPointUrl}/qc-test-type/${qcTestTypeEnum}`)
       .pipe(
         catchError(this.handleError)
       );

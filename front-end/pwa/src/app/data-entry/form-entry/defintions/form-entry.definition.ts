@@ -8,12 +8,13 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { CreateObservationQueryModel } from "src/app/core/models/observations/create-observation-query.model";
 import { ViewSourceModel } from "src/app/core/models/sources/view-source.model";
+import { UpdateQCTestModel } from "src/app/core/models/elements/qc-tests/update-qc-test.model";
+import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
  */
 export class FormEntryDefinition {
-
     public station: ViewStationModel;
     public source: ViewSourceModel;
     public formMetadata: ViewEntryFormModel;
@@ -37,10 +38,14 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationDefinition[] = [];
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
-    constructor(station: ViewStationModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel) {
+    // TODO. later find a way of getting this correctly.
+    private qcTests: UpdateQCTestModel[];
+
+    constructor(station: ViewStationModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, qcTests: UpdateQCTestModel[]) {
         this.station = station;
         this.source = source;
         this.formMetadata = formMetadata;
+        this.qcTests = qcTests;
 
         // Set the selectors values based on defined selectors in the form metadata
         this.elementSelectorValue = formMetadata.selectors.includes('ELEMENT') ? formMetadata.elementIds[0] : null;
@@ -242,13 +247,18 @@ export class FormEntryDefinition {
      * @returns 
      */
     private createNewObsDefinition(observation: CreateObservationModel): ObservationDefinition {
-        const elementMetadata = this.formMetadata.elementsMetadata.find(items => items.id === observation.elementId);
+        const elementMetadata = this.formMetadata.elementsMetadata.find(item => (item.id === observation.elementId));
         if (!elementMetadata) {
             //TODO. Through developer error.
             throw new Error('Developer error: Element metadata NOT found');
         }
 
-        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, this.formMetadata.enforceLimitCheck, true);
+        let rangeThresholdParams: RangeThresholdQCTestParamsModel | undefined = undefined;
+        if (this.formMetadata.enforceLimitCheck) {
+            rangeThresholdParams = this.qcTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
+        }
+
+        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, true, rangeThresholdParams);
     }
 
     private findEquivalentDBObservation(newObs: CreateObservationModel, dbObservations: CreateObservationModel[]): CreateObservationModel | null {
@@ -313,7 +323,7 @@ export class FormEntryDefinition {
     private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
         hour = hour + this.source.utcOffset;
-        const pad = (num: number): string =>  StringUtils.addLeadingZero(num);
+        const pad = (num: number): string => StringUtils.addLeadingZero(num);
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 

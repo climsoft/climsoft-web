@@ -1,4 +1,5 @@
 import { take } from "rxjs";
+import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 import { ViewElementModel } from "src/app/core/models/elements/view-element.model";
 import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
 import { FlagEnum } from "src/app/core/models/observations/flag.enum";
@@ -22,11 +23,7 @@ export class ObservationDefinition {
      * Determines whether to invalidate missing value input
      */
     private allowMissingValues: boolean;
-
-    /**
-     * Determines whether to enforce limit checks or not.
-     */
-    private enforceLimitCheck: boolean
+ 
     /**
      * Determines whether the value input will be scaled or not (using the element entry factor).
      * Also determines whether _valueFlagForDisplay will be ins scaled or unscaled format. 
@@ -44,12 +41,17 @@ export class ObservationDefinition {
      */
     private _validationErrorMessage: string = "";
 
-    constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel, allowMissingValues: boolean, enforceLimitCheck: boolean, scaleValue: boolean) {
+    /**
+     * Determines whether to enforce range threshold checks or not.
+     */
+    private rangeThreshold: RangeThresholdQCTestParamsModel | undefined;
+
+    constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel, allowMissingValues: boolean , scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
         this.allowMissingValues = allowMissingValues;
-        this.enforceLimitCheck = enforceLimitCheck;
         this.scaleValue = scaleValue;
+        this.rangeThreshold = rangeThreshold;
         this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
         this._valueFlagForDisplayDB = this._valueFlagForDisplay;
     }
@@ -123,11 +125,10 @@ export class ObservationDefinition {
         // If there is a value input then validate
         if (value !== null) {
             this._validationErrorMessage = this.checkValueLimitsValidity(value);
-
-            //If enforcement of limits is true and there is an error response then invalidate the observation
-            if (this.enforceLimitCheck && !StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
+            if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
                 return;
-            }
+            }  
+           
         }
 
         // If there is a flag input then validate
@@ -215,16 +216,22 @@ export class ObservationDefinition {
      * @returns empty string if value is valid.
      */
     private checkValueLimitsValidity(value: number): string {
+
+         // If no range thresholds given, then return empty, no need for validations
+         if(!this.rangeThreshold){
+             return '';  
+         }
+
         const element = this.elementMetadata;
         // Get the scale factor to use. An element may not have a scale factor
         const scaleFactor: number = element.entryScaleFactor ? element.entryScaleFactor : 1;
 
-        if (element.lowerLimit && value < element.lowerLimit) {
-            return `Value less than lower limit ${element.lowerLimit * scaleFactor}`;
+        if (value < this.rangeThreshold.lowerThreshold) {
+            return `Value less than lower limit ${this.rangeThreshold.lowerThreshold * scaleFactor}`;
         }
 
-        if (element.upperLimit && value > element.upperLimit) {
-            return `Value higher than upper limit ${element.upperLimit * scaleFactor}`;
+        if (value > this.rangeThreshold.upperThreshold) {
+            return `Value higher than upper limit ${this.rangeThreshold.upperThreshold * scaleFactor}`;
         }
 
         return '';

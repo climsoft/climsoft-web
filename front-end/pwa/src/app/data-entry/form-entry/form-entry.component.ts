@@ -14,6 +14,10 @@ import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { ViewEntryFormModel } from 'src/app/core/models/sources/view-entry-form.model'; 
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
+import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service'; 
+import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
+import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
+import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -44,9 +48,9 @@ export class FormEntryComponent implements OnInit {
       private sourcesService: SourcesService,
       private stationsService: StationsService,
       private observationService: ObservationsService,
+      private qcTestsService: QCTestsService,
       private route: ActivatedRoute,
       private location: Location) {
-
     this.pagesDataService.setPageHeader('Data Entry');
   }
 
@@ -63,8 +67,15 @@ export class FormEntryComponent implements OnInit {
       })
     ).subscribe(sourceData => {
       this.source = sourceData; 
-      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel);
-      this.loadObservations();
+      // TODO. find a way of correctly chaining this.
+      // Get all the range threshold qc's
+      this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD).pipe(take(1)).subscribe(data => {
+        const qcTests: UpdateQCTestModel[] = data.filter(item=> (!item.disabled));
+        this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel, qcTests);
+        this.loadObservations();
+      });
+
+    
     });
   }
 
