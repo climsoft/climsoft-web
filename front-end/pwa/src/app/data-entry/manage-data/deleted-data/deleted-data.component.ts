@@ -140,7 +140,7 @@ export class DeletedDataComponent {
         }
 
         return {
-          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, false),
+          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
           newStationId: '',
           newElementId: 0,
           restore: false,

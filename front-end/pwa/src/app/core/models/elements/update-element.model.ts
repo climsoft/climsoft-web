@@ -5,8 +5,6 @@ export interface UpdateElementModel {
     description: string;
     units: string;
     typeId: number;
-    lowerLimit: number | null;
-    upperLimit: number | null;
-    entryScaleFactor: number | null;
+    entryScaleFactor: number;
     comment: string | null;
 }

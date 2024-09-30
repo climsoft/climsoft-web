@@ -13,7 +13,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   public label!: string;
   
   @Input() 
-  public placeholder: string | null = null;
+  public placeholder!: string ;
 
   @Input()
   public includeCancelOption: boolean = true;

@@ -6,6 +6,8 @@ export interface CreateUserModel{
     phone: string;
     role: UserRoleEnum;   
     authorisedStationIds: string[] | null;
+    canDownloadData: boolean;
+    authorisedElementIds: number[] | null;
     extraMetadata: string | null;
     disabled: boolean;
 }

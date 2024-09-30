@@ -4,24 +4,24 @@ import { RegionTypeEnum } from "../enums/region-types.enum";
 
 @Entity("regions")
 export class RegionsEntity extends AppBaseEntity {
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryColumn({ name: 'id', type: 'int' })
   id: number;
 
-  @Column({ type: 'varchar', unique: true })
+  @Column({  name: 'name', type: 'varchar', unique: true })
   name: string;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: 'description', type: 'varchar' })
   description: string;
 
   // TODO. Later code a transformer to tansform this
-  @Column({ type: 'polygon'})  
+  @Column({ name: 'location', type: 'polygon'})  
   location: string; //@Index({ spatial: true }) // TODO, index this after the move to POSTGIS
 
-  @Column({ type: "enum", enum: RegionTypeEnum, nullable: true })
+  @Column({ name: 'region_type', type: "enum", enum: RegionTypeEnum })
   @Index()
-  typeId: number;
+  regionType: RegionTypeEnum;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ name: 'log',  type: 'jsonb', nullable: true })
   log: BaseLogVo[] | null;
 }
 

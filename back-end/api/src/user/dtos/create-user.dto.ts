@@ -1,5 +1,5 @@
 
-import {IsBoolean, IsEmail, IsEnum, IsOptional, IsString } from "class-validator";
+import {IsBoolean, IsEmail, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 import { UserRoleEnum } from "../enums/user-roles.enum";
 export class CreateUserDto {
     @IsString()
@@ -17,6 +17,13 @@ export class CreateUserDto {
     @IsOptional()
     @IsString({each: true})
     authorisedStationIds: string[] | null;
+
+    @IsBoolean()
+    canDownloadData: boolean;
+
+    @IsOptional()
+    @IsInt({each: true})
+    authorisedElementIds: number[] | null;
 
     @IsOptional()
     @IsString()

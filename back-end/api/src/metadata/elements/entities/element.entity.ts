@@ -36,16 +36,10 @@ export class ElementEntity extends AppBaseEntity {
   elementType: ElementTypeEntity;
   //---------------------------
 
-  @Column({ type: "int", name: "lower_limit", nullable: true })
-  lowerLimit: number | null;
+  @Column({ type: "int", name: "entry_scale_factor", default: 0 })
+  entryScaleFactor: number;
 
-  @Column({ type: "int", name: "upper_limit", nullable: true })
-  upperLimit: number | null;
-
-  @Column({ type: "int", name: "entry_scale_factor", nullable: true })
-  entryScaleFactor: number | null;
-
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: "varchar", nullable: true }) 
   comment: string | null;
 
   @Column({ type: "jsonb", nullable: true })
@@ -59,8 +53,6 @@ export interface ElementLogVo extends BaseLogVo {
   description: string;
   units: string;
   typeId: number;
-  lowerLimit: number | null;
-  upperLimit: number | null;
   entryScaleFactor: number | null;
   comment: string | null;
 }

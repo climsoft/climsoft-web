@@ -7,7 +7,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
 })
 export class SelectorMultipleInputComponent<T> implements OnChanges {
   @Input() public label: string = '';
-  @Input() public placeholder: string | null = null;
+  @Input() public placeholder!: string;
   @Input() public errorMessage: string = '';
   @Input() public options: T[] = [];
   @Input() public selectedOptions: T[] = [];

@@ -78,7 +78,7 @@ export class AuthService {
     let errorMessage: string = 'An unknown error occurred. Please try again later.';
     if (error.error && error.error.message) {
       switch (error.error.message) {
-        case 'INVALID_CREDENTIALS':
+        case 'invalid_credentials':
           errorMessage = 'Wrong email or password';
       }
     }

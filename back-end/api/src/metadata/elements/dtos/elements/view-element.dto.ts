@@ -1,6 +1,4 @@
 import { ElementDomainEnum } from "./element-domain.enum";
-
-
 export class ViewElementDto {
     id: number;
     name: string;
@@ -11,8 +9,6 @@ export class ViewElementDto {
     typeName: string;
     subdomainName: string;
     domain: ElementDomainEnum;
-    lowerLimit: number | null;
-    upperLimit: number | null;
-    entryScaleFactor: number | null;
+    entryScaleFactor: number;
     comment: string | null;
 }

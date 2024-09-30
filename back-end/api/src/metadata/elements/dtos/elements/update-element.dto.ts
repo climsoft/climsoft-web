@@ -17,17 +17,8 @@ export class UpdateElementDto {
     @IsInt()
     typeId: number;
 
-    @IsOptional()
     @IsInt()
-    lowerLimit: number | null;
-
-    @IsOptional()
-    @IsInt()
-    upperLimit: number | null;
-
-    @IsOptional()
-    @IsInt()
-    entryScaleFactor: number | null;
+    entryScaleFactor: number;
 
     @IsOptional()
     @IsString()

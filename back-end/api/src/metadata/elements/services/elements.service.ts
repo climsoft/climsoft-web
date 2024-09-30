@@ -97,8 +97,6 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
             description: entity.description,
             units: entity.units,
             typeId: entity.typeId,
-            lowerLimit: entity.lowerLimit,
-            upperLimit: entity.upperLimit,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
             entryUserId: entity.entryUserId,
@@ -113,8 +111,6 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
             description: dto.description,
             units: dto.units,
             typeId: dto.typeId,
-            lowerLimit: dto.lowerLimit,
-            upperLimit: dto.upperLimit,
             entryScaleFactor: dto.entryScaleFactor,
             comment: dto.comment,
             entryUserId: userId,
@@ -130,9 +126,7 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
         entity.name = dto.name;
         entity.description = dto.description;
         entity.units = dto.units;
-        entity.typeId = dto.typeId
-        entity.lowerLimit = dto.lowerLimit;
-        entity.upperLimit = dto.upperLimit;
+        entity.typeId = dto.typeId;
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
@@ -168,8 +162,6 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
             typeName: entity.elementType.name,
             subdomainName: entity.elementType.elementSubdomain.name,
             domain: entity.elementType.elementSubdomain.domain,
-            lowerLimit: entity.lowerLimit,
-            upperLimit: entity.upperLimit,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
         }

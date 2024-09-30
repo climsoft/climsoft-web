@@ -6,8 +6,6 @@ export interface ViewElementModel extends CreateElementModel{
   typeName: string;
   subdomainName: string;
   domain: ElementDomainEnum;
-  lowerLimit: number| null;
-  upperLimit: number| null;
-  entryScaleFactor: number| null;
+  entryScaleFactor: number;
   comment: string | null; 
 }

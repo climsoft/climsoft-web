@@ -12,7 +12,7 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public errorMessage!: string;
-  @Input() public placeholder: string | null = null;
+  @Input() public placeholder!: string;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: string | null;
   @Output() public selectedIdChange = new EventEmitter<string>();

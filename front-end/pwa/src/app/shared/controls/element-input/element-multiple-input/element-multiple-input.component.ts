@@ -10,6 +10,7 @@ import { ElementsService } from 'src/app/core/services/elements/elements.service
 })
 export class ElementMultipleInputComponent implements OnInit, OnChanges {
   @Input() public label: string = 'Element';
+  @Input() public placeholder!: string ;
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds: number[]=[];
   @Input() public selectedIds: number[]=[];
