@@ -1,7 +1,9 @@
 
 services:
   climsoft_pwa:
-    image: patowiz/climsoft-pwa
+    build:
+      context: ./front-end/pwa
+      dockerfile: Dockerfile
     container_name: climsoft-pwa
     restart: always
     ports:
@@ -12,7 +14,9 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: patowiz/climsoft-api
+    build:
+      context: ./back-end/api
+      dockerfile: Dockerfile
     container_name: climsoft-api
     restart: always
     environment:
@@ -20,7 +24,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-my_user}
       DB_PASSWORD: ${DB_PASSWORD:-my_password}
       DB_PORT: 5432      
-      DB_NAME: climsoft
+      DB_NAME: ${DB_NAME:-climsoft}
     ports:
       - "3000:3000"
     depends_on:
