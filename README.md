@@ -4,7 +4,6 @@
 Climsoft Web is a comprehensive web application featuring both frontend and backend components. The frontend is developed with Angular, while the backend leverages NestJS and PostgreSQL for a robust, full-stack solution.
 
 ## Development Deployment Guide
-
 To deploy the Climsoft Web application for development purposes, follow these steps:
 
 ### Prerequisites
@@ -22,9 +21,9 @@ To deploy the Climsoft Web application for development purposes, follow these st
    ```
 
 2. **Start PostgreSQL**:
-   Within the cloned repository directory, execute the following command to initialize the PostgreSQL container:
+   Within the cloned repository directory, execute the following command to initialise the PostgreSQL container:
    ```bash
-   docker-compose -f docker-compose.dev.yaml up
+   docker-compose -f docker-compose-1.dev.yaml up
    ```
 
 3. **Backend API Setup**:
@@ -34,9 +33,6 @@ To deploy the Climsoft Web application for development purposes, follow these st
    ```
    ```bash
    nest start --watch
-   ```
-   ```bash
-   npx typeorm migration:run -d dist/typeorm.config.js
    ```
 
 4. **Frontend Setup**:
@@ -52,7 +48,6 @@ To deploy the Climsoft Web application for development purposes, follow these st
    Open a web browser and go to `http://localhost:4200/` to view the application.
 
 ## Testing Deployment Guide
-
 For testing deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
 
 ### Prerequisites
@@ -68,11 +63,46 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
    git clone https://github.com/climsoft/climsoft-web.git
    ```
 
-2. **Initialize Containers**:
-   Within the cloned repository directory, execute the following command to initialize the PWA, API and PostgreSQL containers:
+2. **Initialise Containers**:
+   Within the cloned repository directory, execute the following command to initialise the PWA, API and PostgreSQL containers:
    ```bash
-   docker-compose -f docker-compose.dev.yaml up
+   docker-compose -f docker-compose-2.dev.yaml up
    ```
 
 3. **Access the Application**:
-   Navigate to `http://localhost:80/` in your web browser to interact with the application.
+   Navigate to `http://localhost:4200/` in your web browser to interact with the application.
+
+4. **Stopping the Application**:
+   Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
+   ```bash
+   docker-compose -f docker-compose-2.dev.yaml down
+   ```
+
+## Production Deployment Guide
+For production deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
+
+### Prerequisites
+- Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
+- Activate the Docker engine using the Docker Desktop application.
+
+### Setup
+1. **Download required files**:
+   Download [docker-compose.prod.yaml](https://docs.docker.com/get-docker/) and [.env](https://docs.docker.com/engine/install/) files.
+   
+2. **Edit .env file**
+   Replace the contents of the file with your specific settings.
+   
+3. **Initialise Containers**:
+   Within the cloned repository directory, execute the following command to initialise the PWA, API and PostgreSQL containers:
+   ```bash
+   docker-compose -f docker-compose.prod.yaml up
+   ```
+
+4. **Access the Application**:
+   Navigate to `http://localhost:4200/` in your web browser to interact with the application.
+
+5. **Stopping the Application**:
+   Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
+   ```bash
+   docker-compose -f docker-compose.prod.yaml down
+   ```
