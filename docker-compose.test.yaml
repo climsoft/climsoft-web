@@ -43,12 +43,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - climsoft_data:/var/lib/postgresql/data
+      - climsoft_test_data:/var/lib/postgresql/data
     networks:
       - climsoft_network
 
 volumes:
-  climsoft_data:
+  climsoft_test_data:
 
 networks:
   climsoft_network:
