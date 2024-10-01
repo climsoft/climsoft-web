@@ -23,7 +23,7 @@ To deploy the Climsoft Web application for development purposes, follow these st
 2. **Start PostgreSQL**:
    Within the cloned repository directory, execute the following command to initialise the PostgreSQL container:
    ```bash
-   docker-compose -f docker-compose-1.dev.yaml up
+   docker-compose -f docker-compose.dev.yaml up
    ```
 
 3. **Backend API Setup**:
@@ -66,7 +66,7 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
 2. **Initialise Containers**:
    Within the cloned repository directory, execute the following command to initialise the PWA, API and PostgreSQL containers:
    ```bash
-   docker-compose -f docker-compose-2.dev.yaml up
+   docker-compose -f docker-compose.test.yaml up
    ```
 
 3. **Access the Application**:
@@ -75,7 +75,7 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
 4. **Stopping the Application**:
    Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
    ```bash
-   docker-compose -f docker-compose-2.dev.yaml down
+   docker-compose -f docker-compose.test.yaml down
    ```
 
 ## Production Deployment Guide
@@ -87,7 +87,7 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
 
 ### Setup
 1. **Download required files**:
-   Download [docker-compose.prod.yaml](https://docs.docker.com/get-docker/) and [.env](https://docs.docker.com/engine/install/) files.
+   Download [docker-compose.prod.yaml](https://github.com/climsoft/climsoft-web/blob/main/docker-compose.prod.yaml) and [.env](https://github.com/climsoft/climsoft-web/blob/main/.env) files. 
    
 2. **Edit .env file**
    Replace the contents of the file with your specific settings.
