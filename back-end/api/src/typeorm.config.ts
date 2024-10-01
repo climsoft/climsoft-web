@@ -22,11 +22,11 @@ export default new DataSource({
   database: process.env.DB_NAME ? process.env.DB_NAME : "climsoft",
   entities: [],
   migrations: [
-    SeedElementSubdomains1710833102997, 
-    SeedElementTypes1710833156699, 
-    SeedElements1710833167092,
-    SeedObservationEnvironments1711195885141,
-    SeedObservationFocuses1711196308488,
+    //SeedElementSubdomains1710833102997, 
+    //SeedElementTypes1710833156699, 
+    //SeedElements1710833167092,
+    //SeedObservationEnvironments1711195885141,
+    //SeedObservationFocuses1711196308488,
     ObservationTriggers1721359627445
   ],
 }); 

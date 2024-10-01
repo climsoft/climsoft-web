@@ -25,7 +25,7 @@ export class ObservationsController {
  
   @Get('/count')
   count(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.countEntities(viewObsevationQuery,false);
+    return this.observationsService.count(viewObsevationQuery,false);
   }
 
   @Get('/deleted')
@@ -35,7 +35,7 @@ export class ObservationsController {
  
   @Get('/count-deleted')
   countDeleted(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.countEntities(viewObsevationQuery,true);
+    return this.observationsService.count(viewObsevationQuery,true);
   }
 
   @Get('/raw')

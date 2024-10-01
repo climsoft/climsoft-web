@@ -12,6 +12,10 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
     constructor(@InjectRepository(UserEntity) private userRepo: Repository<UserEntity>) { }
 
+    public async count(): Promise<number> {
+        return this.userRepo.count()
+    }
+
     public async findAll(): Promise<ViewUserDto[]> {
         const userEntities = await this.userRepo.find(
             {

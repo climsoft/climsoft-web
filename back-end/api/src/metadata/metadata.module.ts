@@ -32,6 +32,7 @@ import { ElementsService } from './elements/services/elements.service';
 import { QCTestEntity } from './elements/entities/qc-test.entity';
 import { QCTestsController } from './elements/controllers/qc-tests.controller';
 import { QCTestsService } from './elements/services/qc-tests.service';
+import { SeedMetadataService } from './seed-metadata.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -69,7 +70,8 @@ import { QCTestsService } from './elements/services/qc-tests.service';
         StationsService,
         StationElementsService,
         StationFormsService,
-        QCTestsService
+        QCTestsService,
+        SeedMetadataService
     ],
 
     // TODO. Check if these need to be exported
@@ -81,6 +83,7 @@ import { QCTestsService } from './elements/services/qc-tests.service';
         StationsService,
         StationElementsService,
         StationFormsService,
-        QCTestsService]
+        QCTestsService,
+        SeedMetadataService]
 })
 export class MetadataModule { }

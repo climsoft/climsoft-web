@@ -100,9 +100,9 @@ export class ObservationsService {
         return this.observationRepo.find(findOptions);
     }
 
-    public async countEntities(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<number> {
+    public async count(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<number> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto, deletedRecords);
-        return this.observationRepo.countBy(whereOptions)
+        return this.observationRepo.countBy(whereOptions);
     }
 
     private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): FindOptionsWhere<ObservationEntity> {

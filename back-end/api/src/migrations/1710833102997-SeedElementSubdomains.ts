@@ -5,29 +5,28 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 export class SeedElementSubdomains1710833102997 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        const sql = `
-        INSERT INTO element_subdomains (id, name,description, domain) VALUES 
-        
-        (1, 'Surface', '', 'atmosphere' ),
-        (2, 'Upper-air', '', 'atmosphere'),
-        (3, 'Atmospheric Composition', '', 'atmosphere'),
-
-        (4, 'Hydrosphere', '', 'land'),
-        (5, 'Cryosphere', '', 'land'),
-        (6, 'Biosphere', '', 'land'),
-        (7, 'Anthroposphere', '', 'land'),
-
-        (8, 'Physical', '', 'ocean'),
-        (9, 'Biogeochemical', '', 'ocean'),
-        (10, 'Biological/ecosystems', '', 'ocean')
-        `;
-
-        await queryRunner.query(sql);
-
+        await queryRunner.query(SeedElementSubdomains1710833102997.INSERT_ELEMENT_SQL);
     }
 
-    public async down(queryRunner: QueryRunner): Promise<void> { 
+    public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query("DELETE FROM element_subdomains")
     }
+
+    public static INSERT_ELEMENT_SQL = `
+    INSERT INTO element_subdomains (id, name,description, domain) VALUES 
+    
+    (1, 'Surface', '', 'atmosphere' ),
+    (2, 'Upper-air', '', 'atmosphere'),
+    (3, 'Atmospheric Composition', '', 'atmosphere'),
+
+    (4, 'Hydrosphere', '', 'land'),
+    (5, 'Cryosphere', '', 'land'),
+    (6, 'Biosphere', '', 'land'),
+    (7, 'Anthroposphere', '', 'land'),
+
+    (8, 'Physical', '', 'ocean'),
+    (9, 'Biogeochemical', '', 'ocean'),
+    (10, 'Biological/ecosystems', '', 'ocean')
+    `;
 
 }
