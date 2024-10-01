@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - climsoft_test_data:/var/lib/postgresql/data
+      - climsoft_dev_data:/var/lib/postgresql/data
 
 volumes:
-  climsoft_test_data:
+  climsoft_dev_data:
