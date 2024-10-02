@@ -46,6 +46,7 @@ import { ServerTypeInputComponent } from './controls/server-type-input/server-ty
 import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
+import { RegionTypeInputComponent } from './controls/region-type-input/region-type-input.component';
 
 //--------------------------------
   
@@ -100,6 +101,7 @@ const controlsComponents = [
   FlagSingleInputComponent,
   PageInputComponent,
   DropDownContainerComponent, 
+  RegionTypeInputComponent
 
 ];
 

@@ -200,7 +200,7 @@ export class ObservationsService {
             throw new NotFoundException('Observation not found');
         }
 
-        console.log("entity log: ", entity.log, " type of: ", typeof entity.log);
+        //console.log("entity log: ", entity.log, " type of: ", typeof entity.log);
 
         let log: ViewObservationLogDto[] = [];
 

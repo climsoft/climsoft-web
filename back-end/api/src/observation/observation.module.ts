@@ -8,9 +8,10 @@ import { MetadataModule } from 'src/metadata/metadata.module';
 import { UserModule } from 'src/user/user.module';
 import { SourceCheckController } from './controllers/source-check.controller';
 import { SourceCheckService } from './services/source-check.service';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ObservationEntity]),  UserModule, MetadataModule],
+  imports: [TypeOrmModule.forFeature([ObservationEntity]), SharedModule, UserModule, MetadataModule],
   controllers: [ObservationsController, SourceCheckController],
   providers: [ObservationsService,  ObservationUploadService, SourceCheckService]
 })

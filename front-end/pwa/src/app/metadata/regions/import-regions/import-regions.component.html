@@ -1,0 +1,36 @@
+<div class="card border-0">
+
+  <div class="card-header d-flex px-1 py-0 flex-column">
+   <div class="mt-1">
+    <app-region-type-input [label]="'Select Region Type'" [(selectedId)]="selectedRegionType"/>
+   </div>
+   <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
+    <div>
+      Select File to Upload (GADM GeoJSON)
+    </div>
+    <div>
+      <input #fileUpload type="file" style="display: none;" [accept]="'application/json'" (change)="onFileSelected($event)">
+      <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload" (click)="fileUpload.click()">
+        Upload File
+      </button>
+    </div>
+   </div>
+  </div>
+
+  <div class="card-body">
+    <div class="d-flex flex-column align-items-center" style="min-height:200px; background-color:#e0f7fa;"> 
+      <div class="mt-4" [class.text-danger]="uploadError">
+        {{ uploadMessage }}
+      </div>
+
+      <div class="mt-4 px-4 w-100" *ngIf="showUploadProgress">
+        <div  class="progress">
+          <div class="progress-bar progress-bar-striped" style="width: 100%" [style.width.%]="uploadProgress">
+            {{ uploadProgress === 100? 'Processing...': uploadProgress + '%'}}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

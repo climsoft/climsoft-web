@@ -26,30 +26,36 @@ import { StationObsFocusesController } from './stations/controllers/station-obs-
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
 import { SourcesService } from './sources/services/sources.service';
-import { RegionsEntity } from './regions/entities/region.entity';
+import { RegionEntity } from './regions/entities/region.entity';
 import { SourceEntity } from './sources/entities/source.entity';
 import { ElementsService } from './elements/services/elements.service';
 import { QCTestEntity } from './elements/entities/qc-test.entity';
 import { QCTestsController } from './elements/controllers/qc-tests.controller';
 import { QCTestsService } from './elements/services/qc-tests.service';
 import { SeedMetadataService } from './seed-metadata.service';
+import { RegionsController } from './regions/controllers/regions.controller';
+import { RegionsService } from './regions/services/regions.service';
+import { SharedModule } from 'src/shared/shared.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([
+    imports: [
+        TypeOrmModule.forFeature([
         ElementSubdomainEntity,
         ElementTypeEntity,
         ElementEntity,
         SourceEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
-        RegionsEntity,
+        RegionEntity,
         StationObsEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,
         StationElementEntity,
         StationFormEntity,
         QCTestEntity
-    ]), UserModule],
+    ]),
+        SharedModule,
+        UserModule],
     controllers: [
         ElementsController,
         ElementTypesController,
@@ -60,7 +66,8 @@ import { SeedMetadataService } from './seed-metadata.service';
         StationsController,
         StationElementsController,
         StationFormsController,
-        QCTestsController
+        QCTestsController,
+        RegionsController
     ],
     providers: [
         ElementsService,
@@ -71,6 +78,7 @@ import { SeedMetadataService } from './seed-metadata.service';
         StationElementsService,
         StationFormsService,
         QCTestsService,
+        RegionsService,
         SeedMetadataService
     ],
 
@@ -84,6 +92,7 @@ import { SeedMetadataService } from './seed-metadata.service';
         StationElementsService,
         StationFormsService,
         QCTestsService,
+        RegionsService,
         SeedMetadataService]
 })
 export class MetadataModule { }

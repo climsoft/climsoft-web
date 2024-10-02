@@ -1,0 +1,18 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
+    <div class="fw-bold">Showing Regions</div>
+    <div class="mb-1 d-flex">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
+        Search
+      </button>
+      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Import']" (dropDownOptionClick)="onImportRegion()"
+        [translateX]="true"/>
+    </div>
+  </div>
+
+  <div class="card-body px-0">
+    <app-table-view 
+      [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'regionType', name: 'Type'}, {id: 'description', name: 'Description'} ]"
+      [rowsData]="regions"  />
+  </div>
+</div>

@@ -2,23 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
-import { FlagEnum } from '../enums/flag.enum'; 
+import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
-import * as fs from 'node:fs/promises';
+//import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { Database } from "duckdb-async";
 import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
 import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
+import { FileUploadService } from 'src/shared/services/file-upload.service';
 
 
 
 @Injectable()
 export class ObservationUploadService {
-    private db: Database;
-    private tempFilesFolderPath: string;
     // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
     private readonly STATION_ID_PROPERTY_NAME: keyof CreateObservationDto = "stationId";
     private readonly ELEMENT_ID_PROPERTY_NAME: keyof CreateObservationDto = "elementId";
@@ -31,51 +29,19 @@ export class ObservationUploadService {
     private readonly COMMENT_PROPERTY_NAME: keyof CreateObservationDto = "comment";
 
     constructor(
+        private fileUploadService: FileUploadService,
         private sourcesService: SourcesService,
         private observationsService: ObservationsService,
         private elementsService: ElementsService,
-    ) {
-        this.setupDuckDB();
-        this.setupFolder();
-    }
-
-    async setupDuckDB() {
-        this.db = await Database.create(":memory:");
-    }
-
-    async setupFolder(): Promise<void> {
-        this.tempFilesFolderPath = path.resolve('./tmp');
-        // For windows platform, replace the backslashes with forward slashes.
-        this.tempFilesFolderPath = this.tempFilesFolderPath.replaceAll("\\", "\/");
-        // Check if the temporary directory exist. 
-        try {
-            await fs.access(this.tempFilesFolderPath, fs.constants.F_OK)
-        } catch (err1) {
-            // If it doesn't create the directory.
-            try {
-                await fs.mkdir(this.tempFilesFolderPath);
-            } catch (err2) {
-                console.error("Could not create temporary folder: ", err2);
-                // TODO. Throw appropriiate error.
-                throw new Error("Could not create temporary folder: " + err2);
-            }
-
-        }
-
-    }
-
+    ) { }
 
     async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
 
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
-        const newFileName: string = `${this.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
+        const newFileName: string = `${this.fileUploadService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
         // Save the file to the temporary directory
-        try {
-            await fs.writeFile(`${newFileName}`, file.buffer);
-        } catch (err) {
-            throw new Error("Could not save user file: " + err);
-        }
+        await this.fileUploadService.saveFile(file, newFileName);
 
         // Get the source definition using the source id
         const sourceDef = await this.sourcesService.find(sourceId);
@@ -88,14 +54,7 @@ export class ObservationUploadService {
             throw new Error("Source not supported yet");
         }
 
-        try {
-            // Delete the file.
-            // TODO. Investigate why sometimes the file is not deleted. Node puts a lock on it.
-            await fs.unlink(newFileName);
-        } catch (err) {
-            //throw new Error("Could not delete user file: " + err);
-            console.error("Could not delete user file: " + err)
-        }
+        await this.fileUploadService.deleteFile(newFileName);
     }
 
     private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
@@ -103,7 +62,7 @@ export class ObservationUploadService {
             const sourceId: number = sourceDef.id;
             const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
             const tabularDef: CreateImportTabularSourceDTO = importDef.importParameters as CreateImportTabularSourceDTO;
-           
+
 
             const tableName: string = path.basename(fileName, path.extname(fileName));
             const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
@@ -113,7 +72,7 @@ export class ObservationUploadService {
 
             // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
             // TODO. Should we create a temporary table, will it have any significance?
-            await this.db.exec(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
+            await this.fileUploadService.duckDb.exec(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
 
             let alterSQLs: string;
             // Rename all columns to use the expected suffix column indices
@@ -126,7 +85,7 @@ export class ObservationUploadService {
             alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tableName, stationId);
             alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(tabularDef, tableName);
             alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(tabularDef, tableName);
-            alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef,tabularDef, tableName);
+            alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tableName);
             alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tableName);
             // Note, it is important for the element and value alterations to be last because for multiple elements option, 
             // the column positions are changed when stacking the data into a single element column.
@@ -136,19 +95,19 @@ export class ObservationUploadService {
 
             let startTime = new Date().getTime();
             // Execute the duckdb DDL SQL commands
-            await this.db.exec(alterSQLs);
+            await this.fileUploadService.duckDb.exec(alterSQLs);
             console.log("DuckDB alters took: ", new Date().getTime() - startTime);
 
             if (importDef.scaleValues) {
                 startTime = new Date().getTime();
                 // Scale values if indicated, execute the scale values SQL
-                await this.db.exec(await this.getScaleValueSQL(tableName));
+                await this.fileUploadService.duckDb.exec(await this.getScaleValueSQL(tableName));
                 console.log("DuckDB scaling took: ", new Date().getTime() - startTime);
             }
 
             startTime = new Date().getTime();
             // Get the rows of the columns that match the dto properties
-            const rows = await this.db.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.ELEVATION}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.PERIOD_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tableName};`);
+            const rows = await this.fileUploadService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.ELEVATION}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.PERIOD_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tableName};`);
             console.log("DuckDB fetch rows took: ", new Date().getTime() - startTime);
 
             try {
@@ -160,7 +119,7 @@ export class ObservationUploadService {
             }
 
             // Delete the table 
-            await this.db.run(`DROP TABLE ${tableName};`);
+            await this.fileUploadService.duckDb.run(`DROP TABLE ${tableName};`);
         } catch (error) {
             console.error("File Import Failed: " + error)
             throw new Error("File Import Failed: " + error);
@@ -172,7 +131,7 @@ export class ObservationUploadService {
         // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'. 
         // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
 
-        const sourceColumnNames: string[] = (await this.db.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
+        const sourceColumnNames: string[] = (await this.fileUploadService.duckDb.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
         let sql: string = "";
         for (let i = 0; i < sourceColumnNames.length; i++) {
             sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
@@ -203,7 +162,7 @@ export class ObservationUploadService {
         return sql;
     }
 
-    private getAlterElementAndValueColumnSQL(sourceDef: ViewSourceDto,importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterElementAndValueColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
         if (tabularDef.elementAndValueDefinition.noElement) {
             const noElement = tabularDef.elementAndValueDefinition.noElement
@@ -345,7 +304,7 @@ export class ObservationUploadService {
         return sql;
     }
 
-    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto,importDef: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
         if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
             // Rename the date time column
@@ -390,7 +349,7 @@ export class ObservationUploadService {
     }
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
-        const elementIdsToScale: number[] = (await this.db.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
+        const elementIdsToScale: number[] = (await this.fileUploadService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
         const elements: ViewElementDto[] = await this.elementsService.findSome(elementIdsToScale);
         let scalingSQLs: string = ""
         for (const element of elements) {

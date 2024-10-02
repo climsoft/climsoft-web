@@ -70,7 +70,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         },
         {
           name: 'Regions',
-          url: '/regions',
+          url: '/view-regions',
           featureTitle: 'Regions'
         }
       ]

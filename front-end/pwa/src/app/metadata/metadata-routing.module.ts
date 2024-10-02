@@ -8,6 +8,8 @@ import { SourcesComponent } from './sources-components/sources/sources.component
 import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
 import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component';
+import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
+import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
 
 
 const routes: Routes = [
@@ -54,7 +56,14 @@ const routes: Routes = [
         path: 'import-station',
         component: ImportStationComponent
       },
-   
+      {
+        path: 'view-regions',
+        component: ViewRegionsComponent
+      },
+      {
+        path: 'import-regions',
+        component: ImportRegionsComponent
+      }  
      
     ]
   }

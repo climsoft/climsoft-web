@@ -1,10 +1,10 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, Point, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
 import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";
-import { PointDTO } from "src/shared/dtos/point.dto";
+
 import { PointColumnTransformer } from "src/shared/column-transformers/point-transformer";
 
 @Entity("stations")
@@ -21,8 +21,9 @@ export class StationEntity extends AppBaseEntity {
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.
   // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
-  @Column({ name: "location", type: 'point', transformer: new PointColumnTransformer() })
-  location: PointDTO; //@Index({ spatial: true }) // TODO, later it may be important to index this after the move to POSTGIS, when dealing with many stations 
+  @Column({ name: "location", type: 'point' })
+  @Index({ spatial: true })
+  location: Point;
 
   @Column({ type: 'float' })
   @Index()
@@ -64,15 +65,11 @@ export class StationEntity extends AppBaseEntity {
   obsFocus: StationObsFocusEntity | null;
   //---------------
 
-  //TODO. implement based on koppen climate classification.
-  @Column({ name: "climate_zone_id", type: "int", nullable: true })
-  climateZoneId: number | null;
-
   // TODO. Relationship and the organisations table
   @Column({ name: "organisation_id", type: "int", nullable: true })
   organisationId: number | null; // name of organisation that owns the station.
 
-  // TODO. Relation and the affilition table
+  // TODO. Relationship and the affilition table
   @Column({ name: "network_affiliation_id", type: 'int', nullable: true })
   networkAffiliationId: number | null; // network affiliation that the station shares data with.
 
@@ -86,9 +83,9 @@ export class StationEntity extends AppBaseEntity {
   icaoId: string | null;
 
   // TODO
-  @Column({ name: "time_zone", type: 'int', nullable: true })
-  @Index()
-  timeZone: number | null;
+  //@Column({ name: "time_zone", type: 'int', nullable: true })
+  //@Index()
+  //timeZone: number | null;
 
   @Column({ name: "status", type: "enum", enum: StationStatusEnum, nullable: true })
   @Index()
