@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
 import { FileUploadService } from 'src/shared/services/file-upload.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
+import { ViewRegionDto } from '../dtos/view-region.dto';
 
 // TODO refactor this service later
 
@@ -11,12 +12,11 @@ import { RegionTypeEnum } from '../enums/region-types.enum';
 export class RegionsService {
 
     constructor(
-        private fileUploadService: FileUploadService,
-        @InjectRepository(RegionEntity) private readonly regionsRepo: Repository<RegionEntity>
+        @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
+        private fileUploadService: FileUploadService     
     ) { }
 
-
-    public async find(id: number): Promise<RegionEntity> {
+    private async findEntity(id: number): Promise<RegionEntity> {
         const entity = await this.regionsRepo.findOneBy({
             id: id,
         });
@@ -27,8 +27,13 @@ export class RegionsService {
         return entity;
     }
 
+    public async find(id: number): Promise<ViewRegionDto> {
+        const entity = await this.findEntity(id);
+        return this.getViewRegionDto(entity);
+    }
 
-    public async findAll(selectOptions?: FindOptionsWhere<RegionEntity>): Promise<RegionEntity[]> {
+
+    public async findAll(selectOptions?: FindOptionsWhere<RegionEntity>): Promise<ViewRegionDto[]> {
         const findOptions: FindManyOptions<RegionEntity> = {
             order: {
                 id: "ASC"
@@ -39,12 +44,14 @@ export class RegionsService {
             findOptions.where = selectOptions;
         }
 
-        return this.regionsRepo.find(findOptions);
+        return (await this.regionsRepo.find(findOptions)).map(entity => {
+            return this.getViewRegionDto(entity);
+        });
     }
 
 
 
-    public async extractAndsaveRegions(regionType: RegionTypeEnum,file: Express.Multer.File, userId: number): Promise<RegionEntity[]> {
+    public async extractAndsaveRegions(regionType: RegionTypeEnum,file: Express.Multer.File, userId: number) {
         const filePathName: string = `${this.fileUploadService.tempFilesFolderPath}/user_${userId}_regions_upload_${new Date().getTime()}.json`;
 
         // Save the file to the temporary directory
@@ -72,22 +79,30 @@ export class RegionsService {
             entity.regionType = regionType; // Replace with appropriate region type
             entity.boundary = region.geometry;
             entity.entryUserId = userId;
-            
+
             regionsToSave.push(entity);
         }
 
-        
-
         this.fileUploadService.deleteFile(filePathName);
 
-        return await this.regionsRepo.save(regionsToSave);
+     await this.regionsRepo.save(regionsToSave);
     }
 
 
     public async delete(id: number): Promise<number> {
-        const regionEntity = await this.find(id);
-        await this.regionsRepo.remove(regionEntity);
+        const entity = await this.findEntity(id);
+        await this.regionsRepo.remove(entity);
         return id;
     }
+
+private getViewRegionDto(entity: RegionEntity): ViewRegionDto{
+    return {
+        id: entity.id,
+        name: entity.name,
+        description: entity.description,
+        regionType: entity.regionType,
+        boundary: entity.boundary.coordinates
+    };
+}
 
 }

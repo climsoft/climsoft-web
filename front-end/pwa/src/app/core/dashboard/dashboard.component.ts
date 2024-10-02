@@ -1,76 +1,119 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
-import { Observable } from 'rxjs';
+import { take } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
+import { StationsService } from '../services/stations/stations.service';
+import { RegionsService } from '../services/regions/regions.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit, AfterViewInit {
+export class DashboardComponent implements AfterViewInit {
 
-  private map: any;
+  private dashboardMap: any;
 
-  constructor( private pagesDataService: PagesDataService, private http: HttpClient) {
+  constructor(
+    private pagesDataService: PagesDataService,
+    private stationsService: StationsService,
+    private regionsService: RegionsService) {
 
     this.pagesDataService.setPageHeader('Dashboard');
-    
 
-  }
 
-private  getGeoJSONData(url: string): Observable<any> {
-    return this.http.get(url);
-  }
-
- 
-
-  ngOnInit(): void {
-    //this.initMap();
   }
 
   ngAfterViewInit(): void {
-
-    this.getGeoJSONData('http://localhost:3000/file').subscribe(  data => {
-      console.log('GeoJSON data loaded successfully:', data);
-      this.initMap(data);
-    }
-  );
-   
+    this.initMap();
+    this.addStationsToMap();
+    //this.addregionsToMap();
   }
 
-  private initMap(geojsonData : any): void {
-    this.map = L.map('map').setView([0.0236, 37.9062], 6); // Set initial coordinates and zoom level
-    const map = this.map;
-
-    map.attributionControl.setPrefix('');
+  private initMap(): void {
+    this.dashboardMap = L.map('map').setView([0.0236, 37.9062], 6); // Set initial coordinates and zoom level
+    this.dashboardMap.attributionControl.setPrefix('');
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
-
-    // Load and add GeoJSON data for the country boundary
-    const countryBoundary = L.geoJSON(geojsonData, {
-      style: {
-        fillColor: 'transparent',
-        color: 'blue',  // Border color
-        weight: 2,      // Border width
-      },
-    }).addTo(map);
-
-    // Fit the map to the bounds of the country boundary
-    //map.fitBounds(countryBoundary.getBounds());
-
-    // const marker=  L.marker([51.5, -0.09]).addTo(this.map);
-    // marker.bindPopup("<b>Hello world!</b><br>I am a popup.");
-
-    // L.popup()
-    //   .setLatLng([51.513, -0.09])
-    //   .setContent("I am a standalone popup.")
-    //   .openOn(this.map);
+    }).addTo(this.dashboardMap);
 
   }
+
+  private addStationsToMap(): void {
+    // Get all the stations and add them to leaflet as a layer.
+    this.stationsService.findAll().pipe(take(1)).subscribe((data) => {
+      const featureCollection: any = {
+        "type": "FeatureCollection",
+        "features": data.map(item => {
+          return {
+            "type": "Feature",
+            "properties": {
+              "id": item.id,
+              "name": item.name,    // TODO. other properties
+            },
+            "geometry": {
+              "type": "Point",
+              "coordinates": [item.location.longitude, item.location.latitude]
+            }
+          };
+        })
+      };
+
+      const stationLayer = L.geoJSON(featureCollection, { pointToLayer: this.stationMarkers }).addTo(this.dashboardMap);
+      stationLayer.bringToFront();
+    });
+  }
+
+  private stationMarkers(feature: any, latlng: any) {
+    //console.log("latlong", latlng, feature);
+    const marker = L.circleMarker(latlng, {
+      radius: 5,
+      fillColor: '#1330BF',
+      color: '#1330BF',
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 0.8
+    });
+
+    marker.bindPopup(`${feature.properties.name}`);
+    return marker;
+
+  }
+
+
+  private addregionsToMap(): void {
+    this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
+      const regionsFeatureCollection: any = {
+        "type": "FeatureCollection",
+        "features": data.map(item => {
+          return {
+            "type": "Feature",
+            "properties": { 
+              "name": item.name,    // TODO. 
+            },
+            "geometry": {
+              "type": "MultiPolygon",
+              "coordinates": item.boundary
+            }
+          };
+        })
+      };
+
+      L.geoJSON(regionsFeatureCollection, {
+        style: { fillColor: 'transparent', color: 'blue', weight: 0.5}, // "opacity": 0.5 
+        onEachFeature: this.onEachRegionFeature,
+        //interactive: false
+      }).addTo(this.dashboardMap);
+
+    });
+  }
+
+  private onEachRegionFeature(feature: any, layer: any) {
+    layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
+  }
+
+
 
 }

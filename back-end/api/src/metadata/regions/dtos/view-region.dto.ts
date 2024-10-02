@@ -1,6 +1,7 @@
-import { RegionTypeEnum } from "./region-types.enum";
+import { RegionTypeEnum } from "../enums/region-types.enum";
 
-export interface ViewRegionModel  {
+
+export interface ViewRegionDto  {
     id: number;
     name: string;
     description: string;

@@ -20,16 +20,14 @@ export class ViewRegionsComponent {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private regionService: RegionsService,
+    private regionsService: RegionsService,
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Regions Metadata');
 
     // Get all sources 
-    this.regionService.findAll().pipe(take(1)).subscribe((data) => {
+    this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
       this.regions = data;
-
-      console.log('regions', this.regions);
     });
 
   }

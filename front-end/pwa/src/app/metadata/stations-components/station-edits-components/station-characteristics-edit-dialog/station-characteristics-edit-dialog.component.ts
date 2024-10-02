@@ -50,7 +50,7 @@ export class StationCharacteristicsEditDialogComponent {
         id: "",
         name: "",
         description: "",
-        location: { x: 0, y: 0 },
+        location: { longitude: 0, latitude: 0 },
         elevation: 0,
         stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
         stationObsProcessingMethodName: '',

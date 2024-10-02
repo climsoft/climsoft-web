@@ -99,7 +99,7 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
         entity.description = dto.description;
         entity.location = {
             type: "Point",
-            coordinates: [dto.location.x, dto.location.y],
+            coordinates: [dto.location.longitude, dto.location.latitude],
         } ;
         entity.elevation = dto.elevation;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
@@ -122,7 +122,7 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            location: {x: entity.location.coordinates[0], y: entity.location.coordinates[1] },
+            location: {longitude: entity.location.coordinates[0], latitude: entity.location.coordinates[1] },
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
             stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod),
