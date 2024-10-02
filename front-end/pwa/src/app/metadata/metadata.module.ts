@@ -38,6 +38,8 @@ import { QCTestSpikeParamsComponent } from './element-detail/qc-test-input-dialo
 import { QCTestRelationalParamsComponent } from './element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
 import { QCTestConditionInputComponent } from './element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { QCTestContextualParamsComponent } from './element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
+import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
+import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
 
 @NgModule({
   declarations: [
@@ -79,14 +81,17 @@ import { QCTestContextualParamsComponent } from './element-detail/qc-test-input-
     QCTestSpikeParamsComponent,
     QCTestRelationalParamsComponent,
     QCTestContextualParamsComponent,
-    QCTestConditionInputComponent  ],
+    QCTestConditionInputComponent,
+    ViewRegionsComponent,
+    ImportRegionsComponent
+  ],
   imports: [
     SharedModule,
     MetadataRoutingModule
   ],
   exports: [
     ElementsSelectorDialogComponent,
-    FormSelectorDialogComponent, 
+    FormSelectorDialogComponent,
   ]
 })
 export class MetadataModule { }

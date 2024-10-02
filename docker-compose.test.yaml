@@ -33,7 +33,7 @@ services:
       - climsoft_network
 
   climsoft_db:
-    image: postgres:16.4
+    image: postgis/postgis:17-3.4
     container_name: climsoft-db
     restart: always
     environment:
