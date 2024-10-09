@@ -1,31 +1,39 @@
-import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { RegionsService } from '../services/regions.service';
+import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto'; 
 
 @Controller('regions')
 export class RegionsController {
   constructor(
-    private readonly regionsService: RegionsService) { }
+    private readonly regionsService: RegionsService) {  
+    }
 
   @Get()
-  findAll() {
-    return this.regionsService.findAll();
+  find(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
+    return this.regionsService.find(viewRegionQueryDto);
   }
 
-  @Get(':id')
-  find(@Param('id', ParseIntPipe) id: number) {
-    return this.regionsService.find(id);
+  @Get('by-id:id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.regionsService.findOne(id);
   }
 
-  // @Get('/count')
-  // count(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-  //   return this.observationsService.count(viewObsevationQuery,false);
+  // @Get()
+  // findSome(@Query() id: number[]) {
+  //   return this.regionsService.find(viewRegionQueryDto);
   // }
 
+  
+
+  @Get('/count')
+  count(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
+    return this.regionsService.count(viewRegionQueryDto);
+  }
 
   @Post('/upload/:regiontype')
   @UseInterceptors(FileInterceptor('file'))

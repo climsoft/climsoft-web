@@ -1,10 +1,5 @@
-import { RegionTypeEnum } from "../enums/region-types.enum";
+import { CreateUpdateRegionDto } from "./create-update-region.dto";
 
-
-export interface ViewRegionDto  {
+export class ViewRegionDto extends CreateUpdateRegionDto {
     id: number;
-    name: string;
-    description: string;
-    regionType: RegionTypeEnum;
-    boundary: number[][][][]; // multipolygon 
 }

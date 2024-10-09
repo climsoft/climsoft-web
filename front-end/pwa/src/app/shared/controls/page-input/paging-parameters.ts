@@ -1,17 +1,17 @@
-export class PageInputDefinition {
+export class PagingParameters {
 
     /** Total number of rows */
     private _totalRowCount: number = 0;
 
     /**
-     * Similar to limit
-     */
-    private _pageSize: number = 31;
+* Similar to offset, except it starts at 1
+*/
+    private _page: number = 1;
 
     /**
-     * Similar to offset, except it starts at 1
-     */
-    private _page: number = 0;
+   * Similar to limit
+   */
+    private _pageSize: number = 31;
 
     /**
      * Total number of pages in the total row count depending on the page size
@@ -34,6 +34,7 @@ export class PageInputDefinition {
         return this._pageSize;
     }
 
+
     public setTotalRowCount(totalRowCount: number): void {
         if (totalRowCount > 0) {
             this._totalRowCount = totalRowCount;
@@ -46,8 +47,8 @@ export class PageInputDefinition {
         this.setTotalPages();
     }
 
-    private setTotalPages(): void{
-        this._totalPages = this.totalRowCount && this.pageSize? Math.ceil(this.totalRowCount / this.pageSize): 0; 
+    private setTotalPages(): void {
+        this._totalPages = this.totalRowCount && this.pageSize ? Math.ceil(this.totalRowCount / this.pageSize) : 0;
     }
 
     public setPageSize(pageSize: number): void {
@@ -90,3 +91,4 @@ export class PageInputDefinition {
     }
 
 }
+

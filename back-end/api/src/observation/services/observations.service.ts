@@ -25,11 +25,11 @@ export class ObservationsService {
         private readonly sourcesService: SourcesService,
     ) { }
 
-    public async findProcessed(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<ViewObservationDto[]> {
+    public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
         // TODO. Below code should be optimised using SQL INNER JOINS when querying.
 
         const obsView: ViewObservationDto[] = [];
-        const obsEntities = await this.findObsEntities(selectObsevationDto, deletedRecords);
+        const obsEntities = await this.findObsEntities(selectObsevationDto);
 
         // TODO. Later use inner joins, this will make the loading of metadata redundant. 
         const stationEntities = await this.stationsService.findAll();
@@ -72,13 +72,12 @@ export class ObservationsService {
     }
 
 
-    private async findObsEntities(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<ObservationEntity[]> {
+    private async findObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
-        if (!selectObsevationDto.page || !selectObsevationDto.pageSize || selectObsevationDto.pageSize >= 1000) {
-            throw new BadRequestException("You must specify page and page size. Page size must be less than 100")
+        if (!(viewObsevationQueryDto.page && viewObsevationQueryDto.pageSize && viewObsevationQueryDto.pageSize <= 1000)) {
+            throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
         }
 
-        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto, deletedRecords);
         const findOptions: FindManyOptions<ObservationEntity> = {
             order: {
                 stationId: "ASC",
@@ -88,24 +87,22 @@ export class ObservationsService {
                 datetime: "ASC",
                 sourceId: "ASC"
             },
-            where: whereOptions
+            where: this.getProcessedFilter(viewObsevationQueryDto),
+            skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
+            take: viewObsevationQueryDto.pageSize
         };
 
-        if (selectObsevationDto.page && selectObsevationDto.pageSize) {
-            findOptions.skip = (selectObsevationDto.page - 1) * selectObsevationDto.pageSize;
-            findOptions.take = selectObsevationDto.pageSize;
-        }
-
+        console.log(viewObsevationQueryDto)
 
         return this.observationRepo.find(findOptions);
     }
 
-    public async count(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): Promise<number> {
-        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto, deletedRecords);
+    public async count(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto);
         return this.observationRepo.countBy(whereOptions);
     }
 
-    private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO, deletedRecords: boolean): FindOptionsWhere<ObservationEntity> {
+    private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
         if (selectObsevationDto.stationIds) {
@@ -130,7 +127,8 @@ export class ObservationsService {
 
         this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);
 
-        whereOptions.deleted = deletedRecords;
+        whereOptions.deleted = selectObsevationDto.deleted;
+
         return whereOptions;
     }
 

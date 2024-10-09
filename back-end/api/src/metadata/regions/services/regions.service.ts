@@ -1,15 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
 import { FileUploadService } from 'src/shared/services/file-upload.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
+import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 
 // TODO refactor this service later
 
 @Injectable()
-export class RegionsService {
+export class RegionsService  {
 
     constructor(
         @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
@@ -27,29 +28,49 @@ export class RegionsService {
         return entity;
     }
 
-    public async find(id: number): Promise<ViewRegionDto> {
+    public async findOne(id: number): Promise<ViewRegionDto> {
         const entity = await this.findEntity(id);
         return this.getViewRegionDto(entity);
     }
 
 
-    public async findAll(selectOptions?: FindOptionsWhere<RegionEntity>): Promise<ViewRegionDto[]> {
+    public async find(viewRegionQueryDto: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
+        // TODO. This is a temporary check. Find out how we can do this at the dto validation level. 
+        if (!(viewRegionQueryDto.page && viewRegionQueryDto.pageSize && viewRegionQueryDto.pageSize <= 1000)) {
+            throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
+        }
+
         const findOptions: FindManyOptions<RegionEntity> = {
             order: {
                 id: "ASC"
-            }
+            },
+            where: this.getRegionFilter(viewRegionQueryDto),
+            skip: (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize,
+            take: viewRegionQueryDto.pageSize
         };
-
-        if (selectOptions) {
-            findOptions.where = selectOptions;
-        }
 
         return (await this.regionsRepo.find(findOptions)).map(entity => {
             return this.getViewRegionDto(entity);
         });
     }
 
+    public async count(viewRegionQueryDto: ViewRegionQueryDTO): Promise<number> {
+        return this.regionsRepo.countBy(this.getRegionFilter(viewRegionQueryDto));
+    }
 
+    private getRegionFilter(viewRegionQueryDto: ViewRegionQueryDTO): FindOptionsWhere<RegionEntity> {
+        const whereOptions: FindOptionsWhere<RegionEntity> = {};
+
+        if (viewRegionQueryDto.regionIds) {
+            whereOptions.id = viewRegionQueryDto.regionIds.length === 1 ? viewRegionQueryDto.regionIds[0] : In(viewRegionQueryDto.regionIds);
+        }
+
+        if (viewRegionQueryDto.regionType) {
+            whereOptions.regionType = viewRegionQueryDto.regionType;
+        }
+
+        return whereOptions
+    }
 
     public async extractAndsaveRegions(regionType: RegionTypeEnum, file: Express.Multer.File, userId: number) {
         const filePathName: string = `${this.fileUploadService.tempFilesFolderPath}/user_${userId}_regions_upload_${new Date().getTime()}.json`;

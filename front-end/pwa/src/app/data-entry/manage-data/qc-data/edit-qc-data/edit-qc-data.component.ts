@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
@@ -8,11 +7,9 @@ import { ViewElementModel } from 'src/app/core/models/elements/view-element.mode
 import { take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
-import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { ObservationDefinition } from '../../../form-entry/defintions/observation.definition';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -41,7 +38,7 @@ export class EditQCDataComponent {
   private elementsMetadata: ViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
   private periods: Period[] = PeriodsUtil.possiblePeriods;
-  protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
   protected numOfChanges: number = 0;

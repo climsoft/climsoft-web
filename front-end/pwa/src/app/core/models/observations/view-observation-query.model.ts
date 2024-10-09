@@ -6,7 +6,8 @@ export interface ViewObservationQueryModel {
     sourceIds?: number[]; 
     useEntryDate?: boolean;
     fromDate?: string;
-    toDate?: string;   
+    toDate?: string;  
+    deleted: boolean; // Note, this is not optional.
     page?: number;
     pageSize?: number;
 }

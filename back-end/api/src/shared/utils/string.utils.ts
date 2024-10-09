@@ -55,16 +55,20 @@ export class StringUtils {
         return num >= 0 && num <= 9 ? `0${num}` : num.toString();
     }
 
-    public static mapCommaSeparatedStringToNumberArray(value: string): number[]  {
-        return value.split(',').map(str => parseInt(str, 10)) ;
+    public static mapCommaSeparatedStringToNumberArray(value: string): number[] {
+        return value.split(',').map(str => parseInt(str, 10));
     }
 
-    public static mapCommaSeparatedStringToStringArray(value: string): string[]  {
-        return value.split(',').map(str => str) ;
+    public static mapCommaSeparatedStringToStringArray(value: string): string[] {
+        return value.split(',').map(str => str);
+    }
+
+    public static mapBooleanStringToBoolean(value: string): boolean {
+        return value.toLowerCase() === 'true';
     }
 
     public static capitalizeFirstLetter(str: string): string {
-        return str? str[0].toUpperCase() + str.slice(1) : "";
+        return str ? str[0].toUpperCase() + str.slice(1) : "";
     }
 
 }

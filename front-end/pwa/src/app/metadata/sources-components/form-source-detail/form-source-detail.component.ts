@@ -53,7 +53,7 @@ export class FormSourceDetailComponent implements OnInit {
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Form Definitions');
+      this.pagesDataService.setPageHeader('Edit Form Parameters');
       // Todo. handle errors where the source is not found for the given id
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
@@ -64,7 +64,7 @@ export class FormSourceDetailComponent implements OnInit {
     } else {
       const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
       this.viewSource = { id: 0, name: '', description: '', sourceType: SourceTypeEnum.FORM, utcOffset: 0, allowMissingValue: false, sampleImage: '', parameters: entryForm };
-      this.pagesDataService.setPageHeader('New Form Definitions');
+      this.pagesDataService.setPageHeader('New Form Parameters');
     }
   }
 

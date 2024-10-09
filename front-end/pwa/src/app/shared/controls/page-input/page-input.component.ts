@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { PageInputDefinition } from './page-input-definition';
+import { PagingParameters } from './paging-parameters';
 
 @Component({
   selector: 'app-page-input',
@@ -9,7 +9,7 @@ import { PageInputDefinition } from './page-input-definition';
 export class PageInputComponent implements OnChanges {
 
   @Input()
-  public pageInputDefinition!: PageInputDefinition;
+  public pageInputDefinition!: PagingParameters;
 
   @Output()
   public pageInputDefinitionChange = new EventEmitter<void>();

@@ -1,3 +1,5 @@
+import { HttpParams } from "@angular/common/http";
+
 export class StringUtils {
     public static isNullOrEmpty(input: string | null, trimWhiteSpace?: boolean) {
         if (input === null) {
@@ -75,5 +77,26 @@ export class StringUtils {
           wordToDisplay = StringUtils.capitalizeFirstLetter(option) ;
         }
         return wordToDisplay;
+      }
+
+
+      public static getQueryParams<T extends object>(params: T): HttpParams {
+        let httpParams: HttpParams = new HttpParams();
+    
+        // Dynamically add parameters if they are present
+        Object.keys(params).forEach(key => {
+          const value = params[key as keyof T];
+          if (value !== undefined && value !== null) {
+            if (Array.isArray(value)) {
+              // Join array values with comma for query parameters
+              httpParams = httpParams.set(key, value.join(','));
+            } else {
+              // Convert non-array values to string
+              // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
+              httpParams = httpParams.set(key, value.toString());
+            }
+          }
+        });
+        return httpParams;
       }
 }
