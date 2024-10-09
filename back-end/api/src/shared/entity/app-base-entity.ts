@@ -3,7 +3,7 @@ import { UserEntity } from "src/user/entities/user.entity";
 
 export abstract class AppBaseEntity {
     // Expose entry_user_id directly. Useful when updating the entry_user_id field without having to fetch from the database
-    @Column({ name: "entry_user_id", type: "int", nullable: false})
+    @Column({ name: "entry_user_id", type: "int"})
     entryUserId: number ;
 
     @ManyToOne(() => UserEntity, { nullable: false, onDelete: "RESTRICT" }) // This restricts deleting of users that have entered records

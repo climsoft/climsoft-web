@@ -36,8 +36,11 @@ export class SourcesController {
 
     @Admin()
     @Patch(':id')
-    public update(@Param('id', ParseIntPipe) id: number, @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
-        return this.sourcesService.update(id, createSourceDto);
+    public update(
+        @Req() request: Request,
+        @Param('id', ParseIntPipe) id: number, 
+        @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
+        return this.sourcesService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()

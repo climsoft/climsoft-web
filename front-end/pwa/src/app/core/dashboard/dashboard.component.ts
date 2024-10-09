@@ -4,6 +4,9 @@ import { take } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
 import { StationsService } from '../services/stations/stations.service';
 import { RegionsService } from '../services/regions/regions.service';
+import { GeneralSettingsService } from '../services/settings/general-settings.service';
+import { SettingIds } from '../models/settings/setting-ids';
+import { Settings1ParamsModel } from '../models/settings/settings-params/settings-1-params.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -16,22 +19,27 @@ export class DashboardComponent implements AfterViewInit {
 
   constructor(
     private pagesDataService: PagesDataService,
+    private generalSettingsService: GeneralSettingsService,
     private stationsService: StationsService,
     private regionsService: RegionsService) {
-
     this.pagesDataService.setPageHeader('Dashboard');
-
-
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
-    this.addStationsToMap();
-    //this.addregionsToMap();
+    this.generalSettingsService.findOne(SettingIds.DEFAULT_MAP_VIEW).subscribe((data) => {
+      if (data && data.parameters) {
+        this.initMap(data.parameters as Settings1ParamsModel);
+        this.addStationsToMap();
+        //this.addregionsToMap();
+      }
+
+    });
   }
 
-  private initMap(): void {
-    this.dashboardMap = L.map('map').setView([0.0236, 37.9062], 6); // Set initial coordinates and zoom level
+  private initMap(defaultMapView: Settings1ParamsModel): void {
+    this.dashboardMap = L.map('map').setView(
+      [defaultMapView.latitude, defaultMapView.longitude],
+      defaultMapView.zoomLevel); // Set initial coordinates and zoom level
     this.dashboardMap.attributionControl.setPrefix('');
 
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -82,7 +90,7 @@ export class DashboardComponent implements AfterViewInit {
 
   }
 
-
+  // TODO. Use later
   private addregionsToMap(): void {
     this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
       const regionsFeatureCollection: any = {
@@ -90,7 +98,7 @@ export class DashboardComponent implements AfterViewInit {
         "features": data.map(item => {
           return {
             "type": "Feature",
-            "properties": { 
+            "properties": {
               "name": item.name,    // TODO. 
             },
             "geometry": {
@@ -102,7 +110,7 @@ export class DashboardComponent implements AfterViewInit {
       };
 
       L.geoJSON(regionsFeatureCollection, {
-        style: { fillColor: 'transparent', color: 'blue', weight: 0.5}, // "opacity": 0.5 
+        style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
         onEachFeature: this.onEachRegionFeature,
         //interactive: false
       }).addTo(this.dashboardMap);

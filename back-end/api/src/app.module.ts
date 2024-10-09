@@ -5,11 +5,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ObservationModule } from './observation/observation.module';
 import { FileController } from './file.controller';
 import { MetadataModule } from './metadata/metadata.module';
-import { UserModule } from './user/user.module'; 
+import { UserModule } from './user/user.module';
+import { SettingsModule } from './settings/settings.module';
+import { MigrationsModule } from './migrations/migrations.module';
 
 @Module({
   imports: [
-    UserModule, MetadataModule, ObservationModule,
+    UserModule,
+    MetadataModule,
+    ObservationModule,
+    SettingsModule,
+    MigrationsModule,
     TypeOrmModule.forRoot({
       type: "postgres",
       host: process.env.DB_HOST ? process.env.DB_HOST : "localhost",
@@ -26,15 +32,5 @@ import { UserModule } from './user/user.module';
   controllers: [AppController, FileController],
   providers: [AppService],
 })
-export class AppModule implements OnModuleInit {
-
-  constructor(private readonly appService: AppService) { }
-
-  async onModuleInit() {
-    // Call the seed methods
-    this.appService.seedDatabase();
-  }
-
-
-
+export class AppModule {
 }

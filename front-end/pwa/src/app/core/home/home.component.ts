@@ -81,6 +81,19 @@ export class HomeComponent implements OnInit, OnDestroy {
       icon: 'bi bi-people',
       open: false,
       children: []
+    },
+    {
+      name: 'Settings',
+      url: '/settings',
+      icon: 'bi bi-people',
+      open: false,
+      children: [
+        {
+          name: 'General',
+          url: '/view-general-settings',
+          featureTitle: 'General'
+        },
+      ]
     }
 
 

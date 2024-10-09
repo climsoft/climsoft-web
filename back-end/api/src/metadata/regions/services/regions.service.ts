@@ -13,7 +13,7 @@ export class RegionsService {
 
     constructor(
         @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
-        private fileUploadService: FileUploadService     
+        private fileUploadService: FileUploadService
     ) { }
 
     private async findEntity(id: number): Promise<RegionEntity> {
@@ -51,7 +51,7 @@ export class RegionsService {
 
 
 
-    public async extractAndsaveRegions(regionType: RegionTypeEnum,file: Express.Multer.File, userId: number) {
+    public async extractAndsaveRegions(regionType: RegionTypeEnum, file: Express.Multer.File, userId: number) {
         const filePathName: string = `${this.fileUploadService.tempFilesFolderPath}/user_${userId}_regions_upload_${new Date().getTime()}.json`;
 
         // Save the file to the temporary directory
@@ -75,7 +75,7 @@ export class RegionsService {
             }
 
             entity.name = name; // Assuming the name is in properties
-            entity.description = ''; 
+            entity.description = '';
             entity.regionType = regionType; // Replace with appropriate region type
             entity.boundary = region.geometry;
             entity.entryUserId = userId;
@@ -85,7 +85,7 @@ export class RegionsService {
 
         this.fileUploadService.deleteFile(filePathName);
 
-     await this.regionsRepo.save(regionsToSave);
+        await this.regionsRepo.save(regionsToSave);
     }
 
 
@@ -95,14 +95,14 @@ export class RegionsService {
         return id;
     }
 
-private getViewRegionDto(entity: RegionEntity): ViewRegionDto{
-    return {
-        id: entity.id,
-        name: entity.name,
-        description: entity.description,
-        regionType: entity.regionType,
-        boundary: entity.boundary.coordinates
-    };
-}
+    private getViewRegionDto(entity: RegionEntity): ViewRegionDto {
+        return {
+            id: entity.id,
+            name: entity.name,
+            description: entity.description,
+            regionType: entity.regionType,
+            boundary: entity.boundary.coordinates
+        };
+    }
 
 }

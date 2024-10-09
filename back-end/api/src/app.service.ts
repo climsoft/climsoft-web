@@ -1,40 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { UsersService } from './user/services/users.service';
-import { SeedMetadataService } from './metadata/seed-metadata.service';
-import { UserRoleEnum } from './user/enums/user-roles.enum';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { MigrationsService } from './migrations/migrations.service';
 
 @Injectable()
-export class AppService {
+export class AppService  implements OnModuleInit {
 
-  constructor( private readonly userService: UsersService,
-    private readonly seedMetadataService: SeedMetadataService) { }
+  constructor( 
+    private readonly migrationMetadataService: MigrationsService) { }
 
-
-  public async seedDatabase(){
-    // Call the seed methods
-    await this.seedFirstUser();
-    await this.seedMetadataService.seedMetadata();
-  }
-
-  private async seedFirstUser() {
-    const count = await this.userService.count();
-    if (count === 0) {
-        const newUser = await this.userService.createUser(
-            {
-                name: "admin",
-                email: "admin@climsoft.org",
-                phone: '',
-                role: UserRoleEnum.ADMINISTRATOR,
-                authorisedStationIds: null,
-                canDownloadData: false,
-                authorisedElementIds: null,
-                extraMetadata: null,
-                disabled: false
-            }
-        );
-
-       await this.userService.changeUserPassword({ userId: newUser.id, password: "climsoft@admin!2" })
+    async onModuleInit() {
+      await this.migrationMetadataService.doMigrations();
     }
-}
-
 }
