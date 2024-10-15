@@ -1,0 +1,13 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between px-1 py-1  align-items-center">
+    <div class="fw-bold">Showing Regions</div>
+    <div>Total Count: {{ regionsDef.pageInputDefinition.totalRowCount | number:'1.0-0' }}</div>
+  </div>
+
+  <div class="card-body px-0">
+    <div *ngIf="regionMapLayerGroup">
+      <app-map [mapContainerId]="'regionMetadata'" [mapContentLayerGroup]="regionMapLayerGroup" />
+    </div>
+
+  </div>
+</div>

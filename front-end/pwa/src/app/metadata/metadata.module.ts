@@ -40,6 +40,8 @@ import { QCTestConditionInputComponent } from './element-detail/qc-test-input-di
 import { QCTestContextualParamsComponent } from './element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
+import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
+import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 
 @NgModule({
   declarations: [
@@ -82,8 +84,11 @@ import { ImportRegionsComponent } from './regions/import-regions/import-regions.
     QCTestRelationalParamsComponent,
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
-    ViewRegionsComponent,
-    ImportRegionsComponent
+    ImportRegionsComponent,
+    ViewRegionsComponent,   
+    ViewRegionsTableComponent,
+    ViewRegionsMapComponent,
+   
   ],
   imports: [
     SharedModule,

@@ -5,13 +5,13 @@ import { AuthUtil } from 'src/user/services/auth.util';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { RegionsService } from '../services/regions.service';
-import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto'; 
+import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 
 @Controller('regions')
 export class RegionsController {
   constructor(
-    private readonly regionsService: RegionsService) {  
-    }
+    private readonly regionsService: RegionsService) {
+  }
 
   @Get()
   find(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
@@ -28,7 +28,7 @@ export class RegionsController {
   //   return this.regionsService.find(viewRegionQueryDto);
   // }
 
-  
+
 
   @Get('/count')
   count(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
@@ -57,10 +57,9 @@ export class RegionsController {
   }
 
   @Admin()
-  @Delete(':id')
-  async delete(
-    @Param('id', ParseIntPipe) id: number) {
-    return this.regionsService.delete(id);
+  @Delete('/delete-all')
+  async delete() {
+    return this.regionsService.deleteAll();
   }
 
 }

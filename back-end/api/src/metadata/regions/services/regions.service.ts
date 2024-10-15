@@ -10,7 +10,7 @@ import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 // TODO refactor this service later
 
 @Injectable()
-export class RegionsService  {
+export class RegionsService {
 
     constructor(
         @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
@@ -35,19 +35,18 @@ export class RegionsService  {
 
 
     public async find(viewRegionQueryDto: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
-        // TODO. This is a temporary check. Find out how we can do this at the dto validation level. 
-        if (!(viewRegionQueryDto.page && viewRegionQueryDto.pageSize && viewRegionQueryDto.pageSize <= 1000)) {
-            throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
-        }
-
         const findOptions: FindManyOptions<RegionEntity> = {
             order: {
                 id: "ASC"
             },
             where: this.getRegionFilter(viewRegionQueryDto),
-            skip: (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize,
-            take: viewRegionQueryDto.pageSize
         };
+
+        // If page and page size provided, skip and limit accordingly
+        if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
+            findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
+            findOptions.take = viewRegionQueryDto.pageSize;
+        }
 
         return (await this.regionsRepo.find(findOptions)).map(entity => {
             return this.getViewRegionDto(entity);
@@ -109,11 +108,16 @@ export class RegionsService  {
         await this.regionsRepo.save(regionsToSave);
     }
 
-
     public async delete(id: number): Promise<number> {
         const entity = await this.findEntity(id);
         await this.regionsRepo.remove(entity);
         return id;
+    }
+
+    public async deleteAll(): Promise<number> {
+        const entities: RegionEntity[] = await this.regionsRepo.find();
+        await this.regionsRepo.remove(entities);
+        return entities.length;
     }
 
     private getViewRegionDto(entity: RegionEntity): ViewRegionDto {

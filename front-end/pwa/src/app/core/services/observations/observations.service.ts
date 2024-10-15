@@ -11,17 +11,16 @@ import { ViewObservationLogQueryModel } from '../../models/observations/view-obs
 import { ViewObservationLogModel } from '../../models/observations/view-observation-log.model';
 import { DeleteObservationModel } from '../../models/observations/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ObservationsService {
 
-  private endPointUrl: string = "http://localhost:3000/observations";
+  private endPointUrl: string = `${environment.apiUrl}/observations`;
 
   constructor(private http: HttpClient) { }
-
- 
 
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
@@ -36,7 +35,6 @@ export class ObservationsService {
         catchError(this.handleError)
       );
   }
-
 
   public findRaw(createObsQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
     return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: StringUtils.getQueryParams<CreateObservationQueryModel>(createObsQuery) })

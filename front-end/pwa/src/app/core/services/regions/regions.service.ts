@@ -29,11 +29,11 @@ export class RegionsService extends BaseNumberAPIService<ViewRegionModel, ViewRe
       );
   }
 
-  // public findBySourceType(sourceTypeEnum: SourceTypeEnum): Observable<ViewRegionModel[]> {
-  //   return this.http.get<ViewRegionModel[]>(`${this.endPointUrl}/source-type/${sourceTypeEnum}`)
-  //     .pipe(
-  //       catchError(this.handleError)
-  //     );
-  // }
+  public deleteAll(): Observable<number> {
+    return this.http.delete<number>(`${this.endPointUrl}/delete-all`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
 }
