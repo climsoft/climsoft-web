@@ -15,20 +15,13 @@ export class RegionsController {
 
   @Get()
   find(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
-    return this.regionsService.find(viewRegionQueryDto);
+    return  this.regionsService.find(viewRegionQueryDto);
   }
 
-  @Get('by-id:id')
+  @Get('/id:id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.regionsService.findOne(id);
   }
-
-  // @Get()
-  // findSome(@Query() id: number[]) {
-  //   return this.regionsService.find(viewRegionQueryDto);
-  // }
-
-
 
   @Get('/count')
   count(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {

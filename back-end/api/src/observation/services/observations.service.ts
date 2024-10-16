@@ -32,7 +32,7 @@ export class ObservationsService {
         const obsEntities = await this.findObsEntities(selectObsevationDto);
 
         // TODO. Later use inner joins, this will make the loading of metadata redundant. 
-        const stationEntities = await this.stationsService.findAll();
+        const stationEntities = await this.stationsService.find();
         const elementEntities = await this.elementsService.findAll();
         const sourceEntities = await this.sourcesService.findAll();
 

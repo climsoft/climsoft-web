@@ -15,8 +15,8 @@ export class RegionsService extends BaseNumberAPIService<ViewRegionModel, ViewRe
     super(http, 'regions')
   }
 
-  public findRegions(viewObsQuery: ViewRegionQueryModel): Observable<ViewRegionModel[]> {
-    return this.http.get<ViewRegionModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewRegionQueryModel>(viewObsQuery) })
+  public findRegions(viewQuery: ViewRegionQueryModel): Observable<ViewRegionModel[]> {
+    return this.http.get<ViewRegionModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewRegionQueryModel>(viewQuery) })
       .pipe(
         catchError(this.handleError)
       );

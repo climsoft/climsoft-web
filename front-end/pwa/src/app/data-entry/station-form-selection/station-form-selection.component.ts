@@ -21,19 +21,26 @@ export class StationFormSelectionComponent {
 
   protected stations!: StationView[];
 
-  constructor(private pagesDataService: PagesDataService,
+  constructor(
+    private pagesDataService: PagesDataService,
     private stationsService: StationsService,
     private stationFormsService: StationFormsService,
-    private router: Router, private route: ActivatedRoute) {
+    private router: Router,
+    private route: ActivatedRoute) {
 
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsService.findByObsProcessingMethod([StationObsProcessingMethodEnum.MANUAL, StationObsProcessingMethodEnum.HYBRID]).pipe(
+    this.stationsService.find(
+      {
+        obsProcessingMethods: [
+          StationObsProcessingMethodEnum.MANUAL,
+          StationObsProcessingMethodEnum.HYBRID
+        ]
+      }
+    ).pipe(
       take(1)).subscribe(data => {
         this.stations = data.map(item => ({ ...item }));
       });
-
-
   }
 
   protected onSearchClick(): void {

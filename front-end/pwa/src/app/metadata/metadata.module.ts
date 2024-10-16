@@ -3,7 +3,7 @@ import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
 import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
-import { StationsComponent } from './stations-components/stations/stations.component';
+import { ViewStationsComponent } from './stations-components/view-stations/view-stations.component';
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
@@ -42,6 +42,8 @@ import { ViewRegionsComponent } from './regions/view-regions/view-regions.compon
 import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
+import { ViewStationsTableComponent } from './stations-components/view-stations/view-stations-table/view-stations-table.component';
+import { ViewStationsMapComponent } from './stations-components/view-stations/view-stations-map/view-stations-map.component';
 
 @NgModule({
   declarations: [
@@ -53,7 +55,7 @@ import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-t
     FormSourceDetailComponent,
     ImportSourceDetailComponent,
 
-    StationsComponent,
+    ViewStationsComponent,
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
     ImportStationDialogComponent,
@@ -74,7 +76,7 @@ import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-t
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
-    QCTestsComponent,
+    QCTestsComponent, 
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
     QCTestRangeThresholdParamsComponent,
@@ -88,7 +90,8 @@ import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-t
     ViewRegionsComponent,   
     ViewRegionsTableComponent,
     ViewRegionsMapComponent,
-   
+    ViewStationsTableComponent,
+    ViewStationsMapComponent
   ],
   imports: [
     SharedModule,

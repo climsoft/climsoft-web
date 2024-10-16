@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
-import { ViewRegionsDefinition } from '../../view-regions.definition';
+import { ViewRegionsDefinition } from '../view-regions.definition';
 
 @Component({
   selector: 'app-view-regions-map',

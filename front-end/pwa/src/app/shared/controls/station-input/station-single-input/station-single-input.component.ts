@@ -31,7 +31,7 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
 
     //load the stations once. TODO. later do filter based on different conditions 
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.stationsService.findAll().subscribe(data => {
+      this.stationsService.find().subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });

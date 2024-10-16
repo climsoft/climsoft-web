@@ -19,7 +19,7 @@ export class StationEntity extends AppBaseEntity {
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.
   // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
-  @Column({ name: "location", type: 'geometry', spatialFeatureType: 'Point'})
+  @Column({ name: "location", type: 'geometry', spatialFeatureType: 'Point' })
   @Index({ spatial: true })
   location: Point;
 

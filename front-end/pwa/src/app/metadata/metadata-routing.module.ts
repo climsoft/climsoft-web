@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';  
-import { StationsComponent } from './stations-components/stations/stations.component';
+import { ViewStationsComponent } from './stations-components/view-stations/view-stations.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
@@ -46,7 +46,7 @@ const routes: Routes = [
       },
       {
         path: 'stations',
-        component: StationsComponent, 
+        component: ViewStationsComponent, 
       },
       {
         path: 'station-detail/:id',

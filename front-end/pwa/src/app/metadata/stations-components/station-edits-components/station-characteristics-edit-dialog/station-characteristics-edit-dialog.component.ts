@@ -1,4 +1,4 @@
-import { Component, EventEmitter,  Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
@@ -12,7 +12,7 @@ import { UpdateStationModel } from 'src/app/core/models/stations/update-station.
   styleUrls: ['./station-characteristics-edit-dialog.component.scss']
 })
 export class StationCharacteristicsEditDialogComponent {
-  @Output() 
+  @Output()
   public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
@@ -20,7 +20,7 @@ export class StationCharacteristicsEditDialogComponent {
   protected station!: ViewStationModel;
   protected bNew: boolean = false;
 
-  constructor( private stationsService: StationsService, private pagesDataService: PagesDataService,) { }
+  constructor(private stationsService: StationsService, private pagesDataService: PagesDataService,) { }
 
 
   public openDialog(stationId?: string): void {
@@ -121,11 +121,11 @@ export class StationCharacteristicsEditDialogComponent {
       let message: string;
       let messageType: 'success' | 'error';
       if (data) {
-         message = this.bNew ? "New Station Created" : "Station Updated";
-         messageType= 'success';
-      }else{
-        message= "Error in saving element";
-        messageType= 'error';
+        message = this.bNew ? "New Station Created" : "Station Updated";
+        messageType = 'success';
+      } else {
+        message = "Error in saving element";
+        messageType = 'error';
       }
 
       this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });

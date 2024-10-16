@@ -43,7 +43,7 @@ export class SourceCheckComponent {
     private sourceCheckService: SourceCheckService
   ) {
 
-    this.stationsService.findAll().pipe(take(1)).subscribe(data => {
+    this.stationsService.find().pipe(take(1)).subscribe(data => {
       this.stationsMetdata = data;
     });
 

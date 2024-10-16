@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { RegionsService } from 'src/app/core/services/regions/regions.service';
-import { ViewRegionsDefinition } from '../view-regions.definition';
+import { ViewRegionsDefinition } from './view-regions.definition';
 
 @Component({
   selector: 'app-view-regions',

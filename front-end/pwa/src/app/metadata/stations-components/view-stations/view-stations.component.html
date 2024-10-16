@@ -10,20 +10,20 @@
       </li>
     </ul>
     <div class="d-flex">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
       </button>
-      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Import']" (dropDownOptionClick)="onImportRegion()"
-        [translateX]="true" />
-      <button type="button" class="btn btn-outline-secondary btn-sm ms-2 " (click)="onDeleteAll()">
-        Delete All
-      </button>
+
+      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
+        (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()" [translateX]="true" />
+      <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
+
     </div>
   </div>
 
   <div class="card-body p-0 mt-2">
-    <app-view-regions-table *ngIf="activeTab === 'table'" [regionsDef]=regionsDef />
-    <app-view-regions-map *ngIf="activeTab === 'map' " [regionsDef]=regionsDef />
+    <app-view-stations-table *ngIf="activeTab === 'table'" [stationsDef]=stationsDef />
+    <app-view-stations-map *ngIf="activeTab === 'map' " [stationsDef]=stationsDef />
   </div>
 
 </div>

@@ -51,7 +51,7 @@ export class DashboardComponent implements AfterViewInit {
 
   private addStationsToMap(): void {
     // Get all the stations and add them to leaflet as a layer.
-    this.stationsService.findAll().pipe(take(1)).subscribe((data) => {
+    this.stationsService.find().pipe(take(1)).subscribe((data) => {
       const featureCollection: any = {
         "type": "FeatureCollection",
         "features": data.map(item => {

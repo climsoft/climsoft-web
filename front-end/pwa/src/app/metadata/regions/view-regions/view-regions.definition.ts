@@ -7,10 +7,7 @@ import { PagingParameters } from "src/app/shared/controls/page-input/paging-para
 
 export class ViewRegionsDefinition {
     public readonly entriesLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-
-    public regions: ViewRegionModel[] = [];
-    public regionType: RegionTypeEnum | null = null;
- 
+    public regions: ViewRegionModel[] = []; 
     public pageInputDefinition: PagingParameters = new PagingParameters();
     private regionFilter!: ViewRegionQueryModel;
 

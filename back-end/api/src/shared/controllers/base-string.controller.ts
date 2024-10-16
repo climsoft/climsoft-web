@@ -18,7 +18,7 @@ export abstract class BaseStringController<C, U,V> {
         if (ids.length > 0) {
             return this.baseService.findSome(ids);
         }
-        return this.baseService.findAll();
+        return this.baseService.find();
     }
 
     @Get(':id')

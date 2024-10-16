@@ -34,18 +34,21 @@ export class RegionsService {
     }
 
 
-    public async find(viewRegionQueryDto: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
+
+    public async find(viewRegionQueryDto?: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
         const findOptions: FindManyOptions<RegionEntity> = {
             order: {
                 id: "ASC"
-            },
-            where: this.getRegionFilter(viewRegionQueryDto),
+            }
         };
 
-        // If page and page size provided, skip and limit accordingly
-        if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
-            findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
-            findOptions.take = viewRegionQueryDto.pageSize;
+        if (viewRegionQueryDto) {
+            findOptions.where = this.getRegionFilter(viewRegionQueryDto);
+            // If page and page size provided, skip and limit accordingly
+            if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
+                findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
+                findOptions.take = viewRegionQueryDto.pageSize;
+            }
         }
 
         return (await this.regionsRepo.find(findOptions)).map(entity => {
