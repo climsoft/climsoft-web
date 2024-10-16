@@ -31,14 +31,13 @@ export class ElementsSelectorDialogComponent {
     this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
 
-    let saveSubscription: Observable<ViewElementModel[]>;
-    if(this.showSelectedIdsOnly){
-      saveSubscription = this.elementsService.findSome(this.selectedIds);
-    }else{
-      saveSubscription = this.elementsService.findAll();
-    }
+    this.elementsService.find().subscribe(data => {
+      if (this.showSelectedIdsOnly && this.selectedIds && this.selectedIds.length > 0) {
+        this.items = data
+          .filter(item => this.selectedIds.includes(item.id))
+          .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));;
+      }
 
-    saveSubscription.subscribe(data => {
       this.items = data
         .filter(item => !this.excludeIds.includes(item.id))
         .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));

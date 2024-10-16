@@ -26,19 +26,14 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
     //load the elements once
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length>0)) { 
-     
-      let saveSubscription: Observable<ViewElementModel[]>;
-      if(this.includeOnlyIds && this.includeOnlyIds.length>0){
-        saveSubscription = this.elementsSevice.findSome(this.includeOnlyIds);
-      }else{
-        saveSubscription = this.elementsSevice.findAll();
-      }
-
-      saveSubscription.subscribe(data => {
-        this.options = data;
+      this.elementsSevice.find().subscribe(data => {   
+        if(this.includeOnlyIds && this.includeOnlyIds.length>0){
+          this.options  = data.filter(item => this.includeOnlyIds.includes(item.id));
+        }else{
+          this.options = data;
+        }
         this.setInputSelectedOption();
       });
     }else{

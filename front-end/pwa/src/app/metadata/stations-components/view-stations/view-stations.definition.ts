@@ -7,7 +7,7 @@ import { PagingParameters } from "src/app/shared/controls/page-input/paging-para
 export class ViewStationsDefinition {
     public readonly entriesLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
-    public stations: ViewStationModel[] = []; 
+    public stations: ViewStationModel[] = [];
     public pageInputDefinition: PagingParameters = new PagingParameters();
     private stationFilter!: ViewStationQueryModel;
 
@@ -21,7 +21,6 @@ export class ViewStationsDefinition {
         this.pageInputDefinition.setTotalRowCount(0);
 
         this.stationsService.count(this.stationFilter).pipe(take(1)).subscribe(count => {
-          
             this.pageInputDefinition.setTotalRowCount(count);
             if (count > 0) {
                 this.loadEntries();

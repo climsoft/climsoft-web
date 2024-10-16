@@ -44,7 +44,6 @@ export class ElementEntity extends AppBaseEntity {
 
   @Column({ type: "jsonb", nullable: true })
   log: ElementLogVo[] | null;
-
 }
 
 export interface ElementLogVo extends BaseLogVo {

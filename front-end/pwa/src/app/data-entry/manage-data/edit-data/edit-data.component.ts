@@ -56,7 +56,7 @@ export class EditDataComponent {
   ) {
 
 
-    this.elementService.findAll().pipe(take(1)).subscribe(data => {
+    this.elementService.find().pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 

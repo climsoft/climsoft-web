@@ -123,7 +123,7 @@ export class SourcesService {
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: ViewElementDto[] = await this.elementsService.findSome(createEntryFormDTO.elementIds);
+            const elementsMetadata: ViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
             dto.parameters = viewEntryForm;
         }

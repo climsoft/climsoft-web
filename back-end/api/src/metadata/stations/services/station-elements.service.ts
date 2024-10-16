@@ -18,7 +18,7 @@ export class StationElementsService {
     public async find(stationId: string): Promise<ViewElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const elementIds: number[] = stationElementEntities.map(data => (data.elementId));
-        return elementIds.length > 0 ? this.elementsService.findSome(elementIds) : [];
+        return elementIds.length > 0 ? this.elementsService.find({elementIds: elementIds}) : [];
     }
 
     public async save(stationId: string, newElementIds: number[], userId: number): Promise<number[]> {

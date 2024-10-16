@@ -21,15 +21,15 @@ export class StationsController {
     return this.stationsService.find(viewQueryDto);
   }
 
-  @Get('count')
-  count(@Query() viewQueryDto: ViewStationQueryDTO) {
-    return this.stationsService.count(viewQueryDto);
-  }
-
   @Get('id/:id')
   findOne(
     @Param('id', AuthorisedStationsPipe) id: string): Promise<ViewStationDto> {
     return this.stationsService.findOne(id);
+  }
+
+  @Get('count')
+  count(@Query() viewQueryDto: ViewStationQueryDTO) {
+    return this.stationsService.count(viewQueryDto);
   }
 
   @Admin()

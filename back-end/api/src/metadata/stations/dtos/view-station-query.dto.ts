@@ -1,12 +1,12 @@
 import { Transform } from "class-transformer";
-import { IsEnum, IsInt, IsOptional } from "class-validator";
+import { IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils"; 
 import { StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 
 export class ViewStationQueryDTO {
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
-    @IsInt({each: true })
+    @IsString({each: true })
     stationIds?: string[];
 
     @IsOptional()

@@ -1,5 +1,5 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
+  <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
     <div class="fw-bold">Showing Stations</div>
     <div *ngIf="stationsDef.pageInputDefinition.totalRowCount" class="d-flex">
       <app-page-input [pageInputDefinition]="stationsDef.pageInputDefinition"
@@ -8,7 +8,7 @@
   </div>
 
   <div class="card-body px-0">
-    <app-table-view [clickable]="true" [showRowNum]="true" [page]="stationsDef.pageInputDefinition.page"
+    <app-table-view [clickable]="true" [page]="stationsDef.pageInputDefinition.page"
       [pageSize]="stationsDef.pageInputDefinition.pageSize" [columnsData]="[ 
       {id: 'id', name: 'Id'},
       {id: 'name', name: 'Name'},

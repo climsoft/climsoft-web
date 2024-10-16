@@ -51,7 +51,7 @@ export class EditQCDataComponent {
   ) {
     this.pagesDataService.setPageHeader('Manage Data');
 
-    this.elementService.findAll().pipe(take(1)).subscribe(data => {
+    this.elementService.find().pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 

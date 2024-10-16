@@ -1,14 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { catchError, map } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { CreateStationModel } from '../../models/stations/create-station.model';
 import { ViewStationModel } from '../../models/stations/view-station.model';
 import { UpdateStationModel } from '../../models/stations/update-station.model';
-import { BaseStringAPIService } from '../base/base-string-api.service';
-import { StationObsProcessingMethodEnum } from '../../models/stations/station-obs-Processing-method.enum';
 import { Observable, throwError } from 'rxjs';
 import { ViewRegionQueryModel } from '../../models/Regions/view-region-query.model';
-import { ViewRegionModel } from '../../models/Regions/view-region.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewStationQueryModel } from '../../models/stations/view-station-query.model';
 import { environment } from 'src/environments/environment';
@@ -42,7 +39,7 @@ export class StationsService  {
   }
 
   public count(viewQuery: ViewStationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewRegionQueryModel>(viewQuery) })
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewStationQueryModel>(viewQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -70,12 +67,6 @@ export class StationsService  {
       );
   }
  
-  // public findByObsProcessingMethod(obsProcessingMethods: StationObsProcessingMethodEnum[]): Observable<ViewStationModel[]> {
-  //   return super.findAll().pipe(
-  //     map(data => data.filter(item => obsProcessingMethods.includes(item.stationObsProcessingMethod)))
-  //   );
-  // }
-
 
   private handleError(error: HttpErrorResponse) {
 

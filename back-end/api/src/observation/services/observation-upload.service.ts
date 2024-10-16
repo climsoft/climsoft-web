@@ -350,7 +350,7 @@ export class ObservationUploadService {
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
         const elementIdsToScale: number[] = (await this.fileUploadService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
-        const elements: ViewElementDto[] = await this.elementsService.findSome(elementIdsToScale);
+        const elements: ViewElementDto[] = await this.elementsService.find({elementIds: elementIdsToScale});
         let scalingSQLs: string = ""
         for (const element of elements) {
             // Only scale elements that have a scaling factor > 0 

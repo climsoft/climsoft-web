@@ -23,7 +23,7 @@ export class StationsService {
         };
 
         if (viewStationQueryDto) {
-            findOptions.where = this.getStationFilter(viewStationQueryDto);
+            findOptions.where = this.getFilter(viewStationQueryDto);
             // If page and page size provided, skip and limit accordingly
             if (viewStationQueryDto.page && viewStationQueryDto.page > 0 && viewStationQueryDto.pageSize) {
                 findOptions.skip = (viewStationQueryDto.page - 1) * viewStationQueryDto.pageSize;
@@ -37,10 +37,10 @@ export class StationsService {
     }
 
     public async count(viewStationQueryDto: ViewStationQueryDTO): Promise<number> {
-        return this.stationRepo.countBy(this.getStationFilter(viewStationQueryDto));
+        return this.stationRepo.countBy(this.getFilter(viewStationQueryDto));
     }
 
-    private getStationFilter(viewStationQueryDto: ViewStationQueryDTO): FindOptionsWhere<StationEntity> {
+    private getFilter(viewStationQueryDto: ViewStationQueryDTO): FindOptionsWhere<StationEntity> {
         const whereOptions: FindOptionsWhere<StationEntity> = {};
 
         if (viewStationQueryDto.stationIds) {
