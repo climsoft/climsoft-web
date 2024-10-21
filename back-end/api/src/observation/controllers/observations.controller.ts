@@ -54,7 +54,7 @@ export class ObservationsController {
     @Param('sourceid', ParseIntPipe) sourceId: number,
     @UploadedFile(new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
         new FileTypeValidator({ fileType: 'text/csv' }),
       ]
     })

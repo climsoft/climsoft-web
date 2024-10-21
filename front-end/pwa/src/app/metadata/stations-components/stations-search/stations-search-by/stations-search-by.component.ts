@@ -1,9 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { Observable, take } from 'rxjs';
-import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
-import { StationsCacheService } from 'src/app/core/services/stations/station-cache/stations-cache-service';
-import { StationsService } from 'src/app/core/services/stations/stations.service';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { ComponentIdType } from '../stations-search.component';
 
 @Component({
