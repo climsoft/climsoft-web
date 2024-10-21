@@ -6,6 +6,7 @@ import { RegionsService } from "src/app/core/services/regions/regions.service";
 import { PagingParameters } from "src/app/shared/controls/page-input/paging-parameters";
 
 export class ViewRegionsDefinition {
+    //TODO change this to filter changed and this class will no longer be needed
     public readonly entriesLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     public regions: ViewRegionModel[] = []; 
     public pageInputDefinition: PagingParameters = new PagingParameters();
@@ -30,6 +31,7 @@ export class ViewRegionsDefinition {
     }
 
     public loadEntries(): void {
+        //TODO. for maps this won't work.
         this.regionFilter.page = this.pageInputDefinition.page;
         this.regionFilter.pageSize = this.pageInputDefinition.pageSize;
         this.regionsService.findRegions(this.regionFilter).pipe(take(1)).subscribe(data => {

@@ -1,7 +1,6 @@
-<!-- my-dialog.component.html -->
 <div *ngIf="open" class="dialog-overlay">
     <div class="card m-3 ">
-        
+
         <div *ngIf="title" class="card-header bg-transparent">
             {{ title }}
         </div>
@@ -14,10 +13,12 @@
             <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                 {{okButtonLabel}}
             </button>
-            <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2" (click)="onCancelClick()">
+            <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"
+                (click)="onCancelClick()">
                 {{cancelButtonLabel }}
             </button>
-            <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="onDeleteClick()">
+            <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2"
+                (click)="onDeleteClick()">
                 {{deleteButtonLabel }}
             </button>
         </div>

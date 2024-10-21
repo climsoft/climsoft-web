@@ -6,6 +6,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { take } from 'rxjs';
 import { ViewStationsDefinition } from './view-stations.definition';
+import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
 
 @Component({
   selector: 'app-view-stations',
@@ -14,7 +15,7 @@ import { ViewStationsDefinition } from './view-stations.definition';
 })
 export class ViewStationsComponent {
   protected stationsDef: ViewStationsDefinition;
-  protected activeTab: 'table' | 'map' = 'table'; 
+  protected activeTab: 'table' | 'map' = 'table';
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -24,27 +25,33 @@ export class ViewStationsComponent {
 
     this.pagesDataService.setPageHeader('Stations Metadata');
     this.stationsDef = new ViewStationsDefinition(this.stationsService);
-    this.stationsDef.countEntries();
+    this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected onTabClick(selectedTab: 'table' | 'map'): void {
     this.activeTab = selectedTab;
   }
- 
-  protected onSearch(): void {
-    // TODO.
-   }
 
-   protected loadStations(): void{
-    this.stationsDef.countEntries();
-   }
+  protected loadStations(): void {
+    this.stationsDef.resetDefinitionAndEntries();
+  }
 
   protected onImportStations(): void {
-    this.router.navigate(['import-station'], { relativeTo: this.route.parent }); 
+    this.router.navigate(['import-station'], { relativeTo: this.route.parent });
   }
 
   protected onEditStation(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
+  }
+
+  protected onSearch(): void {
+    // TODO.
+  }
+
+  protected onSearchInput(stationQuery: ViewStationQueryModel): void {
+    console.log("station query: ", stationQuery)
+
+    this.stationsDef.resetDefinitionAndEntries(stationQuery)
   }
 
 }

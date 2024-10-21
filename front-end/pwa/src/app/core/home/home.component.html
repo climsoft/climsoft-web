@@ -18,9 +18,9 @@
         <!-- menu iems section -->
         <div class="list-group-item list-group-item-action px-0" *ngFor="let nav of featuresNavItems">
           <div class="list-group list-group-flush p-0 m-0">
-            <a class="list-group-item list-group-item-action border-0 p-0  d-flex justify-content-between"
+            <a class="list-group-item list-group-item-action border-0 p-0 d-flex justify-content-between"
               [routerLink]="nav.children.length === 0? nav.url: null" (click)="nav.open = !nav.open">
-              <span>
+              <span class="cursor-pointer">
                 <i [class]="nav.icon"></i> {{ nav.name}}
               </span>
               <app-toggle-chevron *ngIf="nav.children.length > 0" />

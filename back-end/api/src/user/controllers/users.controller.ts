@@ -19,38 +19,38 @@ export class UsersController {
     }
 
     @Admin()
-    @Get('/:id')
+    @Get(':id')
     public getUser(@Param('id') id: number) {
         return this.userService.findOne(id);
     }
 
     @Admin()
-    @Post('/create')
+    @Post('create')
     public create(@Body() createUserDto: CreateUserDto) {
         return this.userService.createUser(createUserDto);
     }
 
     @Admin()
-    @Patch('/update/:id')
+    @Patch('update/:id')
     update(@Param('id') userId: number, @Body() createUserDto: CreateUserDto) {
         return this.userService.updateUser(userId, createUserDto);
     }
 
     @Admin()
-    @Patch('/change-password')
+    @Patch('change-password')
     public changePassword(@Body() changedPassword: ChangePasswordDto) {
         return this.userService.changeUserPassword(changedPassword);
     }
 
     @Public()
-    @Post('/login')
+    @Post('login')
     public async login(
         @Req() request: Request,
         @Body() loginCredentials: LogInCredentialsDto) {
         return AuthUtil.createNewSessionUser(request, await this.userService.findUserByCredentials(loginCredentials));
     }
 
-    @Post('/logout')
+    @Post('logout')
     public logout(@Req() req: Request, @Res() res: Response) {
         req.session.destroy((err) => {
             if (err) {

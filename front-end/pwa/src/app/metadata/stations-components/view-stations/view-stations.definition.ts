@@ -5,6 +5,7 @@ import { StationsService } from "src/app/core/services/stations/stations.service
 import { PagingParameters } from "src/app/shared/controls/page-input/paging-parameters";
 
 export class ViewStationsDefinition {
+    //TODO change this to filter changed and this class will no longer be needed
     public readonly entriesLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     public stations: ViewStationModel[] = [];
@@ -15,9 +16,9 @@ export class ViewStationsDefinition {
         private stationsService: StationsService
     ) { }
 
-    public countEntries(): void {
+    public resetDefinitionAndEntries(stationFilter?: ViewStationQueryModel): void {
         this.stations = [];
-        this.stationFilter = {};
+        this.stationFilter = stationFilter ? stationFilter : {};
         this.pageInputDefinition.setTotalRowCount(0);
 
         this.stationsService.count(this.stationFilter).pipe(take(1)).subscribe(count => {

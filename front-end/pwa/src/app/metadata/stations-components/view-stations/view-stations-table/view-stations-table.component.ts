@@ -21,7 +21,7 @@ export class ViewStationsTableComponent implements OnChanges {
   }
 
   protected refreshData(): void {
-    this.stationsDef.countEntries();
+    this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected loadEntries(): void{

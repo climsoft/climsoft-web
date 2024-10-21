@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Index, JoinColumn, ManyToOne } from "typeorm";
 import { UserEntity } from "src/user/entities/user.entity";
 
 export abstract class AppBaseEntity {
@@ -13,6 +13,7 @@ export abstract class AppBaseEntity {
     // set default to make the entry date time to be optional
      // Setting of default timestamp is also useful for seeding migrations which populate the database with default values like elements.
     @Column({ name: "entry_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" }) 
+    @Index()
     entryDateTime: Date;
 }
 

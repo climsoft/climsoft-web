@@ -1,0 +1,35 @@
+<div *ngIf="stationQuery" class="card border-0 p-0">
+    <div class="card-body p-0">
+
+        <div class="mb-2">
+            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationSearchGroup'" [groupItems]="[
+            { label:'New',checked: true}, 
+            { label:'History', checked: false}]" (checkedValueChange)="onSearchOptionSelection($event)" />
+        </div>
+
+        <div *ngIf="visibleComponentId !== 'search_by' && visibleComponentId !== 'history'">
+            <button type="button" class="btn btn-outline-secondary btn-sm mb-2" (click)="onBack()">
+                Back
+            </button>
+
+            <div class="mb-2">
+                <app-text-input [id]="'station_search_input'" [label]="'Search'" [(value)]="search" />
+            </div>
+        </div>
+
+        <div class="card p-0">
+            <div class="card-body">
+                <app-stations-search-by *ngIf="visibleComponentId === 'search_by'"
+                    (componentIdSelectionChange)="onShowComponent($event)" />
+
+                <app-stations-search-history *ngIf="visibleComponentId === 'history'" />
+
+                <app-stations-id-name-search *ngIf="visibleComponentId === 'id_name'" [search]="search"
+                    (stationIdsSelectedChange)="onSearchByIdName($event)" />
+            </div>
+        </div>
+
+
+    </div>
+
+</div>

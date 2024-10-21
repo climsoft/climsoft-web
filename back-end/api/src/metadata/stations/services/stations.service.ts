@@ -1,12 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { StationEntity } from '../entities/station.entity';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { UpdateStationDto } from '../dtos/update-station.dto';
 import { CreateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationDto } from '../dtos/view-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
+import { StationChangesDto } from '../dtos/station-changes.dto';
+import { retry } from 'rxjs';
 
 @Injectable()
 export class StationsService {
@@ -159,6 +161,28 @@ export class StationsService {
             dateClosed: entity.dateClosed ? entity.dateClosed.toISOString() : null,
             comment: entity.comment,
         }
+    }
+
+
+    public async findUpdatedStations(entryDatetime: string, stationIds?: string[]): Promise<StationChangesDto> {
+        const whereOptions: FindOptionsWhere<StationEntity> = {
+            entryDateTime: MoreThan(new Date(entryDatetime))
+        };
+
+        if (stationIds) {
+            whereOptions.id = stationIds.length === 1 ? stationIds[0] : In(stationIds);
+        }
+
+        const updatedStations = (await this.stationRepo.find({
+            where: whereOptions
+        })).map(entity => {
+            return this.createViewDto(entity);
+        });
+        
+        const totalCount = await this.stationRepo.count();
+
+        return { updated: updatedStations, totalCount: totalCount };
+
     }
 
 }

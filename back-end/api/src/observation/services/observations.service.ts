@@ -31,7 +31,8 @@ export class ObservationsService {
         const obsView: ViewObservationDto[] = [];
         const obsEntities = await this.findObsEntities(selectObsevationDto);
 
-        // TODO. Later use inner joins, this will make the loading of metadata redundant. 
+        // TODO. Remove this because front end caches the metadata.
+        // OR Later use inner joins, this will make the loading of metadata redundant. 
         const stationEntities = await this.stationsService.find();
         const elementEntities = await this.elementsService.find();
         const sourceEntities = await this.sourcesService.findAll();
@@ -91,8 +92,6 @@ export class ObservationsService {
             skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
             take: viewObsevationQueryDto.pageSize
         };
-
-        console.log(viewObsevationQueryDto)
 
         return this.observationRepo.find(findOptions);
     }

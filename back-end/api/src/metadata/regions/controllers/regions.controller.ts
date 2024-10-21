@@ -18,17 +18,17 @@ export class RegionsController {
     return  this.regionsService.find(viewRegionQueryDto);
   }
 
-  @Get('/id:id')
+  @Get('id:id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.regionsService.findOne(id);
   }
 
-  @Get('/count')
+  @Get('count')
   count(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
     return this.regionsService.count(viewRegionQueryDto);
   }
 
-  @Post('/upload/:regiontype')
+  @Post('upload/:regiontype')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Req() request: Request,
@@ -50,7 +50,7 @@ export class RegionsController {
   }
 
   @Admin()
-  @Delete('/delete-all')
+  @Delete('delete-all')
   async delete() {
     return this.regionsService.deleteAll();
   }

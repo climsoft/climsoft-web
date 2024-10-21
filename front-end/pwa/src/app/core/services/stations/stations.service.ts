@@ -1,23 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
+import { catchError, take } from 'rxjs/operators';
 import { CreateStationModel } from '../../models/stations/create-station.model';
 import { ViewStationModel } from '../../models/stations/view-station.model';
 import { UpdateStationModel } from '../../models/stations/update-station.model';
-import { Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { ViewRegionQueryModel } from '../../models/Regions/view-region-query.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewStationQueryModel } from '../../models/stations/view-station-query.model';
 import { environment } from 'src/environments/environment';
+import { LocalStorageService } from 'src/app/metadata/local-storage.service';
+import { StationChangesModel } from './station-cache/station-changes.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class StationsService  {
-
+export class StationsService {
   private endPointUrl: string = `${environment.apiUrl}/stations`;
-
-  constructor(private http: HttpClient) {  }
+ 
+  constructor(
+    private http: HttpClient) {
+   
+  }
 
   public findOne(id: string): Observable<ViewStationModel> {
     const url = `${this.endPointUrl}/id/${id}`;
@@ -45,7 +49,6 @@ export class StationsService  {
       );
   }
 
-  
   public create(createDto: CreateStationModel): Observable<ViewStationModel> {
     return this.http.post<ViewStationModel>(`${this.endPointUrl}`, createDto)
       .pipe(
@@ -60,13 +63,13 @@ export class StationsService  {
       );
   }
 
-  public delete(id: string): Observable<string> { 
+  public delete(id: string): Observable<string> {
     return this.http.delete<string>(`${this.endPointUrl}/${id}`)
       .pipe(
         catchError(this.handleError)
       );
   }
- 
+
 
   private handleError(error: HttpErrorResponse) {
 

@@ -5,12 +5,12 @@ import { StationObsProcessingMethodEnum } from "../enums/station-obs-processing-
 
 export class ViewStationQueryDTO {
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({each: true })
     stationIds?: string[];
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsEnum(StationObsProcessingMethodEnum, { each: true , message: 'observation processing method must be a valid StationObsProcessingMethodEnum value or undefined' })
     obsProcessingMethods?: StationObsProcessingMethodEnum[];
 

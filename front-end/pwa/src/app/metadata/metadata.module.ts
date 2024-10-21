@@ -44,6 +44,11 @@ import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations-components/view-stations/view-stations-table/view-stations-table.component';
 import { ViewStationsMapComponent } from './stations-components/view-stations/view-stations-map/view-stations-map.component';
+import { StationsSearchComponent } from './stations-components/stations-search/stations-search.component';
+import { StationsIdNameSearchComponent } from './stations-components/stations-search/stations-id-name-search/stations-id-name-search.component';
+import { StationsSearchDialogComponent } from './stations-components/stations-search-dialog/stations-search-dialog.component';
+import { StationsSearchByComponent } from './stations-components/stations-search/stations-search-by/stations-search-by.component';
+import { StationsSearchHistoryComponent } from './stations-components/stations-search/stations-search-history/stations-search-history.component';
 
 @NgModule({
   declarations: [
@@ -91,7 +96,14 @@ import { ViewStationsMapComponent } from './stations-components/view-stations/vi
     ViewRegionsTableComponent,
     ViewRegionsMapComponent,
     ViewStationsTableComponent,
-    ViewStationsMapComponent
+    ViewStationsMapComponent,
+
+    StationsSearchDialogComponent,
+    StationsSearchComponent,
+    StationsSearchHistoryComponent,
+    StationsSearchByComponent,
+    StationsIdNameSearchComponent,
+   
   ],
   imports: [
     SharedModule,
@@ -100,6 +112,8 @@ import { ViewStationsMapComponent } from './stations-components/view-stations/vi
   exports: [
     ElementsSelectorDialogComponent,
     FormSelectorDialogComponent,
+
+    StationsSearchComponent,
   ]
 })
 export class MetadataModule { }

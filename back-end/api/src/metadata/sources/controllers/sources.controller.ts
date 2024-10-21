@@ -21,7 +21,7 @@ export class SourcesController {
         return this.sourcesService.find(id);
     }
 
-    @Get('/source-type/:id')
+    @Get('source-type/:id')
     public findSourcesOfType(@Param('id') id: SourceTypeEnum) { // TODO validate enum. 
         return this.sourcesService.findSourcesByType(id);
     }

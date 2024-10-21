@@ -23,17 +23,17 @@ export class ObservationsController {
     return this.observationsService.findProcessed(viewObsevationQuery);
   }
 
-  @Get('/count')
+  @Get('count')
   count(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
     return this.observationsService.count(viewObsevationQuery);
   }
 
-  @Get('/raw')
+  @Get('raw')
   getRaw(@Query(AuthorisedStationsPipe) createObsevationQuery: CreateObservationQueryDto) {
     return this.observationsService.findRawObs(createObsevationQuery);
   }
 
-  @Get('/log')
+  @Get('log')
   getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
     return this.observationsService.findObsLog(viewObsevationQuery);
   }
@@ -47,7 +47,7 @@ export class ObservationsController {
   }
 
 
-  @Post('/upload/:sourceid')
+  @Post('upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Req() request: Request,
@@ -68,7 +68,7 @@ export class ObservationsController {
 
   }
 
-  @Post('/upload/:sourceid/:stationid')
+  @Post('upload/:sourceid/:stationid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFileForStation(
     @Req() request: Request,
@@ -92,14 +92,14 @@ export class ObservationsController {
   }
 
 
-  @Patch('/restore')
+  @Patch('restore')
   async restore(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
     return this.observationsService.restore(observationDtos, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Delete('/soft')
+  @Delete('soft')
   async softDelete(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
@@ -107,12 +107,10 @@ export class ObservationsController {
   }
 
   @Admin()
-  @Delete('/hard')
+  @Delete('hard')
   async hardDelete(
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
     return this.observationsService.hardDelete(observationDtos);
   }
-
-
 
 }

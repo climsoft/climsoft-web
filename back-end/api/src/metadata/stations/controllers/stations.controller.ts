@@ -8,6 +8,7 @@ import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
+import { DateQueryDto } from 'src/shared/dtos/date-query.dto';
 
 @Controller('stations')
 export class StationsController {
@@ -30,6 +31,18 @@ export class StationsController {
   @Get('count')
   count(@Query() viewQueryDto: ViewStationQueryDTO) {
     return this.stationsService.count(viewQueryDto);
+  }
+
+  @Get('updates')
+  async updates(
+    @Req() request: Request,
+    @Query() dateQueryDto: DateQueryDto) {
+
+    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
+    
+    return this.stationsService.findUpdatedStations(
+      dateQueryDto.date,
+      authorisedStationIds ? authorisedStationIds : undefined);
   }
 
   @Admin()

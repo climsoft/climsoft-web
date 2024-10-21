@@ -1,7 +1,5 @@
-
 import { Request } from 'express';
 import { LoggedInUserModel } from 'src/user/model/logged-in-user.model';
-import { UserEntity } from 'src/user/entities/user.entity';
 import { UserRoleEnum } from '../enums/user-roles.enum';
 import { NotFoundException } from '@nestjs/common';
 import { ViewUserDto } from '../dtos/view-user.dto';
@@ -39,12 +37,16 @@ export class AuthUtil {
     }
 
     public static getLoggedInUserId(request: Request): number  {
+        return AuthUtil.getLoggedInUser(request).id
+    }
+
+    public static getLoggedInUser(request: Request): LoggedInUserModel  {
         const user = AuthUtil.getSessionUser(request);
         if(!user){
             // TODO. Throw the correct error?
             throw  new NotFoundException(`User not logged in`);
         }
-        return user.id
+        return user
     }
   
     public static getSessionUser(request: Request): LoggedInUserModel | null {
