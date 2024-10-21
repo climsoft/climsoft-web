@@ -3,7 +3,7 @@ import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
 import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
-import { StationsComponent } from './stations-components/stations/stations.component';
+import { ViewStationsComponent } from './stations-components/view-stations/view-stations.component';
 import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
@@ -40,6 +40,15 @@ import { QCTestConditionInputComponent } from './element-detail/qc-test-input-di
 import { QCTestContextualParamsComponent } from './element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
+import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
+import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
+import { ViewStationsTableComponent } from './stations-components/view-stations/view-stations-table/view-stations-table.component';
+import { ViewStationsMapComponent } from './stations-components/view-stations/view-stations-map/view-stations-map.component';
+import { StationsSearchComponent } from './stations-components/stations-search/stations-search.component';
+import { StationsIdNameSearchComponent } from './stations-components/stations-search/stations-id-name-search/stations-id-name-search.component';
+import { StationsSearchDialogComponent } from './stations-components/stations-search-dialog/stations-search-dialog.component';
+import { StationsSearchByComponent } from './stations-components/stations-search/stations-search-by/stations-search-by.component';
+import { StationsSearchHistoryComponent } from './stations-components/stations-search/stations-search-history/stations-search-history.component';
 
 @NgModule({
   declarations: [
@@ -51,7 +60,7 @@ import { ImportRegionsComponent } from './regions/import-regions/import-regions.
     FormSourceDetailComponent,
     ImportSourceDetailComponent,
 
-    StationsComponent,
+    ViewStationsComponent,
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
     ImportStationDialogComponent,
@@ -72,7 +81,7 @@ import { ImportRegionsComponent } from './regions/import-regions/import-regions.
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
-    QCTestsComponent,
+    QCTestsComponent, 
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
     QCTestRangeThresholdParamsComponent,
@@ -82,8 +91,19 @@ import { ImportRegionsComponent } from './regions/import-regions/import-regions.
     QCTestRelationalParamsComponent,
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
-    ViewRegionsComponent,
-    ImportRegionsComponent
+    ImportRegionsComponent,
+    ViewRegionsComponent,   
+    ViewRegionsTableComponent,
+    ViewRegionsMapComponent,
+    ViewStationsTableComponent,
+    ViewStationsMapComponent,
+
+    StationsSearchDialogComponent,
+    StationsSearchComponent,
+    StationsSearchHistoryComponent,
+    StationsSearchByComponent,
+    StationsIdNameSearchComponent,
+   
   ],
   imports: [
     SharedModule,
@@ -92,6 +112,8 @@ import { ImportRegionsComponent } from './regions/import-regions/import-regions.
   exports: [
     ElementsSelectorDialogComponent,
     FormSelectorDialogComponent,
+
+    StationsSearchComponent,
   ]
 })
 export class MetadataModule { }

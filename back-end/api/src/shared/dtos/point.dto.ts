@@ -2,8 +2,8 @@ import { IsNumber } from 'class-validator';
 
 export class PointDTO {
     @IsNumber()
-    x: number;
+    longitude: number;
 
     @IsNumber()
-    y: number;
+    latitude: number;
 }

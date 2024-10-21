@@ -21,7 +21,7 @@ export class SourcesController {
         return this.sourcesService.find(id);
     }
 
-    @Get('/source-type/:id')
+    @Get('source-type/:id')
     public findSourcesOfType(@Param('id') id: SourceTypeEnum) { // TODO validate enum. 
         return this.sourcesService.findSourcesByType(id);
     }
@@ -36,8 +36,11 @@ export class SourcesController {
 
     @Admin()
     @Patch(':id')
-    public update(@Param('id', ParseIntPipe) id: number, @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
-        return this.sourcesService.update(id, createSourceDto);
+    public update(
+        @Req() request: Request,
+        @Param('id', ParseIntPipe) id: number, 
+        @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
+        return this.sourcesService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()

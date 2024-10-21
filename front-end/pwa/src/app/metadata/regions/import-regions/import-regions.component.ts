@@ -96,9 +96,6 @@ export class ImportRegionsComponent implements OnInit {
           }
         }
       });
-
   }
-
-
 
 }

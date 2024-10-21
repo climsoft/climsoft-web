@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, In, Repository } from 'typeorm';
-import { ElementEntity, ElementLogVo } from '../../elements/entities/element.entity'; 
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { ElementEntity, ElementLogVo } from '../../elements/entities/element.entity';
 import { ObjectUtils } from 'src/shared/utils/object.util';
 import { ElementSubdomainEntity } from '../../elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from '../../elements/entities/element-type.entity';
@@ -11,9 +11,10 @@ import { IBaseNumberService } from 'src/shared/services/base-number-service.inte
 import { ViewElementDto } from '../dtos/elements/view-element.dto';
 import { CreateElementDto } from '../dtos/elements/create-element.dto';
 import { UpdateElementDto } from '../dtos/elements/update-element.dto';
+import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
 
 @Injectable()
-export class ElementsService implements IBaseNumberService<CreateElementDto,UpdateElementDto, ViewElementDto> {
+export class ElementsService {
     constructor(
         @InjectRepository(ElementEntity) private readonly elementRepo: Repository<ElementEntity>,
         @InjectRepository(ElementSubdomainEntity) private readonly elementSubdomainRepo: Repository<ElementSubdomainEntity>,
@@ -26,26 +27,45 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
         return this.createViewDto(await this.getEntity(id));
     }
 
-    public async findSome(ids: number[]): Promise<ViewElementDto[]> {
-        const entities = await this.elementRepo.find({
-            order: { id: "ASC" },
-            where: { id: In(ids) }
-        });
 
-        return entities.map(entity => {
+    public async find(viewElementQueryDto?: ViewElementQueryDTO): Promise<ViewElementDto[]> {
+        const findOptions: FindManyOptions<ElementEntity> = {
+            order: {
+                id: "ASC"
+            }
+        };
+
+        if (viewElementQueryDto) {
+            findOptions.where = this.getFilter(viewElementQueryDto);
+            // If page and page size provided, skip and limit accordingly
+            if (viewElementQueryDto.page && viewElementQueryDto.page > 0 && viewElementQueryDto.pageSize) {
+                findOptions.skip = (viewElementQueryDto.page - 1) * viewElementQueryDto.pageSize;
+                findOptions.take = viewElementQueryDto.pageSize;
+            }
+        }
+
+        return (await this.elementRepo.find(findOptions)).map(entity => {
             return this.createViewDto(entity);
         });
     }
-    public async findAll(): Promise<ViewElementDto[]> {
-        const entities = await this.elementRepo.find({
-            order: { id: "ASC" }
-        });
 
-        return entities.map(entity => {
-            return this.createViewDto(entity);
-        });
+    public async count(viewStationQueryDto: ViewElementQueryDTO): Promise<number> {
+        return this.elementRepo.countBy(this.getFilter(viewStationQueryDto));
     }
 
+    private getFilter(viewStationQueryDto: ViewElementQueryDTO): FindOptionsWhere<ElementEntity> {
+        const whereOptions: FindOptionsWhere<ElementEntity> = {};
+
+        if (viewStationQueryDto.elementIds) {
+            whereOptions.id = viewStationQueryDto.elementIds.length === 1 ? viewStationQueryDto.elementIds[0] : In(viewStationQueryDto.elementIds);
+        }
+
+        if (viewStationQueryDto.typeIds) {
+            whereOptions.typeId = viewStationQueryDto.typeIds.length === 1 ? viewStationQueryDto.typeIds[0] : In(viewStationQueryDto.typeIds);
+        }
+
+        return whereOptions
+    }
 
     public async create(createDto: CreateElementDto, userId: number): Promise<ViewElementDto> {
 
@@ -85,7 +105,7 @@ export class ElementsService implements IBaseNumberService<CreateElementDto,Upda
         return this.createViewDto(entity);
     }
 
-    public async delete(id: number, userId: number): Promise<number> {
+    public async delete(id: number): Promise<number> {
         await this.elementRepo.remove(await this.getEntity(id));
         return id;
     }

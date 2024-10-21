@@ -2,12 +2,15 @@
     <thead>
         <tr>
             <th *ngIf="clickable" style="width: 2%;"></th>
+            <th *ngIf="showRowNum">#</th>
             <th *ngFor="let col of columnsData">{{ col.name }}</th>
         </tr>
     </thead>
     <tbody class="table-group-divider">
-        <tr [class.cursor-pointer]="clickable" *ngFor="let row of rowsData" (click)="onRowDataClicked(row)">
+        <tr [class.cursor-pointer]="clickable" *ngFor="let row of rowsData; let i = index;"
+            (click)="onRowDataClicked(row)">
             <td *ngIf="clickable"><i class="bi bi-arrow-right-short"></i></td>
+            <td *ngIf="showRowNum">{{ getRowNumber(i) }}</td>
             <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
         </tr>
     </tbody>

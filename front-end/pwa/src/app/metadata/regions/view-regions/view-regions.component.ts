@@ -1,14 +1,9 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
-import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
-import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
-import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { RegionsService } from 'src/app/core/services/regions/regions.service';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { ViewRegionsDefinition } from './view-regions.definition';
 
 @Component({
   selector: 'app-view-regions',
@@ -16,33 +11,39 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./view-regions.component.scss']
 })
 export class ViewRegionsComponent {
-  protected regions: ViewRegionModel[] = [];
+  protected regionsDef: ViewRegionsDefinition;
+  protected activeTab: 'table' | 'map' = 'table';
 
   constructor(
     private pagesDataService: PagesDataService,
-    private regionService: RegionsService,
     private router: Router,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    private regionsService: RegionsService,
+  ) {
     this.pagesDataService.setPageHeader('Regions Metadata');
+    this.regionsDef = new ViewRegionsDefinition(this.regionsService);
+    this.regionsDef.countEntries();
+  }
 
-    // Get all sources 
-    this.regionService.findAll().pipe(take(1)).subscribe((data) => {
-      this.regions = data;
-
-      console.log('regions', this.regions);
-    });
-
+  protected onTabClick(selectedTab: 'table' | 'map'): void {
+    this.activeTab = selectedTab;
   }
 
   protected onSearch(): void { }
+
+  protected onDeleteAll(): void {
+    this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
+      if (data) {
+        this.pagesDataService.showToast({ title: "Regions Deleted", message: `${data} regions deleted`, type: "success" });
+        this.regionsDef.countEntries();
+      }
+    });
+  }
 
   protected onImportRegion() {
     this.router.navigate(['import-regions'], { relativeTo: this.route.parent });
   }
 
-  //TODO. To be used for formatting the enum in future
-  // protected getFormattedEnum(regionType: RegionTypeEnum): string {
-  //   return StringUtils.formatEnumForDisplay(regionType);
-  // }
+
 
 }

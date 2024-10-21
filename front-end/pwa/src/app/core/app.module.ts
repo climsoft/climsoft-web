@@ -20,6 +20,7 @@ import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { PasswordResetComponent } from './password-reset/password-reset.component';
 import { AccountVerificationComponent } from './account-verification/account-verification.component';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { SettingsModule } from '../settings/settings.module';
 
 
 @NgModule({
@@ -40,7 +41,8 @@ import { NotFoundComponent } from './not-found/not-found.component';
     //HttpClientModule,
     SharedModule,
     MetadataModule,
-    DataEntryModule,    
+    DataEntryModule,
+    SettingsModule    
   ],
   providers: [
     {

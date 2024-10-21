@@ -10,72 +10,41 @@ import { CreateObservationQueryModel } from '../../models/observations/create-ob
 import { ViewObservationLogQueryModel } from '../../models/observations/view-observation-log-query.model';
 import { ViewObservationLogModel } from '../../models/observations/view-observation-log.model';
 import { DeleteObservationModel } from '../../models/observations/delete-observation.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ObservationsService {
 
-  private endPointUrl: string = "http://localhost:3000/observations";
+  private endPointUrl: string = `${environment.apiUrl}/observations`;
 
   constructor(private http: HttpClient) { }
 
-  private getQueryParams<T extends object>(params: T): HttpParams {
-    let httpParams: HttpParams = new HttpParams();
-
-    // Dynamically add parameters if they are present
-    Object.keys(params).forEach(key => {
-      const value = params[key as keyof T];
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          // Join array values with comma for query parameters
-          httpParams = httpParams.set(key, value.join(','));
-        } else {
-          // Convert non-array values to string
-          // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
-          httpParams = httpParams.set(key, value.toString());
-        }
-      }
-    });
-    return httpParams;
-  }
-
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public findDeleted(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/deleted`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  public countDeleted(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count-deleted`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
   public findRaw(createObsQuery: CreateObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: this.getQueryParams<CreateObservationQueryModel>(createObsQuery) })
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: StringUtils.getQueryParams<CreateObservationQueryModel>(createObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
   public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
-    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: this.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
+    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );

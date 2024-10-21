@@ -8,11 +8,12 @@ import { ViewElementModel } from 'src/app/core/models/elements/view-element.mode
 import { take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model'; 
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
+import { NumberUtils } from 'src/app/shared/utils/number.utils';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -40,7 +41,7 @@ export class EditDataComponent {
   private elementsMetadata: ViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
   private periods: Period[] = PeriodsUtil.possiblePeriods;
-  protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
   protected enableView: boolean = true;
@@ -55,7 +56,7 @@ export class EditDataComponent {
   ) {
 
 
-    this.elementService.findAll().pipe(take(1)).subscribe(data => {
+    this.elementService.find().pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 
@@ -64,14 +65,13 @@ export class EditDataComponent {
     });
   }
 
-
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';
   }
 
   protected onViewClick(): void {
     // Get the data based on the selection filter
-    this.observationFilter = {};
+    this.observationFilter = { deleted: false };
 
     if (this.stationId !== null) {
       this.observationFilter.stationIds = [this.stationId];
@@ -126,8 +126,10 @@ export class EditDataComponent {
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
+    this.observationFilter.deleted = false;
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
+
     this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
       const observationsEntries = data.map(viewObservationModel => {
@@ -303,5 +305,10 @@ export class EditDataComponent {
         });
       }
     });
+  }
+
+
+  protected getRowNumber(currentRowIndex: number): number {  
+    return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);
   }
 }

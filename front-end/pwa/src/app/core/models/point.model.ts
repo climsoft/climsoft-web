@@ -1,4 +1,4 @@
 export interface PointModel {
-    x: number;
-    y: number;
+    longitude: number;
+    latitude: number;
 }

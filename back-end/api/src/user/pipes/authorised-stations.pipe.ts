@@ -4,10 +4,11 @@ import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
 import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-query.dto';
 import { CreateObservationQueryDto } from 'src/observation/dtos/create-observation-query.dto';
+import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
-  constructor(@Inject(REQUEST) private readonly request: Request) {}
+  constructor(@Inject(REQUEST) private readonly request: Request) { }
 
   public transform(value: any, metadata: ArgumentMetadata) {
     const user = AuthUtil.getSessionUser(this.request);
@@ -27,9 +28,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
     switch (metadata.metatype.name) {
       case 'Array':
         return this.handleArray(value, user.authorisedStationIds);
-
       case 'String':
         return this.handleString(value, user.authorisedStationIds);
+      case ViewStationQueryDTO.name:
+        return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, user.authorisedStationIds);
 
       case ViewObservationQueryDTO.name:
         return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, user.authorisedStationIds);
@@ -42,7 +44,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     }
   }
 
-  private handleArray(value: any, authorisedStationIds: string[]): string[] {
+  private handleArray(value: string[], authorisedStationIds: string[]): string[] {
     if (value) {
       if (!this.allAreAuthorisedStations(value, authorisedStationIds)) {
         throw new BadRequestException('Not authorised to access station(s)');
@@ -53,12 +55,23 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-  private handleString(value: any, authorisedStationIds: string[]): string {
+  private handleString(value: string, authorisedStationIds: string[]): string {
     if (value && this.allAreAuthorisedStations([value], authorisedStationIds)) {
       return value;
     } else {
       throw new BadRequestException('Not authorised to access station(s)');
-    }    
+    }
+  }
+
+  private handleViewStationQueryDTO(value: ViewStationQueryDTO, authorisedStationIds: string[]): ViewStationQueryDTO {
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to access station(s)');
+      }
+    } else {
+      value.stationIds = authorisedStationIds;
+    }
+    return value;
   }
 
   private handleViewObservationQueryDTO(value: ViewObservationQueryDTO, authorisedStationIds: string[]): ViewObservationQueryDTO {

@@ -47,6 +47,7 @@ import { FlagSingleInputComponent } from './controls/flag-input/flag-single-inpu
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 import { RegionTypeInputComponent } from './controls/region-type-input/region-type-input.component';
+import { MapComponent } from './controls/map/map.component';
 
 //--------------------------------
   
@@ -101,7 +102,8 @@ const controlsComponents = [
   FlagSingleInputComponent,
   PageInputComponent,
   DropDownContainerComponent, 
-  RegionTypeInputComponent
+  RegionTypeInputComponent,
+  MapComponent
 
 ];
 

@@ -1,18 +1,29 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-    <div class="fw-bold">Showing Regions</div>
-    <div class="mb-1 d-flex">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <button class="nav-link active" [class.active]="activeTab === 'table'"
+          (click)="onTabClick('table')">Table</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'map'" (click)="onTabClick('map')">Map</button>
+      </li>
+    </ul>
+    <div class="d-flex">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
         Search
       </button>
       <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Import']" (dropDownOptionClick)="onImportRegion()"
-        [translateX]="true"/>
+        [translateX]="true" />
+      <button type="button" class="btn btn-outline-secondary btn-sm ms-2 " (click)="onDeleteAll()">
+        Delete All
+      </button>
     </div>
   </div>
 
-  <div class="card-body px-0">
-    <app-table-view 
-      [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'regionType', name: 'Type'}, {id: 'description', name: 'Description'} ]"
-      [rowsData]="regions"  />
+  <div class="card-body p-0 mt-2">
+    <app-view-regions-table *ngIf="activeTab === 'table'" [regionsDef]=regionsDef />
+    <app-view-regions-map *ngIf="activeTab === 'map' " [regionsDef]=regionsDef />
   </div>
+
 </div>

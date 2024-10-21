@@ -20,4 +20,10 @@ export class NumberUtils {
         return Math.round((value + Number.EPSILON) * multiplier) / multiplier
     }
 
+    public static getRowNumber(page: number, pageSize: number, indexOnPage: number): number {
+        const startingRow = (page - 1) * pageSize;
+        return startingRow + indexOnPage + 1;
+      }
+      
+
 }

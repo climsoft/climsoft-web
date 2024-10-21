@@ -32,16 +32,8 @@ export class ElementMultipleInputComponent implements OnInit, OnChanges {
     }
 
     //load the elements once
-    if (!this.options || this.includeOnlyIds.length>0) { 
-
-      let saveSubscription: Observable<ViewElementModel[]>;
-      if(this.includeOnlyIds && this.includeOnlyIds.length>0){
-        saveSubscription = this.elementsSevice.findSome(this.includeOnlyIds);
-      }else{
-        saveSubscription = this.elementsSevice.findAll();
-      }
-
-      saveSubscription.subscribe(data => {
+    if (!this.options || this.includeOnlyIds.length>0) {
+      this.elementsSevice.find().subscribe(data => {
         this.options = data;
         this.setInputSelectedOptions();
       });

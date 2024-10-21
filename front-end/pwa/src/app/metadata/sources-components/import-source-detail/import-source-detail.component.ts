@@ -33,7 +33,7 @@ export class ImportSourceDetailComponent implements OnInit {
     const sourceId = this.route.snapshot.params['id'];
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Import Definitions');
+      this.pagesDataService.setPageHeader('Edit Import Parameters');
 
       // Todo. handle errors where the source is not found for the given id
       this.importSourcesService.findOne(sourceId).pipe(
@@ -43,7 +43,7 @@ export class ImportSourceDetailComponent implements OnInit {
       });
 
     } else {
-      this.pagesDataService.setPageHeader('New Import Definitions');
+      this.pagesDataService.setPageHeader('New Import Parameters');
 
       const defaultTabularDefs: CreateImportTabularSourceModel = {
         rowsToSkip: 1,

@@ -5,7 +5,6 @@ import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-sources',

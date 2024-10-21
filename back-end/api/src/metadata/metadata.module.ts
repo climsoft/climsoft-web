@@ -32,10 +32,12 @@ import { ElementsService } from './elements/services/elements.service';
 import { QCTestEntity } from './elements/entities/qc-test.entity';
 import { QCTestsController } from './elements/controllers/qc-tests.controller';
 import { QCTestsService } from './elements/services/qc-tests.service';
-import { SeedMetadataService } from './seed-metadata.service';
+import { MetadataMigrationService } from './metadata-migration.service';
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
+import { GeneralSettingsService } from '../settings/services/general-settings.service';
+import { GeneralSettingController } from '../settings/controllers/general-settings.controller';
 
 @Module({
     imports: [
@@ -55,7 +57,8 @@ import { SharedModule } from 'src/shared/shared.module';
         QCTestEntity
     ]),
         SharedModule,
-        UserModule],
+        UserModule
+    ],
     controllers: [
         ElementsController,
         ElementTypesController,
@@ -79,7 +82,7 @@ import { SharedModule } from 'src/shared/shared.module';
         StationFormsService,
         QCTestsService,
         RegionsService,
-        SeedMetadataService
+        MetadataMigrationService
     ],
 
     // TODO. Check if these need to be exported
@@ -93,6 +96,7 @@ import { SharedModule } from 'src/shared/shared.module';
         StationFormsService,
         QCTestsService,
         RegionsService,
-        SeedMetadataService]
+        MetadataMigrationService
+    ]
 })
 export class MetadataModule { }

@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "src/metadata/sources/enums/source-type.enum";
 import { SourceParametersValidity } from "../dtos/create-update-source.dto";
-import { AppBaseEntity } from "src/shared/entity/app-base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("sources")
 export class SourceEntity extends AppBaseEntity {
@@ -29,6 +29,9 @@ export class SourceEntity extends AppBaseEntity {
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters: SourceParametersValidity;
+
+    @Column({ name: 'log', type: 'jsonb', nullable: true })
+    log: BaseLogVo[] | null;
 }
 
 

@@ -47,7 +47,8 @@
             </div>
 
             <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView" (click)="onViewClick()">
+                <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView"
+                    (click)="onViewClick()">
                     View
                 </button>
             </div>
@@ -87,9 +88,9 @@
                     </thead>
                     <tbody class="table-group-divider overflow-y-scroll">
 
-                        <tr *ngFor="let obsEntry of observationsEntries; let i = index;" 
+                        <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
                             [class.group-row-border]="includeLowerBoundaryLine(i)">
-                            <td>{{i + 1}}</td>
+                            <td>{{ getRowNumber(i) }}</td>
                             <td> {{ asViewObservationModel(obsEntry.obsDef).stationName }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).elementAbbrv }}</td>
                             <td>{{ obsEntry.obsDef.observation.elevation }}</td>

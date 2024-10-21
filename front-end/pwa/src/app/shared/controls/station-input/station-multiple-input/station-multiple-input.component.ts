@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { Observable, take } from 'rxjs';
+import { take } from 'rxjs';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
@@ -34,10 +34,14 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
 
     //load the elements once
     if (!this.options || this.includeOnlyIds.length > 0) {
-      const subscription: Observable<ViewStationModel[]> = this.includeOnlyIds.length > 0 ? this.stationsSevice.findSome(this.includeOnlyIds) : this.stationsSevice.findAll();
+      this.stationsSevice.find().pipe(take(1)).subscribe(data => {
 
-      subscription.pipe(take(1)).subscribe(data => {
-        this.options = data;
+        if(this.includeOnlyIds.length > 0){
+          this.options = data.filter(item => (this.includeOnlyIds.includes(item.id))) ;
+        }else{
+          this.options = data;
+        }
+       
         this.setInputSelectedOptions();
       });
     }

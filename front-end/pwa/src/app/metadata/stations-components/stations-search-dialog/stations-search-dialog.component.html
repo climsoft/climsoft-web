@@ -1,0 +1,3 @@
+<app-dialog [(open)]="open" [title]="'Search Stations'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()">
+    <app-stations-search *ngIf="open" (stationQueryChange)="onStationQueryChange($event)" />
+</app-dialog>

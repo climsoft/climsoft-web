@@ -88,7 +88,7 @@ export class SourcesService {
 
     }
 
-    public async update(id: number, dto: CreateUpdateSourceDto) {
+    public async update(id: number, dto: CreateUpdateSourceDto, userId: number) {
         const source = await this.findEntity(id);
         source.name = dto.name;
         source.description = dto.description;
@@ -97,6 +97,7 @@ export class SourcesService {
         source.allowMissingValue = dto.allowMissingValue;
         source.sampleImage = dto.sampleImage;
         source.parameters = dto.parameters;
+        source.entryUserId = userId;
 
         // TODO. Later Implement logging of changes in the database.
         return this.sourceRepo.save(source);
@@ -122,7 +123,7 @@ export class SourcesService {
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: ViewElementDto[] = await this.elementsService.findSome(createEntryFormDTO.elementIds);
+            const elementsMetadata: ViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
             dto.parameters = viewEntryForm;
         }

@@ -1,25 +1,29 @@
 <div *ngIf="pageInputDefinition.totalRowCount && pageInputDefinition.pageSize && pageInputDefinition.page"
-    class="d-flex align-items-center justify-content-end px-2">
-    <button class="btn btn-sm" (click)="onFirst()"><i class="bi bi-chevron-double-left"></i></button>
-    <button class="btn btn-sm" (click)="onPrevious()"><i class="bi bi-chevron-left"></i></button>
-    <app-drop-down-container [translateX]="false" [(displayDropDown)]="displayVisibleRowsDropDown">
-        <div main-content (click)="onDisplayVisibleRowsDropDown()" class="cursor-pointer">
-            {{ pageInputDefinition.page }} / {{ pageInputDefinition.totalPages | number:'1.0-0' }}
-        </div>
-        <div drop-down-content class="card">
-            <div class="card-body">
-                <div>Maximum visible rows:</div>
-                <app-radio-buttons-input [groupName]="'max_visible_rows'" [asButtons]="false"
-                    [groupItems]="[{ label: '31'}, { label: '365'}]" [checkedValue]="pageInputDefinition.pageSize + ''"
-                    (checkedValueChange)="onPageSizeSelection($event)" />
+    class="d-flex align-items-center px-2">
+   
+    <div class="d-flex align-items-center">
+        <button class="btn btn-sm" (click)="onFirst()"><i class="bi bi-chevron-double-left"></i></button>
+        <button class="btn btn-sm" (click)="onPrevious()"><i class="bi bi-chevron-left"></i></button>
+        <app-drop-down-container [translateX]="false" [(displayDropDown)]="displayVisibleRowsDropDown">
+            <div main-content (click)="onDisplayVisibleRowsDropDown()" class="cursor-pointer">
+                {{ pageInputDefinition.page }} / {{ pageInputDefinition.totalPages | number:'1.0-0' }}
             </div>
-        </div>
-    </app-drop-down-container>
-
-    <button class="btn btn-sm" (click)="onNext()"><i class="bi bi-chevron-right"></i></button>
-    <button class="btn btn-sm" (click)="onLast()"><i class="bi bi-chevron-double-right"></i></button>
-    <div class="vr"></div>
+            <div drop-down-content class="card">
+                <div class="card-body">
+                    <div>Maximum visible rows:</div>
+                    <app-radio-buttons-input [groupName]="'max_visible_rows'" [asButtons]="false"
+                        [groupItems]="[{ label: '31'}, { label: '365'}]" [checkedValue]="pageInputDefinition.pageSize + ''"
+                        (checkedValueChange)="onPageSizeSelection($event)" />
+                </div>
+            </div>
+        </app-drop-down-container>
+    
+        <button class="btn btn-sm" (click)="onNext()"><i class="bi bi-chevron-right"></i></button>
+        <button class="btn btn-sm" (click)="onLast()"><i class="bi bi-chevron-double-right"></i></button>
+    </div>
+   
     <div class="d-flex align-items-center mx-2">
        Total Count: {{ pageInputDefinition.totalRowCount | number:'1.0-0' }}
     </div>
+  
 </div>

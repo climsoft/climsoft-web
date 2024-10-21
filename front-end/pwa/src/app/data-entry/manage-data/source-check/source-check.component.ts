@@ -3,11 +3,11 @@ import { ViewObservationQueryModel } from 'src/app/core/models/observations/view
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { take } from 'rxjs';
-import { PageInputDefinition } from 'src/app/shared/controls/page-input/page-input-definition';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { DuplicateModel, SourceCheckService } from 'src/app/core/services/observations/source-check.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 
 @Component({
@@ -32,7 +32,7 @@ export class SourceCheckComponent {
   protected stationsMetdata: ViewStationModel[] = [];
   private elementsMetadata: ViewElementModel[] = []; 
   private periods: Period[] = PeriodsUtil.possiblePeriods;
-  protected pageInputDefinition: PageInputDefinition = new PageInputDefinition();
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableView: boolean = true;
   protected sumOfDuplicates: number = 0;
@@ -43,11 +43,11 @@ export class SourceCheckComponent {
     private sourceCheckService: SourceCheckService
   ) {
 
-    this.stationsService.findAll().pipe(take(1)).subscribe(data => {
+    this.stationsService.find().pipe(take(1)).subscribe(data => {
       this.stationsMetdata = data;
     });
 
-    this.elementService.findAll().pipe(take(1)).subscribe(data => {
+    this.elementService.find().pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 
@@ -88,7 +88,7 @@ export class SourceCheckComponent {
 
   protected onViewClick(): void {
     // Get the data based on the selection filter
-    this.observationFilter = {};
+    this.observationFilter = {deleted: false};
 
     if (this.stationId !== null) {
       this.observationFilter.stationIds = [this.stationId];

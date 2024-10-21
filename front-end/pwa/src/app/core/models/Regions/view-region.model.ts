@@ -5,5 +5,5 @@ export interface ViewRegionModel  {
     name: string;
     description: string;
     regionType: RegionTypeEnum;
-    boundary: string; // A geojson 
+    boundary: number[][][][]; // multipolygon 
 }

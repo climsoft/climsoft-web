@@ -1,45 +1,67 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { StationEntity } from '../entities/station.entity'; 
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
+import { StationEntity } from '../entities/station.entity';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { IBaseStringService } from 'src/shared/services/base-string-service.interface'; 
 import { UpdateStationDto } from '../dtos/update-station.dto';
 import { CreateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationDto } from '../dtos/view-station.dto';
+import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
+import { StationChangesDto } from '../dtos/station-changes.dto';
+import { retry } from 'rxjs';
 
 @Injectable()
-export class StationsService implements IBaseStringService<CreateStationDto, UpdateStationDto, ViewStationDto> {
+export class StationsService {
 
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
     ) { }
 
-    public async findAll(): Promise<ViewStationDto[]> {
-        const entities = await this.stationRepo.find({
+    public async find(viewStationQueryDto?: ViewStationQueryDTO): Promise<ViewStationDto[]> {
+        const findOptions: FindManyOptions<StationEntity> = {
             order: {
                 id: "ASC"
             }
-        });
+        };
 
-        return entities.map(entity => {
+        if (viewStationQueryDto) {
+            findOptions.where = this.getFilter(viewStationQueryDto);
+            // If page and page size provided, skip and limit accordingly
+            if (viewStationQueryDto.page && viewStationQueryDto.page > 0 && viewStationQueryDto.pageSize) {
+                findOptions.skip = (viewStationQueryDto.page - 1) * viewStationQueryDto.pageSize;
+                findOptions.take = viewStationQueryDto.pageSize;
+            }
+        }
+
+        return (await this.stationRepo.find(findOptions)).map(entity => {
             return this.createViewDto(entity);
         });
-
     }
 
-    public async findSome(ids: string[]): Promise<ViewStationDto[]> {
-        const entities = await this.stationRepo.find({
-            order: {
-                id: "ASC",
-            },
-            where: { id: In(ids) }
-        });
+    public async count(viewStationQueryDto: ViewStationQueryDTO): Promise<number> {
+        return this.stationRepo.countBy(this.getFilter(viewStationQueryDto));
+    }
 
-        return entities.map(entity => {
-            return this.createViewDto(entity);
-        });
+    private getFilter(viewStationQueryDto: ViewStationQueryDTO): FindOptionsWhere<StationEntity> {
+        const whereOptions: FindOptionsWhere<StationEntity> = {};
 
+        if (viewStationQueryDto.stationIds) {
+            whereOptions.id = viewStationQueryDto.stationIds.length === 1 ? viewStationQueryDto.stationIds[0] : In(viewStationQueryDto.stationIds);
+        }
+
+        if (viewStationQueryDto.obsProcessingMethods) {
+            whereOptions.obsProcessingMethod = viewStationQueryDto.obsProcessingMethods.length === 1 ? viewStationQueryDto.obsProcessingMethods[0] : In(viewStationQueryDto.obsProcessingMethods);
+        }
+
+        if (viewStationQueryDto.obsEnvironmentIds) {
+            whereOptions.obsEnvironmentId = viewStationQueryDto.obsEnvironmentIds.length === 1 ? viewStationQueryDto.obsEnvironmentIds[0] : In(viewStationQueryDto.obsEnvironmentIds);
+        }
+
+        if (viewStationQueryDto.obsFocusIds) {
+            whereOptions.obsFocusId = viewStationQueryDto.obsFocusIds.length === 1 ? viewStationQueryDto.obsFocusIds[0] : In(viewStationQueryDto.obsFocusIds);
+        }
+
+        return whereOptions
     }
 
     public async findOne(id: string): Promise<ViewStationDto> {
@@ -48,13 +70,12 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
     }
 
     public async create(createDto: CreateStationDto, userId: number): Promise<ViewStationDto> {
-
         let entity: StationEntity | null = await this.stationRepo.findOneBy({
             id: createDto.id,
         });
 
         if (entity) {
-            throw new NotFoundException(`Station #${createDto.id} exists `);
+            throw new NotFoundException(`Station #${createDto.id} exists`);
         }
 
         entity = this.stationRepo.create({
@@ -70,15 +91,14 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
     }
 
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<ViewStationDto> {
-
-        const entity: StationEntity  = await this.getEntity(id);
+        const entity: StationEntity = await this.getEntity(id);
 
         this.updateStationEntity(entity, updateDto, userId);
 
         return this.createViewDto(await this.stationRepo.save(entity));
     }
 
-    public async delete(id: string, userId: number): Promise<string> {
+    public async delete(id: string): Promise<string> {
         await this.stationRepo.remove(await this.getEntity(id));
         return id;
     }
@@ -99,8 +119,8 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
         entity.description = dto.description;
         entity.location = {
             type: "Point",
-            coordinates: [dto.location.x, dto.location.y],
-        } ;
+            coordinates: [dto.location.longitude, dto.location.latitude],
+        };
         entity.elevation = dto.elevation;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId;
@@ -122,7 +142,10 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            location: {x: entity.location.coordinates[0], y: entity.location.coordinates[1] },
+            location: {
+                longitude: entity.location.coordinates[0],
+                latitude: entity.location.coordinates[1]
+            },
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
             stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod),
@@ -141,6 +164,25 @@ export class StationsService implements IBaseStringService<CreateStationDto, Upd
     }
 
 
+    public async findUpdatedStations(entryDatetime: string, stationIds?: string[]): Promise<StationChangesDto> {
+        const whereOptions: FindOptionsWhere<StationEntity> = {
+            entryDateTime: MoreThan(new Date(entryDatetime))
+        };
 
+        if (stationIds) {
+            whereOptions.id = stationIds.length === 1 ? stationIds[0] : In(stationIds);
+        }
+
+        const updatedStations = (await this.stationRepo.find({
+            where: whereOptions
+        })).map(entity => {
+            return this.createViewDto(entity);
+        });
+        
+        const totalCount = await this.stationRepo.count();
+
+        return { updated: updatedStations, totalCount: totalCount };
+
+    }
 
 }
