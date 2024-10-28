@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
 
 @Injectable()
-export class FileUploadService {
+export class FileIOService {
     private _tempFilesFolderPath: string;
     private _duckDb: Database;
 
@@ -22,7 +22,9 @@ export class FileUploadService {
     }
 
     private async setupDuckDB() {
+        // TODO. change to persist to a file.
         this._duckDb = await Database.create(":memory:");
+        //this._duckDb = await Database.create(`/${this._tempFilesFolderPath}.db`);
     }
 
     private async setupTempFolder(): Promise<void> {
@@ -31,11 +33,11 @@ export class FileUploadService {
         this._tempFilesFolderPath = this._tempFilesFolderPath.replaceAll("\\", "\/");
         // Check if the temporary directory exist. 
         try {
-            await fs.access(this._tempFilesFolderPath, fs.constants.F_OK)
+            await fs.promises.access(this._tempFilesFolderPath, fs.promises.constants.F_OK)
         } catch (err1) {
             // If it doesn't create the directory.
             try {
-                await fs.mkdir(this._tempFilesFolderPath);
+                await fs.promises.mkdir(this._tempFilesFolderPath);
             } catch (err2) {
                 console.error("Could not create temporary folder: ", err2);
                 // TODO. Throw appropriiate error.
@@ -45,10 +47,13 @@ export class FileUploadService {
         }
     }
 
+    public createReadStream(filePathName: string){
+       return fs.createReadStream(filePathName);
+    }
 
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {
         try {
-            return await fs.readFile(filePathName, { encoding: encoding  })
+            return await fs.promises.readFile(filePathName, { encoding: encoding  })
         } catch (err) {
             throw new Error("Could not read file: " + err);
         }
@@ -57,7 +62,7 @@ export class FileUploadService {
 
     public async saveFile(file: Express.Multer.File, filePathName: string) {
         try {
-            await fs.writeFile(`${filePathName}`, file.buffer);
+            await fs.promises.writeFile(`${filePathName}`, file.buffer);
         } catch (err) {
             throw new Error("Could not save file: " + err);
         }
@@ -67,7 +72,7 @@ export class FileUploadService {
         try {
             // Delete the file.
             // TODO. Investigate why sometimes the file is not deleted. Node puts a lock on it.
-            await fs.unlink(filePathName);
+            await fs.promises.unlink(filePathName);
         } catch (err) {
             //throw new Error("Could not delete user file: " + err);
             console.error("Could not delete file: ", filePathName , err)

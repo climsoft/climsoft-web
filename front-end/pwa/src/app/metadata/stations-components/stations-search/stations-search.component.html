@@ -1,7 +1,7 @@
 <div *ngIf="stationQuery" class="card border-0 p-0">
     <div class="card-body p-0">
 
-        <div class="mb-2">
+        <div *ngIf="visibleComponentId === 'search_by'" class="mb-2">
             <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationSearchGroup'" [groupItems]="[
             { label:'New',checked: true}, 
             { label:'History', checked: false}]" (checkedValueChange)="onSearchOptionSelection($event)" />

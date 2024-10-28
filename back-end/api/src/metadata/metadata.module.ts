@@ -38,6 +38,7 @@ import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { OrganisationEntity } from './stations/entities/organisation.entity';
 import { NetworkAffiliationEntity } from './stations/entities/network-affiliation.entity';
+import { StationsImportExportService } from './stations/services/stations-import-export.service';
 
 @Module({
     imports: [
@@ -84,7 +85,8 @@ import { NetworkAffiliationEntity } from './stations/entities/network-affiliatio
         StationFormsService,
         QCTestsService,
         RegionsService,
-        MetadataMigrationService
+        MetadataMigrationService,
+        StationsImportExportService
     ],
 
     // TODO. Check if these need to be exported

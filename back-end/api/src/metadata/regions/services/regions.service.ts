@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
-import { FileUploadService } from 'src/shared/services/file-upload.service';
+import { FileIOService } from 'src/shared/services/file-io.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
 import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
@@ -14,7 +14,7 @@ export class RegionsService {
 
     constructor(
         @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
-        private fileUploadService: FileUploadService
+        private fileUploadService: FileIOService
     ) { }
 
     private async findEntity(id: number): Promise<RegionEntity> {

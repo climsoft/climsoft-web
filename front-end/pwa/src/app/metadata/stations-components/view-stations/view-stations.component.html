@@ -10,16 +10,23 @@
       </li>
     </ul>
     <div class="d-flex">
-      <div>
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
+      <div class="me-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (stationQueryChange)="onSearchInput($event)" />
       </div>
-      <div>
+      <div class="me-2">
         <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
-          (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():onImportStations()" [translateX]="true" />
+          (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():dlgImportStation.openDialog()"
+          [translateX]="true" />
         <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
+        <app-import-stations-dialog #dlgImportStation (ok)="onImportStations()" />
+      </div>
+      <div>
+        <a class="btn btn-outline-secondary btn-sm" [href]="downloadLink" >
+          Download
+        </a>
       </div>
     </div>
   </div>

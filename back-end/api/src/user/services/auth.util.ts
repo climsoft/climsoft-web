@@ -4,7 +4,6 @@ import { UserRoleEnum } from '../enums/user-roles.enum';
 import { NotFoundException } from '@nestjs/common';
 import { ViewUserDto } from '../dtos/view-user.dto';
 
-
 export class AuthUtil {
 
     public static createNewSessionUser(request: Request, userEntity: ViewUserDto): LoggedInUserModel {

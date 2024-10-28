@@ -53,7 +53,7 @@ export class StationsIdNameSearchComponent implements OnChanges {
     }
 
     if (changes['search'] && this.search) {
-      this.sortSlectionBySearch();
+      this.sortSlectionBySearchedIdName();
     }
   }
 
@@ -80,7 +80,7 @@ export class StationsIdNameSearchComponent implements OnChanges {
     });
   }
 
-  private sortSlectionBySearch(): void {
+  private sortSlectionBySearchedIdName(): void {
     this.allSelections.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after
       if (a.station.id.toLowerCase().includes(this.search) || a.station.name.toLowerCase().includes(this.search)) {

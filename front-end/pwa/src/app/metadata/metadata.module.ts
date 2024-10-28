@@ -10,14 +10,12 @@ import { StationElementLimitsInputDialogComponent } from './controls/station-ele
 import { ElementDetailComponent } from './element-detail/element-detail.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { SourcesComponent } from './sources-components/sources/sources.component';
-import { ImportStationDialogComponent } from './stations-components/station-edits-components/import-station-dialog/import-station-dialog.component';
 import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
 import { StationCharacteristicsComponent } from './stations-components/station-detail/station-characteristics/station-characteristics.component';
 import { StationFormsComponent } from './stations-components/station-detail/station-forms/station-forms.component';
 import { StationLimitsComponent } from './stations-components/station-detail/station-limits/station-limits.component';
-import { StationCharacteristicsEditDialogComponent } from './stations-components/station-edits-components/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
+import { StationCharacteristicsEditDialogComponent } from './stations-components/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
 import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
-import { ImportStationComponent } from './stations-components/station-edits-components/import-station/import-station.component';
 import { ImportSourceStationDetailComponent } from './sources-components/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementAndValueDetailComponent } from './sources-components/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
 import { ImportSourcePeriodDetailComponent } from './sources-components/import-source-detail/import-source-period-detail/import-source-period-detail.component';
@@ -49,6 +47,7 @@ import { StationsIdNameSearchComponent } from './stations-components/stations-se
 import { StationsSearchDialogComponent } from './stations-components/stations-search-dialog/stations-search-dialog.component';
 import { StationsSearchByComponent } from './stations-components/stations-search/stations-search-by/stations-search-by.component';
 import { StationsSearchHistoryComponent } from './stations-components/stations-search/stations-search-history/stations-search-history.component';
+import { ImportStationsDialogComponent } from './stations-components/import-stations-dialog/import-stations-dialog.component';
 
 @NgModule({
   declarations: [
@@ -63,14 +62,13 @@ import { StationsSearchHistoryComponent } from './stations-components/stations-s
     ViewStationsComponent,
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
-    ImportStationDialogComponent,
+    ImportStationsDialogComponent, 
 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
-    StationLimitsComponent,
-    ImportStationComponent,
+    StationLimitsComponent, 
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
