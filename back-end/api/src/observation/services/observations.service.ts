@@ -233,11 +233,11 @@ export class ObservationsService {
         return log;
     }
 
-    public async save(createObservationDtoArray: CreateObservationDto[], userId: number): Promise<void> {
+    public async save(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
-        for (const dto of createObservationDtoArray) {
+        for (const dto of createObservationDtos) {
 
             const entity: ObservationEntity = this.observationRepo.create({
                 stationId: dto.stationId,
@@ -246,11 +246,7 @@ export class ObservationsService {
                 elevation: dto.elevation,
                 datetime: new Date(dto.datetime),
                 period: dto.period,
-                // Values from duckdb come with floating point precision issue (e.g 1.005 being 1.004999)
-                // So adjust the value with the EPSILON then round of to 4 d.p
-                // TODO. Should we always limit values to 4 d.p? Do we have climate and hydrology observations that have more than 4 d.p?
-                // TODO. Investigate how to deal with this issue.
-                value: dto.value === null ? null : NumberUtils.roundOff(dto.value, 1),
+                value: dto.value,
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NONE,
                 comment: dto.comment,

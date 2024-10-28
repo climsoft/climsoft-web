@@ -1,12 +1,13 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { FlagEnum } from "../enums/flag.enum";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
-import { ElementEntity } from "src/metadata/elements/entities/element.entity"; 
+import { ElementEntity } from "src/metadata/elements/entities/element.entity";
 import { SourceEntity } from "src/metadata/sources/entities/source.entity";
 
 @Entity("observations")
+@Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
 export class ObservationEntity extends AppBaseEntity {
 
   @PrimaryColumn({ name: "station_id", type: "varchar" })
@@ -30,7 +31,7 @@ export class ObservationEntity extends AppBaseEntity {
 
   @PrimaryColumn({ name: "source_id", type: "int" })
   sourceId: number;
-  
+
   @Column({ name: "value", type: "float", nullable: true })
   value: number | null;
 
@@ -41,8 +42,8 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   qcStatus: QCStatusEnum;
 
-  @Column({ name: "qc_fails_log", type: "jsonb", nullable: true })
-  qcFailsLog: QCFailLogVo | null;
+  @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
+  qcTestLog: QCTestLogVo | null;
 
   @Column({ name: "final", type: "boolean", default: false })
   @Index()
@@ -55,20 +56,20 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   deleted: boolean;
 
-  @Column({ type: "jsonb", nullable: true })
+  @Column({ name: "log", type: "jsonb", nullable: true })
   log: UpdateObservationValuesLogVo[] | null;
 
   // Relationships
 
-  @ManyToOne(() => StationEntity, { onDelete: "CASCADE" })
+  @ManyToOne(() => StationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "station_id" })
   station: StationEntity;
 
-  @ManyToOne(() => ElementEntity, { onDelete: "CASCADE" })
+  @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "element_id" })
   element: ElementEntity;
 
-  @ManyToOne(() => SourceEntity, { onDelete: "CASCADE" })
+  @ManyToOne(() => SourceEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
   source: SourceEntity;
 }
@@ -82,7 +83,7 @@ export interface UpdateObservationValuesLogVo extends BaseLogVo {
   deleted: boolean;
 }
 
-export interface QCFailLogVo {
+export interface QCTestLogVo {
   qc_id: number;
   enforcedBy?: number;
   enforcedDate?: Date;

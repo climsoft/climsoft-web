@@ -254,8 +254,9 @@ export class ObservationImportService {
             sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${importDef.sourceMissingValueFlags}';`;
         }
 
-        // Convert the value column to decimals       
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE REAL;`;
+        // Convert the value column to double. 
+        // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))       
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
 
         return sql;
     }
@@ -294,9 +295,9 @@ export class ObservationImportService {
         if (source.elevationColumnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.elevationColumnPosition - 1} TO ${this.ELEVATION};`;
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} SET NOT NULL;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} TYPE REAL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION} TYPE DOUBLE;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION} REAL DEFAULT 0;`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION} DOUBLE DEFAULT 0;`;
         }
         return sql;
     }

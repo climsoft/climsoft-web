@@ -143,7 +143,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [item.location.longitude, item.location.latitude]
+              "coordinates": [item.longitude, item.latitude]
             }
           };
         })

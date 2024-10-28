@@ -63,7 +63,7 @@ export class DashboardComponent implements AfterViewInit {
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [item.location.longitude, item.location.latitude]
+              "coordinates": [item.longitude, item.latitude]
             }
           };
         })

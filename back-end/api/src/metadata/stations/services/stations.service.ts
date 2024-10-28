@@ -118,7 +118,7 @@ export class StationsService {
         entity.description = dto.description;
         entity.location = {
             type: "Point",
-            coordinates: [dto.location.longitude, dto.location.latitude],
+            coordinates: [dto.longitude, dto.latitude],
         };
         entity.elevation = dto.elevation;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
@@ -141,13 +141,11 @@ export class StationsService {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            location: {
-                longitude: entity.location.coordinates[0],
-                latitude: entity.location.coordinates[1]
-            },
+            longitude: entity.location.coordinates[0],
+            latitude: entity.location.coordinates[1],
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
-            stationObsProcessingMethodName: StringUtils.capitalizeFirstLetter(entity.obsProcessingMethod),
+            stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(entity.obsProcessingMethod),
             stationObsEnvironmentId: entity.obsEnvironmentId,
             stationObsEnvironmentName: entity.obsEnvironment ? entity.obsEnvironment.name : null,
             stationObsFocusId: entity.obsFocusId,

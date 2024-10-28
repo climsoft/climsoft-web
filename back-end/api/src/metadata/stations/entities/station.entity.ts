@@ -1,5 +1,5 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, JoinColumn, ManyToOne, Point, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Point, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
@@ -8,6 +8,8 @@ import { OrganisationEntity } from "./organisation.entity";
 import { NetworkAffiliationEntity } from "./network-affiliation.entity";
 
 @Entity("stations")
+@Check("CHK_stations_id_not_empty", `"id" <> ''`) // This adds the CHECK constraint to ensure id is not an empty string
+@Check("CHK_stations_name_not_empty", `"name" <> ''`)
 export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;
@@ -39,7 +41,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => StationObsEnvironmentEntity, {
     nullable: true,
-    onDelete: "SET NULL",
+    onDelete: "RESTRICT",
     // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
     // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
     // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
@@ -55,7 +57,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => StationObsFocusEntity, {
     nullable: true,
-    onDelete: "SET NULL",
+    onDelete: "RESTRICT",
     // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
     // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
     // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
@@ -71,7 +73,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => OrganisationEntity, {
     nullable: true,
-    onDelete: "SET NULL",
+    onDelete: "RESTRICT",
   })
   //---------------
 
@@ -81,7 +83,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => NetworkAffiliationEntity, {
     nullable: true,
-    onDelete: "SET NULL",
+    onDelete: "RESTRICT",
   })
   //---------------
 

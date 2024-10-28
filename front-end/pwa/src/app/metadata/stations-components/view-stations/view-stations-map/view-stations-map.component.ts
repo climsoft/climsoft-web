@@ -37,7 +37,7 @@ export class ViewStationsMapComponent implements OnChanges {
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [item.location.longitude, item.location.latitude]
+            "coordinates": [item.longitude, item.latitude]
           }
         };
       })
