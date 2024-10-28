@@ -5,6 +5,7 @@ import { StationsService } from 'src/app/core/services/stations/stations.service
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -77,7 +78,10 @@ export class StationCharacteristicsEditDialogComponent {
 
   protected onOkClick(): void {
 
-    // TODO. Do validations
+    if (StringUtils.isNullOrEmpty(this.station.id) || StringUtils.isNullOrEmpty(this.station.name)) {
+      return;
+    }
+    // TODO. Do more validations
 
     let dateEstablished: string | null = null;
     let dateClosed: string | null = null;
@@ -129,6 +133,7 @@ export class StationCharacteristicsEditDialogComponent {
       }
 
       this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });
+      this.open = false;
       this.ok.emit();
     });
 

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'; 
-import { FileUploadService } from './services/file-upload.service';
+import { FileIOService } from './services/file-io.service';
 
 @Module({
-    providers: [FileUploadService],   
-    exports: [FileUploadService]
+    providers: [FileIOService],   
+    exports: [FileIOService]
 })
 export class SharedModule {
 

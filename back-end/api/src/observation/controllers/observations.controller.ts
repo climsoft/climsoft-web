@@ -3,7 +3,7 @@ import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ObservationUploadService } from '../services/observation-upload.service';
+import { ObservationImportService } from '../services/observation-import.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
@@ -16,7 +16,7 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 export class ObservationsController {
   constructor(
     private readonly observationsService: ObservationsService,
-    private readonly observationUpload: ObservationUploadService) { }
+    private readonly observationUpload: ObservationImportService) { }
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
@@ -54,7 +54,7 @@ export class ObservationsController {
     @Param('sourceid', ParseIntPipe) sourceId: number,
     @UploadedFile(new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 100000000 }), //around 1GB
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
         new FileTypeValidator({ fileType: 'text/csv' }),
       ]
     })

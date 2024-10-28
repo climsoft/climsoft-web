@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import {  catchError,  take, throwError } from 'rxjs';
+import { catchError, take, throwError } from 'rxjs';
 import { CreateImportTabularSourceModel } from 'src/app/core/models/sources/create-import-source-tabular.model';
 import { CreateImportSourceModel, FormatEnum } from 'src/app/core/models/sources/create-import-source.model';
 import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
@@ -11,57 +11,53 @@ import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { environment } from 'src/environments/environment';
 
 @Component({
-  selector: 'app-import-entry',
-  templateUrl: './import-entry.component.html',
-  styleUrls: ['./import-entry.component.scss']
+  selector: 'app-import-stations-dialog',
+  templateUrl: './import-stations-dialog.component.html',
+  styleUrls: ['./import-stations-dialog.component.scss']
 })
-export class ImportEntryComponent implements OnInit {
-  protected viewSource!: ViewSourceModel;
-
+export class ImportStationsDialogComponent implements OnInit {
   protected uploadMessage: string = "Upload File";
   protected uploadError: boolean = false;
   protected showUploadProgress: boolean = false;
   protected uploadProgress: number = 0;
 
-  protected showStationSelection: boolean = false;
-  protected selectedStationId!: string | null;
   protected disableUpload: boolean = false;
+
+  protected open: boolean = false;
+
+  private fileInputEvent: any;
+  protected fileName: string = "Select file to upload";
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: SourcesService,
-    private http: HttpClient,
-    private route: ActivatedRoute) {
+    private http: HttpClient) {
+  }
+
+  public openDialog(): void {
+    this.open = true;
   }
 
   ngOnInit(): void {
-    const sourceId = this.route.snapshot.params['id'];
-    // Todo. handle errors where the source is not found for the given id
-    this.importSourcesService.findOne(sourceId).pipe(
-      take(1)
-    ).subscribe((data) => {
-      this.viewSource = data;
-      this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
-      const importSource: CreateImportSourceModel =this.viewSource.parameters  as CreateImportSourceModel;
-
-      if (importSource.format === FormatEnum.TABULAR) {
-        const tabularSource: CreateImportTabularSourceModel = importSource.importParameters as CreateImportTabularSourceModel;
-        this.showStationSelection = !tabularSource.stationDefinition;
-      }
-    });
+ 
 
   }
 
   protected onFileSelected(fileInputEvent: any): void {
-    if (fileInputEvent.target.files.length === 0) {
+    this.fileInputEvent = fileInputEvent;
+    const selectedFile = this.fileInputEvent.target.files.length === 0 ? undefined : this.fileInputEvent.target.files[0] as File;
+    this.fileName = selectedFile ? selectedFile.name : "Select file to upload";
+  }
+
+  protected onOkClick(): void {
+    if (!this.fileInputEvent || this.fileInputEvent.target.files.length === 0) {
       return;
     }
- 
-    if (this.showStationSelection && !this.selectedStationId) {
-      this.uploadMessage = "Select station";
-      this.uploadError = true;
+
+    if( this.disableUpload){
       return;
     }
+
+    const selectedFile = this.fileInputEvent.target.files[0] as File;
 
     this.disableUpload = true;
     this.showUploadProgress = true;
@@ -70,16 +66,12 @@ export class ImportEntryComponent implements OnInit {
     this.uploadMessage = "Uploading file..."
 
     // Get the file and append it as the form data to be sent
-    const selectedFile = fileInputEvent.target.files[0] as File;
+
     const formData = new FormData();
     formData.append('file', selectedFile);
 
     const params = new HttpParams();
-    let url = `${environment.apiUrl}/observations/upload/${this.viewSource.id}`;
-    // If station id is provided, append it as a route parameter
-    if (this.showStationSelection && this.selectedStationId) {
-      url = url + "/" + this.selectedStationId;
-    }
+    const url = `${environment.apiUrl}/stations/upload`;
 
     this.http.post(
       url,
@@ -102,7 +94,7 @@ export class ImportEntryComponent implements OnInit {
         } else if (event.type === HttpEventType.Response) {
           this.disableUpload = false;
           // Clear the file input
-          fileInputEvent.target.value = null;
+          this.fileInputEvent.target.value = null;
 
           // Reset upload progress
           this.showUploadProgress = false;
@@ -117,7 +109,9 @@ export class ImportEntryComponent implements OnInit {
 
           let response: string = (event.body as any).message;
           if (response === "success") {
-            this.uploadMessage = "Imported data successfully saved!";
+            this.open = false; // close the dialog
+            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' })
+            //this.uploadMessage = "Imported data successfully saved!";
           } else {
             this.uploadMessage = response;
             this.uploadError = true;

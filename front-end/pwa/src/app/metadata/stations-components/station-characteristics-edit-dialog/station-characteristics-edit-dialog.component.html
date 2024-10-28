@@ -1,5 +1,5 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" (okClick)="onOkClick()">
-    <div *ngIf="station">
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [closeOnOkClick]="false" (okClick)="onOkClick()">
+    <div *ngIf="station && open">
         <div class="mb-3">
             <app-text-input [label]="'Id'" [(value)]="station.id" />
         </div>
@@ -13,11 +13,11 @@
         </div>
 
         <div class="mb-3">
-            <app-number-input [label]="'Longitude'" [(numValue)]="station.location.longitude" />
+            <app-number-input [label]="'Latitude'" [(numValue)]="station.location.latitude" />
         </div>
 
         <div class="mb-3">
-            <app-number-input [label]="'Latitude'" [(numValue)]="station.location.latitude" />
+            <app-number-input [label]="'Longitude'" [(numValue)]="station.location.longitude" />
         </div>
 
         <div class="mb-3">

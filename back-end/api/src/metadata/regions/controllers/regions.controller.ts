@@ -28,6 +28,7 @@ export class RegionsController {
     return this.regionsService.count(viewRegionQueryDto);
   }
 
+  @Admin()
   @Post('upload/:regiontype')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(

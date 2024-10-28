@@ -7,6 +7,7 @@ import { ViewStationModel } from 'src/app/core/models/stations/view-station.mode
 import { take } from 'rxjs';
 import { ViewStationsDefinition } from './view-stations.definition';
 import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-view-stations',
@@ -37,7 +38,7 @@ export class ViewStationsComponent {
   }
 
   protected onImportStations(): void {
-    this.router.navigate(['import-station'], { relativeTo: this.route.parent });
+    //this.router.navigate(['import-stations'], { relativeTo: this.route.parent });
   }
 
   protected onEditStation(station: CreateStationModel) {
@@ -52,6 +53,10 @@ export class ViewStationsComponent {
     console.log("station query: ", stationQuery)
 
     this.stationsDef.resetDefinitionAndEntries(stationQuery)
+  }
+
+  protected get downloadLink(): string {
+    return this.stationsService.downloadLink;
   }
 
 }

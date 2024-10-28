@@ -29,6 +29,9 @@ export class DialogComponent {
   displayDeleteOption: boolean = false;
 
   @Input()
+  closeOnOkClick: boolean = true;
+
+  @Input()
   open: boolean = false;
 
   @Output()
@@ -48,7 +51,9 @@ export class DialogComponent {
   }
 
   protected onOkClick(): void {
-    this.onClose();
+    if (this.closeOnOkClick) {
+      this.onClose();
+    }
     this.okClick.emit();
   }
 

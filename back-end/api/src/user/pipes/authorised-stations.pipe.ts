@@ -32,13 +32,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
         return this.handleString(value, user.authorisedStationIds);
       case ViewStationQueryDTO.name:
         return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, user.authorisedStationIds);
-
       case ViewObservationQueryDTO.name:
         return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, user.authorisedStationIds);
-
       case CreateObservationQueryDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationQueryDto, user.authorisedStationIds);
-
       default:
         throw new BadRequestException('Could not determine how to authorize stations');
     }

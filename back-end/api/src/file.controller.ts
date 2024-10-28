@@ -4,6 +4,9 @@ import * as fs from 'node:fs';
 //import { join } from 'node:path';
 import * as path from 'node:path';
 
+
+// TODO. Delete this controller later.
+
 @Controller('file')
 export class FileController {
 

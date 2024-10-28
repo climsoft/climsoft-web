@@ -25,7 +25,7 @@ export class SeedObservationFocuses1711196308488 implements MigrationInterface {
     (5, 'Precipitation station',''),
     (6, 'Radiation station',''),
     (7, 'Sea profiling station' ,''),
-    (8, 'Space Weather station',''),
+    (8, 'Space weather station',''),
     (9, 'Surface land meteorological station (SYNOP)' ,''),
     (10, 'Surface marine meteorological station',''),
     (11, 'Upper-air / Radiosonde station' ,''),

@@ -17,10 +17,10 @@ import { StationChangesModel } from './station-cache/station-changes.model';
 })
 export class StationsService {
   private endPointUrl: string = `${environment.apiUrl}/stations`;
- 
+
   constructor(
     private http: HttpClient) {
-   
+
   }
 
   public findOne(id: string): Observable<ViewStationModel> {
@@ -70,6 +70,9 @@ export class StationsService {
       );
   }
 
+  public get downloadLink(): string {
+    return `${this.endPointUrl}/download`;
+  }
 
   private handleError(error: HttpErrorResponse) {
 

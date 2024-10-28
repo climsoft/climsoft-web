@@ -8,7 +8,6 @@ import { CreateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationDto } from '../dtos/view-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { StationChangesDto } from '../dtos/station-changes.dto';
-import { retry } from 'rxjs';
 
 @Injectable()
 export class StationsService {
@@ -163,7 +162,6 @@ export class StationsService {
         }
     }
 
-
     public async findUpdatedStations(entryDatetime: string, stationIds?: string[]): Promise<StationChangesDto> {
         const whereOptions: FindOptionsWhere<StationEntity> = {
             entryDateTime: MoreThan(new Date(entryDatetime))
@@ -178,7 +176,7 @@ export class StationsService {
         })).map(entity => {
             return this.createViewDto(entity);
         });
-        
+
         const totalCount = await this.stationRepo.count();
 
         return { updated: updatedStations, totalCount: totalCount };

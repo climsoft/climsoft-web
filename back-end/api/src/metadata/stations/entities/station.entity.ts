@@ -4,6 +4,8 @@ import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
 import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";
+import { OrganisationEntity } from "./organisation.entity";
+import { NetworkAffiliationEntity } from "./network-affiliation.entity";
 
 @Entity("stations")
 export class StationEntity extends AppBaseEntity {
@@ -23,7 +25,7 @@ export class StationEntity extends AppBaseEntity {
   @Index({ spatial: true })
   location: Point;
 
-  @Column({ type: 'float' })
+  @Column({ name: "elevation", type: 'float' })
   @Index()
   elevation: number;  // Elevation of station above mean sea level.
 
@@ -63,13 +65,25 @@ export class StationEntity extends AppBaseEntity {
   obsFocus: StationObsFocusEntity | null;
   //---------------
 
-  // TODO. Relationship and the organisations table
+  //---------------
   @Column({ name: "organisation_id", type: "int", nullable: true })
   organisationId: number | null; // name of organisation that owns the station.
 
-  // TODO. Relationship and the affilition table
+  @ManyToOne(() => OrganisationEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  //---------------
+
+  //---------------
   @Column({ name: "network_affiliation_id", type: 'int', nullable: true })
   networkAffiliationId: number | null; // network affiliation that the station shares data with.
+
+  @ManyToOne(() => NetworkAffiliationEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  //---------------
 
   @Column({ name: "wmo_id", type: 'varchar', nullable: true, unique: true })
   wmoId: string | null;
@@ -79,11 +93,6 @@ export class StationEntity extends AppBaseEntity {
 
   @Column({ name: "icao_id", type: 'varchar', nullable: true, unique: true })
   icaoId: string | null;
-
-  // TODO
-  //@Column({ name: "time_zone", type: 'int', nullable: true })
-  //@Index()
-  //timeZone: number | null;
 
   @Column({ name: "status", type: "enum", enum: StationStatusEnum, nullable: true })
   @Index()
