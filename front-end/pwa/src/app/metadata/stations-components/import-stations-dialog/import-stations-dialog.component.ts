@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, take, throwError } from 'rxjs';
 import { CreateImportTabularSourceModel } from 'src/app/core/models/sources/create-import-source-tabular.model';
@@ -16,17 +16,18 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./import-stations-dialog.component.scss']
 })
 export class ImportStationsDialogComponent implements OnInit {
-  protected uploadMessage: string = "Upload File";
+  @Output()
+  okClick = new EventEmitter<void>();
+
+  protected open: boolean = false;
+  protected uploadMessage: string = "";
   protected uploadError: boolean = false;
   protected showUploadProgress: boolean = false;
   protected uploadProgress: number = 0;
 
   protected disableUpload: boolean = false;
-
-  protected open: boolean = false;
-
   private fileInputEvent: any;
-  protected fileName: string = "Select file to upload";
+  protected fileName: string = "";
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -35,11 +36,15 @@ export class ImportStationsDialogComponent implements OnInit {
 
   public openDialog(): void {
     this.open = true;
+    this.uploadMessage = "";
+    this.uploadError = false;
+    this.uploadProgress = 0;
+    this.disableUpload = false;
+    this.fileInputEvent= undefined;
+    this.fileName = "";
   }
 
   ngOnInit(): void {
- 
-
   }
 
   protected onFileSelected(fileInputEvent: any): void {
@@ -111,7 +116,7 @@ export class ImportStationsDialogComponent implements OnInit {
           if (response === "success") {
             this.open = false; // close the dialog
             this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' })
-            //this.uploadMessage = "Imported data successfully saved!";
+            this.okClick.emit();
           } else {
             this.uploadMessage = response;
             this.uploadError = true;

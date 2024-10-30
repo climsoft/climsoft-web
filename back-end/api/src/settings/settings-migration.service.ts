@@ -10,11 +10,9 @@ export class SettingsMigrationService {
     constructor(
         @InjectRepository(GeneralSettingEntity) private generalSettingRepo: Repository<GeneralSettingEntity>,) { }
 
-
     public async seedSettings() {
         await this.seedGeneralSettings(); 
     }
-
 
     private async seedGeneralSettings() {
         // TODO. Later use the element service 
@@ -28,7 +26,7 @@ export class SettingsMigrationService {
         const generalSettings: GeneralSettingEntity[] = [];
         generalSettings.push(this.generalSettingRepo.create({
             id: SettingIds.DEFAULT_MAP_VIEW,
-            description: 'The default geographical coordinates (longitude, latitude) and zoom level that the map will center on when it is first loaded.',
+            description: 'The default geographical coordinates (latitude, longitude) and zoom level that the map will center on when it is first loaded.',
             parameters: new Settings1ParamsDto().default(),
             entryUserId: 1
         }));

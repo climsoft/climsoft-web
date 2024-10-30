@@ -6,17 +6,21 @@ export class UpdateStationDto {
     @IsString()
     name: string;
 
+    @IsOptional()
     @IsString()
-    description: string;
+    description: string | null;
 
+    @IsOptional()
     @IsNumber()
-    longitude: number;
+    longitude: number | null;
 
+    @IsOptional()
     @IsNumber()
-    latitude: number;
+    latitude: number | null;
 
+    @IsOptional()
     @IsNumber()
-    elevation: number; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+    elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
 
     @IsEnum(StationObsProcessingMethodEnum, { message: 'Station observing method must be a valid value' })
     stationObsProcessingMethod: StationObsProcessingMethodEnum;

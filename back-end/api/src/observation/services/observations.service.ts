@@ -254,7 +254,7 @@ export class ObservationsService {
                 entryUserId: userId,
                 // TODO. Write a validator to make sure that either value or flag should be present 
                 deleted: (dto.value === null && dto.flag === null),
-                entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
+                //entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
             });
 
             obsEntities.push(entity);

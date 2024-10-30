@@ -33,12 +33,12 @@ export class ViewStationsComponent {
     this.activeTab = selectedTab;
   }
 
-  protected loadStations(): void {
+  protected onNewStation(): void {
     this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected onImportStations(): void {
-    //this.router.navigate(['import-stations'], { relativeTo: this.route.parent });
+    this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected onEditStation(station: CreateStationModel) {

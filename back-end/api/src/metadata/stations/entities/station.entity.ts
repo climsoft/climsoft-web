@@ -17,23 +17,23 @@ export class StationEntity extends AppBaseEntity {
   @Column({ name: "name", type: 'varchar', unique: true })
   name: string;
 
-  @Column({ name: "description", type: 'varchar' })
-  description: string;
+  @Column({ name: "description", type: 'varchar', nullable: true })
+  description: string | null;
+
+  @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum })
+  @Index()
+  obsProcessingMethod: StationObsProcessingMethodEnum;
 
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.
   // Note using the location, we can determine all regions, drainage basins and other spatial features that the station belongs. So no need for foreign keys!
-  @Column({ name: "location", type: 'geometry', spatialFeatureType: 'Point' })
+  @Column({ name: "location", type: 'geometry', spatialFeatureType: 'Point', nullable: true })
   @Index({ spatial: true })
-  location: Point;
+  location: Point | null;
 
-  @Column({ name: "elevation", type: 'float' })
+  @Column({ name: "elevation", type: 'float', nullable: true })
   @Index()
-  elevation: number;  // Elevation of station above mean sea level.
-
-  @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum, nullable: true })
-  @Index()
-  obsProcessingMethod: StationObsProcessingMethodEnum;
+  elevation: number | null;  // Elevation of station above mean sea level.
 
   //---------------
   @Column({ name: "observation_environment_id", type: 'int', nullable: true })

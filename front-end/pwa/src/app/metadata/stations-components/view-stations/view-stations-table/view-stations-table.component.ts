@@ -3,6 +3,8 @@ import { ViewStationsDefinition } from '../view-stations.definition';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { StationStatusEnum } from 'src/app/core/models/stations/station-status.enum';
 
 @Component({
   selector: 'app-view-stations-table',
@@ -28,8 +30,9 @@ export class ViewStationsTableComponent implements OnChanges {
     this.stationsDef.loadEntries();
   }
 
-  protected get firstRowNum(): number {
-    return (this.stationsDef.pageInputDefinition.page - 1) * this.stationsDef.pageInputDefinition.pageSize;
+  // TODO. Use it later
+  protected  getFormattedStatus(stationStatus: StationStatusEnum): string{
+    return StringUtils.formatEnumForDisplay(stationStatus)
   }
 
   protected onEditStation(station: ViewStationModel) {

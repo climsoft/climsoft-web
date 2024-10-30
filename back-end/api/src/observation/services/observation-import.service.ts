@@ -36,94 +36,90 @@ export class ObservationImportService {
     ) { }
 
     public async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
-
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
-        const newFileName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
+        const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
         // Save the file to the temporary directory
-        await this.fileIOService.saveFile(file, newFileName);
+        await this.fileIOService.saveFile(file, tmpFilePathName);
 
-        // Get the source definition using the source id
-        const sourceDef = await this.sourcesService.find(sourceId);
-        const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
-
-        if (importSourceDef.serverType === ServerTypeEnum.LOCAL && importSourceDef.format === FormatEnum.TABULAR) {
-
-            await this.importTabularSource(sourceDef, newFileName, userId, stationId);
-        } else {
-            throw new Error("Source not supported yet");
-        }
-
-        await this.fileIOService.deleteFile(newFileName);
-    }
-
-    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
         try {
-            const sourceId: number = sourceDef.id;
-            const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
-            const tabularDef: CreateImportTabularSourceDTO = importDef.importParameters as CreateImportTabularSourceDTO;
+            // Get the source definition using the source id
+            const sourceDef = await this.sourcesService.find(sourceId);
+            const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
 
-            const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
-            // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-            const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
-            if (tabularDef.delimiter) {
-                importParams.push(`delim = '${tabularDef.delimiter}'`);
+            if (importSourceDef.serverType === ServerTypeEnum.LOCAL && importSourceDef.format === FormatEnum.TABULAR) {
+                await this.importTabularSource(sourceDef, tmpFilePathName, userId, stationId);
+            } else {
+                throw new BadRequestException("Source not supported yet");
             }
 
-            // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-            // TODO. Should we create a temporary table, will it have any significance?
-            await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
-
-            let alterSQLs: string;
-            // Rename all columns to use the expected suffix column indices
-            alterSQLs = await this.getRenameColumnNamesSQL(tmpObsTableName);
-
-            // Add source column
-            alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
-
-            // Add the rest of the columns
-            alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
-            alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(tabularDef, tmpObsTableName);
-            alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(tabularDef, tmpObsTableName);
-            alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
-            alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tmpObsTableName);
-            // Note, it is important for the element and value alterations to be last because for multiple elements option, 
-            // the column positions are changed when stacking the data into a single element column.
-            alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
-
-            //console.log("alterSQLs: ", alterSQLs);
-
-            let startTime = new Date().getTime();
-            // Execute the duckdb DDL SQL commands
-            await this.fileIOService.duckDb.exec(alterSQLs);
-            console.log("DuckDB alters took: ", new Date().getTime() - startTime);
-
-            if (importDef.scaleValues) {
-                startTime = new Date().getTime();
-                // Scale values if indicated, execute the scale values SQL
-                await this.fileIOService.duckDb.exec(await this.getScaleValueSQL(tmpObsTableName));
-                console.log("DuckDB scaling took: ", new Date().getTime() - startTime);
-            }
-
-            startTime = new Date().getTime();
-            // Get the rows of the columns that match the dto properties
-            const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.ELEVATION}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.PERIOD_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
-            console.log("DuckDB fetch rows took: ", new Date().getTime() - startTime);
-
-            try {
-                // Save the rows into the database
-                await this.observationsService.save(rows as CreateObservationDto[], userId);
-            } catch (error) {
-                console.error("Saving Data Failed: " + error)
-                throw new Error("Saving Data Failed: " + error);
-            }
-
-            // Delete the table 
-            await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
         } catch (error) {
             console.error("File Import Failed: " + error)
             throw new BadRequestException("File Import Failed: " + error);
+        } finally {
+            this.fileIOService.deleteFile(tmpFilePathName);
         }
+    }
+
+    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
+
+        const sourceId: number = sourceDef.id;
+        const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
+        const tabularDef: CreateImportTabularSourceDTO = importDef.importParameters as CreateImportTabularSourceDTO;
+
+        const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
+        // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
+        const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
+        if (tabularDef.delimiter) {
+            importParams.push(`delim = '${tabularDef.delimiter}'`);
+        }
+
+        // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
+        // TODO. Should we create a temporary table, will it have any significance?
+        await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
+
+        let alterSQLs: string;
+        // Rename all columns to use the expected suffix column indices
+        alterSQLs = await this.getRenameColumnNamesSQL(tmpObsTableName);
+
+        // Add source column
+        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
+
+        // Add the rest of the columns
+        alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
+        alterSQLs = alterSQLs + this.getAlterElevationColumnSQL(tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tmpObsTableName);
+        // Note, it is important for the element and value alterations to be last because for multiple elements option, 
+        // the column positions are changed when stacking the data into a single element column.
+        alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
+
+        //console.log("alterSQLs: ", alterSQLs);
+
+        let startTime = new Date().getTime();
+        // Execute the duckdb DDL SQL commands
+        await this.fileIOService.duckDb.exec(alterSQLs);
+        console.log("DuckDB alters took: ", new Date().getTime() - startTime);
+
+        if (importDef.scaleValues) {
+            startTime = new Date().getTime();
+            // Scale values if indicated, execute the scale values SQL
+            await this.fileIOService.duckDb.exec(await this.getScaleValueSQL(tmpObsTableName));
+            console.log("DuckDB scaling took: ", new Date().getTime() - startTime);
+        }
+
+        startTime = new Date().getTime();
+        // Get the rows of the columns that match the dto properties
+        const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.ELEVATION}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.PERIOD_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
+
+        console.log("DuckDB fetch rows took: ", new Date().getTime() - startTime);
+
+        // Delete the table 
+        await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
+
+        // Save the rows into the database
+        await this.observationsService.save(rows as CreateObservationDto[], userId);
     }
 
     private async getRenameColumnNamesSQL(tableName: string): Promise<string> {
@@ -147,7 +143,7 @@ export class ObservationImportService {
             sql = `ALTER TABLE ${tableName} RENAME column${stationDefinition.columnPosition - 1} TO ${this.STATION_ID_PROPERTY_NAME};`;
 
             if (stationDefinition.stationsToFetch) {
-                sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch);
+                sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true);
             }
 
             // Ensure there are no nulls in the station column
@@ -179,7 +175,7 @@ export class ObservationImportService {
                 sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                 if (flagDefinition.flagsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch);
+                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                 }
 
             } else {
@@ -193,7 +189,7 @@ export class ObservationImportService {
                 // Element column
                 sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
                 if (singleColumn.elementsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch);
+                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
                 }
                 //--------------------------
 
@@ -209,7 +205,7 @@ export class ObservationImportService {
                     sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                     if (flagDefinition.flagsToFetch) {
-                        sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch);
+                        sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                     }
 
                 } else {
@@ -261,7 +257,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    public static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[]): string {
+    public static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[], includeNullDeletes: boolean): string {
         // Add single quotes that will be used for the alter sqls
         valuesToFetch = valuesToFetch.map(item => {
             return { sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }
@@ -269,6 +265,12 @@ export class ObservationImportService {
 
         // Delete any record that is not supposed to be fetched .    
         let sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+
+        if (includeNullDeletes) {
+            sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+        } else {
+            sql = `DELETE FROM ${tableName} WHERE ${columnName} IS NOT NULL AND ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+        }
 
         // Update the source element ids with the equivalent database ids
         for (const value of valuesToFetch) {

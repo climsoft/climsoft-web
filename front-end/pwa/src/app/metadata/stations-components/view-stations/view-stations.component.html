@@ -20,13 +20,13 @@
         <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
           (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():dlgImportStation.openDialog()"
           [translateX]="true" />
-        <app-station-characteristics-edit-dialog #dlgAddStation (ok)="loadStations()" />
-        <app-import-stations-dialog #dlgImportStation (ok)="onImportStations()" />
+        <app-station-characteristics-edit-dialog #dlgAddStation (ok)="onNewStation()" />
+        <app-import-stations-dialog #dlgImportStation (okClick)="onImportStations()" />
       </div>
       <div>
-        <a class="btn btn-outline-secondary btn-sm" [href]="downloadLink" >
-          Download
-        </a>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Download']"
+          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): ''" [translateX]="true" />
+        <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
       </div>
     </div>
   </div>

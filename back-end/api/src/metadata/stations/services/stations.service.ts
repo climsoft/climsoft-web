@@ -81,7 +81,7 @@ export class StationsService {
             id: createDto.id,
         });
 
-        this.updateStationEntity(entity, createDto, userId);
+        StationsService.updateStationEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
 
@@ -92,7 +92,7 @@ export class StationsService {
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<ViewStationDto> {
         const entity: StationEntity = await this.getEntity(id);
 
-        this.updateStationEntity(entity, updateDto, userId);
+        StationsService.updateStationEntity(entity, updateDto, userId);
 
         return this.createViewDto(await this.stationRepo.save(entity));
     }
@@ -113,13 +113,13 @@ export class StationsService {
         return entity;
     }
 
-    private updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
+    public static updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description;
-        entity.location = {
+        entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
             type: "Point",
             coordinates: [dto.longitude, dto.latitude],
-        };
+        } : null;
         entity.elevation = dto.elevation;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId;
@@ -132,8 +132,7 @@ export class StationsService {
         entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        entity.entryDateTime = new Date();
-        entity.log = null;
+        //entity.entryDateTime = new Date(); 
     }
 
     private createViewDto(entity: StationEntity): ViewStationDto {
@@ -141,8 +140,8 @@ export class StationsService {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            longitude: entity.location.coordinates[0],
-            latitude: entity.location.coordinates[1],
+            longitude: entity.location ? entity.location.coordinates[0] : null,
+            latitude: entity.location ? entity.location.coordinates[1] : null,
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
             stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(entity.obsProcessingMethod),
