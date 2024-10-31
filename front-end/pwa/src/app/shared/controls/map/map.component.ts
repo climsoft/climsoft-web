@@ -32,25 +32,18 @@ export class MapComponent implements AfterViewInit, OnChanges {
     private stationsService: StationsService,
     private regionsService: RegionsService) {
 
-    this.pagesDataService.setPageHeader('Dashboard');
-
-   
-
     this.mapOverallContentLayerGroup = L.layerGroup();
 
   }
 
   ngAfterViewInit(): void {
-    console.log('ngAfterViewInit')
+    //console.log('ngAfterViewInit')
     this.setupMap();
   }
 
-
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('ngOnChanges')
+    //console.log('ngOnChanges')
  
-   
-
     if (changes['mapContentLayerGroup'] && this.mapContentLayerGroup) {
       this.mapOverallContentLayerGroup.clearLayers();
       this.mapContentLayerGroup.addTo(this.mapOverallContentLayerGroup);
@@ -59,15 +52,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       //   layer.addTo(this.mapContentLayerGroup);
       // }
     }
-
-
   }
 
-
-
   private setupMap(): void {
-
-    console.log('mapContainerId', this.mapContainerId)
+    //console.log('mapContainerId', this.mapContainerId);
+    
     if (!this.mapContainerId) {
       return;
     }
@@ -82,14 +71,14 @@ export class MapComponent implements AfterViewInit, OnChanges {
          
           this.defaultMapView = data.parameters as Settings1ParamsModel
 
-          console.log('defaultMapView', this.defaultMapView)
+          //console.log('defaultMapView', this.defaultMapView)
           this.setupMap();
         }
       });
       return;
     }
 
-    console.log('SETTING UP MAP')
+    //console.log('SETTING UP MAP')
 
     this.map = L.map(this.mapContainerId).setView(
       [
@@ -111,8 +100,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
     this.mapOverallContentLayerGroup.addTo(this.map);
 
   }
-
-
 
   private initMap2(defaultMapView: Settings1ParamsModel): void {
     this.map = L.map(this.mapContainerId).setView(
