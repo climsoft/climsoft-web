@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,9 +8,11 @@ import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
 import { MigrationsModule } from './migrations/migrations.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
+    SharedModule,
     UserModule,
     MetadataModule,
     ObservationModule,

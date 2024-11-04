@@ -9,8 +9,7 @@ export class FileIOService {
     private _duckDb: Database;
 
     constructor() {
-        this.setupTempFolder();
-        this.setupDuckDB();
+        this.setupFileIO();
     }
 
     public get tempFilesFolderPath(): string {
@@ -21,11 +20,15 @@ export class FileIOService {
         return this._duckDb;
     }
 
-    private async setupDuckDB() {
-        // TODO. change to persist to a file.
-        this._duckDb = await Database.create(":memory:");
-        //this._duckDb = await Database.create(`/${this._tempFilesFolderPath}.db`);
+    private async setupFileIO() {
+        await this.setupTempFolder();
+        await this.setupDuckDB();
     }
+
+    private async setupDuckDB() {
+        // Initialise DuckDB with the specified file path
+        this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);   
+    } 
 
     private async setupTempFolder(): Promise<void> {
         this._tempFilesFolderPath = path.resolve('./tmp');
@@ -47,13 +50,13 @@ export class FileIOService {
         }
     }
 
-    public createReadStream(filePathName: string){
-       return fs.createReadStream(filePathName);
+    public createReadStream(filePathName: string) {
+        return fs.createReadStream(filePathName);
     }
 
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {
         try {
-            return await fs.promises.readFile(filePathName, { encoding: encoding  })
+            return await fs.promises.readFile(filePathName, { encoding: encoding })
         } catch (err) {
             throw new Error("Could not read file: " + err);
         }
@@ -75,7 +78,7 @@ export class FileIOService {
             await fs.promises.unlink(filePathName);
         } catch (err) {
             //throw new Error("Could not delete user file: " + err);
-            console.error("Could not delete file: ", filePathName , err)
+            console.error("Could not delete file: ", filePathName, err)
         }
     }
 

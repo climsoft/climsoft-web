@@ -42,7 +42,8 @@ export class ObservationsController {
   async save(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
-    await this.observationsService.save(observationDtos, AuthUtil.getLoggedInUserId(request));
+    const user = AuthUtil.getLoggedInUser(request);
+    await this.observationsService.save(observationDtos, user.id, user.username);
     return { message: "success" };
   }
 
@@ -60,7 +61,8 @@ export class ObservationsController {
     })
     ) file: Express.Multer.File) {
     try {
-      await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request));
+      const user = AuthUtil.getLoggedInUser(request);
+      await this.observationUpload.processFile(sourceId, file, user.id, user.username);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -83,7 +85,8 @@ export class ObservationsController {
     ) file: Express.Multer.File) {
 
     try {
-      await this.observationUpload.processFile(sourceId, file, AuthUtil.getLoggedInUserId(request), stationId);
+      const user = AuthUtil.getLoggedInUser(request);
+      await this.observationUpload.processFile(sourceId, file, user.id, user.username, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };

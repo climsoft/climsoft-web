@@ -11,9 +11,9 @@ import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto'
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
-import { NumberUtils } from 'src/shared/utils/number.utils';
-import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { ClimsoftV4Service } from './climsoft-v4.service';
+import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -23,6 +23,7 @@ export class ObservationsService {
         private readonly stationsService: StationsService,
         private readonly elementsService: ElementsService,
         private readonly sourcesService: SourcesService,
+        private readonly climsoftV4Service: ClimsoftV4Service,
     ) { }
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
@@ -233,7 +234,7 @@ export class ObservationsService {
         return log;
     }
 
-    public async save(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
+    public async save(createObservationDtos: CreateObservationDto[], userId: number, username: string): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
@@ -252,9 +253,7 @@ export class ObservationsService {
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,
-                // TODO. Write a validator to make sure that either value or flag should be present 
-                deleted: (dto.value === null && dto.flag === null),
-                //entryDateTime: new Date(), // Will be sent to database in utc, that is, new Date().toISOString()               
+                deleted: false             
             });
 
             obsEntities.push(entity);
@@ -271,6 +270,9 @@ export class ObservationsService {
             await this.insertOrUpdateObsValues(batch);
         }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
+
+        // Save to version 4 database as well
+        this.climsoftV4Service.saveObservation(createObservationDtos, username);
     }
 
     private async insertOrUpdateObsValues(observationsData: Partial<ObservationEntity>[]): Promise<void> {
