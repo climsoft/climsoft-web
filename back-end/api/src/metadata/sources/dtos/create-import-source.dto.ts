@@ -2,8 +2,8 @@ import { SourceParametersValidity } from "./create-update-source.dto";
 
 
 export class CreateImportSourceDTO implements SourceParametersValidity {
-    serverType: ServerTypeEnum;
-    format: FormatEnum;
+    dataStructureType: DataStructureTypeEnum;
+    dataStructureParameters: DataStructureValidity;
 
     /**
    * Determines whether to scale the values. 
@@ -17,27 +17,17 @@ export class CreateImportSourceDTO implements SourceParametersValidity {
      */
     sourceMissingValueFlags: string;
 
-    importParameters: ImportParametersValidity;
-
     isValid(): boolean { 
-        return this.importParameters.isValid();
+        return this.dataStructureParameters.isValid();
     }
 }
 
-export enum ServerTypeEnum {
-    LOCAL = "local",
-    BASE_STATION = "base_station",
-    MESSAGE_SWITCH = "message_switch",
-    DATABASE = "database",
-    WEB_SERVER = "web_server"
-}
-
-export enum FormatEnum {
+export enum DataStructureTypeEnum {
     TABULAR = "tabular",
-    BUFR = "bufr",
-    KEYVALUE = "key_value"
+    KEY_VALUE = "key_value",
+    BUFR = "bufr"
 }
 
-export interface ImportParametersValidity {
+export interface DataStructureValidity {
     isValid(): boolean;
 }

@@ -4,9 +4,8 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {  catchError,  take, throwError } from 'rxjs';
 import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
-import { CreateImportTabularSourceModel } from 'src/app/core/models/sources/create-import-source-tabular.model';
-import { CreateImportSourceModel, FormatEnum } from 'src/app/core/models/sources/create-import-source.model';
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { ImportTabularSourceModel } from 'src/app/metadata/sources/models/create-import-source-tabular.model';
+import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 

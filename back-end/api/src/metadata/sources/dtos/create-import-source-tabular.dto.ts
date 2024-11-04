@@ -1,8 +1,8 @@
 import { IsInt, IsString } from "class-validator";
 import { FlagEnum } from "src/observation/enums/flag.enum";
-import { ImportParametersValidity } from "./create-import-source.dto";
+import { DataStructureValidity } from "./create-import-source.dto";
 
-export class CreateImportTabularSourceDTO implements ImportParametersValidity {
+export class CreateImportTabularSourceDTO implements DataStructureValidity {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;

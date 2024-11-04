@@ -7,7 +7,7 @@ import { ElementsService } from 'src/app/core/services/elements/elements.service
 import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
 import { take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model'; 
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';

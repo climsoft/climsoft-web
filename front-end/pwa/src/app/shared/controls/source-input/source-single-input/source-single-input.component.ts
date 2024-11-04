@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 @Component({

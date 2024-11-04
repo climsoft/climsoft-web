@@ -7,7 +7,7 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 
 //import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { CreateImportSourceDTO, FormatEnum, ServerTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
+import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
 import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
@@ -47,7 +47,7 @@ export class ObservationImportService {
             const sourceDef = await this.sourcesService.find(sourceId);
             const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
 
-            if (importSourceDef.serverType === ServerTypeEnum.LOCAL && importSourceDef.format === FormatEnum.TABULAR) {
+            if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
                 await this.importTabularSource(sourceDef, tmpFilePathName, userId, stationId);
             } else {
                 throw new BadRequestException("Source not supported yet");
@@ -65,7 +65,7 @@ export class ObservationImportService {
 
         const sourceId: number = sourceDef.id;
         const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
-        const tabularDef: CreateImportTabularSourceDTO = importDef.importParameters as CreateImportTabularSourceDTO;
+        const tabularDef: CreateImportTabularSourceDTO = importDef.dataStructureParameters as CreateImportTabularSourceDTO;
 
         const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
         // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.

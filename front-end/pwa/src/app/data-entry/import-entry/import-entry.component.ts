@@ -3,9 +3,9 @@ import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {  catchError,  take, throwError } from 'rxjs';
-import { CreateImportTabularSourceModel } from 'src/app/core/models/sources/create-import-source-tabular.model';
-import { CreateImportSourceModel, FormatEnum } from 'src/app/core/models/sources/create-import-source.model';
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { ImportTabularSourceModel } from 'src/app/metadata/sources/models/create-import-source-tabular.model';
+import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
+import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { environment } from 'src/environments/environment';
@@ -44,8 +44,8 @@ export class ImportEntryComponent implements OnInit {
       this.pagesDataService.setPageHeader('Import Data From ' + this.viewSource.name);
       const importSource: CreateImportSourceModel =this.viewSource.parameters  as CreateImportSourceModel;
 
-      if (importSource.format === FormatEnum.TABULAR) {
-        const tabularSource: CreateImportTabularSourceModel = importSource.importParameters as CreateImportTabularSourceModel;
+      if (importSource.dataStructureType === DataStructureTypeEnum.TABULAR) {
+        const tabularSource: ImportTabularSourceModel = importSource.dataStructureParameters as ImportTabularSourceModel;
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });

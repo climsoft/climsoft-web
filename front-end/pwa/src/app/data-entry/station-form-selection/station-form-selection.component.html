@@ -2,9 +2,10 @@
     <div class="card-header d-flex justify-content-between p-0 align-items-center">
       <div class="fw-bold">Showing Stations</div>
       <div class="mb-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
           Search
         </button>
+        <app-stations-search-dialog #stationSearch (stationQueryChange)="onSearchInput($event)" />
       </div>
     </div>
   

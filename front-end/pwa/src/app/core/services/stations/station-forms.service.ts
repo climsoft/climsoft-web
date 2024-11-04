@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core'; 
 import { Observable, catchError, throwError } from 'rxjs';
-import { ViewSourceModel } from '../../models/sources/view-source.model';
+import { ViewSourceModel } from '../../../metadata/sources/models/view-source.model';
 
 @Injectable({
   providedIn: 'root'
