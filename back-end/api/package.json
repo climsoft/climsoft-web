@@ -30,7 +30,7 @@
     "class-validator": "^0.14.0",
     "duckdb-async": "^1.1.0",
     "express-session": "^1.17.3",
-    "mysql2": "^3.6.0",
+    "mariadb": "^3.4.0",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",

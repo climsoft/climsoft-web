@@ -12,6 +12,7 @@ export class AuthUtil {
         const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
         const loggedInUser: LoggedInUserModel = {
             id: userEntity.id,
+            username: userEntity.email,
             role: userEntity.role,
             authorisedStationIds: authorisedStationIds,
             expiresIn: expiresIn,

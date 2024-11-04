@@ -9,8 +9,7 @@ export class FileIOService {
     private _duckDb: Database;
 
     constructor() {
-        this.setupTempFolder();
-        this.setupDuckDB();
+        this.setupFileIO();
     }
 
     public get tempFilesFolderPath(): string {
@@ -21,10 +20,32 @@ export class FileIOService {
         return this._duckDb;
     }
 
-    private async setupDuckDB() {
-        // TODO. change to persist to a file.
-        this._duckDb = await Database.create(":memory:");
-        //this._duckDb = await Database.create(`/${this._tempFilesFolderPath}.db`);
+    private async setupFileIO() {
+        await this.setupTempFolder();
+        await this.setupDuckDB();
+    }
+
+    public getFullFolderPath(folder: string): string {
+
+        //const fullFolderPath = path.join(process.cwd(), 'sql-scripts/observation_log.sql');
+
+        //console.log('dir: ', __dirname);
+        //console.log('process.cwd(): ', process.cwd());
+        //console.log('Join file path: ', fullFolderPath);
+
+        // Define paths for both development and production environments
+        const devPath = path.join(process.cwd(), 'api', 'src', 'sql-scripts', 'update_observations_log_column.sql');
+        const prodPath = path.join(process.cwd(), 'dist', 'sql-scripts', 'update_observations_log_column.sql');
+
+        // Determine the actual path to use based on environment
+        const filePath = fs.existsSync(devPath) ? devPath : prodPath;
+
+        console.log('filePath: ', filePath);
+
+        // For windows platform, replace the backslashes with forward slashes.
+        return path.resolve(`./${folder}`).replaceAll("\\", "\/");
+
+
     }
 
     private async setupTempFolder(): Promise<void> {
@@ -47,13 +68,18 @@ export class FileIOService {
         }
     }
 
-    public createReadStream(filePathName: string){
-       return fs.createReadStream(filePathName);
+    private async setupDuckDB() {
+        // Initialise DuckDB with the specified file path
+        this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);
+    }
+
+    public createReadStream(filePathName: string) {
+        return fs.createReadStream(filePathName);
     }
 
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {
         try {
-            return await fs.promises.readFile(filePathName, { encoding: encoding  })
+            return await fs.promises.readFile(filePathName, { encoding: encoding })
         } catch (err) {
             throw new Error("Could not read file: " + err);
         }
@@ -75,7 +101,7 @@ export class FileIOService {
             await fs.promises.unlink(filePathName);
         } catch (err) {
             //throw new Error("Could not delete user file: " + err);
-            console.error("Could not delete file: ", filePathName , err)
+            console.error("Could not delete file: ", filePathName, err)
         }
     }
 

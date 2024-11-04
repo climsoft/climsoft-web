@@ -35,7 +35,7 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-    public async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
+    public async processFile(sourceId: number, file: Express.Multer.File, userId: number, username: string, stationId?: string) {
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
         const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
@@ -48,7 +48,7 @@ export class ObservationImportService {
             const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
 
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-                await this.importTabularSource(sourceDef, tmpFilePathName, userId, stationId);
+                await this.importTabularSource(sourceDef, tmpFilePathName, userId, username, stationId);
             } else {
                 throw new BadRequestException("Source not supported yet");
             }
@@ -61,7 +61,7 @@ export class ObservationImportService {
         }
     }
 
-    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
+    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, username: string, stationId?: string) {
 
         const sourceId: number = sourceDef.id;
         const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
@@ -119,7 +119,9 @@ export class ObservationImportService {
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
 
         // Save the rows into the database
-        await this.observationsService.save(rows as CreateObservationDto[], userId);
+        console.log(rows[0], ' | datetime: ');
+
+        await this.observationsService.save(rows as CreateObservationDto[], userId, username);
     }
 
     private async getRenameColumnNamesSQL(tableName: string): Promise<string> {
@@ -333,6 +335,11 @@ export class ObservationImportService {
         } else if (sourceDef.utcOffset < 0) {
             sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
         }
+
+        // change the date_time back to varchar as expected by the dto
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR;`;
+        // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
+        sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 
         return sql;
     }
