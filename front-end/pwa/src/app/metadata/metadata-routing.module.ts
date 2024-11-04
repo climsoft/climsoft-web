@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';  
-import { ViewStationsComponent } from './stations-components/view-stations/view-stations.component';
+import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
-import { ElementDetailComponent } from './element-detail/element-detail.component';
-import { FormSourceDetailComponent } from './sources-components/form-source-detail/form-source-detail.component';
-import { SourcesComponent } from './sources-components/sources/sources.component';
-import { StationDetailComponent } from './stations-components/station-detail/station-detail.component';
-import { ImportSourceDetailComponent } from './sources-components/import-source-detail/import-source-detail.component';
+import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
+import { FormSourceDetailComponent } from './sources/form-source-detail/form-source-detail.component';
+import { ViewSourcesComponent } from './sources/view-sources/view-sources.component';
+import { StationDetailComponent } from './stations/station-detail/station-detail.component';
+import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
 
@@ -32,7 +32,7 @@ const routes: Routes = [
       },
       {
         path: 'sources',
-        component: SourcesComponent, 
+        component: ViewSourcesComponent, 
       }, 
       {
         path: 'form-source-detail/:id',

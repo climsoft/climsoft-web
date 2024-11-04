@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 //--------------------------------
-
+ 
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
@@ -48,6 +48,7 @@ import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 import { RegionTypeInputComponent } from './controls/region-type-input/region-type-input.component';
 import { MapComponent } from './controls/map/map.component';
+import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
 
 //--------------------------------
   
@@ -103,8 +104,8 @@ const controlsComponents = [
   PageInputComponent,
   DropDownContainerComponent, 
   RegionTypeInputComponent,
-  MapComponent
-
+  MapComponent,
+  DataStructureInputComponent,
 ];
 
 const directives = [

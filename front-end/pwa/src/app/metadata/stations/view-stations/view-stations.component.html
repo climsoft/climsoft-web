@@ -1,0 +1,39 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <button class="nav-link active" [class.active]="activeTab === 'table'"
+          (click)="onTabClick('table')">Table</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'map'" (click)="onTabClick('map')">Map</button>
+      </li>
+    </ul>
+    <div class="d-flex">
+      <div class="me-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">
+          Search
+        </button>
+        <app-stations-search-dialog #stationSearch (stationQueryChange)="onSearchInput($event)" />
+      </div>
+      <div class="me-2">
+        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
+          (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():dlgImportStation.openDialog()"
+          [translateX]="true" />
+        <app-station-characteristics-edit-dialog #dlgAddStation (ok)="onNewStation()" />
+        <app-import-stations-dialog #dlgImportStation (okClick)="onImportStations()" />
+      </div>
+      <div>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Download']"
+          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): ''" [translateX]="true" />
+        <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body p-0 mt-2">
+    <app-view-stations-table *ngIf="activeTab === 'table'" [stationsDef]=stationsDef />
+    <app-view-stations-map *ngIf="activeTab === 'map' " [stationsDef]=stationsDef />
+  </div>
+
+</div>

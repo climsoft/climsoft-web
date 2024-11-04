@@ -5,7 +5,8 @@ import { PointModel } from "../point.model";
 export interface UpdateStationModel {
   name: string;
   description: string;
-  location: PointModel ; 
+  longitude: number;
+  latitude: number; 
   elevation: number ;
   stationObsProcessingMethod: StationObsProcessingMethodEnum ;
   stationObsEnvironmentId: number | null;

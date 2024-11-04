@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import {  take } from 'rxjs'; 
-import { SourceTypeEnum } from 'src/app/core/models/sources/source-type.enum';
-import { ViewSourceModel } from 'src/app/core/models/sources/view-source.model';
+import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
+import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 
 export interface ItemSelection extends ViewSourceModel {

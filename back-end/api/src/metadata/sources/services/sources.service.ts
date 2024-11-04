@@ -77,6 +77,7 @@ export class SourcesService {
             sourceType: dto.sourceType,
             utcOffset: dto.utcOffset,
             allowMissingValue: dto.allowMissingValue,
+            scaleValues: dto.scaleValues,
             sampleImage: dto.sampleImage,
             parameters: dto.parameters,
             entryUserId: userId
@@ -119,6 +120,7 @@ export class SourcesService {
             allowMissingValue: entity.allowMissingValue,
             sampleImage: entity.sampleImage,
             parameters: entity.parameters,
+            scaleValues: entity.scaleValues
         }
 
         if (dto.sourceType == SourceTypeEnum.FORM) {

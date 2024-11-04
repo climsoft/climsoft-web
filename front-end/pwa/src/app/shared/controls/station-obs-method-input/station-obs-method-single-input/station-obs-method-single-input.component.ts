@@ -29,7 +29,7 @@ export class StationObsMethodSingleInputComponent implements OnInit, OnChanges {
 
     //load options once
     if (!this.options) {
-      this.options = Object.values(StationObsProcessingMethodEnum);;
+      this.options = Object.values(StationObsProcessingMethodEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {

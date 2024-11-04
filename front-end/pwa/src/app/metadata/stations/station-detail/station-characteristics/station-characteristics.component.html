@@ -1,0 +1,74 @@
+<div *ngIf="station">
+  <div class="d-flex justify-content-end">
+    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+      (click)="dlgEdit.openDialog(station.id)">Edit</button>
+    <app-station-characteristics-edit-dialog #dlgEdit (ok)="onStationEdited()" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Id'" [value]="station.id" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Name'" [value]="station.name" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Description'" [value]="station.description" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Latitude'" [value]="station.latitude" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Longitude'" [value]="station.longitude" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Elevation'" [value]="station.elevation" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Processing Method'" [value]="station.stationObsProcessingMethodName"
+      [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Environment'" [value]="station.stationObsEnvironmentName"
+      [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Observation Focus'" [value]="station.stationObsFocusName" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'WMO ID'" [value]="station.wmoId" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'WIGOS ID'" [value]="station.wigosId" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'ICAO ID'" [value]="station.icaoId" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Status'" [value]="station.status" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Date Established'" [value]="station.dateEstablished" [labelColWidth]="4" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Date Closed'" [value]="station.dateClosed" [labelColWidth]="4" />
+  </div>
+
+  <div>
+    <app-label-input [label]="'Comment'" [value]="station.comment" [labelColWidth]="4" />
+  </div>
+
+</div>

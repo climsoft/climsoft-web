@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { ServerTypeEnum } from 'src/app/core/models/sources/create-import-source.model';
 import { StringUtils } from '../../utils/string.utils';
 import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
 

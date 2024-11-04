@@ -23,6 +23,9 @@ export class SourceEntity extends AppBaseEntity {
 
     @Column({ name: "allow_missing_value", type: "boolean" })
     allowMissingValue: boolean;
+    
+    @Column({ name: "scale_values", type: "boolean" })
+    scaleValues: boolean;
 
     @Column({ name: "sample_image", type: "varchar" })
     sampleImage: string;

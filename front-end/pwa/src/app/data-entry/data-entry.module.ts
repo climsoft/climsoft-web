@@ -19,6 +19,7 @@ import { DeletedDataComponent } from './manage-data/deleted-data/deleted-data.co
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 import { EditQCDataComponent } from './manage-data/qc-data/edit-qc-data/edit-qc-data.component';
 import { SourceCheckComponent } from './manage-data/source-check/source-check.component';
+import { MetadataModule } from '../metadata/metadata.module';
 
 //------------------------------------
 
@@ -45,6 +46,7 @@ import { SourceCheckComponent } from './manage-data/source-check/source-check.co
   imports: [
     DataEntryRoutingModule,
     SharedModule,
+    MetadataModule,
   ]
 })
 export class DataEntryModule { }

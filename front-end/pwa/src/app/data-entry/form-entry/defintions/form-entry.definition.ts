@@ -1,5 +1,5 @@
-import { FieldType } from "src/app/core/models/sources/create-entry-form.model";
-import { ViewEntryFormModel } from "src/app/core/models/sources/view-entry-form.model";
+import { FieldType } from "src/app/metadata/sources/models/create-entry-form.model";
+import { ViewEntryFormModel } from "src/app/metadata/sources/models/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
 import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
@@ -7,7 +7,7 @@ import { ViewStationModel } from "src/app/core/models/stations/view-station.mode
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { CreateObservationQueryModel } from "src/app/core/models/observations/create-observation-query.model";
-import { ViewSourceModel } from "src/app/core/models/sources/view-source.model";
+import { ViewSourceModel } from "src/app/metadata/sources/models/view-source.model";
 import { UpdateQCTestModel } from "src/app/core/models/elements/qc-tests/update-qc-test.model";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 

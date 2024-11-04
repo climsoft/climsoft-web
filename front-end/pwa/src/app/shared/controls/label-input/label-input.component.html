@@ -1,11 +1,8 @@
 <div class="row">
-    <!-- <label [for]="id? id:label" class="col-sm-3 col-form-label">{{ label + ":" }}</label> -->
-    <div class="col-sm-2">
+    <div [ngClass]="labelColWidthClass">
         {{ label + ":" }}
     </div>
-    <div class="col-sm-10">
-        <!-- <input type="text" readonly class="form-control-plaintext" [id]="id? id:label"
-            [value]="value !== undefined && value !== null? value : ''"> -->
-            {{ value !== undefined && value !== null? value : '' }}
+    <div [ngClass]="valueColWidthClass">
+        {{ value !== undefined && value !== null? value : '' }}
     </div>
 </div>

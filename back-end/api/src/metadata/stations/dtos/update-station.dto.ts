@@ -1,24 +1,26 @@
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 import { StationStatusEnum } from '../enums/station-status.enum';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 
-import { Type } from 'class-transformer';
-import { PointDTO } from 'src/shared/dtos/point.dto';
-
 export class UpdateStationDto {
-
     @IsString()
     name: string;
 
+    @IsOptional()
     @IsString()
-    description: string;
- 
-    @ValidateNested()
-    @Type(() => PointDTO)
-    location: PointDTO; 
+    description: string | null;
 
+    @IsOptional()
     @IsNumber()
-    elevation: number; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+    longitude: number | null;
+
+    @IsOptional()
+    @IsNumber()
+    latitude: number | null;
+
+    @IsOptional()
+    @IsNumber()
+    elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
 
     @IsEnum(StationObsProcessingMethodEnum, { message: 'Station observing method must be a valid value' })
     stationObsProcessingMethod: StationObsProcessingMethodEnum;
