@@ -4,8 +4,10 @@ import { SettingsMigrationService } from 'src/settings/settings-migration.servic
 import { UserRoleEnum } from 'src/user/enums/user-roles.enum';
 import { UsersService } from 'src/user/services/users.service';
 import { DatabaseVersionEntity } from './entities/database-version.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { FileIOService } from 'src/shared/services/file-io.service';
+import { ObservationTriggers1721359627445 } from './1721359627445-ObservationTriggers';
 
 @Injectable()
 export class MigrationsService {
@@ -15,7 +17,9 @@ export class MigrationsService {
 
   constructor(
     @InjectRepository(DatabaseVersionEntity) private readonly dbVersionRepo: Repository<DatabaseVersionEntity>,
+    private dataSource: DataSource,
     private readonly userService: UsersService,
+    private readonly fileIOService: FileIOService,
     private readonly migrationMetadataService: MetadataMigrationService,
     private readonly migrationSettingsService: SettingsMigrationService) { }
 
@@ -27,7 +31,6 @@ export class MigrationsService {
     });
 
     if (lastDBVersion) {
-
       if (lastDBVersion.version === this.SUPPORTED_DB_VERSION) {
         // DB version same so return.
         return;
@@ -41,6 +44,8 @@ export class MigrationsService {
 
     }
 
+
+
     // TODO. depending on the version the seeding will be different
     this.seedDatabase();
 
@@ -52,9 +57,6 @@ export class MigrationsService {
     await this.dbVersionRepo.save(newDBVersion);
 
   }
-
-
-
 
   private isVersionGreater(currentVersion: string, lastVersion: string): boolean {
     const currentParts = currentVersion.split('.').map(Number);
@@ -75,9 +77,26 @@ export class MigrationsService {
 
   private async seedDatabase() {
     // Call the seed methods
+    await this.seedTriggers();
     await this.seedFirstUser();
     await this.migrationMetadataService.seedMetadata();
     await this.migrationSettingsService.seedSettings();
+  }
+
+  private async seedTriggers() {
+    //const fullFolderPath = this.fileIOService.getFullFolderPath('sql-scripts');
+   
+  
+
+
+    //console.log('file path: ', fullFolderPath);
+
+    //join(__dirname, '../sql/triggers/update_observations_log_column.sql');
+   // const sql = await this.fileIOService.readFile(`${fullFolderPath}/observation_log.sql`, 'utf8');
+
+    //console.log('sql: ', sql);
+
+     await this.dataSource.query(ObservationTriggers1721359627445.OBS_LOG_TRIGGER);
   }
 
   private async seedFirstUser() {

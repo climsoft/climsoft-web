@@ -25,10 +25,28 @@ export class FileIOService {
         await this.setupDuckDB();
     }
 
-    private async setupDuckDB() {
-        // Initialise DuckDB with the specified file path
-        this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);   
-    } 
+    public getFullFolderPath(folder: string): string {
+
+        //const fullFolderPath = path.join(process.cwd(), 'sql-scripts/observation_log.sql');
+
+        //console.log('dir: ', __dirname);
+        //console.log('process.cwd(): ', process.cwd());
+        //console.log('Join file path: ', fullFolderPath);
+
+        // Define paths for both development and production environments
+        const devPath = path.join(process.cwd(), 'api', 'src', 'sql-scripts', 'update_observations_log_column.sql');
+        const prodPath = path.join(process.cwd(), 'dist', 'sql-scripts', 'update_observations_log_column.sql');
+
+        // Determine the actual path to use based on environment
+        const filePath = fs.existsSync(devPath) ? devPath : prodPath;
+
+        console.log('filePath: ', filePath);
+
+        // For windows platform, replace the backslashes with forward slashes.
+        return path.resolve(`./${folder}`).replaceAll("\\", "\/");
+
+
+    }
 
     private async setupTempFolder(): Promise<void> {
         this._tempFilesFolderPath = path.resolve('./tmp');
@@ -48,6 +66,11 @@ export class FileIOService {
             }
 
         }
+    }
+
+    private async setupDuckDB() {
+        // Initialise DuckDB with the specified file path
+        this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);
     }
 
     public createReadStream(filePathName: string) {
