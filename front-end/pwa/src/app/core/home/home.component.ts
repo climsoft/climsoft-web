@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
-import { AuthService } from '../services/users/auth.service';
+import { AuthService } from '../../auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserRoleEnum } from '../models/users/user-role.enum';
 
