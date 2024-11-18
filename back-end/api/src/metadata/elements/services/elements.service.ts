@@ -2,12 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { ElementEntity, ElementLogVo } from '../../elements/entities/element.entity';
-import { ObjectUtils } from 'src/shared/utils/object.util';
 import { ElementSubdomainEntity } from '../../elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from '../../elements/entities/element-type.entity';
 import { ViewElementTypeDto } from '../dtos/elements/view-element-type.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { IBaseNumberService } from 'src/shared/services/base-number-service.interface.';
 import { ViewElementDto } from '../dtos/elements/view-element.dto';
 import { CreateElementDto } from '../dtos/elements/create-element.dto';
 import { UpdateElementDto } from '../dtos/elements/update-element.dto';
@@ -26,7 +24,6 @@ export class ElementsService {
     public async findOne(id: number): Promise<ViewElementDto> {
         return this.createViewDto(await this.getEntity(id));
     }
-
 
     public async find(viewElementQueryDto?: ViewElementQueryDTO): Promise<ViewElementDto[]> {
         const findOptions: FindManyOptions<ElementEntity> = {
@@ -81,7 +78,7 @@ export class ElementsService {
             id: createDto.id,
         });
 
-        this.updateElementEntity(entity, createDto, userId, true);
+        this.updateElementEntity(entity, createDto, userId);
 
         await this.elementRepo.save(entity);
 
@@ -92,15 +89,19 @@ export class ElementsService {
 
     public async update(id: number, updateDto: UpdateElementDto, userId: number): Promise<ViewElementDto> {
         const entity: ElementEntity = await this.getEntity(id);
-        const oldChanges: ElementLogVo = this.getElementLogFromEntity(entity);
-        const newChanges: ElementLogVo = this.getElementLogFromDto(updateDto, userId);
+        //const oldChanges: ElementLogVo = this.getElementLogFromEntity(entity);
+        //const newChanges: ElementLogVo = this.getElementLogFromDto(updateDto, userId);
 
         //if no changes, then no need to save
-        if (!ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
-            this.updateElementEntity(entity, updateDto, userId, false);
+        // if (!ObjectUtils.areObjectsEqual<ElementLogVo>(oldChanges, newChanges, ["entryUserId", "entryDateTime"])) {
+        //     this.updateElementEntity(entity, updateDto, userId, false);
 
-            await this.elementRepo.save(entity);
-        }
+        //     await this.elementRepo.save(entity);
+        // }
+
+        this.updateElementEntity(entity, updateDto, userId);
+
+        await this.elementRepo.save(entity);
 
         return this.createViewDto(entity);
     }
@@ -110,37 +111,10 @@ export class ElementsService {
         return id;
     }
 
-    private getElementLogFromEntity(entity: ElementEntity): ElementLogVo {
-        return {
-            abbreviation: entity.abbreviation,
-            name: entity.name,
-            description: entity.description,
-            units: entity.units,
-            typeId: entity.typeId,
-            entryScaleFactor: entity.entryScaleFactor,
-            comment: entity.comment,
-            entryUserId: entity.entryUserId,
-            entryDateTime: entity.entryDateTime.toISOString()
-        };
-    }
 
-    private getElementLogFromDto(dto: UpdateElementDto, userId: number): ElementLogVo {
-        return {
-            abbreviation: dto.abbreviation,
-            name: dto.name,
-            description: dto.description,
-            units: dto.units,
-            typeId: dto.typeId,
-            entryScaleFactor: dto.entryScaleFactor,
-            comment: dto.comment,
-            entryUserId: userId,
-            entryDateTime: new Date().toISOString()
-        };
-    }
-
-    private updateElementEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number, newEntity: boolean): void {
+    private updateElementEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
         // Note, log has to be set before updating the new values to the entity, because we are logging previous values.
-        entity.log = newEntity ? null : ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
+        //entity.log = newEntity ? null : ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
 
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
@@ -180,8 +154,8 @@ export class ElementsService {
             units: entity.units,
             typeId: entity.elementType.id,
             typeName: entity.elementType.name,
-            subdomainName: entity.elementType.elementSubdomain.name,
-            domain: entity.elementType.elementSubdomain.domain,
+            //subdomainName: entity.elementType.elementSubdomain.name,
+            //domain: entity.elementType.elementSubdomain.domain,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
         }

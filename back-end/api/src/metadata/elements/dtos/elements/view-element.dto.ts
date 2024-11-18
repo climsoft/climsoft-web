@@ -7,8 +7,8 @@ export class ViewElementDto {
     units: string;
     typeId: number;
     typeName: string;
-    subdomainName: string;
-    domain: ElementDomainEnum;
+    //subdomainName: string;
+    //domain: ElementDomainEnum;
     entryScaleFactor: number;
     comment: string | null;
 }

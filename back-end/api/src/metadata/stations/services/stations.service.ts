@@ -94,6 +94,8 @@ export class StationsService {
 
         StationsService.updateStationEntity(entity, updateDto, userId);
 
+        console.log('entity: ', entity);
+
         return this.createViewDto(await this.stationRepo.save(entity));
     }
 

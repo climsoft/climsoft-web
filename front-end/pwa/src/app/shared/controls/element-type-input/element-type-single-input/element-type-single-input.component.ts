@@ -46,7 +46,7 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: ViewElementTypeModel): string {
-    return `${option.domainName} - ${option.subdomainName} - ${option.name}`;
+    return `${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: ViewElementTypeModel | null) {

@@ -1,10 +1,11 @@
 import { Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { ElementDomainEnum } from "../dtos/elements/element-domain.enum";
+import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 
 @Entity("element_subdomains")
-export class ElementSubdomainEntity {
+export class ElementSubdomainEntity  extends AppBaseEntity {
     @PrimaryColumn({ type: "int" })
-    id: number;
+    id: number; 
 
     @Column({ type: "varchar", unique: true })
     name: string;

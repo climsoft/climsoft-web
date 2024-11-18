@@ -23,7 +23,7 @@ export class ClimsoftV4Service {
         // TODO. Later remove this.
         if (1 === 1) {
             return;
-        }
+        } 
 
         if (!this.v4DBInitialised) {
             await this.setupV4DBConnections();

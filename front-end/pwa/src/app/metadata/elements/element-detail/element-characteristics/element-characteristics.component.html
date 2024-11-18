@@ -1,48 +1,48 @@
 <div *ngIf="element">
-    <div class="d-flex justify-content-end">
-      <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-        (click)="dlgElementInput.openDialog(element.id)">Edit</button>
-      <app-element-characteristics-input-dialog #dlgElementInput (ok)="onElementEdited()" />
-    </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Id'" [value]="element.id" />
-    </div>
-
-    <div class="mb-1">
-        <app-label-input [label]="'Abbreviation'" [value]="element.abbreviation" />
-      </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Name'" [value]="element.name" />
-    </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Description'" [value]="element.description" />
-    </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Units'" [value]="element.units" />
-    </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Domain'" [value]="element.domain" />
-    </div>
-
-    <div class="mb-1">
-        <app-label-input [label]="'Subdomain'" [value]="element.subdomainName" />
-      </div>
-
-      <div class="mb-1">
-        <app-label-input [label]="'Type'" [value]="element.typeName" />
-      </div>
-  
-    <div class="mb-1">
-      <app-label-input [label]="'Entry Scale Factor'" [value]="element.entryScaleFactor" />
-    </div>
-  
-    <div>
-      <app-label-input [label]="'Comment'" [value]="element.comment" />
-    </div>
-  
+  <div class="d-flex justify-content-end">
+    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+      (click)="dlgElementInput.openDialog(element.id)">Edit</button>
+    <app-element-characteristics-input-dialog #dlgElementInput (ok)="onElementEdited()" />
   </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Id'" [value]="element.id" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Abbreviation'" [value]="element.abbreviation" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Name'" [value]="element.name" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Description'" [value]="element.description" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Units'" [value]="element.units" />
+  </div>
+
+  <!-- <div class="mb-1">
+    <app-label-input [label]="'Domain'" [value]="element.domain" />
+  </div> -->
+
+  <!-- <div class="mb-1">
+    <app-label-input [label]="'Subdomain'" [value]="element.subdomainName" />
+  </div> -->
+
+  <div class="mb-1">
+    <app-label-input [label]="'Type'" [value]="element.typeName" />
+  </div>
+
+  <div class="mb-1">
+    <app-label-input [label]="'Entry Scale Factor'" [value]="element.entryScaleFactor" />
+  </div>
+
+  <div>
+    <app-label-input [label]="'Comment'" [value]="element.comment" />
+  </div>
+
+</div>

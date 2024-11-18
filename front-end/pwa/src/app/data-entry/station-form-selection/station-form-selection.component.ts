@@ -32,7 +32,7 @@ export class StationFormSelectionComponent {
 
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsCacheService.cachedStations.subscribe(data => {
+    this.stationsCacheService.fetchLatest().subscribe(data => {
       this.allStations = data.filter(item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID);
       this.stations = this.allStations;
     });

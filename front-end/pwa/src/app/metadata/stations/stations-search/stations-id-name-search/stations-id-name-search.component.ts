@@ -29,7 +29,6 @@ export class StationsIdNameSearchComponent implements OnChanges {
   protected allSelections!: SearchSelection[];
 
   constructor(private stationsCacheSevice: StationsCacheService) {
-    this.setup(this.stationsCacheSevice.cachedStations.value);
     this.stationsCacheSevice.fetchLatest().subscribe(data => {
       this.setup(data);
     });

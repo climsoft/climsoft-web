@@ -42,6 +42,8 @@ export class StationCharacteristicsEditDialogComponent {
           this.station.dateClosed = this.station.dateClosed.substring(0, 10);
         }
 
+        console.log('retrieved: ', this.station);
+
       });
 
     } else {
@@ -73,11 +75,13 @@ export class StationCharacteristicsEditDialogComponent {
 
   }
 
-  protected onStationObsChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {
+  protected onStationObsMethodChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {
     this.station.stationObsProcessingMethod = stationObservationMethodEnum ? stationObservationMethodEnum : StationObsProcessingMethodEnum.AUTOMATIC;
   }
 
   protected onOkClick(): void {
+
+    console.log('old: ', this.station);
 
     if (StringUtils.isNullOrEmpty(this.station.id) || StringUtils.isNullOrEmpty(this.station.name)) {
       return;
@@ -113,6 +117,8 @@ export class StationCharacteristicsEditDialogComponent {
       dateClosed: dateClosed,
       comment: this.station.comment,
     }
+
+    console.log('updated: ', updateStation);
 
     let saveSubscription: Observable<ViewStationModel>;
     if (this.bNew) {

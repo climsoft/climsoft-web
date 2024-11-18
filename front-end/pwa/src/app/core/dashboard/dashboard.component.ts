@@ -54,7 +54,7 @@ export class DashboardComponent implements AfterViewInit {
 
   private addStationsToMap(): void {
     // Get all the stations and add them to leaflet as a layer.
-    this.stationsCacheService.cachedStations.subscribe((data) => {
+    this.stationsCacheService.fetchLatest().subscribe((data) => {
       const featureCollection: any = {
         "type": "FeatureCollection",
         "features": data.map(item => {

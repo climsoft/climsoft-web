@@ -17,24 +17,24 @@ export class SeedObservationEnvironments1711195885141 implements MigrationInterf
     }
 
     public static INSERT_STATION_OBSERVATION_ENVIRONMENTS = `
-    INSERT INTO station_observation_environments (id, name, description) VALUES 
+    INSERT INTO station_observation_environments (id, name, description, entry_user_id) VALUES 
 
-    (1, 'Air (fixed)', ''),
-    (2, 'Air (mobile)', ''),
+    (1, 'Air (fixed)', '', 1),
+    (2, 'Air (mobile)', '', 1),
 
-    (3, 'Lake/River (fixed)', ''),
-    (4, 'Lake/River (mobile)', ''),
+    (3, 'Lake/River (fixed)', '', 1),
+    (4, 'Lake/River (mobile)', '', 1),
 
-    (5, 'Land (fixed)', ''),
-    (6, 'Land (mobile)', ''),
-    (7, 'Land (on ice)' , ''),
+    (5, 'Land (fixed)', '', 1),
+    (6, 'Land (mobile)', '', 1),
+    (7, 'Land (on ice)' , '', 1),
 
-    (8, 'Sea (fixed)', ''),
-    (9, 'Sea (mobile)', '' ),
-    (10, 'Sea (on ice)', ''),
+    (8, 'Sea (fixed)', '', 1),
+    (9, 'Sea (mobile)', '' , 1),
+    (10, 'Sea (on ice)', '', 1),
 
-    (11, 'Underwater (fixed)', '' ),
-    (12, 'Underwater (mobile)', '')
+    (11, 'Underwater (fixed)', '', 1),
+    (12, 'Underwater (mobile)', '', 1)
 
     `;
 

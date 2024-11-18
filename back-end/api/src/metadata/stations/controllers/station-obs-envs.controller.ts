@@ -1,6 +1,7 @@
 import { Controller, Get, Query, ParseArrayPipe, DefaultValuePipe } from '@nestjs/common';
 
 import { StationObsEnvService } from '../services/station-obs-env.service';
+import { DateQueryDto } from 'src/shared/dtos/date-query.dto';
 
 @Controller("station-observation-environments")
 export class StationObsEnvsController {
@@ -15,6 +16,10 @@ export class StationObsEnvsController {
     return this.stationObsEnvservice.find(ids);
   }
 
-
+  @Get('updates')
+  async updates(
+    @Query() dateQueryDto: DateQueryDto) {
+    return this.stationObsEnvservice.findUpdated( dateQueryDto.date);
+  }
 
 }
