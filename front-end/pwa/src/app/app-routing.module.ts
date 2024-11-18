@@ -1,11 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-
-import { HomeComponent } from './home/home.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { LoginComponent } from './login/login.component';
-import { authGuard } from './guards/auth.guard';
-import { NotFoundComponent } from './not-found/not-found.component';
+import { HomeComponent } from './core/home/home.component';
+import { authGuard } from './core/guards/auth.guard';
+import { DashboardComponent } from './core/dashboard/dashboard.component';
+import { LoginComponent } from './core/login/login.component';
+import { NotFoundComponent } from './core/not-found/not-found.component';
 
 const routes: Routes = [
   {
@@ -24,19 +23,19 @@ const routes: Routes = [
       },
       {
         path: 'data-entry',
-        loadChildren: () => import('../data-entry/data-entry.module').then((m) => m.DataEntryModule)
+        loadChildren: () => import('./data-entry/data-entry.module').then((m) => m.DataEntryModule)
       },
       {
         path: 'metadata',
-        loadChildren: () => import('../metadata/metadata.module').then((m) => m.MetadataModule)
+        loadChildren: () => import('./metadata/metadata.module').then((m) => m.MetadataModule)
       },
       {
         path: 'user',
-        loadChildren: () => import('../user/user.module').then((m) => m.UserModule)
+        loadChildren: () => import('./user/user.module').then((m) => m.UserModule)
       },
       {
         path: 'settings',
-        loadChildren: () => import('../settings/settings.module').then((m) => m.SettingsModule)
+        loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule)
       },
     ]
   },
