@@ -2,12 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { StationEntity } from '../entities/station.entity';
-import { StringUtils } from 'src/shared/utils/string.utils';
 import { UpdateStationDto } from '../dtos/update-station.dto';
 import { CreateStationDto } from '../dtos/create-update-station.dto';
-import { ViewStationDto } from '../dtos/view-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
-import { StationChangesDto } from '../dtos/station-changes.dto';
+import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 
 @Injectable()
 export class StationsService {
@@ -16,7 +15,7 @@ export class StationsService {
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
     ) { }
 
-    public async find(viewStationQueryDto?: ViewStationQueryDTO): Promise<ViewStationDto[]> {
+    public async find(viewStationQueryDto?: ViewStationQueryDTO): Promise<CreateStationDto[]> {
         const findOptions: FindManyOptions<StationEntity> = {
             order: {
                 id: "ASC"
@@ -63,12 +62,12 @@ export class StationsService {
         return whereOptions
     }
 
-    public async findOne(id: string): Promise<ViewStationDto> {
+    public async findOne(id: string): Promise<CreateStationDto> {
         const entity = await this.getEntity(id);
         return this.createViewDto(entity);
     }
 
-    public async create(createDto: CreateStationDto, userId: number): Promise<ViewStationDto> {
+    public async create(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
         let entity: StationEntity | null = await this.stationRepo.findOneBy({
             id: createDto.id,
         });
@@ -89,7 +88,7 @@ export class StationsService {
         return this.findOne(entity.id);
     }
 
-    public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<ViewStationDto> {
+    public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
 
         StationsService.updateStationEntity(entity, updateDto, userId);
@@ -134,10 +133,9 @@ export class StationsService {
         entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        //entity.entryDateTime = new Date(); 
     }
 
-    private createViewDto(entity: StationEntity): ViewStationDto {
+    private createViewDto(entity: StationEntity): CreateStationDto {
         return {
             id: entity.id,
             name: entity.name,
@@ -146,11 +144,8 @@ export class StationsService {
             latitude: entity.location ? entity.location.coordinates[1] : null,
             elevation: entity.elevation,
             stationObsProcessingMethod: entity.obsProcessingMethod,
-            stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(entity.obsProcessingMethod),
             stationObsEnvironmentId: entity.obsEnvironmentId,
-            stationObsEnvironmentName: entity.obsEnvironment ? entity.obsEnvironment.name : null,
             stationObsFocusId: entity.obsFocusId,
-            stationObsFocusName: entity.obsFocus ? entity.obsFocus.name : null,
             wmoId: entity.wmoId,
             wigosId: entity.wigosId,
             icaoId: entity.icaoId,
@@ -161,25 +156,40 @@ export class StationsService {
         }
     }
 
-    public async findUpdatedStations(entryDatetime: string, stationIds?: string[]): Promise<StationChangesDto> {
-        const whereOptions: FindOptionsWhere<StationEntity> = {
-            entryDateTime: MoreThan(new Date(entryDatetime))
-        };
+    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto, stationIds?: string[]): Promise<MetadataUpdatesDto> {
+        let changesDetected: boolean = false;
 
-        if (stationIds) {
-            whereOptions.id = stationIds.length === 1 ? stationIds[0] : In(stationIds);
+        const serverCount = await this.stationRepo.count();
+
+        if (serverCount !== updatesQueryDto.lastModifiedCount) {
+            // If number of records in server are not the same as those in the client the changes detected
+            changesDetected = true;
+        } else {
+            const whereOptions: FindOptionsWhere<StationEntity> = {};
+
+            if (updatesQueryDto.lastModifiedDate) {
+                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+            }
+
+            if (stationIds) {
+                whereOptions.id = stationIds.length === 1 ? stationIds[0] : In(stationIds);
+            }
+
+            // If there was any changed record then changes detected
+            changesDetected = (await this.stationRepo.count({ where: whereOptions })) > 0
         }
 
-        const updatedStations = (await this.stationRepo.find({
-            where: whereOptions
-        })).map(entity => {
-            return this.createViewDto(entity);
-        });
+        if (changesDetected) {
+            // If any changes detected then return all records 
+            const allRecords = (await this.stationRepo.find()).map(entity => {
+                return this.createViewDto(entity);
+            });
 
-        const totalCount = await this.stationRepo.count();
-
-        return { updated: updatedStations, totalCount: totalCount };
-
+            return { metadataChanged: true, metadataRecords: allRecords }
+        } else {
+            // If no changes detected then indicate no metadata changed
+            return { metadataChanged: false }
+        }
     }
 
 }

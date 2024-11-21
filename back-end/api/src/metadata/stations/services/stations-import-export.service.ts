@@ -221,8 +221,8 @@ export class StationsImportExportService {
                     station.latitude,
                     station.longitude,
                     station.elevation,                    
-                    station.stationObsEnvironmentName, // Use name instead of Id
-                    station.stationObsFocusName, // Use name instead of Id
+                    station.stationObsEnvironmentId, // TODO
+                    station.stationObsFocusId, // TODO
                     station.wmoId,
                     station.wigosId,
                     station.icaoId,

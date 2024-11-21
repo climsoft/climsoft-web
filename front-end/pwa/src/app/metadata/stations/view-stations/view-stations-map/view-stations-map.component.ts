@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import * as L from 'leaflet';
-import { ViewStationsDefinition } from '../view-stations.definition';
+import * as L from 'leaflet'; 
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache-service';
 
 @Component({
   selector: 'app-view-stations-map',
@@ -8,8 +8,9 @@ import { ViewStationsDefinition } from '../view-stations.definition';
   styleUrls: ['./view-stations-map.component.scss']
 })
 export class ViewStationsMapComponent implements OnChanges {
+
   @Input()
-  public stationsDef!: ViewStationsDefinition;
+  public stations!: StationCacheModel[];
 
   protected stationMapLayerGroup: L.LayerGroup;
 
@@ -18,17 +19,18 @@ export class ViewStationsMapComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['stationsDef'] && this.stationsDef) {
-      this.stationsDef.entriesLoaded.subscribe(() => {
-        this.setupMap();
-      });
+
+    console.log('view map changes raised');
+
+    if (changes['stations'] && this.stations) {
+      this.setupMap();
     }
   }
 
   private setupMap(): void {
     const featureCollection: any = {
       "type": "FeatureCollection",
-      "features": this.stationsDef.stations.map(item => {
+      "features": this.stations.map(item => {
         return {
           "type": "Feature",
           "properties": {
@@ -64,7 +66,6 @@ export class ViewStationsMapComponent implements OnChanges {
 
     marker.bindPopup(`${feature.properties.name}`);
     return marker;
-
   }
 
 

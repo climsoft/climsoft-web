@@ -1,4 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { AppDatabase } from 'src/app/app-database';
 import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
 
 @Component({
@@ -8,26 +9,44 @@ import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station
 })
 export class StationsSearchDialogComponent {
 
-  @Output()
-  protected stationQueryChange = new EventEmitter<ViewStationQueryModel>();
 
-  protected stationQuery!: ViewStationQueryModel;
+  private searchedIds!: string[];
+
+  @Output()
+  public searchedIdsChange = new EventEmitter<string[]>();
+
+  //@Output()
+  //protected stationQueryChange = new EventEmitter<ViewStationQueryModel>();
+
+  //protected stationQuery!: ViewStationQueryModel;
 
   protected open: boolean = false;
+  protected activeTab: 'new' | 'history' = 'new';
+  protected searchName: string = '';
 
   public openDialog(): void {
-    this.stationQuery = {};
+    this.searchedIds = [];
     this.open = true;
   }
 
-  protected onStationQueryChange(stationQuery: ViewStationQueryModel): void {
-    this.stationQuery = stationQuery;
+  protected onTabClick(selectedTab: 'new' | 'history'): void {
+    this.activeTab = selectedTab;
+  }
+
+  protected onIdsSelected(searchedIds: string[]): void {
+    this.searchedIds = searchedIds;
+  }
+
+  protected onSearchNameInput(searchName: string) {
+    this.searchName = searchName;
   }
 
   protected onOkClick(): void {
-    if (this.stationQuery) {
-      this.stationQueryChange.emit(this.stationQuery);
+    if (this.searchedIds.length > 0 && this.searchName) {
+      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });     
     }
+
+    this.searchedIdsChange.emit(this.searchedIds);
   }
 
 }

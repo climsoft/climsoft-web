@@ -7,9 +7,9 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { Observable } from 'rxjs';
 import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
-import { StationsCacheService } from 'src/app/core/services/stations/station-cache/stations-cache-service';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache-service';
 
-export interface StationView extends CreateStationModel {
+export interface StationView extends StationCacheModel {
   forms?: ViewSourceModel[];
 }
 
@@ -32,19 +32,19 @@ export class StationFormSelectionComponent {
 
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsCacheService.fetchLatest().subscribe(data => {
+    this.stationsCacheService.cachedStations.subscribe(data => {
       this.allStations = data.filter(item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID);
       this.stations = this.allStations;
     });
 
   }
 
-  protected onSearchInput(stationQuery: ViewStationQueryModel): void {
+  protected onSearchInput(searchedIds: string[]): void {
     // TODO. Later change this
     this.stations = this.allStations;
 
-    if (stationQuery.stationIds) {
-      this.stations = this.allStations.filter(item => stationQuery.stationIds?.includes(item.id));
+    if (searchedIds.length>0) {
+      this.stations = this.allStations.filter(item => searchedIds.includes(item.id));
     }
   }
 

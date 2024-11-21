@@ -264,7 +264,7 @@ export class ObservationsService {
 
         startTime = new Date().getTime();
 
-        const batchSize = 1000; // bacthsize of 1000 seems to be safer (incase there are comments) and faster.
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
             await this.insertOrUpdateObsValues(batch);

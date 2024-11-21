@@ -1,9 +1,4 @@
-<div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-1  align-items-center">
-    <div class="fw-bold">Showing Regions</div>
-    <div>Total Count: {{ stationsDef.pageInputDefinition.totalRowCount | number:'1.0-0' }}</div>
-  </div>
-
+<div *ngIf="stations" class="card border-0">
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
       <app-map [mapContainerId]="'stationMetadata'" [mapContentLayerGroup]="stationMapLayerGroup" />

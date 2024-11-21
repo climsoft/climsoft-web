@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../../auth.service';
+import { AppAuthService } from '../../app-auth.service';
 import { catchError, of, take } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -13,7 +13,7 @@ export class LoginComponent {
   protected password: string = '';
   protected errorMessage: string = '';
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(private authService: AppAuthService, private router: Router) { }
 
   protected login(): void {
 

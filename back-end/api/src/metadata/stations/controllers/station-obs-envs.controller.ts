@@ -15,11 +15,5 @@ export class StationObsEnvsController {
       new ParseArrayPipe({ items: Number, separator: "," })) ids: number[]) {
     return this.stationObsEnvservice.find(ids);
   }
-
-  @Get('updates')
-  async updates(
-    @Query() dateQueryDto: DateQueryDto) {
-    return this.stationObsEnvservice.findUpdated( dateQueryDto.date);
-  }
-
+  
 }

@@ -20,7 +20,7 @@ import { NotFoundComponent } from './core/not-found/not-found.component';
 import { SettingsModule } from './settings/settings.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
-import { AuthInterceptor } from './auth.interceptor';
+import { AppAuthInterceptor } from './app-auth.interceptor';
 
 
 @NgModule({
@@ -46,7 +46,7 @@ import { AuthInterceptor } from './auth.interceptor';
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
-      useClass: AuthInterceptor,
+      useClass: AppAuthInterceptor,
       multi: true
     }
   ],

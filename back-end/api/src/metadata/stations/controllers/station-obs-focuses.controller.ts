@@ -16,11 +16,5 @@ export class StationObsFocusesController {
     return this.stationObsFocuseservice.find(ids);
   }
 
-  @Get('updates')
-  async updates(
-    @Query() dateQueryDto: DateQueryDto) {
-    return this.stationObsFocuseservice.findUpdated( dateQueryDto.date);
-  }
-
 
 }

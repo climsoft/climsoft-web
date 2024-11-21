@@ -47,8 +47,7 @@ import { ViewStationsMapComponent } from './stations/view-stations/view-stations
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { StationsSearchComponent } from './stations/stations-search/stations-search.component';
 import { StationsSearchHistoryComponent } from './stations/stations-search/stations-search-history/stations-search-history.component';
-import { StationsSearchByComponent } from './stations/stations-search/stations-search-by/stations-search-by.component';
-import { StationsIdNameSearchComponent } from './stations/stations-search/stations-id-name-search/stations-id-name-search.component';
+import { StationsSearchNewComponent } from './stations/stations-search/stations-search-new/stations-search-new.component'; 
 
 @NgModule({
   declarations: [
@@ -100,8 +99,7 @@ import { StationsIdNameSearchComponent } from './stations/stations-search/statio
     StationsSearchDialogComponent,
     StationsSearchComponent,
     StationsSearchHistoryComponent,
-    StationsSearchByComponent,
-    StationsIdNameSearchComponent,
+    StationsSearchNewComponent, 
    
   ],
   imports: [

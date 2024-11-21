@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
-import { AuthService } from '../../auth.service';
+import { AppAuthService } from '../../app-auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserRoleEnum } from '../models/users/user-role.enum';
 
@@ -106,7 +106,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected displayUserDropDown: boolean = false;
 
   constructor(private viewPortService: ViewportService,
-    private authService: AuthService,
+    private authService: AppAuthService,
     private pagesDataService: PagesDataService) {
   }
 

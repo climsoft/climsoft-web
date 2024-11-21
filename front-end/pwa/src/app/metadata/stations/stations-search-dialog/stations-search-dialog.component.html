@@ -1,3 +1,27 @@
 <app-dialog [(open)]="open" [title]="'Search Stations'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()">
-    <app-stations-search *ngIf="open" (stationQueryChange)="onStationQueryChange($event)" />
+    <div *ngIf="open" class="card border-0">
+        <div class="card-header d-flex">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'history'"
+                        (click)="onTabClick('history')">History</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link active" [class.active]="activeTab === 'new'"
+                        (click)="onTabClick('new')">New</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-0 mt-2">
+            <div *ngIf="activeTab === 'history'">
+                Showing history
+            </div>
+            <div *ngIf="activeTab === 'new'">
+                <app-stations-search-new  (idsSelectedChange)="onIdsSelected($event)" (searchNameChange)="onSearchNameInput($event)"/>
+            </div>         
+        </div>
+
+    </div>
+
 </app-dialog>

@@ -6,7 +6,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class AppAuthService {
   private _user: BehaviorSubject<LoggedInUserModel | null> = new BehaviorSubject<LoggedInUserModel | null>(null);
 
   private endPointUrl: string = "http://localhost:3000/users";
