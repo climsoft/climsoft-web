@@ -1,5 +1,4 @@
 import { Component, Output, EventEmitter, Input, SimpleChanges, OnChanges } from '@angular/core';
-import { AppDatabase } from 'src/app/app-database';
 import { StationCacheModel, StationsCacheService } from '../../services/stations-cache-service';
 
 interface StationSearchModel {
@@ -18,7 +17,7 @@ export class StationsSearchNewComponent implements OnChanges {
   public selectIds!: string[];
 
   @Input()
-  public defaultSearchName!: string;
+  public defaultSearchName: string= '';
 
   @Output()
   public idsSelectedChange = new EventEmitter<string[]>();
@@ -26,7 +25,7 @@ export class StationsSearchNewComponent implements OnChanges {
   @Output()
   public searchNameChange = new EventEmitter<string>();
 
-  protected saveSearch: boolean = false; 
+  protected saveSearch: boolean = false;
   protected stationsSelections!: StationSearchModel[];
   protected selectedCount: number = 0;
 
@@ -54,7 +53,7 @@ export class StationsSearchNewComponent implements OnChanges {
       }
     }
 
-    if (this.defaultSearchName) {
+    if (this.defaultSearchName && this.defaultSearchName !== "last_search") {
       this.saveSearch = true;
     }
   }

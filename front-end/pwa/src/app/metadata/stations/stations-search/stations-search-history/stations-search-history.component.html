@@ -1,1 +1,16 @@
-<p>Not yet supported.</p>
+<ul class="list-group rounded-0 list-group-flush">
+
+    <li class="list-group-item list-group-item-action d-flex justify-content-between cursor-pointer"
+        *ngFor="let item of previousSearches" [class.list-group-item-primary]="item === selectedSearch"
+        (click)="onSelectedValue(item)">
+        <div class="me-2">
+            {{ item.name }}
+        </div>
+
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onSelectedValue(item)">
+            Edit
+        </button>
+    </li>
+
+
+</ul>

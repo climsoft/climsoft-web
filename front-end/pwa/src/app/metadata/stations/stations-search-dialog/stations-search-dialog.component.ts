@@ -9,19 +9,13 @@ import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station
 })
 export class StationsSearchDialogComponent {
 
-
-  private searchedIds!: string[];
-
   @Output()
   public searchedIdsChange = new EventEmitter<string[]>();
 
-  //@Output()
-  //protected stationQueryChange = new EventEmitter<ViewStationQueryModel>();
-
-  //protected stationQuery!: ViewStationQueryModel;
+  private searchedIds!: string[];
 
   protected open: boolean = false;
-  protected activeTab: 'new' | 'history' = 'new';
+  protected activeTab: 'new' | 'history' = 'history';
   protected searchName: string = '';
 
   public openDialog(): void {
@@ -43,7 +37,7 @@ export class StationsSearchDialogComponent {
 
   protected onOkClick(): void {
     if (this.searchedIds.length > 0 && this.searchName) {
-      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });     
+      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });
     }
 
     this.searchedIdsChange.emit(this.searchedIds);

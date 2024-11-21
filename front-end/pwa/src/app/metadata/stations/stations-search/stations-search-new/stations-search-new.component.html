@@ -9,12 +9,12 @@
             <app-text-input [id]="'station_search_input'" [label]="'Search'" (valueChange)="onSearch($event)" />
         </div>
     </div>
-  
+
     <hr />
 
-    <div>       
-        <div class="d-flex justify-content-end pe-1">
-            Selected: {{ selectedCount | number:'1.0-0' }}
+    <div>
+        <div *ngIf="selectedCount" class="d-flex justify-content-end pe-4">
+            [{{ selectedCount | number:'1.0-0' }}]
         </div>
 
         <div class="stations-table pe-1">
@@ -45,7 +45,8 @@
     <div>
         <app-check-box-input [id]="'save_station_search'" [label]="'Save Search'" [(value)]="saveSearch" />
         <div *ngIf="saveSearch" class="ms-2">
-            <app-text-input [id]="'station_search_save'" [value]="defaultSearchName" (valueChange)="onSearchNameInput($event)" />
+            <app-text-input [id]="'station_search_save'" [value]="defaultSearchName"
+                (valueChange)="onSearchNameInput($event)" />
         </div>
     </div>
 

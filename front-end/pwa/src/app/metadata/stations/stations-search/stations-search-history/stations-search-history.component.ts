@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { AppDatabase } from 'src/app/app-database';
+import { StationSearchHistoryModel } from '../../models/stations-search-history.model';
 
 @Component({
   selector: 'app-stations-search-history',
@@ -7,20 +9,23 @@ import { Component } from '@angular/core';
 })
 export class StationsSearchHistoryComponent {
 
-  //@Output()
-  //public componentIdSelectionChange = new EventEmitter<ComponentIdType>();
+  protected previousSearches!: StationSearchHistoryModel[];
+  protected selectedSearch!: StationSearchHistoryModel;
 
   constructor() {
-
+    this.loadSearchHistory();
   }
 
 
-  // protected onShowComponent(componentId: ComponentIdType): void {
-  //   this.componentIdSelectionChange.emit(componentId); 
-  // }
+  private async loadSearchHistory() {
+    this.previousSearches = await AppDatabase.instance.stationsSearchHistory.toArray();
 
+    console.log('previousSearches', this.previousSearches)
+  }
 
-
+  protected onSelectedValue(selectedSearch: StationSearchHistoryModel) {
+    this.selectedSearch = selectedSearch;
+  }
 
 
 
