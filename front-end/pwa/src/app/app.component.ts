@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AuthService } from './services/users/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { AppAuthService } from './app-auth.service';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +12,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   protected userSub!: Subscription;
 
-  constructor(private authService: AuthService, private router: Router, private activatedRoute: ActivatedRoute) { 
+  constructor(private authService: AppAuthService, private router: Router, private activatedRoute: ActivatedRoute) { 
   }
 
   ngOnInit(): void {

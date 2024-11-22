@@ -2,13 +2,11 @@ import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeVa
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
-import { CreateStationDto } from '../dtos/create-update-station.dto';
-import { ViewStationDto } from '../dtos/view-station.dto';
+import { CreateStationDto } from '../dtos/create-update-station.dto'; 
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { Request } from 'express';
-import { DateQueryDto } from 'src/shared/dtos/date-query.dto';
+import { Request } from 'express'; 
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StationsImportExportService } from '../services/stations-import-export.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -23,13 +21,13 @@ export class StationsController {
 
   @Get()
   find(
-    @Query(AuthorisedStationsPipe) viewQueryDto: ViewStationQueryDTO): Promise<ViewStationDto[]> {
+    @Query(AuthorisedStationsPipe) viewQueryDto: ViewStationQueryDTO): Promise<CreateStationDto[]> {
     return this.stationsService.find(viewQueryDto);
   }
 
   @Get('id/:id')
   findOne(
-    @Param('id', AuthorisedStationsPipe) id: string): Promise<ViewStationDto> {
+    @Param('id', AuthorisedStationsPipe) id: string): Promise<CreateStationDto> {
     return this.stationsService.findOne(id);
   }
 
@@ -39,15 +37,6 @@ export class StationsController {
     return this.stationsService.count(viewQueryDto);
   }
 
-  @Get('updates')
-  async updates(
-    @Req() request: Request,
-    @Query() dateQueryDto: DateQueryDto) {
-    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
-    return this.stationsService.findUpdatedStations(
-      dateQueryDto.date,
-      authorisedStationIds ? authorisedStationIds : undefined);
-  }
 
   @Get('download')
   @Header('Content-Type', 'text/csv')
@@ -67,7 +56,7 @@ export class StationsController {
   @Post()
   async create(
     @Req() request: Request,
-    @Body() item: CreateStationDto): Promise<ViewStationDto> {
+    @Body() item: CreateStationDto): Promise<CreateStationDto> {
     return this.stationsService.create(item, AuthUtil.getLoggedInUserId(request));
   }
 
@@ -96,7 +85,7 @@ export class StationsController {
   async update(
     @Req() request: Request,
     @Param('id') id: string,
-    @Body() item: UpdateStationDto): Promise<ViewStationDto> {
+    @Body() item: UpdateStationDto): Promise<CreateStationDto> {
     return this.stationsService.update(id, item, AuthUtil.getLoggedInUserId(request));
   }
 

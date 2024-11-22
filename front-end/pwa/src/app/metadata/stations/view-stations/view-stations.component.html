@@ -10,11 +10,14 @@
       </li>
     </ul>
     <div class="d-flex">
+      <div *ngIf="stations" class="d-flex align-items-center mx-2">
+        Count: {{ stations.length | number:'1.0-0' }}
+      </div>
       <div class="me-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">
           Search
         </button>
-        <app-stations-search-dialog #stationSearch (stationQueryChange)="onSearchInput($event)" />
+        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
       <div class="me-2">
         <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
@@ -32,8 +35,8 @@
   </div>
 
   <div class="card-body p-0 mt-2">
-    <app-view-stations-table *ngIf="activeTab === 'table'" [stationsDef]=stationsDef />
-    <app-view-stations-map *ngIf="activeTab === 'map' " [stationsDef]=stationsDef />
+    <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
+    <app-view-stations-map *ngIf="activeTab === 'map'" [stations]="stations" />
   </div>
 
 </div>

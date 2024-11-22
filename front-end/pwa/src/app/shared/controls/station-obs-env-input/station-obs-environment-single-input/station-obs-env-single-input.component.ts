@@ -49,6 +49,12 @@ export class StationObsEnvSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected onSelectedOptionChange(selectedOption: ViewStationObsEnvModel | null) {
-    this.selectedIdChange.emit(selectedOption ? selectedOption.id : null);
+    this.selectedOption = selectedOption;
+    if (selectedOption) {
+      this.selectedId = selectedOption.id;
+      this.selectedIdChange.emit(selectedOption.id);
+    } else {
+      this.selectedIdChange.emit(null);
+    }
   }
 }

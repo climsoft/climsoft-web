@@ -13,26 +13,26 @@ export class SeedElementTypes1710833156699 implements MigrationInterface {
     }
 
     public static INSERT_ELEMENT_TYPES = `
-    INSERT INTO element_types (id, name, description, subdomain_id) VALUES 
+    INSERT INTO element_types (id, name, description, subdomain_id, entry_user_id) VALUES 
 
-    (1, 'Precipitation', '', 1 ),
-    (2, 'Pressure', '', 1),
-    (3, 'Radiation budget', '', 1),
-    (4, 'Temperature', '', 1),
-    (5, 'Water vapour', '', 1),
-    (6, 'Wind speed and direction', '', 1),
+    (1, 'Precipitation', '', 1, 1),
+    (2, 'Pressure', '', 1, 1),
+    (3, 'Radiation budget', '', 1, 1),
+    (4, 'Temperature', '', 1, 1),
+    (5, 'Water vapour', '', 1, 1),
+    (6, 'Wind speed and direction', '', 1, 1),
 
-    (7, 'Earth radiation budget', '', 2),
-    (8, 'Lightning', '', 2),
-    (9, 'Temperature', '', 2),
-    (11, 'Water vapor', '', 2),
-    (12, 'Wind speed and direction', '', 2),
-    (13, 'Clouds', '', 2),
+    (7, 'Earth radiation budget', '', 2, 1),
+    (8, 'Lightning', '', 2, 1),
+    (9, 'Temperature', '', 2, 1),
+    (11, 'Water vapor', '', 2, 1),
+    (12, 'Wind speed and direction', '', 2, 1),
+    (13, 'Clouds', '', 2, 1),
 
-    (14, 'Aerosols', '', 3),
-    (15, 'Carbon dioxide, methane and other greenhouse gases', '', 3),
-    (16, 'Ozone', '', 3),
-    (17, 'Precursors for aerosols and ozone', '', 3)
+    (14, 'Aerosols', '', 3, 1),
+    (15, 'Carbon dioxide, methane and other greenhouse gases', '', 3, 1),
+    (16, 'Ozone', '', 3, 1),
+    (17, 'Precursors for aerosols and ozone', '', 3, 1)
 
     `;
 

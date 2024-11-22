@@ -5,7 +5,6 @@ import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
 import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";
 import { OrganisationEntity } from "./organisation.entity";
-import { NetworkAffiliationEntity } from "./network-affiliation.entity";
 
 @Entity("stations")
 @Check("CHK_stations_id_not_empty", `"id" <> ''`) // This adds the CHECK constraint to ensure id is not an empty string
@@ -42,10 +41,6 @@ export class StationEntity extends AppBaseEntity {
   @ManyToOne(() => StationObsEnvironmentEntity, {
     nullable: true,
     onDelete: "RESTRICT",
-    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
-    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
-    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
-    eager: true,
   })
   @JoinColumn({ name: "observation_environment_id" })
   obsEnvironment: StationObsEnvironmentEntity | null;
@@ -58,10 +53,6 @@ export class StationEntity extends AppBaseEntity {
   @ManyToOne(() => StationObsFocusEntity, {
     nullable: true,
     onDelete: "RESTRICT",
-    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
-    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
-    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
-    eager: true,
   })
   @JoinColumn({ name: "observation_focus_id" })
   obsFocus: StationObsFocusEntity | null;
@@ -75,16 +66,8 @@ export class StationEntity extends AppBaseEntity {
     nullable: true,
     onDelete: "RESTRICT",
   })
-  //---------------
-
-  //---------------
-  @Column({ name: "network_affiliation_id", type: 'int', nullable: true })
-  networkAffiliationId: number | null; // network affiliation that the station shares data with.
-
-  @ManyToOne(() => NetworkAffiliationEntity, {
-    nullable: true,
-    onDelete: "RESTRICT",
-  })
+  @JoinColumn({ name: "organisation_id" })
+  organisation: OrganisationEntity | null;
   //---------------
 
   @Column({ name: "wmo_id", type: 'varchar', nullable: true, unique: true })

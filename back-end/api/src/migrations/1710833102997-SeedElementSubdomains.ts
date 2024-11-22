@@ -13,20 +13,21 @@ export class SeedElementSubdomains1710833102997 implements MigrationInterface {
     }
 
     public static INSERT_ELEMENT_SQL = `
-    INSERT INTO element_subdomains (id, name,description, domain) VALUES 
-    
-    (1, 'Surface', '', 'atmosphere' ),
-    (2, 'Upper-air', '', 'atmosphere'),
-    (3, 'Atmospheric Composition', '', 'atmosphere'),
+    INSERT INTO element_subdomains (id, name, description, domain, entry_user_id) VALUES 
+    (1, 'Surface', '', 'atmosphere', 1),
+    (2, 'Upper-air', '', 'atmosphere', 1),
+    (3, 'Atmospheric Composition', '', 'atmosphere', 1)
 
-    (4, 'Hydrosphere', '', 'land'),
-    (5, 'Cryosphere', '', 'land'),
-    (6, 'Biosphere', '', 'land'),
-    (7, 'Anthroposphere', '', 'land'),
-
-    (8, 'Physical', '', 'ocean'),
-    (9, 'Biogeochemical', '', 'ocean'),
-    (10, 'Biological/ecosystems', '', 'ocean')
     `;
+
+    // TODO
+    // (4, 'Hydrosphere', '', 'land'),
+    // (5, 'Cryosphere', '', 'land'),
+    // (6, 'Biosphere', '', 'land'),
+    // (7, 'Anthroposphere', '', 'land'),
+
+    // (8, 'Physical', '', 'ocean'),
+    // (9, 'Biogeochemical', '', 'ocean'),
+    // (10, 'Biological/ecosystems', '', 'ocean')
 
 }

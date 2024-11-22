@@ -39,6 +39,8 @@ import { SharedModule } from 'src/shared/shared.module';
 import { OrganisationEntity } from './stations/entities/organisation.entity';
 import { NetworkAffiliationEntity } from './stations/entities/network-affiliation.entity';
 import { StationsImportExportService } from './stations/services/stations-import-export.service';
+import { StationNetworkAffiliationEntity } from './stations/entities/station-network-affiliation.entity';
+import { MetadataUpdatesController } from './metadata-updates/metadata-updates.controller';
 
 @Module({
     imports: [
@@ -57,10 +59,11 @@ import { StationsImportExportService } from './stations/services/stations-import
         StationEntity,
         StationElementEntity,
         StationFormEntity,
-        QCTestEntity
+        StationNetworkAffiliationEntity,
+        QCTestEntity,
     ]),
         SharedModule,
-        UserModule
+        UserModule,
     ],
     controllers: [
         ElementsController,
@@ -73,7 +76,8 @@ import { StationsImportExportService } from './stations/services/stations-import
         StationElementsController,
         StationFormsController,
         QCTestsController,
-        RegionsController
+        RegionsController,
+        MetadataUpdatesController,
     ],
     providers: [
         ElementsService,
@@ -86,7 +90,7 @@ import { StationsImportExportService } from './stations/services/stations-import
         QCTestsService,
         RegionsService,
         MetadataMigrationService,
-        StationsImportExportService
+        StationsImportExportService,
     ],
 
     // TODO. Check if these need to be exported
@@ -100,7 +104,7 @@ import { StationsImportExportService } from './stations/services/stations-import
         StationFormsService,
         QCTestsService,
         RegionsService,
-        MetadataMigrationService
+        MetadataMigrationService,
     ]
 })
 export class MetadataModule { }

@@ -57,6 +57,7 @@ export class UpdateStationDto {
     @IsDateString()
     dateClosed: string | null;
 
+    @IsOptional()
     @IsString()
     comment: string | null;
 

@@ -66,7 +66,11 @@ export class StringUtils {
     return str ? str[0].toUpperCase() + str.slice(1) : "";
   }
 
-  public static formatEnumForDisplay(option: string): string {
+  public static formatEnumForDisplay(option: string | null): string {
+    if (!option) {
+      return '';
+    }
+
     let wordToDisplay: string;
     const splitWords: string[] = option.split('_');
     if (splitWords.length > 1) {

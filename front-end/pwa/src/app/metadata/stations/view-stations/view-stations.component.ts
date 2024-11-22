@@ -3,11 +3,7 @@ import { CreateStationModel } from '../../../core/models/stations/create-station
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
-import { take } from 'rxjs';
-import { ViewStationsDefinition } from './view-stations.definition';
-import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
-import { environment } from 'src/environments/environment';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache-service';
 
 @Component({
   selector: 'app-view-stations',
@@ -15,44 +11,53 @@ import { environment } from 'src/environments/environment';
   styleUrls: ['./view-stations.component.scss']
 })
 export class ViewStationsComponent {
-  protected stationsDef: ViewStationsDefinition;
   protected activeTab: 'table' | 'map' = 'table';
+  private allStations!: StationCacheModel[]; 
+  protected stations!: StationCacheModel[]; 
+  private searchedIds!: string[];
 
   constructor(
     private pagesDataService: PagesDataService,
+    private stationsCacheService: StationsCacheService,
     private stationsService: StationsService,
     private router: Router,
     private route: ActivatedRoute) {
 
     this.pagesDataService.setPageHeader('Stations Metadata');
-    this.stationsDef = new ViewStationsDefinition(this.stationsService);
-    this.stationsDef.resetDefinitionAndEntries();
+
+    this.stationsCacheService.cachedStations.subscribe(stations => {
+      this.allStations = stations;
+      this.filterBasedOnSearchedIds();
+    });
   }
 
+
+ 
   protected onTabClick(selectedTab: 'table' | 'map'): void {
     this.activeTab = selectedTab;
   }
 
   protected onNewStation(): void {
-    this.stationsDef.resetDefinitionAndEntries();
+    //this.checkForUpdates();
+    //this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected onImportStations(): void {
-    this.stationsDef.resetDefinitionAndEntries();
+    //this.checkForUpdates();
+    //this.stationsDef.resetDefinitionAndEntries();
   }
 
   protected onEditStation(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
 
-  protected onSearch(): void {
-    // TODO.
+  protected onSearchInput(searchedIds: string[]): void {
+    this.searchedIds = searchedIds;
+    this.filterBasedOnSearchedIds();
   }
 
-  protected onSearchInput(stationQuery: ViewStationQueryModel): void {
-    console.log("station query: ", stationQuery)
-
-    this.stationsDef.resetDefinitionAndEntries(stationQuery)
+  private filterBasedOnSearchedIds(): void{
+    this.stations = this.searchedIds && this.searchedIds.length > 0? this.allStations.filter( item => this.searchedIds.includes(item.id)): this.allStations;
   }
 
   protected get downloadLink(): string {

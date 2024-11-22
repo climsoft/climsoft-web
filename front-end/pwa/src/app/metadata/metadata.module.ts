@@ -45,10 +45,6 @@ import { QCTestContextualParamsComponent } from './elements/element-detail/qc-te
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
-import { StationsSearchComponent } from './stations/stations-search/stations-search.component';
-import { StationsSearchHistoryComponent } from './stations/stations-search/stations-search-history/stations-search-history.component';
-import { StationsSearchByComponent } from './stations/stations-search/stations-search-by/stations-search-by.component';
-import { StationsIdNameSearchComponent } from './stations/stations-search/stations-id-name-search/stations-id-name-search.component';
 
 @NgModule({
   declarations: [
@@ -63,13 +59,13 @@ import { StationsIdNameSearchComponent } from './stations/stations-search/statio
     ViewStationsComponent,
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
-    ImportStationsDialogComponent, 
+    ImportStationsDialogComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
-    StationLimitsComponent, 
+    StationLimitsComponent,
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -80,7 +76,7 @@ import { StationsIdNameSearchComponent } from './stations/stations-search/statio
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
-    QCTestsComponent, 
+    QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
     QCTestRangeThresholdParamsComponent,
@@ -91,18 +87,12 @@ import { StationsIdNameSearchComponent } from './stations/stations-search/statio
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
     ImportRegionsComponent,
-    ViewRegionsComponent,   
+    ViewRegionsComponent,
     ViewRegionsTableComponent,
     ViewRegionsMapComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
-
     StationsSearchDialogComponent,
-    StationsSearchComponent,
-    StationsSearchHistoryComponent,
-    StationsSearchByComponent,
-    StationsIdNameSearchComponent,
-   
   ],
   imports: [
     SharedModule,
@@ -111,9 +101,7 @@ import { StationsIdNameSearchComponent } from './stations/stations-search/statio
   exports: [
     ElementsSelectorDialogComponent,
     FormSelectorDialogComponent,
-
     StationsSearchDialogComponent,
-    StationsSearchComponent,
   ]
 })
 export class MetadataModule { }

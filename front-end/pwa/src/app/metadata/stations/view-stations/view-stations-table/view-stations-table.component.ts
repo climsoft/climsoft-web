@@ -1,10 +1,6 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core'; 
-import { ViewStationsDefinition } from '../view-stations.definition';
-import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { StationStatusEnum } from 'src/app/core/models/stations/station-status.enum';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router'; 
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache-service';
 
 @Component({
   selector: 'app-view-stations-table',
@@ -13,29 +9,17 @@ import { StationStatusEnum } from 'src/app/core/models/stations/station-status.e
 })
 export class ViewStationsTableComponent implements OnChanges {
   @Input()
-  public stationsDef!: ViewStationsDefinition;
+  public stations!: StationCacheModel[];
 
   constructor(
     private router: Router,
     private route: ActivatedRoute) { }
 
   ngOnChanges(changes: SimpleChanges): void {
+    console.log('view table changes raised');
   }
 
-  protected refreshData(): void {
-    this.stationsDef.resetDefinitionAndEntries();
-  }
-
-  protected loadEntries(): void{
-    this.stationsDef.loadEntries();
-  }
-
-  // TODO. Use it later
-  protected  getFormattedStatus(stationStatus: StationStatusEnum): string{
-    return StringUtils.formatEnumForDisplay(stationStatus)
-  }
-
-  protected onEditStation(station: ViewStationModel) {
+  protected onEditStation(station: StationCacheModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
 

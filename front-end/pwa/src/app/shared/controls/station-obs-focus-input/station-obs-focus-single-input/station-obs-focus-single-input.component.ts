@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';  
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { ViewStationObsFocusModel } from 'src/app/core/models/stations/view-station-obs-focus.model';
 import { StationObsEnvironmentsService } from 'src/app/core/services/stations/station-obs-environments.service';
 import { StationObsFocusesService } from 'src/app/core/services/stations/station-obs-focuses.service';
@@ -8,14 +8,14 @@ import { StationObsFocusesService } from 'src/app/core/services/stations/station
   templateUrl: './station-obs-focus-single-input.component.html',
   styleUrls: ['./station-obs-focus-single-input.component.scss']
 })
-export class StationObservationFocusSingleInputComponent  implements OnInit, OnChanges{
+export class StationObservationFocusSingleInputComponent implements OnInit, OnChanges {
   @Input() public label: string = 'Observation Focus';
   @Input() errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
-  protected options!: ViewStationObsFocusModel[] ;
+  protected options!: ViewStationObsFocusModel[];
   protected selectedOption!: ViewStationObsFocusModel | null;
 
   constructor(private stationObsSevice: StationObsFocusesService) {
@@ -27,15 +27,15 @@ export class StationObservationFocusSingleInputComponent  implements OnInit, OnC
   ngOnChanges(changes: SimpleChanges): void {
 
     //load the elements once
-    if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length>0)) { 
+    if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
       this.stationObsSevice.findAll(this.includeOnlyIds).subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });
-    }else{
+    } else {
       this.setInputSelectedOption();
     }
- 
+
   }
 
   private setInputSelectedOption(): void {
@@ -50,7 +50,10 @@ export class StationObservationFocusSingleInputComponent  implements OnInit, OnC
   }
 
   protected onSelectedOptionChange(selectedOption: ViewStationObsFocusModel | null) {
+    console.log('focus change: ', selectedOption);
+    this.selectedOption = selectedOption;
     if (selectedOption) {
+      this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
     } else {
       this.selectedIdChange.emit(null);
