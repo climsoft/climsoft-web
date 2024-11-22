@@ -31,8 +31,13 @@ export class StationsSearchNewComponent implements OnChanges {
 
   constructor(private stationsCacheService: StationsCacheService) {
 
+    console.log('constructor for search new initialised')
+
     // Load the stations
     this.stationsCacheService.cachedStations.subscribe(stations => {
+
+      console.log('search new subscription called');
+
       this.stationsSelections = stations.map(station => {
         return {
           station: station,
@@ -43,7 +48,11 @@ export class StationsSearchNewComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+
+    console.log('search new changes raised');
+
     if (this.selectIds && this.selectIds.length > 0) {
+      console.log( 'Selected Ids: ',this.selectIds);
       this.selectedCount = 0;
       for (const item of this.stationsSelections) {
         item.selected = this.selectIds.includes(item.station.id);
@@ -53,7 +62,7 @@ export class StationsSearchNewComponent implements OnChanges {
       }
     }
 
-    if (this.defaultSearchName && this.defaultSearchName !== "last_search") {
+    if (this.defaultSearchName) {
       this.saveSearch = true;
     }
   }
@@ -96,6 +105,11 @@ export class StationsSearchNewComponent implements OnChanges {
 
   protected onSelected(stationSelection: StationSearchModel, selected: boolean): void {
     stationSelection.selected = selected;
+    this.emitSelected()
+  }
+
+  protected onSelected1(stationSelection: StationSearchModel): void {
+    stationSelection.selected = !stationSelection.selected;
     this.emitSelected()
   }
 

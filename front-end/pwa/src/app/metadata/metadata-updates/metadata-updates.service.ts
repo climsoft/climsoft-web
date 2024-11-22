@@ -22,7 +22,7 @@ export class MetadataUpdatesService {
         const lastModifiedCount = await AppDatabase.count(tableName);
         const query: MetadataUpdatesQueryModel = { lastModifiedCount: lastModifiedCount, lastModifiedDate: lastModifiedDate };
 
-        console.log("fetching metadata updates: ", ' tableName: ', tableName, ' lastModifiedDate: ', lastModifiedDate, ' lastModifiedCount: ', lastModifiedCount);
+        //console.log("fetching metadata updates: ", ' tableName: ', tableName, ' lastModifiedDate: ', lastModifiedDate, ' lastModifiedCount: ', lastModifiedCount);
 
         let httpParams: HttpParams = StringUtils.getQueryParams(query);
         this.http.get<MetadataUpdatesResponseModel>(`${this.endPointUrl}/${this.getUpdateRouteParam(tableName)}`, { params: httpParams })
@@ -30,9 +30,9 @@ export class MetadataUpdatesService {
                 take(1),
                 catchError(this.handleError)
             ).subscribe(data => {
-                console.log("response updating metadata updates: ", data);
+                //console.log("response updating metadata updates: ", data);
                 if (data && data.metadataChanged && data.metadataRecords) {
-                    console.log("updating metadata updates");
+                   // console.log("updating metadata updates");
                     this.updateMetadataInDB(tableName, data.metadataRecords, metadataUpdated);
                 }
             });

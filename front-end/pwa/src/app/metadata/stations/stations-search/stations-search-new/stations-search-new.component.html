@@ -18,25 +18,48 @@
         </div>
 
         <div class="stations-table pe-1">
-            <table class="table table-striped table-sm">
+
+            <table class="table table-sm table-hover">
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Id</th>
                         <th>Name</th>
-                        <th>Select</th>
+                        <!-- <th>Select</th> -->
                     </tr>
                 </thead>
                 <tbody class="table-group-divider overflow-y-scroll">
-                    <tr *ngFor="let item of stationsSelections">
+                    <tr *ngFor="let item of stationsSelections" class="cursor-pointer" [class.table-primary]="item.selected" (click)="onSelected1(item)" >
+                        <td><i class="bi bi-cursor"></i></td>
                         <td>{{ item.station.id }}</td>
                         <td>{{ item.station.name }}</td>
-                        <td>
+                        <!-- <td>
                             <app-check-box-input [id]="'stn_search_' + item.station.id" [value]="item.selected"
                                 (valueChange)="onSelected(item, $event)" />
-                        </td>
+                        </td> -->
                     </tr>
                 </tbody>
             </table>
+
+            <!-- <ul class="list-group rounded-0 list-group-flush">
+
+                <li class="list-group-item list-group-item-action d-flex justify-content-between cursor-pointer"
+                    *ngFor="let item of stationsSelections" [class.list-group-item-primary]="item.selected"
+                    (click)="onSelected1(item)">
+                    <div class="me-2">
+                        {{ item.station.id }}
+                    </div>
+            
+                    <div class="d-flex"  >
+                        {{ item.station.name }}
+                    </div>
+                </li>
+            
+            
+            </ul> -->
+
+
+
         </div>
     </div>
 

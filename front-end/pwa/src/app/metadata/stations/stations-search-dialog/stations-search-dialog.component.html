@@ -15,11 +15,13 @@
 
         <div class="card-body p-0 mt-2">
             <div *ngIf="activeTab === 'history'">
-                <app-stations-search-history />
+                <app-stations-search-history (selectedSearchHistoryChange)="onSelectedSearch($event)"
+                    (editSearchHistory)="onEditSearch($event)" />
             </div>
             <div *ngIf="activeTab === 'new'">
-                <app-stations-search-new  (idsSelectedChange)="onIdsSelected($event)" (searchNameChange)="onSearchNameInput($event)"/>
-            </div>         
+                <app-stations-search-new [defaultSearchName]="defaultSearchName" [selectIds]="selectIds" (idsSelectedChange)="onIdsSelected($event)"
+                    (searchNameChange)="onSearchNameInput($event)" />
+            </div>
         </div>
 
     </div>

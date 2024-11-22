@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { AppDatabase } from 'src/app/app-database';
 import { StationSearchHistoryModel } from '../../models/stations-search-history.model';
 
@@ -9,6 +9,12 @@ import { StationSearchHistoryModel } from '../../models/stations-search-history.
 })
 export class StationsSearchHistoryComponent {
 
+  @Output()
+  public selectedSearchHistoryChange = new EventEmitter<StationSearchHistoryModel>();
+
+  @Output()
+  public editSearchHistory = new EventEmitter<StationSearchHistoryModel>();
+
   protected previousSearches!: StationSearchHistoryModel[];
   protected selectedSearch!: StationSearchHistoryModel;
 
@@ -16,17 +22,22 @@ export class StationsSearchHistoryComponent {
     this.loadSearchHistory();
   }
 
-
   private async loadSearchHistory() {
     this.previousSearches = await AppDatabase.instance.stationsSearchHistory.toArray();
-
-    console.log('previousSearches', this.previousSearches)
   }
 
-  protected onSelectedValue(selectedSearch: StationSearchHistoryModel) {
+  protected onSelectedSearch(selectedSearch: StationSearchHistoryModel) {
     this.selectedSearch = selectedSearch;
+    this.selectedSearchHistoryChange.emit(selectedSearch);
   }
 
+  protected onEditSearch(selectedSearch: StationSearchHistoryModel) {
+    this.editSearchHistory.emit(selectedSearch);
+  }
 
+  protected async onDeleteSearch(selectedSearch: StationSearchHistoryModel) {
+    await AppDatabase.instance.stationsSearchHistory.delete(selectedSearch.name);
+    this.loadSearchHistory();
+  }
 
 }
