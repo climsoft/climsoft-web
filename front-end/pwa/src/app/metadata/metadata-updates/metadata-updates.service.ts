@@ -65,7 +65,7 @@ export class MetadataUpdatesService {
 
         // Then add all
         if (records.length > 0) {
-            await AppDatabase.bulkAdd(tableName, records);
+            await AppDatabase.bulkPut(tableName, records);
         }
 
         // Update the updates table

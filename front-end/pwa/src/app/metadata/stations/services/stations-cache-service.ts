@@ -7,6 +7,7 @@ import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metada
 import { AppDatabase } from "src/app/app-database";
 import { ViewStationObsEnvModel } from "src/app/core/models/stations/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "src/app/core/models/stations/view-station-obs-focus.model";
+import { StationObsProcessingMethodEnum } from "src/app/core/models/stations/station-obs-Processing-method.enum";
 
 export interface StationCacheModel {
     id: string;
@@ -15,7 +16,8 @@ export interface StationCacheModel {
     longitude: number | string;
     latitude: number | string;
     elevation: number;
-    stationObsProcessingMethod: string;
+    stationObsProcessingMethod: StationObsProcessingMethodEnum;
+    stationObsProcessingMethodName: string;
     stationObsEnvironmentName: string;
     stationObsFocusName: string;
     wmoId: string;
@@ -62,7 +64,8 @@ export class StationsCacheService {
                     longitude: station.longitude,
                     latitude: station.latitude,
                     elevation: station.elevation,
-                    stationObsProcessingMethod: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
+                    stationObsProcessingMethod: station.stationObsProcessingMethod,
+                    stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
                     stationObsEnvironmentName: obsEnv ? obsEnv.name : '',
                     stationObsFocusName: obsFocus ? obsFocus.name : '',
                     wmoId: station.wmoId ? station.wmoId : '',

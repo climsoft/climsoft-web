@@ -1,26 +1,106 @@
 <app-dialog [(open)]="open" [title]="'Search Stations'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()">
     <div *ngIf="open" class="card border-0">
+
+        <!-- tab header -->
         <div class="card-header d-flex">
             <ul class="nav nav-tabs card-header-tabs">
                 <li class="nav-item">
                     <button class="nav-link" [class.active]="activeTab === 'history'"
-                        (click)="onTabClick('history')">History</button>
+                        (click)="onTabChange('history')">History</button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link active" [class.active]="activeTab === 'new'"
-                        (click)="onTabClick('new')">New</button>
+                        (click)="onTabChange('new')">New</button>
                 </li>
             </ul>
         </div>
 
+        <!-- selected tab contents -->
         <div class="card-body p-0 mt-2">
             <div *ngIf="activeTab === 'history'">
-                <app-stations-search-history (selectedSearchHistoryChange)="onSelectedSearch($event)"
-                    (editSearchHistory)="onEditSearch($event)" />
+                <ul class="list-group rounded-0 list-group-flush p-0 search-contents">
+                    <li class="list-group-item list-group-item-action px-0 d-flex justify-content-between cursor-pointer"
+                        *ngFor="let item of previousSearches"
+                        [class.list-group-item-primary]="item.name === searchName"
+                        (click)="onPreviousSearchSelected(item)">
+
+                        <div class="me-2 d-flex">
+                            <div class="me-1">
+                                <i class="bi bi-cursor"></i>
+                            </div>
+                            <div>
+                                {{ item.name }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex">
+                            <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                                (click)="onEditPreviousSearch(item)">
+                                Edit
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                (click)="onDeletePreviousSearch(item)">
+                                Delete
+                            </button>
+                        </div>
+
+                    </li>
+                </ul>
             </div>
             <div *ngIf="activeTab === 'new'">
-                <app-stations-search-new [defaultSearchName]="defaultSearchName" [selectIds]="selectIds" (idsSelectedChange)="onIdsSelected($event)"
-                    (searchNameChange)="onSearchNameInput($event)" />
+                <div>
+                    <div>
+                        <div class="d-flex justify-content-end">
+                            <app-drop-down-button [buttonText]="'Options'"
+                                [dropDownItems]="['Filter','Select All', 'Deselect All', 'Sort Selected']"
+                                (dropDownOptionClick)="onOptionClick($event)" [translateX]="false" />
+                        </div>
+                        <div>
+                            <app-text-input [id]="'station_search_input'" [label]="'Search'"
+                                (valueChange)="onSearchInput($event)" />
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div>
+                        <div *ngIf="searchedIds && searchedIds.length>0" class="d-flex justify-content-end pe-4">
+                            [{{ searchedIds.length | number:'1.0-0' }}]
+                        </div>
+
+                        <div class="search-contents pe-1">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Id</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-group-divider overflow-y-scroll">
+                                    <tr *ngFor="let item of stationsSelections" class="cursor-pointer"
+                                        [class.table-primary]="item.selected" (click)="onStationSelected(item)">
+                                        <td><i class="bi bi-cursor"></i></td>
+                                        <td>{{ item.station.id }}</td>
+                                        <td>{{ item.station.name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div>
+                        <app-check-box-input [id]="'save_station_search'" [label]="'Save Search'"
+                            [(value)]="saveSearch" />
+                        <div *ngIf="saveSearch" class="ms-2">
+                            <app-text-input [id]="'station_search_save'" [value]="searchName"
+                                (valueChange)="onSearchNameInput($event)" />
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 

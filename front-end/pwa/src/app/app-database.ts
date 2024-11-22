@@ -47,8 +47,8 @@ export class AppDatabase extends Dexie {
         return AppDatabase._instance;
     }
 
-    public static async bulkAdd(tableName: keyof AppDatabase, records: any[]): Promise<any> {
-        return (AppDatabase.instance[tableName] as Table).bulkAdd(records);
+    public static async bulkPut(tableName: keyof AppDatabase, records: any[]): Promise<any> {
+        return (AppDatabase.instance[tableName] as Table).bulkPut(records);
     }
 
     public static async clear(tableName: keyof AppDatabase): Promise<void> {

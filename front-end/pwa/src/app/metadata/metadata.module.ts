@@ -45,9 +45,6 @@ import { QCTestContextualParamsComponent } from './elements/element-detail/qc-te
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
-import { StationsSearchComponent } from './stations/stations-search/stations-search.component';
-import { StationsSearchHistoryComponent } from './stations/stations-search/stations-search-history/stations-search-history.component';
-import { StationsSearchNewComponent } from './stations/stations-search/stations-search-new/stations-search-new.component'; 
 
 @NgModule({
   declarations: [
@@ -62,13 +59,13 @@ import { StationsSearchNewComponent } from './stations/stations-search/stations-
     ViewStationsComponent,
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
-    ImportStationsDialogComponent, 
+    ImportStationsDialogComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
     StationFormsComponent,
-    StationLimitsComponent, 
+    StationLimitsComponent,
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -79,7 +76,7 @@ import { StationsSearchNewComponent } from './stations/stations-search/stations-
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
-    QCTestsComponent, 
+    QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
     QCTestRangeThresholdParamsComponent,
@@ -90,17 +87,12 @@ import { StationsSearchNewComponent } from './stations/stations-search/stations-
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
     ImportRegionsComponent,
-    ViewRegionsComponent,   
+    ViewRegionsComponent,
     ViewRegionsTableComponent,
     ViewRegionsMapComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
-
     StationsSearchDialogComponent,
-    StationsSearchComponent,
-    StationsSearchHistoryComponent,
-    StationsSearchNewComponent, 
-   
   ],
   imports: [
     SharedModule,
@@ -109,9 +101,7 @@ import { StationsSearchNewComponent } from './stations/stations-search/stations-
   exports: [
     ElementsSelectorDialogComponent,
     FormSelectorDialogComponent,
-
     StationsSearchDialogComponent,
-    StationsSearchComponent,
   ]
 })
 export class MetadataModule { }
