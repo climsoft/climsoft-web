@@ -53,7 +53,7 @@
                         <div class="d-flex justify-content-end">
                             <app-drop-down-button [buttonText]="'Options'"
                                 [dropDownItems]="['Filter','Select All', 'Deselect All', 'Sort Selected']"
-                                (dropDownOptionClick)="onOptionClick($event)" [translateX]="false" />
+                                (dropDownOptionClick)="onOptionClick($event)" [translateX]="true" />
                         </div>
                         <div>
                             <app-text-input [id]="'station_search_input'" [label]="'Search'"
