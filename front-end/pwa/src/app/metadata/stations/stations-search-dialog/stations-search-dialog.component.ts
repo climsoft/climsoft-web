@@ -28,7 +28,6 @@ export class StationsSearchDialogComponent {
   protected saveSearch: boolean = false;
 
   constructor(private stationsCacheService: StationsCacheService) { 
-    console.log('dialog initialised')
   }
 
   public openDialog(): void {
