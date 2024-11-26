@@ -3,7 +3,8 @@ import { CreateStationModel } from '../../../core/models/stations/create-station
 import { ActivatedRoute, Router } from '@angular/router';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache-service';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-view-stations',
@@ -25,14 +26,14 @@ export class ViewStationsComponent {
 
     this.pagesDataService.setPageHeader('Stations Metadata');
 
-    this.stationsCacheService.cachedStations.subscribe(stations => {
+    this.stationsCacheService.cachedStations.pipe(
+      take(1),
+    ).subscribe(stations => {
       this.allStations = stations;
       this.filterBasedOnSearchedIds();
     });
   }
 
-
- 
   protected onTabClick(selectedTab: 'table' | 'map'): void {
     this.activeTab = selectedTab;
   }

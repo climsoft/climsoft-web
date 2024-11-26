@@ -18,10 +18,10 @@ export class ObservationEntity extends AppBaseEntity {
 
   /**
    * Elevation in reference to the station surface. 
-   * Can above or below the station surface depending on the element.
+   * Can be above or below the station surface depending on the element.
    */
   @PrimaryColumn({ name: "elevation", type: "float" })
-  elevation: number;
+  elevation: number; // TODO, should we call this level?
 
   @PrimaryColumn({ name: "date_time", type: "timestamptz" })
   datetime: Date;

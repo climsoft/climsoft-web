@@ -3,9 +3,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
-import { take } from 'rxjs';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { take } from 'rxjs'; 
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 
 @Component({
   selector: 'app-station-detail',
@@ -13,7 +13,7 @@ import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/sta
   styleUrls: ['./station-detail.component.scss']
 })
 export class StationDetailComponent implements OnInit {
-  protected station!: ViewStationModel;
+  protected station!: CreateStationModel;
 
   constructor(
     private pagesDataService: PagesDataService,

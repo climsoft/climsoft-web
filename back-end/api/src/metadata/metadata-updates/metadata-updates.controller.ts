@@ -5,13 +5,15 @@ import { StationsService } from '../stations/services/stations.service';
 import { MetadataUpdatesQueryDto } from './dtos/metadata-updates-query.dto';
 import { StationObsEnvService } from '../stations/services/station-obs-env.service';
 import { StationObsFocusesService } from '../stations/services/station-obs-focuses.service';
+import { SourcesService } from '../sources/services/sources.service';
 
 @Controller('metadata-updates')
 export class MetadataUpdatesController {
   constructor(
     private stationsService: StationsService,
     private stationObsEnvservice: StationObsEnvService,
-    private  stationObsFocuseservice: StationObsFocusesService,
+    private stationObsFocuseservice: StationObsFocusesService,
+    private sourcesService: SourcesService,
   ) { }
 
   @Get('stations')
@@ -43,6 +45,12 @@ export class MetadataUpdatesController {
     // return this.stationsService.findUpdatedStations(
     //   updatesQueryDto,
     //   authorisedStationIds ? authorisedStationIds : undefined);
+  }
+
+  @Get('sources')
+  async sourcesUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.sourcesService.checkUpdates(updatesQueryDto);
   }
 
 

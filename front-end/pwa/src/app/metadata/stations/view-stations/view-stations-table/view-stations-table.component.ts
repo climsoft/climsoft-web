@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router'; 
-import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache-service';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
   selector: 'app-view-stations-table',

@@ -7,7 +7,7 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { Observable } from 'rxjs';
 import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache-service';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 export interface StationView extends StationCacheModel {
   forms?: ViewSourceModel[];

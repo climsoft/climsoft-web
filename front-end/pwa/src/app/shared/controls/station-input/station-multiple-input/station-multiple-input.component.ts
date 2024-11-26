@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model'; 
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 
 @Component({
@@ -17,8 +16,8 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
   @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
-  protected options!: ViewStationModel[];
-  protected selectedOptions: ViewStationModel[] = [];
+  protected options!: CreateStationModel[];
+  protected selectedOptions: CreateStationModel[] = [];
 
   constructor(private stationsSevice: StationsService) {
 
