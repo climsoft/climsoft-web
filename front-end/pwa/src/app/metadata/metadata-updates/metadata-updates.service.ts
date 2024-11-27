@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { environment } from "src/environments/environment";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, map, take, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, from, map, Observable, of, switchMap, take, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { AppDatabase } from "src/app/app-database";
 import { MetadataUpdatesQueryModel } from "./metadata-updates-query.model";
@@ -16,49 +16,57 @@ export class MetadataUpdatesService {
     constructor(private http: HttpClient) {
     }
 
-    public async checkUpdates(tableName: keyof AppDatabase, metadataUpdated: BehaviorSubject<boolean>) {
-        const lastModifiedDate = (await AppDatabase.instance.metadataModificationLog.get(tableName))?.lastModifiedDate;
-        const lastModifiedCount = await AppDatabase.count(tableName);
-        const query: MetadataUpdatesQueryModel = { lastModifiedCount: lastModifiedCount, lastModifiedDate: lastModifiedDate };
-
-        //console.log("fetching metadata updates: ", ' tableName: ', tableName, ' lastModifiedDate: ', lastModifiedDate, ' lastModifiedCount: ', lastModifiedCount);
-
-        let httpParams: HttpParams = StringUtils.getQueryParams(query);
-        this.http.get<MetadataUpdatesResponseModel>(`${this.endPointUrl}/${this.getUpdateRouteParam(tableName)}`, { params: httpParams })
-            .pipe(
-                take(1),
-                catchError(this.handleError)
-            ).subscribe(data => {
-                console.log('Metadata name: ', tableName, " | updates : ", data, ' | lastModifiedDate: ', lastModifiedDate);
-                if (data && data.metadataChanged && data.metadataRecords) {
-                    this.updateMetadataInDB(tableName, data.metadataRecords, metadataUpdated);
-                }
-            });
+    public checkUpdates(tableName: keyof AppDatabase) {
+       return of(null).pipe(
+            concatMap (() => from(this.getMetadataUpdatesQuery(tableName))), 
+            concatMap(metadataUpdatesQuery => this.getUpdatesFromServer(tableName, metadataUpdatesQuery)),
+            concatMap(serverResponse => from(this.saveResponseFromServer(tableName, serverResponse)))
+        );
     }
 
-    public async checkUpdates1(tableName: keyof AppDatabase) {
+    private async getMetadataUpdatesQuery(tableName: keyof AppDatabase): Promise<MetadataUpdatesQueryModel> {
         const lastModifiedDate = (await AppDatabase.instance.metadataModificationLog.get(tableName))?.lastModifiedDate;
         const lastModifiedCount = await AppDatabase.count(tableName);
         const query: MetadataUpdatesQueryModel = { lastModifiedCount: lastModifiedCount, lastModifiedDate: lastModifiedDate };
+        return query
+    }
 
+    private getUpdatesFromServer(tableName: keyof AppDatabase, query: MetadataUpdatesQueryModel): Observable<MetadataUpdatesResponseModel> {
         //console.log("fetching metadata updates: ", ' tableName: ', tableName, ' lastModifiedDate: ', lastModifiedDate, ' lastModifiedCount: ', lastModifiedCount);
-
         let httpParams: HttpParams = StringUtils.getQueryParams(query);
         return this.http.get<MetadataUpdatesResponseModel>(`${this.endPointUrl}/${this.getUpdateRouteParam(tableName)}`, { params: httpParams })
             .pipe(
-                take(1),
-                map(response => {
-                    console.log('Metadata name: ', tableName, " | updates : ", response, ' | lastModifiedDate: ', lastModifiedDate);
-                    if (response && response.metadataChanged && response.metadataRecords) {
-                        this.updateMetadataInDB1(tableName, response.metadataRecords);
-                        return true;
-                    } else {
-                        return false;
-                    }
-
-                }),
                 catchError(this.handleError)
             );
+    }
+
+    private async saveResponseFromServer(tableName: keyof AppDatabase, response : MetadataUpdatesResponseModel): Promise<boolean>{
+        let saved: boolean = false;
+        if (response && response.metadataChanged && response.metadataRecords) {
+            saved = await this.updateMetadataInDB(tableName, response.metadataRecords);
+        }
+        //return of(saved);
+        return saved;
+    }
+    
+    private async updateMetadataInDB(tableName: keyof AppDatabase, records: any[]): Promise<boolean> {
+        try {
+            // clear all
+            await AppDatabase.clear(tableName);
+
+            // Then add all
+            if (records.length > 0) {
+                await AppDatabase.bulkPut(tableName, records);
+            }
+
+            // Update the updates table
+            await AppDatabase.instance.metadataModificationLog.put({ metadataName: tableName, lastModifiedDate: new Date().toISOString() });
+
+            return true;
+        } catch (error) {
+            console.error('Error in saving metadata: ', error);
+            return false;
+        }
     }
 
     private getUpdateRouteParam(tableName: keyof AppDatabase): string {
@@ -80,34 +88,6 @@ export class MetadataUpdatesService {
                 throw new Error('Developer error: metadata name not recognised');
         }
 
-    }
-
-    private async updateMetadataInDB(tableName: keyof AppDatabase, records: any[], metadataUpdated: BehaviorSubject<boolean>) {
-        // clear all
-        await AppDatabase.clear(tableName);
-
-        // Then add all
-        if (records.length > 0) {
-            await AppDatabase.bulkPut(tableName, records);
-        }
-
-        // Update the updates table
-        await AppDatabase.instance.metadataModificationLog.put({ metadataName: tableName, lastModifiedDate: new Date().toISOString() });
-
-        metadataUpdated.next(true);
-    }
-
-    private async updateMetadataInDB1(tableName: keyof AppDatabase, records: any[]) {
-        // clear all
-        await AppDatabase.clear(tableName);
-
-        // Then add all
-        if (records.length > 0) {
-            await AppDatabase.bulkPut(tableName, records);
-        }
-
-        // Update the updates table
-        await AppDatabase.instance.metadataModificationLog.put({ metadataName: tableName, lastModifiedDate: new Date().toISOString() });
     }
 
     private handleError(error: HttpErrorResponse) {

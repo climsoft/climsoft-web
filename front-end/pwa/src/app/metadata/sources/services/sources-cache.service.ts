@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, map, Observable, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -12,20 +12,13 @@ import { CreateUpdateSourceModel } from "../models/create-update-source.model";
 })
 export class SourcesCacheService {
     private endPointUrl: string = `${environment.apiUrl}/sources`;
-    private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
-    private readonly sourcesChanged: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]); 
 
     constructor(
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
         this.loadSources();
         this.checkForUpdates();
-        this.sourcesChanged.subscribe(item => {
-            if (item) {
-                this.loadSources();
-                this.sourcesChanged.next(false);
-            }
-        });
     }
 
     private async loadSources() {
@@ -33,8 +26,13 @@ export class SourcesCacheService {
     }
 
     private checkForUpdates(): void {
-        this.sourcesChanged.next(false);
-        this.metadataUpdatesService.checkUpdates('sources', this.sourcesChanged);
+        this.metadataUpdatesService.checkUpdates('sources').pipe(
+            take(1)
+        ).subscribe(reset => {
+            if (reset) {
+                this.loadSources();
+            }
+        });
     }
 
     public get cachedStations(): Observable<ViewSourceModel[]> {
@@ -60,7 +58,7 @@ export class SourcesCacheService {
             );
     }
 
-    public update(id: number , updateDto: CreateUpdateSourceModel): Observable<ViewSourceModel> {
+    public update(id: number, updateDto: CreateUpdateSourceModel): Observable<ViewSourceModel> {
         return this.http.patch<ViewSourceModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
