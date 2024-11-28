@@ -1,68 +1,69 @@
 <div class="card border-0">
-    <div class="card-header d-flex justify-content-between p-0 align-items-center">
-      <div class="fw-bold">Showing Stations</div>
-      <div class="mb-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
-          Search
-        </button>
-        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
-      </div>
+  <div class="card-header d-flex justify-content-between p-0 align-items-center">
+    <div class="fw-bold">Showing Stations</div>
+    <div class="mb-1">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
+        Search
+      </button>
+      <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
     </div>
-  
-    <div class="card-body px-0">
-  
-      <table class="table table-striped table-sm">
-        <thead>
-          <tr>
-            <th style="width: 2%;"></th>
-            <th style="width: 10%;">Id</th>
-            <th style="width: 88%;">Name</th>
-          </tr>
-        </thead>
-        <tbody class="table-group-divider">
-          <ng-container *ngFor="let station of stations">
-            <tr class="cursor-pointer" (click)="loadStationForms(station); stationSelected.open = !stationSelected.open;">
-              <td>
-                <app-toggle-chevron #stationSelected [clickable]="false" ></app-toggle-chevron>
-              </td>
-              <td>{{ station.id}}</td>
-              <td>{{ station.name}}</td>
-            </tr>
-  
-            <tr *ngIf="stationSelected.open && station.forms">
-              <td></td>
-              <td></td>
-              <td colspan="2">
-                <table class="table table-sm table-striped table-hover cursor-pointer">
-                    <thead>
-                        <tr><th>Forms</th></tr>
-                    </thead>
-                    <tbody class="table-group-divider">
-                        <tr *ngFor="let form of station.forms" (click)="onFormClick(station.id, form.id)" >
-                            <td>
-                                <div class="d-flex flex-row">
-                                    <div class="d-flex flex-row">
-                                        <div><i class="bi bi-arrow-right-short"></i></div>
-                                        <div>{{form.name}}</div>
-                                    </div>
-                                    <div class="ms-1 me-1">-</div>
-                                    <div>{{form.description}}</div>
-                                </div>
-                                
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-              </td>
-  
-            </tr>
-  
-          </ng-container>
-  
-  
-        </tbody>
-      </table>
-  
-    </div>
-  
   </div>
+
+  <div class="card-body px-0">
+
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th style="width: 2%;"></th>
+          <th style="width: 15%;">Id</th>
+          <th style="width: 73%;">Name</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        <ng-container *ngFor="let station of stations">
+          <tr class="cursor-pointer" (click)="loadStationForms(station); stationSelected.open = !stationSelected.open;">
+            <td>
+              <app-toggle-chevron #stationSelected [clickable]="false" />
+            </td>
+            <td>{{ station.id}}</td>
+            <td>{{ station.name}}</td>
+          </tr>
+
+          <tr *ngIf="stationSelected.open && station.forms">
+            <td></td>
+            <td colspan="2">
+              <table class="table table-sm table-striped table-hover cursor-pointer">
+                <thead>
+                  <tr>
+                    <th>Forms</th>
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                  <tr *ngFor="let form of station.forms" (click)="onFormClick(station.id, form.id)">
+                    <td>
+                      <div class="d-flex flex-row">
+                        <div class="d-flex flex-row">
+                          <div><i class="bi bi-arrow-right-short"></i></div>
+                          <div>{{form.name}}</div>
+                        </div>
+                        <div class="ms-1 me-1">-</div>
+                        <div>{{form.description}}</div>
+                      </div>
+
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+
+          </tr>
+
+        </ng-container>
+
+
+      </tbody>
+    </table>
+
+  </div>
+
+</div>

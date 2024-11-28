@@ -1,12 +1,17 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-end px-1 py-0  align-items-center">
-    
-    <div class="mb-1 d-flex">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+
+    <div class="d-flex align-items-center">
+      <div *ngIf="sources" class="d-flex mx-2">
+        Count: {{ sources.length | number:'1.0-0' }}
+      </div>
       <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
       </button> -->
-      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Form Source','Import Source']" (dropDownOptionClick)="onNewSource($event)"
-        [translateX]="true"/>
+      <div>
+        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Form Source','Import Source']"
+        (dropDownOptionClick)="onNewSource($event)" [translateX]="true" />
+      </div>
     </div>
   </div>
 

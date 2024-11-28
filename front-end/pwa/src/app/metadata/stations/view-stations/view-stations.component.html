@@ -1,5 +1,5 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between align-items-center">
+  <div class="card-header d-flex justify-content-between align-items-center px-1 py-0">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
         <button class="nav-link active" [class.active]="activeTab === 'table'"
@@ -9,8 +9,8 @@
         <button class="nav-link" [class.active]="activeTab === 'map'" (click)="onTabClick('map')">Map</button>
       </li>
     </ul>
-    <div class="d-flex">
-      <div *ngIf="stations" class="d-flex align-items-center mx-2">
+    <div class="d-flex align-items-center">
+      <div *ngIf="stations" class="d-flex mx-2">
         Count: {{ stations.length | number:'1.0-0' }}
       </div>
       <div class="me-2">
