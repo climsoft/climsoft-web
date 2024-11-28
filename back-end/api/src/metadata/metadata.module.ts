@@ -17,7 +17,7 @@ import { StationElementsService } from './stations/services/station-elements.ser
 import { StationElementsController } from './stations/controllers/station-elements.controller';
 import { StationFormsController } from './stations/controllers/station-forms.controller';
 import { StationFormsService } from './stations/services/station-forms.service';
-import { StationObsEnvironmentEntity } from './stations/entities/station-observation-environment.entity';
+import { StationObservationEnvironmentEntity } from './stations/entities/station-observation-environment.entity';
 import { StationObservationFocusEntity } from './stations/entities/station-observation-focus.entity';
 import { StationObsEnvsController } from './stations/controllers/station-obs-envs.controller';
 import { StationObsEnvService } from './stations/services/station-obs-env.service';
@@ -41,6 +41,8 @@ import { NetworkAffiliationEntity } from './stations/entities/network-affiliatio
 import { StationsImportExportService } from './stations/services/stations-import-export.service';
 import { StationNetworkAffiliationEntity } from './stations/entities/station-network-affiliation.entity';
 import { MetadataUpdatesController } from './metadata-updates/metadata-updates.controller';
+import { ElementTypesService } from './elements/services/element-types.service';
+import { ElementSubdomainsService } from './elements/services/element-subdomains.service';
 
 @Module({
     imports: [
@@ -54,7 +56,7 @@ import { MetadataUpdatesController } from './metadata-updates/metadata-updates.c
         OrganisationEntity,
         NetworkAffiliationEntity,
         RegionEntity,
-        StationObsEnvironmentEntity,
+        StationObservationEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,
         StationElementEntity,
@@ -80,6 +82,8 @@ import { MetadataUpdatesController } from './metadata-updates/metadata-updates.c
         MetadataUpdatesController,
     ],
     providers: [
+        ElementSubdomainsService,
+        ElementTypesService,
         ElementsService,
         SourcesService,
         StationObsEnvService,

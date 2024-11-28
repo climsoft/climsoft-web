@@ -1,8 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
 import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
-import { ElementsService } from '../services/elements.service';
-import { ViewElementDto } from '../dtos/elements/view-element.dto';
-import { CreateElementDto } from '../dtos/elements/create-element.dto';
+import { ElementsService } from '../services/elements.service'; 
+import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
 import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
@@ -15,13 +14,13 @@ export class ElementsController {
 
   @Get()
   find(
-    @Query() viewQueryDto: ViewElementQueryDTO): Promise<ViewElementDto[]> {
+    @Query() viewQueryDto: ViewElementQueryDTO): Promise<CreateViewElementDto[]> {
     return this.elementsService.find(viewQueryDto);
   }
 
   @Get('id/:id')
   findOne(
-    @Param('id', ParseIntPipe) id: number): Promise<ViewElementDto> {
+    @Param('id', ParseIntPipe) id: number): Promise<CreateViewElementDto> {
     return this.elementsService.findOne(id);
   }
 
@@ -34,7 +33,7 @@ export class ElementsController {
   @Post()
   async create(
     @Req() request: Request,
-    @Body() item: CreateElementDto): Promise<ViewElementDto> {
+    @Body() item: CreateViewElementDto): Promise<CreateViewElementDto> {
     return this.elementsService.create(item, AuthUtil.getLoggedInUserId(request));
   }
 
@@ -43,7 +42,7 @@ export class ElementsController {
   async update(
     @Req() request: Request,
     @Param('id', ParseIntPipe) id: number,
-    @Body() item: UpdateElementDto): Promise<ViewElementDto> {
+    @Body() item: UpdateElementDto): Promise<CreateViewElementDto> {
     return this.elementsService.update(id, item, AuthUtil.getLoggedInUserId(request));
   }
 

@@ -51,7 +51,7 @@
                                                 *ngIf="elementLimitsDisplay.open">
                                                 <button type="button"
                                                     class="btn btn-sm btn-outline-secondary me-1"
-                                                    (click)="elementLimitsInput.openDialog( stationId,element.id)">Edit</button>
+                                                    (click)="elementLimitsInput.openDialog( station.id,element.id)">Edit</button>
 
                                                 <app-station-element-limits-input-dialog
                                                     [title]="'Set Monthly Limits - ' + element.name"

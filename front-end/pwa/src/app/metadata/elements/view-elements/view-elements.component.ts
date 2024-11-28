@@ -1,64 +1,60 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
-import { ViewElementQueryModel } from 'src/app/core/models/elements/view-element-query.model';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
+import { Subject, takeUntil } from 'rxjs';
+import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
   selector: 'app-view-elements',
   templateUrl: './view-elements.component.html',
   styleUrls: ['./view-elements.component.scss']
 })
-export class ViewElementsComponent {
-  protected elements!: ViewElementModel[];
-  protected pageInputDefinition: PagingParameters = new PagingParameters();
-  protected ElementFilter!: ViewElementQueryModel;
+export class ViewElementsComponent implements OnDestroy {
+
+  private allElements!: CreateViewElementModel[];
+  protected elements!: CreateViewElementModel[];
+  private searchedIds!: number[];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementsService: ElementsService,
+    private elementsCacheService: ElementsCacheService,
     private router: Router,
     private route: ActivatedRoute) {
+
     this.pagesDataService.setPageHeader('Elements Metadata');
-    this.countEntries();
-  }
 
-  public countEntries(): void {
-    this.elements = [];
-    this.ElementFilter = {};
-    this.pageInputDefinition.setTotalRowCount(0);
-    this.elementsService.count(this.ElementFilter).pipe(take(1)).subscribe(count => {
-        this.pageInputDefinition.setTotalRowCount(count);
-        if (count > 0) {
-            this.loadEntries();
-        }
+    this.elementsCacheService.cachedElements.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(items => {
+      this.allElements = items;
+      this.filterBasedOnSearchedIds(); 
     });
-}
 
-public loadEntries(): void {
-    this.ElementFilter.page = this.pageInputDefinition.page;
-    this.ElementFilter.pageSize = this.pageInputDefinition.pageSize;
-    this.elementsService.find(this.ElementFilter).pipe(take(1)).subscribe(data => {
-        if (data) {
-            this.elements = data;
-        }
-    });
-}
-
-
-  protected onSearch(): void {
-    // TODO.
   }
 
-  protected onImportElements(): void {
-    //TODO.
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  protected onEditElement(element: ViewElementModel): void {
+  protected onSearchInput(searchedIds: number[]): void {
+    this.searchedIds = searchedIds;
+    this.filterBasedOnSearchedIds();
+  }
+
+  private filterBasedOnSearchedIds(): void {
+    this.elements = this.searchedIds && this.searchedIds.length > 0 ? this.allElements.filter(item => this.searchedIds.includes(item.id)) : this.allElements;
+  }
+
+  protected onEditElement(element: CreateViewElementModel): void {
     this.router.navigate(['element-detail', element.id], { relativeTo: this.route.parent });
   }
+
+  protected get downloadLink(): string {
+    return this.elementsCacheService.downloadLink;
+  } 
 
 }

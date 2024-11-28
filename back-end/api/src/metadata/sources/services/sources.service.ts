@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto'; 
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
@@ -8,7 +8,9 @@ import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
 import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 import { SourceEntity } from '../entities/source.entity';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
-import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
+import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 
 // TODO refactor this service later
 
@@ -125,12 +127,41 @@ export class SourcesService {
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: ViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
+            const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
             dto.parameters = viewEntryForm;
         }
 
         return dto;
+    }
+
+    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+        let changesDetected: boolean = false;
+
+        const serverCount = await this.sourceRepo.count();
+
+        if (serverCount !== updatesQueryDto.lastModifiedCount) {
+            // If number of records in server are not the same as those in the client then changes detected
+            changesDetected = true;
+        } else {
+            const whereOptions: FindOptionsWhere<SourceEntity> = {};
+
+            if (updatesQueryDto.lastModifiedDate) {
+                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+            }
+
+            // If there was any changed record then changes detected
+            changesDetected = (await this.sourceRepo.count({ where: whereOptions })) > 0
+        }
+
+        if (changesDetected) {
+            // If any changes detected then return all records 
+            const allRecords = await this.findAll();
+            return { metadataChanged: true, metadataRecords: allRecords }
+        } else {
+            // If no changes detected then indicate no metadata changed
+            return { metadataChanged: false }
+        }
     }
 
 }

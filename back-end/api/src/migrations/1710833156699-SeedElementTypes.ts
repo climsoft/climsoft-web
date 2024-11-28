@@ -32,7 +32,12 @@ export class SeedElementTypes1710833156699 implements MigrationInterface {
     (14, 'Aerosols', '', 3, 1),
     (15, 'Carbon dioxide, methane and other greenhouse gases', '', 3, 1),
     (16, 'Ozone', '', 3, 1),
-    (17, 'Precursors for aerosols and ozone', '', 3, 1)
+    (17, 'Precursors for aerosols and ozone', '', 3, 1),
+
+    (18, 'Groundwater', '', 4, 1),
+    (19, 'Lakes', '', 4, 1),
+    (20, 'River discharge', '', 4, 1),
+    (21, 'Terrestrial water storage', '', 4, 1),
 
     `;
 

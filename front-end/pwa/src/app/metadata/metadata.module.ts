@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
-import { FormSelectorDialogComponent } from './controls/form-selector-dialog/form-selector-dialog.component';
+import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 
@@ -16,7 +16,7 @@ import { FormSourceDetailComponent } from './sources/form-source-detail/form-sou
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
-import { StationCharacteristicsEditDialogComponent } from './stations/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
+import { StationCharacteristicsEditDialogComponent } from './stations/station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
 import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component';
 import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';

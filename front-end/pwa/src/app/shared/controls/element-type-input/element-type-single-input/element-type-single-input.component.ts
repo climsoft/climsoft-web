@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ViewElementTypeModel } from 'src/app/core/models/elements/view-element-type.model';
 import { ElementTypesService } from 'src/app/core/services/elements/element-types.service';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
+import { ViewElementTypeModel } from 'src/app/metadata/elements/models/view-element-type.model';
 
 @Component({
   selector: 'app-element-type-single-input',

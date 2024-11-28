@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ElementDomainEnum } from 'src/app/core/models/elements/element-domain.enum';
-import { ViewElementSubdomainModel } from 'src/app/core/models/elements/view-element-subdomain.model';
+import { ElementDomainEnum } from 'src/app/metadata/elements/models/element-domain.enum'; 
 import { ElementSubdomainsService } from 'src/app/core/services/elements/element-subdomains.service'; 
+import { ViewElementSubdomainModel } from 'src/app/metadata/elements/models/view-element-subdomain.model';
 
 @Component({
   selector: 'app-element-subdomain-single-input',

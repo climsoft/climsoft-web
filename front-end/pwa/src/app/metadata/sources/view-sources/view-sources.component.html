@@ -1,16 +1,21 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-    <div class="fw-bold">Showing Sources</div>
-    <div class="mb-1 d-flex">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+
+    <div class="d-flex align-items-center">
+      <div *ngIf="sources" class="d-flex mx-2">
+        Count: {{ sources.length | number:'1.0-0' }}
+      </div>
+      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
-      </button>
-      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Form','Import']" (dropDownOptionClick)="onNewSource($event)"
-        [translateX]="true"/>
+      </button> -->
+      <div>
+        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Form Source','Import Source']"
+        (dropDownOptionClick)="onNewSource($event)" [translateX]="true" />
+      </div>
     </div>
   </div>
 
-  <div class="card-body px-0">
+  <div *ngIf="sources" class="card-body px-0">
     <app-table-view [clickable]="true"
       [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'sourceType', name: 'Type'}, {id: 'description', name: 'Description'} ]"
       [rowsData]="sources" (rowDataClicked)="onEditSource($event)" />

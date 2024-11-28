@@ -116,12 +116,12 @@ export class StationsService {
 
     public static updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
-        entity.description = dto.description;
+        entity.description = dto.description ? dto.description : '';
         entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
             type: "Point",
             coordinates: [dto.longitude, dto.latitude],
         } : null;
-        entity.elevation = dto.elevation;
+        entity.elevation = (dto.elevation !== undefined && dto.elevation !== null) ? dto.elevation : null;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId;
         entity.obsFocusId = dto.stationObsFocusId;

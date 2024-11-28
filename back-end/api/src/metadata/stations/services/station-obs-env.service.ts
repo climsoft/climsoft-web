@@ -1,20 +1,20 @@
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from "typeorm"; 
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm"; 
-import { StationObsEnvironmentEntity } from "../entities/station-observation-environment.entity";
-import { StationObsEnvChangesDto } from "../dtos/station-obs-env-changes.dto";
+import { StationObservationEnvironmentEntity } from "../entities/station-observation-environment.entity";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
 import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
+import { StationObservationEnvironmentDto } from "../dtos/view-station-obs-env.dto";
 
 @Injectable()
 export class StationObsEnvService {
 
     public constructor(
-        @InjectRepository(StationObsEnvironmentEntity) private stationObsEnvRepo: Repository<StationObsEnvironmentEntity>) {
+        @InjectRepository(StationObservationEnvironmentEntity) private stationObsEnvRepo: Repository<StationObservationEnvironmentEntity>) {
     }
 
-    public async find(ids?: number[]): Promise<StationObsEnvironmentEntity[]> {
-        const findOptions: FindManyOptions<StationObsEnvironmentEntity> = {
+    public async find(ids?: number[]): Promise<StationObservationEnvironmentDto[]> {
+        const findOptions: FindManyOptions<StationObservationEnvironmentEntity> = {
             order: { id: "ASC" }
         };
 
@@ -22,7 +22,9 @@ export class StationObsEnvService {
             findOptions.where = { id: In(ids) };
         }
 
-       return this.stationObsEnvRepo.find(findOptions);
+       return  (await this.stationObsEnvRepo.find(findOptions)).map(item => {
+        return { id: item.id, name: item.name, description: item.description }
+    });
     }
     
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
@@ -34,7 +36,7 @@ export class StationObsEnvService {
             // If number of records in server are not the same as those in the client then changes detected
             changesDetected = true;
         } else {
-            const whereOptions: FindOptionsWhere<StationObsEnvironmentEntity> = {};
+            const whereOptions: FindOptionsWhere<StationObservationEnvironmentEntity> = {};
 
             if (updatesQueryDto.lastModifiedDate) {
                 whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
@@ -46,7 +48,7 @@ export class StationObsEnvService {
 
         if (changesDetected) {
             // If any changes detected then return all records 
-            const allRecords = await this.stationObsEnvRepo.find();
+            const allRecords = await this.find();
             return { metadataChanged: true, metadataRecords: allRecords }
         } else {
             // If no changes detected then indicate no metadata changed

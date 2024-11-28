@@ -17,14 +17,7 @@ export class ElementTypeEntity extends AppBaseEntity {
     subdomainId: number;
 
     // ManyToOne relationship with ElementSubdomainEntity
-    @ManyToOne(() => ElementSubdomainEntity, {
-        onDelete: "CASCADE",
-
-        // Note, by default we expect most operations that relate to retrieving the element types to require the subdomain as well.
-        // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
-        // For operations that don't need the subdomain loaded eagerly, just set it to false using typeorm when quering the entities
-        eager: true,
-    })
+    @ManyToOne(() => ElementSubdomainEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: "subdomain_id" })
     elementSubdomain: ElementSubdomainEntity;
 }

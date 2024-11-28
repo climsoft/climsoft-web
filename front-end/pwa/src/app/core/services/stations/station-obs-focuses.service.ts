@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'; 
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewElementModel } from '../../models/elements/view-element.model'; 
+import { CreateViewElementModel } from '../../../metadata/elements/models/create-view-element.model'; 
 import { ViewStationObsFocusModel } from '../../models/stations/view-station-obs-focus.model';
 
 @Injectable({
@@ -22,7 +22,7 @@ export class StationObsFocusesService {
       params = params.set('ids', ids.join(','));
     }
   
-    return this.http.get<ViewElementModel[]>(this.endPointUrl, { params: params })
+    return this.http.get<CreateViewElementModel[]>(this.endPointUrl, { params: params })
       .pipe(catchError(this.handleError));
   }
 

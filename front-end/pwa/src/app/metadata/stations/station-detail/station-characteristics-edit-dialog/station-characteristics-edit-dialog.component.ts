@@ -3,9 +3,10 @@ import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
+import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -18,33 +19,53 @@ export class StationCharacteristicsEditDialogComponent {
 
   protected open: boolean = false;
   protected title: string = "";
-  protected station!: ViewStationModel;
+  protected station!: CreateStationModel;
   protected bNew: boolean = false;
 
-  constructor(private stationsService: StationsService, private pagesDataService: PagesDataService,) { }
+  constructor(
+    private stationsCacheService: StationsCacheService,
+    private pagesDataService: PagesDataService,) { }
 
 
   public openDialog(stationId?: string): void {
     this.open = true;
     if (stationId) {
       this.title = "Edit Station";
-      this.stationsService.findOne(stationId).pipe(
-        take(1)
-      ).subscribe((data) => {
-        this.station = data;
-        this.bNew = false;
 
-        if (this.station.dateEstablished) {
-          this.station.dateEstablished = this.station.dateEstablished.substring(0, 10);
+      this.stationsCacheService.findOne(stationId).pipe(
+        take(1),
+      ).subscribe(foundStation => {
+        if (foundStation) {
+          this.station = {
+            id: foundStation.id,
+            name: foundStation.name,
+            description: foundStation.description,
+            longitude: foundStation.location ? foundStation.location.longitude : null,
+            latitude: foundStation.location ? foundStation.location.latitude : null,
+            elevation: foundStation.elevation,
+            stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
+            stationObsEnvironmentId: foundStation.stationObsEnvironmentId,
+            stationObsFocusId: foundStation.stationObsFocusId,
+            wmoId: foundStation.wmoId,
+            wigosId: foundStation.wigosId,
+            icaoId: foundStation.icaoId,
+            status: foundStation.status,
+            dateEstablished: foundStation.dateEstablished,
+            dateClosed: foundStation.dateClosed,
+            comment: foundStation.comment,
+          };
+          this.bNew = false;
+          if (this.station.dateEstablished) {
+            this.station.dateEstablished = this.station.dateEstablished;
+          }
+
+          if (this.station.dateClosed) {
+            this.station.dateClosed = this.station.dateClosed;
+          }
         }
-
-        if (this.station.dateClosed) {
-          this.station.dateClosed = this.station.dateClosed.substring(0, 10);
-        }
-
-        console.log('retrieved: ', this.station);
-
       });
+
+
 
     } else {
       this.bNew = true;
@@ -57,19 +78,15 @@ export class StationCharacteristicsEditDialogComponent {
         latitude: 0,
         elevation: 0,
         stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
-        stationObsProcessingMethodName: '',
-        stationObsEnvironmentId: null,
-        stationObsEnvironmentName: null,
-        stationObsFocusId: null,
-        stationObsFocusName: null,
+        stationObsEnvironmentId: 0,
+        stationObsFocusId: 0,
         wmoId: null,
         wigosId: null,
         icaoId: null,
         status: null,
-        dateEstablished: null,
-        dateClosed: null,
-        comment: ""
-
+        dateEstablished: '',
+        dateClosed: '',
+        comment: '',
       };
     }
 
@@ -80,8 +97,6 @@ export class StationCharacteristicsEditDialogComponent {
   }
 
   protected onOkClick(): void {
-
-    console.log('old: ', this.station);
 
     if (StringUtils.isNullOrEmpty(this.station.id) || StringUtils.isNullOrEmpty(this.station.name)) {
       return;
@@ -99,7 +114,6 @@ export class StationCharacteristicsEditDialogComponent {
       dateClosed = `${this.station.dateClosed}T00:00:00.000Z`;
     }
 
-
     const updateStation: UpdateStationModel = {
       name: this.station.name,
       description: this.station.description,
@@ -109,22 +123,20 @@ export class StationCharacteristicsEditDialogComponent {
       stationObsProcessingMethod: this.station.stationObsProcessingMethod,
       stationObsEnvironmentId: this.station.stationObsEnvironmentId,
       stationObsFocusId: this.station.stationObsFocusId,
-      wmoId: this.station.wmoId,
-      wigosId: this.station.wigosId,
-      icaoId: this.station.icaoId,
-      status: this.station.status,
+      wmoId: this.station.wmoId ? this.station.wmoId : null,
+      wigosId: this.station.wigosId ? this.station.wigosId : null,
+      icaoId: this.station.icaoId ? this.station.icaoId : null,
+      status: this.station.status ? this.station.status : null,
       dateEstablished: dateEstablished,
       dateClosed: dateClosed,
-      comment: this.station.comment,
+      comment: this.station.comment ? this.station.comment : null,
     }
 
-    console.log('updated: ', updateStation);
-
-    let saveSubscription: Observable<ViewStationModel>;
+    let saveSubscription: Observable<CreateStationModel>;
     if (this.bNew) {
-      saveSubscription = this.stationsService.create({ ...updateStation, id: this.station.id });
+      saveSubscription = this.stationsCacheService.create({ ...updateStation, id: this.station.id });
     } else {
-      saveSubscription = this.stationsService.update(this.station.id, updateStation);
+      saveSubscription = this.stationsCacheService.update(this.station.id, updateStation);
     }
 
     saveSubscription.pipe(
@@ -138,6 +150,7 @@ export class StationCharacteristicsEditDialogComponent {
       } else {
         message = "Error in saving element";
         messageType = 'error';
+        //return;
       }
 
       this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });

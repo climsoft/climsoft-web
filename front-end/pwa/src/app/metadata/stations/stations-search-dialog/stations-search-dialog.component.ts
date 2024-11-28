@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { AppDatabase } from 'src/app/app-database';
 import { StationSearchHistoryModel } from '../models/stations-search-history.model';
-import { StationCacheModel, StationsCacheService } from '../services/stations-cache-service';
+import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { take } from 'rxjs';
 
 interface StationSearchModel {

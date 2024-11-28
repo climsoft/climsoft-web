@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
-import { CreateStationModel } from '../../models/stations/create-station.model';
-import { ViewStationModel } from '../../models/stations/view-station.model';
+import { CreateStationModel } from '../../models/stations/create-station.model'; 
 import { UpdateStationModel } from '../../models/stations/update-station.model';
 import { Observable, throwError } from 'rxjs';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewStationQueryModel } from '../../models/stations/view-station-query.model';
 import { environment } from 'src/environments/environment';
+import { ViewStationModel } from '../../models/stations/view-station.model';
+
+// TODO. Delete this service
 
 @Injectable({
   providedIn: 'root'
@@ -49,15 +51,15 @@ export class StationsService {
       );
   }
 
-  public create(createDto: CreateStationModel): Observable<ViewStationModel> {
-    return this.http.post<ViewStationModel>(`${this.endPointUrl}`, createDto)
+  public create(createDto: CreateStationModel): Observable<CreateStationModel> {
+    return this.http.post<CreateStationModel>(`${this.endPointUrl}`, createDto)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public update(id: number | string, updateDto: UpdateStationModel): Observable<ViewStationModel> {
-    return this.http.patch<ViewStationModel>(`${this.endPointUrl}/${id}`, updateDto)
+  public update(id: number | string, updateDto: UpdateStationModel): Observable<CreateStationModel> {
+    return this.http.patch<CreateStationModel>(`${this.endPointUrl}/${id}`, updateDto)
       .pipe(
         catchError(this.handleError)
       );

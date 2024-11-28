@@ -1,17 +1,30 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
-    <div class="fw-bold">Showing Elements</div>
-    <div class="mb-1 d-flex">
-      <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex me-2">
-        <app-page-input [pageInputDefinition]="pageInputDefinition"
-          (pageInputDefinitionChange)="loadEntries()" />
+  <div class="card-header d-flex justify-content-end align-items-center align-items-center px-1 py-0">
+    <div class="d-flex align-items-center">
+      <div *ngIf="elements" class="d-flex mx-2">
+        Count: {{ elements.length | number:'1.0-0' }}
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
-        Search
-      </button>
-      <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
-        (dropDownOptionClick)="$event === 'Add'? dlgAddElement.openDialog():onImportElements()" [translateX]="true" />
-      <app-element-characteristics-input-dialog #dlgAddElement (ok)="countEntries()" />
+      <div class="me-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">
+          Search
+        </button>
+        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput([])" />
+      </div>
+
+      <div class="me-2">
+        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
+          (dropDownOptionClick)="$event === 'Add'? dlgAddElement.openDialog() : dlgImportElement.openDialog()"
+          [translateX]="true" />
+        <app-element-characteristics-input-dialog #dlgAddElement />
+        <app-import-stations-dialog #dlgImportElement />
+      </div>
+
+      <div>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Download']"
+          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): ''" [translateX]="true" />
+        <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
+      </div>
+
     </div>
   </div>
 
@@ -20,9 +33,8 @@
           {id: 'id', name: 'Id'},
           {id: 'abbreviation', name: 'Abbreviation'}, 
           {id: 'name', name: 'Name'}, 
-          {id: 'typeName', name: 'Type'},
-          {id: 'description', name: 'Description'}  ]" [rowsData]="elements"
-      (rowDataClicked)="onEditElement($event)" />
+          {id: 'description', name: 'Description'} 
+           ]" [rowsData]="elements" (rowDataClicked)="onEditElement($event)" />
   </div>
 
 </div>

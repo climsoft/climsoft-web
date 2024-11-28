@@ -1,33 +1,45 @@
-import { Component, Input, OnInit } from '@angular/core'; 
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
-import { Observable, of } from 'rxjs';
-import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
+import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
+import { Observable, of, Subject } from 'rxjs';
+import { switchMap, tap, catchError, finalize, takeUntil } from 'rxjs/operators';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
+import { StationCacheModel } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-forms',
   templateUrl: './station-forms.component.html',
   styleUrls: ['./station-forms.component.scss']
 })
-export class StationFormsComponent implements OnInit {
-  @Input() public stationId!: string;
+export class StationFormsComponent implements OnChanges {
+
+  @Input()
+  public station!: StationCacheModel;
+
   protected forms!: ViewSourceModel[];
+
+  private destroy$ = new Subject<void>();
 
   public constructor(
     private stationFormsService: StationFormsService,
     private pagesDataService: PagesDataService,
-
-  ) {
-      
+  ) { }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if(this.station){
+      this.loadForms();
+    }   
   }
 
-  ngOnInit() {
-    this.loadForms();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected loadForms(): void {
-    this.stationFormsService.find(this.stationId).subscribe((data) => {
+    this.stationFormsService.find(this.station.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
       this.forms = data;
     });
   }
@@ -72,8 +84,8 @@ export class StationFormsComponent implements OnInit {
     }
 
     const operation = action === 'ADD'
-      ? this.stationFormsService.update(this.stationId, ids)
-      : this.stationFormsService.delete(this.stationId, ids);
+      ? this.stationFormsService.update(this.station.id, ids)
+      : this.stationFormsService.delete(this.station.id, ids);
 
     return operation.pipe(
       tap(data => {

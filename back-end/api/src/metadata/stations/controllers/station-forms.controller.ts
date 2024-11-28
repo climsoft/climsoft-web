@@ -10,13 +10,13 @@ export class StationFormsController {
 
   constructor(private readonly stationFormsService: StationFormsService) { }
 
-  @Get('forms/:id')
+  @Get(':id')
   getForms(@Param('id', AuthorisedStationsPipe) id: string) {
     return this.stationFormsService.find(id);
   }
 
   @Admin()
-  @Post('forms/:id')
+  @Post(':id')
   saveForms(
     @Req() request: Request,
     @Param('id', AuthorisedStationsPipe) stationId: string,
@@ -25,7 +25,7 @@ export class StationFormsController {
   }
 
   @Admin()
-  @Delete('forms/:id')
+  @Delete(':id')
   deleteForms(
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) elementIds: number[]) {

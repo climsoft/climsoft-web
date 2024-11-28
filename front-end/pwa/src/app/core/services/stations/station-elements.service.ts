@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { StationElementLimitModel } from '../../models/stations/station-element-limit.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewElementModel } from '../../models/elements/view-element.model';
+import { CreateViewElementModel } from '../../../metadata/elements/models/create-view-element.model';
 
 @Injectable({
   providedIn: 'root'
@@ -14,9 +14,9 @@ export class StationElementsService {
 
   constructor(private http: HttpClient) { }
 
-  public getStationElements(stationId: string): Observable<ViewElementModel[]> {
+  public getStationElements(stationId: string): Observable<CreateViewElementModel[]> {
     const url = `${this.endPointUrl}/elements/${stationId}`;
-    return this.http.get<ViewElementModel[]>(url)
+    return this.http.get<CreateViewElementModel[]>(url)
       .pipe(
         catchError(this.handleError)
       );

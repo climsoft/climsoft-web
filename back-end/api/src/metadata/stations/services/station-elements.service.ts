@@ -4,8 +4,8 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ObjectUtils } from "src/shared/utils/object.util";
 import { DateUtils } from "src/shared/utils/date.utils"; 
-import { ElementsService } from "src/metadata/elements/services/elements.service";
-import { ViewElementDto } from "src/metadata/elements/dtos/elements/view-element.dto";
+import { ElementsService } from "src/metadata/elements/services/elements.service"; 
+import { CreateViewElementDto } from "src/metadata/elements/dtos/elements/create-view-element.dto";
 
 @Injectable()
 export class StationElementsService {
@@ -15,7 +15,7 @@ export class StationElementsService {
         private elementsService: ElementsService) {
     }
 
-    public async find(stationId: string): Promise<ViewElementDto[]> {
+    public async find(stationId: string): Promise<CreateViewElementDto[]> {
         const stationElementEntities: StationElementEntity[] = await this.stationElementsRepo.findBy({ stationId: stationId });
         const elementIds: number[] = stationElementEntities.map(data => (data.elementId));
         return elementIds.length > 0 ? this.elementsService.find({elementIds: elementIds}) : [];

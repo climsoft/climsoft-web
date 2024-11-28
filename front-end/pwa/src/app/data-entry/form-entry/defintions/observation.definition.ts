@@ -1,6 +1,6 @@
 import { take } from "rxjs";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
-import { ViewElementModel } from "src/app/core/models/elements/view-element.model";
+import { CreateViewElementModel } from "src/app/metadata/elements/models/create-view-element.model";
 import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
 import { FlagEnum } from "src/app/core/models/observations/flag.enum";
 import { ViewObservationLogQueryModel } from "src/app/core/models/observations/view-observation-log-query.model";
@@ -14,7 +14,7 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
  * Holds the definitions used by the value flag component for data display and entry validations
  */
 export class ObservationDefinition {
-    private elementMetadata: ViewElementModel;
+    private elementMetadata: CreateViewElementModel;
     private _observation: CreateObservationModel;
     private _valueFlagForDisplay: string = "";
     private _valueFlagForDisplayDB: string = "";
@@ -46,7 +46,7 @@ export class ObservationDefinition {
      */
     private rangeThreshold: RangeThresholdQCTestParamsModel | undefined;
 
-    constructor(observation: CreateObservationModel, elementMetadata: ViewElementModel, allowMissingValues: boolean , scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined) {
+    constructor(observation: CreateObservationModel, elementMetadata: CreateViewElementModel, allowMissingValues: boolean , scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
         this.allowMissingValues = allowMissingValues;

@@ -7,7 +7,7 @@ import { RegionsService } from '../services/regions/regions.service';
 import { GeneralSettingsService } from '../services/settings/general-settings.service';
 import { SettingIds } from '../models/settings/setting-ids';
 import { Settings1ParamsModel } from '../models/settings/settings-params/settings-1-params.model';
-import {  StationsCacheService } from '../../metadata/stations/services/stations-cache-service';
+import {  StationsCacheService } from '../../metadata/stations/services/stations-cache.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -66,7 +66,7 @@ export class DashboardComponent implements AfterViewInit {
             },
             "geometry": {
               "type": "Point",
-              "coordinates": [item.longitude, item.latitude]
+              "coordinates": [item.location?.longitude, item.location?.latitude]
             }
           };
         })

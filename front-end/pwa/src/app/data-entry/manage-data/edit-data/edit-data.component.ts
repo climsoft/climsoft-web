@@ -4,7 +4,7 @@ import { ViewObservationModel } from 'src/app/core/models/observations/view-obse
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { take } from 'rxjs';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
@@ -38,7 +38,7 @@ export class EditDataComponent {
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
   protected observationsEntries: ObservationEntry[] = [];
-  private elementsMetadata: ViewElementModel[] = [];
+  private elementsMetadata: CreateViewElementModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
   private periods: Period[] = PeriodsUtil.possiblePeriods;
   protected pageInputDefinition: PagingParameters = new PagingParameters();

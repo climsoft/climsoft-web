@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { ViewRegionsDefinition } from '../view-regions.definition';
+import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
 
 @Component({
   selector: 'app-view-regions-table',
@@ -8,23 +8,12 @@ import { ViewRegionsDefinition } from '../view-regions.definition';
 })
 export class ViewRegionsTableComponent implements OnChanges {
   @Input()
-  public regionsDef!: ViewRegionsDefinition;
+  public regions!: ViewRegionModel[];
 
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
   }
 
-  protected refreshData(): void {
-    this.regionsDef.countEntries();
-  }
-
-  protected loadEntries(): void{
-    this.regionsDef.loadEntries();
-  }
-
-  protected get firstRowNum(): number {
-    return (this.regionsDef.pageInputDefinition.page - 1) * this.regionsDef.pageInputDefinition.pageSize;
-  }
 
 }

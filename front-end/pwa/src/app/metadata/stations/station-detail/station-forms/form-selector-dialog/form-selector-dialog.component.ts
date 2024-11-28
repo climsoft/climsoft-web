@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import {  take } from 'rxjs'; 
+import { take } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 
 export interface ItemSelection extends ViewSourceModel {
   selected: boolean;
@@ -21,23 +21,19 @@ export class FormSelectorDialogComponent {
   protected open: boolean = false;
   protected items!: ItemSelection[];
   private selectedIds: number[] = [];
-  private showSelectedIdsOnly: boolean = false;
-  private excludeIds: number[] = [];
 
-  constructor(private readonly sourcesService: SourcesService) { }
 
-  public openDialog(excludeIds: number[] = [], selectedIds: number[] = [], showSelectedIdsOnly: boolean = false): void {
-    this.excludeIds = excludeIds;
+  constructor(private readonly sourceCacheService: SourcesCacheService) { }
+
+  public openDialog( selectedIds: number[] = []): void {
     this.selectedIds = selectedIds;
-    this.showSelectedIdsOnly = showSelectedIdsOnly;
     this.open = true;
-
-    //TODO. Later implement showSelectedIdsOnly functionality
-    this.sourcesService.findBySourceType(SourceTypeEnum.FORM).pipe(
+    
+    this.sourceCacheService.cachedSources.pipe(
       take(1)
     ).subscribe(data => {
       this.items = data
-        .filter(item => !this.excludeIds.includes(item.id))
+        .filter(item => item.sourceType === SourceTypeEnum.FORM) 
         .map(item => ({ ...item, selected: this.selectedIds.includes(item.id) }));
     });
 

@@ -1,31 +1,39 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 
 @Component({
   selector: 'app-import-selection',
   templateUrl: './import-selection.component.html',
   styleUrls: ['./import-selection.component.scss']
 })
-export class ImportSelectionComponent {
+export class ImportSelectionComponent  implements OnDestroy{
 
-  protected sources: ViewSourceModel[] = [];
+  protected sources!: ViewSourceModel[] ;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourceService: SourcesService,
+    private sourceCacheService: SourcesCacheService,
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Import Source');
     // Get all sources 
-    this.sourceService.findBySourceType(SourceTypeEnum.IMPORT).pipe(take(1)).subscribe((data) => {
-      this.sources = data;
+    this.sourceCacheService.cachedSources.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
+      this.sources = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT);
     });
 
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected onSearch(): void { }

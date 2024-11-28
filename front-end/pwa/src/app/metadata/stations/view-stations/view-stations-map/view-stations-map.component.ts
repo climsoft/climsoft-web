@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet'; 
-import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache-service';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
   selector: 'app-view-stations-map',
@@ -39,7 +39,7 @@ export class ViewStationsMapComponent implements OnChanges {
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [item.longitude, item.latitude]
+            "coordinates": [item.location?.longitude, item.location?.latitude]
           }
         };
       })

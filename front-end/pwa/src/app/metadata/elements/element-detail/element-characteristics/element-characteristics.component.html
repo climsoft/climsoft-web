@@ -2,47 +2,47 @@
   <div class="d-flex justify-content-end">
     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
       (click)="dlgElementInput.openDialog(element.id)">Edit</button>
-    <app-element-characteristics-input-dialog #dlgElementInput (ok)="onElementEdited()" />
+    <app-element-characteristics-input-dialog #dlgElementInput />
   </div>
 
-  <div class="mb-1">
-    <app-label-input [label]="'Id'" [value]="element.id" />
-  </div>
+  <app-label-input [label]="'Id'" [value]="element.id" [labelColWidth]="4"  />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Abbreviation'" [value]="element.abbreviation" />
-  </div>
+  <hr />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Name'" [value]="element.name" />
-  </div>
+  <app-label-input [label]="'Abbreviation'" [value]="element.abbreviation" [labelColWidth]="4" />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Description'" [value]="element.description" />
-  </div>
+  <hr />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Units'" [value]="element.units" />
-  </div>
+  <app-label-input [label]="'Name'" [value]="element.name" [labelColWidth]="4"  />
 
-  <!-- <div class="mb-1">
-    <app-label-input [label]="'Domain'" [value]="element.domain" />
-  </div> -->
+  <hr />
 
-  <!-- <div class="mb-1">
-    <app-label-input [label]="'Subdomain'" [value]="element.subdomainName" />
-  </div> -->
+  <app-label-input [label]="'Description'" [value]="element.description" [labelColWidth]="4"  />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Type'" [value]="element.typeName" />
-  </div>
+  <hr />
 
-  <div class="mb-1">
-    <app-label-input [label]="'Entry Scale Factor'" [value]="element.entryScaleFactor" />
-  </div>
+  <app-label-input [label]="'Units'" [value]="element.units"[labelColWidth]="4"  />
 
-  <div>
-    <app-label-input [label]="'Comment'" [value]="element.comment" />
-  </div>
+  <hr />
+
+  <app-label-input [label]="'Domain'" [value]="element.domainName" [labelColWidth]="4"  />
+
+  <hr />
+
+  <app-label-input [label]="'Subdomain'" [value]="element.subdomainName" [labelColWidth]="4"  />
+
+  <hr />
+
+  <app-label-input [label]="'Type'" [value]="element.typeName" [labelColWidth]="4" />
+
+  <hr />
+
+  <app-label-input [label]="'Entry Scale Factor'" [value]="element.entryScaleFactor"  [labelColWidth]="4" />
+
+  <hr />
+
+  <app-label-input [label]="'Comment'" [value]="element.comment" [labelColWidth]="4"  />
+
+  <hr />
 
 </div>

@@ -1,10 +1,10 @@
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from "typeorm"; 
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";  
+import { InjectRepository } from "@nestjs/typeorm";
 import { StationObservationFocusEntity } from "../entities/station-observation-focus.entity";
-import { StationObsFocusChangesDto } from "../dtos/station-obs-focus-changes.dto";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
 import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
+import { StationObservationFocusDto } from "../dtos/view-station-obs-focus.dto";
 
 @Injectable()
 export class StationObsFocusesService {
@@ -13,7 +13,7 @@ export class StationObsFocusesService {
         @InjectRepository(StationObservationFocusEntity) private stationObsFocusRepo: Repository<StationObservationFocusEntity>) {
     }
 
-    public async find(ids?: number[]): Promise<StationObservationFocusEntity[]> {
+    public async find(ids?: number[]): Promise<StationObservationFocusDto[]> {
         const findOptions: FindManyOptions<StationObservationFocusEntity> = {
             order: { id: "ASC" }
         };
@@ -22,22 +22,9 @@ export class StationObsFocusesService {
             findOptions.where = { id: In(ids) };
         }
 
-       return this.stationObsFocusRepo.find(findOptions);
-    }
-
-    public async findUpdated(entryDatetime: string): Promise<StationObsFocusChangesDto> {
-        const whereOptions: FindOptionsWhere<StationObservationFocusEntity> = {
-            entryDateTime: MoreThan(new Date(entryDatetime))
-        };
-
-        const updated = (await this.stationObsFocusRepo.find({
-            where: whereOptions
-        }));
-
-        const totalCount = await this.stationObsFocusRepo.count();
-
-        return { updated: updated, totalCount: totalCount };
-
+        return (await this.stationObsFocusRepo.find(findOptions)).map(item => {
+            return { id: item.id, name: item.name, description: item.description }
+        });
     }
 
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
@@ -61,14 +48,12 @@ export class StationObsFocusesService {
 
         if (changesDetected) {
             // If any changes detected then return all records 
-            const allRecords = await this.stationObsFocusRepo.find();
+            const allRecords = await this.find();
             return { metadataChanged: true, metadataRecords: allRecords }
         } else {
             // If no changes detected then indicate no metadata changed
             return { metadataChanged: false }
         }
     }
-
-
 
 }

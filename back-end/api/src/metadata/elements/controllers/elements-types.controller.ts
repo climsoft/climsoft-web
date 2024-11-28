@@ -1,17 +1,14 @@
-import { Controller, Get, Query, ParseArrayPipe, DefaultValuePipe } from '@nestjs/common'; 
-import { ElementsService } from '../services/elements.service';
+import { Controller, Get } from '@nestjs/common'; 
+import { ElementTypesService } from '../services/element-types.service';
 
 @Controller("element-types")
 export class ElementTypesController {
 
-  constructor(private readonly elementsService: ElementsService) { }
+  constructor(private readonly elementTypesService: ElementTypesService) { }
 
   @Get()
-  public findElementTypes(
-    @Query('ids',
-      new DefaultValuePipe([]),
-      new ParseArrayPipe({ items: Number, separator: "," })) ids: number[]) {
-    return this.elementsService.findElementTypes(ids);
+  public findElementTypes() {
+    return this.elementTypesService.find();
   }
 
 

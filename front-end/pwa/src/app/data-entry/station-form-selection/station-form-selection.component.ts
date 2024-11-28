@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
-import { CreateStationModel } from '../../core/models/stations/create-station.model';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
+import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
-import { Observable } from 'rxjs';
-import { ViewStationQueryModel } from 'src/app/core/models/stations/view-station-query.model';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache-service';
+import { Subject, takeUntil } from 'rxjs';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
-export interface StationView extends StationCacheModel {
+export interface StationView {
+  station: StationCacheModel;
   forms?: ViewSourceModel[];
 }
 
@@ -18,10 +17,11 @@ export interface StationView extends StationCacheModel {
   templateUrl: './station-form-selection.component.html',
   styleUrls: ['./station-form-selection.component.scss']
 })
-export class StationFormSelectionComponent {
-
-  protected stations!: StationView[];
-  protected allStations!: StationView[];
+export class StationFormSelectionComponent implements OnDestroy {
+  protected stationViews!: StationView[];
+  protected allStationViews!: StationView[];
+  protected stationIdSelected: string | undefined;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -32,26 +32,50 @@ export class StationFormSelectionComponent {
 
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.stationsCacheService.cachedStations.subscribe(data => {
-      this.allStations = data.filter(item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID);
-      this.stations = this.allStations;
+    this.stationsCacheService.cachedStations.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
+      this.allStationViews = data.filter(
+        item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
+      ).map(data => {
+        return { station: data }
+      });
+
+      this.stationViews = this.allStationViews;
     });
 
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   protected onSearchInput(searchedIds: string[]): void {
     // TODO. Later change this
-    this.stations = this.allStations;
+    this.stationViews = this.allStationViews;
 
-    if (searchedIds.length>0) {
-      this.stations = this.allStations.filter(item => searchedIds.includes(item.id));
+    if (searchedIds.length > 0) {
+      this.stationViews = this.allStationViews.filter(item => searchedIds.includes(item.station.id));
     }
   }
 
-  protected loadStationForms(station: StationView): void {
-    if (!station.forms) {
-      this.stationFormsService.find(station.id).subscribe(data => {
-        station.forms = data;
+  protected onStationSelected(stationView: StationView): void {
+    if (stationView.station.id === this.stationIdSelected) {
+      this.stationIdSelected = undefined;
+      return;
+    }
+
+    this.stationIdSelected = stationView.station.id;
+
+    // No need to reload the station forms if already loaded if they have
+    if (!stationView.forms) {
+      this.stationFormsService.find(stationView.station.id).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(data => {
+        if (data) {
+          stationView.forms = data;
+        }
       });
     }
 

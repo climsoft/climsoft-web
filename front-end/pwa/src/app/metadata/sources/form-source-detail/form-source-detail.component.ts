@@ -10,6 +10,7 @@ import { take } from 'rxjs';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SourcesCacheService } from '../services/sources-cache.service';
 
 // TODO. Try using angular forms?
 
@@ -45,7 +46,7 @@ export class FormSourceDetailComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private formSourcesService: SourcesService,
+    private formSourcesService: SourcesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -57,9 +58,11 @@ export class FormSourceDetailComponent implements OnInit {
       // Todo. handle errors where the source is not found for the given id
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
-      ).subscribe((data) => {
-        this.viewSource = data;
-        this.setControlValues(this.viewSource.parameters as ViewEntryFormModel);
+      ).subscribe(data => {
+        if(data){
+          this.viewSource = data;
+          this.setControlValues(this.viewSource.parameters as ViewEntryFormModel);
+        }       
       });
     } else {
       const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }

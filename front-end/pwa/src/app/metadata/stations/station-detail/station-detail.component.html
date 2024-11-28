@@ -16,7 +16,7 @@
                 <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
             <div class="card-body  px-0" *ngIf="characteristicsToggle.open">
-                <app-station-characteristics [stationId]="station.id"/>
+                <app-station-characteristics [station]="station"/>
             </div>
         </div>
         <!-- /end characteristics -->
@@ -27,7 +27,7 @@
                 <app-toggle-chevron #elementsToggle>Elements</app-toggle-chevron>
             </div>
             <div class="card-body  px-0" *ngIf="elementsToggle.open">
-                <app-station-limits [stationId]="station.id" />
+                <app-station-limits [station]="station" />
             </div>
         </div>
         <!-- end elements -->
@@ -38,7 +38,7 @@
                 <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>
             <div class="card-body px-0" *ngIf="formsToggle.open">
-                <app-station-forms [stationId]="station.id" />
+                <app-station-forms [station]="station" />
             </div>
         </div>
         <!-- end forms -->

@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
 import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
+import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 
 // TODO refactor this service later
 
@@ -32,8 +34,6 @@ export class RegionsService {
         const entity = await this.findEntity(id);
         return this.getViewRegionDto(entity);
     }
-
-
 
     public async find(viewRegionQueryDto?: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
         const findOptions: FindManyOptions<RegionEntity> = {
@@ -131,6 +131,35 @@ export class RegionsService {
             regionType: entity.regionType,
             boundary: entity.boundary.coordinates
         };
+    }
+
+    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+        let changesDetected: boolean = false;
+
+        const serverCount = await this.regionsRepo.count();
+
+        if (serverCount !== updatesQueryDto.lastModifiedCount) {
+            // If number of records in server are not the same as those in the client then changes detected
+            changesDetected = true;
+        } else {
+            const whereOptions: FindOptionsWhere<RegionEntity> = {};
+
+            if (updatesQueryDto.lastModifiedDate) {
+                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+            }
+
+            // If there was any changed record then changes detected
+            changesDetected = (await this.regionsRepo.count({ where: whereOptions })) > 0
+        }
+
+        if (changesDetected) {
+            // If any changes detected then return all records 
+            const allRecords = await this.find();
+            return { metadataChanged: true, metadataRecords: allRecords }
+        } else {
+            // If no changes detected then indicate no metadata changed
+            return { metadataChanged: false }
+        }
     }
 
 }

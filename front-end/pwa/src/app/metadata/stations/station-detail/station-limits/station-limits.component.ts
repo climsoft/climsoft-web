@@ -1,11 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
 import { StationElementLimitModel } from 'src/app/core/models/stations/station-element-limit.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { StationCacheModel } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-limits',
@@ -13,8 +14,10 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
   styleUrls: ['./station-limits.component.scss']
 })
 export class StationLimitsComponent implements OnInit {
-  @Input() public stationId!: string;
-  protected elements!: ViewElementModel[];
+  @Input()
+  public station!: StationCacheModel;
+
+  protected elements!: CreateViewElementModel[];
   protected elementLimits!: StationElementLimitModel[];
 
   constructor(
@@ -28,7 +31,7 @@ export class StationLimitsComponent implements OnInit {
   }
 
   protected loadElements(): void {
-    this.stationElementsService.getStationElements(this.stationId).subscribe((data) => {
+    this.stationElementsService.getStationElements(this.station.id).subscribe((data) => {
       this.elements = data;
     });
   }
@@ -80,8 +83,8 @@ export class StationLimitsComponent implements OnInit {
     }
 
     const operation = action === 'ADD'
-      ? this.stationElementsService.saveStationElements(this.stationId, ids)
-      : this.stationElementsService.deleteStationElements(this.stationId, ids);
+      ? this.stationElementsService.saveStationElements(this.station.id, ids)
+      : this.stationElementsService.deleteStationElements(this.station.id, ids);
 
     return operation.pipe(
       tap(data => {
@@ -104,7 +107,7 @@ export class StationLimitsComponent implements OnInit {
   //------element limits----
 
   protected loadElementLimits(elementId: number): void {
-    this.stationElementsService.getStationElementLimits(this.stationId, elementId).subscribe((data) => {
+    this.stationElementsService.getStationElementLimits(this.station.id, elementId).subscribe((data) => {
       this.elementLimits = data;
     });
   }
@@ -116,7 +119,7 @@ export class StationLimitsComponent implements OnInit {
   protected onElementLimitsEdited(elementId: number, elementLimits: StationElementLimitModel[]): void {
 
     //save limits. Server will handle deletions
-    this.stationElementsService.saveStationElementLimits(this.stationId, elementId, elementLimits).subscribe(data => {
+    this.stationElementsService.saveStationElementLimits(this.station.id, elementId, elementLimits).subscribe(data => {
       if (data.length > 0) {
         this.elementLimits = data;
         this.pagesDataService.showToast({ title: "Element Limits", message: "Element limits saved", type: "success" });
