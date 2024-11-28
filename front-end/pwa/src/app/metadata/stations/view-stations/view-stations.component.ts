@@ -1,16 +1,16 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { CreateStationModel } from '../../../core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-view-stations',
   templateUrl: './view-stations.component.html',
   styleUrls: ['./view-stations.component.scss']
 })
-export class ViewStationsComponent implements  OnDestroy{
+export class ViewStationsComponent implements OnDestroy{
   protected activeTab: 'table' | 'map' = 'table';
   private allStations!: StationCacheModel[]; 
   protected stations!: StationCacheModel[]; 

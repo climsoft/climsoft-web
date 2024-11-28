@@ -14,6 +14,11 @@ export interface MetadataModificationLogModel {
     lastModifiedDate: string;
 }
 
+export interface StationForm {
+    stationId: string;
+    forms: ViewSourceModel[];
+}
+
 export class AppDatabase extends Dexie {
     metadataModificationLog!: Table<MetadataModificationLogModel, string>;
     stationObsEnv!: Table<ViewStationObsEnvModel, number>;
@@ -24,7 +29,8 @@ export class AppDatabase extends Dexie {
     elements!: Table<CreateViewElementModel, number>;
     sources!: Table<ViewSourceModel, number>;
     regions!: Table<ViewRegionModel, number>;
-    
+
+    stationForms!: Table<StationForm, string>;    
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
 
     constructor() {
@@ -39,7 +45,9 @@ export class AppDatabase extends Dexie {
             elements: `id, name, abbreviation, typeId`,
             sources: `id, name, sourceType`,
             regions: `id, name, regionType`,
+
             stationsSearchHistory: `name`,
+            stationForms: `stationId`,
         });
     }
 

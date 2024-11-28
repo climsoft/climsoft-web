@@ -1,8 +1,8 @@
-import { Component, Input, OnInit } from '@angular/core'; 
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { StationFormsService } from 'src/app/core/services/stations/station-forms.service';
-import { Observable, of } from 'rxjs';
-import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
+import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
+import { Observable, of, Subject } from 'rxjs';
+import { switchMap, tap, catchError, finalize, takeUntil } from 'rxjs/operators';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { StationCacheModel } from '../../services/stations-cache.service';
 
@@ -11,27 +11,35 @@ import { StationCacheModel } from '../../services/stations-cache.service';
   templateUrl: './station-forms.component.html',
   styleUrls: ['./station-forms.component.scss']
 })
-export class StationFormsComponent implements OnInit {
+export class StationFormsComponent implements OnChanges {
 
   @Input()
   public station!: StationCacheModel;
 
   protected forms!: ViewSourceModel[];
 
+  private destroy$ = new Subject<void>();
+
   public constructor(
     private stationFormsService: StationFormsService,
     private pagesDataService: PagesDataService,
-
-  ) {
-      
+  ) { }
+  
+  ngOnChanges(changes: SimpleChanges): void {
+    if(this.station){
+      this.loadForms();
+    }   
   }
 
-  ngOnInit() {
-    this.loadForms();
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected loadForms(): void {
-    this.stationFormsService.find(this.station.id).subscribe((data) => {
+    this.stationFormsService.find(this.station.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
       this.forms = data;
     });
   }
