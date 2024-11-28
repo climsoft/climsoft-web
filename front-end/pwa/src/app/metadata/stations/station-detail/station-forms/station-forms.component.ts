@@ -4,6 +4,7 @@ import { StationFormsService } from 'src/app/core/services/stations/station-form
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
+import { StationCacheModel } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-forms',
@@ -11,7 +12,10 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
   styleUrls: ['./station-forms.component.scss']
 })
 export class StationFormsComponent implements OnInit {
-  @Input() public stationId!: string;
+
+  @Input()
+  public station!: StationCacheModel;
+
   protected forms!: ViewSourceModel[];
 
   public constructor(
@@ -27,7 +31,7 @@ export class StationFormsComponent implements OnInit {
   }
 
   protected loadForms(): void {
-    this.stationFormsService.find(this.stationId).subscribe((data) => {
+    this.stationFormsService.find(this.station.id).subscribe((data) => {
       this.forms = data;
     });
   }
@@ -72,8 +76,8 @@ export class StationFormsComponent implements OnInit {
     }
 
     const operation = action === 'ADD'
-      ? this.stationFormsService.update(this.stationId, ids)
-      : this.stationFormsService.delete(this.stationId, ids);
+      ? this.stationFormsService.update(this.station.id, ids)
+      : this.stationFormsService.delete(this.station.id, ids);
 
     return operation.pipe(
       tap(data => {

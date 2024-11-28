@@ -1,7 +1,5 @@
-import { ViewStationModel } from "../../../core/models/stations/view-station.model";
-import { LocalStorageService } from "src/app/metadata/local-storage.service";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, concatMap, from, map, Observable, of, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, map, Observable, of, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -18,8 +16,6 @@ export interface StationCacheModel {
     id: string;
     name: string;
     description: string;
-    // longitude: number | string;
-    // latitude: number | string;
     location: {
         longitude: number;
         latitude: number;
@@ -27,9 +23,9 @@ export interface StationCacheModel {
     elevation: number | null;
     stationObsProcessingMethod: StationObsProcessingMethodEnum;
     stationObsProcessingMethodName: string;
-    stationObsEnvironmentId: number;
+    stationObsEnvironmentId: number | null;
     stationObsEnvironmentName: string;
-    stationObsFocusId: number;
+    stationObsFocusId: number | null;
     stationObsFocusName: string;
     wmoId: string;
     wigosId: string;
@@ -48,13 +44,11 @@ export class StationsCacheService {
     private endPointUrl: string = `${environment.apiUrl}/stations`;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
 
-
     constructor(
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
         this.loadStations();
-        this.checkForUpdates();
-
+        //this.checkForUpdates();
     }
 
     private async loadStations() {
@@ -71,9 +65,7 @@ export class StationsCacheService {
                 {
                     id: station.id,
                     name: station.name,
-                    description: station.description,
-                    //longitude: station.longitude,
-                    //latitude: station.latitude,
+                    description: station.description, 
                     location: location,
                     elevation: station.elevation,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
@@ -104,11 +96,7 @@ export class StationsCacheService {
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsFocus')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stations')),
         ).subscribe(res => {
-            // Once all three updates are complete, call loadStations
-            //const item = await res;
-
             console.log('stations-cache response', res);
-
             if (res) {
                 this.loadStations();
             }

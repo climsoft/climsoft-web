@@ -14,7 +14,7 @@
         <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
       </div>
       <div *ngIf="characteristicsToggle.open" class="card-body  px-0">
-        <app-element-characteristics [elementId]="element.id" />
+        <app-element-characteristics [element]="element" />
       </div>
     </div>
     <!-- /end characteristics -->
@@ -28,26 +28,6 @@
         <app-qc-tests [elementId]="element.id" />
       </div>
     </div>
-
-    <!-- end Data Ingestion Validations -->
-
-    <!-- Data Ingestion Validations -->
-    <!-- <div class="card border-0">
-      <div class="card-header px-0 fw-bold">
-        <app-toggle-chevron #validationsToggle>Data Entry Validations</app-toggle-chevron>
-      </div>
-      <div *ngIf="validationsToggle.open">
-        <div class="mb-3">
-          <app-number-input [label]="'Lower limit'" [(value)]="element.lowerLimit"></app-number-input>
-        </div>
-
-        <div class="mb-3">
-          <app-number-input [label]="'Upper limit'" [(value)]="element.upperLimit"></app-number-input>
-        </div>
-
-      </div>
-    </div> -->
-    <!-- end Data Ingestion Validations -->
 
   </div>
 

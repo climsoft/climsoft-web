@@ -1,11 +1,13 @@
 import Dexie, { Table } from "dexie";
 import { CreateStationModel } from "./core/models/stations/create-station.model";
-import { CreateElementModel } from "./core/models/elements/create-element.model";
 import { ViewRegionModel } from "./core/models/Regions/view-region.model";
 import { ViewSourceModel } from "./metadata/sources/models/view-source.model";
 import { ViewStationObsEnvModel } from "./core/models/stations/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "./core/models/stations/view-station-obs-focus.model";
 import { StationSearchHistoryModel } from "./metadata/stations/models/stations-search-history.model";
+import { CreateViewElementModel } from "./metadata/elements/models/create-view-element.model";
+import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
+import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -14,10 +16,12 @@ export interface MetadataModificationLogModel {
 
 export class AppDatabase extends Dexie {
     metadataModificationLog!: Table<MetadataModificationLogModel, string>;
-    stations!: Table<CreateStationModel, string>;
     stationObsEnv!: Table<ViewStationObsEnvModel, number>;
     stationObsFocus!: Table<ViewStationObsFocusModel, number>;
-    elements!: Table<CreateElementModel, number>;
+    stations!: Table<CreateStationModel, string>;
+    elementSubdomains!: Table<ViewElementSubdomainModel, number>;
+    elementTypes!: Table<ViewElementTypeModel, number>;
+    elements!: Table<CreateViewElementModel, number>;
     sources!: Table<ViewSourceModel, number>;
     regions!: Table<ViewRegionModel, number>;
     
@@ -30,6 +34,8 @@ export class AppDatabase extends Dexie {
             stations: `id, name, stationObsProcessingMethod, stationObsEnvironmentId, stationObsFocusId, wmoId, wigosId, icaoId, status, dateEstablished, dateClosed`,
             stationObsEnv: `id, name`,
             stationObsFocus: `id, name`,
+            elementSubdomains: `id, name`,
+            elementTypes: `id, name, subdomainId`,
             elements: `id, name, abbreviation, typeId`,
             sources: `id, name, sourceType`,
             regions: `id, name, regionType`,

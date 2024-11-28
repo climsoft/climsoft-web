@@ -10,9 +10,9 @@
       </li>
     </ul>
     <div class="d-flex">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
+      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
         Search
-      </button>
+      </button> -->
       <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Import']" (dropDownOptionClick)="onImportRegion()"
         [translateX]="true" />
       <button type="button" class="btn btn-outline-secondary btn-sm ms-2 " (click)="onDeleteAll()">
@@ -21,9 +21,9 @@
     </div>
   </div>
 
-  <div class="card-body p-0 mt-2">
-    <app-view-regions-table *ngIf="activeTab === 'table'" [regionsDef]=regionsDef />
-    <app-view-regions-map *ngIf="activeTab === 'map' " [regionsDef]=regionsDef />
+  <div *ngIf="regions" class="card-body p-0 mt-2">
+    <app-view-regions-table *ngIf="activeTab === 'table'" [regions]="regions"  />
+    <app-view-regions-map *ngIf="activeTab === 'map' " [regions]="regions" />
   </div>
 
 </div>

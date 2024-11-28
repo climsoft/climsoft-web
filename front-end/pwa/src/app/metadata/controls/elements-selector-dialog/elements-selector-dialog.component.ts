@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Observable } from 'rxjs';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 
-export interface ItemSelection extends ViewElementModel {
+export interface ItemSelection extends CreateViewElementModel {
   selected: boolean;
 }
 

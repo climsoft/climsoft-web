@@ -16,7 +16,6 @@ export class ViewStationsTableComponent implements OnChanges {
     private route: ActivatedRoute) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('view table changes raised');
   }
 
   protected onEditStation(station: StationCacheModel) {

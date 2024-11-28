@@ -8,7 +8,7 @@ import { SeedElementTypes1710833156699 } from 'src/migrations/1710833156699-Seed
 import { ElementEntity } from 'src/metadata/elements/entities/element.entity';
 import { SeedElements1710833167092 } from 'src/migrations/1710833167092-SeedElements';
 import { StationObservationFocusEntity } from 'src/metadata/stations/entities/station-observation-focus.entity';
-import { StationObsEnvironmentEntity } from 'src/metadata/stations/entities/station-observation-environment.entity';
+import { StationObservationEnvironmentEntity } from 'src/metadata/stations/entities/station-observation-environment.entity';
 import { SeedObservationEnvironments1711195885141 } from 'src/migrations/1711195885141-SeedObservationEnvironments';
 import { SeedObservationFocuses1711196308488 } from 'src/migrations/1711196308488-SeedObservationFocuses';
 
@@ -18,9 +18,8 @@ export class MetadataMigrationService {
         @InjectRepository(ElementSubdomainEntity) private elementSubDomainRepo: Repository<ElementSubdomainEntity>,
         @InjectRepository(ElementTypeEntity) private elementTypeRepo: Repository<ElementTypeEntity>,
         @InjectRepository(ElementEntity) private elementRepo: Repository<ElementEntity>,
-        @InjectRepository(StationObsEnvironmentEntity) private stationObservationEnvironmentRepo: Repository<StationObsEnvironmentEntity>,
+        @InjectRepository(StationObservationEnvironmentEntity) private stationObservationEnvironmentRepo: Repository<StationObservationEnvironmentEntity>,
         @InjectRepository(StationObservationFocusEntity) private stationObservationFocusRepo: Repository<StationObservationFocusEntity>,) { }
-
 
     public async seedMetadata() {
         await this.seedElementSubdomains();

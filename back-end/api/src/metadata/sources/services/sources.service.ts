@@ -8,9 +8,9 @@ import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
 import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 import { SourceEntity } from '../entities/source.entity';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
-import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 
 // TODO refactor this service later
 
@@ -127,7 +127,7 @@ export class SourcesService {
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: ViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
+            const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
             dto.parameters = viewEntryForm;
         }

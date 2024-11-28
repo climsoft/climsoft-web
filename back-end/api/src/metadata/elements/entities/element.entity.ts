@@ -24,14 +24,7 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "int", name: "type_id" })
   typeId: number;
   // ManyToOne relationship with ElementTypeEntity
-  @ManyToOne(() => ElementTypeEntity, {
-    onDelete: "CASCADE",
-
-    // Note, by default we expect most operations that relate to retrieving the elements to require the type as well.
-    // Enabling eager loading here by default reduces boilerplate code needed to load them 'lazily'.
-    // For operations that don't need the type loaded eagerly, just set it to false using typeorm when quering the entities
-    eager: true,
-  })
+  @ManyToOne(() => ElementTypeEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "type_id" })
   elementType: ElementTypeEntity;
   //---------------------------
@@ -39,7 +32,7 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "int", name: "entry_scale_factor", default: 0 })
   entryScaleFactor: number;
 
-  @Column({ type: "varchar", nullable: true }) 
+  @Column({ type: "varchar", nullable: true })
   comment: string | null;
 
   @Column({ type: "jsonb", nullable: true })

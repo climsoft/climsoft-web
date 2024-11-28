@@ -17,8 +17,8 @@ export class MetadataUpdatesService {
     }
 
     public checkUpdates(tableName: keyof AppDatabase) {
-       return of(null).pipe(
-            concatMap (() => from(this.getMetadataUpdatesQuery(tableName))), 
+        return of(null).pipe(
+            concatMap(() => from(this.getMetadataUpdatesQuery(tableName))),
             concatMap(metadataUpdatesQuery => this.getUpdatesFromServer(tableName, metadataUpdatesQuery)),
             concatMap(serverResponse => from(this.saveResponseFromServer(tableName, serverResponse)))
         );
@@ -40,7 +40,7 @@ export class MetadataUpdatesService {
             );
     }
 
-    private async saveResponseFromServer(tableName: keyof AppDatabase, response : MetadataUpdatesResponseModel): Promise<boolean>{
+    private async saveResponseFromServer(tableName: keyof AppDatabase, response: MetadataUpdatesResponseModel): Promise<boolean> {
         let saved: boolean = false;
         if (response && response.metadataChanged && response.metadataRecords) {
             saved = await this.updateMetadataInDB(tableName, response.metadataRecords);
@@ -48,7 +48,7 @@ export class MetadataUpdatesService {
         //return of(saved);
         return saved;
     }
-    
+
     private async updateMetadataInDB(tableName: keyof AppDatabase, records: any[]): Promise<boolean> {
         try {
             // clear all
@@ -77,6 +77,10 @@ export class MetadataUpdatesService {
                 return 'station-observation-environments';
             case 'stationObsFocus':
                 return 'station-observation-focuses';
+            case 'elementSubdomains':
+                return 'element-subdomains';
+            case 'elementTypes':
+                return 'element-types';
             case 'elements':
                 return 'elements';
             case 'sources':

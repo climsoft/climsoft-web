@@ -9,9 +9,9 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import * as path from 'node:path';
 import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
-import { ViewElementDto } from 'src/metadata/elements/dtos/elements/view-element.dto';
+import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto'; 
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 
 
 
@@ -357,7 +357,7 @@ export class ObservationImportService {
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
         const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
-        const elements: ViewElementDto[] = await this.elementsService.find({ elementIds: elementIdsToScale });
+        const elements: CreateViewElementDto[] = await this.elementsService.find({ elementIds: elementIdsToScale });
         let scalingSQLs: string = ""
         for (const element of elements) {
             // Only scale elements that have a scaling factor > 0 

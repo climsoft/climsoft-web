@@ -1,16 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { FileIOService } from 'src/shared/services/file-io.service';
-import { ObservationImportService } from 'src/observation/services/observation-import.service';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { StringUtils } from 'src/shared/utils/string.utils';
-import { ElementsService } from './elements.service';
-import { ElementEntity } from '../entities/element.entity';
-import { UpdateElementDto } from '../dtos/elements/update-element.dto';
-import { CreateElementDto } from '../dtos/elements/create-element.dto';
-import { ViewElementDto } from '../dtos/elements/view-element.dto';
+// import { BadRequestException, Injectable } from '@nestjs/common';
+// import { FileIOService } from 'src/shared/services/file-io.service';
+// import { ObservationImportService } from 'src/observation/services/observation-import.service';
+// import { Repository } from 'typeorm';
+// import { InjectRepository } from '@nestjs/typeorm';
+// import { StringUtils } from 'src/shared/utils/string.utils';
+// import { ElementsService } from './elements.service';
+// import { ElementEntity } from '../entities/element.entity';
+// import { UpdateElementDto } from '../dtos/elements/update-element.dto';
+// import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto'; 
 
-@Injectable()
+//@Injectable()
 export class StationsImportExportService {
 
 

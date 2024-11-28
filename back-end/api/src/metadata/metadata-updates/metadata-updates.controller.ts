@@ -6,6 +6,10 @@ import { MetadataUpdatesQueryDto } from './dtos/metadata-updates-query.dto';
 import { StationObsEnvService } from '../stations/services/station-obs-env.service';
 import { StationObsFocusesService } from '../stations/services/station-obs-focuses.service';
 import { SourcesService } from '../sources/services/sources.service';
+import { ElementsService } from '../elements/services/elements.service';
+import { RegionsService } from '../regions/services/regions.service';
+import { ElementTypesService } from '../elements/services/element-types.service';
+import { ElementSubdomainsService } from '../elements/services/element-subdomains.service';
 
 @Controller('metadata-updates')
 export class MetadataUpdatesController {
@@ -14,17 +18,11 @@ export class MetadataUpdatesController {
     private stationObsEnvservice: StationObsEnvService,
     private stationObsFocuseservice: StationObsFocusesService,
     private sourcesService: SourcesService,
+    private elementSubdomainsService: ElementSubdomainsService,
+    private elementTypesService: ElementTypesService,
+    private elementsService: ElementsService,
+    private regionsService: RegionsService,
   ) { }
-
-  @Get('stations')
-  async stationUpdates(
-    @Req() request: Request,
-    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
-    return this.stationsService.checkUpdates(
-      updatesQueryDto,
-      authorisedStationIds ? authorisedStationIds : undefined);
-  }
 
   @Get('station-observation-environments')
   async staionObsEnvironmentUpdates(
@@ -38,19 +36,55 @@ export class MetadataUpdatesController {
     return this.stationObsFocuseservice.checkUpdates(updatesQueryDto);
   }
 
+  @Get('stations')
+  async stationUpdates(
+    @Req() request: Request,
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
+    return this.stationsService.checkUpdates(
+      updatesQueryDto,
+      authorisedStationIds ? authorisedStationIds : undefined);
+  }
+
+  @Get('stations-forms')
+  async stationsFormsUpdates(
+    @Req() request: Request,
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
+    // return this.stationsService.checkUpdates(
+    //   updatesQueryDto,
+    //   authorisedStationIds ? authorisedStationIds : undefined);
+    //TODO.
+  }
+
+  @Get('element-subdomains')
+  async elementSubdomainsUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+      return this.elementSubdomainsService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('element-types')
+  async elementTypesUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+      return this.elementTypesService.checkUpdates(updatesQueryDto);
+  }
+
   @Get('elements')
   async elementUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-
-    // return this.stationsService.findUpdatedStations(
-    //   updatesQueryDto,
-    //   authorisedStationIds ? authorisedStationIds : undefined);
+      return this.elementsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('sources')
   async sourcesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.sourcesService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('regions')
+  async regionsUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.regionsService.checkUpdates(updatesQueryDto);
   }
 
 

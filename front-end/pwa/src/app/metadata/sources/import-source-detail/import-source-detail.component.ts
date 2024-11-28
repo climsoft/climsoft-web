@@ -10,6 +10,7 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { CreateUpdateSourceModel } from 'src/app/metadata/sources/models/create-update-source.model';
 import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
 import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SourcesCacheService } from '../services/sources-cache.service';
 
 @Component({
   selector: 'app-import-source-detail',
@@ -23,7 +24,7 @@ export class ImportSourceDetailComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: SourcesService,
+    private importSourcesService: SourcesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -38,7 +39,9 @@ export class ImportSourceDetailComponent implements OnInit {
       this.importSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe((data) => {
-        this.viewSource = data;
+        if(data){
+          this.viewSource = data;
+        }        
       });
 
     } else {

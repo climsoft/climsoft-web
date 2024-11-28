@@ -6,7 +6,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
+import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -15,7 +15,7 @@ import { StationCacheModel, StationsCacheService } from '../services/stations-ca
 })
 export class StationCharacteristicsEditDialogComponent {
   @Output()
-  public ok = new EventEmitter<CreateStationModel>();
+  public ok = new EventEmitter<void>();
 
   protected open: boolean = false;
   protected title: string = "";
@@ -150,12 +150,12 @@ export class StationCharacteristicsEditDialogComponent {
       } else {
         message = "Error in saving element";
         messageType = 'error';
-        return;
+        //return;
       }
 
       this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });
       this.open = false;
-      this.ok.emit(data);
+      this.ok.emit();
     });
 
 

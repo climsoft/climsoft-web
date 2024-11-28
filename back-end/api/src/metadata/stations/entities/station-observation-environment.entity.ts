@@ -6,7 +6,7 @@ import { Column, Entity, PrimaryColumn } from "typeorm";
  */
 
 @Entity("station_observation_environments")
-export class StationObsEnvironmentEntity extends AppBaseEntity {
+export class StationObservationEnvironmentEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
   id: string;
 

@@ -28,20 +28,21 @@ export class SourcesCacheService {
     private checkForUpdates(): void {
         this.metadataUpdatesService.checkUpdates('sources').pipe(
             take(1)
-        ).subscribe(reset => {
-            if (reset) {
+        ).subscribe(res => {
+            console.log('source-cache response', res);
+            if (res) {
                 this.loadSources();
             }
         });
     }
 
-    public get cachedStations(): Observable<ViewSourceModel[]> {
+    public get cachedSources(): Observable<ViewSourceModel[]> {
         this.checkForUpdates();
         return this._cachedSources.asObservable();
     }
 
     public findOne(id: number): Observable<ViewSourceModel | undefined> {
-        return this.cachedStations.pipe(
+        return this.cachedSources.pipe(
             map(response => {
                 return response.find(item => item.id === id);
             })

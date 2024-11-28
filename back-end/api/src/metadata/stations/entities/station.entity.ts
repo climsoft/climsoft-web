@@ -3,7 +3,7 @@ import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Point, PrimaryColu
 import { StationStatusEnum } from "../enums/station-status.enum";
 import { StationObsProcessingMethodEnum as StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity as StationObsFocusEntity } from "./station-observation-focus.entity";
-import { StationObsEnvironmentEntity } from "./station-observation-environment.entity";
+import { StationObservationEnvironmentEntity } from "./station-observation-environment.entity";
 import { OrganisationEntity } from "./organisation.entity";
 
 @Entity("stations")
@@ -38,12 +38,12 @@ export class StationEntity extends AppBaseEntity {
   @Column({ name: "observation_environment_id", type: 'int', nullable: true })
   obsEnvironmentId: number | null;
 
-  @ManyToOne(() => StationObsEnvironmentEntity, {
+  @ManyToOne(() => StationObservationEnvironmentEntity, {
     nullable: true,
     onDelete: "RESTRICT",
   })
   @JoinColumn({ name: "observation_environment_id" })
-  obsEnvironment: StationObsEnvironmentEntity | null;
+  obsEnvironment: StationObservationEnvironmentEntity | null;
   //---------------
 
   //---------------

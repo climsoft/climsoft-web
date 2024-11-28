@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
-import { ViewElementModel } from 'src/app/core/models/elements/view-element.model';
+import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { take } from 'rxjs';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { DuplicateModel, SourceCheckService } from 'src/app/core/services/observations/source-check.service';
@@ -30,7 +30,7 @@ export class SourceCheckComponent {
   protected useEntryDate: boolean = false;
   protected observationsEntries: DuplicateModel[] = [];
   protected stationsMetdata: ViewStationModel[] = [];
-  private elementsMetadata: ViewElementModel[] = []; 
+  private elementsMetadata: CreateViewElementModel[] = []; 
   private periods: Period[] = PeriodsUtil.possiblePeriods;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
