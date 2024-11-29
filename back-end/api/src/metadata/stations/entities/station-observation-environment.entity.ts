@@ -8,7 +8,7 @@ import { Column, Entity, PrimaryColumn } from "typeorm";
 @Entity("station_observation_environments")
 export class StationObservationEnvironmentEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
-  id: string;
+  id: number;
 
   @Column({ type: "varchar", unique: true })
   name: string;

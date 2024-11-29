@@ -46,17 +46,6 @@ export class MetadataUpdatesController {
       authorisedStationIds ? authorisedStationIds : undefined);
   }
 
-  @Get('stations-forms')
-  async stationsFormsUpdates(
-    @Req() request: Request,
-    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
-    // return this.stationsService.checkUpdates(
-    //   updatesQueryDto,
-    //   authorisedStationIds ? authorisedStationIds : undefined);
-    //TODO.
-  }
-
   @Get('element-subdomains')
   async elementSubdomainsUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {

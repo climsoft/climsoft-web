@@ -9,9 +9,10 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import * as path from 'node:path';
 import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto'; 
+import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { DuckDBUtils } from 'src/shared/utils/duckdb,utils';
 
 
 
@@ -69,18 +70,17 @@ export class ObservationImportService {
 
         const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
         // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-        const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
+        const importParams: string[] = ['header = false', `skip = ${tabularDef.rowsToSkip}`, 'all_varchar = true'];
         if (tabularDef.delimiter) {
             importParams.push(`delim = '${tabularDef.delimiter}'`);
         }
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        // TODO. Should we create a temporary table, will it have any significance?
         await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
 
         let alterSQLs: string;
         // Rename all columns to use the expected suffix column indices
-        alterSQLs = await this.getRenameColumnNamesSQL(tmpObsTableName);
+        alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpObsTableName);
 
         // Add source column
         alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
@@ -122,19 +122,6 @@ export class ObservationImportService {
         console.log(rows[0], ' | datetime: ');
 
         await this.observationsService.save(rows as CreateObservationDto[], userId, username);
-    }
-
-    private async getRenameColumnNamesSQL(tableName: string): Promise<string> {
-        // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
-        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'. 
-        // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
-
-        const sourceColumnNames: string[] = (await this.fileIOService.duckDb.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
-        let sql: string = "";
-        for (let i = 0; i < sourceColumnNames.length; i++) {
-            sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
-        }
-        return sql;
     }
 
     private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {
@@ -311,8 +298,10 @@ export class ObservationImportService {
         if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
             // Rename the date time column
             sql = `ALTER TABLE ${tableName} RENAME COLUMN column${importDef.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
+            
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+
             // Convert all values to a valid sql timestamp that ignores the microseconds
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
         } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
@@ -338,6 +327,7 @@ export class ObservationImportService {
 
         // change the date_time back to varchar as expected by the dto
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR;`;
+        
         // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
         sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 
