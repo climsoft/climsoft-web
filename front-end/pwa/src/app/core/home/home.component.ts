@@ -59,11 +59,6 @@ export class HomeComponent implements OnInit, OnDestroy {
           featureTitle: 'Elements'
         },
         {
-          name: 'Sources',
-          url: '/sources',
-          featureTitle: 'Sources'
-        },
-        {
           name: 'Stations',
           url: '/stations',
           featureTitle: 'Stations'
@@ -72,7 +67,12 @@ export class HomeComponent implements OnInit, OnDestroy {
           name: 'Regions',
           url: '/view-regions',
           featureTitle: 'Regions'
-        }
+        },        
+        {
+          name: 'Sources',
+          url: '/sources',
+          featureTitle: 'Sources'
+        },
       ]
     },
     {

@@ -18,8 +18,9 @@ export interface StationView {
   styleUrls: ['./station-form-selection.component.scss']
 })
 export class StationFormSelectionComponent implements OnDestroy {
-  protected stationViews!: StationView[];
   protected allStationViews!: StationView[];
+  protected stationViews!: StationView[];
+  private searchedIds!: string[];
   protected stationIdSelected: string | undefined;
   private destroy$ = new Subject<void>();
 
@@ -35,15 +36,13 @@ export class StationFormSelectionComponent implements OnDestroy {
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$)
     ).subscribe(data => {
+      // Filter manual and hybrid stations only
       this.allStationViews = data.filter(
         item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
-      ).map(data => {
-        return { station: data }
-      });
+      ).map(data => { return { station: data } });
 
-      this.stationViews = this.allStationViews;
+      this.filterBasedOnSearchedIds();
     });
-
   }
 
   ngOnDestroy() {
@@ -52,12 +51,12 @@ export class StationFormSelectionComponent implements OnDestroy {
   }
 
   protected onSearchInput(searchedIds: string[]): void {
-    // TODO. Later change this
-    this.stationViews = this.allStationViews;
+    this.searchedIds = searchedIds;
+    this.filterBasedOnSearchedIds();
+  }
 
-    if (searchedIds.length > 0) {
-      this.stationViews = this.allStationViews.filter(item => searchedIds.includes(item.station.id));
-    }
+  private filterBasedOnSearchedIds(): void {
+    this.stationViews = this.searchedIds && this.searchedIds.length > 0 ? this.allStationViews.filter(item => this.searchedIds.includes(item.station.id)) : this.allStationViews;
   }
 
   protected onStationSelected(stationView: StationView): void {
