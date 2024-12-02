@@ -12,6 +12,7 @@ import { StationStatusEnum } from '../enums/station-status.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 import { DuckDBUtils } from 'src/shared/utils/duckdb,utils';
+import { TableData } from 'duckdb-async';
 
 @Injectable()
 export class StationsImportExportService {
@@ -48,8 +49,6 @@ export class StationsImportExportService {
 
         try {
 
-            console.log('creating table: ', tmpStationTableName, ' for file: ', tmpFilePathName);
-
             // Read csv to duckdb and create table.
             await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpStationTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
 
@@ -72,21 +71,14 @@ export class StationsImportExportService {
             alterSQLs = alterSQLs + await this.getAlter_Established_Closed_DatesColumnSQL(tmpStationTableName);
             alterSQLs = alterSQLs + await this.getAlterCommentsColumnSQL(tmpStationTableName);
 
-            console.log('execiting alter statements: ', alterSQLs);
-
             // Execute the duckdb DDL SQL commands
             await this.fileIOService.duckDb.exec(alterSQLs);
 
+            const duplicates: TableData[] = await this.getDuplicateIdsNames(tmpStationTableName);
 
-            // As of 29/11/2024, duckdb does not support setting unique constraints via ALTER COLUMN,
-            // So add the id column with the contraint then copy the contents of column0 to the new column, then drop column0
-            // TODO
-            //const duplicateRows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY},   ${this.ELEVATION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY} FROM ${tmpStationTableName};`);
+            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
 
-            console.log('selecting rows');
             const rows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.LATITUDE_PROPERTY}, ${this.LONGITUDE_PROPERTY}, ${this.ELEVATION_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY}, ${this.STATUS_PROPERTY}, ${this.DATE_ESTABLISHED_PROPERTY}, ${this.DATE_CLOSED_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpStationTableName};`);
-
-            console.log('first row: ' ,rows[0]);
 
             // Delete the stations table 
             this.fileIOService.duckDb.run(`DROP TABLE ${tmpStationTableName};`);
@@ -122,30 +114,28 @@ export class StationsImportExportService {
         await this.stationRepo.save(entities);
     }
 
-    private async validateIdAndNameValues(tableName: string): Promise<void> {
-        // Helper function to get count of empty values for a specific column
-        const getEmptyCount = async (columnName: string): Promise<number> => {
+    private async getDuplicateIdsNames(tableName: string) {
+        // As of 29/11/2024, duckdb does not support setting unique constraints via ALTER COLUMN,
+        // This implementation aims to add uniqueness checks for stationd ids and names 
+
+        // Helper function to get count of duplicate values for a specific column
+        const getDuplicatesCount = async (columnName: string) => {
             const result = await this.fileIOService.duckDb.all(
-                `SELECT COUNT(*) AS empty_count FROM ${tableName} WHERE ${columnName} IS NULL OR ${columnName} = ''`
+                `SELECT ${columnName}, COUNT(*)::DOUBLE AS duplicate_count FROM ${tableName} GROUP BY ${columnName} HAVING COUNT(*) > 1`
             );
-            return Number(result[0].empty_count);
+            return result;
         };
 
         // Get counts of empty values for ID and Name columns
-        const emptyIds = await getEmptyCount(this.ID_PROPERTY);
-        const emptyNames = await getEmptyCount(this.NAME_PROPERTY);
-
-        // If no empty values, return early
-        if (emptyIds === 0 && emptyNames === 0) {
-            return;
-        }
+        const duplicateIds = await getDuplicatesCount(this.ID_PROPERTY);
+        const duplicateNames = await getDuplicatesCount(this.NAME_PROPERTY);
 
         // Construct error message based on counts
-        const messages: string[] = [];
-        if (emptyIds > 0) messages.push(`Empty Ids detected: ${emptyIds}`);
-        if (emptyNames > 0) messages.push(`Empty names detected: ${emptyNames}`);
+        const duplicates: TableData[] = [];
+        if (duplicateIds && duplicateIds.length > 0) duplicates.push(duplicateIds);
+        if (duplicateNames && duplicateNames.length > 0) duplicates.push(duplicateNames);
 
-        throw new Error(`Error: ${messages.join('. ')}.`);
+        return duplicates;
     }
 
     private getAlterIdColumnSQL(tableName: string): string {

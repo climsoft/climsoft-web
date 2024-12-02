@@ -115,7 +115,9 @@ export class ImportStationsDialogComponent implements OnInit {
           let response: string = (event.body as any).message;
           if (response === "success") {
             this.open = false; // close the dialog
-            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' })
+            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' });
+           
+            //TODO. Refresh the cache
             this.okClick.emit();
           } else {
             this.uploadMessage = response;
