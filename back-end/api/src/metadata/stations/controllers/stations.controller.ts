@@ -57,7 +57,7 @@ export class StationsController {
   async create(
     @Req() request: Request,
     @Body() item: CreateStationDto): Promise<CreateStationDto> {
-    return this.stationsService.create(item, AuthUtil.getLoggedInUserId(request));
+    return this.stationsService.add(item, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()

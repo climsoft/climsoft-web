@@ -67,7 +67,7 @@ export class StationsService {
         return this.createViewDto(entity);
     }
 
-    public async create(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
+    public async add(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
         let entity: StationEntity | null = await this.stationRepo.findOneBy({
             id: createDto.id,
         });
@@ -80,7 +80,7 @@ export class StationsService {
             id: createDto.id,
         });
 
-        StationsService.updateStationEntity(entity, createDto, userId);
+        this.updateStationEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
 
@@ -91,7 +91,7 @@ export class StationsService {
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
 
-        StationsService.updateStationEntity(entity, updateDto, userId);
+        this.updateStationEntity(entity, updateDto, userId);
 
         console.log('entity: ', entity);
 
@@ -114,7 +114,7 @@ export class StationsService {
         return entity;
     }
 
-    public static updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
+    private updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : '';
         entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
@@ -154,6 +154,56 @@ export class StationsService {
             dateClosed: entity.dateClosed ? entity.dateClosed.toISOString() : null,
             comment: entity.comment,
         }
+    }
+
+    public async bulkPut(dtos: CreateStationDto[], userId: number) {
+        const entities: Partial<StationEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: StationEntity = await this.stationRepo.create({
+                id: dto.id,
+            });
+
+            this.updateStationEntity(entity, dto, userId);
+            entities.push(entity);
+        }
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateStationValues(batch);
+        }
+    }
+
+    private async insertOrUpdateStationValues(stationsData: Partial<StationEntity>[]): Promise<void> {
+        await this.stationRepo
+            .createQueryBuilder()
+            .insert()
+            .into(StationEntity)
+            .values(stationsData)
+            .orUpdate(
+                [
+                    "name",
+                    "description",
+                    "observation_processing_method",
+                    "location",
+                    "elevation",
+                    "observation_environment_id",
+                    "observation_focus_id",
+                    "organisation_id",
+                    "wmo_id",
+                    "wigos_id",
+                    "icao_id",
+                    "status",
+                    "date_established",
+                    "date_closed",
+                    "comment",
+                    "entry_user_id"],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
     }
 
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto, stationIds?: string[]): Promise<MetadataUpdatesDto> {

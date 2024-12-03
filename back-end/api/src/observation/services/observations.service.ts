@@ -234,13 +234,12 @@ export class ObservationsService {
         return log;
     }
 
-    public async save(createObservationDtos: CreateObservationDto[], userId: number, username: string): Promise<void> {
+    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, username: string): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
         for (const dto of createObservationDtos) {
-
-            const entity: ObservationEntity = this.observationRepo.create({
+            const entity: Partial<ObservationEntity> = this.observationRepo.create({
                 stationId: dto.stationId,
                 elementId: dto.elementId,
                 sourceId: dto.sourceId,
@@ -253,7 +252,7 @@ export class ObservationsService {
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,
-                deleted: false             
+                deleted: false
             });
 
             obsEntities.push(entity);
@@ -282,8 +281,23 @@ export class ObservationsService {
             .into(ObservationEntity)
             .values(observationsData)
             .orUpdate(
-                ["value", "flag", "qc_status", "final", "comment", "deleted", "entry_user_id"],
-                ["station_id", "element_id", "source_id", "elevation", "date_time", "period"],
+                [
+                    "value",
+                    "flag",
+                    "qc_status",
+                    "final",
+                    "comment",
+                    "deleted",
+                    "entry_user_id"
+                ],
+                [
+                    "station_id",
+                    "element_id",
+                    "source_id",
+                    "elevation",
+                    "date_time",
+                    "period"
+                ],
                 {
                     skipUpdateIfNoValuesChanged: true,
                 }

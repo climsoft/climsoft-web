@@ -12,7 +12,7 @@ import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
 import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
-import { DuckDBUtils } from 'src/shared/utils/duckdb,utils';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 
 
 
@@ -51,19 +51,18 @@ export class ObservationImportService {
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
                 await this.importTabularSource(sourceDef, tmpFilePathName, userId, username, stationId);
             } else {
-                throw new BadRequestException("Source not supported yet");
+                throw new BadRequestException("Error: Source not supported yet");
             }
 
         } catch (error) {
             console.error("File Import Failed: " + error)
-            throw new BadRequestException("File Import Failed: " + error);
+            throw new BadRequestException("Error: File Import Failed: " + error);
         } finally {
             this.fileIOService.deleteFile(tmpFilePathName);
         }
     }
 
     private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, username: string, stationId?: string) {
-
         const sourceId: number = sourceDef.id;
         const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
         const tabularDef: CreateImportTabularSourceDTO = importDef.dataStructureParameters as CreateImportTabularSourceDTO;
@@ -119,9 +118,7 @@ export class ObservationImportService {
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
 
         // Save the rows into the database
-        console.log(rows[0], ' | datetime: ');
-
-        await this.observationsService.save(rows as CreateObservationDto[], userId, username);
+        await this.observationsService.bulkPut(rows as CreateObservationDto[], userId, username);
     }
 
     private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {
@@ -298,7 +295,7 @@ export class ObservationImportService {
         if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
             // Rename the date time column
             sql = `ALTER TABLE ${tableName} RENAME COLUMN column${importDef.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
-            
+
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
 
@@ -327,7 +324,7 @@ export class ObservationImportService {
 
         // change the date_time back to varchar as expected by the dto
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR;`;
-        
+
         // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
         sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 

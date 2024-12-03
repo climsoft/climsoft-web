@@ -39,11 +39,11 @@ export class ObservationsController {
   }
 
   @Put()
-  async save(
+  async put(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
     const user = AuthUtil.getLoggedInUser(request);
-    await this.observationsService.save(observationDtos, user.id, user.username);
+    await this.observationsService.bulkPut(observationDtos, user.id, user.username);
     return { message: "success" };
   }
 

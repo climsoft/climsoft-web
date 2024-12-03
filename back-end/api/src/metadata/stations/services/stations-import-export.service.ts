@@ -11,7 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { StationStatusEnum } from '../enums/station-status.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
-import { DuckDBUtils } from 'src/shared/utils/duckdb,utils';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { TableData } from 'duckdb-async';
 
 @Injectable()
@@ -84,34 +84,14 @@ export class StationsImportExportService {
             this.fileIOService.duckDb.run(`DROP TABLE ${tmpStationTableName};`);
 
             // Save the stations
-            await this.bulkPutStations(rows as CreateStationDto[], userId);
+            await this.stationService.bulkPut(rows as CreateStationDto[], userId);
 
         } catch (error) {
             console.error("File Import Failed: ", error)
-            throw new BadRequestException("File Import Failed: " + error.message);
+            throw new BadRequestException("Error: File Import Failed: " + error.message);
         } finally {
             this.fileIOService.deleteFile(tmpFilePathName);
         }
-    }
-
-    private async bulkPutStations(dtos: CreateStationDto[], userId: number) {
-        const entities: StationEntity[] = [];
-        for (const dto of dtos) {
-            let entity = await this.stationRepo.findOneBy({
-                id: dto.id,
-            });
-
-            if (!entity) {
-                entity = await this.stationRepo.create({
-                    id: dto.id,
-                });
-            }
-
-            StationsService.updateStationEntity(entity, dto, userId);
-            entities.push(entity);
-        }
-
-        await this.stationRepo.save(entities);
     }
 
     private async getDuplicateIdsNames(tableName: string) {
