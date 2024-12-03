@@ -19,16 +19,14 @@
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
-      <div class="me-2">
-        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
-          (dropDownOptionClick)="$event === 'Add'? dlgAddStation.openDialog():dlgImportStation.openDialog()"
-          [translateX]="true" />
-        <app-station-characteristics-edit-dialog #dlgAddStation />
-        <app-import-stations-dialog #dlgImportStation />
-      </div>
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Download']"
-          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): ''" [translateX]="true" />
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download']"
+          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
+          [translateX]="true" />
+        <app-station-characteristics-edit-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
+          (cancelClick)="onOptionsDialogClosed()" />
+        <app-import-stations-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
+          (cancelClick)="onOptionsDialogClosed()" />
         <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
       </div>
     </div>

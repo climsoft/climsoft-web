@@ -123,15 +123,15 @@ export class StationsService {
         } : null;
         entity.elevation = (dto.elevation !== undefined && dto.elevation !== null) ? dto.elevation : null;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
-        entity.obsEnvironmentId = dto.stationObsEnvironmentId;
-        entity.obsFocusId = dto.stationObsFocusId;
-        entity.wmoId = dto.wmoId;
-        entity.wigosId = dto.wigosId;
-        entity.icaoId = dto.icaoId;
-        entity.status = dto.status;
+        entity.obsEnvironmentId = dto.stationObsEnvironmentId ? dto.stationObsEnvironmentId : null;
+        entity.obsFocusId = dto.stationObsFocusId ? dto.stationObsFocusId : null;
+        entity.wmoId = dto.wmoId ? dto.wmoId : null;
+        entity.wigosId = dto.wigosId ? dto.wigosId : null;
+        entity.icaoId = dto.icaoId ? dto.icaoId : null;
+        entity.status = dto.status ? dto.status : null;
         entity.dateEstablished = dto.dateEstablished ? new Date(dto.dateEstablished) : null;
         entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
-        entity.comment = dto.comment;
+        entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
     }
 

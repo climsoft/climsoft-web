@@ -65,7 +65,7 @@ export class StationsCacheService {
                 {
                     id: station.id,
                     name: station.name,
-                    description: station.description, 
+                    description: station.description,
                     location: location,
                     elevation: station.elevation,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
@@ -89,7 +89,7 @@ export class StationsCacheService {
         this._cachedStations.next(newCachedStations);
     }
 
-    private checkForUpdates() {
+    public checkForUpdates(): void {
         // Observable to initiate metadata updates sequentially
         of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),

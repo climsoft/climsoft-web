@@ -1,25 +1,25 @@
-import { Location } from '@angular/common';
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { catchError, take, throwError } from 'rxjs';
-import { ImportTabularSourceModel } from 'src/app/metadata/sources/models/create-import-source-tabular.model';
-import { CreateImportSourceModel } from 'src/app/metadata/sources/models/create-import-source.model';
-import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { environment } from 'src/environments/environment';
+import { StationsCacheService } from '../services/stations-cache.service';
 
 @Component({
   selector: 'app-import-stations-dialog',
   templateUrl: './import-stations-dialog.component.html',
   styleUrls: ['./import-stations-dialog.component.scss']
 })
-export class ImportStationsDialogComponent implements OnInit {
-  @Output()
-  okClick = new EventEmitter<void>();
+export class ImportStationsDialogComponent implements OnChanges {
+  @Input()
+  public open: boolean = false;
 
-  protected open: boolean = false;
+  @Output()
+  public okClick = new EventEmitter<void>();
+
+  @Output()
+  public cancelClick = new EventEmitter();
+
   protected uploadMessage: string = "";
   protected uploadError: boolean = false;
   protected showUploadProgress: boolean = false;
@@ -30,21 +30,29 @@ export class ImportStationsDialogComponent implements OnInit {
   protected fileName: string = "";
 
   constructor(
+    private stationsCacheService: StationsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.open) {
+      this.setupDialog();
+    }
+  }
+
   public openDialog(): void {
     this.open = true;
+    this.setupDialog();
+  }
+
+  private setupDialog(): void {
     this.uploadMessage = "";
     this.uploadError = false;
     this.uploadProgress = 0;
     this.disableUpload = false;
-    this.fileInputEvent= undefined;
+    this.fileInputEvent = undefined;
     this.fileName = "";
-  }
-
-  ngOnInit(): void {
   }
 
   protected onFileSelected(fileInputEvent: any): void {
@@ -58,7 +66,7 @@ export class ImportStationsDialogComponent implements OnInit {
       return;
     }
 
-    if( this.disableUpload){
+    if (this.disableUpload) {
       return;
     }
 
@@ -116,8 +124,9 @@ export class ImportStationsDialogComponent implements OnInit {
           if (response === "success") {
             this.open = false; // close the dialog
             this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' });
-           
-            //TODO. Refresh the cache
+
+            // Refresh the cache
+            this.stationsCacheService.checkForUpdates();
             this.okClick.emit();
           } else {
             this.uploadMessage = response;
@@ -128,6 +137,8 @@ export class ImportStationsDialogComponent implements OnInit {
 
   }
 
-
+  protected onCancelClick(): void {
+    this.cancelClick.emit();
+  }
 
 }

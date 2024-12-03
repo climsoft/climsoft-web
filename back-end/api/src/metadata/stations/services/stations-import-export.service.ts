@@ -9,7 +9,6 @@ import { StationObsFocusesService } from './station-obs-focuses.service';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StationStatusEnum } from '../enums/station-status.enum';
-import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { TableData } from 'duckdb-async';

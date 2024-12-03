@@ -15,8 +15,9 @@ export class ViewStationsComponent implements OnDestroy{
   private allStations!: StationCacheModel[]; 
   protected stations!: StationCacheModel[]; 
   private searchedIds!: string[];
-
   private destroy$ = new Subject<void>();
+
+  protected optionClicked: 'Add'|'Import' |'Download' | undefined;
  
   constructor(
     private pagesDataService: PagesDataService,
@@ -47,6 +48,14 @@ export class ViewStationsComponent implements OnDestroy{
   protected onSearchInput(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
     this.filterBasedOnSearchedIds();
+  }
+
+  protected onOptionsClick(option: 'Add'|'Import' |'Download'): void{
+    this.optionClicked = option;
+  }
+
+  protected onOptionsDialogClosed(){
+    this.optionClicked =  undefined;
   }
 
   private filterBasedOnSearchedIds(): void{
