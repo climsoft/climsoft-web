@@ -3,10 +3,10 @@ import { IsInt, IsOptional, IsString } from 'class-validator';
 export class UpdateElementDto {
 
     @IsString()
-    name: string;
+    abbreviation: string;
 
     @IsString()
-    abbreviation: string;
+    name: string;
 
     @IsString()
     description: string;
@@ -17,8 +17,9 @@ export class UpdateElementDto {
     @IsInt()
     typeId: number;
 
+    @IsOptional()
     @IsInt()
-    entryScaleFactor: number;
+    entryScaleFactor: number | null;
 
     @IsOptional()
     @IsString()

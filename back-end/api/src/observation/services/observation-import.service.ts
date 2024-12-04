@@ -129,7 +129,7 @@ export class ObservationImportService {
             sql = `ALTER TABLE ${tableName} RENAME column${stationDefinition.columnPosition - 1} TO ${this.STATION_ID_PROPERTY_NAME};`;
 
             if (stationDefinition.stationsToFetch) {
-                sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true);
+                sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true);
             }
 
             // Ensure there are no nulls in the station column
@@ -161,7 +161,7 @@ export class ObservationImportService {
                 sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                 if (flagDefinition.flagsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                 }
 
             } else {
@@ -175,7 +175,7 @@ export class ObservationImportService {
                 // Element column
                 sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
                 if (singleColumn.elementsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
                 }
                 //--------------------------
 
@@ -191,7 +191,7 @@ export class ObservationImportService {
                     sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                     if (flagDefinition.flagsToFetch) {
-                        sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                     }
 
                 } else {
@@ -239,29 +239,6 @@ export class ObservationImportService {
         // Convert the value column to double. 
         // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))       
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
-
-        return sql;
-    }
-
-    public static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[], includeNullDeletes: boolean): string {
-        // Add single quotes that will be used for the alter sqls
-        valuesToFetch = valuesToFetch.map(item => {
-            return { sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }
-        });
-
-        // Delete any record that is not supposed to be fetched .    
-        let sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-
-        if (includeNullDeletes) {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-        } else {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} IS NOT NULL AND ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-        }
-
-        // Update the source element ids with the equivalent database ids
-        for (const value of valuesToFetch) {
-            sql = sql + `UPDATE ${tableName} SET ${columnName} = ${value.databaseId} WHERE ${columnName} = ${value.sourceId};`;
-        }
 
         return sql;
     }

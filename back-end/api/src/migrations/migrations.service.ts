@@ -1,13 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MetadataMigrationService } from 'src/metadata/metadata-migration.service';
 import { SettingsMigrationService } from 'src/settings/settings-migration.service';
 import { UserRoleEnum } from 'src/user/enums/user-roles.enum';
 import { UsersService } from 'src/user/services/users.service';
 import { DatabaseVersionEntity } from './entities/database-version.entity';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FileIOService } from 'src/shared/services/file-io.service';
 import { ObservationTriggers1721359627445 } from './1721359627445-ObservationTriggers';
+import { ElementSubdomainsService } from 'src/metadata/elements/services/element-subdomains.service';
+import { ElementTypesService } from 'src/metadata/elements/services/element-types.service';
+import { StationObsEnvService } from 'src/metadata/stations/services/station-obs-env.service';
+import { StationObsFocusesService } from 'src/metadata/stations/services/station-obs-focuses.service';
+import { MetadataDefaults } from './metadata-defaults';
 
 @Injectable()
 export class MigrationsService {
@@ -19,8 +22,11 @@ export class MigrationsService {
     @InjectRepository(DatabaseVersionEntity) private readonly dbVersionRepo: Repository<DatabaseVersionEntity>,
     private dataSource: DataSource,
     private readonly userService: UsersService,
-    private readonly fileIOService: FileIOService,
-    private readonly migrationMetadataService: MetadataMigrationService,
+    private elementSubdomainsService: ElementSubdomainsService,
+    private elementTypesService: ElementTypesService,
+    private stationObsEnvService: StationObsEnvService,
+    private stationObsFocusesService: StationObsFocusesService,
+
     private readonly migrationSettingsService: SettingsMigrationService) { }
 
   public async doMigrations() {
@@ -79,24 +85,24 @@ export class MigrationsService {
     // Call the seed methods
     await this.seedTriggers();
     await this.seedFirstUser();
-    await this.migrationMetadataService.seedMetadata();
+    await this.seedMetadata();
     await this.migrationSettingsService.seedSettings();
   }
 
   private async seedTriggers() {
     //const fullFolderPath = this.fileIOService.getFullFolderPath('sql-scripts');
-   
-  
+
+
 
 
     //console.log('file path: ', fullFolderPath);
 
     //join(__dirname, '../sql/triggers/update_observations_log_column.sql');
-   // const sql = await this.fileIOService.readFile(`${fullFolderPath}/observation_log.sql`, 'utf8');
+    // const sql = await this.fileIOService.readFile(`${fullFolderPath}/observation_log.sql`, 'utf8');
 
     //console.log('sql: ', sql);
 
-     await this.dataSource.query(ObservationTriggers1721359627445.OBS_LOG_TRIGGER);
+    await this.dataSource.query(ObservationTriggers1721359627445.OBS_LOG_TRIGGER);
   }
 
   private async seedFirstUser() {
@@ -118,6 +124,13 @@ export class MigrationsService {
 
       await this.userService.changeUserPassword({ userId: newUser.id, password: "climsoft@admin!2" })
     }
+  }
+
+  public async seedMetadata() {
+    await this.elementSubdomainsService.bulkPut(MetadataDefaults.ELEMENT_SUBDOMAINS, 1);
+    await this.elementTypesService.bulkPut(MetadataDefaults.ELEMENT_TYPES, 1);
+    await this.stationObsEnvService.bulkPut(MetadataDefaults.STATION_ENVIRONMENTS, 1);
+    await this.stationObsFocusesService.bulkPut(MetadataDefaults.STATION_FOCUS, 1);
   }
 
 

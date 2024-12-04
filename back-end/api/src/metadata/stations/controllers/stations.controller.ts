@@ -16,7 +16,7 @@ export class StationsController {
   constructor(
     private stationsService: StationsService,
     private stationImportExportService: StationsImportExportService,
-    private fileIOService: FileIOService
+    private fileIOService: FileIOService,
   ) { }
 
   @Get()
@@ -37,7 +37,6 @@ export class StationsController {
     return this.stationsService.count(viewQueryDto);
   }
 
-
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="stations.csv"')
@@ -45,11 +44,10 @@ export class StationsController {
     @Req() request: Request,
   ) {
     // Fetch stations and generate the CSV file
-    const csvFilePath = await this.stationImportExportService.exportStationsToCsv(AuthUtil.getLoggedInUser(request).id);
+    const csvFilePath = await this.stationImportExportService.export(AuthUtil.getLoggedInUser(request).id);
 
     // Stream the file to the response
-    const fileStream = this.fileIOService.createReadStream(csvFilePath);
-    return new StreamableFile(fileStream);
+    return this.fileIOService.createStreamableFile(csvFilePath);
   }
 
   @Admin()
@@ -63,7 +61,7 @@ export class StationsController {
   @Admin()
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async importFile(
+  async import(
     @Req() request: Request,
     @UploadedFile(new ParseFilePipe({
       validators: [
@@ -73,7 +71,7 @@ export class StationsController {
     })
     ) file: Express.Multer.File) {
     try {
-      await this.stationImportExportService.importStations(file, AuthUtil.getLoggedInUserId(request));
+      await this.stationImportExportService.import(file, AuthUtil.getLoggedInUserId(request));
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };

@@ -11,19 +11,24 @@
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput([])" />
       </div>
 
-      <div class="me-2">
-        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Add','Import']"
-          (dropDownOptionClick)="$event === 'Add'? dlgAddElement.openDialog() : dlgImportElement.openDialog()"
+      <div>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download', 'Delete All']"
+          (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClick($event)"
           [translateX]="true" />
-        <app-element-characteristics-input-dialog #dlgAddElement />
-        <app-import-stations-dialog #dlgImportElement />
+        <div *ngIf="optionClicked">
+          <app-element-characteristics-input-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
+            (cancelClick)="onOptionsDialogClosed()" />
+
+          <app-import-elements-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
+            (cancelClick)="onOptionsDialogClosed()" />
+        </div>
+
+        <!-- TODO. find a way of doing this trhough the drop down in future -->
+        <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
+
       </div>
 
-      <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Download']"
-          (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): ''" [translateX]="true" />
-        <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
-      </div>
+  
 
     </div>
   </div>
@@ -32,8 +37,7 @@
     <app-table-view [clickable]="true" [columnsData]="[ 
           {id: 'id', name: 'Id'},
           {id: 'abbreviation', name: 'Abbreviation'}, 
-          {id: 'name', name: 'Name'}, 
-          {id: 'description', name: 'Description'} 
+          {id: 'name', name: 'Name'}
            ]" [rowsData]="elements" (rowDataClicked)="onEditElement($event)" />
   </div>
 

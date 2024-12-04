@@ -7,16 +7,16 @@ export class ElementEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
   id: number;
 
-  @Column({ type: "varchar", unique: true })
+  @Column({ type: "varchar", name: "abbreviation", unique: true })
   abbreviation: string;
 
-  @Column({ type: "varchar", unique: true })
+  @Column({ type: "varchar", name: "name", unique: true })
   name: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", name: "description", nullable: true })
   description: string;
 
-  @Column({ type: "varchar" })
+  @Column({ type: "varchar", name: "units" })
   units: string;
 
   //---------------------------
@@ -29,13 +29,13 @@ export class ElementEntity extends AppBaseEntity {
   elementType: ElementTypeEntity;
   //---------------------------
 
-  @Column({ type: "int", name: "entry_scale_factor", default: 0 })
-  entryScaleFactor: number;
+  @Column({ type: "int", name: "entry_scale_factor", nullable: true })
+  entryScaleFactor: number | null;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: "varchar", name: "comment", nullable: true })
   comment: string | null;
 
-  @Column({ type: "jsonb", nullable: true })
+  @Column({ type: "jsonb", name: "log", nullable: true })
   log: ElementLogVo[] | null;
 }
 

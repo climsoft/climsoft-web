@@ -12,9 +12,7 @@ import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-
 export class ElementsService {
     constructor(
         @InjectRepository(ElementEntity) private elementRepo: Repository<ElementEntity>,
-    ) {
-
-    }
+    ) {  }
 
     public async findOne(id: number): Promise<CreateViewElementDto> {
         return this.createViewDto(await this.getEntity(id));
@@ -59,7 +57,7 @@ export class ElementsService {
         return whereOptions
     }
 
-    public async create(createDto: CreateViewElementDto, userId: number): Promise<CreateViewElementDto> {
+    public async add(createDto: CreateViewElementDto, userId: number): Promise<CreateViewElementDto> {
 
         let entity: ElementEntity | null = await this.elementRepo.findOneBy({
             id: createDto.id,
@@ -73,7 +71,7 @@ export class ElementsService {
             id: createDto.id,
         });
 
-        this.updateElementEntity(entity, createDto, userId);
+        this.updateEntity(entity, createDto, userId);
 
         await this.elementRepo.save(entity);
 
@@ -85,7 +83,7 @@ export class ElementsService {
     public async update(id: number, updateDto: UpdateElementDto, userId: number): Promise<CreateViewElementDto> {
         const entity: ElementEntity = await this.getEntity(id);
   
-        this.updateElementEntity(entity, updateDto, userId);
+        this.updateEntity(entity, updateDto, userId);
 
         await this.elementRepo.save(entity);
 
@@ -97,11 +95,58 @@ export class ElementsService {
         return id;
     }
 
+    public async bulkPut(dtos: CreateViewElementDto[], userId: number) {
+        const entities: Partial<ElementEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: ElementEntity = await this.elementRepo.create({
+                id: dto.id,
+            });
 
-    private updateElementEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
-        // Note, log has to be set before updating the new values to the entity, because we are logging previous values.
-        //entity.log = newEntity ? null : ObjectUtils.getNewLog<ElementLogVo>(entity.log, this.getElementLogFromEntity(entity));
+            this.updateEntity(entity, dto, userId);
+            entities.push(entity);
+        }
 
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateValues(batch);
+        }
+    }
+
+    private async insertOrUpdateValues(entities: Partial<ElementEntity>[]): Promise<void> {
+        await this.elementRepo
+            .createQueryBuilder()
+            .insert()
+            .into(ElementEntity)
+            .values(entities)
+            .orUpdate(
+                [
+                    "abbreviation",
+                    "name",
+                    "description",
+                    "units",
+                    "type_id",
+                    "entry_scale_factor",
+                    "comment",
+                    "entry_user_id"
+                ],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
+    public async deleteAll(): Promise<boolean> {
+        const entities: ElementEntity[] = await this.elementRepo.find();
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
+        await this.elementRepo.remove(entities);
+        return true;
+    }
+
+
+    private updateEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
         entity.description = dto.description;
@@ -110,8 +155,6 @@ export class ElementsService {
         entity.entryScaleFactor = dto.entryScaleFactor;
         entity.comment = dto.comment;
         entity.entryUserId = userId;
-        entity.entryDateTime = new Date();
-
     }
 
 

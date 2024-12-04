@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
@@ -17,6 +17,8 @@ export class ViewElementsComponent implements OnDestroy {
   private searchedIds!: number[];
 
   private destroy$ = new Subject<void>();
+
+  protected optionClicked: 'Add' | 'Import' | 'Download' | 'Delete All' | undefined;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -47,6 +49,21 @@ export class ViewElementsComponent implements OnDestroy {
 
   private filterBasedOnSearchedIds(): void {
     this.elements = this.searchedIds && this.searchedIds.length > 0 ? this.allElements.filter(item => this.searchedIds.includes(item.id)) : this.allElements;
+  }
+
+  protected onOptionsClick(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
+    this.optionClicked = option;
+    if(option === 'Delete All'){
+      this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+        if (data) {
+          this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: "success" });
+        }
+      });
+    }
+  }
+
+  protected onOptionsDialogClosed(): void {
+    this.optionClicked = undefined;
   }
 
   protected onEditElement(element: CreateViewElementModel): void {

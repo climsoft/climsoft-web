@@ -50,6 +50,10 @@ export class ViewStationsComponent implements OnDestroy {
     this.filterBasedOnSearchedIds();
   }
 
+  private filterBasedOnSearchedIds(): void {
+    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : this.allStations;
+  }
+
   protected onOptionsClick(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
     this.optionClicked = option;
     if(option === 'Delete All'){
@@ -65,10 +69,7 @@ export class ViewStationsComponent implements OnDestroy {
     this.optionClicked = undefined;
   }
 
-  private filterBasedOnSearchedIds(): void {
-    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : this.allStations;
-  }
-
+ 
   protected onEditStation(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }

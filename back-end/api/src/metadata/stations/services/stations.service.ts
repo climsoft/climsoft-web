@@ -80,7 +80,7 @@ export class StationsService {
             id: createDto.id,
         });
 
-        this.updateStationEntity(entity, createDto, userId);
+        this.updateEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
 
@@ -91,7 +91,7 @@ export class StationsService {
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
 
-        this.updateStationEntity(entity, updateDto, userId);
+        this.updateEntity(entity, updateDto, userId);
 
         console.log('entity: ', entity);
 
@@ -114,7 +114,7 @@ export class StationsService {
         return entity;
     }
 
-    private updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
+    private updateEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : '';
         entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
@@ -163,23 +163,23 @@ export class StationsService {
                 id: dto.id,
             });
 
-            this.updateStationEntity(entity, dto, userId);
+            this.updateEntity(entity, dto, userId);
             entities.push(entity);
         }
 
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < entities.length; i += batchSize) {
             const batch = entities.slice(i, i + batchSize);
-            await this.insertOrUpdateStationValues(batch);
+            await this.insertOrUpdateValues(batch);
         }
     }
 
-    private async insertOrUpdateStationValues(stationsData: Partial<StationEntity>[]): Promise<void> {
+    private async insertOrUpdateValues(entities: Partial<StationEntity>[]): Promise<void> {
         await this.stationRepo
             .createQueryBuilder()
             .insert()
             .into(StationEntity)
-            .values(stationsData)
+            .values(entities)
             .orUpdate(
                 [
                     "name",
@@ -197,7 +197,8 @@ export class StationsService {
                     "date_established",
                     "date_closed",
                     "comment",
-                    "entry_user_id"],
+                    "entry_user_id"
+                ],
                 ["id"],
                 {
                     skipUpdateIfNoValuesChanged: true,

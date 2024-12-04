@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Query, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
 import { ElementsService } from '../services/elements.service'; 
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
@@ -6,11 +6,18 @@ import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ElementsImportExportService } from '../services/elements-import-export.service';
+import { FileIOService } from 'src/shared/services/file-io.service';
 
 @Controller("elements")
 export class ElementsController {
 
-  constructor(private readonly elementsService: ElementsService) { }
+  constructor(
+    private elementsService: ElementsService,
+    private elementsImportExportService: ElementsImportExportService,
+    private fileIOService: FileIOService,
+  ) { }
 
   @Get()
   find(
@@ -29,12 +36,45 @@ export class ElementsController {
     return this.elementsService.count(viewQueryDto);
   }
 
+  @Get('download')
+  @Header('Content-Type', 'text/csv')
+  @Header('Content-Disposition', 'attachment; filename="elements.csv"')
+  async downloadStationsCsv(
+    @Req() request: Request,
+  ) {
+    // Fetch stations and generate the CSV file
+    const csvFilePath = await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
+
+    // Stream the file to the response
+    return this.fileIOService.createStreamableFile(csvFilePath);
+  }
+
   @Admin()
   @Post()
   async create(
     @Req() request: Request,
     @Body() item: CreateViewElementDto): Promise<CreateViewElementDto> {
-    return this.elementsService.create(item, AuthUtil.getLoggedInUserId(request));
+    return this.elementsService.add(item, AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async import(
+    @Req() request: Request,
+    @UploadedFile(new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1 }), // 1MB. 
+        new FileTypeValidator({ fileType: 'text/csv' }),
+      ]
+    })
+    ) file: Express.Multer.File) { 
+    try {
+      await this.elementsImportExportService.import(file, AuthUtil.getLoggedInUserId(request));
+      return { message: "success" };
+    } catch (error) {
+      return { message: `error: ${error}` };
+    }
   }
 
   @Admin()
@@ -44,6 +84,12 @@ export class ElementsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() item: UpdateElementDto): Promise<CreateViewElementDto> {
     return this.elementsService.update(id, item, AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Delete()
+  async deleteAll() {
+    return this.elementsService.deleteAll();
   }
 
   @Admin()

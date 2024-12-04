@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
@@ -73,8 +73,8 @@ export class FileIOService {
         this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);
     }
 
-    public createReadStream(filePathName: string) {
-        return fs.createReadStream(filePathName);
+    public createStreamableFile(filePathName: string) {
+        return new StreamableFile(fs.createReadStream(filePathName));
     }
 
     public async readFile(filePathName: string, encoding: 'utf8' = 'utf8') {

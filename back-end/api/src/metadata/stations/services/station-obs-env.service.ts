@@ -1,6 +1,6 @@
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from "typeorm"; 
+import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm"; 
+import { InjectRepository } from "@nestjs/typeorm";
 import { StationObservationEnvironmentEntity } from "../entities/station-observation-environment.entity";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
 import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
@@ -22,11 +22,54 @@ export class StationObsEnvService {
             findOptions.where = { id: In(ids) };
         }
 
-       return  (await this.stationObsEnvRepo.find(findOptions)).map(item => {
-        return { id: item.id, name: item.name, description: item.description }
-    });
+        return (await this.stationObsEnvRepo.find(findOptions)).map(item => {
+            return { id: item.id, name: item.name, description: item.description }
+        });
     }
-    
+
+    public async count() {
+        return await this.stationObsEnvRepo.count()
+    }
+
+    public async bulkPut(dtos: StationObservationEnvironmentDto[], userId: number) {
+        const entities: Partial<StationObservationEnvironmentEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: StationObservationEnvironmentEntity = await this.stationObsEnvRepo.create({
+                id: dto.id,
+                name: dto.name,
+                description: dto.description,
+                entryUserId: userId
+            });
+            entities.push(entity);
+        }
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateValues(batch);
+        }
+    }
+
+    private async insertOrUpdateValues(entities: Partial<StationObservationEnvironmentEntity>[]): Promise<void> {
+        await this.stationObsEnvRepo
+            .createQueryBuilder()
+            .insert()
+            .into(StationObservationEnvironmentEntity)
+            .values(entities)
+            .orUpdate(
+                [
+                    "name",
+                    "description",
+                    "entry_user_id"
+                ],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 
@@ -55,5 +98,5 @@ export class StationObsEnvService {
             return { metadataChanged: false }
         }
     }
- 
+
 }
