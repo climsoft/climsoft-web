@@ -31,7 +31,7 @@ export class SourcesController {
     public create(
         @Req() request: Request,
         @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
-        return this.sourcesService.create(createSourceDto, AuthUtil.getLoggedInUserId(request));
+        return this.sourcesService.put(createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
@@ -41,6 +41,12 @@ export class SourcesController {
         @Param('id', ParseIntPipe) id: number, 
         @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
         return this.sourcesService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
+    }
+
+    @Admin()
+    @Delete()
+    public deleteAll() {
+        return this.sourcesService.deleteAll();
     }
 
     @Admin()

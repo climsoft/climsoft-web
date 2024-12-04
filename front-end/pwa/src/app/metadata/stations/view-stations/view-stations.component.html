@@ -20,14 +20,20 @@
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download']"
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download', 'Delete All']"
           (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
           [translateX]="true" />
-        <app-station-characteristics-edit-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
-          (cancelClick)="onOptionsDialogClosed()" />
-        <app-import-stations-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
-          (cancelClick)="onOptionsDialogClosed()" />
+        <div *ngIf="optionClicked">
+          <app-station-characteristics-edit-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
+            (cancelClick)="onOptionsDialogClosed()" />
+
+          <app-import-stations-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
+            (cancelClick)="onOptionsDialogClosed()" />
+        </div>
+
+        <!-- TODO. find a way of doing this trhough the drop down in future -->
         <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
+
       </div>
     </div>
   </div>

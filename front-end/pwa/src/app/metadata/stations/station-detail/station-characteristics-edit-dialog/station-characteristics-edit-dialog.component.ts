@@ -24,7 +24,7 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
   public ok = new EventEmitter<void>();
 
   @Output()
-  public cancelClick = new EventEmitter();
+  public cancelClick = new EventEmitter<void>();
 
   protected title: string = "";
   protected station!: CreateStationModel;
@@ -161,7 +161,7 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
         message = this.bNew ? "New Station Created" : "Station Updated";
         messageType = 'success';
       } else {
-        message = "Error in saving element";
+        message = "Error in saving station";
         messageType = 'error';
         //return;
       }

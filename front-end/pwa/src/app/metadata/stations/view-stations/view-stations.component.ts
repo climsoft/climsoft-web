@@ -3,25 +3,25 @@ import { CreateStationModel } from '../../../core/models/stations/create-station
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-view-stations',
   templateUrl: './view-stations.component.html',
   styleUrls: ['./view-stations.component.scss']
 })
-export class ViewStationsComponent implements OnDestroy{
+export class ViewStationsComponent implements OnDestroy {
   protected activeTab: 'table' | 'map' = 'table';
-  private allStations!: StationCacheModel[]; 
-  protected stations!: StationCacheModel[]; 
+  private allStations!: StationCacheModel[];
+  protected stations!: StationCacheModel[];
   private searchedIds!: string[];
   private destroy$ = new Subject<void>();
 
-  protected optionClicked: 'Add'|'Import' |'Download' | undefined;
- 
+  protected optionClicked: 'Add' | 'Import' | 'Download' | 'Delete All' | undefined;
+
   constructor(
     private pagesDataService: PagesDataService,
-    private stationsCacheService: StationsCacheService, 
+    private stationsCacheService: StationsCacheService,
     private router: Router,
     private route: ActivatedRoute) {
 
@@ -50,16 +50,23 @@ export class ViewStationsComponent implements OnDestroy{
     this.filterBasedOnSearchedIds();
   }
 
-  protected onOptionsClick(option: 'Add'|'Import' |'Download'): void{
+  protected onOptionsClick(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
     this.optionClicked = option;
+    if(option === 'Delete All'){
+      this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+        if (data) {
+          this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: "success" });
+        }
+      });
+    }
   }
 
-  protected onOptionsDialogClosed(){
-    this.optionClicked =  undefined;
+  protected onOptionsDialogClosed(): void {
+    this.optionClicked = undefined;
   }
 
-  private filterBasedOnSearchedIds(): void{
-    this.stations = this.searchedIds && this.searchedIds.length > 0? this.allStations.filter( item => this.searchedIds.includes(item.id)): this.allStations;
+  private filterBasedOnSearchedIds(): void {
+    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : this.allStations;
   }
 
   protected onEditStation(station: CreateStationModel) {

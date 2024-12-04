@@ -1,5 +1,5 @@
 <app-dialog [(open)]="open" [title]="'Import Stations'" [okButtonLabel]="'Ok'" [closeOnOkClick]="false"
-  (okClick)="onOkClick()">
+  (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
 
   <div *ngIf="open" class="card border-0">
 
@@ -27,13 +27,19 @@
       </div>
 
 
-      <div class="d-flex flex-column align-items-center p-4 mt-2"
-        style="min-height:200px; min-width:200px; max-height: 200px; max-width: 400px; background-color:#e0f7fa;">
+      <div class="d-flex flex-column align-items-center p-2 mt-2"
+        style="min-height:300px; min-width:300px; max-height: 300px; max-width: 500px; background-color:#e0f7fa;">
+        <div>
+          <div class="fw-bold">Expected Columns</div>
+          <div style="font-size: 12px;"> 
+            Id, Name, Description, Observation processing method, Location, Elevation, Observation environment, Observation focus, WMO ID, WIGOS ID, ICAO ID, Status, Date Established, Date Closed, Comment
+          </div>
+        </div>
         <div *ngIf="uploadMessage" class="mt-4" [class.text-danger]="uploadError">
           {{ uploadMessage }}
         </div>
 
-        <div class="mt-4 px-4 w-100" *ngIf="showUploadProgress">
+        <div class="mt-4 px-2 w-100" *ngIf="showUploadProgress">
           <div class="progress">
             <div class="progress-bar progress-bar-striped" style="width: 100%" [style.width.%]="uploadProgress">
               {{ uploadProgress === 100? 'Processing...': uploadProgress + '%'}}

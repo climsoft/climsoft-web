@@ -71,7 +71,7 @@ export class SourcesService {
         return entity;
     }
 
-    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+    public async put(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
         //source entity will be created with an auto incremented id
         const entity = this.sourceRepo.create({
             name: dto.name,
@@ -110,6 +110,13 @@ export class SourcesService {
         const source = await this.findEntity(id);
         await this.sourceRepo.remove(source);
         return id;
+    }
+
+    public async deleteAll(): Promise<boolean> {
+        const entities: SourceEntity[] = await this.sourceRepo.find();
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
+        await this.sourceRepo.remove(entities);
+        return true;
     }
 
     private async createViewDto(entity: SourceEntity): Promise<ViewSourceDto> {

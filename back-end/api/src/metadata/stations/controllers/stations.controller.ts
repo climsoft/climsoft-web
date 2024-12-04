@@ -54,7 +54,7 @@ export class StationsController {
 
   @Admin()
   @Post()
-  async create(
+  async add(
     @Req() request: Request,
     @Body() item: CreateStationDto): Promise<CreateStationDto> {
     return this.stationsService.add(item, AuthUtil.getLoggedInUserId(request));
@@ -87,6 +87,12 @@ export class StationsController {
     @Param('id') id: string,
     @Body() item: UpdateStationDto): Promise<CreateStationDto> {
     return this.stationsService.update(id, item, AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Delete()
+  async deleteAll() {
+    return this.stationsService.deleteAll();
   }
 
   @Admin()

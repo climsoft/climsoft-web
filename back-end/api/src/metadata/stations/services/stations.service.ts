@@ -206,6 +206,13 @@ export class StationsService {
             .execute();
     }
 
+    public async deleteAll(): Promise<boolean> {
+        const entities: StationEntity[] = await this.stationRepo.find();
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
+        await this.stationRepo.remove(entities);
+        return true;
+    }
+
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto, stationIds?: string[]): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 

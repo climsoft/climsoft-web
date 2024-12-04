@@ -154,6 +154,16 @@ export class StationsCacheService {
             );
     }
 
+    public deleteAll(): Observable<boolean> {
+        return this.http.delete<boolean>(`${this.endPointUrl}`)
+          .pipe(
+            tap(() => {
+                this.checkForUpdates();
+            }),
+            catchError(this.handleError)
+          );
+      }
+
     public get downloadLink(): string {
         return `${this.endPointUrl}/download`;
     }

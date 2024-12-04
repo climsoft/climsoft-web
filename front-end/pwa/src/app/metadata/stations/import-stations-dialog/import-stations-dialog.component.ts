@@ -18,7 +18,7 @@ export class ImportStationsDialogComponent implements OnChanges {
   public okClick = new EventEmitter<void>();
 
   @Output()
-  public cancelClick = new EventEmitter();
+  public cancelClick = new EventEmitter<void>();
 
   protected uploadMessage: string = "";
   protected uploadError: boolean = false;
