@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Query, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Patch, Post, Put, Query, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
 import { ElementsService } from '../services/elements.service'; 
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
@@ -58,7 +58,7 @@ export class ElementsController {
   }
 
   @Admin()
-  @Post('upload')
+  @Put('upload')
   @UseInterceptors(FileInterceptor('file'))
   async import(
     @Req() request: Request,

@@ -1,9 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { Observable, take } from 'rxjs';
-import { ElementDomainEnum } from 'src/app/metadata/elements/models/element-domain.enum';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 
@@ -16,12 +14,14 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
   @Input()
   public open!: boolean;
 
-
   @Input()
   public editElementd!: number;
 
   @Output()
   public ok = new EventEmitter<void>();
+
+  @Output()
+  public cancelClick = new EventEmitter<void>();
 
   protected title: string = "";
   protected bNew: boolean = false;
@@ -120,5 +120,9 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
       this.pagesDataService.showToast({ title: "Element Characteristics", message: message, type: messageType });
       this.ok.emit();
     });
+  }
+
+  protected onCancelClick(): void {
+    this.cancelClick.emit();
   }
 }

@@ -86,7 +86,7 @@ export class ImportStationsDialogComponent implements OnChanges {
     const params = new HttpParams();
     const url = `${environment.apiUrl}/stations/upload`;
 
-    this.http.post(
+    this.http.put(
       url,
       formData,
       {

@@ -86,7 +86,7 @@ export class ImportElementsDialogComponent implements OnChanges {
     const params = new HttpParams();
     const url = `${environment.apiUrl}/elements/upload`;
 
-    this.http.post(
+    this.http.put(
       url,
       formData,
       {

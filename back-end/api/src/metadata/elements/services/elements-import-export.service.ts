@@ -50,12 +50,8 @@ export class ElementsImportExportService {
             alterSQLs = alterSQLs +  this.getAlterEntryScaleFactorColumnSQL(tmpTableName);
             alterSQLs = alterSQLs +  this.getAlterCommentsColumnSQL(tmpTableName);
 
-            console.log('alterSQLs: ', alterSQLs);
-
             // Execute the duckdb DDL SQL commands
             await this.fileIOService.duckDb.exec(alterSQLs);
-
-           
 
             let duplicates: TableData | undefined;
             //check for duplicate ids
@@ -70,8 +66,6 @@ export class ElementsImportExportService {
 
             // Get all the data imported
             const rows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY}, ${this.ABBREVIATION_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.UNITS_PROPERTY}, ${this.TYPE_ID_PROPERTY}, ${this.ENTRY_SCALE_FACTOR_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
-
-            console.log('rows: ', rows[0]);
 
             // Delete the stations table 
             this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);

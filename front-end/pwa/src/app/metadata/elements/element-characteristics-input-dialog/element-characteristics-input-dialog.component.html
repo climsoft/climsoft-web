@@ -1,35 +1,36 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" (okClick)="onOkClick()">
-    <div *ngIf="element">
-        <div class="mb-3">
-            <app-number-input [label]="'Id'" [disabled]="!bNew" [(numValue)]="element.id" />
-          </div>
-  
-          <div class="mb-3">
-            <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
-          </div>
-  
-          <div class="mb-3">
-            <app-text-input [label]="'Name'" [(value)]="element.name" />
-          </div>
-  
-          <div class="mb-3">
-            <app-text-input [label]="'Description'" [(value)]="element.description" />
-          </div>
-  
-          <div class="mb-3">
-            <app-text-input [label]="'Units'" [(value)]="element.units" />
-          </div>
-  
-          <div class="mb-3">
-            <app-element-type-single-input [selectedId]="element.typeId" (selectedIdChange)="onTypeChange($event)" />
-          </div>
-  
-          <div class="mb-3">
-            <app-number-input [label]="'Entry scale factor'" [(numValue)]="element.entryScaleFactor"></app-number-input>
-          </div>
-  
-          <div class="mb-3">
-            <app-text-input [label]="'Comment'" [(value)]="element.comment"></app-text-input>
-          </div>
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" (okClick)="onOkClick()"
+  (cancelClick)="onCancelClick()">
+  <div *ngIf="element">
+    <div class="mb-3">
+      <app-number-input [label]="'Id'" [disabled]="!bNew" [(numValue)]="element.id" />
     </div>
-    </app-dialog>
+
+    <div class="mb-3">
+      <app-text-input [label]="'Abbreviation'" [(value)]="element.abbreviation" />
+    </div>
+
+    <div class="mb-3">
+      <app-text-input [label]="'Name'" [(value)]="element.name" />
+    </div>
+
+    <div class="mb-3">
+      <app-text-input [label]="'Description'" [(value)]="element.description" />
+    </div>
+
+    <div class="mb-3">
+      <app-text-input [label]="'Units'" [(value)]="element.units" />
+    </div>
+
+    <div class="mb-3">
+      <app-element-type-single-input [selectedId]="element.typeId" (selectedIdChange)="onTypeChange($event)" />
+    </div>
+
+    <div class="mb-3">
+      <app-number-input [label]="'Entry scale factor'" [(numValue)]="element.entryScaleFactor"></app-number-input>
+    </div>
+
+    <div class="mb-3">
+      <app-text-input [label]="'Comment'" [(value)]="element.comment"></app-text-input>
+    </div>
+  </div>
+</app-dialog>
