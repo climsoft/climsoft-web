@@ -38,13 +38,13 @@ export class DialogComponent {
   openChange = new EventEmitter<boolean>();
 
   @Output()
-  okClick = new EventEmitter();
+  okClick = new EventEmitter<void>();
 
   @Output()
-  cancelClick = new EventEmitter();
+  cancelClick = new EventEmitter<void>();
 
   @Output()
-  deleteClick = new EventEmitter();
+  deleteClick = new EventEmitter<void>();
 
   public openDialog() {
     this.open = true;

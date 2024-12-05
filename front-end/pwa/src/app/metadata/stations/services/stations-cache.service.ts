@@ -65,7 +65,7 @@ export class StationsCacheService {
                 {
                     id: station.id,
                     name: station.name,
-                    description: station.description, 
+                    description: station.description,
                     location: location,
                     elevation: station.elevation,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
@@ -89,7 +89,7 @@ export class StationsCacheService {
         this._cachedStations.next(newCachedStations);
     }
 
-    private checkForUpdates() {
+    public checkForUpdates(): void {
         // Observable to initiate metadata updates sequentially
         of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),
@@ -153,6 +153,16 @@ export class StationsCacheService {
                 catchError(this.handleError)
             );
     }
+
+    public deleteAll(): Observable<boolean> {
+        return this.http.delete<boolean>(`${this.endPointUrl}`)
+          .pipe(
+            tap(() => {
+                this.checkForUpdates();
+            }),
+            catchError(this.handleError)
+          );
+      }
 
     public get downloadLink(): string {
         return `${this.endPointUrl}/download`;

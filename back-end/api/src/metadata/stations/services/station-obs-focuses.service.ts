@@ -27,6 +27,49 @@ export class StationObsFocusesService {
         });
     }
 
+    public async count() {
+        return await this.stationObsFocusRepo.count()
+    }
+
+    public async bulkPut(dtos: StationObservationFocusDto[], userId: number) {
+        const entities: Partial<StationObservationFocusEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: StationObservationFocusEntity = await this.stationObsFocusRepo.create({
+                id: dto.id,
+                name: dto.name,
+                description: dto.description,
+                entryUserId: userId
+            });
+            entities.push(entity);
+        }
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateValues(batch);
+        }
+    }
+
+    private async insertOrUpdateValues(entities: Partial<StationObservationFocusEntity>[]): Promise<void> {
+        await this.stationObsFocusRepo
+            .createQueryBuilder()
+            .insert()
+            .into(StationObservationFocusEntity)
+            .values(entities)
+            .orUpdate(
+                [
+                    "name",
+                    "description",
+                    "entry_user_id"
+                ],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 

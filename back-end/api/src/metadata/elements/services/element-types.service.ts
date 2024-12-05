@@ -23,6 +23,51 @@ export class ElementTypesService {
         });
     }
 
+    public async count(){
+        return await this.elementTypeRepo.count()
+    }
+
+    public async bulkPut(dtos: ViewElementTypeDto[], userId: number) {
+        const entities: Partial<ElementTypeEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: ElementTypeEntity = await this.elementTypeRepo.create({
+                id: dto.id,
+                name: dto.name,
+                description: dto.description,
+                subdomainId: dto.subdomainId,
+                entryUserId: userId
+            });
+            entities.push(entity);
+        }
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateValues(batch);
+        }
+    }
+
+    private async insertOrUpdateValues(entities: Partial<ElementTypeEntity>[]): Promise<void> {
+        await this.elementTypeRepo
+            .createQueryBuilder()
+            .insert()
+            .into(ElementTypeEntity)
+            .values(entities)
+            .orUpdate(
+                [
+                    "name",
+                    "description",
+                    "subdomainId", 
+                    "entry_user_id"
+                ],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 

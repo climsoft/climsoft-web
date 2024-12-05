@@ -117,10 +117,11 @@ export class RegionsService {
         return id;
     }
 
-    public async deleteAll(): Promise<number> {
+    public async deleteAll(): Promise<boolean> {
         const entities: RegionEntity[] = await this.regionsRepo.find();
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.regionsRepo.remove(entities);
-        return entities.length;
+        return true;
     }
 
     private getViewRegionDto(entity: RegionEntity): ViewRegionDto {

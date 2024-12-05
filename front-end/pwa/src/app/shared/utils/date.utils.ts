@@ -37,7 +37,7 @@ export class DateUtils {
     static getHours(hourIds?: number[]): { id: number, name: string }[] {
         const allHours: { id: number, name: string }[] = [];
         for (let i = 0; i <= 23; i++) {
-            allHours.push({ id: i, name: `Hour ${i.toString().padStart(2, '0')}` });
+            allHours.push({ id: i, name: `${i.toString().padStart(2, '0')}` });
         }
 
         if (hourIds) {

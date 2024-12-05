@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Query, Req, StreamableFile, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
@@ -16,7 +16,7 @@ export class StationsController {
   constructor(
     private stationsService: StationsService,
     private stationImportExportService: StationsImportExportService,
-    private fileIOService: FileIOService
+    private fileIOService: FileIOService,
   ) { }
 
   @Get()
@@ -37,7 +37,6 @@ export class StationsController {
     return this.stationsService.count(viewQueryDto);
   }
 
-
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="stations.csv"')
@@ -45,25 +44,24 @@ export class StationsController {
     @Req() request: Request,
   ) {
     // Fetch stations and generate the CSV file
-    const csvFilePath = await this.stationImportExportService.exportStationsToCsv(AuthUtil.getLoggedInUser(request).id);
+    const csvFilePath = await this.stationImportExportService.export(AuthUtil.getLoggedInUser(request).id);
 
     // Stream the file to the response
-    const fileStream = this.fileIOService.createReadStream(csvFilePath);
-    return new StreamableFile(fileStream);
+    return this.fileIOService.createStreamableFile(csvFilePath);
   }
 
   @Admin()
   @Post()
-  async create(
+  async add(
     @Req() request: Request,
     @Body() item: CreateStationDto): Promise<CreateStationDto> {
-    return this.stationsService.create(item, AuthUtil.getLoggedInUserId(request));
+    return this.stationsService.add(item, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()
-  @Post('upload')
+  @Put('upload')
   @UseInterceptors(FileInterceptor('file'))
-  async importFile(
+  async import(
     @Req() request: Request,
     @UploadedFile(new ParseFilePipe({
       validators: [
@@ -73,7 +71,7 @@ export class StationsController {
     })
     ) file: Express.Multer.File) {
     try {
-      await this.stationImportExportService.importStations(file, AuthUtil.getLoggedInUserId(request));
+      await this.stationImportExportService.import(file, AuthUtil.getLoggedInUserId(request));
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -87,6 +85,12 @@ export class StationsController {
     @Param('id') id: string,
     @Body() item: UpdateStationDto): Promise<CreateStationDto> {
     return this.stationsService.update(id, item, AuthUtil.getLoggedInUserId(request));
+  }
+
+  @Admin()
+  @Delete()
+  async deleteAll() {
+    return this.stationsService.deleteAll();
   }
 
   @Admin()

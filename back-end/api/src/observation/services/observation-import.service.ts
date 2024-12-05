@@ -9,9 +9,10 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import * as path from 'node:path';
 import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto'; 
+import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 
 
 
@@ -50,37 +51,35 @@ export class ObservationImportService {
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
                 await this.importTabularSource(sourceDef, tmpFilePathName, userId, username, stationId);
             } else {
-                throw new BadRequestException("Source not supported yet");
+                throw new BadRequestException("Error: Source not supported yet");
             }
 
         } catch (error) {
             console.error("File Import Failed: " + error)
-            throw new BadRequestException("File Import Failed: " + error);
+            throw new BadRequestException("Error: File Import Failed: " + error);
         } finally {
             this.fileIOService.deleteFile(tmpFilePathName);
         }
     }
 
     private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, username: string, stationId?: string) {
-
         const sourceId: number = sourceDef.id;
         const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
         const tabularDef: CreateImportTabularSourceDTO = importDef.dataStructureParameters as CreateImportTabularSourceDTO;
 
         const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
         // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-        const importParams: string[] = ['all_varchar = true', 'header = false', `skip = ${tabularDef.rowsToSkip}`];
+        const importParams: string[] = ['header = false', `skip = ${tabularDef.rowsToSkip}`, 'all_varchar = true'];
         if (tabularDef.delimiter) {
             importParams.push(`delim = '${tabularDef.delimiter}'`);
         }
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        // TODO. Should we create a temporary table, will it have any significance?
         await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
 
         let alterSQLs: string;
         // Rename all columns to use the expected suffix column indices
-        alterSQLs = await this.getRenameColumnNamesSQL(tmpObsTableName);
+        alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpObsTableName);
 
         // Add source column
         alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
@@ -119,22 +118,7 @@ export class ObservationImportService {
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
 
         // Save the rows into the database
-        console.log(rows[0], ' | datetime: ');
-
-        await this.observationsService.save(rows as CreateObservationDto[], userId, username);
-    }
-
-    private async getRenameColumnNamesSQL(tableName: string): Promise<string> {
-        // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
-        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'. 
-        // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
-
-        const sourceColumnNames: string[] = (await this.fileIOService.duckDb.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
-        let sql: string = "";
-        for (let i = 0; i < sourceColumnNames.length; i++) {
-            sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
-        }
-        return sql;
+        await this.observationsService.bulkPut(rows as CreateObservationDto[], userId, username);
     }
 
     private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {
@@ -145,7 +129,7 @@ export class ObservationImportService {
             sql = `ALTER TABLE ${tableName} RENAME column${stationDefinition.columnPosition - 1} TO ${this.STATION_ID_PROPERTY_NAME};`;
 
             if (stationDefinition.stationsToFetch) {
-                sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true);
+                sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.STATION_ID_PROPERTY_NAME, stationDefinition.stationsToFetch, true);
             }
 
             // Ensure there are no nulls in the station column
@@ -177,7 +161,7 @@ export class ObservationImportService {
                 sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                 if (flagDefinition.flagsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                 }
 
             } else {
@@ -191,7 +175,7 @@ export class ObservationImportService {
                 // Element column
                 sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
                 if (singleColumn.elementsToFetch) {
-                    sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
                 }
                 //--------------------------
 
@@ -207,7 +191,7 @@ export class ObservationImportService {
                     sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
 
                     if (flagDefinition.flagsToFetch) {
-                        sql = sql + ObservationImportService.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
                     }
 
                 } else {
@@ -259,29 +243,6 @@ export class ObservationImportService {
         return sql;
     }
 
-    public static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[], includeNullDeletes: boolean): string {
-        // Add single quotes that will be used for the alter sqls
-        valuesToFetch = valuesToFetch.map(item => {
-            return { sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }
-        });
-
-        // Delete any record that is not supposed to be fetched .    
-        let sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-
-        if (includeNullDeletes) {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-        } else {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} IS NOT NULL AND ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-        }
-
-        // Update the source element ids with the equivalent database ids
-        for (const value of valuesToFetch) {
-            sql = sql + `UPDATE ${tableName} SET ${columnName} = ${value.databaseId} WHERE ${columnName} = ${value.sourceId};`;
-        }
-
-        return sql;
-    }
-
     private getAlterPeriodColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string;
         if (source.periodDefinition.columnPosition !== undefined) {
@@ -311,8 +272,10 @@ export class ObservationImportService {
         if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
             // Rename the date time column
             sql = `ALTER TABLE ${tableName} RENAME COLUMN column${importDef.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
+
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+
             // Convert all values to a valid sql timestamp that ignores the microseconds
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
         } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
@@ -338,6 +301,7 @@ export class ObservationImportService {
 
         // change the date_time back to varchar as expected by the dto
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR;`;
+
         // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
         sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
@@ -13,11 +13,19 @@ import { StationCacheModel, StationsCacheService } from '../../services/stations
   templateUrl: './station-characteristics-edit-dialog.component.html',
   styleUrls: ['./station-characteristics-edit-dialog.component.scss']
 })
-export class StationCharacteristicsEditDialogComponent {
+export class StationCharacteristicsEditDialogComponent implements OnChanges {
+  @Input()
+  public open!: boolean;
+
+  @Input()
+  public editStationId!: string;
+
   @Output()
   public ok = new EventEmitter<void>();
 
-  protected open: boolean = false;
+  @Output()
+  public cancelClick = new EventEmitter<void>();
+
   protected title: string = "";
   protected station!: CreateStationModel;
   protected bNew: boolean = false;
@@ -27,11 +35,20 @@ export class StationCharacteristicsEditDialogComponent {
     private pagesDataService: PagesDataService,) { }
 
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.open) {
+      this.setupDialog(this.editStationId);
+    }
+  }
+
   public openDialog(stationId?: string): void {
     this.open = true;
+    this.setupDialog(stationId);
+  }
+
+  private setupDialog(stationId?: string): void {
     if (stationId) {
       this.title = "Edit Station";
-
       this.stationsCacheService.findOne(stationId).pipe(
         take(1),
       ).subscribe(foundStation => {
@@ -64,9 +81,6 @@ export class StationCharacteristicsEditDialogComponent {
           }
         }
       });
-
-
-
     } else {
       this.bNew = true;
       this.title = "New Station";
@@ -89,7 +103,6 @@ export class StationCharacteristicsEditDialogComponent {
         comment: '',
       };
     }
-
   }
 
   protected onStationObsMethodChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {
@@ -148,16 +161,21 @@ export class StationCharacteristicsEditDialogComponent {
         message = this.bNew ? "New Station Created" : "Station Updated";
         messageType = 'success';
       } else {
-        message = "Error in saving element";
+        message = "Error in saving station";
         messageType = 'error';
         //return;
       }
 
       this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });
       this.open = false;
+      this.stationsCacheService.checkForUpdates();
       this.ok.emit();
     });
-
-
   }
+
+  protected onCancelClick(): void {
+    this.cancelClick.emit();
+  }
+
+
 }

@@ -27,7 +27,9 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.generalSettingsService.findOne(SettingIds.DEFAULT_MAP_VIEW).subscribe((data) => {
+    this.generalSettingsService.findOne(SettingIds.DEFAULT_MAP_VIEW).pipe(
+      take(1)
+    ).subscribe((data) => {
       if (data && data.parameters) {
         this.initMap(data.parameters as Settings1ParamsModel);
         this.addStationsToMap();
@@ -54,7 +56,9 @@ export class DashboardComponent implements AfterViewInit {
 
   private addStationsToMap(): void {
     // Get all the stations and add them to leaflet as a layer.
-    this.stationsCacheService.cachedStations.subscribe((data) => {
+    this.stationsCacheService.cachedStations.pipe(
+      take(1)
+    ).subscribe((data) => {
       const featureCollection: any = {
         "type": "FeatureCollection",
         "features": data.map(item => {

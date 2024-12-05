@@ -31,8 +31,7 @@ import { SourceEntity } from './sources/entities/source.entity';
 import { ElementsService } from './elements/services/elements.service';
 import { QCTestEntity } from './elements/entities/qc-test.entity';
 import { QCTestsController } from './elements/controllers/qc-tests.controller';
-import { QCTestsService } from './elements/services/qc-tests.service';
-import { MetadataMigrationService } from './metadata-migration.service';
+import { QCTestsService } from './elements/services/qc-tests.service'; 
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
@@ -43,6 +42,7 @@ import { StationNetworkAffiliationEntity } from './stations/entities/station-net
 import { MetadataUpdatesController } from './metadata-updates/metadata-updates.controller';
 import { ElementTypesService } from './elements/services/element-types.service';
 import { ElementSubdomainsService } from './elements/services/element-subdomains.service';
+import { ElementsImportExportService } from './elements/services/elements-import-export.service';
 
 @Module({
     imports: [
@@ -92,13 +92,14 @@ import { ElementSubdomainsService } from './elements/services/element-subdomains
         StationElementsService,
         StationFormsService,
         QCTestsService,
-        RegionsService,
-        MetadataMigrationService,
+        RegionsService, 
         StationsImportExportService,
+        ElementsImportExportService,
     ],
 
-    // TODO. Check if these need to be exported
     exports: [
+        ElementSubdomainsService,
+        ElementTypesService,
         ElementsService,
         SourcesService,
         StationObsEnvService,
@@ -108,7 +109,6 @@ import { ElementSubdomainsService } from './elements/services/element-subdomains
         StationFormsService,
         QCTestsService,
         RegionsService,
-        MetadataMigrationService,
     ]
 })
 export class MetadataModule { }

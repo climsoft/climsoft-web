@@ -9,7 +9,6 @@ import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum
 import { take } from 'rxjs';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { SourcesCacheService } from '../services/sources-cache.service';
 
 // TODO. Try using angular forms?
@@ -34,8 +33,8 @@ export class FormSourceDetailComponent implements OnInit {
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
   protected utcDifference: number = 0;
-  protected enforceLimitCheck: boolean = true;
-  protected allowMissingValue: boolean = false;
+  protected enforceLimitCheck: boolean = false;
+  protected allowMissingValue: boolean = true;
   protected requireTotalInput: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
@@ -59,23 +58,24 @@ export class FormSourceDetailComponent implements OnInit {
       this.formSourcesService.findOne(sourceId).pipe(
         take(1)
       ).subscribe(data => {
-        if(data){
+        if (data) {
           this.viewSource = data;
           this.setControlValues(this.viewSource.parameters as ViewEntryFormModel);
-        }       
+        }
       });
     } else {
       const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
-      this.viewSource = { 
-        id: 0, 
-        name: '', 
-        description: '', 
-        sourceType: SourceTypeEnum.FORM, 
-        utcOffset: 0, 
-        allowMissingValue: false, 
-        scaleValues : true, // By default forms usually have scaled values.
-        sampleImage: '', 
-        parameters: entryForm };
+      this.viewSource = {
+        id: 0,
+        name: '',
+        description: '',
+        sourceType: SourceTypeEnum.FORM,
+        utcOffset: 0,
+        allowMissingValue: true,
+        scaleValues: true, // By default forms usually have scaled values.
+        sampleImage: '',
+        parameters: entryForm
+      };
       this.pagesDataService.setPageHeader('New Form Parameters');
     }
   }
@@ -235,7 +235,7 @@ export class FormSourceDetailComponent implements OnInit {
       allowMissingValue: this.allowMissingValue,
       sampleImage: '',
       parameters: entryForm,
-      scaleValues : true // By default form values are always scaled
+      scaleValues: true // By default form values are always scaled
     }
 
     if (this.viewSource.id === 0) {
@@ -267,12 +267,12 @@ export class FormSourceDetailComponent implements OnInit {
   protected onDelete(): void {
     //todo. prompt for confirmation first
     this.formSourcesService.delete(this.viewSource.id).subscribe((data) => {
-      if(data){
+      if (data) {
         this.location.back();
-      }else{
+      } else {
         //TODO. Show error
       }
-      
+
     });
 
   }

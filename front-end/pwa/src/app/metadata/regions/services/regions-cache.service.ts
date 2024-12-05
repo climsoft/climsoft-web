@@ -79,8 +79,8 @@ export class RegionsCacheService {
             );
     }
 
-    public deleteAll(): Observable<number> {
-        return this.http.delete<number>(`${this.endPointUrl}/delete-all`)
+    public deleteAll(): Observable<boolean> {
+        return this.http.delete<boolean>(`${this.endPointUrl}`)
           .pipe(
             tap(() => {
                 this.checkForUpdates();

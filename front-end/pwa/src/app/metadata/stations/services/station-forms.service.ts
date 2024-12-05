@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, Subject, catchError, concat, concatMap, from, map, of, take, tap, throwError } from 'rxjs';
+import { EMPTY, Observable, catchError, concat, from, map, tap, throwError } from 'rxjs';
 import { ViewSourceModel } from '../../sources/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
 import { environment } from 'src/environments/environment';
@@ -13,16 +13,6 @@ export class StationFormsService {
   private endPointUrl: string = `${environment.apiUrl}/station-forms`;
 
   constructor(private http: HttpClient) { }
-
-  // public find(stationId: string): Observable<ViewSourceModel[]> {
-  //   return this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/${stationId}`)
-  //     .pipe(
-  //       take(1),
-  //       catchError(this.handleError)
-  //     );
-  // }
-
-
 
   public find(stationId: string): Observable<ViewSourceModel[]> {
     // Step 1: Observable for fetching from the local database

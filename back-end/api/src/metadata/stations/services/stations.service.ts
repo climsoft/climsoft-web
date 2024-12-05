@@ -67,7 +67,7 @@ export class StationsService {
         return this.createViewDto(entity);
     }
 
-    public async create(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
+    public async add(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
         let entity: StationEntity | null = await this.stationRepo.findOneBy({
             id: createDto.id,
         });
@@ -80,7 +80,7 @@ export class StationsService {
             id: createDto.id,
         });
 
-        StationsService.updateStationEntity(entity, createDto, userId);
+        this.updateEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
 
@@ -91,7 +91,7 @@ export class StationsService {
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
 
-        StationsService.updateStationEntity(entity, updateDto, userId);
+        this.updateEntity(entity, updateDto, userId);
 
         console.log('entity: ', entity);
 
@@ -114,7 +114,7 @@ export class StationsService {
         return entity;
     }
 
-    public static updateStationEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
+    private updateEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : '';
         entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
@@ -123,15 +123,15 @@ export class StationsService {
         } : null;
         entity.elevation = (dto.elevation !== undefined && dto.elevation !== null) ? dto.elevation : null;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
-        entity.obsEnvironmentId = dto.stationObsEnvironmentId;
-        entity.obsFocusId = dto.stationObsFocusId;
-        entity.wmoId = dto.wmoId;
-        entity.wigosId = dto.wigosId;
-        entity.icaoId = dto.icaoId;
-        entity.status = dto.status;
+        entity.obsEnvironmentId = dto.stationObsEnvironmentId ? dto.stationObsEnvironmentId : null;
+        entity.obsFocusId = dto.stationObsFocusId ? dto.stationObsFocusId : null;
+        entity.wmoId = dto.wmoId ? dto.wmoId : null;
+        entity.wigosId = dto.wigosId ? dto.wigosId : null;
+        entity.icaoId = dto.icaoId ? dto.icaoId : null;
+        entity.status = dto.status ? dto.status : null;
         entity.dateEstablished = dto.dateEstablished ? new Date(dto.dateEstablished) : null;
         entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
-        entity.comment = dto.comment;
+        entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
     }
 
@@ -154,6 +154,64 @@ export class StationsService {
             dateClosed: entity.dateClosed ? entity.dateClosed.toISOString() : null,
             comment: entity.comment,
         }
+    }
+
+    public async bulkPut(dtos: CreateStationDto[], userId: number) {
+        const entities: Partial<StationEntity>[] = [];
+        for (const dto of dtos) {
+            const entity: StationEntity = await this.stationRepo.create({
+                id: dto.id,
+            });
+
+            this.updateEntity(entity, dto, userId);
+            entities.push(entity);
+        }
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < entities.length; i += batchSize) {
+            const batch = entities.slice(i, i + batchSize);
+            await this.insertOrUpdateValues(batch);
+        }
+    }
+
+    private async insertOrUpdateValues(entities: Partial<StationEntity>[]): Promise<void> {
+        await this.stationRepo
+            .createQueryBuilder()
+            .insert()
+            .into(StationEntity)
+            .values(entities)
+            .orUpdate(
+                [
+                    "name",
+                    "description",
+                    "observation_processing_method",
+                    "location",
+                    "elevation",
+                    "observation_environment_id",
+                    "observation_focus_id",
+                    "organisation_id",
+                    "wmo_id",
+                    "wigos_id",
+                    "icao_id",
+                    "status",
+                    "date_established",
+                    "date_closed",
+                    "comment",
+                    "entry_user_id"
+                ],
+                ["id"],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
+    }
+
+    public async deleteAll(): Promise<boolean> {
+        const entities: StationEntity[] = await this.stationRepo.find();
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
+        await this.stationRepo.remove(entities);
+        return true;
     }
 
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto, stationIds?: string[]): Promise<MetadataUpdatesDto> {

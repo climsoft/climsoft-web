@@ -1,9 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { Observable, take } from 'rxjs';
-import { ElementDomainEnum } from 'src/app/metadata/elements/models/element-domain.enum';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 
@@ -12,11 +10,19 @@ import { ElementsCacheService } from '../services/elements-cache.service';
   templateUrl: './element-characteristics-input-dialog.component.html',
   styleUrls: ['./element-characteristics-input-dialog.component.scss']
 })
-export class ElementCharacteristicsInputDialogComponent {
+export class ElementCharacteristicsInputDialogComponent implements OnChanges {
+  @Input()
+  public open!: boolean;
+
+  @Input()
+  public editElementd!: number;
+
   @Output()
   public ok = new EventEmitter<void>();
 
-  protected open: boolean = false;
+  @Output()
+  public cancelClick = new EventEmitter<void>();
+
   protected title: string = "";
   protected bNew: boolean = false;
   protected element!: CreateViewElementModel;
@@ -25,9 +31,18 @@ export class ElementCharacteristicsInputDialogComponent {
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService) { }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.open) {
+      this.setupDialog(this.editElementd);
+    }
+  }
+
   public openDialog(elementId?: number): void {
     this.open = true;
+    this.setupDialog(elementId);
+  }
 
+  private setupDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
       this.bNew = false;
@@ -62,7 +77,6 @@ export class ElementCharacteristicsInputDialogComponent {
         comment: null
       };
     }
-
   }
 
   protected onTypeChange(typeId: number | null): void {
@@ -106,5 +120,9 @@ export class ElementCharacteristicsInputDialogComponent {
       this.pagesDataService.showToast({ title: "Element Characteristics", message: message, type: messageType });
       this.ok.emit();
     });
+  }
+
+  protected onCancelClick(): void {
+    this.cancelClick.emit();
   }
 }

@@ -1,5 +1,5 @@
 export interface StationObservationFocusDto {
-    id: string;
+    id: number;
     name: string;
     description: string;
 }

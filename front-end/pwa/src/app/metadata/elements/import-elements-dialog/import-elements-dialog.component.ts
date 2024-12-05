@@ -2,15 +2,15 @@ import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { environment } from 'src/environments/environment';
-import { StationsCacheService } from '../services/stations-cache.service';
+import { environment } from 'src/environments/environment'; 
+import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
-  selector: 'app-import-stations-dialog',
-  templateUrl: './import-stations-dialog.component.html',
-  styleUrls: ['./import-stations-dialog.component.scss']
+  selector: 'app-import-elements-dialog',
+  templateUrl: './import-elements-dialog.component.html',
+  styleUrls: ['./import-elements-dialog.component.scss']
 })
-export class ImportStationsDialogComponent implements OnChanges {
+export class ImportElementsDialogComponent implements OnChanges {
   @Input()
   public open: boolean = false;
 
@@ -30,7 +30,7 @@ export class ImportStationsDialogComponent implements OnChanges {
   protected fileName: string = "";
 
   constructor(
-    private stationsCacheService: StationsCacheService,
+    private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
   }
@@ -84,7 +84,7 @@ export class ImportStationsDialogComponent implements OnChanges {
     formData.append('file', selectedFile);
 
     const params = new HttpParams();
-    const url = `${environment.apiUrl}/stations/upload`;
+    const url = `${environment.apiUrl}/elements/upload`;
 
     this.http.put(
       url,
@@ -123,10 +123,10 @@ export class ImportStationsDialogComponent implements OnChanges {
           let response: string = (event.body as any).message;
           if (response === "success") {
             this.open = false; // close the dialog
-            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' });
+            this.pagesDataService.showToast({ title: 'Elements Import', message: 'Elements imported successfully', type: 'success' });
 
             // Refresh the cache
-            this.stationsCacheService.checkForUpdates();
+            this.elementsCacheService.checkForUpdates();
             this.okClick.emit();
           } else {
             this.uploadMessage = response;

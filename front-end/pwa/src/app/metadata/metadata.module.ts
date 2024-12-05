@@ -45,6 +45,7 @@ import { QCTestContextualParamsComponent } from './elements/element-detail/qc-te
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
+import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import { StationsSearchDialogComponent } from './stations/stations-search-dialog
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
+    ImportElementsDialogComponent,
     QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,

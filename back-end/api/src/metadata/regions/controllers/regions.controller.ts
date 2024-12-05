@@ -51,8 +51,8 @@ export class RegionsController {
   }
 
   @Admin()
-  @Delete('delete-all')
-  async delete() {
+  @Delete()
+  async deleteAll() {
     return this.regionsService.deleteAll();
   }
 

@@ -99,7 +99,7 @@ export class FormEntryDefinition {
             case 'DAY':
                 //create field definitions for days of the selected month only
                 //note, there is no days selection in the form builder
-                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue - 1);
+                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue - 1, '');
                 break;
             case 'HOUR':
                 //create field definitions for the selected hours only
