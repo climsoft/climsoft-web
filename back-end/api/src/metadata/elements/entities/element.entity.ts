@@ -14,7 +14,7 @@ export class ElementEntity extends AppBaseEntity {
   name: string;
 
   @Column({ type: "varchar", name: "description", nullable: true })
-  description: string;
+  description: string | null;
 
   @Column({ type: "varchar", name: "units" })
   units: string;

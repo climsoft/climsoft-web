@@ -149,11 +149,11 @@ export class ElementsService {
     private updateEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
-        entity.description = dto.description;
+        entity.description = dto.description? dto.description: null;
         entity.units = dto.units;
         entity.typeId = dto.typeId;
-        entity.entryScaleFactor = dto.entryScaleFactor;
-        entity.comment = dto.comment;
+        entity.entryScaleFactor = dto.entryScaleFactor? dto.entryScaleFactor : null;
+        entity.comment = dto.comment? dto.comment: null;
         entity.entryUserId = userId;
     }
 

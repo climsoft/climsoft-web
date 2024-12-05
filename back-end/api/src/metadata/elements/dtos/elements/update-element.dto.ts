@@ -8,8 +8,9 @@ export class UpdateElementDto {
     @IsString()
     name: string;
 
+    @IsOptional()
     @IsString()
-    description: string;
+    description: string | null;
 
     @IsString()
     units: string;
