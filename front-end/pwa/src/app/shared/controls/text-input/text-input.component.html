@@ -2,27 +2,52 @@
   [maxHeight]="dropDownOptionMaxHeight">
   <div main-content>
     <label *ngIf="label" [for]="id? id:label">{{ label + ':' }}</label>
-    <div [class.input-group]="includeDropDownOption || includeCancelOption">
+    <div  
+      [class.input-group]="includeDropDownOption || includeCancelOption || displayExtraInfoOption  || warningMessage || errorMessage">
 
       <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"
-        [disabled]="disabled" [readOnly]="readonly" [class.text-danger]="errorMessage" [class.text-success]="showChanges && !errorMessage" [value]="value" [attr.max]="max"
+        [disabled]="disabled" [readOnly]="readonly" [class.bg-danger]="errorMessage" [class.bg-warning]="warningMessage"
+        [class.text-success]="showChanges && !errorMessage" [value]="value" [attr.max]="max"
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
-        (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" appSimulateTabOnEnter />
+        (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" appSimulateTabOnEnter/>
 
-      <!-- btn-input-group class is needed to prevent tab selection on enter key press -->
-      <button *ngIf="includeDropDownOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
-        (click)="onDropDownButtonClick()">
-        <app-toggle-chevron [open]="displayDropDown" />
+      <!-- Note in all the buttons below, btn-input-group class is needed to prevent tab selection on enter key press -->
+
+      <button *ngIf="warningMessage && !errorMessage" type="button"
+        class="btn btn-sm btn-outline-warning btn-input-group" (click)="dlgWarningMessage.openDialog()">
+        <i class="bi bi-exclamation-triangle-fill"></i>
       </button>
+
+      <app-dialog #dlgWarningMessage [title]="'Warning'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
+        <div>{{ warningMessage }}</div>
+      </app-dialog>
+
+
+      <button *ngIf="errorMessage" type="button" class="btn btn-sm btn-outline-danger btn-input-group"
+        (click)="dlgErrorMessage.openDialog()">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+      </button>
+
+      <app-dialog #dlgErrorMessage [title]="'Error'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
+        <div>{{ errorMessage }}</div>
+      </app-dialog>
 
       <button *ngIf="includeCancelOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
         (click)="onCancelOptionClick()">
         <i class="bi bi-x"></i>
       </button>
 
-    </div>
+      <button *ngIf="displayExtraInfoOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+        (click)="onDisplayExtraInfoClick()">
+        <i class="bi bi-info"></i>
+      </button>
 
-    <div class="form-text" [class.text-danger]="errorMessage">{{ errorMessage ? errorMessage : hintMessage }}</div>
+      <button *ngIf="includeDropDownOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+        (click)="onDropDownButtonClick()">
+        <app-toggle-chevron [open]="displayDropDown" />
+      </button>
+
+    </div>
 
   </div>
 

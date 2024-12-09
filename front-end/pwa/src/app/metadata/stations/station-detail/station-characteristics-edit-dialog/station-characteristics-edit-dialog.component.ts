@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationsService } from 'src/app/core/services/stations/stations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
@@ -156,13 +156,13 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
       take(1)
     ).subscribe((data) => {
       let message: string;
-      let messageType: 'success' | 'error';
+      let messageType: ToastEventTypeEnum;
       if (data) {
         message = this.bNew ? "New Station Created" : "Station Updated";
-        messageType = 'success';
+        messageType = ToastEventTypeEnum.SUCCESS;
       } else {
         message = "Error in saving station";
-        messageType = 'error';
+        messageType = ToastEventTypeEnum.ERROR;
         //return;
       }
 

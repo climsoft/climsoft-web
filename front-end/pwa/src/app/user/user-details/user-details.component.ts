@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { CreateUserModel } from 'src/app/core/models/users/create-user.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { UserRoleEnum } from 'src/app/core/models/users/user-role.enum';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users/users.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewUserModel } from 'src/app/core/models/users/view-user.model';
@@ -77,7 +77,7 @@ export class UserDetailsComponent implements OnInit {
     if (this.viewUser.id > 0) {
       this.usersService.update(this.viewUser.id, createUser).subscribe((data) => {
         if (data) {
-          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} updated`, type: 'success' });
+          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS});
           this.location.back();
         }
       });
@@ -85,7 +85,7 @@ export class UserDetailsComponent implements OnInit {
     } else {
       this.usersService.create(createUser).subscribe((data) => {
         if (data) {
-          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} saved`, type: 'success' });
+          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
           this.location.back();
         }
       });

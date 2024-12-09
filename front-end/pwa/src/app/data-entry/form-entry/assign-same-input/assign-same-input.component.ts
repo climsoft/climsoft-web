@@ -17,6 +17,10 @@ export class AssignSameInputComponent {
 
   protected input: SameInputStruct = { valueFlag: '', comment: '' };
 
+  public openDialog(): void {
+    this.open = true;
+  }
+
   protected onOkClick(): void {
     this.ok.emit(this.input);
   }

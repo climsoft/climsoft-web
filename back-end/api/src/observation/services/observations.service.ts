@@ -164,7 +164,7 @@ export class ObservationsService {
             sourceId: queryDto.sourceId,
             elevation: queryDto.elevation,
             datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
-            period: queryDto.period,
+            //period: queryDto.period,
             deleted: false
         });
 

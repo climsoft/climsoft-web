@@ -12,7 +12,7 @@ import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-ty
 import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 
 @Component({
   selector: 'app-qc-test-input-dialog',
@@ -184,13 +184,13 @@ export class QCTestInputDialogComponent {
       take(1)
     ).subscribe((data) => {
       let message: string;
-      let messageType: 'success' | 'error';
+      let messageType: ToastEventTypeEnum;
       if (data) {
         message = this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`;
-        messageType = 'success';
+        messageType = ToastEventTypeEnum.SUCCESS;
       } else {
         message = "Error in saving qc test";
-        messageType = 'error';
+        messageType = ToastEventTypeEnum.ERROR;
       }
       this.pagesDataService.showToast({ title: "QC Tests", message: message, type: messageType });
       this.ok.emit();
@@ -202,13 +202,13 @@ export class QCTestInputDialogComponent {
       take(1)
     ).subscribe((data) => {
       let message: string;
-      let messageType: 'success' | 'error';
+      let messageType: ToastEventTypeEnum;
       if (data) {
         message = `qc test deleted`;
-        messageType = 'success';
+        messageType = ToastEventTypeEnum.SUCCESS;
       } else {
         message = "Error in deleting qc test";
-        messageType = 'error';
+        messageType = ToastEventTypeEnum.ERROR;
       }
       this.pagesDataService.showToast({ title: "QC Tests", message: message, type: messageType });
       this.ok.emit();

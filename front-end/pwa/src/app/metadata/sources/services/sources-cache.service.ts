@@ -49,7 +49,7 @@ export class SourcesCacheService {
         );
     }
 
-    public create(createDto: CreateUpdateSourceModel): Observable<ViewSourceModel> {
+    public put(createDto: CreateUpdateSourceModel): Observable<ViewSourceModel> {
         return this.http.post<ViewSourceModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {

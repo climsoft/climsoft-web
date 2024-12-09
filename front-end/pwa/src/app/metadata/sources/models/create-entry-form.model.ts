@@ -23,14 +23,6 @@ export interface CreateEntryFormModel extends SourceParametersValidity {
     /** Period for observation */
     period: number;
 
-
-    /**
-     * Determines whether to allow entries that don't pass observation limits.
-     * If true, when limits are exceeded, data entry will not be allowed.
-     * Note, this is only enforced on the front end.
-     */
-    enforceLimitCheck: boolean;
-
     /**
      * Determines whether user is required to type in observation total or not.
      * Note, this is only enforced on the front end.

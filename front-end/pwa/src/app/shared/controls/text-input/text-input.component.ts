@@ -10,6 +10,10 @@ export class TextInputComponent implements OnChanges {
   @Input() public includeDropDownOption: boolean = false;
   @Input() public dropDownOptionMaxHeight: number = 200;
   @Input() public includeCancelOption: boolean = false;
+  @Output() public dropDownOptionClick = new EventEmitter<void>();
+
+  @Input() public displayExtraInfoOption: boolean = false;
+  @Output() public displayExtraInfoOptionClick = new EventEmitter<void>();
 
   @Input() public type: string = "text";
   @Input() public id!: string | number;
@@ -18,14 +22,15 @@ export class TextInputComponent implements OnChanges {
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public showChanges: boolean = false;
-  @Input() public hintMessage: string = "";
-  @Input() public errorMessage: string | null = "";
+  @Input() public hintMessage: string | null | undefined; // TODO. Null not needed
+  @Input() public errorMessage: string | null | undefined; // TODO. Null not needed
+  @Input() public warningMessage: string | undefined;
   @Input() public value: string | number | null = "";
   @Output() public valueChange = new EventEmitter<string>();
   @Output() public inputClick = new EventEmitter<string>();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();
   @Output() public inputBlur = new EventEmitter<string>();
-  @Output() public dropDownOptionClick = new EventEmitter<void>();
+
 
 
   // For Year-month and date control
@@ -71,6 +76,10 @@ export class TextInputComponent implements OnChanges {
   // Called by a directive
   protected closeDropdown(): void {
     this.showDropDown(false);
+  }
+
+  protected onDisplayExtraInfoClick(): void{
+    this.displayExtraInfoOptionClick.emit();
   }
 
 }

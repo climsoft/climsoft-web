@@ -17,7 +17,7 @@ export class LnearLayoutComponent implements OnChanges {
   public refreshLayout!: boolean;
 
   @Input()
-  public displayHistoryOption!: boolean;
+  public displayExtraInfoOption!: boolean;
 
   /** Emitted when observation value is changed */
   @Output()

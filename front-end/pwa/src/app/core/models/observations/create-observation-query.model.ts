@@ -4,5 +4,5 @@ export interface CreateObservationQueryModel {
     sourceId: number;
     elevation: number;   
     datetimes: string[];
-    period: number;
+    //period: number;
 }

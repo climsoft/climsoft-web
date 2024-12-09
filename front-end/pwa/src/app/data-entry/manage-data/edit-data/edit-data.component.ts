@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { take } from 'rxjs';
@@ -254,13 +254,13 @@ export class EditDataComponent {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: 'success'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
         });
 
         this.onViewClick();
       } else {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
         });
       }
     });
@@ -295,13 +295,13 @@ export class EditDataComponent {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: 'success'
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
         });
 
         this.onViewClick();
       } else {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: 'error'
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
         });
       }
     });

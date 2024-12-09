@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
@@ -90,7 +90,7 @@ export class StationLimitsComponent implements OnInit {
       tap(data => {
         if (data.length > 0) {
           const message: string = action === "ADD" ? "Elements Added" : "Elements Deleted";
-          this.pagesDataService.showToast({ title: "Station Element", message: message, type: "success" });
+          this.pagesDataService.showToast({ title: "Station Element", message: message, type: ToastEventTypeEnum.SUCCESS });
         }
       }),
       catchError(error => {
@@ -122,7 +122,7 @@ export class StationLimitsComponent implements OnInit {
     this.stationElementsService.saveStationElementLimits(this.station.id, elementId, elementLimits).subscribe(data => {
       if (data.length > 0) {
         this.elementLimits = data;
-        this.pagesDataService.showToast({ title: "Element Limits", message: "Element limits saved", type: "success" });
+        this.pagesDataService.showToast({ title: "Element Limits", message: "Element limits saved", type: ToastEventTypeEnum.SUCCESS });
       }
     });
 

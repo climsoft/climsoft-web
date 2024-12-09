@@ -16,7 +16,7 @@ export class GridLayoutComponent implements OnChanges {
   public refreshLayout!: boolean;
 
   @Input()
-  public displayHistoryOption!: boolean;
+  public displayExtraInfoOption!: boolean;
 
   /** Emitted when observation value is changed */
   @Output()
@@ -38,6 +38,8 @@ export class GridLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
+  protected useTableLayout: boolean = true;// TODO. Temporary
+
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -50,10 +52,7 @@ export class GridLayoutComponent implements OnChanges {
       this.observationsDefinitions = this.formDefinitions.obsDefsForGridLayout;
       // Important to statically fill with undefined values for working with 'some' and 'every' array functions
       this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
-    } else {
-      this.observationsDefinitions = [];
     }
-
   }
 
   protected get rowHeaderName(): string {

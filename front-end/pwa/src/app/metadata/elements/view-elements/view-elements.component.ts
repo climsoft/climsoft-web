@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
@@ -56,7 +56,7 @@ export class ViewElementsComponent implements OnDestroy {
     if(option === 'Delete All'){
       this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
-          this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: "success" });
+          this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS});
         }
       });
     }

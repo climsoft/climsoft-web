@@ -34,13 +34,6 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
   @IsInt()
   period: number;
 
-  /** 
-   * Determines whether to allow entries that don't pass observation limits.
-   * If true, when limits are exceeded, data entry will not be allowed.
-   */
-  @IsBoolean()
-  enforceLimitCheck: boolean;
-
   /**
   * Determines whether user is required to type in observation total or not.
   */

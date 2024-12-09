@@ -6,6 +6,31 @@
 // }
 
 .container-max-w-sm{
-    max-width: 6.875rem;
+    // max-width: 6.875rem;
+    max-width: 6.875rem; //110px
+    // max-height: 10px;
+    //font-size: small;
+
+    font-size: 12px;
+}
+
+.row-name-col{
+    font-size: 10px;
+    max-width: 60px;
+}
+
+
+.grid-input-container{
+    // max-width: 6.875rem;
+    max-width: 6.875rem; //110px
+     //max-height: 10px;
+    //font-size: small;
+
+    font-size: 12px;
+}
+
+.grid-labels{
+    font-size: 12px;
+    //max-width: 40px;
 }
 

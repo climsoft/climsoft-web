@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ViewGeneralSettingModel } from 'src/app/core/models/settings/view-general-setting.model';
 import { GeneralSettingsService } from 'src/app/core/services/settings/general-settings.service';
@@ -54,7 +54,7 @@ export class EditGeneralSettingComponent implements OnInit {
     this.generalSettingsService.update(this.viewGeneralSetting.id, createUser).subscribe((data) => {
       this.bEnableSave = true;
       if (data) {
-        this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.id} updated`, type: 'success' });
+        this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.id} updated`, type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
       }
     });

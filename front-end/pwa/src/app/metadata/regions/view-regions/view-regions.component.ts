@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
 
@@ -49,7 +49,7 @@ export class ViewRegionsComponent implements OnDestroy {
   protected onDeleteAll(): void {
     this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: "success" });
+        this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: ToastEventTypeEnum.SUCCESS});
       }
     });
   }

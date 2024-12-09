@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
 import { Observable, take } from 'rxjs';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
@@ -109,13 +109,13 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
       take(1)
     ).subscribe((data) => {
       let message: string;
-      let messageType: 'success' | 'error';
+      let messageType: ToastEventTypeEnum;
       if (data) {
         message = this.bNew ? `${data.name} created` : `${data.name} updated`;
-        messageType = 'success';
+        messageType = ToastEventTypeEnum.SUCCESS;
       } else {
         message = "Error in saving element";
-        messageType = 'error';
+        messageType = ToastEventTypeEnum.ERROR
       }
       this.pagesDataService.showToast({ title: "Element Characteristics", message: message, type: messageType });
       this.ok.emit();

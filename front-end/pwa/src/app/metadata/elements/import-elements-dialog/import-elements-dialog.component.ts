@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { environment } from 'src/environments/environment'; 
 import { ElementsCacheService } from '../services/elements-cache.service';
 
@@ -123,7 +123,7 @@ export class ImportElementsDialogComponent implements OnChanges {
           let response: string = (event.body as any).message;
           if (response === "success") {
             this.open = false; // close the dialog
-            this.pagesDataService.showToast({ title: 'Elements Import', message: 'Elements imported successfully', type: 'success' });
+            this.pagesDataService.showToast({ title: 'Elements Import', message: 'Elements imported successfully', type: ToastEventTypeEnum.SUCCESS });
 
             // Refresh the cache
             this.elementsCacheService.checkForUpdates();

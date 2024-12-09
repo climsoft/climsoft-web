@@ -5,7 +5,7 @@ import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { ElementDomainEnum } from 'src/app/metadata/elements/models/element-domain.enum';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ElementCacheModel, ElementsCacheService } from '../services/elements-cache.service';
 
@@ -51,7 +51,7 @@ export class ElementDetailComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe(data => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Element Deleted", message: `Element ${this.element.name} deleted`, type: "success" });
+        this.pagesDataService.showToast({ title: "Element Deleted", message: `Element ${this.element.name} deleted`, type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
       }
     });

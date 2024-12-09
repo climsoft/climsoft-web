@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { CreateStationModel } from '../../../core/models/stations/create-station.model';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 
@@ -59,7 +59,7 @@ export class ViewStationsComponent implements OnDestroy {
     if(option === 'Delete All'){
       this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
-          this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: "success" });
+          this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
         }
       });
     }
