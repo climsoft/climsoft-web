@@ -51,7 +51,7 @@ export class ViewElementsComponent implements OnDestroy {
     this.elements = this.searchedIds && this.searchedIds.length > 0 ? this.allElements.filter(item => this.searchedIds.includes(item.id)) : this.allElements;
   }
 
-  protected onOptionsClick(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
+  protected onOptionsClicked(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
     this.optionClicked = option;
     if(option === 'Delete All'){
       this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {

@@ -1,16 +1,20 @@
-<app-dialog [(open)]="open" [title]="'Import Elements'" [okButtonLabel]="'Ok'" [closeOnOkClick]="false"
+<app-dialog [(open)]="open" [title]="'Import Regions'" [okButtonLabel]="'Ok'" [closeOnOkClick]="false"
   (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
 
   <div *ngIf="open" class="card border-0">
     <div class="card-body p-0">
 
+      <div class="mt-1 mb-2">
+        <app-region-type-input [label]="'Region Type'" [(selectedId)]="selectedRegionType" />
+      </div>
+
       <div class="d-flex px-1 py-0 flex-column">
-        <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
+        <div class="mb-1 d-flex justify-content-between align-items-center">
           <div class="me-2">
-            Select File
+            Select File to Upload (GADM GeoJSON)
           </div>
           <div>
-            <input #fileUpload type="file" style="display: none;" [accept]="'text/csv'"
+            <input #fileUpload type="file" style="display: none;" [accept]="'application/json'"
               (change)="onFileSelected($event)">
             <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
               (click)="fileUpload.click()">
@@ -26,12 +30,6 @@
 
       <div class="d-flex flex-column align-items-center p-2 mt-2"
         style="min-height:300px; min-width:300px; max-height: 300px; max-width: 500px; background-color:#e0f7fa;">
-        <div>
-          <div class="fw-bold">Expected Columns</div>
-          <div style="font-size: 12px;"> 
-            Id, Abbreviation, Name, Description, Units, Type, Entry scale factor, Comment
-          </div>
-        </div>
         <div *ngIf="uploadMessage" class="mt-4" [class.text-danger]="uploadError">
           {{ uploadMessage }}
         </div>

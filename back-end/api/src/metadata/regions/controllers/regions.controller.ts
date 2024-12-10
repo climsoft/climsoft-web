@@ -1,4 +1,4 @@
-import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
@@ -29,7 +29,7 @@ export class RegionsController {
   }
 
   @Admin()
-  @Post('upload/:regiontype')
+  @Put('upload/:regiontype')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Req() request: Request,

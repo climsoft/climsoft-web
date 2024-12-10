@@ -12,7 +12,7 @@ import { CreateUpdateSourceModel } from "../models/create-update-source.model";
 })
 export class SourcesCacheService {
     private endPointUrl: string = `${environment.apiUrl}/sources`;
-    private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]); 
+    private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
 
     constructor(
         private metadataUpdatesService: MetadataUpdatesService,
@@ -79,6 +79,15 @@ export class SourcesCacheService {
             );
     }
 
+    public deleteAll(): Observable<boolean> {
+        return this.http.delete<boolean>(`${this.endPointUrl}`)
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+                catchError(this.handleError)
+            );
+    }
 
     private handleError(error: HttpErrorResponse) {
 

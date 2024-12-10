@@ -25,7 +25,7 @@ export class RegionsCacheService {
         this._cachedRegions.next(await AppDatabase.instance.regions.toArray());
     }
 
-    private checkForUpdates(): void {
+    public checkForUpdates(): void {
         this.metadataUpdatesService.checkUpdates('regions').pipe(
             take(1)
         ).subscribe(res => {

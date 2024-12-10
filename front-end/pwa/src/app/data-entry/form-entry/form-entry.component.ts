@@ -97,8 +97,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
         // Gets default year-month value (YYYY-MM) used by year-month selector
         this.defaultYearMonthValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
-
-
       });
 
 

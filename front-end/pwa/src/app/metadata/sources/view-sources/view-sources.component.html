@@ -9,8 +9,8 @@
         Search
       </button> -->
       <div>
-        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Form Source','Import Source']"
-        (dropDownOptionClick)="onNewSource($event)" [translateX]="true" />
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add Form Source','Add Import Source', 'Delete All']"
+        (dropDownOptionClick)="onOptionsClicked($event)" [translateX]="true" />
       </div>
     </div>
   </div>
