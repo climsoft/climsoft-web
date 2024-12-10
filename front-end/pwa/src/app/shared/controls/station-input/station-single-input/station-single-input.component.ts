@@ -49,7 +49,7 @@ export class StationSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: CreateStationModel): string {
-    return option.name;
+    return `${option.id} - ${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: CreateStationModel | null) {

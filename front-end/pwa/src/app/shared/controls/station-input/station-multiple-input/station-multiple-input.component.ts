@@ -56,7 +56,7 @@ export class StationMultipleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: CreateStationModel): string {
-    return option.name;
+    return `${option.id} - ${option.name}`;
   }
 
   protected onSelectedOptionsChange(selectedOptions: CreateStationModel[]) {

@@ -52,7 +52,7 @@ export class ElementMultipleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: CreateViewElementModel): string {
-    return option.name;
+    return `${option.id} - ${option.name}`;
   }
 
   protected onSelectedOptionsChange(selectedOptions: CreateViewElementModel[]) {

@@ -50,7 +50,7 @@ export class ElementSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: CreateViewElementModel): string {
-    return option.name;
+    return `${option.id} - ${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: CreateViewElementModel | null) {
