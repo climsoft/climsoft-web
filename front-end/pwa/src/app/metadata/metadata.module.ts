@@ -46,6 +46,7 @@ import { QCTestConditionInputComponent } from './elements/element-detail/qc-test
 import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
+import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +96,7 @@ import { ImportElementsDialogComponent } from './elements/import-elements-dialog
     ViewStationsTableComponent,
     ViewStationsMapComponent,
     StationsSearchDialogComponent,
+    ElementsSearchDialogComponent, 
   ],
   imports: [
     SharedModule,
