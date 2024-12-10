@@ -1,6 +1,70 @@
-<div *ngIf="!useTableLayout">
+<div *ngIf="gridNavigation === 'horizontal'">
+    <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr class="table-label">
+                    <th >
+                        {{rowHeaderName}}
+                    </th>
+
+                    <th *ngFor="let colDef of colFieldDefinitions" >
+                        {{colDef.name}}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <!-- row for col name and values -->
+                <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;" >
+
+                    <!-- cell for name -->
+                    <td class="p-0 m-0 text-center align-middle table-label">
+                        {{rowDef.name}}                       
+                    </td>
+
+                    <!-- cell for values -->
+                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+                       <div class="d-flex">
+                        <div class="table-input-container">
+                            <!-- <input type="text"  [id]="rowDef.id +'-'+ colDef.id"> -->
+                            <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                                [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                                [displayExtraInfoOption]="displayExtraInfoOption"
+                                (valueChange)="onValueChange($event,colIndex)" />
+                        </div>
+                       </div>
+
+                    </td>
+
+                </tr>
+
+                <!-- row for totals columns -->
+                <tr *ngIf="formDefinitions.formMetadata.requireTotalInput">
+                    <td class="p-0 m-0 text-center align-middle table-label">
+                        Total
+                    </td>
+                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+                        <div class="d-flex">
+                            <div class="table-input-container">
+                                <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
+                                    [errorMessage]="totalErrorMessage[colIndex]"
+                                    (valueChange)="onTotalValueChange(colIndex,$event)"
+                                    (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
+                            </div>
+                        </div>
+                       
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<div *ngIf="gridNavigation === 'vertical'">
     <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0" class="row g-2">
-        <div class="col d-flex flex-column row-name-col">
+        <div class="col d-flex flex-column grid-label">
             <div class="row mb-2 d-flex flex-grow-1 fw-bold">
                 <div>
                     {{rowHeaderName}}
@@ -11,11 +75,13 @@
                     {{rowDef.name}}
                 </div>
             </div>
-            <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row me-2 mb-2 d-flex flex-grow-1">
-                TOTAL
+            <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row  d-flex flex-grow-1 fw-bold">
+                <div>
+                    TOTAL
+                </div>
             </div>
         </div>
-        <div class="col d-flex flex-column container-max-w-sm"
+        <div class="col d-flex flex-column grid-input-container"
             *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
             <!-- column name -->
             <div class="row mb-2 d-flex flex-grow-1 fw-bold">
@@ -40,70 +106,4 @@
 
         </div>
     </div>
-</div>
-
-<div *ngIf="useTableLayout">
-    <div *ngIf="observationsDefinitions && observationsDefinitions.length > 0">
-        <table class="table table-striped table-hover">
-            <thead>
-                <tr class="grid-labels">
-                    <th >
-                        {{rowHeaderName}}
-                    </th>
-
-                    <th *ngFor="let colDef of colFieldDefinitions" >
-                        {{colDef.name}}
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-
-                <!-- row for col name and values -->
-                <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;" >
-
-                    <!-- cell for name -->
-                    <td class="p-0 m-0 text-center align-middle grid-labels grid-labels">
-                        {{rowDef.name}}                       
-                    </td>
-
-                    <!-- cell for values -->
-                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                       <div class="d-flex">
-                        <div class="grid-input-container">
-                            <!-- <input type="text"  [id]="rowDef.id +'-'+ colDef.id"> -->
-                            <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                                [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                                [displayExtraInfoOption]="displayExtraInfoOption"
-                                (valueChange)="onValueChange($event,colIndex)" />
-                        </div>
-                       </div>
-
-                    </td>
-
-                </tr>
-
-                <!-- row for totals columns -->
-                <tr *ngIf="formDefinitions.formMetadata.requireTotalInput">
-                    <td class="p-0 m-0 text-center align-middle grid-labels">
-                        Total
-                    </td>
-                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                        <div class="d-flex">
-                            <div class="grid-input-container">
-                                <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
-                                    [errorMessage]="totalErrorMessage[colIndex]"
-                                    (valueChange)="onTotalValueChange(colIndex,$event)"
-                                    (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
-                            </div>
-                        </div>
-                       
-
-                    </td>
-                </tr>
-
-
-            </tbody>
-        </table>
-    </div>
-
 </div>

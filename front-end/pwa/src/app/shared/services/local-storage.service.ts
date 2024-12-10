@@ -5,9 +5,9 @@ import { Injectable } from '@angular/core';
 })
 export class LocalStorageService {
 
-  private storagePath: string = "climsoft";
+  private climsoftVersion: string = "climsoft";
   private storage: Storage | null;
-​
+
   constructor() {
     if (typeof (Storage) !== "undefined") {
       this.storage = window.localStorage;//use the localstorage javascript api
@@ -16,28 +16,29 @@ export class LocalStorageService {
       this.storage = null;
     }
   }
-​
-  public getItem(strkey: string): string | null {
-    if (this.storage != null) {
+
+  public getItem<T>(strkey: string): T | null {
+    if (this.storage !== null) {
       //local storage can only store strings
-      return this.storage.getItem(this.storagePath + strkey);
+      const item = this.storage.getItem(this.climsoftVersion + strkey)
+      return item ? JSON.parse(item) : null;
     } else {
       return null;
     }
-​
+
   }
-​
-  public setItem(strkey: string, strValue: string): boolean {
-    if (this.storage != null) {
+
+  public setItem<T>(strkey: string, strValue: T): boolean {
+    if (this.storage !== null) {
       //local storage can only store strings
-      this.storage.setItem(this.storagePath + strkey, strValue);
+      this.storage.setItem(this.climsoftVersion + strkey, JSON.stringify(strValue));
       return true;
     } else {
       return false;
     }
-​
+
   }
-​
+
   public itemExists(strkey: string): boolean {
     if (this.getItem(strkey) === null) {
       return false;

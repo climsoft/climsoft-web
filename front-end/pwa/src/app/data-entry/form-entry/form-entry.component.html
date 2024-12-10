@@ -40,9 +40,10 @@
           <div class="fw-bold">Fields</div>
           <div class="mb-1">
             <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Add Extra Info', 'Settings']"
-              (dropDownOptionClick)=" $event === 'Same Input'? dlgSameInput.openDialog(): onOptions($event)"
+              (dropDownOptionClick)="onOptions($event)"
               [translateX]="true" [buttonText]="'Options'" />
-            <app-assign-same-input #dlgSameInput (ok)="onAssignSameValue($event)" />
+            <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
+            <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormStetingChange($event)" />
           </div>
         </div>
 
@@ -55,7 +56,7 @@
 
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formDefinitions]="formDefinitions"
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [gridNavigation]="gridNavigation" [formDefinitions]="formDefinitions"
             [refreshLayout]="refreshLayout" [displayExtraInfoOption]="displayExtraInfoOption"
             (totalIsValid)="onTotalIsValid($event)">
           </app-grid-layout>

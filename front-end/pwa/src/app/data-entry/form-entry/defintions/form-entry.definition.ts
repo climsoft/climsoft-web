@@ -287,7 +287,6 @@ export class FormEntryDefinition {
         const observationQuery: CreateObservationQueryModel = {
             stationId: this.station.id,
             sourceId: this.source.id,
-            //period: this.formMetadata.period,
             elevation: 0,
             elementIds: this.elementSelectorValue == null ? this.formMetadata.elementIds : [this.elementSelectorValue],
             datetimes: []

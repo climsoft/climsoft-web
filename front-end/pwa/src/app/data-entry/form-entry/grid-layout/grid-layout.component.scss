@@ -5,32 +5,22 @@
 //     writing-mode: vertical-rl;
 // }
 
-.container-max-w-sm{
-    // max-width: 6.875rem;
-    max-width: 6.875rem; //110px
-    // max-height: 10px;
-    //font-size: small;
+.grid-input-container {
+    max-width: 6.875rem; // 110px
+    font-size: 0.75rem; // 12px;
+}
 
+.grid-label {
+    font-size: 0.625rem; // 10px
+    max-width: 3.75rem; // 60px
+}
+
+
+.table-input-container {
+    max-width: 6.875rem; // 110px
     font-size: 12px;
 }
 
-.row-name-col{
-    font-size: 10px;
-    max-width: 60px;
+.table-label {
+    font-size: 0.75rem; // 12px;
 }
-
-
-.grid-input-container{
-    // max-width: 6.875rem;
-    max-width: 6.875rem; //110px
-     //max-height: 10px;
-    //font-size: small;
-
-    font-size: 12px;
-}
-
-.grid-labels{
-    font-size: 12px;
-    //max-width: 40px;
-}
-

@@ -40,6 +40,8 @@
                         [groupItems]=" [ {label: 'Minutes'}, {label: 'Days'} ]" [(checkedValue)]="periodType" />
                 </div>
 
+                <hr />
+
                 <div>
                     <app-text-input [label]="'Comment'" [(value)]="comment" />
                 </div>
@@ -47,6 +49,9 @@
 
 
             <div *ngIf="activeTab === 'history'">
+                <div *ngIf="observationDefinition.observationLog.length===0" class="p-4">
+                    No History
+                </div>
                 <div *ngIf="observationDefinition.observationLog.length>0">
                     <table class="table table-striped table-hover">
                         <thead>

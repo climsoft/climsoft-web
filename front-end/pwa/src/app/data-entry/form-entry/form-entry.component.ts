@@ -15,6 +15,8 @@ import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-ty
 import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
+import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 
 @Component({
   selector: 'app-form-entry',
@@ -36,8 +38,16 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected displayExtraInfoOption: boolean = false;
 
   protected refreshLayout: boolean = false;
+  protected incrementDateSelector: boolean = false;
+  protected gridNavigation: 'horizontal' | 'vertical' = 'horizontal';
+
+  protected openSameInputDialog: boolean = false;
+  protected openUserFormSettingsDialog: boolean = false;
 
   private destroy$ = new Subject<void>();
+
+  protected defaultYearMonthValue!: string;
+  protected defaultDateValue!: string;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -46,8 +56,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private observationService: ObservationsService,
       private qcTestsService: QCTestsService,
       private route: ActivatedRoute,
-      private location: Location) {
+      private location: Location,
+      private localStorage: LocalStorageService,) {
     this.pagesDataService.setPageHeader('Data Entry');
+    this.setUserFormSettings();
   }
 
   ngOnInit(): void {
@@ -78,6 +90,15 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         // Set the form definitions from the parameters
         this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel, qcTests);
         this.loadObservations();
+
+
+        /** Gets default date value (YYYY-MM-DD) used by date selector */
+        this.defaultDateValue = new Date().toISOString().slice(0, 10);
+
+        // Gets default year-month value (YYYY-MM) used by year-month selector
+        this.defaultYearMonthValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
+
+
       });
 
 
@@ -87,6 +108,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private setUserFormSettings(): void {
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(UserFormSettingsComponent.USER_FORM_SETTING_STORAGE_NAME);
+    if (savedUserFormSetting) {
+      this.gridNavigation = savedUserFormSetting.gridNavigation === 'vertical' ? 'vertical' : 'horizontal';
+      this.incrementDateSelector = savedUserFormSetting.incrementDateSelector;
+    }
   }
 
   /**
@@ -117,18 +146,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
 
-  /** Gets default date value (YYYY-MM-DD) used by date selector */
-  protected get defaultDateValue(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  /**
-   * Gets default year-month value (YYYY-MM) used by year-month selector
-   */
-  protected get defaultYearMonthValue(): string {
-    return this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
-  }
-
   protected get utcDifference(): string {
     const utcDiff: number = this.source.utcOffset;
     let strUtcDiff: string = "in";
@@ -145,7 +162,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   /**
    * Loads any existing observations from the database
    */
-  private loadObservations() {
+  private loadObservations(): void {
     // Reset controls
     this.totalIsValid = false;
     this.refreshLayout = false;
@@ -157,12 +174,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         return of([]); // TODO. Appropriate fallback needed
       })
     ).subscribe(data => {
-      console.log('hourly data: ', data)
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
     });
 
   }
+
 
   /**
    * Handles changes in element selection by updating internal state
@@ -239,6 +256,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    */
   protected onOptions(option: 'Same Input' | 'Clear Input' | 'Add Extra Info' | 'Settings'): void {
     switch (option) {
+      case 'Same Input':
+        this.openSameInputDialog = true;
+        break;
       case 'Clear Input':
         this.clear();
         break;
@@ -246,7 +266,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         this.displayExtraInfoOption = !this.displayExtraInfoOption;
         break;
       case 'Settings':
-        // TODO left here. Implement navigate horizontally or vertically on enter
+        this.openUserFormSettingsDialog = true;
         break;
     }
   }
@@ -278,6 +298,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected onUserFormStetingChange(userFormSetting: UserFormSettingStruct): void {
+    this.gridNavigation = userFormSetting.gridNavigation;
+    this.incrementDateSelector = userFormSetting.incrementDateSelector;
+  }
 
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
@@ -294,6 +318,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             title: 'Observations', message: `${multipleObs}saved`, type: ToastEventTypeEnum.SUCCESS
           });
 
+          if (this.incrementDateSelector) {
+            this.sequenceToNextDate();
+          }
           this.loadObservations();
         } else {
           this.pagesDataService.showToast({
@@ -305,8 +332,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   }
 
   /**
- * Determine the ability to save based on whether there are changes and all observation changes are valid
- */
+   * Determine the ability to save based on whether there are changes and all observation changes are valid
+   * @returns 
+   */
   private checkValidityAndGetChanges(): CreateObservationModel[] | null {
     if (!this.formDefinitions) {
       this.pagesDataService.showToast({ title: 'Observations', message: `Form parameters not set`, type: ToastEventTypeEnum.ERROR });
@@ -338,6 +366,65 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
 
     return newObservations;
+  }
+
+  private sequenceToNextDate(): void {
+    const currentYearValue: number = this.formDefinitions.yearSelectorValue;
+    const currentMonthValue: number = this.formDefinitions.monthSelectorValue; // 1-indexed (January = 1)
+    const today = new Date();
+
+    let newYear = currentYearValue;
+    let newMonth = currentMonthValue;
+    let newDay: number | null = null;
+
+    if (this.formDefinitions.daySelectorValue) {
+      let currentDayValue = this.formDefinitions.daySelectorValue;
+
+      const daysInMonth = new Date(newYear, newMonth, 0).getDate(); // Get days in the current month
+      if (currentDayValue < daysInMonth) {
+        newDay = currentDayValue + 1; // Sequence to the next day
+      } else {
+        // If it's the last day of the month, sequence to the first day of the next month
+        newDay = 1;
+        if (newMonth < 12) {
+          newMonth++;
+        } else {
+          // If it's December, sequence to January of the next year
+          newMonth = 1;
+          newYear++;
+        }
+      }
+    } else {
+      // If daySelectorValue is not defined, sequence to the next month
+      if (newMonth < 12) {
+        newMonth++;
+      } else {
+        // If it's December, sequence to January of the next year
+        newMonth = 1;
+        newYear++;
+      }
+    }
+
+    // Ensure sequencing does not exceed the current date
+    const newDate = new Date(newYear, newMonth - 1, newDay || 1); // Use 1 if no day is specified
+    if (newDate > today) {
+      console.warn("Sequencing exceeds the current date. No changes applied.");
+      return;
+    }
+
+    // Update the form definitions with the sequenced values
+    this.formDefinitions.yearSelectorValue = newYear;
+    this.formDefinitions.monthSelectorValue = newMonth;
+    if (newDay !== null) {
+      this.formDefinitions.daySelectorValue = newDay;
+      /** Gets default date value (YYYY-MM-DD) used by date selector */
+      this.defaultDateValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)+ '-' + StringUtils.addLeadingZero(this.formDefinitions.daySelectorValue);
+    }
+
+    // Gets default year-month value (YYYY-MM) used by year-month selector
+    this.defaultYearMonthValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
+
+    console.log('year month: ', this.defaultYearMonthValue);
   }
 
   /**
