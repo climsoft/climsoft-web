@@ -8,7 +8,7 @@ import { ViewSourcesComponent } from './sources/view-sources/view-sources.compon
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ImportRegionsDialogComponent } from './regions/import-regions/import-regions-dialog.component';
+import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 
 const routes: Routes = [
   {

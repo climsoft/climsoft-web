@@ -7,7 +7,7 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ImportRegionsDialogComponent } from './regions/import-regions/import-regions-dialog.component';
+import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations/view-stations/view-stations-table/view-stations-table.component';
