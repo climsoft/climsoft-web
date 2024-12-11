@@ -87,9 +87,10 @@ export class GridLayoutComponent implements OnChanges {
   }
 
   /**
-     * Handles total value changes by updating the internal state and emiting totalIsValid state
-     * @param value 
-     */
+   * Handles total value changes by updating the internal state and emiting totalIsValid state
+   * @param colIndex 
+   * @param value 
+   */
   protected onTotalValueChange(colIndex: number, value: number | null): void {
     // Get all observation in the column
     const colObservations: ObservationDefinition[] = [];
