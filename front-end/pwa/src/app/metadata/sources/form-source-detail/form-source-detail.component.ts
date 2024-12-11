@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../models/create-entry-form.model';
 import { CreateUpdateSourceModel } from '../models/create-update-source.model';
@@ -6,7 +6,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { SourcesCacheService } from '../services/sources-cache.service';
@@ -18,7 +18,7 @@ import { SourcesCacheService } from '../services/sources-cache.service';
   templateUrl: './form-source-detail.component.html',
   styleUrls: ['./form-source-detail.component.scss']
 })
-export class FormSourceDetailComponent implements OnInit {
+export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   protected viewSource!: ViewSourceModel;
 
@@ -42,6 +42,8 @@ export class FormSourceDetailComponent implements OnInit {
   protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pagesDataService: PagesDataService,
     private sourcesCacheService: SourcesCacheService,
@@ -55,7 +57,7 @@ export class FormSourceDetailComponent implements OnInit {
       this.pagesDataService.setPageHeader('Edit Form Parameters');
       // TODO. handle errors where the source is not found for the given id
       this.sourcesCacheService.findOne(+sourceId).pipe(
-        take(1)
+        takeUntil(this.destroy$),
       ).subscribe(data => {
         if (data) {
           this.viewSource = data;
@@ -77,6 +79,11 @@ export class FormSourceDetailComponent implements OnInit {
       };
       this.pagesDataService.setPageHeader('New Form Parameters');
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setControlValues(entryForm: ViewEntryFormModel): void {

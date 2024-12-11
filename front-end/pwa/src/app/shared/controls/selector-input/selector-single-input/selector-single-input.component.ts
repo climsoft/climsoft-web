@@ -16,7 +16,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   public placeholder!: string ;
 
   @Input()
-  public includeCancelOption: boolean = true;
+  public displayCancelOption!: boolean;
   
   @Input() 
   public errorMessage: string = '';
@@ -33,39 +33,41 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   @Output() 
   public selectedOptionChange = new EventEmitter<T | null>();
 
-  protected filteredValues!: T[];
+  protected filteredOptions: T[] = this.options;
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.filteredValues = this.options;
-
-    //console.log('single input ngOnChanges', changes)
+     // Important check because when an option is selected  'ngOnChanges' gets raised. So to prevent restetting filtered options this check is necessary
+     if(changes['options'] ){
+      this.filteredOptions = this.options;
+    } 
   }
 
   protected get selectedOptionDisplay(): string {
     return this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
   }
 
-  protected onInputChange(inputValue: string): void {
-    //console.log("inputvalue", inputValue)
+  protected onSearchInput(inputValue: string): void {
     if (!inputValue) {
-      this.filteredValues = this.options;
-      //this.selectedOption = null; //TODO. Is this needed?
-      this.selectedOptionChange.emit(null);
+      this.filteredOptions = this.options;   
     } else {
-      this.filteredValues = this.options.filter(option =>
+      this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())
       );
     }
   }
 
   protected onSelectedOption(option: T): void {
-
-    //this.selectedOption = option; // TODO. Is this needed?
+    this.selectedOption = option; 
     this.selectedOptionChange.emit(option);
-    this.filteredValues = this.options;
+    this.filteredOptions = this.options;
+  }
+
+  protected onCancelOptionClick(): void {
+    this.selectedOption = null; 
+    this.selectedOptionChange.emit(null);
   }
 
 }

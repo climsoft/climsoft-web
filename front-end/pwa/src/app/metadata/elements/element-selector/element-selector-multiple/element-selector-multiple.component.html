@@ -1,0 +1,6 @@
+<app-selector-multiple-input [id]="id" [label]="label" [placeholder]="placeholder" [displayAdvancedSearchOption]="true"
+    [errorMessage]="errorMessage" [options]="elements" [optionDisplayFn]="optionDisplayFunction"
+    [(selectedOptions)]="selectedElements" (selectedOptionsChange)="onSelectedOptionsChange($event)"
+    (displayAdvancedSearchOptionClick)="elementSearch.openDialog()" />
+
+<app-elements-search-dialog #elementSearch (searchedIdsChange)="onAdvancedSearchInput($event)" />

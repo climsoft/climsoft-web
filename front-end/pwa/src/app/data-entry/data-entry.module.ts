@@ -48,7 +48,7 @@ import { UserFormSettingsComponent } from './form-entry/user-form-settings/user-
   imports: [
     DataEntryRoutingModule,
     SharedModule,
-    MetadataModule,
+    MetadataModule, 
   ]
 })
 export class DataEntryModule { }

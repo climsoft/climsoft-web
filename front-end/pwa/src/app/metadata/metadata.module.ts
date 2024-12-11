@@ -47,6 +47,10 @@ import { ViewStationsMapComponent } from './stations/view-stations/view-stations
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
 import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
+import { ElementSelectorMultipleComponent } from './elements/element-selector/element-selector-multiple/element-selector-multiple.component';
+import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
+import { StationSelectorSingleComponent } from './stations/station-selector/station-single-input/station-selector-single.component';
+import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
 
 @NgModule({
   declarations: [
@@ -96,16 +100,29 @@ import { ElementsSearchDialogComponent } from './elements/elements-search-dialog
     ViewStationsTableComponent,
     ViewStationsMapComponent,
     StationsSearchDialogComponent,
+    
     ElementsSearchDialogComponent, 
+    ElementSelectorSingleComponent,
+    ElementSelectorMultipleComponent,
+
+    StationSelectorMultipleComponent,
+    StationSelectorSingleComponent,
   ],
   imports: [
     SharedModule,
-    MetadataRoutingModule
+    MetadataRoutingModule,
   ],
   exports: [
     ElementsSelectorDialogComponent,
-    FormSelectorDialogComponent,
-    StationsSearchDialogComponent,
+    ElementSelectorSingleComponent,
+    ElementSelectorMultipleComponent,
+    ElementsSearchDialogComponent,
+    
+    FormSelectorDialogComponent,   
+
+    StationSelectorMultipleComponent,
+    StationSelectorSingleComponent,
+    StationsSearchDialogComponent, 
   ]
 })
 export class MetadataModule { }

@@ -2,7 +2,6 @@ import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CreateUserModel } from 'src/app/core/models/users/create-user.model';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { UserRoleEnum } from 'src/app/core/models/users/user-role.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users/users.service';

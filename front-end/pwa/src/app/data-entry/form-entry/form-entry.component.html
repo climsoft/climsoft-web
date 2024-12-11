@@ -8,7 +8,7 @@
         <div class="card-header mb-2 p-1 fw-bold">Selectors</div>
         <div class="row g-2 px-2">
           <div class="col-sm-auto mb-2" *ngIf="displayElementSelector">
-            <app-element-single-input [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
+            <app-element-selector-single [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
               [selectedId]="formDefinitions.elementSelectorValue" (selectedIdChange)="onElementChange($event)" />
           </div>
 

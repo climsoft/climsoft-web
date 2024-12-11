@@ -6,6 +6,7 @@ import { SharedModule } from '../shared/shared.module';
 import { UserRoutingModule } from './user-routing.module';
 import { UserRoleSingleInputComponent } from './controls/user-role-input/user-role-single-input/user-role-single-input.component';
 import { PasswordChangeComponent } from './password-change/password-change.component';
+import { MetadataModule } from '../metadata/metadata.module';
 
 // TODO. ADD ROUTING
 
@@ -18,6 +19,7 @@ import { PasswordChangeComponent } from './password-change/password-change.compo
   ],
   imports: [
     SharedModule,
+    MetadataModule,
     UserRoutingModule,
   ]
 })
