@@ -1,0 +1,66 @@
+<div>
+    <div class="mb-2">
+        <app-check-box-input [label]="'Save to V4 database'" [(value)]="climsoftV4DB.saveToV4DB" />
+    </div>
+
+    <div *ngIf="climsoftV4DB.saveToV4DB">
+        <div class="text-warning">Restart the entire system after making changes.</div>
+        <hr/>
+        <div >       
+            <div class="fw-bold mb-2">V4 Database Settings</div>
+            <div class="ms-2">
+                <div class="mb-2">
+                    <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-number-input [label]="'Port'" [(numValue)]="climsoftV4DB.port" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Database Name'" [(value)]="climsoftV4DB.databaseName" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Username'" [(value)]="climsoftV4DB.username" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Password'" [type]="'password'" [(value)]="climsoftV4DB.password"  />
+                </div>
+                <div class="mb-2">
+                    <app-number-input [label]="'UTC Offset'" [(numValue)]="climsoftV4DB.utcOffset"/>
+                </div>
+            </div>
+        </div>
+        <!-- <hr/>
+        <div *ngIf="climsoftV4DB.elementsMapper">
+            <div class="fw-bold mb-2">Map Elements</div>
+            <table class="table table-sm ms-2">
+                <thead>
+                    <tr>
+                        <th>V4 ID</th>
+                        <th>V5 ID</th>
+                        <th>V5 Period</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr *ngFor="let item of climsoftV4DB.elementsMapper; let i = index;">
+                        <td>
+                            <app-number-input [id]="i + '_v4_element_id'" [(numValue)]="item.v4Id" />
+                        </td>
+                        <td>
+                            <app-element-selector-single [id]="i + '_v5_element_id'" [(selectedId)]="item.v5Id"
+                                (selectedIdChange)="onElementsSelected()" />
+                        </td>
+                        <td>
+                            <app-number-input [id]="i + '_v5_period'" [(numValue)]="item.v4Id" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div> -->
+
+    </div>
+
+</div>

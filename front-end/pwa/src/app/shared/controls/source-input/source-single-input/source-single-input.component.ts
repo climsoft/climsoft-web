@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-source-single-input',
@@ -17,7 +18,7 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   protected options!: ViewSourceModel[];
   protected selectedOption!: ViewSourceModel | null;
 
-  constructor(private sourcesService: SourcesService) {
+  constructor(private sourcesService: SourcesCacheService) {
   
   }
 
@@ -28,7 +29,7 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
 
     //load the sources once 
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.sourcesService.findAll().subscribe(data => {
+      this.sourcesService.cachedSources.pipe(take(1)).subscribe(data => {
         this.options = data;
         this.setInputSelectedOption();
       });

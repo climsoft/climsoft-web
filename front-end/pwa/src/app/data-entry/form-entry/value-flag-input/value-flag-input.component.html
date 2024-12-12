@@ -1,45 +1,82 @@
 <app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [disabled]="disableValueFlagEntry"
-    [includeDropDownOption]="displayHistoryOption" [value]="observationDefinition.valueFlagForDisplay"
-    [dropDownOptionMaxHeight]="300" [errorMessage]="observationDefinition.validationErrorMessage"
-    [showChanges]="showChanges" (valueChange)="onInputEntry($event)"
-    (inputEnterKeyPress)="onEnterKeyPressed()" (dropDownOptionClick)="loadObservationLog()">
+    [value]="observationDefinition.valueFlagForDisplay" [dropDownOptionMaxHeight]="300"
+    [errorMessage]="observationDefinition.validationErrorMessage"
+    [warningMessage]="observationDefinition.validationWarningMessage"
+    [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"
+    [displayExtraInfoOption]="displayExtraInfoOption" (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
+    (valueChange)="onInputEntry($event)" (inputEnterKeyPress)="onEnterKeyPressed()" />
 
-    <div class="card">
-        <div class="card-body">
+<app-dialog [title]="'Extra Information'" [okButtonLabel]="'Ok'" [cancelButtonLabel]="'Cancel'"
+    [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoChanged()">
+    <div *ngIf="displayExtraInfoDialog" class="card border-0">
 
-            <div class="mb-3">
-                <app-text-input [label]="'New Comment'" [value]="observationDefinition.comment" (valueChange)="onCommentEntry( $event)"/>
+        <!-- tab header -->
+        <div class="card-header d-flex">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <button class="nav-link active" [class.active]="activeTab === 'new'"
+                        (click)="onTabChange('new')">New</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" [class.active]="activeTab === 'history'"
+                        (click)="onTabChange('history')">History</button>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- selected tab contents -->
+        <div class="card-body p-0">
+
+            <div *ngIf="activeTab === 'new'" class="mt-2">
+
+                <div class="mb-2 d-flex align-items-end">
+                    <div style="max-width: 90px;">
+                        <app-number-input [label]="'Period'" [(value)]="period" />
+                    </div>
+
+                    <div class="px-2">in</div>
+                    <app-radio-buttons-input [asButtons]="true" [inline]="true" [groupName]="'vf_period_options'"
+                        [groupItems]=" [ {label: 'Minutes'}, {label: 'Days'} ]" [(checkedValue)]="periodType" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Comment'" [(value)]="comment" />
+                </div>
             </div>
 
-            <div *ngIf="observationDefinition.observationLog.length>0">
-                <div>History</div>
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th scope="col">Value</th>
-                            <th scope="col">Flag</th>
-                            <th scope="col">Final</th>
-                            <th scope="col">Comment</th>
-                            <th scope="col">Deleted</th>
-                            <th scope="col">Entry Time</th>
 
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let row of observationDefinition.observationLog ">
-                            <td>{{ row.value }}</td>
-                            <td>{{ row.flag }}</td>
-                            <td>{{ row.final }}</td>
-                            <td>{{ row.comment }}</td>
-                            <td>{{ row.deleted }}</td>
-                            <td>{{ row.entryDateTime }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div *ngIf="activeTab === 'history'">
+                <div *ngIf="observationDefinition.observationLog.length===0" class="p-4">
+                    No History
+                </div>
+                <div *ngIf="observationDefinition.observationLog.length>0">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Flag</th> 
+                                <th>Comment</th>
+                                <th>Deleted</th>
+                                <th>Entry Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let row of observationDefinition.observationLog ">
+                                <td>{{ row.value }}</td>
+                                <td>{{ row.flag }}</td> 
+                                <td>{{ row.comment }}</td>
+                                <td>{{ row.deleted }}</td>
+                                <td>{{ row.entryDateTime }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
         </div>
     </div>
 
-
-</app-text-input>
+</app-dialog>

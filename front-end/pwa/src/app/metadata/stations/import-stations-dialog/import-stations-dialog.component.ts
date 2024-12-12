@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { environment } from 'src/environments/environment';
 import { StationsCacheService } from '../services/stations-cache.service';
 
@@ -123,7 +123,7 @@ export class ImportStationsDialogComponent implements OnChanges {
           let response: string = (event.body as any).message;
           if (response === "success") {
             this.open = false; // close the dialog
-            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: 'success' });
+            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: ToastEventTypeEnum.SUCCESS });
 
             // Refresh the cache
             this.stationsCacheService.checkForUpdates();

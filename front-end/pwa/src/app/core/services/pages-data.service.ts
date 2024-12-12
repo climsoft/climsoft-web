@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
-import { Router, NavigationExtras, Navigation, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { filter } from "rxjs/operators";
-import { LocalStorageService } from '../../shared/services/local-storage.service';
-import { BehaviorSubject, Subject, Observable } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
+
+export enum ToastEventTypeEnum {
+  INFO = "info",
+  SUCCESS = "success",
+  WARNING = "warning",
+  ERROR = "danger",
+}
 
 export interface ToastEvent {
   title: string;
   message: string;
-  type: 'success' | 'error' | 'warning' | 'info';
+  type: ToastEventTypeEnum;
 }
 
 @Injectable({

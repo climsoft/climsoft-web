@@ -24,7 +24,7 @@
                             <app-text-input [id]="i + '_source_station_id'" [(value)]="item.sourceId" (valueChange)="onStationToFetchEntry()" />
                         </td>
                         <td>
-                            <app-station-single-input [id]="i + '_database_station_id'" [(selectedId)]="item.databaseId"
+                            <app-station-selector-single [id]="i + '_database_station_id'" [(selectedId)]="item.databaseId"
                                 (selectedIdChange)="onStationToFetchEntry()" />
                         </td>                        
                     </tr>                   

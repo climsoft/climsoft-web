@@ -3,6 +3,5 @@ export interface CreateObservationQueryModel {
     elementIds: number[];
     sourceId: number;
     elevation: number;   
-    datetimes: string[];
-    period: number;
+    datetimes: string[]; 
 }

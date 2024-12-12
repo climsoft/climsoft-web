@@ -7,29 +7,29 @@
         </div>
         <!--------->
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
         <!-- description -->
         <div class="mb-3">
             <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
         <div class="mb-3">
             <app-data-structure-input [label]="'Data Structure Type'" [selectedId]="importSource.dataStructureType"
-                (selectedIdChange)="onDataStructureTypeSelected($event)"/>
+                (selectedIdChange)="onDataStructureTypeSelected($event)" />
         </div>
 
         <div *ngIf="importSource.dataStructureType === 'tabular'">
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Rows To Skip -->
             <div class="mb-3">
                 <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportSource.rowsToSkip" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Delimeters-->
             <div class="mb-3">
@@ -41,9 +41,9 @@
             <!--Station-->
             <div class="mb-3">
                 <app-import-source-station-detail [(stationDefinition)]="tabularImportSource.stationDefinition" />
-            </div>    
+            </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Elements-->
             <div class="mb-3">
@@ -51,22 +51,21 @@
                     [elementAndValueDefinition]="tabularImportSource .elementAndValueDefinition" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Date time-->
             <div class="mb-3">
                 <app-import-source-date-detail [datetimeDefinition]="tabularImportSource.datetimeDefinition" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Period-->
             <div class="mb-3">
                 <app-import-source-period-detail [periodDefinition]="tabularImportSource.periodDefinition" />
             </div>
 
-            
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Elevation-->
             <div class="mb-3">
@@ -74,14 +73,14 @@
                     [(elevationColumnPosition)]="tabularImportSource.elevationColumnPosition" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--UTC Time Difference -->
             <div class="mb-3">
                 <app-number-input [label]="'UTC Offset'" [(numValue)]="viewSource.utcOffset" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Missing Values-->
             <div class="mb-3">
@@ -89,7 +88,7 @@
                     [sourceMissingValueFlags]="importSource.sourceMissingValueFlags" />
             </div>
 
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!--Scale values -->
             <div class="mb-3">

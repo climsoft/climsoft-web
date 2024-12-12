@@ -5,15 +5,15 @@
         Count: {{ elements.length | number:'1.0-0' }}
       </div>
       <div class="me-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="elementSearch.openDialog()">
           Search
         </button>
-        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput([])" />
+        <app-elements-search-dialog #elementSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
 
       <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download', 'Delete All']"
-          (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClick($event)"
+          (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClicked($event)"
           [translateX]="true" />
         <div *ngIf="optionClicked">
           <app-element-characteristics-input-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
@@ -27,9 +27,6 @@
         <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
 
       </div>
-
-  
-
     </div>
   </div>
 

@@ -1,15 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ImportTabularSourceModel } from '../models/create-import-source-tabular.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ActivatedRoute } from '@angular/router';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateUpdateSourceModel } from 'src/app/metadata/sources/models/create-update-source.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model'; 
 import { SourcesCacheService } from '../services/sources-cache.service';
 
 @Component({
@@ -36,7 +35,7 @@ export class ImportSourceDetailComponent implements OnInit {
       this.pagesDataService.setPageHeader('Edit Import Parameters');
 
       // Todo. handle errors where the source is not found for the given id
-      this.importSourcesService.findOne(sourceId).pipe(
+      this.importSourcesService.findOne(+sourceId).pipe(
         take(1)
       ).subscribe((data) => {
         if(data){
@@ -123,12 +122,12 @@ export class ImportSourceDetailComponent implements OnInit {
     // console.log('saved', createUpdateSource)
 
     if (this.viewSource.id === 0) {
-      this.importSourcesService.create(createUpdateSource).pipe(
+      this.importSourcesService.put(createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions saved`, type: 'success'
+            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions saved`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
@@ -139,7 +138,7 @@ export class ImportSourceDetailComponent implements OnInit {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions updated`, type: 'success'
+            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions updated`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }

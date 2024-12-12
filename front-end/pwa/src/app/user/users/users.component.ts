@@ -20,9 +20,7 @@ export class UsersComponent {
     private usersService: UsersService,
     private router: Router,
     private route: ActivatedRoute) {
-
     this.pagesDataService.setPageHeader('Users');
-
     this.usersService.findAll().subscribe(data => {
       this.users = data;
     });

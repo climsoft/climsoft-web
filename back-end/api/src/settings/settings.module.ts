@@ -5,8 +5,7 @@ import { UserSettingEntity } from './entities/user-setting.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserModule } from 'src/user/user.module';
 import { GeneralSettingController } from './controllers/general-settings.controller';
-import { GeneralSettingsService } from './services/general-settings.service';
-import { SettingsMigrationService } from './settings-migration.service';
+import { GeneralSettingsService } from './services/general-settings.service'; 
 
 @Module({
     imports: [
@@ -15,18 +14,16 @@ import { SettingsMigrationService } from './settings-migration.service';
             UserSettingEntity
         ]),
         SharedModule,
-        UserModule
+        UserModule,
     ],
     controllers: [
         GeneralSettingController
     ],
     providers: [
         GeneralSettingsService,
-        SettingsMigrationService
     ],
     exports: [
         GeneralSettingsService,
-        SettingsMigrationService
     ]
 })
 export class SettingsModule { }

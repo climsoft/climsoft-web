@@ -30,7 +30,7 @@ const routes: Routes = [
         loadChildren: () => import('./metadata/metadata.module').then((m) => m.MetadataModule)
       },
       {
-        path: 'user',
+        path: 'users', 
         loadChildren: () => import('./user/user.module').then((m) => m.UserModule)
       },
       {

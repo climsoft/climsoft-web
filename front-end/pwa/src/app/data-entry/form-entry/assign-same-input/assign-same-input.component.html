@@ -1,4 +1,4 @@
-<app-dialog [(open)]="open" [title]="'Assign Same Input'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()">
+<app-dialog [(open)]="open" [title]="'Assign Same Input'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
     <app-text-input [label]="'Value Flag'" [(value)]="input.valueFlag"/>
     <app-text-input [label]="'Comment'" [(value)]="input.comment"/>
 </app-dialog>

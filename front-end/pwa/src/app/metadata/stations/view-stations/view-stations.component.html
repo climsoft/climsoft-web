@@ -1,4 +1,5 @@
 <div class="card border-0">
+    <!-- tab header -->
   <div class="card-header d-flex justify-content-between align-items-center px-1 py-0">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
@@ -38,6 +39,7 @@
     </div>
   </div>
 
+   <!-- selected tab contents -->
   <div class="card-body p-0">
     <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
     <app-view-stations-map *ngIf="activeTab === 'map'" [stations]="stations" />

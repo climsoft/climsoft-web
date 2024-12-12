@@ -10,12 +10,13 @@ import { CreateObservationQueryModel } from "src/app/core/models/observations/cr
 import { ViewSourceModel } from "src/app/metadata/sources/models/view-source.model";
 import { UpdateQCTestModel } from "src/app/core/models/elements/qc-tests/update-qc-test.model";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
+import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
  */
 export class FormEntryDefinition {
-    public station: ViewStationModel;
+    public station: StationCacheModel;
     public source: ViewSourceModel;
     public formMetadata: ViewEntryFormModel;
 
@@ -38,14 +39,14 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationDefinition[] = [];
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
-    // TODO. later find a way of getting this correctly.
-    private qcTests: UpdateQCTestModel[];
 
-    constructor(station: ViewStationModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, qcTests: UpdateQCTestModel[]) {
+    private rangeThresholdQCTests: UpdateQCTestModel[];
+
+    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, rangeThresholdQCTests: UpdateQCTestModel[]) {
         this.station = station;
         this.source = source;
         this.formMetadata = formMetadata;
-        this.qcTests = qcTests;
+        this.rangeThresholdQCTests = rangeThresholdQCTests;
 
         // Set the selectors values based on defined selectors in the form metadata
         this.elementSelectorValue = formMetadata.selectors.includes('ELEMENT') ? formMetadata.elementIds[0] : null;
@@ -82,37 +83,6 @@ export class FormEntryDefinition {
                 throw new Error("Developer error. Layout not supported");
         }
 
-    }
-
-    /**
-     * Used to determine the value flag controls needed for user input.
-     * @param entryField 
-     * @returns entry field definations used to create and label the value flag controls
-     */
-    public getEntryFieldDefs(entryField: FieldType): FieldEntryDefinition[] {
-        let entryFieldDefs: FieldEntryDefinition[];
-        switch (entryField) {
-            case 'ELEMENT':
-                //create field definitions for the selected elements only
-                entryFieldDefs = this.formMetadata.elementsMetadata.map(item => ({ id: item.id, name: item.abbreviation }));
-                break;
-            case 'DAY':
-                //create field definitions for days of the selected month only
-                //note, there is no days selection in the form builder
-                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue - 1, '');
-                break;
-            case 'HOUR':
-                //create field definitions for the selected hours only
-                //note there is always hours selection in the form builder
-                entryFieldDefs = DateUtils.getHours(this.formMetadata.hours);
-                break;
-            default:
-                //Not supported
-                //todo. display error in set up 
-                throw new Error("Developer Error: Entry Field Not Recognised");
-        }
-
-        return entryFieldDefs;
     }
 
     /**
@@ -170,7 +140,7 @@ export class FormEntryDefinition {
             throw new Error("Developer error: number of entry fields not supported.");
         }
 
-        const newObservations: ObservationDefinition[][] = [];
+        const obsDefinitions: ObservationDefinition[][] = [];
         const rowEntryField: FieldType = this.formMetadata.fields[0];
         const colEntryField: FieldType = this.formMetadata.fields[1];
 
@@ -221,10 +191,41 @@ export class FormEntryDefinition {
                 subArrEntryObservations.push(this.createNewObsDefinition(dbObs ? dbObs : newObs));
             }
 
-            newObservations.push(subArrEntryObservations);
+            obsDefinitions.push(subArrEntryObservations);
         }
 
-        return newObservations;
+        return obsDefinitions;
+    }
+
+    /**
+  * Used to determine the value flag controls needed for user input.
+  * @param entryField 
+  * @returns entry field definations used to create and label the value flag controls
+  */
+    public getEntryFieldDefs(entryField: FieldType): FieldEntryDefinition[] {
+        let entryFieldDefs: FieldEntryDefinition[];
+        switch (entryField) {
+            case 'ELEMENT':
+                //create field definitions for the selected elements only
+                entryFieldDefs = this.formMetadata.elementsMetadata.map(item => ({ id: item.id, name: item.abbreviation }));
+                break;
+            case 'DAY':
+                //create field definitions for days of the selected month only
+                //note, there is no days selection in the form builder
+                entryFieldDefs = DateUtils.getDaysInMonthList(this.yearSelectorValue, this.monthSelectorValue - 1);
+                break;
+            case 'HOUR':
+                //create field definitions for the selected hours only
+                //note there is always hours selection in the form builder
+                entryFieldDefs = DateUtils.getHours(this.formMetadata.hours);
+                break;
+            default:
+                //Not supported
+                //todo. display error in set up 
+                throw new Error("Developer Error: Entry Field Not Recognised");
+        }
+
+        return entryFieldDefs;
     }
 
     private createEmptyObservation(): CreateObservationModel {
@@ -254,9 +255,7 @@ export class FormEntryDefinition {
         }
 
         let rangeThresholdParams: RangeThresholdQCTestParamsModel | undefined = undefined;
-        if (this.formMetadata.enforceLimitCheck) {
-            rangeThresholdParams = this.qcTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
-        }
+        rangeThresholdParams = this.rangeThresholdQCTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
 
         return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, true, rangeThresholdParams);
     }
@@ -269,8 +268,8 @@ export class FormEntryDefinition {
                 newObs.elementId === dbObservation.elementId &&
                 newObs.sourceId === dbObservation.sourceId &&
                 newObs.elevation === dbObservation.elevation &&
-                newObs.datetime === dbObservation.datetime &&
-                newObs.period === dbObservation.period) {
+                newObs.datetime === dbObservation.datetime //&& newObs.period === dbObservation.period
+            ) {
                 return dbObservation;
             }
         }
@@ -288,7 +287,6 @@ export class FormEntryDefinition {
         const observationQuery: CreateObservationQueryModel = {
             stationId: this.station.id,
             sourceId: this.source.id,
-            period: this.formMetadata.period,
             elevation: 0,
             elementIds: this.elementSelectorValue == null ? this.formMetadata.elementIds : [this.elementSelectorValue],
             datetimes: []
@@ -323,7 +321,6 @@ export class FormEntryDefinition {
     private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
         hour = hour + this.source.utcOffset;
-        const pad = (num: number): string => StringUtils.addLeadingZero(num);
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 

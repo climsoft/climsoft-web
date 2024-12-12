@@ -1,9 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourcesCacheService } from '../services/sources-cache.service';
 
 @Component({
@@ -40,17 +40,25 @@ export class ViewSourcesComponent implements OnDestroy {
 
   protected onSearch(): void { }
 
-  protected onNewSource(sourceTypeName: 'Form Source' | 'Import Source') {
+  protected onOptionsClicked(sourceTypeName: 'Add Form Source' | 'Add Import Source' | 'Delete All') {
     let routeName: string = '';
     switch (sourceTypeName) {
-      case 'Form Source':
+      case 'Add Form Source':
         routeName = 'form-source-detail';
         break;
-      case 'Import Source':
+      case 'Add Import Source':
         routeName = 'import-source-detail';
         break;
+      case 'Delete All':
+        this.sourcesCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+          if (data) {
+            this.pagesDataService.showToast({ title: "Sources Deleted", message: `All sources deleted`, type: ToastEventTypeEnum.SUCCESS});
+          }
+        });
+        return;
       default:
-        throw new Error('Source type not supported');
+        console.error('Developer error, option not supported')
+        return;
     }
 
     this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });

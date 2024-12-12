@@ -2,7 +2,7 @@
 
   <div class="card-header d-flex px-1 py-0 flex-column">
     <div *ngIf="showStationSelection" class="mt-1">
-      <app-station-single-input [label]="'Station'" [(selectedId)]="selectedStationId" />
+      <app-station-selector-single [label]="'Station'" [(selectedId)]="selectedStationId" />
     </div>
     <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
       <div>

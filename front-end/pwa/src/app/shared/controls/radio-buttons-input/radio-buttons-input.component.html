@@ -5,7 +5,7 @@
             type="radio" [id]="groupName+'_'+ item.label" [name]="groupName" [checked]="item.checked"
             (change)="onValueChange(i,$any($event.target).checked)">
         <label [class.ms-2]="!asButtons"
-            [ngClass]="{'form-check-label': !asButtons , 'btn btn-outline-secondary' : asButtons  }"
+            [ngClass]="{'form-check-label': !asButtons , 'btn btn-sm btn-outline-secondary' : asButtons  }"
             [for]="groupName+'_'+item.label">{{item.label}}</label>
     </div>
 </ng-container>

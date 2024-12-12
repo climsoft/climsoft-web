@@ -42,7 +42,7 @@ export class StationFormsService {
     // Step 3: Emit both cached and server data
     return concat(
       localData$, // Emit cached data first
-      serverData$ // Emit server data next
+      serverData$ // Then emit server data next
     );
   }
 

@@ -7,7 +7,7 @@
     <div class="ms-4 mt-3">
         <!--includes elements-->
         <div *ngIf="elementAndValueDefinition.hasElement">
-
+            
             <app-radio-buttons-input [inline]="true" [groupName]="'hasElementSelection'"
                 [groupItems]="[
                 { label:'In Single Column', checked: elementAndValueDefinition.hasElement.singleColumn  !== undefined}, 
@@ -40,7 +40,7 @@
                                             (valueChange)="onSingleElementsToFetchEntry()" />
                                     </td>
                                     <td>
-                                        <app-element-single-input [id]="i + '_database_element_id'"
+                                        <app-element-selector-single [id]="i + '_database_element_id'"
                                             [(selectedId)]="item.databaseId"
                                             (selectedIdChange)="onSingleElementsToFetchEntry()" />
                                     </td>
@@ -78,7 +78,7 @@
                                 [(numValue)]="item.columnPosition" />
                         </td>
                         <td>
-                            <app-element-single-input [id]="i + '_multiple_database_element_id'"
+                            <app-element-selector-single [id]="i + '_multiple_database_element_id'"
                                 [(selectedId)]="item.databaseId" (selectedIdChange)="onMultipleElementsEntry()" />
                         </td>
                     </tr>
@@ -92,7 +92,7 @@
         <!-- no elements -->
         <div *ngIf="elementAndValueDefinition.noElement" class="ms-4">
             <div class="mt-2">
-                <app-element-single-input [label]="'Element:'"
+                <app-element-selector-single [label]="'Element:'"
                     [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
             </div>
             <div class="mt-2">

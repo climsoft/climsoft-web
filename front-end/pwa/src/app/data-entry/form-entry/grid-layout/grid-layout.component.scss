@@ -5,7 +5,11 @@
 //     writing-mode: vertical-rl;
 // }
 
-.container-max-w-sm{
-    max-width: 6.875rem;
+.grid-label {
+    font-size: 0.625rem; // 10px
+    max-width: 3.75rem; // 60px
 }
 
+.table-label {
+    font-size: 0.75rem; // 12px;
+}

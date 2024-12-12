@@ -1,11 +1,17 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
-    <div class="mb-1">
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
-        Search
-      </button>
-      <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
+    <div class="d-flex align-items-center">
+      <div *ngIf="stationViews" class="d-flex mx-2">
+        Count: {{ stationViews.length | number:'1.0-0' }}
+      </div>
+      <div class="mb-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
+          Search
+        </button>
+        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
+      </div>
     </div>
+
   </div>
 
   <div *ngIf="stationViews" class="card-body p-0">
@@ -20,8 +26,7 @@
       </thead>
       <tbody class="table-group-divider">
         <ng-container *ngFor="let stationView of stationViews">
-          <tr class="cursor-pointer"
-            (click)="onStationSelected(stationView)">
+          <tr class="cursor-pointer" (click)="onStationSelected(stationView)">
             <td>
               <app-toggle-chevron [clickable]="false" [open]="stationView.station.id === stationIdSelected" />
             </td>

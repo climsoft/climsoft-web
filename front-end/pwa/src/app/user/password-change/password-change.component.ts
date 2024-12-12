@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { take } from 'rxjs';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UsersService } from 'src/app/core/services/users/users.service';
 
 @Component({
@@ -44,7 +44,7 @@ export class PasswordChangeComponent {
       take(1)
     ).subscribe((data) => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Password Changed", message: `Password for ${this.userEmail} changed`, type: "success" });
+        this.pagesDataService.showToast({ title: "Password Changed", message: `Password for ${this.userEmail} changed`, type: ToastEventTypeEnum.SUCCESS });
       }
     });
 

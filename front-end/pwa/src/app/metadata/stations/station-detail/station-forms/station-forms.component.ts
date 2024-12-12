@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core'; 
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { Observable, of, Subject } from 'rxjs';
 import { switchMap, tap, catchError, finalize, takeUntil } from 'rxjs/operators';
@@ -91,7 +91,7 @@ export class StationFormsComponent implements OnChanges {
       tap(data => {
         if (data.length > 0) {
           const message: string = action === "ADD" ? "Forms Added" : "Forms Deleted";
-          this.pagesDataService.showToast({ title: "Station Forms", message: message, type: "success" });
+          this.pagesDataService.showToast({ title: "Station Forms", message: message, type: ToastEventTypeEnum.SUCCESS});
         }
       }),
       catchError(error => {

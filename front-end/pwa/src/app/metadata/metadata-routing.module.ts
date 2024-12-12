@@ -8,7 +8,6 @@ import { ViewSourcesComponent } from './sources/view-sources/view-sources.compon
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
 
 const routes: Routes = [
   {
@@ -53,12 +52,7 @@ const routes: Routes = [
       {
         path: 'view-regions',
         component: ViewRegionsComponent
-      },
-      {
-        // TODO. Remove this later
-        path: 'import-regions',
-        component: ImportRegionsComponent
-      }  
+      }, 
      
     ]
   }

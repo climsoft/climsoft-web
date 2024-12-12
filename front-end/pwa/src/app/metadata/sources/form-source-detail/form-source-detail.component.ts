@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../models/create-entry-form.model';
 import { CreateUpdateSourceModel } from '../models/create-update-source.model';
 import { ActivatedRoute } from '@angular/router';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { SourcesCacheService } from '../services/sources-cache.service';
@@ -18,7 +18,7 @@ import { SourcesCacheService } from '../services/sources-cache.service';
   templateUrl: './form-source-detail.component.html',
   styleUrls: ['./form-source-detail.component.scss']
 })
-export class FormSourceDetailComponent implements OnInit {
+export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   protected viewSource!: ViewSourceModel;
 
@@ -33,7 +33,6 @@ export class FormSourceDetailComponent implements OnInit {
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
   protected utcDifference: number = 0;
-  protected enforceLimitCheck: boolean = false;
   protected allowMissingValue: boolean = true;
   protected requireTotalInput: boolean = false;
   protected selectorsErrorMessage: string = '';
@@ -43,9 +42,11 @@ export class FormSourceDetailComponent implements OnInit {
   protected periodErrorMessage: string = '';
   protected errorMessage: string = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pagesDataService: PagesDataService,
-    private formSourcesService: SourcesCacheService,
+    private sourcesCacheService: SourcesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -54,9 +55,9 @@ export class FormSourceDetailComponent implements OnInit {
     const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId)) {
       this.pagesDataService.setPageHeader('Edit Form Parameters');
-      // Todo. handle errors where the source is not found for the given id
-      this.formSourcesService.findOne(sourceId).pipe(
-        take(1)
+      // TODO. handle errors where the source is not found for the given id
+      this.sourcesCacheService.findOne(+sourceId).pipe(
+        takeUntil(this.destroy$),
       ).subscribe(data => {
         if (data) {
           this.viewSource = data;
@@ -64,7 +65,7 @@ export class FormSourceDetailComponent implements OnInit {
         }
       });
     } else {
-      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, enforceLimitCheck: false, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
+      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -78,6 +79,11 @@ export class FormSourceDetailComponent implements OnInit {
       };
       this.pagesDataService.setPageHeader('New Form Parameters');
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setControlValues(entryForm: ViewEntryFormModel): void {
@@ -106,7 +112,6 @@ export class FormSourceDetailComponent implements OnInit {
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
     this.utcDifference = this.viewSource.utcOffset;
-    this.enforceLimitCheck = entryForm.enforceLimitCheck;
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
   }
@@ -222,7 +227,6 @@ export class FormSourceDetailComponent implements OnInit {
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
       period: this.selectedPeriodId,
-      enforceLimitCheck: this.enforceLimitCheck,
       requireTotalInput: this.requireTotalInput,
       isValid: () => true
     };
@@ -239,23 +243,23 @@ export class FormSourceDetailComponent implements OnInit {
     }
 
     if (this.viewSource.id === 0) {
-      this.formSourcesService.create(createUpdateSource).pipe(
+      this.sourcesCacheService.put(createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Parameters', message: `Form ${this.viewSource.name} parameters saved`, type: 'success'
+            title: 'Form Parameters', message: `Form ${this.viewSource.name} parameters saved`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
       });
     } else {
-      this.formSourcesService.update(this.viewSource.id, createUpdateSource).pipe(
+      this.sourcesCacheService.update(this.viewSource.id, createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Parameters', message: `Form  ${this.viewSource.name} parameters updated`, type: 'success'
+            title: 'Form Parameters', message: `Form  ${this.viewSource.name} parameters updated`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
@@ -266,7 +270,7 @@ export class FormSourceDetailComponent implements OnInit {
 
   protected onDelete(): void {
     //todo. prompt for confirmation first
-    this.formSourcesService.delete(this.viewSource.id).subscribe((data) => {
+    this.sourcesCacheService.delete(this.viewSource.id).subscribe((data) => {
       if (data) {
         this.location.back();
       } else {

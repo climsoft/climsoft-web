@@ -1,21 +1,22 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core'; 
 import { SharedModule } from '../shared/shared.module';
 import { SettingsRoutingModule } from './settings-routing.module';
 import { ViewGeneralSettingsComponent } from './general-settings/view-general-settings/view-general-settings.component';
 import { EditGeneralSettingComponent } from './general-settings/edit-general-setting/edit-general-setting.component';
-import { Setting1ParamsComponent } from './general-settings/edit-general-setting/setting-1-params/setting-1-params.component';
-
-
+import { ClimsoftBoundaryComponent } from './general-settings/edit-general-setting/climsoft-boundary/climsoft-boundary.component';
+import { MetadataModule } from '../metadata/metadata.module';
+import { ClimsoftDBComponent } from './general-settings/edit-general-setting/climsoft-v4-db-connection/climsoft-v4-db.component';
 
 @NgModule({
   declarations: [
     ViewGeneralSettingsComponent,
     EditGeneralSettingComponent,
-    Setting1ParamsComponent
+    ClimsoftBoundaryComponent,
+    ClimsoftDBComponent,
   ],
   imports: [
     SharedModule,
+    MetadataModule,
     SettingsRoutingModule
   ]
 })

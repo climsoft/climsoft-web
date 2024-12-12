@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { ViewStationObsEnvModel } from 'src/app/core/models/stations/view-station-obs-env.model';
-import { StationObsEnvironmentsService } from 'src/app/core/services/stations/station-obs-environments.service';
+import { StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
   selector: 'app-station-obs-env-single-input',
@@ -17,7 +17,7 @@ export class StationObsEnvSingleInputComponent implements OnInit, OnChanges {
   protected options!: ViewStationObsEnvModel[];
   protected selectedOption!: ViewStationObsEnvModel | null;
 
-  constructor(private stationObsSevice: StationObsEnvironmentsService) {
+  constructor(private stationsCacheService: StationsCacheService) {
   }
 
   ngOnInit(): void {
@@ -27,14 +27,17 @@ export class StationObsEnvSingleInputComponent implements OnInit, OnChanges {
 
     //load the elements once
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.stationObsSevice.findAll(this.includeOnlyIds).subscribe(data => {
-        this.options = data;
-        this.setInputSelectedOption();
-      });
+      this.setOptions();
     } else {
       this.setInputSelectedOption();
     }
 
+  }
+
+  // TODO. Temporary. Later convert to an observable
+  private async setOptions() {
+    this.options = await this.stationsCacheService.getStationObsEnv();
+    this.setInputSelectedOption();
   }
 
   private setInputSelectedOption(): void {

@@ -41,27 +41,25 @@ export class MetadataUpdatesController {
     @Req() request: Request,
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
-    return this.stationsService.checkUpdates(
-      updatesQueryDto,
-      authorisedStationIds ? authorisedStationIds : undefined);
+    return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
   }
 
   @Get('element-subdomains')
   async elementSubdomainsUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-      return this.elementSubdomainsService.checkUpdates(updatesQueryDto);
+    return this.elementSubdomainsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('element-types')
   async elementTypesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-      return this.elementTypesService.checkUpdates(updatesQueryDto);
+    return this.elementTypesService.checkUpdates(updatesQueryDto);
   }
 
   @Get('elements')
   async elementUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-      return this.elementsService.checkUpdates(updatesQueryDto);
+    return this.elementsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('sources')

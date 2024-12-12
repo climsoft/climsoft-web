@@ -20,6 +20,6 @@ export class CreateObservationQueryDto {
     @IsDateString({}, { each: true })
     datetimes: string[];
 
-    @IsInt()
-    period: number;
+    //@IsInt()
+    //period: number;
 }

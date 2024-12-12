@@ -2,18 +2,18 @@ import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { take } from 'rxjs';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model'; 
+import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -38,7 +38,7 @@ export class EditDataComponent {
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
   protected observationsEntries: ObservationEntry[] = [];
-  private elementsMetadata: CreateViewElementModel[] = [];
+  private elementsMetadata: ElementCacheModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
   private periods: Period[] = PeriodsUtil.possiblePeriods;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -50,17 +50,17 @@ export class EditDataComponent {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementService: ElementsService,
-    private sourcesService: SourcesService,
+    private elementService: ElementsCacheService,
+    private sourcesService: SourcesCacheService,
     private observationService: ObservationsService
   ) {
 
 
-    this.elementService.find().pipe(take(1)).subscribe(data => {
+    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 
-    this.sourcesService.findAll().pipe(take(1)).subscribe(data => {
+    this.sourcesService.cachedSources.pipe(take(1)).subscribe(data => {
       this.sourcessMetadata = data;
     });
   }
@@ -254,13 +254,13 @@ export class EditDataComponent {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: 'success'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
         });
 
         this.onViewClick();
       } else {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: 'error'
+          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
         });
       }
     });
@@ -295,20 +295,20 @@ export class EditDataComponent {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: 'success'
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
         });
 
         this.onViewClick();
       } else {
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: 'error'
+          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
         });
       }
     });
   }
 
 
-  protected getRowNumber(currentRowIndex: number): number {  
+  protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
 
@@ -17,6 +17,8 @@ export class ViewRegionsComponent implements OnDestroy {
   protected regions!: ViewRegionModel[];
 
   private destroy$ = new Subject<void>();
+
+  protected optionClicked: 'Import' | 'Delete All' | undefined;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -44,18 +46,23 @@ export class ViewRegionsComponent implements OnDestroy {
     this.activeTab = selectedTab;
   }
 
-  protected onSearch(): void { }
-
-  protected onDeleteAll(): void {
-    this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
-      if (data) {
-        this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: "success" });
-      }
-    });
+  protected onSearch(): void {
+    // TODO.
   }
 
-  protected onImportRegion() {
-    this.router.navigate(['import-regions'], { relativeTo: this.route.parent });
+  protected onOptionsClicked(option: 'Import' | 'Delete All'): void {
+    this.optionClicked = option;
+    if (option === 'Delete All') {
+      this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
+        if (data) {
+          this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: ToastEventTypeEnum.SUCCESS });
+        }
+      });
+    }
+  }
+
+  protected onOptionsDialogClosed(): void {
+    this.optionClicked = undefined;
   }
 
 

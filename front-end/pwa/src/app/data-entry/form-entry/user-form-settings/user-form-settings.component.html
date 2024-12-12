@@ -1,0 +1,21 @@
+<app-dialog [(open)]="open" [title]="'Customise Form'" [okButtonLabel]="'Ok'" (okClick)="onOkClick()"
+    (cancelClick)="onCancelClick()">
+
+    <div *ngIf="open && userFormSetting">
+        <div class="mb-2">
+            <div>Grid entry navigation</div>
+            <app-radio-buttons-input [asButtons]="true" [inline]="true" [groupName]="'grid_navigation_options'"
+                [groupItems]=" [ {label: 'Horizontally'}, {label: 'Vertically'} ]" [checkedValue]="gridNavigation"
+                (checkedValueChange)="onGridEntryNavigationSelection($event)" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Increment date selector'"
+                [(value)]="userFormSetting.incrementDateSelector" />
+        </div>
+    </div>
+
+
+</app-dialog>

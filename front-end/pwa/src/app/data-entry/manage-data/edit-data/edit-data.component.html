@@ -5,11 +5,11 @@
         <div class="card-body p-0 mt-2">
             <div class="row g-2 px-2">
                 <div class="col-auto mb-2">
-                    <app-station-single-input [label]="'Station'" [(selectedId)]="stationId" />
+                    <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId" />
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-element-single-input [label]="'Element'" [(selectedId)]="elementId" />
+                    <app-element-selector-single [label]="'Element'" [(selectedId)]="elementId" />
                 </div>
 
                 <div class="col-auto mb-2">
@@ -98,8 +98,8 @@
                             <td>{{ getPeriodName(obsEntry.obsDef.observation.period) }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>
                             <td>
-                                <div class="px-2">
-                                    <app-value-flag-input [id]="i + '_vf'" [displayHistoryOption]="true"
+                                <div class="px-2 value-flag-container">
+                                    <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
                                         [observationDefinition]="obsEntry.obsDef"
                                         [disableValueFlagEntry]="obsEntry.delete" (valueChange)="onUserInput()" />
                                 </div>

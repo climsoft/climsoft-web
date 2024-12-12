@@ -7,7 +7,7 @@ import { ElementsSelectorDialogComponent } from './controls/elements-selector-di
 import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ImportRegionsComponent } from './regions/import-regions/import-regions.component';
+import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations/view-stations/view-stations-table/view-stations-table.component';
@@ -46,6 +46,11 @@ import { QCTestConditionInputComponent } from './elements/element-detail/qc-test
 import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
+import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
+import { ElementSelectorMultipleComponent } from './elements/element-selector/element-selector-multiple/element-selector-multiple.component';
+import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
+import { StationSelectorSingleComponent } from './stations/station-selector/station-single-input/station-selector-single.component';
+import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
 
 @NgModule({
   declarations: [
@@ -88,22 +93,36 @@ import { ImportElementsDialogComponent } from './elements/import-elements-dialog
     QCTestRelationalParamsComponent,
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
-    ImportRegionsComponent,
+    ImportRegionsDialogComponent,
     ViewRegionsComponent,
     ViewRegionsTableComponent,
     ViewRegionsMapComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
     StationsSearchDialogComponent,
+    
+    ElementsSearchDialogComponent, 
+    ElementSelectorSingleComponent,
+    ElementSelectorMultipleComponent,
+
+    StationSelectorMultipleComponent,
+    StationSelectorSingleComponent,
   ],
   imports: [
-    SharedModule,
-    MetadataRoutingModule
+    MetadataRoutingModule,
+    SharedModule,    
   ],
   exports: [
     ElementsSelectorDialogComponent,
-    FormSelectorDialogComponent,
-    StationsSearchDialogComponent,
+    ElementSelectorSingleComponent,
+    ElementSelectorMultipleComponent,
+    ElementsSearchDialogComponent,
+    
+    FormSelectorDialogComponent,   
+
+    StationSelectorMultipleComponent,
+    StationSelectorSingleComponent,
+    StationsSearchDialogComponent, 
   ]
 })
 export class MetadataModule { }

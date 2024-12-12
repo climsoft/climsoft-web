@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewSourceDto } from '../dtos/view-source.dto'; 
+import { ViewSourceDto } from '../dtos/view-source.dto';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
-import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum'; 
+import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum';
 import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
 import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 import { SourceEntity } from '../entities/source.entity';
@@ -72,18 +72,25 @@ export class SourcesService {
     }
 
     public async put(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
-        //source entity will be created with an auto incremented id
-        const entity = this.sourceRepo.create({
+        // sources are required to have unique names
+        let entity = await this.sourceRepo.findOneBy({
             name: dto.name,
-            description: dto.description,
-            sourceType: dto.sourceType,
-            utcOffset: dto.utcOffset,
-            allowMissingValue: dto.allowMissingValue,
-            scaleValues: dto.scaleValues,
-            sampleImage: dto.sampleImage,
-            parameters: dto.parameters,
-            entryUserId: userId
         });
+
+        if (!entity) {
+            entity = this.sourceRepo.create({
+                name: dto.name,
+            });
+        }
+
+        entity.description = dto.description;
+        entity.sourceType = dto.sourceType;
+        entity.utcOffset = dto.utcOffset;
+        entity.allowMissingValue = dto.allowMissingValue;
+        entity.scaleValues = dto.scaleValues;
+        entity.sampleImage = dto.sampleImage;
+        entity.parameters = dto.parameters;
+        entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
 
@@ -134,7 +141,7 @@ export class SourcesService {
 
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({elementIds: createEntryFormDTO.elementIds});
+            const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({ elementIds: createEntryFormDTO.elementIds });
             const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
             dto.parameters = viewEntryForm;
         }

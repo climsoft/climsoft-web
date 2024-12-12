@@ -17,16 +17,13 @@
         Search
       </button> -->
       <div>
-        <app-drop-down-button [buttonText]="'New'" [dropDownItems]="['Import']" (dropDownOptionClick)="onImportRegion()"
-        [translateX]="true" />
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Import', 'Delete All']"
+          (dropDownOptionClick)="onOptionsClicked($event)" [translateX]="true" />
       </div>
 
-      <div>
-        <button type="button" class="btn btn-outline-secondary btn-sm ms-2 " (click)="onDeleteAll()">
-          Delete All
-        </button>
-      </div>
-   
+      <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
+        (cancelClick)="onOptionsDialogClosed()" />
+
     </div>
   </div>
 

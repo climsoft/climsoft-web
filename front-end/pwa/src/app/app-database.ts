@@ -8,6 +8,7 @@ import { StationSearchHistoryModel } from "./metadata/stations/models/stations-s
 import { CreateViewElementModel } from "./metadata/elements/models/create-view-element.model";
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
+import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -20,6 +21,7 @@ export interface StationForm {
 }
 
 export class AppDatabase extends Dexie {
+    // Cached through metadata updates
     metadataModificationLog!: Table<MetadataModificationLogModel, string>;
     stationObsEnv!: Table<ViewStationObsEnvModel, number>;
     stationObsFocus!: Table<ViewStationObsFocusModel, number>;
@@ -30,8 +32,10 @@ export class AppDatabase extends Dexie {
     sources!: Table<ViewSourceModel, number>;
     regions!: Table<ViewRegionModel, number>;
 
+    // cached separately
     stationForms!: Table<StationForm, string>;    
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
+    elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
 
     constructor() {
         super('climsoft_db'); // Database name
@@ -46,8 +50,9 @@ export class AppDatabase extends Dexie {
             sources: `id, name, sourceType`,
             regions: `id, name, regionType`,
 
-            stationsSearchHistory: `name`,
             stationForms: `stationId`,
+            stationsSearchHistory: `name`,
+            elementsSearchHistory: `name`,
         });
     }
 

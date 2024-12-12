@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewGeneralSettingDto } from '../dtos/view-general-setting.dto'; 
+import { CreateViewGeneralSettingDto } from '../dtos/create-view-general-setting.dto';
 import { GeneralSettingEntity } from '../entities/general-setting.entity';
 import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';
 
@@ -12,8 +12,7 @@ export class GeneralSettingsService {
         @InjectRepository(GeneralSettingEntity) private generalSettingRepo: Repository<GeneralSettingEntity>
     ) { }
 
-
-    private async findEntity(id: string): Promise<GeneralSettingEntity> {
+    private async findEntity(id: number): Promise<GeneralSettingEntity> {
         const entity = await this.generalSettingRepo.findOneBy({
             id: id,
         });
@@ -24,11 +23,11 @@ export class GeneralSettingsService {
         return entity;
     }
 
-    public async find(id: string): Promise<ViewGeneralSettingDto> { 
+    public async find(id: number): Promise<CreateViewGeneralSettingDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<GeneralSettingEntity>): Promise<ViewGeneralSettingDto[]> {
+    public async findAll(selectOptions?: FindOptionsWhere<GeneralSettingEntity>): Promise<CreateViewGeneralSettingDto[]> {
         const findOptions: FindManyOptions<GeneralSettingEntity> = {
             order: {
                 id: "ASC"
@@ -38,28 +37,64 @@ export class GeneralSettingsService {
         if (selectOptions) {
             findOptions.where = selectOptions;
         }
-        
+
         return (await this.generalSettingRepo.find(findOptions)).map(item => {
             return this.createViewDto(item);
         });
     }
 
-    public async update(id: string, dto: UpdateGeneralSettingDto, userId: number) {
-        const source = await this.findEntity(id);
-        source.parameters = dto.parameters;
-        source.entryUserId = userId;
-
-        // TODO. Later Implement logging of changes in the database.
-        return this.generalSettingRepo.save(source);
+    /**
+     * Used when user is updating the settings parameters
+     * @param id 
+     * @param dto 
+     * @param userId 
+     * @returns 
+     */
+    public async update(id: number, dto: UpdateGeneralSettingDto, userId: number) : Promise<CreateViewGeneralSettingDto>{
+        const entity = await this.findEntity(id);
+        entity.parameters = dto.parameters;
+        entity.entryUserId = userId;
+        return this.createViewDto(await this.generalSettingRepo.save(entity));
     }
 
-    public async count(){
+    /**
+     * Used by migration service to save default settings
+     * @param dtos 
+     * @param userId 
+     * @returns 
+     */
+    public async bulkPut(dtos: CreateViewGeneralSettingDto[], userId: number): Promise<number> {
+        const entities: GeneralSettingEntity[] = [];
+        for (const dto of dtos) {
+            let entity = await this.generalSettingRepo.findOneBy({
+                id: dto.id,
+            });
+
+            if (!entity) {
+                entity = await this.generalSettingRepo.create({
+                    id: dto.id,
+                });
+            }
+
+            entity.name = dto.name;
+            entity.description = dto.description;
+            entity.parameters = dto.parameters;
+            entity.entryUserId = userId;
+            entities.push(entity);
+        }
+
+        const savedEntities = await this.generalSettingRepo.save(entities);
+        return savedEntities.length;
+    }
+
+    public async count() {
         return this.generalSettingRepo.count();
     }
 
-    private createViewDto(entity: GeneralSettingEntity): ViewGeneralSettingDto {
+    private createViewDto(entity: GeneralSettingEntity): CreateViewGeneralSettingDto {
         return {
             id: entity.id,
+            name: entity.name,
             description: entity.description,
             parameters: entity.parameters
         };

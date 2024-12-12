@@ -32,6 +32,9 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "int", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
 
+  @Column({ type: "boolean", name: "total_entry_required", nullable: true })
+  totalEntryRequired: boolean | null;
+
   @Column({ type: "varchar", name: "comment", nullable: true })
   comment: string | null;
 

@@ -8,7 +8,7 @@
         <div class="card-header mb-2 p-1 fw-bold">Selectors</div>
         <div class="row g-2 px-2">
           <div class="col-sm-auto mb-2" *ngIf="displayElementSelector">
-            <app-element-single-input [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
+            <app-element-selector-single [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
               [selectedId]="formDefinitions.elementSelectorValue" (selectedIdChange)="onElementChange($event)" />
           </div>
 
@@ -39,10 +39,11 @@
         <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
           <div class="fw-bold">Fields</div>
           <div class="mb-1">
-            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Show History']"
-              (dropDownOptionClick)=" $event === 'Same Input'? dlgSameInput.open = true: onOptions($event)"
+            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Add Extra Info', 'Settings']"
+              (dropDownOptionClick)="onOptions($event)"
               [translateX]="true" [buttonText]="'Options'" />
-              <app-assign-same-input  #dlgSameInput (ok)="assignSameValue($event)"/>
+            <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
+            <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormStetingChange($event)" />
           </div>
         </div>
 
@@ -50,15 +51,14 @@
           <!-- list layout -->
           <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
             [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
-            [displayHistoryOption]="displayHistoryOption" (valueChange)="onValueChange($event)"
-            (totalIsValid)="onTotalIsValid($event)" />
+            [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)" />
           <!-- ----------- -->
 
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [formDefinitions]="formDefinitions"
-            [refreshLayout]="refreshLayout" [displayHistoryOption]="displayHistoryOption"
-            (valueChange)="onValueChange($event)" (totalIsValid)="onTotalIsValid($event)">
+          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [gridNavigation]="gridNavigation" [formDefinitions]="formDefinitions"
+            [refreshLayout]="refreshLayout" [displayExtraInfoOption]="displayExtraInfoOption"
+            (totalIsValid)="onTotalIsValid($event)">
           </app-grid-layout>
           <!-- ----------- -->
 
@@ -72,10 +72,9 @@
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSave" (click)="onSave()">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSave()">
       Save
     </button>
-
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">Cancel</button>
   </div>
 

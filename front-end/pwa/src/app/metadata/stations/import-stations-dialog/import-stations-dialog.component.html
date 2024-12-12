@@ -2,9 +2,6 @@
   (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
 
   <div *ngIf="open" class="card border-0">
-
-
-
     <div class="card-body p-0">
 
       <div class="d-flex px-1 py-0 flex-column">
@@ -31,8 +28,9 @@
         style="min-height:300px; min-width:300px; max-height: 300px; max-width: 500px; background-color:#e0f7fa;">
         <div>
           <div class="fw-bold">Expected Columns</div>
-          <div style="font-size: 12px;"> 
-            Id, Name, Description, Observation processing method, Location, Elevation, Observation environment, Observation focus, WMO ID, WIGOS ID, ICAO ID, Status, Date Established, Date Closed, Comment
+          <div style="font-size: 12px;">
+            Id, Name, Description, Observation processing method, Location, Elevation, Observation environment,
+            Observation focus, WMO ID, WIGOS ID, ICAO ID, Status, Date Established, Date Closed, Comment
           </div>
         </div>
         <div *ngIf="uploadMessage" class="mt-4" [class.text-danger]="uploadError">

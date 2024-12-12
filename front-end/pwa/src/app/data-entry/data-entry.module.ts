@@ -20,6 +20,7 @@ import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-
 import { EditQCDataComponent } from './manage-data/qc-data/edit-qc-data/edit-qc-data.component';
 import { SourceCheckComponent } from './manage-data/source-check/source-check.component';
 import { MetadataModule } from '../metadata/metadata.module';
+import { UserFormSettingsComponent } from './form-entry/user-form-settings/user-form-settings.component';
 
 //------------------------------------
 
@@ -30,6 +31,7 @@ import { MetadataModule } from '../metadata/metadata.module';
     ImportEntryComponent,
     StationFormSelectionComponent,
     FormEntryComponent,
+    UserFormSettingsComponent,
     GridLayoutComponent,
     LnearLayoutComponent,
     ValueFlagInputComponent,
@@ -46,7 +48,7 @@ import { MetadataModule } from '../metadata/metadata.module';
   imports: [
     DataEntryRoutingModule,
     SharedModule,
-    MetadataModule,
+    MetadataModule, 
   ]
 })
 export class DataEntryModule { }

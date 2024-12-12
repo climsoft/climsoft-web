@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { SourceTypeEnum } from '../../../metadata/sources/models/source-type.enum';
 import { BaseNumberAPIService } from '../base/base-number-api.service';
 import { CreateQCTestModel } from '../../models/elements/qc-tests/create-qc-test.model';
 import { UpdateQCTestModel } from '../../models/elements/qc-tests/update-qc-test.model';

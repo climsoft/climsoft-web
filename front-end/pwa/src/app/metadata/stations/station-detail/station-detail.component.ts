@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
@@ -50,7 +50,7 @@ export class StationDetailComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe((data) => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: "success" });
+        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: ToastEventTypeEnum.SUCCESS});
         this.location.back();
       }
     });

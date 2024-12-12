@@ -81,7 +81,7 @@ export class ElementsCacheService {
         return await AppDatabase.instance.elementTypes.toArray();
     }
 
-    public checkForUpdates() {
+    public checkForUpdates(): void {
         // Observable to initiate metadata updates sequentially
         of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('elementTypes')),
@@ -108,7 +108,7 @@ export class ElementsCacheService {
         );
     }
 
-    public create(createDto: CreateViewElementModel): Observable<CreateViewElementModel> {
+    public add(createDto: CreateViewElementModel): Observable<CreateViewElementModel> {
         return this.http.post<CreateViewElementModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
@@ -140,13 +140,13 @@ export class ElementsCacheService {
 
     public deleteAll(): Observable<boolean> {
         return this.http.delete<boolean>(`${this.endPointUrl}`)
-          .pipe(
-            tap(() => {
-                this.checkForUpdates();
-            }),
-            catchError(this.handleError)
-          );
-      }
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+                catchError(this.handleError)
+            );
+    }
 
     public get downloadLink(): string {
         return `${this.endPointUrl}/download`;

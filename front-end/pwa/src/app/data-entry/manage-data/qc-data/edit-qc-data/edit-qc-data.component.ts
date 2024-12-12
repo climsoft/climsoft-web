@@ -4,12 +4,13 @@ import { ObservationsService } from 'src/app/core/services/observations/observat
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { take } from 'rxjs';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { take } from 'rxjs'; 
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { ObservationDefinition } from '../../../form-entry/defintions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -45,17 +46,17 @@ export class EditQCDataComponent {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementService: ElementsService,
-    private sourcesService: SourcesService,
+    private elementService: ElementsCacheService,
+    private sourcesService: SourcesCacheService,
     private observationService: ObservationsService
   ) {
     this.pagesDataService.setPageHeader('Manage Data');
 
-    this.elementService.find().pipe(take(1)).subscribe(data => {
+    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 
-    this.sourcesService.findAll().pipe(take(1)).subscribe(data => {
+    this.sourcesService.cachedSources.pipe(take(1)).subscribe(data => {
       this.sourcessMetadata = data;
     });
   }

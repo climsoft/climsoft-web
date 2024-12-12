@@ -145,7 +145,6 @@ export class ElementsService {
         return true;
     }
 
-
     private updateEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
