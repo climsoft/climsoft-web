@@ -3,9 +3,9 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.s
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subscription, take } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
-import { ActivatedRoute, Router } from '@angular/router';
 import { UserRoleEnum } from '../models/users/user-role.enum';
 
+type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Users' | 'Settings';
 
 @Component({
   selector: 'app-home',
@@ -14,8 +14,9 @@ import { UserRoleEnum } from '../models/users/user-role.enum';
 })
 export class HomeComponent implements OnInit, OnDestroy {
 
+
   //holds the features navigation items
-  protected featuresNavItems: any[] = [
+  protected featuresNavItems: { name: mainMenus, url: string, icon: string, open: boolean, children: { name: string, url: string, featureTitle: string }[] }[] = [
     {
       name: 'Dashboard',
       url: '/dashboard',
@@ -67,7 +68,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           name: 'Regions',
           url: '/view-regions',
           featureTitle: 'Regions'
-        },        
+        },
         {
           name: 'Sources',
           url: '/sources',
@@ -162,11 +163,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private setAllowedNavigationLinks(role: UserRoleEnum): void {
-    // TODO. Change this implementation after changing the structure of the array
+    // Change the navigation links accessible if user not admin
     if (role !== UserRoleEnum.ADMINISTRATOR) {
-      this.featuresNavItems.splice(3, 1);
+      const adminModules: mainMenus[] = ['Metadata', 'Users', 'Settings'];
+      this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
     }
-
   }
 
 
