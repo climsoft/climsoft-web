@@ -26,8 +26,10 @@
                 </div>
         
                 <div class="mb-2">
-                    <app-text-input [label]="'Password'" [type]="password" [value]="climsoftV4DB.password"
-                        (valueChange)="onPasswordChange($event)" />
+                    <app-text-input [label]="'Password'" [type]="'password'" [(value)]="climsoftV4DB.password"  />
+                </div>
+                <div class="mb-2">
+                    <app-number-input [label]="'UTC Offset'" [(numValue)]="climsoftV4DB.utcOffset"/>
                 </div>
             </div>
         </div>

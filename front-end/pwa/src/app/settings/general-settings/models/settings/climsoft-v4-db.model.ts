@@ -8,6 +8,7 @@ export interface ClimsoftV4DBModel extends SettingsParametersValidity {
     password: string;  // MariaDB password
     databaseName: string; // MariaDB database name 
     port: number;
+    utcOffset: number;
     //elementsMapper: { v4Id: number, v5Id: number}[];
 }
 

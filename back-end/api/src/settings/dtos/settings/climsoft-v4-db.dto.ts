@@ -7,6 +7,7 @@ export class ClimsoftV4DBDto implements SettingsParametersValidity {
     password: string;  // MariaDB password
     databaseName: string; // MariaDB database name 
     port: number;
+    utcOffset: number; // utc hours to offset when saving to v4 database
     //elementsMapper: { v4Id: number, v5Id: number}[];
 
     isValid(): boolean {

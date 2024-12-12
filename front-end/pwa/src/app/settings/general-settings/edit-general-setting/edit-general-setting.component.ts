@@ -23,7 +23,7 @@ export class EditGeneralSettingComponent implements OnInit {
     private location: Location,
   ) {
     this.pagesDataService.setPageHeader('Edit General Setting');
-  }
+  } 
 
   ngOnInit() {
     const generalSettingId = this.route.snapshot.params['id'];

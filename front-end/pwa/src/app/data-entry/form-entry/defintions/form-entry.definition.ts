@@ -321,7 +321,6 @@ export class FormEntryDefinition {
     private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
         hour = hour + this.source.utcOffset;
-        const pad = (num: number): string => StringUtils.addLeadingZero(num);
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 

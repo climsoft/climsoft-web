@@ -207,7 +207,6 @@ export class ObservationsService {
                 const logObj: ViewObservationLogDto = {
                     value: item.value,
                     flag: item.flag,
-                    final: item.final,
                     comment: item.comment,
                     deleted: item.deleted,
                     entryDateTime: item.entryDateTime,
@@ -222,8 +221,7 @@ export class ObservationsService {
         // Important because present values should be part of the record history
         const currentValuesAsLogObj: ViewObservationLogDto = {
             value: entity.value,
-            flag: entity.flag,
-            final: entity.final,
+            flag: entity.flag, 
             comment: entity.comment,
             deleted: entity.deleted,
             entryDateTime: entity.entryDateTime.toISOString()
@@ -271,7 +269,7 @@ export class ObservationsService {
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
         // Save to version 4 database as well
-        this.climsoftV4Service.saveObservation(createObservationDtos, username);
+        this.climsoftV4Service.saveObservations(createObservationDtos, username);
     }
 
     private async insertOrUpdateObsValues(observationsData: Partial<ObservationEntity>[]): Promise<void> {

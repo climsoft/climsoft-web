@@ -3,7 +3,7 @@ import { ClimsoftBoundaryDto } from "src/settings/dtos/settings/climsoft-boundar
 import { ClimsoftV4DBDto } from "src/settings/dtos/settings/climsoft-v4-db.dto";
 
 export class GeneralSettingsDefaults {
-    public static GENERAL_SETTINGS: CreateViewGeneralSettingDto[] = [
+    public static readonly GENERAL_SETTINGS: CreateViewGeneralSettingDto[] = [
         { 
             id: 1,
             name: 'Climsoft version 4 database',
@@ -13,12 +13,12 @@ export class GeneralSettingsDefaults {
                 serverIPAddress: 'localhost', // e.g., 'localhost' or the server's IP address
                 username: 'my_user',   // MariaDB username
                 password: 'my_password',  // MariaDB password
-                databaseName: 'mariadb_climsoft_test_db_v4', // MariaDB database name 
+                databaseName: 'mariadb_climsoft_db_v4', // MariaDB database name 
                 port: 3306,
                 isValid: () => { return true }
 
             } as ClimsoftV4DBDto
-        },
+        }, 
         { 
             id: 2,
             name: 'Climsoft boundary',
@@ -32,19 +32,19 @@ export class GeneralSettingsDefaults {
       
     ];
 
-    public static V4_V5_ELEMENTS_MAPPER : { v4Id: number, v5Id: number }[] = [
-        { v4Id: 1, v5Id: 10 }, // temp mean
-        { v4Id: 2, v5Id: 8 }, // temp max
-        { v4Id: 3, v5Id: 9 }, // temp min
+    public static readonly V4_V5_ELEMENTS_MAPPER : { v4Id: number, v5Id: number, v4Period: 'daily'| 'hourly' }[] = [
+        { v4Id: 1, v5Id: 10, v4Period: 'daily' }, // temp mean
+        { v4Id: 2, v5Id: 8, v4Period: 'daily' }, // temp max
+        { v4Id: 3, v5Id: 9, v4Period: 'daily' }, // temp min
        // { v4Id: 4, v5Id: 1 },
-        { v4Id: 5, v5Id: 1 }, // Precip daily
-        { v4Id: 15, v5Id: 13 },// RH  daily max
-        { v4Id: 16, v5Id: 14 },// RH  daily min
-        { v4Id: 17, v5Id: 15 }, // RH  daily mean,
-        { v4Id: 111, v5Id: 18 }, // Wind speed 
-        { v4Id: 112, v5Id: 19 }, // Wind direction
-        { v4Id: 101, v5Id: 11 }, // Temp dry bulb
-        { v4Id: 102, v5Id: 12 }, // Temp wet bulb 
+        { v4Id: 5, v5Id: 1 , v4Period: 'daily'}, // Precip daily
+        { v4Id: 15, v5Id: 13 , v4Period: 'daily'},// RH  daily max
+        { v4Id: 16, v5Id: 14, v4Period: 'daily' },// RH  daily min
+        { v4Id: 17, v5Id: 15 , v4Period: 'daily'}, // RH  daily mean,
+        { v4Id: 111, v5Id: 18 , v4Period: 'daily'}, // Wind speed 
+        { v4Id: 112, v5Id: 19, v4Period: 'daily' }, // Wind direction
+        { v4Id: 101, v5Id: 11, v4Period: 'daily' }, // Temp dry bulb
+        { v4Id: 102, v5Id: 12, v4Period: 'daily' }, // Temp wet bulb 
     ]
 
 }
