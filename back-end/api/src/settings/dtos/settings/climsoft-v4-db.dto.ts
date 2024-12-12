@@ -7,7 +7,7 @@ export class ClimsoftV4DBDto implements SettingsParametersValidity {
     password: string;  // MariaDB password
     databaseName: string; // MariaDB database name 
     port: number;
-    elementsMapper: { v4Id: number, v5Id: number}[];
+    //elementsMapper: { v4Id: number, v5Id: number}[];
 
     isValid(): boolean {
         return true; // TODO.

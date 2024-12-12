@@ -4,39 +4,42 @@
     </div>
 
     <div *ngIf="climsoftV4DB.saveToV4DB">
-        <div>Restart the entire system after making changes.</div>
+        <div class="text-warning">Restart the entire system after making changes.</div>
         <hr/>
         <div >       
-            <div>V4 Database Settings</div>
-            <div class="mb-2">
-                <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />
-            </div>
-    
-            <div class="mb-2">
-                <app-number-input [label]="'Port'" [(numValue)]="climsoftV4DB.port" />
-            </div>
-    
-            <div class="mb-2">
-                <app-text-input [label]="'Database Name'" [(value)]="climsoftV4DB.databaseName" />
-            </div>
-    
-            <div class="mb-2">
-                <app-text-input [label]="'Username'" [(value)]="climsoftV4DB.username" />
-            </div>
-    
-            <div class="mb-2">
-                <app-text-input [label]="'Password'" [value]="climsoftV4DB.password"
-                    (valueChange)="onPasswordChange($event)" />
+            <div class="fw-bold mb-2">V4 Database Settings</div>
+            <div class="ms-2">
+                <div class="mb-2">
+                    <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-number-input [label]="'Port'" [(numValue)]="climsoftV4DB.port" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Database Name'" [(value)]="climsoftV4DB.databaseName" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Username'" [(value)]="climsoftV4DB.username" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Password'" [type]="password" [value]="climsoftV4DB.password"
+                        (valueChange)="onPasswordChange($event)" />
+                </div>
             </div>
         </div>
-        <hr/>
+        <!-- <hr/>
         <div *ngIf="climsoftV4DB.elementsMapper">
-            <div>Map Elements</div>
+            <div class="fw-bold mb-2">Map Elements</div>
             <table class="table table-sm ms-2">
                 <thead>
                     <tr>
                         <th>V4 ID</th>
                         <th>V5 ID</th>
+                        <th>V5 Period</th>
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
@@ -48,10 +51,13 @@
                             <app-element-selector-single [id]="i + '_v5_element_id'" [(selectedId)]="item.v5Id"
                                 (selectedIdChange)="onElementsSelected()" />
                         </td>
+                        <td>
+                            <app-number-input [id]="i + '_v5_period'" [(numValue)]="item.v4Id" />
+                        </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </div> -->
 
     </div>
 

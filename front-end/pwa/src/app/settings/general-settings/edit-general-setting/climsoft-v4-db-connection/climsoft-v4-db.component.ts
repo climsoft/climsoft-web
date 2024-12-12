@@ -20,17 +20,13 @@ export class ClimsoftDBComponent implements OnChanges {
       this.climsoftV4DB = this.settingParameter as ClimsoftV4DBModel;
     }
   }
-  
+
   protected get password(): string {
     return 'xx';
   }
 
   protected onPasswordChange(password: string): void {
     this.climsoftV4DB.password = password;
-  }
-
-  protected onElementsSelected(): void {
-
   }
 
 }

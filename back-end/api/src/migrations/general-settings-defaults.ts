@@ -15,9 +15,6 @@ export class GeneralSettingsDefaults {
                 password: 'my_password',  // MariaDB password
                 databaseName: 'mariadb_climsoft_test_db_v4', // MariaDB database name 
                 port: 3306,
-                elementsMapper: [
-                    { v4Id: 1, v5Id: 1 },// TODO. Cgange the correct order of GCOS ECVS
-                ],
                 isValid: () => { return true }
 
             } as ClimsoftV4DBDto
@@ -33,7 +30,21 @@ export class GeneralSettingsDefaults {
             } as ClimsoftBoundaryDto
         },
       
+    ];
 
+    public static V4_V5_ELEMENTS_MAPPER : { v4Id: number, v5Id: number }[] = [
+        { v4Id: 1, v5Id: 10 }, // temp mean
+        { v4Id: 2, v5Id: 8 }, // temp max
+        { v4Id: 3, v5Id: 9 }, // temp min
+       // { v4Id: 4, v5Id: 1 },
+        { v4Id: 5, v5Id: 1 }, // Precip daily
+        { v4Id: 15, v5Id: 13 },// RH  daily max
+        { v4Id: 16, v5Id: 14 },// RH  daily min
+        { v4Id: 17, v5Id: 15 }, // RH  daily mean,
+        { v4Id: 111, v5Id: 18 }, // Wind speed 
+        { v4Id: 112, v5Id: 19 }, // Wind direction
+        { v4Id: 101, v5Id: 11 }, // Temp dry bulb
+        { v4Id: 102, v5Id: 12 }, // Temp wet bulb 
     ]
 
 }
