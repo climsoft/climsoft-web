@@ -4,8 +4,6 @@ import { ViewElementTypeDto } from "src/metadata/elements/dtos/elements/view-ele
 import { StationObservationEnvironmentDto } from "src/metadata/stations/dtos/view-station-obs-env.dto";
 import { StationObservationFocusDto } from "src/metadata/stations/dtos/view-station-obs-focus.dto";
 
-// To create this migration just execute; npx typeorm migration:create src/migrations/SeedElementSubdomains
-
 export class MetadataDefaults  {
    
     public static ELEMENT_SUBDOMAINS : ViewElementSubdomainDto[] = [
@@ -30,7 +28,6 @@ export class MetadataDefaults  {
         { id: 4, name: 'Temperature', description: '',  subdomainId: 1}, 
         { id: 5, name: 'Water vapour', description: '',  subdomainId: 1}, 
         { id: 6, name: 'Wind speed and direction', description: '',  subdomainId: 1}, 
-
 
         { id: 7, name: 'Earth radiation budget', description: '',  subdomainId: 2}, 
         { id: 8, name: 'Lightning', description: '',  subdomainId: 2}, 
@@ -125,5 +122,4 @@ export class MetadataDefaults  {
         { id: 11, name: 'Upper-air/Radiosonde station', description: '' },
         { id: 12, name: 'Radar station', description: '' },
     ];
-
 }

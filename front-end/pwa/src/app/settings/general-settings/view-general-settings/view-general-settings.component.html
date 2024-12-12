@@ -1,16 +1,15 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-    <div class="fw-bold">Showing General Settings</div>
+  <!-- <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
     <div class="mb-1 d-flex">
       <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
         Search
       </button>
     </div>
-  </div>
+  </div> -->
 
   <div class="card-body px-0">
     <app-table-view [clickable]="true"
-      [columnsData]="[ {id: 'id', name: 'Id'} ,  {id: 'description', name: 'Description'} ]" [rowsData]="regions"
+      [columnsData]="[ {id: 'name', name: 'Name'} ,  {id: 'description', name: 'Description'} ]" [rowsData]="settings"
       (rowDataClicked)="onEditGeneralSetting($event)" />
   </div>
 </div>

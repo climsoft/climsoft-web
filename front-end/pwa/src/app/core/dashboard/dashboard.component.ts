@@ -2,11 +2,8 @@ import { Component, AfterViewInit } from '@angular/core';
 import * as L from 'leaflet';
 import { take } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
-import { StationsService } from '../services/stations/stations.service';
-import { RegionsService } from '../services/regions/regions.service';
-import { GeneralSettingsService } from '../services/settings/general-settings.service';
-import { SettingIds } from '../models/settings/setting-ids';
-import { Settings1ParamsModel } from '../models/settings/settings-params/settings-1-params.model';
+import { GeneralSettingsService } from '../../settings/general-settings/services/general-settings.service';
+import { ClimsoftBoundaryModel } from '../../settings/general-settings/models/settings/climsoft-boundary.model';
 import {  StationsCacheService } from '../../metadata/stations/services/stations-cache.service';
 
 @Component({
@@ -21,17 +18,16 @@ export class DashboardComponent implements AfterViewInit {
   constructor(
     private pagesDataService: PagesDataService,
     private generalSettingsService: GeneralSettingsService,
-    private stationsCacheService: StationsCacheService,
-    private regionsService: RegionsService) {
+    private stationsCacheService: StationsCacheService,) {
     this.pagesDataService.setPageHeader('Dashboard');
   }
 
   ngAfterViewInit(): void {
-    this.generalSettingsService.findOne(SettingIds.DEFAULT_MAP_VIEW).pipe(
+    this.generalSettingsService.findOne(2).pipe(
       take(1)
     ).subscribe((data) => {
       if (data && data.parameters) {
-        this.initMap(data.parameters as Settings1ParamsModel);
+        this.initMap(data.parameters as ClimsoftBoundaryModel);
         this.addStationsToMap();
         //this.addregionsToMap();
       }
@@ -39,7 +35,7 @@ export class DashboardComponent implements AfterViewInit {
     });
   }
 
-  private initMap(defaultMapView: Settings1ParamsModel): void {
+  private initMap(defaultMapView: ClimsoftBoundaryModel): void {
     this.dashboardMap = L.map('map').setView(
       [defaultMapView.latitude, 
         defaultMapView.longitude
@@ -98,36 +94,36 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   // TODO. Use later
-  private addregionsToMap(): void {
-    this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
-      const regionsFeatureCollection: any = {
-        "type": "FeatureCollection",
-        "features": data.map(item => {
-          return {
-            "type": "Feature",
-            "properties": {
-              "name": item.name,    // TODO. 
-            },
-            "geometry": {
-              "type": "MultiPolygon",
-              "coordinates": item.boundary
-            }
-          };
-        })
-      };
+  // private addregionsToMap(): void {
+  //   this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
+  //     const regionsFeatureCollection: any = {
+  //       "type": "FeatureCollection",
+  //       "features": data.map(item => {
+  //         return {
+  //           "type": "Feature",
+  //           "properties": {
+  //             "name": item.name,    // TODO. 
+  //           },
+  //           "geometry": {
+  //             "type": "MultiPolygon",
+  //             "coordinates": item.boundary
+  //           }
+  //         };
+  //       })
+  //     };
 
-      L.geoJSON(regionsFeatureCollection, {
-        style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
-        onEachFeature: this.onEachRegionFeature,
-        //interactive: false
-      }).addTo(this.dashboardMap);
+  //     L.geoJSON(regionsFeatureCollection, {
+  //       style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
+  //       onEachFeature: this.onEachRegionFeature,
+  //       //interactive: false
+  //     }).addTo(this.dashboardMap);
 
-    });
-  }
+  //   });
+  // }
 
-  private onEachRegionFeature(feature: any, layer: any) {
-    layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
-  }
+  // private onEachRegionFeature(feature: any, layer: any) {
+  //   layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
+  // }
 
 
 

@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { UsersComponent } from './users/users.component';
 import { UserDetailsComponent } from './user-details/user-details.component';
 import { SharedModule } from '../shared/shared.module';
@@ -18,9 +17,9 @@ import { MetadataModule } from '../metadata/metadata.module';
     PasswordChangeComponent
   ],
   imports: [
-    SharedModule,
-    MetadataModule,
     UserRoutingModule,
+    SharedModule,
+    MetadataModule,    
   ]
 })
 export class UserModule { }

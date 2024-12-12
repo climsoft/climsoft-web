@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { take } from 'rxjs';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { DuplicateModel, SourceCheckService } from 'src/app/core/services/observations/source-check.service';
-import { StationsService } from 'src/app/core/services/stations/stations.service';
-import { ViewStationModel } from 'src/app/core/models/stations/view-station.model';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 
 
 @Component({
@@ -29,8 +27,8 @@ export class SourceCheckComponent {
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
   protected observationsEntries: DuplicateModel[] = [];
-  protected stationsMetdata: ViewStationModel[] = [];
-  private elementsMetadata: CreateViewElementModel[] = []; 
+  protected stationsMetdata: StationCacheModel[] = [];
+  private elementsMetadata: ElementCacheModel[] = []; 
   private periods: Period[] = PeriodsUtil.possiblePeriods;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
@@ -38,16 +36,16 @@ export class SourceCheckComponent {
   protected sumOfDuplicates: number = 0;
 
   constructor(
-    private stationsService: StationsService,
-    private elementService: ElementsService, 
+    private stationsService: StationsCacheService,
+    private elementService: ElementsCacheService, 
     private sourceCheckService: SourceCheckService
   ) {
 
-    this.stationsService.find().pipe(take(1)).subscribe(data => {
+    this.stationsService.cachedStations.pipe(take(1)).subscribe(data => {
       this.stationsMetdata = data;
     });
 
-    this.elementService.find().pipe(take(1)).subscribe(data => {
+    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;
     });
 

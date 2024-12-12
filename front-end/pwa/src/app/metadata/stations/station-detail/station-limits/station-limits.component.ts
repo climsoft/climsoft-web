@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StationElementsService } from 'src/app/core/services/stations/station-elements.service';
+import { StationElementsService } from 'src/app/metadata/stations/services/station-elements.service';
 import { Observable, of } from 'rxjs';
 import { switchMap, tap, catchError, finalize } from 'rxjs/operators';
 import { StationElementLimitModel } from 'src/app/core/models/stations/station-element-limit.model';

@@ -38,13 +38,9 @@ export class ElementTypesService {
                 entryUserId: userId
             });
             entities.push(entity);
-        }
+        } 
 
-        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
-        for (let i = 0; i < entities.length; i += batchSize) {
-            const batch = entities.slice(i, i + batchSize);
-            await this.insertOrUpdateValues(batch);
-        }
+        await this.insertOrUpdateValues(entities);    
     }
 
     private async insertOrUpdateValues(entities: Partial<ElementTypeEntity>[]): Promise<void> {
@@ -57,7 +53,7 @@ export class ElementTypesService {
                 [
                     "name",
                     "description",
-                    "subdomainId", 
+                    "subdomain_id", 
                     "entry_user_id"
                 ],
                 ["id"],

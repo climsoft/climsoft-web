@@ -109,8 +109,8 @@ import { StationSelectorMultipleComponent } from './stations/station-selector/st
     StationSelectorSingleComponent,
   ],
   imports: [
-    SharedModule,
     MetadataRoutingModule,
+    SharedModule,    
   ],
   exports: [
     ElementsSelectorDialogComponent,

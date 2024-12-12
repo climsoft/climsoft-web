@@ -1,12 +1,8 @@
 import { Component, AfterViewInit, Input, SimpleChanges, OnChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { take } from 'rxjs';
-import { SettingIds } from 'src/app/core/models/settings/setting-ids';
-import { Settings1ParamsModel } from 'src/app/core/models/settings/settings-params/settings-1-params.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { RegionsService } from 'src/app/core/services/regions/regions.service';
-import { GeneralSettingsService } from 'src/app/core/services/settings/general-settings.service';
-import { StationsService } from 'src/app/core/services/stations/stations.service';
+import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model'; 
+import { GeneralSettingsService } from 'src/app/settings/general-settings/services/general-settings.service'; 
 
 @Component({
   selector: 'app-map',
@@ -24,13 +20,10 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private map: any;
  
   private mapOverallContentLayerGroup: L.LayerGroup;
-  private defaultMapView!: Settings1ParamsModel;
+  private defaultMapView!: ClimsoftBoundaryModel;
 
-  constructor(
-    private pagesDataService: PagesDataService,
-    private generalSettingsService: GeneralSettingsService,
-    private stationsService: StationsService,
-    private regionsService: RegionsService) {
+  constructor( 
+    private generalSettingsService: GeneralSettingsService, ) {
 
     this.mapOverallContentLayerGroup = L.layerGroup();
 
@@ -66,10 +59,10 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
 
     if (!this.defaultMapView) {
-      this.generalSettingsService.findOne(SettingIds.DEFAULT_MAP_VIEW).pipe(take(1)).subscribe((data) => {
+      this.generalSettingsService.findOne(2).pipe(take(1)).subscribe((data) => {
         if (data && data.parameters) {
          
-          this.defaultMapView = data.parameters as Settings1ParamsModel
+          this.defaultMapView = data.parameters as ClimsoftBoundaryModel
 
           //console.log('defaultMapView', this.defaultMapView)
           this.setupMap();
@@ -101,45 +94,45 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
   }
 
-  private initMap2(defaultMapView: Settings1ParamsModel): void {
-    this.map = L.map(this.mapContainerId).setView(
-      [defaultMapView.latitude, defaultMapView.longitude],
-      defaultMapView.zoomLevel); // Set initial coordinates and zoom level
+  // private initMap2(defaultMapView: ClimsoftBoundaryModel): void {
+  //   this.map = L.map(this.mapContainerId).setView(
+  //     [defaultMapView.latitude, defaultMapView.longitude],
+  //     defaultMapView.zoomLevel); // Set initial coordinates and zoom level
 
-    // Remove ukraine flag
-    this.map.attributionControl.setPrefix('');
+  //   // Remove ukraine flag
+  //   this.map.attributionControl.setPrefix('');
 
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(this.map);
+  //   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  //     maxZoom: 19,
+  //     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  //   }).addTo(this.map);
 
-  }
+  // }
 
-  private addStationsToMap(): void {
-    // Get all the stations and add them to leaflet as a layer.
-    this.stationsService.find().pipe(take(1)).subscribe((data) => {
-      const featureCollection: any = {
-        "type": "FeatureCollection",
-        "features": data.map(item => {
-          return {
-            "type": "Feature",
-            "properties": {
-              "id": item.id,
-              "name": item.name,    // TODO. other properties
-            },
-            "geometry": {
-              "type": "Point",
-              "coordinates": [item.longitude, item.latitude]
-            }
-          };
-        })
-      };
+  // private addStationsToMap(): void {
+  //   // Get all the stations and add them to leaflet as a layer.
+  //   this.stationsService.find().pipe(take(1)).subscribe((data) => {
+  //     const featureCollection: any = {
+  //       "type": "FeatureCollection",
+  //       "features": data.map(item => {
+  //         return {
+  //           "type": "Feature",
+  //           "properties": {
+  //             "id": item.id,
+  //             "name": item.name,    // TODO. other properties
+  //           },
+  //           "geometry": {
+  //             "type": "Point",
+  //             "coordinates": [item.longitude, item.latitude]
+  //           }
+  //         };
+  //       })
+  //     };
 
-      const stationLayer = L.geoJSON(featureCollection, { pointToLayer: this.stationMarkers }).addTo(this.map);
-      stationLayer.bringToFront();
-    });
-  }
+  //     const stationLayer = L.geoJSON(featureCollection, { pointToLayer: this.stationMarkers }).addTo(this.map);
+  //     stationLayer.bringToFront();
+  //   });
+  // }
 
   private stationMarkers(feature: any, latlng: any) {
     //console.log("latlong", latlng, feature);
@@ -158,36 +151,36 @@ export class MapComponent implements AfterViewInit, OnChanges {
   }
 
   // TODO. Use later
-  private addregionsToMap(): void {
-    this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
-      const regionsFeatureCollection: any = {
-        "type": "FeatureCollection",
-        "features": data.map(item => {
-          return {
-            "type": "Feature",
-            "properties": {
-              "name": item.name,    // TODO. 
-            },
-            "geometry": {
-              "type": "MultiPolygon",
-              "coordinates": item.boundary
-            }
-          };
-        })
-      };
+  // private addregionsToMap(): void {
+  //   this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
+  //     const regionsFeatureCollection: any = {
+  //       "type": "FeatureCollection",
+  //       "features": data.map(item => {
+  //         return {
+  //           "type": "Feature",
+  //           "properties": {
+  //             "name": item.name,    // TODO. 
+  //           },
+  //           "geometry": {
+  //             "type": "MultiPolygon",
+  //             "coordinates": item.boundary
+  //           }
+  //         };
+  //       })
+  //     };
 
-      L.geoJSON(regionsFeatureCollection, {
-        style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
-        onEachFeature: this.onEachRegionFeature,
-        //interactive: false
-      }).addTo(this.map);
+  //     L.geoJSON(regionsFeatureCollection, {
+  //       style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
+  //       onEachFeature: this.onEachRegionFeature,
+  //       //interactive: false
+  //     }).addTo(this.map);
 
-    });
-  }
+  //   });
+  // }
 
-  private onEachRegionFeature(feature: any, layer: any) {
-    layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
-  }
+  // private onEachRegionFeature(feature: any, layer: any) {
+  //   layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
+  // }
 
 
 

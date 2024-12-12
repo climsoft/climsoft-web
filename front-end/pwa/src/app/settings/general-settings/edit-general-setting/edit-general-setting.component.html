@@ -1,24 +1,21 @@
-<div *ngIf="viewGeneralSetting" class="card border-0">
+<div *ngIf="setting" class="card border-0">
 
   <div class="card-body p-0">
-
     <div>
       <div class="mb-3">
-        <app-label-input [label]="'Id'" [value]="viewGeneralSetting.id" />
+        <app-label-input [label]="'Name'" [value]="setting.name" />
       </div>
 
       <div class="mb-3">
-        <app-label-input [label]="'Description'" [value]="viewGeneralSetting.description" />
+        <app-label-input [label]="'Description'" [value]="setting.description" />
       </div>
     </div>
 
-    <div class="mt-2 card border-1">
+    <div *ngIf="setting.parameters" class="mt-2 card border-1">
       <div class="card-body">
         <div class="card-title">Parameters</div>
-
-        <app-setting-1-params *ngIf="this.viewGeneralSetting.id === isDefaultMapView"
-        [settings1Parameters]="setting1Param" />
-
+        <app-climsoft-v4-db *ngIf="setting.id === 1" [settingParameter]="setting.parameters" />
+        <app-climsoft-boundary *ngIf="setting.id === 2" [settingParameter]="setting.parameters" />
       </div>
     </div>
 

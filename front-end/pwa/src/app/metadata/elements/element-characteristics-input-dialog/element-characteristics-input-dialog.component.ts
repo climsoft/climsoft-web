@@ -100,7 +100,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
 
     let saveSubscription: Observable<CreateViewElementModel>;
     if (this.bNew) {
-      saveSubscription = this.elementsCacheService.create({ ...updatedElement, id: this.element.id });
+      saveSubscription = this.elementsCacheService.add({ ...updatedElement, id: this.element.id });
     } else {
       saveSubscription = this.elementsCacheService.update(this.element.id, updatedElement);
     }

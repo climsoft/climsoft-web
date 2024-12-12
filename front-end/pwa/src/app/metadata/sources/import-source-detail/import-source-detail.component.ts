@@ -8,8 +8,7 @@ import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateUpdateSourceModel } from 'src/app/metadata/sources/models/create-update-source.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
-import { SourcesService } from 'src/app/core/services/sources/sources.service';
+import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model'; 
 import { SourcesCacheService } from '../services/sources-cache.service';
 
 @Component({

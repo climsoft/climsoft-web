@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { ViewStationObsFocusModel } from 'src/app/core/models/stations/view-station-obs-focus.model';
-import { StationObsEnvironmentsService } from 'src/app/core/services/stations/station-obs-environments.service';
-import { StationObsFocusesService } from 'src/app/core/services/stations/station-obs-focuses.service';
+import { StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
   selector: 'app-station-obs-focus-single-input',
@@ -18,7 +17,7 @@ export class StationObservationFocusSingleInputComponent implements OnInit, OnCh
   protected options!: ViewStationObsFocusModel[];
   protected selectedOption!: ViewStationObsFocusModel | null;
 
-  constructor(private stationObsSevice: StationObsFocusesService) {
+  constructor(private stationsCacheService: StationsCacheService) {
   }
 
   ngOnInit(): void {
@@ -28,14 +27,17 @@ export class StationObservationFocusSingleInputComponent implements OnInit, OnCh
 
     //load the elements once
     if (!this.options || (this.includeOnlyIds && this.includeOnlyIds.length > 0)) {
-      this.stationObsSevice.findAll(this.includeOnlyIds).subscribe(data => {
-        this.options = data;
-        this.setInputSelectedOption();
-      });
+      this.setOptions();
     } else {
       this.setInputSelectedOption();
     }
 
+  }
+
+  // TODO. Temporary. Later convert to an observable
+  private async setOptions() {
+    this.options = await this.stationsCacheService.getStationObsFocus();
+    this.setInputSelectedOption();
   }
 
   private setInputSelectedOption(): void {
@@ -50,7 +52,7 @@ export class StationObservationFocusSingleInputComponent implements OnInit, OnCh
   }
 
   protected onSelectedOptionChange(selectedOption: ViewStationObsFocusModel | null) {
-    console.log('focus change: ', selectedOption);
+    //console.log('focus change: ', selectedOption);
     this.selectedOption = selectedOption;
     if (selectedOption) {
       this.selectedId = selectedOption.id;

@@ -2,12 +2,10 @@ import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { ViewGeneralSettingModel } from 'src/app/core/models/settings/view-general-setting.model';
-import { GeneralSettingsService } from 'src/app/core/services/settings/general-settings.service';
-import { UpdateGeneralSettingModel } from 'src/app/core/models/settings/update-general-setting.model'; 
-import { Settings1ParamsModel } from 'src/app/core/models/settings/settings-params/settings-1-params.model';
-import { SettingIds } from 'src/app/core/models/settings/setting-ids';
+import { CreateViewGeneralSettingModel } from 'src/app/settings/general-settings/models/create-view-general-setting.model';
+import { GeneralSettingsService } from 'src/app/settings/general-settings/services/general-settings.service';
+import { UpdateGeneralSettingModel } from 'src/app/settings/general-settings/models/update-general-setting.model'; 
+import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model';
 
 @Component({
   selector: 'app-edit-general-setting',
@@ -15,7 +13,7 @@ import { SettingIds } from 'src/app/core/models/settings/setting-ids';
   styleUrls: ['./edit-general-setting.component.scss']
 })
 export class EditGeneralSettingComponent implements OnInit {
-  protected viewGeneralSetting!: ViewGeneralSettingModel;
+  protected setting!: CreateViewGeneralSettingModel;
   protected bEnableSave: boolean = true;//todo. should be false by default
 
   constructor(
@@ -29,29 +27,22 @@ export class EditGeneralSettingComponent implements OnInit {
 
   ngOnInit() {
     const generalSettingId = this.route.snapshot.params['id'];
-    this.generalSettingsService.findOne(generalSettingId).subscribe((data) => {
-      this.viewGeneralSetting = data;
+    this.generalSettingsService.findOne(+generalSettingId).subscribe((data) => {
+      this.setting = data;
     });
 
   }
 
-  protected get setting1Param(): Settings1ParamsModel {
-    return this.viewGeneralSetting.parameters as Settings1ParamsModel;;
-  }
-
-  protected get isDefaultMapView(): string{
-    return SettingIds.DEFAULT_MAP_VIEW;
-  }
 
   protected onSaveClick(): void {
     // TODO. do validations
 
-    const createUser: UpdateGeneralSettingModel = {
-      parameters: this.viewGeneralSetting.parameters
+    const settingParam: UpdateGeneralSettingModel = {
+      parameters: this.setting.parameters
     }
 
     this.bEnableSave = false;
-    this.generalSettingsService.update(this.viewGeneralSetting.id, createUser).subscribe((data) => {
+    this.generalSettingsService.update(this.setting.id, settingParam).subscribe((data) => {
       this.bEnableSave = true;
       if (data) {
         this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.id} updated`, type: ToastEventTypeEnum.SUCCESS });

@@ -1,6 +1,5 @@
 
-export interface UpdateGeneralSettingModel {
- // TODO. validate this depending on the setting id
+export interface UpdateGeneralSettingModel { 
   parameters: SettingsParametersValidity | null;
 
 }

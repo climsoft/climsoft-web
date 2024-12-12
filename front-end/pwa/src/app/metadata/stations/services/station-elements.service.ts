@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { StationElementLimitModel } from '../../models/stations/station-element-limit.model';
+import { StationElementLimitModel } from '../../../core/models/stations/station-element-limit.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CreateViewElementModel } from '../../../metadata/elements/models/create-view-element.model';
+import { CreateViewElementModel } from '../../elements/models/create-view-element.model';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StationElementsService {
 
-  private endPointUrl: string = " http://localhost:3000/station-elements";
+  private endPointUrl: string = `${environment.apiUrl}/station-elements`;
 
   constructor(private http: HttpClient) { }
 

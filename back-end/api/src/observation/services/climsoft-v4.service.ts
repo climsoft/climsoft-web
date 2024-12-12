@@ -1,21 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import * as mariadb from 'mariadb';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service'; 
+import { ClimsoftV4DBDto } from 'src/settings/dtos/settings/climsoft-v4-db.dto';
 
 @Injectable()
 export class ClimsoftV4Service {
-
-    private v4DBInitialised: boolean = false;
+    private v4Setting: ClimsoftV4DBDto;
     private v4DBPool: mariadb.Pool;
 
-    private async setupV4DBConnections() {
-        this.v4DBPool = mariadb.createPool({
-            host: process.env.V4_HOST ? process.env.V4_HOST : "localhost",        // e.g., 'localhost' or the server's IP address
-            user: process.env.V4_DB_USERNAME ? process.env.V4_DB_USERNAME : "my_user",    // MariaDB username
-            password: process.env.V4_DB_PASSWORD ? process.env.V4_DB_PASSWORD : "my_password", // MariaDB password
-            database: process.env.V4_DB_NAME ? process.env.V4_DB_NAME : "mariadb_climsoft_test_db_v4", // MariaDB database name 
-            port: process.env.DB_PORT ? +process.env.DB_PORT : 3306
-        });
+    constructor(private generalSettingsService: GeneralSettingsService) { }
+
+    private async v4DBIsSetup(): Promise<boolean> {
+        // If setting not loaded then load it
+        if (!this.v4Setting) {
+            this.v4Setting = (await this.generalSettingsService.find(1)).parameters as ClimsoftV4DBDto;
+        }
+
+        // if saving to v4 database not allowed then return null
+        if (!this.v4Setting.saveToV4DB) {
+            return false;
+        } 
+
+        // If the version 4 database pool is not set up then set it up.
+        if (!this.v4DBPool) {
+            try {
+            // create v4 database connection pool
+            this.v4DBPool = mariadb.createPool({
+                host: this.v4Setting.serverIPAddress,
+                user: this.v4Setting.username,
+                password: this.v4Setting.password,
+                database: this.v4Setting.databaseName,
+                port: this.v4Setting.port
+            });     
+            } catch (error) {
+               console.error('Setting up mariadb for V4 database failed: ', error); 
+               return false;
+            }    
+        }
+
+        return true;
     }
 
     public async saveObservation(createObservationDtos: CreateObservationDto[], username: string) {
@@ -23,18 +47,16 @@ export class ClimsoftV4Service {
         // TODO. Later remove this.
         if (1 === 1) {
             return;
-        } 
-
-        if (!this.v4DBInitialised) {
-            await this.setupV4DBConnections();
-            this.v4DBInitialised = true;
         }
 
-        let connection;
-        try {
-            // Get a connection from the pool
-            connection = await this.v4DBPool.getConnection();
+        // if version 4 database pool is not set up then return.
+        if (!(await this.v4DBIsSetup())) {
+            return;
+        }
 
+        // Get a connection from the pool
+        const connection = await this.v4DBPool.getConnection();
+        try {
             const batchSize = 1000;
             const upsertStatement = `
                 INSERT INTO observationinitial (
@@ -92,7 +114,5 @@ export class ClimsoftV4Service {
             if (connection) connection.release(); // Ensure the connection is released back to the pool
         }
     }
-
-
 
 }

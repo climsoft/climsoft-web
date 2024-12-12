@@ -16,7 +16,7 @@ export class GeneralSettingController {
     }
 
     @Get(':id')
-    public find(@Param('id') id: string) { 
+    public find(@Param('id', ParseIntPipe) id: number) { 
         return this.generalSettingsService.find(id);
     }
 
@@ -24,7 +24,7 @@ export class GeneralSettingController {
     @Patch(':id')
     public update(
         @Req() request: Request,
-        @Param('id') id: string,
+        @Param('id', ParseIntPipe) id: number,
         @Body() createSourceDto: UpdateGeneralSettingDto) { // TODO. Validate the dto
         return this.generalSettingsService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }

@@ -77,7 +77,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     },
     {
       name: 'Users',
-      url: '/user',
+      url: '/users',
       icon: 'bi bi-people',
       open: false,
       children: []

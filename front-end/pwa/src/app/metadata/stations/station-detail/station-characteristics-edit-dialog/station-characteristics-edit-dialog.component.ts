@@ -1,12 +1,11 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
-import { StationsService } from 'src/app/core/services/stations/stations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/core/models/stations/update-station.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
-import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
+import { StationsCacheService } from '../../services/stations-cache.service';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
