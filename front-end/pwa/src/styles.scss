@@ -44,3 +44,8 @@ body {
     /* Optional: adds a shadow for better separation */
     /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); */
 }
+
+.value-flag-container {
+    max-width: 6.875rem; // 110px
+    font-size: 12px;
+}

@@ -98,7 +98,7 @@
                             <td>{{ getPeriodName(obsEntry.obsDef.observation.period) }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>
                             <td>
-                                <div class="px-2">
+                                <div class="px-2 value-flag-container">
                                     <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
                                         [observationDefinition]="obsEntry.obsDef"
                                         [disableValueFlagEntry]="obsEntry.delete" (valueChange)="onUserInput()" />

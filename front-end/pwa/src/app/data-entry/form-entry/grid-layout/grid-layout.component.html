@@ -25,7 +25,7 @@
                     <!-- cell for values -->
                     <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
                        <div class="d-flex">
-                        <div class="table-input-container">
+                        <div class="value-flag-container">
                             <!-- <input type="text"  [id]="rowDef.id +'-'+ colDef.id"> -->
                             <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                                 [observationDefinition]="getObservationDef(rowIndex,colIndex)"
@@ -45,7 +45,7 @@
                     </td>
                     <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
                         <div class="d-flex">
-                            <div class="table-input-container">
+                            <div class="value-flag-container">
                                 <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
                                     [errorMessage]="totalErrorMessage[colIndex]"
                                     (valueChange)="onTotalValueChange(colIndex,$event)"
@@ -81,7 +81,7 @@
                 </div>
             </div>
         </div>
-        <div class="col d-flex flex-column grid-input-container"
+        <div class="col d-flex flex-column value-flag-container"
             *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
             <!-- column name -->
             <div class="row mb-2 d-flex flex-grow-1 fw-bold">
