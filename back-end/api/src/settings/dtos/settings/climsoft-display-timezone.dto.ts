@@ -1,7 +1,7 @@
 import { SettingsParametersValidity } from "../update-general-setting.dto";
 
 export class ClimsoftDisplayTimeZoneDto implements SettingsParametersValidity {
-    utcOffSet: number; 
+    utcOffset: number; 
     isValid(): boolean {
         return true; // TODO.
     }

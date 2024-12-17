@@ -17,13 +17,14 @@
         
         <app-climsoft-v4-db *ngIf="setting.id === 1" [settingParameter]="setting.parameters" />
         <app-climsoft-boundary *ngIf="setting.id === 2" [settingParameter]="setting.parameters" />
+        <app-climsoft-display-timezone *ngIf="setting.id === 3" [settingParameter]="setting.parameters" />
       </div>
     </div>
 
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
       Save
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>

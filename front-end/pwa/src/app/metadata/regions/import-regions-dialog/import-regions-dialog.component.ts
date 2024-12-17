@@ -1,4 +1,4 @@
-import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
@@ -85,7 +85,6 @@ export class ImportRegionsDialogComponent implements OnChanges {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    const params = new HttpParams();
     const url = `${environment.apiUrl}/regions/upload/${this.selectedRegionType}`;
 
     this.http.put(
@@ -94,7 +93,6 @@ export class ImportRegionsDialogComponent implements OnChanges {
       {
         reportProgress: true,
         observe: 'events',
-        params: params
       }).pipe(
         catchError(error => {
           console.log("Error returned: ", error);

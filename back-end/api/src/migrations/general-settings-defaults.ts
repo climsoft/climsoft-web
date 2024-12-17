@@ -35,10 +35,10 @@ export class GeneralSettingsDefaults {
             name: 'Display time zone',
             description: 'Time zone used by climsoft front end for data querying and display.',
             parameters: {
-                utcOffSet: 0,
+                utcOffset: 0,
                 isValid: () => true
             } as ClimsoftDisplayTimeZoneDto
-        },
+        }, 
 
     ];
 

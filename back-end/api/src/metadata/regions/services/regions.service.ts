@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
@@ -106,9 +106,9 @@ export class RegionsService {
             regionsToSave.push(entity);
         }
 
-        this.fileUploadService.deleteFile(filePathName);
-
         await this.regionsRepo.save(regionsToSave);
+
+        this.fileUploadService.deleteFile(filePathName);
     }
 
     public async delete(id: number): Promise<number> {
