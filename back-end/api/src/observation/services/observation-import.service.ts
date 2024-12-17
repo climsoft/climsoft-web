@@ -294,9 +294,11 @@ export class ObservationImportService {
 
         // If date times are not in UTC then convert them to utc
         if (sourceDef.utcOffset > 0) {
-            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${sourceDef.utcOffset} HOUR;`;
+            // Subtract the offset to get UTC time. Local time is ahead of UTC, so to move "back" to UTC
+            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${sourceDef.utcOffset} HOUR;`;
         } else if (sourceDef.utcOffset < 0) {
-            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} - INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
+            // Add the offset to get UTC time. Local time is behind UTC, so to move "forward" to UTC
+            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
         }
 
         // change the date_time back to varchar as expected by the dto

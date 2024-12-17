@@ -91,7 +91,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel, qcTests);
         this.loadObservations();
 
-
         /** Gets default date value (YYYY-MM-DD) used by date selector */
         this.defaultDateValue = new Date().toISOString().slice(0, 10);
 
