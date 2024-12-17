@@ -1,11 +1,36 @@
-<div>
-    <div class="mt-2">
-        <app-number-input [label]="'Latitude'" [(numValue)]="climsoftBoundary.latitude" />
+<div *ngIf="climsoftBoundary">
+    <div>
+        <div class="d-flex flex-column">
+            <div class="mb-1 d-flex justify-content-between align-items-center">
+                <div class="me-2">
+                    Select boundary file to upload (GADM GeoJSON)
+                </div>
+                <div>
+                    <input #fileUpload type="file" style="display: none;" [accept]="'application/json'"
+                        (change)="onFileSelected($event)">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                        (click)="fileUpload.click()">
+                        Select
+                    </button>
+                </div>
+            </div>
+            <div class="ms-2 text-success" *ngIf="fileName">
+                {{ fileName }}
+            </div>
+            <div class="ms-2 text-danger" *ngIf="errorMessage">
+                {{ errorMessage }}
+            </div>
+        </div>
     </div>
     <div class="mt-2">
-        <app-number-input [label]="'Longitude'" [(numValue)]="climsoftBoundary.longitude" />
+        <app-number-input [label]="'Default Center Latitude'" [(numValue)]="climsoftBoundary.latitude" />
     </div>
     <div class="mt-2">
-        <app-number-input [label]="'Zoom Level'" [(numValue)]="climsoftBoundary.zoomLevel" />
+        <app-number-input [label]="'Default Center Longitude'" [(numValue)]="climsoftBoundary.longitude" />
     </div>
+    <div class="mt-2">
+        <app-number-input [label]="'Default Zoom Level'" [(numValue)]="climsoftBoundary.zoomLevel" />
+    </div>
+
+
 </div>

@@ -1,0 +1,7 @@
+
+<div *ngIf="displayTimezone">
+
+    <div class="mb-2">
+        <app-number-input [label]="'UTC Offset'" [(numValue)]="displayTimezone.utcOffset" />
+    </div>
+</div>

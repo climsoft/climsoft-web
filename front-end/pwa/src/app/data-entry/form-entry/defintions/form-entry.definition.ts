@@ -320,7 +320,14 @@ export class FormEntryDefinition {
    */
     private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
-        hour = hour + this.source.utcOffset;
+        if (this.source.utcOffset > 0) {
+            // Subtract the offset to get UTC time. Local time is ahead of UTC, so to move "back" to UTC 
+            hour = hour - this.source.utcOffset;
+          } else if (this.source.utcOffset < 0) {
+            // Add the offset to get UTC time. Local time is behind UTC, so to move "forward" to UTC 
+            hour = hour + Math.abs(this.source.utcOffset);
+          }
+
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 
