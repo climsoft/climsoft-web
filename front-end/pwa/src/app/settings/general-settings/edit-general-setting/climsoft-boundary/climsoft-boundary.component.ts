@@ -13,9 +13,7 @@ export class ClimsoftBoundaryComponent implements OnChanges {
   public settingParameter!: SettingsParametersValidity;
 
   protected climsoftBoundary!: ClimsoftBoundaryModel;
-
-  protected fileName: string = "";
-
+  protected fileName: string = '';
   protected errorMessage: string = '';
 
   constructor() { }
@@ -43,11 +41,11 @@ export class ClimsoftBoundaryComponent implements OnChanges {
 
     this.fileName = selectedFile ? selectedFile.name : '';
 
-    this.setBoundaryParam(selectedFile);
+    this.setBoundaryParams(selectedFile);
   }
 
 
-  private setBoundaryParam(selectedFile: File): void {
+  private setBoundaryParams(selectedFile: File): void {
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -59,13 +57,12 @@ export class ClimsoftBoundaryComponent implements OnChanges {
         // TODO left hear. Decode the json object and set the default lat and long using turf js.
 
         if (this.climsoftBoundary.boundary) {
-          const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary)
+          const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
           const centerPoint = turf.center(multipolygon);
 
-          console.log(centerPoint);
+          this.climsoftBoundary.longitude = centerPoint.geometry.coordinates[0];
+          this.climsoftBoundary.latitude = centerPoint.geometry.coordinates[1]
         }
-
-
 
       } catch (error) {
         this.errorMessage = 'Invalid JSON file. Please upload a valid JSON.';

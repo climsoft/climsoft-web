@@ -123,6 +123,7 @@ import { StationSelectorMultipleComponent } from './stations/station-selector/st
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
     StationsSearchDialogComponent, 
+    ViewStationsMapComponent,
   ]
 })
 export class MetadataModule { }

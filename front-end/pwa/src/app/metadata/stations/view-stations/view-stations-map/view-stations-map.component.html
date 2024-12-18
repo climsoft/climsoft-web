@@ -1,7 +1,7 @@
 <div *ngIf="stations" class="card border-0">
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
-      <app-map [mapContainerId]="'stationMetadata'" [mapContentLayerGroup]="stationMapLayerGroup" />
+      <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
     </div>
 
   </div>
