@@ -8,10 +8,6 @@ import { HttpClientModule } from '@angular/common/http';
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
-import { SelectorInputComponent } from './controls/selector-input/selector-input.component'; 
-import { YearInputComponent } from './controls/year-input/year-input.component';
-import { MonthInputComponent } from './controls/month-input/month-input.component';
-import { DayInputComponent } from './controls/day-input/day-input.component'; 
 import { DataListViewComponent } from './controls/data-list-view/data-list-view.component';
 import { NumberInputComponent } from './controls/number-input/number-input.component';
 import { TableViewComponent } from './controls/table-view/table-view.component';
@@ -62,14 +58,9 @@ const controlsComponents = [
   LabelInputComponent,
   TextInputComponent,
   NumberInputComponent,
-  SelectorInputComponent,
   DateInputComponent,
   CheckBoxInputComponent,
   RadioButtonsInputComponent,
-
-  YearInputComponent,
-  MonthInputComponent,
-  DayInputComponent,
 
   DataListViewComponent,
   TableViewComponent,

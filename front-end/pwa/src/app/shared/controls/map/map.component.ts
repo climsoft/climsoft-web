@@ -11,29 +11,24 @@ import * as turf from "@turf/turf";
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements AfterViewInit, OnChanges {
-
- 
-  protected mapContainerId!: string;
-
   @Input()
   public mapContentLayerGroup!: L.LayerGroup;
 
-  protected climsoftBoundary!: ClimsoftBoundaryModel;
-  private map!: L.Map;
+  // Generate a random map id to make user it's alway unique
+  protected mapContainerId: string = `map_${Math.random().toString()}`;
 
   // Create the overall content layer group. This will contains all other layers displayed on the map.
   private mapOverallContentLayerGroup: L.LayerGroup = L.layerGroup();
 
+  // Create the climsoft boundary layer group to show the boundaries of climsoft operations 
   private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
 
-  constructor(
-    private generalSettingsService: GeneralSettingsService,) {
-    this.mapContainerId = Math.random().toString();
+  protected climsoftBoundary!: ClimsoftBoundaryModel;
+  private map!: L.Map;
 
-  }
+  constructor(private generalSettingsService: GeneralSettingsService,) { }
 
   ngAfterViewInit(): void {
-    console.log('after view init')
     // Load the climsoft boundary setting.
     this.generalSettingsService.findOne(2).pipe(
       take(1)
@@ -46,7 +41,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('ngOnChanges')
     if (this.mapContentLayerGroup) {
       this.mapOverallContentLayerGroup.clearLayers();
 
@@ -60,10 +54,9 @@ export class MapComponent implements AfterViewInit, OnChanges {
     // If the map has already been set up, then no need to set it up again
     if (!(this.mapContainerId && this.climsoftBoundary && !this.map)) {
       return;
-    }
+    } 
 
-    console.log('map container: ', this.mapContainerId)
-
+    // create the leaflet map
     this.map = L.map(this.mapContainerId).setView(
       [
         this.climsoftBoundary.latitude,
@@ -81,30 +74,17 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }).addTo(this.map);
 
 
-    this.setBoundaryLayer();
+    // If boundary coordinates provided, then add them to the boundary layer for visibility
+    if (this.climsoftBoundary.boundary) {
+      const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
+      L.geoJSON(multipolygon, {
+        style: { fillColor: 'transparent', color: '#1330BF', weight: 0.5 }, // "opacity": 0.5 
+      }).addTo(this.boundaryMapLayerGroup);
+    }
 
     // Add content layer group to the map
     this.mapOverallContentLayerGroup.addTo(this.map);
 
   }
-
-
-
-  private setBoundaryLayer(): void {
-    if (!this.climsoftBoundary.boundary) {
-      return;
-    }
-
-    const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
-
-
-    L.geoJSON(multipolygon, {
-      style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
-    }).addTo(this.boundaryMapLayerGroup);
-
-
-
-  }
-
 
 }
