@@ -34,7 +34,7 @@ export class MetadataUpdatesController {
   async staionObsFocusesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.stationObsFocuseservice.checkUpdates(updatesQueryDto);
-  }
+  } 
 
   @Get('stations')
   async stationUpdates(

@@ -1,8 +1,9 @@
 import { Component, AfterViewInit, Input, SimpleChanges, OnChanges } from '@angular/core';
-import * as L from 'leaflet';
 import { take } from 'rxjs';
-import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model'; 
-import { GeneralSettingsService } from 'src/app/settings/general-settings/services/general-settings.service'; 
+import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model';
+import { GeneralSettingsService } from 'src/app/settings/general-settings/services/general-settings.service';
+import * as L from 'leaflet';
+import * as turf from "@turf/turf";
 
 @Component({
   selector: 'app-map',
@@ -10,75 +11,58 @@ import { GeneralSettingsService } from 'src/app/settings/general-settings/servic
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements AfterViewInit, OnChanges {
-
-  @Input()
-  public mapContainerId!: string;
-
   @Input()
   public mapContentLayerGroup!: L.LayerGroup;
 
-  private map: any;
- 
-  private mapOverallContentLayerGroup: L.LayerGroup;
-  private defaultMapView!: ClimsoftBoundaryModel;
+  // Generate a random map id to make user it's alway unique
+  protected mapContainerId: string = `map_${Math.random().toString()}`;
 
-  constructor( 
-    private generalSettingsService: GeneralSettingsService, ) {
+  // Create the overall content layer group. This will contains all other layers displayed on the map.
+  private mapOverallContentLayerGroup: L.LayerGroup = L.layerGroup();
 
-    this.mapOverallContentLayerGroup = L.layerGroup();
+  // Create the climsoft boundary layer group to show the boundaries of climsoft operations 
+  private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
 
-  }
+  protected climsoftBoundary!: ClimsoftBoundaryModel;
+  private map!: L.Map;
+
+  constructor(private generalSettingsService: GeneralSettingsService,) { }
 
   ngAfterViewInit(): void {
-    //console.log('ngAfterViewInit')
-    this.setupMap();
+    // Load the climsoft boundary setting.
+    this.generalSettingsService.findOne(2).pipe(
+      take(1)
+    ).subscribe((data) => {
+      if (data && data.parameters) {
+        this.climsoftBoundary = data.parameters as ClimsoftBoundaryModel
+        this.setupMap();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    //console.log('ngOnChanges')
- 
-    if (changes['mapContentLayerGroup'] && this.mapContentLayerGroup) {
+    if (this.mapContentLayerGroup) {
       this.mapOverallContentLayerGroup.clearLayers();
-      this.mapContentLayerGroup.addTo(this.mapOverallContentLayerGroup);
 
-      // for (const layer of this.mapContentLayers) {
-      //   layer.addTo(this.mapContentLayerGroup);
-      // }
+      this.boundaryMapLayerGroup.addTo(this.mapOverallContentLayerGroup);
+      this.mapContentLayerGroup.addTo(this.mapOverallContentLayerGroup);
     }
   }
 
   private setupMap(): void {
-    //console.log('mapContainerId', this.mapContainerId);
-    
-    if (!this.mapContainerId) {
+    // Only set up the map when the container id has been given and the boundary setting has been loaded
+    // If the map has already been set up, then no need to set it up again
+    if (!(this.mapContainerId && this.climsoftBoundary && !this.map)) {
       return;
-    }
+    } 
 
-    if (this.map) {
-      return;
-    }
-
-    if (!this.defaultMapView) {
-      this.generalSettingsService.findOne(2).pipe(take(1)).subscribe((data) => {
-        if (data && data.parameters) {
-         
-          this.defaultMapView = data.parameters as ClimsoftBoundaryModel
-
-          //console.log('defaultMapView', this.defaultMapView)
-          this.setupMap();
-        }
-      });
-      return;
-    }
-
-    //console.log('SETTING UP MAP')
-
+    // create the leaflet map
     this.map = L.map(this.mapContainerId).setView(
       [
-        this.defaultMapView.latitude,
-        this.defaultMapView.longitude
+        this.climsoftBoundary.latitude,
+        this.climsoftBoundary.longitude
       ],
-      this.defaultMapView.zoomLevel); // Set initial coordinates and zoom level
+      this.climsoftBoundary.zoomLevel); // Set initial coordinates and zoom level
 
     // Remove ukraine flag
     this.map.attributionControl.setPrefix('');
@@ -89,99 +73,18 @@ export class MapComponent implements AfterViewInit, OnChanges {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(this.map);
 
-    // Add content layer group
+
+    // If boundary coordinates provided, then add them to the boundary layer for visibility
+    if (this.climsoftBoundary.boundary) {
+      const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
+      L.geoJSON(multipolygon, {
+        style: { fillColor: 'transparent', color: '#1330BF', weight: 0.5 }, // "opacity": 0.5 
+      }).addTo(this.boundaryMapLayerGroup);
+    }
+
+    // Add content layer group to the map
     this.mapOverallContentLayerGroup.addTo(this.map);
 
   }
-
-  // private initMap2(defaultMapView: ClimsoftBoundaryModel): void {
-  //   this.map = L.map(this.mapContainerId).setView(
-  //     [defaultMapView.latitude, defaultMapView.longitude],
-  //     defaultMapView.zoomLevel); // Set initial coordinates and zoom level
-
-  //   // Remove ukraine flag
-  //   this.map.attributionControl.setPrefix('');
-
-  //   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  //     maxZoom: 19,
-  //     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  //   }).addTo(this.map);
-
-  // }
-
-  // private addStationsToMap(): void {
-  //   // Get all the stations and add them to leaflet as a layer.
-  //   this.stationsService.find().pipe(take(1)).subscribe((data) => {
-  //     const featureCollection: any = {
-  //       "type": "FeatureCollection",
-  //       "features": data.map(item => {
-  //         return {
-  //           "type": "Feature",
-  //           "properties": {
-  //             "id": item.id,
-  //             "name": item.name,    // TODO. other properties
-  //           },
-  //           "geometry": {
-  //             "type": "Point",
-  //             "coordinates": [item.longitude, item.latitude]
-  //           }
-  //         };
-  //       })
-  //     };
-
-  //     const stationLayer = L.geoJSON(featureCollection, { pointToLayer: this.stationMarkers }).addTo(this.map);
-  //     stationLayer.bringToFront();
-  //   });
-  // }
-
-  private stationMarkers(feature: any, latlng: any) {
-    //console.log("latlong", latlng, feature);
-    const marker = L.circleMarker(latlng, {
-      radius: 5,
-      fillColor: '#1330BF',
-      color: '#1330BF',
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 0.8
-    });
-
-    marker.bindPopup(`${feature.properties.name}`);
-    return marker;
-
-  }
-
-  // TODO. Use later
-  // private addregionsToMap(): void {
-  //   this.regionsService.findAll().pipe(take(1)).subscribe((data) => {
-  //     const regionsFeatureCollection: any = {
-  //       "type": "FeatureCollection",
-  //       "features": data.map(item => {
-  //         return {
-  //           "type": "Feature",
-  //           "properties": {
-  //             "name": item.name,    // TODO. 
-  //           },
-  //           "geometry": {
-  //             "type": "MultiPolygon",
-  //             "coordinates": item.boundary
-  //           }
-  //         };
-  //       })
-  //     };
-
-  //     L.geoJSON(regionsFeatureCollection, {
-  //       style: { fillColor: 'transparent', color: 'blue', weight: 0.5 }, // "opacity": 0.5 
-  //       onEachFeature: this.onEachRegionFeature,
-  //       //interactive: false
-  //     }).addTo(this.map);
-
-  //   });
-  // }
-
-  // private onEachRegionFeature(feature: any, layer: any) {
-  //   layer.bindPopup(`<p>Administrative Region: ${feature.properties.name} </p>`);
-  // }
-
-
 
 }

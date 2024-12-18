@@ -100,6 +100,7 @@ export class EditDataComponent {
       this.observationFilter.useEntryDate = true;
     }
 
+    // TODO. Use the display UTC setting
     if (this.fromDate !== null) {
       this.observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
     }
@@ -186,6 +187,7 @@ export class EditDataComponent {
   }
 
   protected getFormattedDatetime(strDateTime: string): string {
+    // TODO. Use the display UTC setting
     return strDateTime.replace('T', ' ').replace('Z', '');
   }
 

@@ -34,8 +34,7 @@ export class ViewStationsComponent implements OnDestroy {
       this.filterBasedOnSearchedIds();
     });
   }
-
-
+  
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
