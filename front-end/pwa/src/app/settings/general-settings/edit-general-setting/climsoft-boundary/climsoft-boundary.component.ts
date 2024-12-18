@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model';
 import { SettingsParametersValidity } from '../../models/update-general-setting.model';
+import * as turf from "@turf/turf";
 
 @Component({
   selector: 'app-climsoft-boundary',
@@ -50,11 +51,20 @@ export class ClimsoftBoundaryComponent implements OnChanges {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const jsonContent = JSON.parse(reader.result as string);
+        const geoJsonData = JSON.parse(reader.result as string);
+        this.climsoftBoundary.boundary = geoJsonData.features[0].geometry.coordinates;
 
-        console.log(jsonContent);
+        console.log(this.climsoftBoundary.boundary)
 
         // TODO left hear. Decode the json object and set the default lat and long using turf js.
+
+        if (this.climsoftBoundary.boundary) {
+          const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary)
+          const centerPoint = turf.center(multipolygon);
+
+          console.log(centerPoint);
+        }
+
 
 
       } catch (error) {
@@ -62,6 +72,7 @@ export class ClimsoftBoundaryComponent implements OnChanges {
         console.error('JSON Parsing Error:', error);
       }
     };
+
     reader.readAsText(selectedFile);
   }
 
