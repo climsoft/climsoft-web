@@ -2,17 +2,14 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ObservationModule } from './observation/observation.module';
-import { FileController } from './file.controller';
+import { ObservationModule } from './observation/observation.module'; 
 import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
-import { MigrationsModule } from './migrations/migrations.module';
-import { SharedModule } from './shared/shared.module';
+import { MigrationsModule } from './migrations/migrations.module'; 
 
 @Module({
   imports: [
-    SharedModule,
     UserModule,
     MetadataModule,
     ObservationModule,
@@ -31,7 +28,7 @@ import { SharedModule } from './shared/shared.module';
     }),
 
   ],
-  controllers: [AppController, FileController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
