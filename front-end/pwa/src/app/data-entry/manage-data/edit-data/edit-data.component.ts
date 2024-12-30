@@ -1,10 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
 import { ObservationsService } from 'src/app/core/services/observations/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
@@ -27,7 +26,7 @@ interface ObservationEntry {
   templateUrl: './edit-data.component.html',
   styleUrls: ['./edit-data.component.scss']
 })
-export class EditDataComponent {
+export class EditDataComponent implements OnDestroy {
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
@@ -48,6 +47,8 @@ export class EditDataComponent {
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
@@ -55,14 +56,22 @@ export class EditDataComponent {
     private observationService: ObservationsService
   ) {
 
-
-    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
+    this.elementService.cachedElements.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
       this.elementsMetadata = data;
     });
 
-    this.sourcesService.cachedSources.pipe(take(1)).subscribe(data => {
+    this.sourcesService.cachedSources.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
       this.sourcessMetadata = data;
     });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected onDateToUseSelection(selection: string): void {
