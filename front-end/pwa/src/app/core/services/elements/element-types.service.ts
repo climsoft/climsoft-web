@@ -3,13 +3,16 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators'; 
 import { ViewElementTypeModel } from 'src/app/metadata/elements/models/view-element-type.model';
+import { environment } from 'src/environments/environment';
+
+// TODO. Delete this later
 
 @Injectable({
   providedIn: 'root'
 })
 export class ElementTypesService {
 
-  private endPointUrl: string = " http://localhost:3000/element-types";
+  private endPointUrl: string = `${environment.apiUrl}/element-types`;
 
   constructor(private http: HttpClient) { }
 

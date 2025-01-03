@@ -77,7 +77,7 @@ export class ElementsCacheService {
         return await AppDatabase.instance.elementSubdomains.toArray();
     }
 
-    public async getElementTypes(): Promise<ViewElementTypeModel[]> {
+    public async getElementTypes(): Promise<ViewElementTypeModel[]> { 
         return await AppDatabase.instance.elementTypes.toArray();
     }
 

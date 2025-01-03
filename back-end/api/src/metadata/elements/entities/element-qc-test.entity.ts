@@ -4,8 +4,8 @@ import { ElementEntity } from "./element.entity";
 import { QCTestTypeEnum } from "./qc-test-type.enum";
 import { QCTestParametersValidity } from "../dtos/qc-tests/create-qc-test.dto";
 
-@Entity("quality_control_tests")
-export class QCTestEntity extends AppBaseEntity {
+@Entity("elements_qc_tests")
+export class ElementQCTestEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 

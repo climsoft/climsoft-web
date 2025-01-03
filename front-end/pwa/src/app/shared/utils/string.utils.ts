@@ -95,7 +95,7 @@ export class StringUtils {
           httpParams = httpParams.set(key, value.join(','));
         } else {
           // Convert non-array values to string
-          // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
+          // TODO, what about booleans? Investigate what effects string booleans may have on dtos at the back end. 
           httpParams = httpParams.set(key, value.toString());
         }
       }

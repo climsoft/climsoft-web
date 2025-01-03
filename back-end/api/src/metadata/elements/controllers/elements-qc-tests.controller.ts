@@ -1,24 +1,31 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common'; 
-import { Admin } from 'src/user/decorators/admin.decorator'; 
-import { QCTestsService } from '../services/qc-tests.service';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
+import { Admin } from 'src/user/decorators/admin.decorator';
+import { ElementsQCTestsService } from '../services/elements-qc-tests.service';
 import { CreateQCTestDto } from '../dtos/qc-tests/create-qc-test.dto';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
+import { FindQCTestQueryDto } from '../dtos/qc-tests/find-qc-test-query.dto';
 
-@Controller('qc-tests')
-export class QCTestsController {
+@Controller('elements-qc-tests')
+export class ElementsQCTestsController {
 
-    constructor(private readonly qcTestsService: QCTestsService) { }
+    constructor(private readonly qcTestsService: ElementsQCTestsService) { }
 
     @Get()
-    public findAll() {
-        return this.qcTestsService.findAll();
+    public find(@Query() findQCQuery: FindQCTestQueryDto) {
+        if (findQCQuery) {
+            return this.qcTestsService.findBy(findQCQuery);
+        } else {
+            // TODO. Should we support getting all qcs. or is it  only usefull when downloading.
+            return this.qcTestsService.findAll(findQCQuery);
+        }
+
     }
 
     @Get(':id')
-    public find(@Param('id', ParseIntPipe) id: number) {
-        return this.qcTestsService.find(id);
+    public findById(@Param('id', ParseIntPipe) id: number) {
+        return this.qcTestsService.findById(id);
     }
 
     @Get('/qc-test-type/:id')
@@ -27,13 +34,13 @@ export class QCTestsController {
     }
 
     @Get('/element/:id')
-    public findQcTestsByElement(@Param('id') elementId: number) { // TODO validate enum. 
+    public findQcTestsByElement(@Param('id', ParseIntPipe) elementId: number) {
         return this.qcTestsService.findQCTestByElement(elementId);
     }
 
     @Admin()
     @Post()
-    public create(
+    public add(
         @Req() request: Request,
         @Body() createQcTestDto: CreateQCTestDto) { // TODO. Validate the dto
         return this.qcTestsService.create(createQcTestDto, AuthUtil.getLoggedInUserId(request));
@@ -49,7 +56,7 @@ export class QCTestsController {
     @Delete(':id')
     public delete(@Param('id', ParseIntPipe) id: number) {
         return this.qcTestsService.delete(id);
-    } 
+    }
 
 
 }

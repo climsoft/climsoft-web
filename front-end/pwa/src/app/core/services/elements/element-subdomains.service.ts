@@ -4,13 +4,16 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ElementDomainEnum } from '../../../metadata/elements/models/element-domain.enum'; 
 import { ViewElementSubdomainModel } from 'src/app/metadata/elements/models/view-element-subdomain.model';
+import { environment } from 'src/environments/environment';
+
+// TODO. Delete this later
 
 @Injectable({
   providedIn: 'root'
 })
 export class ElementSubdomainsService {
 
-  private endPointUrl: string = " http://localhost:3000/element-subdomains";
+  private endPointUrl: string = `${environment.apiUrl}/element-subdomains`;
 
   constructor(private http: HttpClient) { }
 

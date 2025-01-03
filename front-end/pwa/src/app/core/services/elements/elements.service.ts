@@ -7,6 +7,8 @@ import { environment } from 'src/environments/environment';
 import { ViewElementQueryModel } from '../../models/elements/view-element-query.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
+// TODO. Delete this later
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,7 +29,7 @@ export class ElementsService  {
   public find(viewQuery?: ViewElementQueryModel): Observable<CreateViewElementModel[]> {
     let httpParams: HttpParams = new HttpParams();
     if (viewQuery) {
-      httpParams = StringUtils.getQueryParams<ViewElementQueryModel>(viewQuery)
+      httpParams = StringUtils.getQueryParams<ViewElementQueryModel>(viewQuery);
     }
     return this.http.get<CreateViewElementModel[]>(`${this.endPointUrl}`, { params: httpParams })
       .pipe(

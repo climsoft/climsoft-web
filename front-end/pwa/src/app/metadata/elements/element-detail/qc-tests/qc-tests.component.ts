@@ -1,5 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { take } from 'rxjs';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Subject, take, takeUntil } from 'rxjs';
 import { ContextualQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model';
 import { FlatLineQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-params.model';
 import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
@@ -7,12 +7,12 @@ import { RelationalQCTestParamsModel } from 'src/app/core/models/elements/qc-tes
 import { RepeatedValueQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-params.model';
 import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
-import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
-import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service';
+import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
+import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
-interface ViewQCTest extends UpdateQCTestModel {
+interface ViewQCTest extends ViewElementQCTestModel {
   formattedQCTestTypeName: string,
   formattedParameters: string;
   formattedObsPeriod: string;
@@ -23,13 +23,15 @@ interface ViewQCTest extends UpdateQCTestModel {
   templateUrl: './qc-tests.component.html',
   styleUrls: ['./qc-tests.component.scss']
 })
-export class QCTestsComponent implements OnChanges {
+export class QCTestsComponent implements OnChanges, OnDestroy {
   @Input()
   public elementId!: number;
 
   protected qcTests!: ViewQCTest[];
 
-  constructor(private qcTestsService: QCTestsService) { }
+  private destroy$ = new Subject<void>();
+
+  constructor(private qcTestsService: ElementsQCTestsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.elementId) {
@@ -37,9 +39,14 @@ export class QCTestsComponent implements OnChanges {
     }
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   protected loaQCTests(): void {
     this.qcTestsService.findQCTestByElement(this.elementId).pipe(
-      take(1)
+      takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.qcTests = data.map(item => {
         //console.log(item);
@@ -52,7 +59,7 @@ export class QCTestsComponent implements OnChanges {
           case QCTestTypeEnum.REPEATED_VALUE:
             const repeatedValueParams = item.parameters as RepeatedValueQCTestParamsModel;
             let excludeStr = '';
-            if(repeatedValueParams.excludeRange){
+            if (repeatedValueParams.excludeRange) {
               const excludeRange = repeatedValueParams.excludeRange;
               excludeStr = `{ Exclude range: { Lower threshold: ${excludeRange.lowerThreshold} } { Upper threshold: ${excludeRange.upperThreshold} } } `
             }

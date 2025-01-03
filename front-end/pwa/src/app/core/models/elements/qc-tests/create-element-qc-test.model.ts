@@ -1,6 +1,6 @@
 import { QCTestTypeEnum } from "./qc-test-type.enum";
 
-export interface CreateQCTestModel {
+export interface CreateElementQCTestModel {
     qcTestType: QCTestTypeEnum;
     elementId: number;
     observationPeriod: number;
