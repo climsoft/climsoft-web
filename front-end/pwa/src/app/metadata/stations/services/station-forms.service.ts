@@ -3,16 +3,18 @@ import { Injectable } from '@angular/core';
 import { EMPTY, Observable, catchError, concat, from, map, tap, throwError } from 'rxjs';
 import { ViewSourceModel } from '../../sources/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
-import { environment } from 'src/environments/environment';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StationFormsService {
 
-  private endPointUrl: string = `${environment.apiUrl}/station-forms`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-forms`;
+  }
 
   public find(stationId: string): Observable<ViewSourceModel[]> {
     // Step 1: Observable for fetching from the local database

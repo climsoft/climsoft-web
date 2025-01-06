@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ElementDomainEnum } from '../../../metadata/elements/models/element-domain.enum'; 
+import { ElementDomainEnum } from '../../../metadata/elements/models/element-domain.enum';
 import { ViewElementSubdomainModel } from 'src/app/metadata/elements/models/view-element-subdomain.model';
-import { environment } from 'src/environments/environment';
+import { AppConfigService } from 'src/app/app-config.service';
 
 // TODO. Delete this later
 
@@ -13,9 +13,11 @@ import { environment } from 'src/environments/environment';
 })
 export class ElementSubdomainsService {
 
-  private endPointUrl: string = `${environment.apiUrl}/element-subdomains`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/element-subdomains`;
+  }
 
   public getElementSubdomains(domainEnum?: ElementDomainEnum): Observable<ViewElementSubdomainModel[]> {
     let url: string = `${this.endPointUrl}`;

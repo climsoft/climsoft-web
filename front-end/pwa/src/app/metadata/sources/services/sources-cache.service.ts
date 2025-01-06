@@ -2,21 +2,23 @@ import { BehaviorSubject, catchError, map, Observable, take, tap, throwError } f
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
-import { environment } from "src/environments/environment";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { ViewSourceModel } from "../models/view-source.model";
 import { CreateUpdateSourceModel } from "../models/create-update-source.model";
+import { AppConfigService } from "src/app/app-config.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class SourcesCacheService {
-    private endPointUrl: string = `${environment.apiUrl}/sources`;
+    private endPointUrl: string ;
     private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
 
     constructor(
+        private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/sources`;
         this.loadSources();
         this.checkForUpdates();
     }

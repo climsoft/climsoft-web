@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     container_name: climsoft-pwa
     restart: always
+    environment:
+     API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
     ports:
       - "4200:80"
     depends_on:

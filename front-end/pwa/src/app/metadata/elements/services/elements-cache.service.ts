@@ -2,7 +2,6 @@ import { BehaviorSubject, catchError, concatMap, map, Observable, of, take, tap,
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
-import { environment } from "src/environments/environment";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { CreateViewElementModel } from "../models/create-view-element.model";
 import { UpdateElementModel } from "../models/update-element.model";
@@ -10,6 +9,7 @@ import { ElementDomainEnum } from "../models/element-domain.enum";
 import { ViewElementTypeModel } from "../models/view-element-type.model";
 import { ViewElementSubdomainModel } from "../models/view-element-subdomain.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
+import { AppConfigService } from "src/app/app-config.service";
 
 export interface ElementCacheModel {
     id: number;
@@ -31,14 +31,15 @@ export interface ElementCacheModel {
     providedIn: 'root'
 })
 export class ElementsCacheService {
-    private endPointUrl: string = `${environment.apiUrl}/elements`;
+    private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<ElementCacheModel[]> = new BehaviorSubject<ElementCacheModel[]>([]);
 
     constructor(
+        private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/elements`;
         this.loadElements();
-        //this.checkForUpdates();
     }
 
     private async loadElements() {
@@ -77,7 +78,7 @@ export class ElementsCacheService {
         return await AppDatabase.instance.elementSubdomains.toArray();
     }
 
-    public async getElementTypes(): Promise<ViewElementTypeModel[]> { 
+    public async getElementTypes(): Promise<ViewElementTypeModel[]> {
         return await AppDatabase.instance.elementTypes.toArray();
     }
 

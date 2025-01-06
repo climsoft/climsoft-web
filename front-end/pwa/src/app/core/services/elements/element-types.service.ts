@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators'; 
+import { catchError } from 'rxjs/operators';
 import { ViewElementTypeModel } from 'src/app/metadata/elements/models/view-element-type.model';
-import { environment } from 'src/environments/environment';
+import { AppConfigService } from 'src/app/app-config.service';
 
 // TODO. Delete this later
 
@@ -12,12 +12,13 @@ import { environment } from 'src/environments/environment';
 })
 export class ElementTypesService {
 
-  private endPointUrl: string = `${environment.apiUrl}/element-types`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/element-types`;
+  }
 
-   
-  public getElementTypes(ids?: number[]): Observable<ViewElementTypeModel[]> { 
+  public getElementTypes(ids?: number[]): Observable<ViewElementTypeModel[]> {
     let params: HttpParams = new HttpParams();
 
     if (ids && ids.length > 0) {

@@ -3,17 +3,19 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { StationElementLimitModel } from '../../../core/models/stations/station-element-limit.model';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CreateViewElementModel } from '../../elements/models/create-view-element.model';
-import { environment } from 'src/environments/environment';
+import { CreateViewElementModel } from '../../elements/models/create-view-element.model'; 
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StationElementsService {
 
-  private endPointUrl: string = `${environment.apiUrl}/station-elements`;
+  private endPointUrl: string  ;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService,private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/metadata-updates`;
+   }
 
   public getStationElements(stationId: string): Observable<CreateViewElementModel[]> {
     const url = `${this.endPointUrl}/elements/${stationId}`;

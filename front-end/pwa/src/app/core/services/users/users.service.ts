@@ -1,19 +1,21 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';  
+import { Observable } from 'rxjs';
 import { ViewUserModel } from '../../models/users/view-user.model';
 import { CreateUserModel } from '../../models/users/create-user.model';
-import { ChangePasswordModel } from '../../models/users/change-password.model';
-import { environment } from 'src/environments/environment';
+import { ChangePasswordModel } from '../../models/users/change-password.model'; 
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersService {
 
-  private endPointUrl: string = `${environment.apiUrl}/users`;
+  private endPointUrl: string  ;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
+  }
 
   public findAll(): Observable<ViewUserModel[]> {
     return this.http.get<ViewUserModel[]>(this.endPointUrl);

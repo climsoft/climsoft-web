@@ -8,6 +8,7 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { environment } from 'src/environments/environment';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Component({
   selector: 'app-import-entry',
@@ -27,6 +28,7 @@ export class ImportEntryComponent implements OnInit {
   protected disableUpload: boolean = false;
 
   constructor(
+    private appConfigService: AppConfigService, 
     private pagesDataService: PagesDataService,
     private importSourcesService: SourcesCacheService,
     private http: HttpClient,
@@ -77,7 +79,7 @@ export class ImportEntryComponent implements OnInit {
     formData.append('file', selectedFile);
 
     const params = new HttpParams();
-    let url = `${environment.apiUrl}/observations/upload/${this.viewSource.id}`;
+    let url = `${this.appConfigService.apiBaseUrl}/observations/upload/${this.viewSource.id}`;
     // If station id is provided, append it as a route parameter
     if (this.showStationSelection && this.selectedStationId) {
       url = url + "/" + this.selectedStationId;

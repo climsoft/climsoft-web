@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ViewObservationQueryModel } from '../../models/observations/view-observation-query.model';
@@ -11,16 +11,17 @@ import { ViewObservationLogQueryModel } from '../../models/observations/view-obs
 import { ViewObservationLogModel } from '../../models/observations/view-observation-log.model';
 import { DeleteObservationModel } from '../../models/observations/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { environment } from 'src/environments/environment';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ObservationsService {
+  private endPointUrl: string;
 
-  private endPointUrl: string = `${environment.apiUrl}/observations`;
-
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
+  }
 
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
@@ -54,7 +55,7 @@ export class ObservationsService {
     return this.http.put(this.endPointUrl, observations)
       .pipe(
         catchError(this.handleError)
-      ); 
+      );
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {

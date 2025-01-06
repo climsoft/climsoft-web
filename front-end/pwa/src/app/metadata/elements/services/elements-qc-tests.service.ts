@@ -1,23 +1,25 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { concat, EMPTY, from, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { CreateElementQCTestModel } from '../../../core/models/elements/qc-tests/create-element-qc-test.model';
 import { ViewElementQCTestModel } from '../../../core/models/elements/qc-tests/view-element-qc-test.model';
-import { QCTestTypeEnum } from '../../../core/models/elements/qc-tests/qc-test-type.enum';
 import { environment } from 'src/environments/environment';
 import { FindQCTestQueryModel } from '../models/find-qc-test-query.model';
 import { AppDatabase } from 'src/app/app-database';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ElementsQCTestsService {
 
-  private endPointUrl: string = `${environment.apiUrl}/elements-qc-tests`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/elements-qc-tests`;
+  }
 
   public find(findQCTestQuery: FindQCTestQueryModel) {
 

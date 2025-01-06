@@ -1,17 +1,19 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CreateViewGeneralSettingModel } from 'src/app/settings/general-settings/models/create-view-general-setting.model';
-import { environment } from 'src/environments/environment';
 import { catchError, Observable, throwError } from 'rxjs';
 import { UpdateGeneralSettingModel } from 'src/app/settings/general-settings/models/update-general-setting.model';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GeneralSettingsService {
-  private endPointUrl: string = `${environment.apiUrl}/general-settings`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService,private http: HttpClient) { 
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/general-settings`;
+  }
 
   public findOne(id: number): Observable<CreateViewGeneralSettingModel> {
     const url = `${this.endPointUrl}/${id}`;

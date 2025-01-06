@@ -4,6 +4,8 @@ services:
     image: patowiz/climsoft-pwa
     container_name: climsoft-pwa
     restart: always
+    environment:
+     API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
     ports:
       - "4200:80"
     depends_on:
@@ -20,7 +22,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-my_user}
       DB_PASSWORD: ${DB_PASSWORD:-my_password}
       DB_PORT: 5432      
-      DB_NAME: climsoft
+      DB_NAME: ${DB_NAME:-climsoft}
     ports:
       - "3000:3000"
     depends_on:

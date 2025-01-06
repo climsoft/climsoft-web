@@ -1,19 +1,20 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
-import { environment } from "src/environments/environment";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, concatMap, from, map, Observable, of, switchMap, take, throwError } from "rxjs";
+import { catchError, concatMap, from, Observable, of, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { AppDatabase } from "src/app/app-database";
 import { MetadataUpdatesQueryModel } from "./metadata-updates-query.model";
 import { MetadataUpdatesResponseModel } from "./metadata-updates-response.model";
+import { AppConfigService } from "src/app/app-config.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class MetadataUpdatesService {
-    private endPointUrl: string = `${environment.apiUrl}/metadata-updates`;
+    private endPointUrl: string;
 
-    constructor(private http: HttpClient) {
+    constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/metadata-updates`;
     }
 
     public checkUpdates(tableName: keyof AppDatabase) {
