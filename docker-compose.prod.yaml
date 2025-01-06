@@ -23,6 +23,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-my_password}
       DB_PORT: 5432      
       DB_NAME: ${DB_NAME:-climsoft}
+      WEB_APP_ALLOWED_ORIGINS: ${WEB_APP_ALLOWED_ORIGINS:-http://localhost:4200}
+      SESSION_SECRET: ${SESSION_SECRET:-climsoft_secret}
     ports:
       - "3000:3000"
     depends_on:
