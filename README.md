@@ -99,7 +99,7 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
    ```
 
 4. **Access the Application**:
-   Navigate to `http://localhost:4200/` in your web browser to interact with the application. Default username is `admin@climsoft.org` and default password `climsoft@admin!2`
+   Navigate to `http://localhost:8080/` in your web browser to interact with the application. Default username is `admin@climsoft.org` and default password `climsoft@admin!2`
 
 5. **Stopping the Application**:
    Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
