@@ -93,7 +93,7 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
    Replace the contents of the file with your specific settings.
    
 3. **Initialise Containers**:
-   Within the cloned repository directory, execute the following command to initialise the PWA, API and PostgreSQL containers:
+   Within the directory that has the `docker-compose.prod.yaml` and `.env` files, execute the following command to initialise the PWA, API and PostgreSQL containers:
    ```bash
    docker-compose -f docker-compose.prod.yaml up
    ```
