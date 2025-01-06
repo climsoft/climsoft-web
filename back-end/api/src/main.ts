@@ -51,6 +51,7 @@ async function bootstrap() {
     },
   }));
 
+  console.log('session secrets', process.env.SESSION_SECRET ? process.env.SESSION_SECRET : 'climsoft_secret',)
   app.use(
     session({
       name: 'ssid',
