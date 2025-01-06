@@ -1,5 +1,21 @@
 
 services:
+  nginx:
+    image: nginx:1.27.1-alpine
+    container_name: nginx_proxy
+    restart: always
+    ports:
+      - "${NGINX_HTTP_PORT:-8080}:80"
+      - "${NGINX_HTTPS_PORT:-8433}:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro # Use this if HTTPS is required
+    depends_on:
+      - climsoft_pwa
+      - climsoft_api
+    networks:
+      - climsoft_network
+
   climsoft_pwa:
     build:
       context: ./front-end/pwa
@@ -7,7 +23,7 @@ services:
     container_name: climsoft-pwa
     restart: always
     environment:
-     API_BASE_URL: ${API_BASE_URL:-http://localhost:3000}
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8080/api}
     ports:
       - "4200:80"
     depends_on:
@@ -27,7 +43,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-my_password}
       DB_PORT: 5432      
       DB_NAME: ${DB_NAME:-climsoft}
-      WEB_APP_ALLOWED_ORIGINS: ${WEB_APP_ALLOWED_ORIGINS:-http://localhost:4200}
+      WEB_APP_ALLOWED_ORIGINS: ${WEB_APP_ALLOWED_ORIGINS:-http://localhost:8080}
       SESSION_SECRET: ${SESSION_SECRET:-climsoft_secret}
     ports:
       - "3000:3000"
