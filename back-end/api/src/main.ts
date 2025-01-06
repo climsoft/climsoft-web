@@ -10,14 +10,10 @@ async function bootstrap() {
   // app.enableCors({ 
   //   // TODO. Investigate how CORS should be correctly set up to ensure support for different deployment options and security.
   //   //origin:  process.env.WEB_APP_BASE_URLs ? process.env.WEB_APP_BASE_URLs : 'http://localhost:4200' , 
-  //   origin:  '*' , 
   //   credentials: true 
   // });
 
   const allowedOrigins: string[] = [];
-
-  //const y = 'http://localhost:4200, https://example.com'
-  //allowedOrigins.push(...StringUtils.mapCommaSeparatedStringToStringArray(y.toString()) );
 
   if (process.env.WEB_APP_ALLOWED_ORIGINS) {
     allowedOrigins.push(...StringUtils.mapCommaSeparatedStringToStringArray(process.env.WEB_APP_ALLOWED_ORIGINS.toString()));
@@ -36,11 +32,15 @@ async function bootstrap() {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true); // Allow the request
       } else {
-        callback(new Error('Not allowed by CORS'));
+        console.error(`Origin ${origin} NOT allowed by CORS`);
+        callback(new Error(`Origin ${origin} NOT allowed by CORS`));
       }
     },
     credentials: true
   });
+
+   // Trust the reverse proxy
+   //app.set('trust proxy', 1);
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
@@ -51,7 +51,8 @@ async function bootstrap() {
     },
   }));
 
-  console.log('session secrets', process.env.SESSION_SECRET ? process.env.SESSION_SECRET : 'climsoft_secret',)
+  console.log('session secrets', process.env.SESSION_SECRET ? process.env.SESSION_SECRET : 'climsoft_secret');
+
   app.use(
     session({
       name: 'ssid',
