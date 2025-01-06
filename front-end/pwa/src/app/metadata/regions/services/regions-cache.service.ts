@@ -1,24 +1,25 @@
 import { BehaviorSubject, catchError, map, Observable, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
-import { AppDatabase } from "src/app/app-database";
-import { environment } from "src/environments/environment";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http"; 
+import { AppDatabase } from "src/app/app-database"; 
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { ViewRegionModel } from "src/app/core/models/Regions/view-region.model";
 import { CreateUpdateRegionModel } from "src/app/core/models/Regions/create-update-region.model";
+import { AppConfigService } from "src/app/app-config.service";
 
 @Injectable({
     providedIn: 'root'
 })
 export class RegionsCacheService {
-    private endPointUrl: string = `${environment.apiUrl}/regions`;
-    private readonly _cachedRegions: BehaviorSubject<ViewRegionModel[]> = new BehaviorSubject<ViewRegionModel[]>([]); 
+    private endPointUrl: string  ;
+    private readonly _cachedRegions: BehaviorSubject<ViewRegionModel[]> = new BehaviorSubject<ViewRegionModel[]>([]);
 
     constructor(
+        private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/regions`;
         this.loadRegions();
-        //this.checkForUpdates();
     }
 
     private async loadRegions() {
@@ -81,13 +82,13 @@ export class RegionsCacheService {
 
     public deleteAll(): Observable<boolean> {
         return this.http.delete<boolean>(`${this.endPointUrl}`)
-          .pipe(
-            tap(() => {
-                this.checkForUpdates();
-            }),
-            catchError(this.handleError)
-          );
-      }
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+                catchError(this.handleError)
+            );
+    }
 
     private handleError(error: HttpErrorResponse) {
 

@@ -9,6 +9,7 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -33,7 +34,8 @@ export class AppDatabase extends Dexie {
     regions!: Table<ViewRegionModel, number>;
 
     // cached separately
-    stationForms!: Table<StationForm, string>;    
+    stationForms!: Table<StationForm, string>;  
+    elementsQcTests!: Table<ViewElementQCTestModel, number>;    
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
 
@@ -51,6 +53,7 @@ export class AppDatabase extends Dexie {
             regions: `id, name, regionType`,
 
             stationForms: `stationId`,
+            elementsQcTests: `id, elementId, qcTestType, observationPeriod, [elementId+qcTestType+observationPeriod]`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,
         });

@@ -8,7 +8,7 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { CreateObservationQueryModel } from "src/app/core/models/observations/create-observation-query.model";
 import { ViewSourceModel } from "src/app/metadata/sources/models/view-source.model";
-import { UpdateQCTestModel } from "src/app/core/models/elements/qc-tests/update-qc-test.model";
+import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 
@@ -40,9 +40,9 @@ export class FormEntryDefinition {
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
 
-    private rangeThresholdQCTests: UpdateQCTestModel[];
+    private rangeThresholdQCTests: ViewElementQCTestModel[];
 
-    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, rangeThresholdQCTests: UpdateQCTestModel[]) {
+    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, rangeThresholdQCTests: ViewElementQCTestModel[]) {
         this.station = station;
         this.source = source;
         this.formMetadata = formMetadata;

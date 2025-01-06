@@ -3,38 +3,38 @@ import { Injectable } from '@angular/core';
 import { EMPTY, Observable, catchError, concat, from, map, tap, throwError } from 'rxjs';
 import { ViewSourceModel } from '../../sources/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
-import { environment } from 'src/environments/environment';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StationFormsService {
 
-  private endPointUrl: string = `${environment.apiUrl}/station-forms`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-forms`;
+  }
 
   public find(stationId: string): Observable<ViewSourceModel[]> {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(AppDatabase.instance.stationForms.get(stationId)).pipe(
-      map(cachedData => {
-        //console.log('cached: ', cachedData);
+      map(localData => {
         // If no cached data is found, emit an empty observable
-        return cachedData ? cachedData.forms : [];
+        return localData ? localData.forms : [];
       })
     );
 
     // Step 2: Observable for fetching from the server
     const serverData$ = this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/${stationId}`).pipe(
       tap(serverData => {
-        //console.log('server: ', serverData);
         if (serverData) {
           // Save the server data to the local database
           AppDatabase.instance.stationForms.put({ stationId: stationId, forms: serverData });
         }
       }),
       catchError((error) => {
-        console.error('Error fetching from server:', error);
+        console.error('Error fetching station forms from server:', error);
         return EMPTY; // Emit nothing and complete
       })
     );
@@ -63,7 +63,7 @@ export class StationFormsService {
   }
 
 
-  //---todo. push to another class ----
+  // TODO. Push to another class 
   private handleError(error: HttpErrorResponse
   ) {
     if (error.status === 0) {

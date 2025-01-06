@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { LoggedInUserModel } from './core/models/users/logged-in-user.model';
 import { BehaviorSubject, catchError, tap, throwError } from 'rxjs';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http'; 
+import { AppConfigService } from './app-config.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AppAuthService {
   private _user: BehaviorSubject<LoggedInUserModel | null> = new BehaviorSubject<LoggedInUserModel | null>(null);
-  private endPointUrl: string = `${environment.apiUrl}/users`;
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) {
+  constructor(private appConfigService: AppConfigService,private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
     this.autoLogin();
   }
 

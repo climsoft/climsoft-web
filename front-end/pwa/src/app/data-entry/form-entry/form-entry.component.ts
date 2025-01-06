@@ -5,18 +5,19 @@ import { ObservationsService } from 'src/app/core/services/observations/observat
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { catchError, of, Subject, switchMap, take, takeUntil } from 'rxjs';
+import { catchError, EMPTY, map, of, Subject, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { FormEntryDefinition } from './defintions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
-import { QCTestsService } from 'src/app/core/services/elements/qc-tests.service';
+import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
-import { UpdateQCTestModel } from 'src/app/core/models/elements/qc-tests/update-qc-test.model';
+import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
+import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -51,10 +52,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   constructor
     (private pagesDataService: PagesDataService,
-      private sourcesCacheService: SourcesCacheService,
-      private stationsCacheService: StationsCacheService,
+      private sourcesService: SourcesCacheService,
+      private stationsService: StationsCacheService,
       private observationService: ObservationsService,
-      private qcTestsService: QCTestsService,
+      private qcTestsService: ElementsQCTestsService,
       private route: ActivatedRoute,
       private location: Location,
       private localStorage: LocalStorageService,) {
@@ -65,43 +66,73 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
-
-    // Get station name and switch to form metadata retrieval
-    this.stationsCacheService.findOne(stationId).pipe(
+  
+    this.stationsService.findOne(stationId).pipe(
       takeUntil(this.destroy$),
       switchMap(stationData => {
-        if (stationData) {
-          this.station = stationData;
-          return this.sourcesCacheService.findOne(+sourceId).pipe(takeUntil(this.destroy$));
-        } else {
-          return of(null);
+        if (!stationData) {
+          // Return empty if no station data
+          return EMPTY;
         }
+        this.station = stationData;
+  
+        // Get source data
+        return this.sourcesService.findOne(sourceId).pipe(
+          takeUntil(this.destroy$),
+          switchMap(sourceData => {
+            if (!sourceData) {
+              // Return empty array if no source data
+              return of([]);
+            }
+            this.source = sourceData;
+  
+            const sourceParams = this.source.parameters as ViewEntryFormModel;
+            const findQCTestQuery: FindQCTestQueryModel = {
+              elementIds: sourceParams.elementIds,
+              qcTestTypes: [QCTestTypeEnum.RANGE_THRESHOLD],
+              observationPeriod: sourceParams.period,
+            };
+  
+            // Get quality control tests
+            return this.qcTestsService.find(findQCTestQuery).pipe(
+              map(test => test.filter(item => !item.disabled))
+            );
+          })
+        );
       })
-    ).subscribe(sourceData => {
-      if (!sourceData) {
-        // TODO. Display the necessary feedback.
-        return;
-      }
-      this.source = sourceData;
-      // TODO. find a way of correctly chaining this.
-      // Get all the range threshold qc's
-      this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD).pipe(takeUntil(this.destroy$)).subscribe(data => {
-        const qcTests: UpdateQCTestModel[] = data.filter(item => (!item.disabled));
-        // Set the form definitions from the parameters
-        this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.source.parameters as ViewEntryFormModel, qcTests);
-        this.loadObservations();
+    ).subscribe({
+      next: (qcTests: ViewElementQCTestModel[]) => {
 
+        if( !this.station || !this.source ){
+          console.warn('Station or Source is missing.');
+          // TODO. Display a message or take some other action
+          return;
+        }
+
+        this.formDefinitions = new FormEntryDefinition(
+          this.station,
+          this.source,
+          this.source.parameters as ViewEntryFormModel,
+          qcTests
+        );
+        this.loadObservations();
+  
         /** Gets default date value (YYYY-MM-DD) used by date selector */
         this.defaultDateValue = new Date().toISOString().slice(0, 10);
-
+  
         // Gets default year-month value (YYYY-MM) used by year-month selector
-        this.defaultYearMonthValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
-      });
-
-
+        this.defaultYearMonthValue =
+          this.formDefinitions.yearSelectorValue +
+          '-' +
+          StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
+      },
+      error: err => {
+        console.error(err);
+        // TODO. Display feedback to the user
+      }
     });
   }
-
+  
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -178,7 +209,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     });
 
   }
-
 
   /**
    * Handles changes in element selection by updating internal state
@@ -417,13 +447,11 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     if (newDay !== null) {
       this.formDefinitions.daySelectorValue = newDay;
       /** Gets default date value (YYYY-MM-DD) used by date selector */
-      this.defaultDateValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)+ '-' + StringUtils.addLeadingZero(this.formDefinitions.daySelectorValue);
+      this.defaultDateValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue) + '-' + StringUtils.addLeadingZero(this.formDefinitions.daySelectorValue);
     }
 
     // Gets default year-month value (YYYY-MM) used by year-month selector
     this.defaultYearMonthValue = this.formDefinitions.yearSelectorValue + '-' + StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
-
-    console.log('year month: ', this.defaultYearMonthValue);
   }
 
   /**

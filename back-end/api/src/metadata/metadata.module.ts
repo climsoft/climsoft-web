@@ -29,9 +29,9 @@ import { SourcesService } from './sources/services/sources.service';
 import { RegionEntity } from './regions/entities/region.entity';
 import { SourceEntity } from './sources/entities/source.entity';
 import { ElementsService } from './elements/services/elements.service';
-import { QCTestEntity } from './elements/entities/qc-test.entity';
-import { QCTestsController } from './elements/controllers/qc-tests.controller';
-import { QCTestsService } from './elements/services/qc-tests.service'; 
+import { ElementQCTestEntity } from './elements/entities/element-qc-test.entity';
+import { ElementsQCTestsController } from './elements/controllers/elements-qc-tests.controller';
+import { ElementsQCTestsService } from './elements/services/elements-qc-tests.service'; 
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
@@ -62,7 +62,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationElementEntity,
         StationFormEntity,
         StationNetworkAffiliationEntity,
-        QCTestEntity,
+        ElementQCTestEntity,
     ]),
         SharedModule,
         UserModule,
@@ -77,7 +77,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationsController,
         StationElementsController,
         StationFormsController,
-        QCTestsController,
+        ElementsQCTestsController,
         RegionsController,
         MetadataUpdatesController,
     ],
@@ -91,7 +91,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationsService,
         StationElementsService,
         StationFormsService,
-        QCTestsService,
+        ElementsQCTestsService,
         RegionsService, 
         StationsImportExportService,
         ElementsImportExportService,
@@ -107,7 +107,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationsService,
         StationElementsService,
         StationFormsService,
-        QCTestsService,
+        ElementsQCTestsService,
         RegionsService,
     ]
 })

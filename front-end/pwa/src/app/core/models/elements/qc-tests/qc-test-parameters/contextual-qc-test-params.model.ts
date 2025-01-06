@@ -1,4 +1,4 @@
-import { QCTestParametersValidity } from "../create-qc-test.model";
+import { QCTestParametersValidity } from "../create-element-qc-test.model";
 import { QCTestParamConditionEnum } from "./qc-test-param-condition.enum";
 
 export interface ContextualQCTestParamsModel extends QCTestParametersValidity {

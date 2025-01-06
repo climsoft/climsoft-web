@@ -22,11 +22,16 @@ FROM nginx:1.27.1-alpine AS final-stage
 # Copy built Angular files from the previous stage
 COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
+# Add an entrypoint script to dynamically create config.json
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Copy a default nginx configuration (optional, if you need customization)
 # COPY nginx.conf /etc/nginx/nginx.conf
 
 # Expose the port that nginx will use
 EXPOSE 80
 
-# Command to run nginx
+# Set the entrypoint and command to run nginx
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

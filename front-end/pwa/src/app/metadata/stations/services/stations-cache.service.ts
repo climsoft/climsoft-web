@@ -6,11 +6,11 @@ import { AppDatabase } from "src/app/app-database";
 import { ViewStationObsEnvModel } from "src/app/core/models/stations/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "src/app/core/models/stations/view-station-obs-focus.model";
 import { StationObsProcessingMethodEnum } from "src/app/core/models/stations/station-obs-Processing-method.enum";
-import { environment } from "src/environments/environment";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { UpdateStationModel } from "src/app/core/models/stations/update-station.model";
 import { CreateStationModel } from "src/app/core/models/stations/create-station.model";
 import { StationStatusEnum } from "src/app/core/models/stations/station-status.enum";
+import { AppConfigService } from "src/app/app-config.service";
 
 export interface StationCacheModel {
     id: string;
@@ -41,14 +41,15 @@ export interface StationCacheModel {
     providedIn: 'root'
 })
 export class StationsCacheService {
-    private endPointUrl: string = `${environment.apiUrl}/stations`;
+    private endPointUrl: string;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
 
     constructor(
+        private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.loadStations();
-        //this.checkForUpdates();
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/stations`;
+        this.loadStations(); 
     }
 
     private async loadStations() {
@@ -156,13 +157,13 @@ export class StationsCacheService {
 
     public deleteAll(): Observable<boolean> {
         return this.http.delete<boolean>(`${this.endPointUrl}`)
-          .pipe(
-            tap(() => {
-                this.checkForUpdates();
-            }),
-            catchError(this.handleError)
-          );
-      }
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+                catchError(this.handleError)
+            );
+    }
 
     public get downloadLink(): string {
         return `${this.endPointUrl}/download`;

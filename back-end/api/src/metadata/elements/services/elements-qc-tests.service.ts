@@ -1,24 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm'; 
-import { QCTestEntity } from '../entities/qc-test.entity';
+import { Equal, FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ElementQCTestEntity } from '../entities/element-qc-test.entity';
 import { UpdateQCTestDto } from '../dtos/qc-tests/update-qc-test.dto';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { CreateQCTestDto } from '../dtos/qc-tests/create-qc-test.dto';
+import { FindQCTestQueryDto } from '../dtos/qc-tests/find-qc-test-query.dto';
 
 // TODO refactor this service later
 
 @Injectable()
-export class QCTestsService {
+export class ElementsQCTestsService {
 
-    constructor(@InjectRepository(QCTestEntity) private readonly qcTestsRepo: Repository<QCTestEntity>) { }
+    constructor(@InjectRepository(ElementQCTestEntity) private readonly qcTestsRepo: Repository<ElementQCTestEntity>) { }
 
-    public async find(id: number): Promise<UpdateQCTestDto> {
+    public async findById(id: number): Promise<UpdateQCTestDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<QCTestEntity>): Promise<UpdateQCTestDto[]> {
-        const findOptions: FindManyOptions<QCTestEntity> = {
+    public async findBy(findQCQuery: FindQCTestQueryDto): Promise<UpdateQCTestDto[]> {
+        const selectOptions: FindOptionsWhere<ElementQCTestEntity> = {};
+
+        if (findQCQuery.observationPeriod) {
+            selectOptions.observationPeriod = Equal(findQCQuery.observationPeriod)
+        }
+
+        if (findQCQuery.qcTestTypes) {
+            selectOptions.qcTestType = In(findQCQuery.qcTestTypes)
+        }
+
+        if (findQCQuery.elementIds) {
+            selectOptions.elementId = In(findQCQuery.elementIds)
+        }
+
+        return this.findAll(selectOptions);
+    }
+
+    public async findAll(selectOptions?: FindOptionsWhere<ElementQCTestEntity>): Promise<UpdateQCTestDto[]> {
+        const findOptions: FindManyOptions<ElementQCTestEntity> = {
             order: {
                 id: "ASC"
             }
@@ -36,28 +55,21 @@ export class QCTestsService {
         return dtos;
     }
 
-    // public async findQCTtestsByIds(ids: number[]): Promise<UpdateQCTestDto[]> {
-    //     const findOptionsWhere: FindOptionsWhere<QCTestEntity> = {
-    //         id: In(ids)
-    //     };
-    //     return this.findAll(findOptionsWhere);
-    // }
-
     public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<UpdateQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCTestEntity> = {
+        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
             qcTestType: qcTestType
         };
         return this.findAll(findOptionsWhere);
     }
 
     public async findQCTestByElement(elementId: number): Promise<UpdateQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCTestEntity> = {
+        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
             elementId: elementId
         };
         return this.findAll(findOptionsWhere);
     }
 
-    private async findEntity(id: number): Promise<QCTestEntity> {
+    private async findEntity(id: number): Promise<ElementQCTestEntity> {
         const entity = await this.qcTestsRepo.findOneBy({
             id: id,
         });
@@ -105,7 +117,7 @@ export class QCTestsService {
         return id;
     }
 
-    private async createViewDto(entity: QCTestEntity): Promise<UpdateQCTestDto> {
+    private async createViewDto(entity: ElementQCTestEntity): Promise<UpdateQCTestDto> {
         return {
             id: entity.id,
             qcTestType: entity.qcTestType,

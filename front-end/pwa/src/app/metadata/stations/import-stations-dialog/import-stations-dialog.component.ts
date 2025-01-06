@@ -1,9 +1,9 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { environment } from 'src/environments/environment';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
 import { StationsCacheService } from '../services/stations-cache.service';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Component({
   selector: 'app-import-stations-dialog',
@@ -30,6 +30,7 @@ export class ImportStationsDialogComponent implements OnChanges {
   protected fileName: string = "";
 
   constructor(
+    private appConfigService: AppConfigService,
     private stationsCacheService: StationsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
@@ -84,7 +85,7 @@ export class ImportStationsDialogComponent implements OnChanges {
     formData.append('file', selectedFile);
 
     const params = new HttpParams();
-    const url = `${environment.apiUrl}/stations/upload`;
+    const url = `${this.appConfigService.apiBaseUrl}/stations/upload`;
 
     this.http.put(
       url,

@@ -5,6 +5,7 @@ import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { environment } from 'src/environments/environment';
 import { RegionsCacheService } from '../services/regions-cache.service';
+import { AppConfigService } from 'src/app/app-config.service';
 
 @Component({
   selector: 'app-import-regions-dialog',
@@ -31,11 +32,13 @@ export class ImportRegionsDialogComponent implements OnChanges {
   protected fileName: string = "";
 
   protected selectedRegionType!: RegionTypeEnum | null;
-
+ 
   constructor(
+     private appConfigService: AppConfigService,
     private regionsCacheService: RegionsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
+      
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -85,7 +88,7 @@ export class ImportRegionsDialogComponent implements OnChanges {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    const url = `${environment.apiUrl}/regions/upload/${this.selectedRegionType}`;
+    const url = `${this.appConfigService.apiBaseUrl}/regions/upload/${this.selectedRegionType}`;
 
     this.http.put(
       url,

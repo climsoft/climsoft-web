@@ -2,17 +2,22 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ElementDomainEnum } from '../../../metadata/elements/models/element-domain.enum'; 
+import { ElementDomainEnum } from '../../../metadata/elements/models/element-domain.enum';
 import { ViewElementSubdomainModel } from 'src/app/metadata/elements/models/view-element-subdomain.model';
+import { AppConfigService } from 'src/app/app-config.service';
+
+// TODO. Delete this later
 
 @Injectable({
   providedIn: 'root'
 })
 export class ElementSubdomainsService {
 
-  private endPointUrl: string = " http://localhost:3000/element-subdomains";
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
+  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/element-subdomains`;
+  }
 
   public getElementSubdomains(domainEnum?: ElementDomainEnum): Observable<ViewElementSubdomainModel[]> {
     let url: string = `${this.endPointUrl}`;
