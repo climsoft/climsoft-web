@@ -27,6 +27,7 @@ async function bootstrap() {
     // TODO. Investigate how CORS should be correctly set up to ensure support for different deployment options and security.
     //origin:  process.env.WEB_APP_BASE_URLs ? process.env.WEB_APP_BASE_URLs : 'http://localhost:4200' , 
     origin: (origin, callback) => {
+      console.error(`Client Origin - ${origin}`); // TODO. Delete later
       // Allow requests with no `Origin` (e.g., from desktop and mobile apps)
       // Only allows requests from trusted web app origins. This is needed because web browsers require it
       if (!origin || allowedOrigins.includes(origin)) {
