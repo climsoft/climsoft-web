@@ -87,7 +87,7 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
 
 ### Setup
 1. **Download required files**:
-   Download [docker-compose.prod.yaml](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/docker-compose.prod.yaml) and [.env](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/.env) files. 
+   Download [docker-compose.prod.yaml](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/docker-compose.prod.yaml), [.env](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/.env) and [nginx.conf](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/nginx.conf) files. 
    
 2. **Edit .env file**
    Replace the contents of the file with your specific settings.
