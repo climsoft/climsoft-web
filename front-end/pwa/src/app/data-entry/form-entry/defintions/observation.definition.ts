@@ -5,7 +5,7 @@ import { CreateObservationModel } from "src/app/core/models/observations/create-
 import { FlagEnum } from "src/app/core/models/observations/flag.enum";
 import { ViewObservationLogQueryModel } from "src/app/core/models/observations/view-observation-log-query.model";
 import { ViewObservationLogModel } from "src/app/core/models/observations/view-observation-log.model";
-import { ObservationsService } from "src/app/core/services/observations/observations.service";
+import { ObservationsService } from "src/app/data-entry/services/observations.service";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
@@ -17,7 +17,7 @@ export class ObservationDefinition {
     private elementMetadata: CreateViewElementModel;
     private _observation: CreateObservationModel;
     private _valueFlagForDisplay: string = "";
-    private databaseValues: string = ""; //holds original value, flag, period and comment  values
+    public databaseValues: string = ""; //holds original value, flag, period and comment  values
 
     /**
      * Determines whether to invalidate missing value input
@@ -60,7 +60,7 @@ export class ObservationDefinition {
         this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
 
         // set original database values for future comparison
-        this.databaseValues = `${this._valueFlagForDisplay}${this.period}${this.comment}`;
+        this.databaseValues = `${this.valueFlagForDisplay}${this.period}${this.comment}`;
         // validate database values
         this.validateDBValue();
     }
@@ -105,11 +105,12 @@ export class ObservationDefinition {
 
     public get observationChangeIsValid(): boolean {
         // There should be no validation error messages
-        return this._validationErrorMessage.length === 0;
+        return this.validationErrorMessage.length === 0;
     }
 
     public get observationChanged(): boolean {
-        return `${this._valueFlagForDisplay}${this.period}${this.comment}` !== this.databaseValues;
+        //console.log('obs changed', `${this.valueFlagForDisplay}${this.period}${this.comment}`, ' db: ', this.databaseValues, ' status: ', `${this.valueFlagForDisplay}${this.period}${this.comment}` !== this.databaseValues)
+        return `${this.valueFlagForDisplay}${this.period}${this.comment}` !== this.databaseValues;
     }
 
     public get comment(): string | null {

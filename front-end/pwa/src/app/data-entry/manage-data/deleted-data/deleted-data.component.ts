@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';

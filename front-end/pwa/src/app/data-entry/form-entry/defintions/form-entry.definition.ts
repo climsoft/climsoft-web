@@ -6,7 +6,7 @@ import { CreateObservationModel } from "src/app/core/models/observations/create-
 import { ViewStationModel } from "src/app/core/models/stations/view-station.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
-import { CreateObservationQueryModel } from "src/app/core/models/observations/create-observation-query.model";
+import { EntryFormObservationQueryModel } from "src/app/data-entry/models/entry-form-observation-query.model";
 import { ViewSourceModel } from "src/app/metadata/sources/models/view-source.model";
 import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
@@ -282,13 +282,13 @@ export class FormEntryDefinition {
      * @param formDefinitions form defintions to use in creating the observation query dto.
      * @returns 
      */
-    public createObservationQuery(): CreateObservationQueryModel {
+    public createObservationQuery(): EntryFormObservationQueryModel {
         //get the data based on the selection filter
-        const observationQuery: CreateObservationQueryModel = {
+        const observationQuery: EntryFormObservationQueryModel = {
             stationId: this.station.id,
             sourceId: this.source.id,
             elevation: 0,
-            elementIds: this.elementSelectorValue == null ? this.formMetadata.elementIds : [this.elementSelectorValue],
+            elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
             datetimes: []
         };
 

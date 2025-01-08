@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { take } from 'rxjs';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
-import { DuplicateModel, SourceCheckService } from 'src/app/core/services/observations/source-check.service';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { DuplicateModel, SourceCheckService } from '../../services/source-check.service';
 
 
 @Component({
@@ -38,7 +38,7 @@ export class SourceCheckComponent {
   constructor(
     private stationsService: StationsCacheService,
     private elementService: ElementsCacheService, 
-    private sourceCheckService: SourceCheckService
+    private sourceCheckService: SourceCheckService,
   ) {
 
     this.stationsService.cachedStations.pipe(take(1)).subscribe(data => {

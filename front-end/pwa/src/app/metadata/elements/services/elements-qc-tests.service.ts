@@ -4,7 +4,6 @@ import { concat, EMPTY, from, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { CreateElementQCTestModel } from '../../../core/models/elements/qc-tests/create-element-qc-test.model';
 import { ViewElementQCTestModel } from '../../../core/models/elements/qc-tests/view-element-qc-test.model';
-import { environment } from 'src/environments/environment';
 import { FindQCTestQueryModel } from '../models/find-qc-test-query.model';
 import { AppDatabase } from 'src/app/app-database';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -45,15 +44,10 @@ export class ElementsQCTestsService {
     const httpParams: HttpParams = StringUtils.getQueryParams<FindQCTestQueryModel>(findQCTestQuery);
     const serverData$ = this.http.get<ViewElementQCTestModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
       tap(serverData => {
-        if (serverData) {
-          // Save the server data to the local database
-          AppDatabase.instance.elementsQcTests.bulkPut(serverData);
-        }
+        // Save the server data to the local database. This ensures that the local database is in sync with the server database.
+        AppDatabase.instance.elementsQcTests.bulkPut(serverData);
       }),
-      catchError((error) => {
-        console.error('Error fetching elements qc tests from server:', error);
-        return EMPTY; // Emit nothing and complete
-      })
+      catchError(this.handleError)
     );
 
     // Step 3: Emit both cached and server data

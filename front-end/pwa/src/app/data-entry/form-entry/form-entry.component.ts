@@ -1,11 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { catchError, EMPTY, map, of, Subject, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { catchError, EMPTY, map, NEVER, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { FormEntryDefinition } from './defintions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
@@ -66,7 +66,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
-  
+
     this.stationsService.findOne(stationId).pipe(
       takeUntil(this.destroy$),
       switchMap(stationData => {
@@ -75,7 +75,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           return EMPTY;
         }
         this.station = stationData;
-  
+
         // Get source data
         return this.sourcesService.findOne(sourceId).pipe(
           takeUntil(this.destroy$),
@@ -85,14 +85,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
               return of([]);
             }
             this.source = sourceData;
-  
+
             const sourceParams = this.source.parameters as ViewEntryFormModel;
             const findQCTestQuery: FindQCTestQueryModel = {
               elementIds: sourceParams.elementIds,
               qcTestTypes: [QCTestTypeEnum.RANGE_THRESHOLD],
               observationPeriod: sourceParams.period,
             };
-  
+
             // Get quality control tests
             return this.qcTestsService.find(findQCTestQuery).pipe(
               map(test => test.filter(item => !item.disabled))
@@ -103,7 +103,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (qcTests: ViewElementQCTestModel[]) => {
 
-        if( !this.station || !this.source ){
+        if (!this.station || !this.source) {
           console.warn('Station or Source is missing.');
           // TODO. Display a message or take some other action
           return;
@@ -116,10 +116,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           qcTests
         );
         this.loadObservations();
-  
+
         /** Gets default date value (YYYY-MM-DD) used by date selector */
         this.defaultDateValue = new Date().toISOString().slice(0, 10);
-  
+
         // Gets default year-month value (YYYY-MM) used by year-month selector
         this.defaultYearMonthValue =
           this.formDefinitions.yearSelectorValue +
@@ -132,7 +132,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
@@ -197,16 +197,15 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.totalIsValid = false;
     this.refreshLayout = false;
 
-    this.observationService.findRaw(this.formDefinitions.createObservationQuery()).pipe(
+    //let subscription: Subscription = new Subscription();
+    this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
-      catchError(error => {
-        console.error('Failed to load observation data', error);
-        return of([]); // TODO. Appropriate fallback needed
-      })
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
     });
+
+    //subscription.unsubscribe();
 
   }
 
@@ -337,24 +336,30 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    */
   protected onSave(): void {
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
-    const newObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
-    if (newObservations !== null) {
+    const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
+    //console.log('saving: ',  newObservations)
+    if (savableObservations !== null) {
       // Send to server for saving
-      this.observationService.save(newObservations).subscribe((data) => {
-        const multipleObs = `${newObservations.length} observation${newObservations.length === 1 ? '' : 's'} `
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${multipleObs}saved`, type: ToastEventTypeEnum.SUCCESS
-          });
+      this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
+        console.log('bulk put: ', response);
+        let type: ToastEventTypeEnum;
+        if (response.includes('error')) {
+          type = ToastEventTypeEnum.ERROR;
+        } else if (response.includes('local')) {
+          type = ToastEventTypeEnum.WARNING;
+        } else if (response.includes('success')) {
+          type = ToastEventTypeEnum.SUCCESS;
+        } else {
+          type = ToastEventTypeEnum.INFO;
+        }
 
+        this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
+
+        if (type !== ToastEventTypeEnum.ERROR) {
           if (this.incrementDateSelector) {
             this.sequenceToNextDate();
           }
           this.loadObservations();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${multipleObs}NOT saved`, type: ToastEventTypeEnum.ERROR
-          });
         }
       });
     }
@@ -376,18 +381,21 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       return null;
     }
 
+    const newObservations: CreateObservationModel[] = [];
+
     for (const obsDef of this.formDefinitions.allObsDefs) {
       // Check for change validity
       if (!obsDef.observationChangeIsValid) {
         this.pagesDataService.showToast({ title: 'Observations', message: `Invalid value detected`, type: ToastEventTypeEnum.ERROR });
         return null;
       }
-    }
 
-    // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
-    let newObservations: CreateObservationModel[] = this.formDefinitions.allObsDefs.filter(
-      item => item.observationChanged && (item.observation.value !== null || item.observation.flag !== null
-      )).map(item => item.observation);
+      // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
+      console.log(`${obsDef.observationChanged} - (db: ${obsDef.databaseValues} = New: ${obsDef.valueFlagForDisplay}${obsDef.period}${obsDef.comment})`)
+      if (obsDef.observationChanged && (obsDef.observation.value !== null || obsDef.observation.flag !== null)) {
+        newObservations.push(obsDef.observation);
+      }
+    }
 
     if (newObservations.length === 0) {
       this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: ToastEventTypeEnum.ERROR });

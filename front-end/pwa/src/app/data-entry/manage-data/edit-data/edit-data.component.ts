@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
@@ -261,7 +261,7 @@ export class EditDataComponent implements OnDestroy {
     }
 
     // Send to server for saving
-    this.observationService.save(changedObs).subscribe((data) => {
+    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe((data) => {
       this.enableSave = true;
       if (data) {
         this.pagesDataService.showToast({

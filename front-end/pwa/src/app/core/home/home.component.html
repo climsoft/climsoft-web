@@ -55,14 +55,22 @@
           </div>
           <div class="ms-1 nav-bar-title">{{pageHeaderName}}</div>
         </div>
-        <div class="position-relativ">
-          <i class="bi bi-person py-1 me-3 nav-bar-icon" (click)="displayUserDropDown = !displayUserDropDown"></i>
-          <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
-            <ul class="list-group">
-              <a href="#" class="list-group-item list-group-item-action">Profile</a>
-              <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">Log out</button>
-            </ul>
+        <div class="d-flex ">
+          <div class="me-3">
+            <i class="bi bi-arrow-repeat nav-bar-icon" (click)="syncObservations()"></i>
+            <span><sup>{{unsyncedObservations}}</sup></span>
           </div>
+          <div class="me-3">
+            <i class="bi bi-person py-1 nav-bar-icon" (click)="displayUserDropDown = !displayUserDropDown"></i>
+            <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
+              <ul class="list-group">
+                <a href="#" class="list-group-item list-group-item-action">Profile</a>
+                <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">Log out</button>
+              </ul>
+            </div>
+          </div>
+
+
         </div>
 
       </div>

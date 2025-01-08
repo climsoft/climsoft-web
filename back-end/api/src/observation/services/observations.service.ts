@@ -7,7 +7,7 @@ import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
 import { QCStatusEnum } from '../enums/qc-status.enum';
-import { CreateObservationQueryDto } from '../dtos/create-observation-query.dto';
+import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
@@ -157,7 +157,7 @@ export class ObservationsService {
 
     }
 
-    public async findRawObs(queryDto: CreateObservationQueryDto): Promise<CreateObservationDto[]> {
+    public async findRawObs(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),

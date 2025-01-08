@@ -3,7 +3,7 @@ import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
 import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-query.dto';
-import { CreateObservationQueryDto } from 'src/observation/dtos/create-observation-query.dto';
+import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-observation-query.dto';
 import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 
 @Injectable()
@@ -34,8 +34,8 @@ export class AuthorisedStationsPipe implements PipeTransform {
         return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, user.authorisedStationIds);
       case ViewObservationQueryDTO.name:
         return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, user.authorisedStationIds);
-      case CreateObservationQueryDto.name:
-        return this.handleCreateObservationQueryDto(value as CreateObservationQueryDto, user.authorisedStationIds);
+      case EntryFormObservationQueryDto.name:
+        return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, user.authorisedStationIds);
       default:
         throw new BadRequestException('Could not determine how to authorize stations');
     }
@@ -82,7 +82,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-  private handleCreateObservationQueryDto(value: CreateObservationQueryDto, authorisedStationIds: string[]): CreateObservationQueryDto {
+  private handleCreateObservationQueryDto(value: EntryFormObservationQueryDto, authorisedStationIds: string[]): EntryFormObservationQueryDto {
     if (value && this.allAreAuthorisedStations([value.stationId], authorisedStationIds)) {
       return value;
     } else {

@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { EMPTY, Observable, catchError, concat, from, map, tap, throwError } from 'rxjs';
+import { BehaviorSubject, EMPTY, Observable, Subject, catchError, concat, from, map, take, tap, throwError } from 'rxjs';
 import { ViewSourceModel } from '../../sources/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
@@ -27,16 +27,12 @@ export class StationFormsService {
 
     // Step 2: Observable for fetching from the server
     const serverData$ = this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/${stationId}`).pipe(
+      take(1), // Ensure serverData$ emits once and completes
       tap(serverData => {
-        if (serverData) {
-          // Save the server data to the local database
-          AppDatabase.instance.stationForms.put({ stationId: stationId, forms: serverData });
-        }
+        // Save the server data to the local database. This ensures that the local database is in sync with the server database.
+        AppDatabase.instance.stationForms.put({ stationId: stationId, forms: serverData });
       }),
-      catchError((error) => {
-        console.error('Error fetching station forms from server:', error);
-        return EMPTY; // Emit nothing and complete
-      })
+      catchError(this.handleError)
     );
 
     // Step 3: Emit both cached and server data

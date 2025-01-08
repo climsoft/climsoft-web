@@ -2,7 +2,7 @@ import { Transform } from "class-transformer";
 import { IsDateString, IsInt, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
-export class CreateObservationQueryDto {
+export class EntryFormObservationQueryDto {
     @IsString()
     stationId: string;
 
@@ -19,7 +19,4 @@ export class CreateObservationQueryDto {
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsDateString({}, { each: true })
     datetimes: string[];
-
-    //@IsInt()
-    //period: number;
 }

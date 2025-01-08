@@ -13,9 +13,7 @@ type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Users' | 'Settings';
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-
-
-  //holds the features navigation items
+  // Holds the features navigation items
   protected featuresNavItems: { name: mainMenus, url: string, icon: string, open: boolean, children: { name: string, url: string, featureTitle: string }[] }[] = [
     {
       name: 'Dashboard',
@@ -168,6 +166,15 @@ export class HomeComponent implements OnInit, OnDestroy {
       const adminModules: mainMenus[] = ['Metadata', 'Users', 'Settings'];
       this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
     }
+  }
+
+
+
+  protected isSyncingObservations: boolean = false;
+  protected unsyncedObservations: string = '';
+
+  protected syncObservations() {
+
   }
 
 
