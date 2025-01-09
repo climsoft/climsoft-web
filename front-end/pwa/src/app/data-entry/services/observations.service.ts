@@ -1,7 +1,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { concat, from, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, concat, from, Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
 import { ViewObservationQueryModel } from '../../core/models/observations/view-observation-query.model';
 import { ViewObservationModel } from '../../core/models/observations/view-observation.model';
@@ -15,7 +15,7 @@ import { AppConfigService } from 'src/app/app-config.service';
 import { AppDatabase } from 'src/app/app-database';
 
 export interface CachedObservationModel extends CreateObservationModel {
-  synced: boolean;
+  synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
   entryDatetime: Date; // Note. This represents the Date that record was added into the local database
 }
 
@@ -24,6 +24,8 @@ export interface CachedObservationModel extends CreateObservationModel {
 })
 export class ObservationsService {
   private endPointUrl: string;
+  private isSyncing: boolean = false;
+  private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0);
 
   constructor(private appConfigService: AppConfigService, private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
@@ -50,9 +52,10 @@ export class ObservationsService {
       );
   }
 
+  // TODO. Not used
   // This implementation was meant to check the local database first then the server.
   // It proved to be a bit risky because of potential stale values.
-  public findEntryFormData1(entryFormObsQuery: EntryFormObservationQueryModel) {
+  private findEntryFormData1(entryFormObsQuery: EntryFormObservationQueryModel) {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(this.getCachedEntryFormObservations(entryFormObsQuery));
 
@@ -63,7 +66,7 @@ export class ObservationsService {
         tap(serverData => {
           if (serverData.length > 0) {
             // Save the server data to the local database
-            AppDatabase.instance.observations.bulkPut(serverData.map(item => { return { ...item, synced: true, entryDatetime: new Date() } }));
+            this.saveDataToLocalDatabase(serverData, 'true');
           }
         }),
         switchMap(serverData => {
@@ -91,8 +94,8 @@ export class ObservationsService {
         switchMap(observations => {
           if (observations.length > 0) {
             console.log('syncing observations: ', observations)
-            // If there is server data then just update the local database with the new data asynchronously and return the server data.
-            AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: true, entryDatetime: new Date() } }));
+            // If there is server data then just update the local database with the new data asynchronously
+            this.saveDataToLocalDatabase(observations, 'true');
             return of(observations);
           } else {
             // If no server data then this could mean it has either been deleted on the server or not synced from the user local database.
@@ -113,6 +116,11 @@ export class ObservationsService {
         })
       );
   }
+  /**
+   * Deletes synced data and gets unsynced data based on the query passed.
+   * @param entryFormObsQuery 
+   * @returns 
+   */
   private async deleteSyncedDataAndGetUnsyncedData(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CreateObservationModel[]> {
     // If no server data then this could mean it has either been deleted on the server or not synced from the user local database.
     // So check if data exists in the user local database and if it was already synced then delete it. 
@@ -123,8 +131,8 @@ export class ObservationsService {
     const unsyncedObsData: CachedObservationModel[] = [];
 
     for (const obsData of localObsData) {
-      if (obsData.synced) {
-        syncedObsDataKeys.push([entryFormObsQuery.stationId,obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.elevation, obsData.datetime, obsData.period]);
+      if (obsData.synced === 'true') {
+        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.elevation, obsData.datetime, obsData.period]);
       } else {
         unsyncedObsData.push(obsData);
       }
@@ -185,28 +193,85 @@ export class ObservationsService {
       tap({
         next: value => {
           // Server will send {message: success} when there is no error
-          console.log('server value: ', value);
-          // Save observations as synchronised
-          AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: true, entryDatetime: new Date() } }));
+          console.log('server value: ', value, 'saving synced data locally');
+          // Save observations as synchronised and attempt to synchronise with server as well.
+          this.saveDataToLocalDatabase(observations, 'true');
         },
         error: err => {
           if (err.status === 0) {
-            // If network error occurred save observations as unsynchronised
-            console.warn('saving data locally');
-            AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: false, entryDatetime: new Date() } }));
+            console.warn('saving unsynced data locally');
+            // If network error occurred save observations as unsynchronised and no need to send data to server
+            this.saveDataToLocalDatabase(observations, 'false');
           }
         }
       }),
       map(value => {
-        console.log('server response: ', value);
         return `${observations.length} ${obsMessage} saved successfully`;
       }),
       catchError(err => {
-        console.warn('Data entry error handled:', err);
         return err.status === 0 ? of(`${observations.length} ${obsMessage} saved locally`) : of(`${observations.length} ${obsMessage} NOT saved. Error: ${err.message}`);
       })
     );
 
+  }
+
+  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
+    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
+    this.countUnsyncedObservationsAndRaiseNotification();
+  }
+
+  public async syncObservations() {
+    // If sync process is still on going then just return
+    if (this.isSyncing) {
+      return;
+    }
+
+    // Get total number of unsynced observations
+    const totalUnsynced: number = await this.countUnsyncedObservationsAndRaiseNotification();
+
+    // If there are no unsynced observations then set syncing flag to false and return
+    if (totalUnsynced === 0) {
+      this.isSyncing = false;
+      return;
+    }
+
+    // Else send the unsynced data to server in batches of 1000
+    this.isSyncing = true;
+    const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations
+      .where('synced').equals('false').limit(1000).toArray();
+    const observations: CreateObservationModel[] = this.convertToCreateObservationModels(cachedObservations);
+    this.http.put(this.endPointUrl, observations).pipe(
+      take(1),
+      catchError(err => {
+        this.isSyncing = false;
+        // TODO. Notify network errors
+        return this.handleError(err);
+      }),
+    ).subscribe(value => {
+      // Server will send {message: success} when there is no error
+      console.log('server response after sync: ', value, 'saving synced data locally');
+      // set syncing flag to false to keep syncing    
+      this.isSyncing = false;
+      // save observations as synchronised 
+      this.saveDataToLocalDatabase(observations, 'true');
+      // Then synchronise remaining observations
+      this.syncObservations();
+    });
+
+  }
+
+  private async countUnsyncedObservationsAndRaiseNotification(): Promise<number> {
+    // Get total number of unsynced observations
+    const totalUnsynced: number = await AppDatabase.instance.observations.where('synced').equals('false').count();
+
+    // Raise the event on number of unsynced observations
+    this._unsyncedObservations.next(totalUnsynced);
+
+    return totalUnsynced;
+  }
+
+  public get unsyncedObservations() {
+    return this._unsyncedObservations.asObservable();
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {
@@ -229,7 +294,6 @@ export class ObservationsService {
         catchError(this.handleError)
       );
   }
-
 
   private handleError(error: HttpErrorResponse) {
 

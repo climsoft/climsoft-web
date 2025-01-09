@@ -197,15 +197,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.totalIsValid = false;
     this.refreshLayout = false;
 
-    //let subscription: Subscription = new Subscription();
     this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
     });
-
-    //subscription.unsubscribe();
 
   }
 
