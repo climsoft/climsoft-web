@@ -30,7 +30,7 @@
                             <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                                 [observationDefinition]="getObservationDef(rowIndex,colIndex)"
                                 [displayExtraInfoOption]="displayExtraInfoOption"
-                                (valueChange)="onValueChange($event,colIndex)" />
+                                (userInputVF)="onUserInputVF($event,colIndex)" />
                         </div>
                        </div>
 
@@ -94,7 +94,7 @@
             <div class="row mb-2 d-flex flex-grow-1" *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
                 <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                     [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                    [displayExtraInfoOption]="displayExtraInfoOption" (valueChange)="onValueChange($event,colIndex)" />
+                    [displayExtraInfoOption]="displayExtraInfoOption" (userInputVF)="onUserInputVF($event,colIndex)" />
             </div>
 
             <!-- total -->

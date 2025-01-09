@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -33,7 +33,7 @@ export interface ElementCacheModel {
 export class ElementsCacheService {
     private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<ElementCacheModel[]> = new BehaviorSubject<ElementCacheModel[]>([]);
-
+    private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -83,8 +83,10 @@ export class ElementsCacheService {
     }
 
     public checkForUpdates(): void {
+        console.log('checking elements updates');
         // Observable to initiate metadata updates sequentially
-        of(null).pipe(
+        this.checkUpdatesSubscription.unsubscribe();
+        this.checkUpdatesSubscription = of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('elementTypes')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('elementSubdomains')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('elements')),

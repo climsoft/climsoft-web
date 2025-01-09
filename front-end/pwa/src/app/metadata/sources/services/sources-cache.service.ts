@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, map, Observable, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, Subscription, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -11,16 +11,15 @@ import { AppConfigService } from "src/app/app-config.service";
     providedIn: 'root'
 })
 export class SourcesCacheService {
-    private endPointUrl: string ;
+    private endPointUrl: string;
     private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
-
+    private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/sources`;
         this.loadSources();
-        this.checkForUpdates();
     }
 
     private async loadSources() {
@@ -28,9 +27,9 @@ export class SourcesCacheService {
     }
 
     private checkForUpdates(): void {
-        this.metadataUpdatesService.checkUpdates('sources').pipe(
-            take(1)
-        ).subscribe(res => {
+        console.log('checking sources updates');
+        this.checkUpdatesSubscription.unsubscribe();
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('sources').subscribe(res => {
             console.log('source-cache response', res);
             if (res) {
                 this.loadSources();

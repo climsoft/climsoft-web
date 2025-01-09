@@ -1,5 +1,5 @@
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -43,13 +43,13 @@ export interface StationCacheModel {
 export class StationsCacheService {
     private endPointUrl: string;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
-
+    private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/stations`;
-        this.loadStations(); 
+        this.loadStations();
     }
 
     private async loadStations() {
@@ -91,8 +91,10 @@ export class StationsCacheService {
     }
 
     public checkForUpdates(): void {
+        console.log('checking stations updates');
         // Observable to initiate metadata updates sequentially
-        of(null).pipe(
+        this.checkUpdatesSubscription.unsubscribe();
+        this.checkUpdatesSubscription = this.checkUpdatesSubscription = of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsFocus')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stations')),

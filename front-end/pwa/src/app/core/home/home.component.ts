@@ -76,6 +76,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.unsyncedObservations = `${unsynced}`;
       }
     });
+
+    // Sync observations if there is internet
+    this.observationsService.syncObservations();
   }
 
   ngOnDestroy(): void {

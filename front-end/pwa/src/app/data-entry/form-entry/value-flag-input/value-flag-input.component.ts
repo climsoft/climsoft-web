@@ -28,7 +28,7 @@ export class ValueFlagInputComponent implements OnChanges {
   public disableValueFlagEntry: boolean = false;
 
   @Output()
-  public valueChange = new EventEmitter<ObservationDefinition>();
+  public userInputVF = new EventEmitter<ObservationDefinition>();
 
   protected showChanges: boolean = false;
 
@@ -36,6 +36,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
   protected activeTab: 'new' | 'history' = 'new';
 
+  // These variables are needed because they are set in a dialog 
   protected period!: number | null;
   protected periodType!: string;
   protected comment!: string | null;
@@ -66,7 +67,8 @@ export class ValueFlagInputComponent implements OnChanges {
   protected onInputEntry(valueFlagInput: string): void {
     // Validate input format validity. If there is a response then entry is invalid
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
-    this.valueChange.emit(this.observationDefinition);
+    //this.valueFlagInput = this.observationDefinition.getvalueFlagForDisplay();
+    this.userInputVF.emit(this.observationDefinition);
   }
 
   /**
@@ -74,7 +76,7 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
-    if (!this.observationDefinition.valueFlagForDisplay) {
+    if (!this.observationDefinition.getvalueFlagForDisplay()) {
       this.onInputEntry('M');
     }
   }
@@ -113,7 +115,9 @@ export class ValueFlagInputComponent implements OnChanges {
       bValueChanged = true
     }
 
-    this.valueChange.emit(this.observationDefinition);
+    if(bValueChanged){
+      this.userInputVF.emit(this.observationDefinition);
+    }  
 
   }
 

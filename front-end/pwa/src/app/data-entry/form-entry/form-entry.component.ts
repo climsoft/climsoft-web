@@ -18,6 +18,7 @@ import { StationCacheModel, StationsCacheService } from 'src/app/metadata/statio
 import { UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
+import { ObservationDefinition } from './defintions/observation.definition';
 
 @Component({
   selector: 'app-form-entry',
@@ -74,6 +75,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           // Return empty if no station data
           return EMPTY;
         }
+
         this.station = stationData;
 
         // Get source data
@@ -81,8 +83,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           takeUntil(this.destroy$),
           switchMap(sourceData => {
             if (!sourceData) {
-              // Return empty array if no source data
-              return of([]);
+              // Return empty array if no source data or station data
+              return EMPTY;
             }
             this.source = sourceData;
 
@@ -95,6 +97,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
             // Get quality control tests
             return this.qcTestsService.find(findQCTestQuery).pipe(
+              takeUntil(this.destroy$),
+
               map(test => test.filter(item => !item.disabled))
             );
           })
@@ -102,12 +106,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: (qcTests: ViewElementQCTestModel[]) => {
-
         if (!this.station || !this.source) {
           console.warn('Station or Source is missing.');
           // TODO. Display a message or take some other action
           return;
         }
+
+        // Note, as of 09/01/2025, when user is online this will be raised twice due to the qc test service that finds the qc twice, locally and from server
 
         this.formDefinitions = new FormEntryDefinition(
           this.station,
@@ -196,7 +201,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // Reset controls
     this.totalIsValid = false;
     this.refreshLayout = false;
-
     this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
     ).subscribe(data => {
@@ -303,7 +307,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected onAssignSameValue(input: SameInputStruct): void {
     for (const obsDef of this.formDefinitions.allObsDefs) {
       // Check if value flag is empty
-      if (StringUtils.isNullOrEmpty(obsDef.valueFlagForDisplay)) {
+      if (StringUtils.isNullOrEmpty(obsDef.getvalueFlagForDisplay())) {
         // Set the new the value flag input
         obsDef.updateValueFlagFromUserInput(input.valueFlag);
         obsDef.updateCommentInput(input.comment);
@@ -323,7 +327,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected onUserFormStetingChange(userFormSetting: UserFormSettingStruct): void {
+  protected onUserFormSettingsChange(userFormSetting: UserFormSettingStruct): void {
     this.gridNavigation = userFormSetting.gridNavigation;
     this.incrementDateSelector = userFormSetting.incrementDateSelector;
   }
@@ -338,7 +342,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     if (savableObservations !== null) {
       // Send to server for saving
       this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
-        console.log('bulk put: ', response);
         let type: ToastEventTypeEnum;
         if (response.includes('error')) {
           type = ToastEventTypeEnum.ERROR;
@@ -380,18 +383,37 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
     const newObservations: CreateObservationModel[] = [];
 
-    for (const obsDef of this.formDefinitions.allObsDefs) {
+    // CODE BLOCK THAT HAS THE BUG THAT ENFORCED USING EXPLICIT EVENT COMMUNICATION
+    //----------------------------------------
+    // for (const obsDef of this.formDefinitions.allObsDefs) {
+    //   // Check for change validity
+    //   if (!obsDef.observationChangeIsValid) {
+    //     this.pagesDataService.showToast({ title: 'Observations', message: `Invalid value detected`, type: ToastEventTypeEnum.ERROR });
+    //     return null;
+    //   }
+
+    //   //SERIOUS BUG THAT INVOLVES OBJECTS SOMEHOW NOT BEING PASSED BY REFERENCE. SOMETIMES IT DOESN'T HAPPEN
+    //   //----------------------------------------
+    //   // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
+    //   if (obsDef.observationChanged && (obsDef.observation.value !== null || obsDef.observation.flag !== null)) {
+    //     newObservations.push(obsDef.observation);
+    //   }
+
+    // }
+    //----------------------------------------
+
+    for (const obsDef of this.changedObsDefs) {
       // Check for change validity
       if (!obsDef.observationChangeIsValid) {
         this.pagesDataService.showToast({ title: 'Observations', message: `Invalid value detected`, type: ToastEventTypeEnum.ERROR });
         return null;
       }
 
-      // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
-      console.log(`${obsDef.observationChanged} - (db: ${obsDef.databaseValues} = New: ${obsDef.valueFlagForDisplay}${obsDef.period}${obsDef.comment})`)
-      if (obsDef.observationChanged && (obsDef.observation.value !== null || obsDef.observation.flag !== null)) {
+      // Get observations that have either value or flag, that is, ignore blanks
+      if (obsDef.observation.value !== null || obsDef.observation.flag !== null) {
         newObservations.push(obsDef.observation);
       }
+
     }
 
     if (newObservations.length === 0) {
@@ -466,5 +488,21 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
+  protected changedObsDefs: ObservationDefinition[] = [];
+
+  // Important note, this explicit event communication between components was adopted because inconsistent behavior was observed 
+  // when using mutable updates to nested objects, in this case the observation object that is part of the obdervation definition object, 
+  // this likely stems from Angular's reliance on object references for change detection.
+  protected onUserInputVF(obsDef: ObservationDefinition) {
+    const obsDefIndex: number = this.changedObsDefs.findIndex(item => item === obsDef);
+    if (obsDefIndex > -1) {
+      this.changedObsDefs.splice(obsDefIndex, 1);
+    }
+
+    // Ignore unchanged values
+    if (obsDef.observationChanged) {
+      this.changedObsDefs.push(obsDef);
+    }
+  }
 
 }

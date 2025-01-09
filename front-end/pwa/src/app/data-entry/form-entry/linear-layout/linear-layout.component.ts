@@ -21,7 +21,7 @@ export class LnearLayoutComponent implements OnChanges {
 
   /** Emitted when observation value is changed */
   @Output()
-  public valueChange = new EventEmitter<ObservationDefinition>();
+  public userInputVF = new EventEmitter<ObservationDefinition>();
 
   /** Emitted when observation value or total value is changed */
   @Output()
@@ -76,8 +76,7 @@ export class LnearLayoutComponent implements OnChanges {
    * @param fieldDef 
    * @returns 
    */
-  protected getObservationDef(fieldDef: FieldEntryDefinition): ObservationDefinition {
-    const index: number = this.fieldDefinitions.findIndex(data => (data === fieldDef));
+  protected getObservationDef(index: number): ObservationDefinition { 
     return this.observationsDefinitions[index];
   }
 
@@ -85,8 +84,8 @@ export class LnearLayoutComponent implements OnChanges {
    * Handles observation value changes
    * Clears any total error message  
    */
-  protected onValueChange(observationDef: ObservationDefinition): void {
-    this.valueChange.emit(observationDef);
+  protected onUserInputVF(observationDef: ObservationDefinition): void {
+    this.userInputVF.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
     if (this.formDefinitions.formMetadata.requireTotalInput) {

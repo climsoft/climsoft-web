@@ -16,8 +16,11 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
 export class ObservationDefinition {
     private elementMetadata: CreateViewElementModel;
     private _observation: CreateObservationModel;
-    private _valueFlagForDisplay: string = "";
-    public databaseValues: string = ""; //holds original value, flag, period and comment  values
+
+    /**
+     * holds original value, flag, period and comment  values
+     */
+    private databaseValues: string = ""; 
 
     /**
      * Determines whether to invalidate missing value input
@@ -57,17 +60,16 @@ export class ObservationDefinition {
         this.allowMissingValues = allowMissingValues;
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
-        this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
 
         // set original database values for future comparison
-        this.databaseValues = `${this.valueFlagForDisplay}${this.period}${this.comment}`;
+        this.databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
         // validate database values
         this.validateDBValue();
     }
 
     private validateDBValue(): void {
         // Validate input format validity. If there is a response then entry is invalid
-        this._validationErrorMessage = this.checkInputFormatValidity(this._valueFlagForDisplay)
+        this._validationErrorMessage = this.checkInputFormatValidity(this.getvalueFlagForDisplay())
         if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
             return;
         }
@@ -83,8 +85,8 @@ export class ObservationDefinition {
         }
     }
 
-    public get valueFlagForDisplay(): string {
-        return this._valueFlagForDisplay;
+    public getvalueFlagForDisplay(): string {
+        return this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);;
     }
 
     public get observation(): CreateObservationModel {
@@ -109,8 +111,7 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        //console.log('obs changed', `${this.valueFlagForDisplay}${this.period}${this.comment}`, ' db: ', this.databaseValues, ' status: ', `${this.valueFlagForDisplay}${this.period}${this.comment}` !== this.databaseValues)
-        return `${this.valueFlagForDisplay}${this.period}${this.comment}` !== this.databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this.databaseValues;
     }
 
     public get comment(): string | null {
@@ -136,13 +137,9 @@ export class ObservationDefinition {
      * @param enforceLimitCheck whether to enforce limit check or not
      * @returns empty string if value flag contents are valid, else returns the error message.
      */
-    public updateValueFlagFromUserInput(valueFlagInput: string): void {
+    public updateValueFlagFromUserInput(newValueFlagInput: string): void {
         // Important, trim any white spaces (empty values will always be ignored)
-        valueFlagInput = valueFlagInput.trim();
-        // clear previous values first
-        this.observation.value = null;
-        this.observation.flag = null;
-        this._valueFlagForDisplay = valueFlagInput;
+        const valueFlagInput: string = newValueFlagInput.trim();
         this._validationErrorMessage = "";
         this._validationWarningMessage = "";
 
@@ -177,10 +174,9 @@ export class ObservationDefinition {
         // Set the value and flag to the observation model 
         this.observation.value = value;
         this.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
-        this._valueFlagForDisplay = this.getValueFlagForDisplay(this.observation.value, this.observation.flag);
     }
 
-    private getValueFlagForDisplay(value: number | null, flag: FlagEnum | null): string {
+    private constructValueFlagForDisplayStr(value: number | null, flag: FlagEnum | null): string {
         const unScaledValue: number | null = this.scaleValue ? this.getUnScaledValue(value) : value;
         const valueStr = unScaledValue === null ? '' : unScaledValue.toString();
         const flagStr = flag === null ? '' : flag[0].toUpperCase();
