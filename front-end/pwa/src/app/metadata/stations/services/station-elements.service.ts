@@ -14,7 +14,7 @@ export class StationElementsService {
   private endPointUrl: string  ;
 
   constructor(private appConfigService: AppConfigService,private http: HttpClient) {
-    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/metadata-updates`;
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-elements`;
    }
 
   public getStationElements(stationId: string): Observable<CreateViewElementModel[]> {

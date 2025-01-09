@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { ObservationDefinition } from '../defintions/observation.definition';
 
 /**

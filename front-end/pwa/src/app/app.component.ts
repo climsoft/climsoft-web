@@ -12,19 +12,19 @@ export class AppComponent implements OnInit, OnDestroy {
 
   protected userSub!: Subscription;
 
-  constructor(private authService: AppAuthService, private router: Router, private activatedRoute: ActivatedRoute) { 
+  constructor(
+    private authService: AppAuthService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute) {
   }
 
   ngOnInit(): void {
-
     this.userSub = this.authService.user.subscribe(user => {
-     
-      if(!user){
+      if (!user) {
         // TODO. Check why this is not able to work at the guard interceptor level yet it works at guard (canActivate) level
         this.router.navigate(['../../login', { relativeTo: this.activatedRoute }]);
       }
     });
-
   }
 
   ngOnDestroy(): void {

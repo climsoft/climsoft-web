@@ -40,11 +40,7 @@ export class AppAuthService {
       .pipe(
         catchError((error) => this.handleError(error)),
         tap((data) => {
-
           console.log('logout data', data);
-
-
-
           this.removeUser();
         })
       );
@@ -57,7 +53,6 @@ export class AppAuthService {
 
   public removeUser() {
     localStorage.removeItem('user');
-
     this._user.next(null);
   }
 
@@ -66,10 +61,10 @@ export class AppAuthService {
       loggedInUser = this._user.value
     }
     if (loggedInUser) {
-      //calculate the expiry date based on expires in value that is set in the server 
+      // Calculate the expiry date based on expires in value that is set in the server 
       loggedInUser.expirationDate = new Date(new Date().getTime() + loggedInUser.expiresIn).getTime();
 
-      //save the user data
+      // Save the user data
       localStorage.setItem('user', JSON.stringify(loggedInUser));
     }
 

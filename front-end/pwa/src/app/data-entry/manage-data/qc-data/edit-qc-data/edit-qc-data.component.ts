@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { ObservationsService } from 'src/app/core/services/observations/observations.service';
+import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';

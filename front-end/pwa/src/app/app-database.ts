@@ -10,6 +10,8 @@ import { ViewElementTypeModel } from "./metadata/elements/models/view-element-ty
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
+import { CreateObservationModel } from "./core/models/observations/create-observation.model";
+import { CachedObservationModel } from "./data-entry/services/observations.service";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -34,8 +36,10 @@ export class AppDatabase extends Dexie {
     regions!: Table<ViewRegionModel, number>;
 
     // cached separately
-    stationForms!: Table<StationForm, string>;  
-    elementsQcTests!: Table<ViewElementQCTestModel, number>;    
+    stationForms!: Table<StationForm, string>;
+    elementsQcTests!: Table<ViewElementQCTestModel, number>;
+    // stationId, elementId, sourceId, elevation, datetime, period  as compund key
+    observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
 
@@ -54,6 +58,9 @@ export class AppDatabase extends Dexie {
 
             stationForms: `stationId`,
             elementsQcTests: `id, elementId, qcTestType, observationPeriod, [elementId+qcTestType+observationPeriod]`,
+            // Compoud key [stationId+elementId+sourceId+elevation+datetime+period] is used for putting and deleting data in the local database. 
+            // Compound index [stationId+sourceId+elevation+elementId+datetime] is used by entry forms.
+            observations: `[stationId+elementId+sourceId+elevation+datetime+period], stationId, elementId, sourceId, elevation, datetime, period, synced, entryDatetime, [stationId+sourceId+elevation+elementId+datetime]`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,
         });

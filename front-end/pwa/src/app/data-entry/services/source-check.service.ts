@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { ViewObservationQueryModel } from '../../models/observations/view-observation-query.model'; 
+import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 
 export interface DuplicateModel{
  stationId: string;
