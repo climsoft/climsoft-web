@@ -1,5 +1,5 @@
 <app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [disabled]="disableValueFlagEntry"
-    [value]="observationDefinition.valueFlagForDisplay" [dropDownOptionMaxHeight]="300"
+    [value]="observationDefinition.getvalueFlagForDisplay()" [dropDownOptionMaxHeight]="300"
     [errorMessage]="observationDefinition.validationErrorMessage"
     [warningMessage]="observationDefinition.validationWarningMessage"
     [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"

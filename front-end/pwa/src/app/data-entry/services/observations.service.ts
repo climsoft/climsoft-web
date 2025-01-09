@@ -93,10 +93,13 @@ export class ObservationsService {
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {
-            console.log('syncing observations: ', observations)
-            // If there is server data then just update the local database with the new data asynchronously
-            this.saveDataToLocalDatabase(observations, 'true');
-            return of(observations);
+            // Note, even though the 2 operations below are asynchronous they will execute sequentially.
+
+            // If there is server data then update the local database with the new data asynchronously
+            this.saveDataToLocalDatabase(observations, 'true'); 
+
+            // Then refetch from the local database because there might be unsynced observations that should be displayed as well
+            return from(this.fetchObservationsLocally(entryFormObsQuery));
           } else {
             // If no server data then this could mean it has either been deleted on the server or not synced from the user local database.
             // So operate on the response accordingly.
@@ -193,7 +196,7 @@ export class ObservationsService {
       tap({
         next: value => {
           // Server will send {message: success} when there is no error
-          console.log('server value: ', value, 'saving synced data locally');
+          //console.log('server value: ', value, 'saving synced data locally');
           // Save observations as synchronised and attempt to synchronise with server as well.
           this.saveDataToLocalDatabase(observations, 'true');
         },
@@ -215,6 +218,11 @@ export class ObservationsService {
 
   }
 
+  /**
+   * Saves observations to the local database and counts the number of unsynced observations
+   * @param observations 
+   * @param synced 
+   */
   private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
     await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
     this.countUnsyncedObservationsAndRaiseNotification();

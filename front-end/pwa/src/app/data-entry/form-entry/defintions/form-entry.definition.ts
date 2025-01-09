@@ -73,7 +73,7 @@ export class FormEntryDefinition {
         switch (this.formMetadata.layout) {
             case "LINEAR":
                 this._obsDefsForLinearLayout = this.getEntryObsForLinearLayout(dbObservations);
-                this._allObsDefs = [...this._obsDefsForLinearLayout];
+                this._allObsDefs = this._obsDefsForLinearLayout;
                 break;
             case "GRID":
                 this._obsDefsForGridLayout = this.getEntryObsForGridLayout(dbObservations);

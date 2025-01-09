@@ -20,6 +20,9 @@ export class ElementsQCTestsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/elements-qc-tests`;
   }
 
+  // Important note, this will alway fire back 2 times when there are no server related errors.
+  // So the entry forms will refresh twice when the user is online.
+  // In future we could optimise to only raise the server subscripition when there has been changes.
   public find(findQCTestQuery: FindQCTestQueryModel) {
 
     // Step 1: Observable for fetching from the local database
@@ -44,7 +47,7 @@ export class ElementsQCTestsService {
     const httpParams: HttpParams = StringUtils.getQueryParams<FindQCTestQueryModel>(findQCTestQuery);
     const serverData$ = this.http.get<ViewElementQCTestModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
       tap(serverData => {
-        // Save the server data to the local database. This ensures that the local database is in sync with the server database.
+        // Save the server data to the local database. This ensures that the local database is in sync with the server database. 
         AppDatabase.instance.elementsQcTests.bulkPut(serverData);
       }),
       catchError(this.handleError)

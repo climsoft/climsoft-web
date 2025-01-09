@@ -23,7 +23,7 @@ export class GridLayoutComponent implements OnChanges {
 
   /** Emitted when observation value is changed */
   @Output()
-  public valueChange = new EventEmitter<ObservationDefinition>();
+  public userInputVF = new EventEmitter<ObservationDefinition>();
 
   /** Emitted when observation value or total value is changed */
   @Output()
@@ -75,8 +75,8 @@ export class GridLayoutComponent implements OnChanges {
   * Handles observation value changes
   * Clears any total error message  
   */
-  protected onValueChange(observationDef: ObservationDefinition, colIndex: number): void {
-    this.valueChange.emit(observationDef);
+  protected onUserInputVF(observationDef: ObservationDefinition, colIndex: number): void {
+    this.userInputVF.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
     if (this.formDefinitions.formMetadata.requireTotalInput) {

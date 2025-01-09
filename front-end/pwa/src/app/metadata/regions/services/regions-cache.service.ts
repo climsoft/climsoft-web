@@ -1,7 +1,7 @@
-import { BehaviorSubject, catchError, map, Observable, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, Subscription, take, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
-import { AppDatabase } from "src/app/app-database"; 
+import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { ViewRegionModel } from "src/app/core/models/Regions/view-region.model";
 import { CreateUpdateRegionModel } from "src/app/core/models/Regions/create-update-region.model";
@@ -11,9 +11,9 @@ import { AppConfigService } from "src/app/app-config.service";
     providedIn: 'root'
 })
 export class RegionsCacheService {
-    private endPointUrl: string  ;
+    private endPointUrl: string;
     private readonly _cachedRegions: BehaviorSubject<ViewRegionModel[]> = new BehaviorSubject<ViewRegionModel[]>([]);
-
+    private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -27,9 +27,9 @@ export class RegionsCacheService {
     }
 
     public checkForUpdates(): void {
-        this.metadataUpdatesService.checkUpdates('regions').pipe(
-            take(1)
-        ).subscribe(res => {
+        console.log('checking regions updates');
+        this.checkUpdatesSubscription.unsubscribe();
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('regions').subscribe(res => {
             console.log('regions-cache response', res);
             if (res) {
                 this.loadRegions();
