@@ -3,11 +3,11 @@
         <table class="table table-striped table-hover">
             <thead>
                 <tr class="table-label">
-                    <th >
+                    <th>
                         {{rowHeaderName}}
                     </th>
 
-                    <th *ngFor="let colDef of colFieldDefinitions" >
+                    <th *ngFor="let colDef of colFieldDefinitions">
                         {{colDef.name}}
                     </th>
                 </tr>
@@ -15,24 +15,23 @@
             <tbody>
 
                 <!-- row for col name and values -->
-                <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;" >
+                <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
 
                     <!-- cell for name -->
-                    <td class="p-0 m-0 text-center align-middle table-label">
-                        {{rowDef.name}}                       
+                    <td class="p-0 m-0 text-center align-middle table-label fw-bold">
+                        {{rowDef.name}}
                     </td>
 
                     <!-- cell for values -->
                     <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                       <div class="d-flex">
-                        <div class="value-flag-container">
-                            <!-- <input type="text"  [id]="rowDef.id +'-'+ colDef.id"> -->
-                            <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                                [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                                [displayExtraInfoOption]="displayExtraInfoOption"
-                                (userInputVF)="onUserInputVF($event,colIndex)" />
+                        <div class="d-flex">
+                            <div class="value-flag-container">
+                                <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                                    [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                                    [displayExtraInfoOption]="displayExtraInfoOption"
+                                    (userInputVF)="onUserInputVF($event,colIndex)" />
+                            </div>
                         </div>
-                       </div>
 
                     </td>
 
@@ -52,7 +51,7 @@
                                     (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
                             </div>
                         </div>
-                       
+
 
                     </td>
                 </tr>

@@ -1,11 +1,10 @@
 <div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
-    <div class="card-title fw-bold">{{source.name}} data entry for {{station.id}} - {{station.name}}</div>
+    <div class="card-title fw-bold my-1 form-header">{{source.name}} data entry for {{station.id}} - {{station.name}}</div>
     <!-- entry selectors -->
     <div class="card mb-2 border-0 ">
-
       <div class="card-body p-0">
-        <div class="card-header mb-2 p-1 fw-bold">Selectors</div>
+        <div class="card-header mb-2 p-1 fw-bold form-header">Selectors</div>
         <div class="row g-2 px-2">
           <div class="col-sm-auto mb-2" *ngIf="displayElementSelector">
             <app-element-selector-single [label]="'Element'" [includeOnlyIds]="formDefinitions.formMetadata.elementIds"
@@ -14,12 +13,12 @@
 
           <div class="col-sm-auto mb-2" *ngIf="displayDateSelector">
             <app-date-input [label]="'Date'" [value]="defaultDateValue"
-              (valueChange)="onDateChange($event)"></app-date-input>
+              (valueChange)="onDateChange($event)"/>
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayYearMonthSelector">
             <app-year-month-input [value]="defaultYearMonthValue"
-              (valueChange)="onYearMonthChange($event)"></app-year-month-input>
+              (valueChange)="onYearMonthChange($event)"/>
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
@@ -34,10 +33,9 @@
     <!-- entry fields -->
     <div class="card border-0">
       <div class="card-body p-0">
-
-        <div class="card-header d-flex justify-content-between px-1 py-0  align-items-center">
-          <div class="fw-bold">Fields</div>
-          <div class="mb-1">
+        <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
+          <div class="fw-bold p-1 form-header">Fields</div>
+          <div >
             <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Add Extra Info', 'Settings']"
               (dropDownOptionClick)="onOptions($event)" [translateX]="true" [buttonText]="'Options'" />
             <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
