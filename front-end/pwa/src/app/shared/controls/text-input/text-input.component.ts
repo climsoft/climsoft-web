@@ -20,10 +20,11 @@ export class TextInputComponent implements OnChanges {
   @Input() public displayCancelOption: boolean = false;
   @Output() public displayCancelOptionClick = new EventEmitter<void>();
 
-  @Input() public type: string = "text";
+  @Input() public type: string = 'text';
   @Input() public id!: string | number;
   @Input() public label!: string;
   @Input() public placeholder!: string;
+  @Input() public borderSize: number = 1;
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public showChanges: boolean = false;

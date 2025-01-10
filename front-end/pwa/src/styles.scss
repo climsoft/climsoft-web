@@ -33,7 +33,7 @@ body {
     overflow-y: auto;
 }
 
-.manage-data-table thead th {
+.manage-data-table-container table thead  {
     position: sticky;
     top: 0;
     z-index: 1;

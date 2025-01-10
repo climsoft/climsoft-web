@@ -1,4 +1,4 @@
-<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [disabled]="disableValueFlagEntry"
+<app-text-input *ngIf="observationDefinition" [id]="id" [label]="label" [disabled]="disableValueFlagEntry" [borderSize]="3"
     [value]="observationDefinition.getvalueFlagForDisplay()" [dropDownOptionMaxHeight]="300"
     [errorMessage]="observationDefinition.validationErrorMessage"
     [warningMessage]="observationDefinition.validationWarningMessage"

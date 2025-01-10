@@ -21,6 +21,8 @@ export class UserFormSettingsComponent {
   @Output()
   public ok = new EventEmitter<UserFormSettingStruct>();
 
+  protected activeTab: 'linear' | 'grid' = 'linear';
+
   protected userFormSetting!: UserFormSettingStruct;
 
   public static USER_FORM_SETTING_STORAGE_NAME : string = 'user_form_setting;'
@@ -33,6 +35,17 @@ export class UserFormSettingsComponent {
   public openDialog(): void {
     this.open = true;
   }
+
+  protected onTabChange(selectedTab: 'linear' | 'grid'): void {
+    // this.searchedIds = [];
+    // this.searchName = '';
+    // this.saveSearch = false;
+    // if(selectedTab === 'linear'){
+    //   this.loadStationSelections();
+    // }
+   
+    this.activeTab = selectedTab;
+   }
 
   protected get gridNavigation(): string {
     return this.userFormSetting.gridNavigation === 'vertical' ? 'Vertically' : 'Horizontally';
