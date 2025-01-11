@@ -24,7 +24,7 @@ export class YearMonthInputComponent implements OnChanges  {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    console.log('year-month changes', changes)
+    //console.log('year-month changes', changes)
    
   }
 

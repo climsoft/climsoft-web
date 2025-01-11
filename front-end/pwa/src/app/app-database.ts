@@ -9,9 +9,9 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
-import { CreateObservationModel } from "./core/models/observations/create-observation.model";
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model"; 
 import { CachedObservationModel } from "./data-entry/services/observations.service";
+import { LoggedInUserModel } from "./core/models/users/logged-in-user.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -23,7 +23,17 @@ export interface StationForm {
     forms: ViewSourceModel[];
 }
 
+// TODO. Not yet used
+export interface DeviceSetting {
+    id: string; // should be an enumeration
+    parameters: any;
+}
+
 export class AppDatabase extends Dexie {
+    //--------------------------------------
+    // Back end related tables
+
+    // Metadata tables
     // Cached through metadata updates
     metadataModificationLog!: Table<MetadataModificationLogModel, string>;
     stationObsEnv!: Table<ViewStationObsEnvModel, number>;
@@ -35,13 +45,22 @@ export class AppDatabase extends Dexie {
     sources!: Table<ViewSourceModel, number>;
     regions!: Table<ViewRegionModel, number>;
 
-    // cached separately
+    // cached differently
     stationForms!: Table<StationForm, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
     // stationId, elementId, sourceId, elevation, datetime, period  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
+
+    //--------------------------------------
+
+    //--------------------------------------
+    // Front end related tables
+
+    //deviceSettings!: Table<LoggedInUserModel, number>;
+
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
+    //--------------------------------------
 
     constructor() {
         super('climsoft_db'); // Database name

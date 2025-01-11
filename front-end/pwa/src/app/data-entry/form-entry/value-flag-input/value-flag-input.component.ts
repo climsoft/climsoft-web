@@ -13,10 +13,13 @@ import { ObservationDefinition } from '../defintions/observation.definition';
 })
 export class ValueFlagInputComponent implements OnChanges {
   @Input()
-  public id: string = '';
+  public id!: string;
 
   @Input()
-  public label: string = '';
+  public label!: string;
+
+  @Input()
+  public borderSize!: number;
 
   @Input()
   public observationDefinition!: ObservationDefinition;
@@ -115,9 +118,9 @@ export class ValueFlagInputComponent implements OnChanges {
       bValueChanged = true
     }
 
-    if(bValueChanged){
+    if (bValueChanged) {
       this.userInputVF.emit(this.observationDefinition);
-    }  
+    }
 
   }
 

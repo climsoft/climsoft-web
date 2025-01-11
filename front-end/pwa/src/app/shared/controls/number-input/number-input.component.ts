@@ -13,7 +13,9 @@ export class NumberInputComponent implements OnChanges {
   @Input()
   public label!: string;
   @Input()
-  public disabled: boolean = false;
+  public disabled!: boolean;
+  @Input()
+  public borderSize!: number;
   @Input()
   public hintMessage!: string;
   @Input()

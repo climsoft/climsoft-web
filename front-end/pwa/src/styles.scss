@@ -18,22 +18,22 @@ body {
     // background-color: #f5f7fb
 }
 
+.app-cursor-pointer {
+    cursor: pointer;
+}
+
+// TODO. Deprecate in favour of app-cursor-pointer
 .cursor-pointer {
     cursor: pointer;
 }
 
-.table-group-divider {
-    border-top-color: #ddd;
-}
-
-/* Used by manage data module */
-.manage-data-table-container {
+.app-table-container {
     /* Adjust the height as needed */
     height: calc(100vh - 430px);
     overflow-y: auto;
 }
 
-.manage-data-table-container table thead  {
+.app-table-container table thead {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -43,6 +43,10 @@ body {
 
     /* Optional: adds a shadow for better separation */
     /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); */
+}
+
+.app-table-container table tbody {
+    border-top-color: #ddd;
 }
 
 .value-flag-container {

@@ -15,7 +15,7 @@ import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-ty
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
+import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 import { ObservationDefinition } from './defintions/observation.definition';
@@ -40,9 +40,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected displayExtraInfoOption: boolean = false;
 
   protected refreshLayout: boolean = false;
-  protected incrementDateSelector: boolean = false;
-  protected gridNavigation: 'horizontal' | 'vertical' = 'horizontal';
-
+  
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
 
@@ -50,6 +48,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
+
+  protected userFormSettings: UserFormSettingStruct;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -61,7 +61,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private location: Location,
       private localStorage: LocalStorageService,) {
     this.pagesDataService.setPageHeader('Data Entry');
-    this.setUserFormSettings();
+
+    //Set user form settings
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
+    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : {...DEFAULT_USER_FORM_SETTINGS}; // pass by value. Important
   }
 
   ngOnInit(): void {
@@ -143,13 +146,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setUserFormSettings(): void {
-    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(UserFormSettingsComponent.USER_FORM_SETTING_STORAGE_NAME);
-    if (savedUserFormSetting) {
-      this.gridNavigation = savedUserFormSetting.gridNavigation === 'vertical' ? 'vertical' : 'horizontal';
-      this.incrementDateSelector = savedUserFormSetting.incrementDateSelector;
-    }
-  }
+
 
   /**
    * Used to determine whether to display element selector 
@@ -327,9 +324,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected onUserFormSettingsChange(userFormSetting: UserFormSettingStruct): void {
-    this.gridNavigation = userFormSetting.gridNavigation;
-    this.incrementDateSelector = userFormSetting.incrementDateSelector;
+  protected onUserFormSettingsChange(userFormSettings: UserFormSettingStruct): void {
+    this.userFormSettings = {...userFormSettings}; 
   }
 
   /**
@@ -356,7 +352,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
 
         if (type !== ToastEventTypeEnum.ERROR) {
-          if (this.incrementDateSelector) {
+          if (this.userFormSettings.incrementDateSelector) {
             this.sequenceToNextDate();
           }
           this.loadObservations();

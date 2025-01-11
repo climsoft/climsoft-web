@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter } from
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
+import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 
 @Component({
   selector: 'app-grid-layout',
@@ -10,6 +11,9 @@ import { ObservationDefinition } from '../defintions/observation.definition';
 })
 export class GridLayoutComponent implements OnChanges {
   @Input()
+  public userFormSettings!: UserFormSettingStruct;
+
+  @Input()
   public formDefinitions!: FormEntryDefinition;
 
   @Input()
@@ -17,9 +21,6 @@ export class GridLayoutComponent implements OnChanges {
 
   @Input()
   public displayExtraInfoOption!: boolean;
-
-  @Input()
-  public gridNavigation!: 'horizontal' | 'vertical';
 
   /** Emitted when observation value is changed */
   @Output()
@@ -41,6 +42,8 @@ export class GridLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
+  protected tableHeightStyle!: string;
+
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -53,8 +56,14 @@ export class GridLayoutComponent implements OnChanges {
       this.colFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
       this.observationsDefinitions = this.formDefinitions.obsDefsForGridLayout;
       // Important to statically fill with undefined values for working with 'some' and 'every' array functions
-      this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);   
+      this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     }
+
+    if (changes["userFormSettings"] && this.userFormSettings) {
+      //this.tableHeightStyle = `calc(100vh - ${this.userFormSettings.gridLayoutSettings.gridHeight}px)`;
+      //this.tableHeightStyle = 'calc(100vh - 300px)';
+    }
+
   }
 
   protected get rowHeaderName(): string {
@@ -109,7 +118,7 @@ export class GridLayoutComponent implements OnChanges {
       this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
     }
 
-    this.totalIsValid.emit(this.totalErrorMessage.every(str => str === undefined || str === '' ));
+    this.totalIsValid.emit(this.totalErrorMessage.every(str => str === undefined || str === ''));
   }
 
 

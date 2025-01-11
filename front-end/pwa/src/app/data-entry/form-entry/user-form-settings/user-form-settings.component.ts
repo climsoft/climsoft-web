@@ -2,8 +2,31 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 
 export interface UserFormSettingStruct {
-  gridNavigation: 'horizontal' | 'vertical';
   incrementDateSelector: boolean;
+  fieldsBorderSize: number;
+
+  linearLayoutSettings: {
+    maxRows: number;
+  }
+
+  gridLayoutSettings: {
+    gridHeight: number;
+    gridNavigation: 'horizontal' | 'vertical';
+  }
+}
+
+export const USER_FORM_SETTING_STORAGE_NAME: string = 'user_form_setting'
+
+export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
+  incrementDateSelector: false,
+  fieldsBorderSize: 1,
+  linearLayoutSettings: {
+    maxRows: 5
+  },
+  gridLayoutSettings: {
+    gridHeight: 430,
+    gridNavigation: 'horizontal',
+  }
 }
 
 @Component({
@@ -23,13 +46,12 @@ export class UserFormSettingsComponent {
 
   protected activeTab: 'linear' | 'grid' = 'linear';
 
-  protected userFormSetting!: UserFormSettingStruct;
+  protected userFormSettings!: UserFormSettingStruct;
 
-  public static USER_FORM_SETTING_STORAGE_NAME : string = 'user_form_setting;'
 
   constructor(private localStorage: LocalStorageService) {
-    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(UserFormSettingsComponent.USER_FORM_SETTING_STORAGE_NAME);
-    this.userFormSetting = savedUserFormSetting ? savedUserFormSetting : { gridNavigation: 'horizontal', incrementDateSelector: false };
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
+    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : {...DEFAULT_USER_FORM_SETTINGS}; //pass by value. Important
   }
 
   public openDialog(): void {
@@ -37,33 +59,25 @@ export class UserFormSettingsComponent {
   }
 
   protected onTabChange(selectedTab: 'linear' | 'grid'): void {
-    // this.searchedIds = [];
-    // this.searchName = '';
-    // this.saveSearch = false;
-    // if(selectedTab === 'linear'){
-    //   this.loadStationSelections();
-    // }
-   
     this.activeTab = selectedTab;
-   }
+  }
 
   protected get gridNavigation(): string {
-    return this.userFormSetting.gridNavigation === 'vertical' ? 'Vertically' : 'Horizontally';
+    return this.userFormSettings.gridLayoutSettings.gridNavigation === 'vertical' ? 'Vertically' : 'Horizontally';
   }
 
   protected onGridEntryNavigationSelection(option: string): void {
     if (option === 'Vertically') {
-      this.userFormSetting.gridNavigation = 'vertical';
+      this.userFormSettings.gridLayoutSettings.gridNavigation = 'vertical';
     } else {
-      this.userFormSetting.gridNavigation = 'horizontal';
+      this.userFormSettings.gridLayoutSettings.gridNavigation = 'horizontal';
     }
-
   }
 
   protected onOkClick(): void {
-    this.localStorage.setItem(UserFormSettingsComponent.USER_FORM_SETTING_STORAGE_NAME, this.userFormSetting);
+    this.localStorage.setItem(USER_FORM_SETTING_STORAGE_NAME, this.userFormSettings);
     this.open = false;
-    this.ok.emit(this.userFormSetting);
+    this.ok.emit(this.userFormSettings);
     this.openChange.emit(this.open);
   }
 
