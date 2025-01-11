@@ -28,8 +28,7 @@ body {
 }
 
 .app-table-container {
-    /* Adjust the height as needed */
-    height: calc(100vh - 430px);
+    height: 60vh; // This should be overwritten depending on the component number of controls
     overflow-y: auto;
 }
 

@@ -1,6 +1,6 @@
 <div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
     <div *ngIf="userFormSettings.gridLayoutSettings.gridNavigation === 'horizontal'">
-        <div class="app-table-container" [ngStyle]="{height: 'calc(100vh - 430px)'}">
+        <div class="app-table-container" [ngStyle]="{height: userFormSettings.gridLayoutSettings.gridHeight + 'vh'}">
             <table class="table table-hover"  >
                 <thead>
                     <tr class="table-label">

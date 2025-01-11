@@ -24,7 +24,7 @@ export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
     maxRows: 5
   },
   gridLayoutSettings: {
-    gridHeight: 430,
+    gridHeight: 60,
     gridNavigation: 'horizontal',
   }
 }
