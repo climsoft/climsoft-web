@@ -1,15 +1,17 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-text-input',
   templateUrl: './text-input.component.html',
   styleUrls: ['./text-input.component.scss']
 })
-export class TextInputComponent implements OnChanges {
+export class TextInputComponent {
+  @ViewChild('appHtmlInput') inputElRef!: ElementRef;
+
   @Input() public displayDropDownOption: boolean = false;
   @Input() public dropDownOptionMaxHeight: number = 200;
   @Output() public displayDropDownOptionClick = new EventEmitter<void>();
- 
+
 
   @Input() public displayExtraInfoOption: boolean = false;
   @Output() public displayExtraInfoOptionClick = new EventEmitter<void>();
@@ -32,6 +34,7 @@ export class TextInputComponent implements OnChanges {
   @Input() public errorMessage: string | null | undefined; // TODO. Null not needed
   @Input() public warningMessage: string | undefined;
   @Input() public value: string | number | null = "";
+  @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();
   @Output() public inputClick = new EventEmitter<string>();
@@ -44,7 +47,9 @@ export class TextInputComponent implements OnChanges {
 
   protected displayDropDown: boolean = false;
 
-  ngOnChanges(changes: SimpleChanges): void {
+
+  public focus(): void {
+    this.inputElRef.nativeElement.focus();
   }
 
   public showDropDown(showDropDrown: boolean) {
@@ -57,7 +62,7 @@ export class TextInputComponent implements OnChanges {
   }
 
   protected onInputClick(): void {
-    if(this.displayDropDownOption){
+    if (this.displayDropDownOption) {
       this.displayDropDown = true;
     }
     this.inputClick.emit(this.value ? this.value.toString() : '');
@@ -86,11 +91,11 @@ export class TextInputComponent implements OnChanges {
     this.showDropDown(false);
   }
 
-  protected onDisplayExtraInfoClick(): void{
+  protected onDisplayExtraInfoClick(): void {
     this.displayExtraInfoOptionClick.emit();
   }
 
-  protected onDisplaySearchClick(): void{
+  protected onDisplaySearchClick(): void {
     this.displaySearchOptionClick.emit();
   }
 

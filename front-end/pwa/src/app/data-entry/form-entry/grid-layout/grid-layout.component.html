@@ -1,7 +1,7 @@
-<div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
-    <div *ngIf="userFormSettings.gridLayoutSettings.gridNavigation === 'horizontal'">
+<ng-container
+    *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
         <div class="app-table-container" [ngStyle]="{height: userFormSettings.gridLayoutSettings.gridHeight + 'vh'}">
-            <table class="table table-hover"  >
+            <table class="table table-hover">
                 <thead>
                     <tr class="table-label">
                         <th>
@@ -23,16 +23,14 @@
 
                         <!-- cell for values -->
                         <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                            <div class="d-flex">
-                                <div class="value-flag-container">
-                                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                                        [borderSize]="userFormSettings.fieldsBorderSize"
-                                        [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                                        [displayExtraInfoOption]="displayExtraInfoOption"
-                                        (userInputVF)="onUserInputVF($event,colIndex)" />
-                                </div>
+                            <div class="app-value-flag-container">
+                                <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                                    [borderSize]="userFormSettings.fieldsBorderSize"
+                                    [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                                    [displayExtraInfoOption]="displayExtraInfoOption"
+                                    (userInputVF)="onUserInputVF($event,colIndex)"
+                                    (enterKeyPress)="onVFEnterKeyPressed(rowIndex,colIndex)" />
                             </div>
-
                         </td>
 
                     </tr>
@@ -43,72 +41,16 @@
                             Total
                         </td>
                         <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                            <div class="d-flex">
-                                <div class="value-flag-container">
-                                    <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
-                                        [borderSize]="userFormSettings.fieldsBorderSize"
-                                        [errorMessage]="totalErrorMessage[colIndex]"
-                                        (valueChange)="onTotalValueChange(colIndex,$event)"
-                                        (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
-                                </div>
+                            <div class="app-value-flag-container">
+                                <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
+                                    [borderSize]="userFormSettings.fieldsBorderSize"
+                                    [errorMessage]="totalErrorMessage[colIndex]"
+                                    (valueChange)="onTotalValueChange(colIndex,$event)"
+                                    (inputEnterKeyPress)="onTotalEnterKeyPressed(colIndex)" />
                             </div>
-
-
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-
-    </div>
-
-    <div *ngIf="userFormSettings.gridLayoutSettings.gridNavigation === 'vertical'">
-        <div class="row g-2">
-            <div class="col d-flex flex-column grid-label">
-                <div class="row mb-2 d-flex flex-grow-1 fw-bold">
-                    <div>
-                        {{rowHeaderName}}
-                    </div>
-                </div>
-                <div class="row mb-2 d-flex flex-grow-1 fw-bold" *ngFor="let rowDef of rowFieldDefinitions">
-                    <div>
-                        {{rowDef.name}}
-                    </div>
-                </div>
-                <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row  d-flex flex-grow-1 fw-bold">
-                    <div>
-                        TOTAL
-                    </div>
-                </div>
-            </div>
-            <div class="col d-flex flex-column value-flag-container"
-                *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                <!-- column name -->
-                <div class="row mb-2 d-flex flex-grow-1 fw-bold">
-                    <div class="ms-2">
-                        {{colDef.name}}
-                    </div>
-                </div>
-
-                <!-- entry fields -->
-                <div class="row mb-2 d-flex flex-grow-1"
-                    *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                    <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                        [borderSize]="userFormSettings.fieldsBorderSize"
-                        [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                        [displayExtraInfoOption]="displayExtraInfoOption"
-                        (userInputVF)="onUserInputVF($event,colIndex)" />
-                </div>
-
-                <!-- total -->
-                <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="row mb-2 d-flex flex-grow-1">
-                    <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
-                        [borderSize]="userFormSettings.fieldsBorderSize" [errorMessage]="totalErrorMessage[colIndex]"
-                        (valueChange)="onTotalValueChange(colIndex,$event)"
-                        (inputEnterKeyPress)="onTotalValueChange(colIndex,$event)" />
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
+</ng-container>

@@ -8,7 +8,8 @@ export class SimulateTabOnEnterDirective {
 
   @HostListener('keydown.enter', ['$event'])
  public onEnterPress(event: KeyboardEvent) {
-    event.preventDefault(); // Prevent the default Enter key action
+   // Prevent the default Enter key action
+    event.preventDefault();
 
     // Find the next focusable element and focus it
     this.focusNextElement();

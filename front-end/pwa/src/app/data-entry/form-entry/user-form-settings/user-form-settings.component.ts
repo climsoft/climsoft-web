@@ -15,7 +15,7 @@ export interface UserFormSettingStruct {
   }
 }
 
-export const USER_FORM_SETTING_STORAGE_NAME: string = 'user_form_setting'
+export const USER_FORM_SETTING_STORAGE_NAME: string = 'user_form_setting_v1'
 
 export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
   incrementDateSelector: false,

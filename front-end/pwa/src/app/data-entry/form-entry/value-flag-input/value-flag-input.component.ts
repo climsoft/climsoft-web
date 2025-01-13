@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { ObservationDefinition } from '../defintions/observation.definition';
+import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 
 /**
  * Component for data entry of observations
@@ -12,6 +13,8 @@ import { ObservationDefinition } from '../defintions/observation.definition';
   styleUrls: ['./value-flag-input.component.scss']
 })
 export class ValueFlagInputComponent implements OnChanges {
+  @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
+
   @Input()
   public id!: string;
 
@@ -33,6 +36,8 @@ export class ValueFlagInputComponent implements OnChanges {
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 
+  @Output() public enterKeyPress = new EventEmitter<void>();
+
   protected showChanges: boolean = false;
 
   protected displayExtraInfoDialog: boolean = false;
@@ -45,13 +50,14 @@ export class ValueFlagInputComponent implements OnChanges {
   protected comment!: string | null;
 
   constructor(private observationService: ObservationsService) { }
-
+ 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.observationDefinition) {
       this.period = this.observationDefinition.period;
       this.periodType = 'Minutes';
       this.comment = this.observationDefinition.comment;
 
+      // If not declared as disabled then disable any future data entry
       if (!this.disableValueFlagEntry) {
         // Disable entry of future dates, excluding hour because the observation date times are in UTC.
         const obsDate = new Date(this.observationDefinition.observation.datetime);
@@ -60,6 +66,10 @@ export class ValueFlagInputComponent implements OnChanges {
       }
     }
 
+  }
+
+  public focus(): void {
+    this.textInputComponent.focus();
   }
 
   /**
@@ -82,6 +92,9 @@ export class ValueFlagInputComponent implements OnChanges {
     if (!this.observationDefinition.getvalueFlagForDisplay()) {
       this.onInputEntry('M');
     }
+
+    // Emit the enter key press event
+    this.enterKeyPress.emit();
   }
 
   //----------------------------------------

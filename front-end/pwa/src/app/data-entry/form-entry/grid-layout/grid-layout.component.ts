@@ -1,8 +1,9 @@
-import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
+import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 @Component({
   selector: 'app-grid-layout',
@@ -10,25 +11,25 @@ import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.
   styleUrls: ['./grid-layout.component.scss']
 })
 export class GridLayoutComponent implements OnChanges {
-  @Input()
-  public userFormSettings!: UserFormSettingStruct;
+  // Collect all input elements in the table
+  @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
+  @ViewChildren(ValueFlagInputComponent) totalComponents!: QueryList<ValueFlagInputComponent>;
 
-  @Input()
-  public formDefinitions!: FormEntryDefinition;
+  @Input() public userFormSettings!: UserFormSettingStruct;
 
-  @Input()
-  public refreshLayout!: boolean;
+  @Input() public formDefinitions!: FormEntryDefinition;
 
-  @Input()
-  public displayExtraInfoOption!: boolean;
+  @Input() public refreshLayout!: boolean;
+
+  @Input() public displayExtraInfoOption!: boolean;
 
   /** Emitted when observation value is changed */
-  @Output()
-  public userInputVF = new EventEmitter<ObservationDefinition>();
+  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
 
   /** Emitted when observation value or total value is changed */
-  @Output()
-  public totalIsValid = new EventEmitter<boolean>();
+  @Output() public totalIsValid = new EventEmitter<boolean>();
+
+  @Output() public focusSaveButton = new EventEmitter<void>();
 
   /** Holds row entry fields needed for creating value flag components; elements, days, hours */
   protected rowFieldDefinitions!: FieldEntryDefinition[];
@@ -92,7 +93,6 @@ export class GridLayoutComponent implements OnChanges {
       this.totalErrorMessage[colIndex] = '';
       this.totalIsValid.emit(false);
     }
-
   }
 
   /**
@@ -119,6 +119,83 @@ export class GridLayoutComponent implements OnChanges {
     }
 
     this.totalIsValid.emit(this.totalErrorMessage.every(str => str === undefined || str === ''));
+  }
+
+
+  protected onVFEnterKeyPressed(rowIndex: number, colIndex: number): void {
+
+    // Below code enables nvertical navigation on enter. 
+    // TODO. Later we can implement horizontal navigation on enter once we test this considerably 
+
+    const totalRows: number = this.rowFieldDefinitions.length; // Number of rows in the table
+    const totalColumns: number = this.colFieldDefinitions.length; // Number of columns in the table
+    let currentInputIndex: number;
+    let nextInputIndex: number;
+
+     // If total input is required and it's the last row then just focus the total component in the column
+    if (this.formDefinitions.formMetadata.requireTotalInput && rowIndex === totalRows - 1 ) {
+      const nextInput = this.totalComponents.get(colIndex);
+      if (nextInput) {
+        nextInput.focus();
+      }
+      return;
+    }
+
+    if (rowIndex === totalRows - 1 && colIndex === totalColumns - 1) {
+      // If it's the last row and column then focus the save button
+      this.focusSaveButton.emit();
+      return;
+    } else if (rowIndex === totalRows - 1) {
+      // If it's the last row, the first vf component of the next column should be next input's index
+      nextInputIndex = colIndex + 1;
+    } else {
+       // Calculate the current input's index
+      currentInputIndex = rowIndex * totalColumns + colIndex;
+       // Calculate the next input's index (same column, next row)
+      nextInputIndex = currentInputIndex + totalColumns;
+    }
+
+    //console.log('nextInputIndex', nextInputIndex)
+    
+    // Get the next input and set focus if it exists
+    const nextInput = this.vfComponents.get(nextInputIndex);
+
+    if (nextInput) {
+      if (nextInput.disableValueFlagEntry) {
+        // If vf component is disabled and it's the last column then just focus the save button
+        if (colIndex === totalColumns - 1) {
+          // Go save button
+          this.focusSaveButton.emit(); 
+        } else {
+           // If vf component is the last column then just focus the first vf component of the next column
+          this.onVFEnterKeyPressed(0, colIndex + 1)
+        }
+      } else {
+        nextInput.focus();
+      }
+
+    }
+
+
+  }
+
+  protected onTotalEnterKeyPressed(colIndex: number): void {
+    const totalColumns: number = this.colFieldDefinitions.length; // Number of columns in the table
+
+    // If it's the last row and column then focus the save button
+    if (colIndex == totalColumns - 1) {
+      // Go to save buton
+      this.focusSaveButton.emit(); 
+      return;
+    }
+
+    // the first item of the next column should be next input's index. S0 set focus if it exists
+    const nextInput = this.vfComponents.get(colIndex + 1);
+    if (nextInput) {
+      nextInput.focus();
+    }
+
+
   }
 
 

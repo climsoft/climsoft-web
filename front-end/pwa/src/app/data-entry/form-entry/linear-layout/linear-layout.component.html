@@ -1,4 +1,5 @@
-<div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
+<ng-container
+  *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
   <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
   <div *ngIf="largeScreen" class="row g-4">
@@ -10,7 +11,7 @@
       </div>
 
       <!-- If total is required then add the total control as the last row -->
-      <div class="value-flag-container"
+      <div class="app-value-flag-container"
         *ngIf="formDefinitions.formMetadata.requireTotalInput && firstIndex === this.fieldDefinitionsChunks.length - 1"
         class="row mb-2">
         <app-number-input [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
@@ -35,4 +36,4 @@
     </div>
   </div>
 
-</div>
+</ng-container>

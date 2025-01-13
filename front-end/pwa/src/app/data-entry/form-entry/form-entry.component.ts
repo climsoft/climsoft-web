@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
@@ -26,6 +26,8 @@ import { ObservationDefinition } from './defintions/observation.definition';
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit, OnDestroy {
+  @ViewChild('saveButton') saveButton!: ElementRef;
+
   /** Station details */
   protected station!: StationCacheModel;
 
@@ -40,7 +42,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected displayExtraInfoOption: boolean = false;
 
   protected refreshLayout: boolean = false;
-  
+
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
 
@@ -64,7 +66,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
     //Set user form settings
     const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
-    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : {...DEFAULT_USER_FORM_SETTINGS}; // pass by value. Important
+    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : { ...DEFAULT_USER_FORM_SETTINGS }; // pass by value. Important
   }
 
   ngOnInit(): void {
@@ -198,11 +200,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // Reset controls
     this.totalIsValid = false;
     this.refreshLayout = false;
+    this.changedObsDefs = [];
     this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
-      this.refreshLayout = true;
+      this.refreshLayout = true;     
     });
 
   }
@@ -325,13 +328,17 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   }
 
   protected onUserFormSettingsChange(userFormSettings: UserFormSettingStruct): void {
-    this.userFormSettings = {...userFormSettings}; 
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
+    if (savedUserFormSetting) {
+      this.userFormSettings = savedUserFormSetting
+    }
   }
 
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
+    console.log('save clicked');
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
     const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
     //console.log('saving: ',  newObservations)
@@ -499,6 +506,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     if (obsDef.observationChanged) {
       this.changedObsDefs.push(obsDef);
     }
+  }
+
+  protected onFocusSaveButton(): void {
+    // TODO. Investigate why this focus raises a click event.
+    console.log('save before focus');
+    this.saveButton.nativeElement.focus();
+    console.log('save after focus');
   }
 
 }

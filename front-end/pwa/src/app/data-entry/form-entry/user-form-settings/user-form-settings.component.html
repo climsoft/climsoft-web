@@ -39,12 +39,13 @@
             <div class="mb-2 mt-2">
                 <app-number-input [label]="'Grid height'" [(numValue)]="userFormSettings.gridLayoutSettings.gridHeight" />
             </div>
-            <div class="mb-2">
+            <!-- TODO. Enable this later -->
+            <!-- <div class="mb-2">
                 <div>Grid navigation:</div>
                 <app-radio-buttons-input [asButtons]="true" [inline]="true" [groupName]="'grid_navigation_options'"
                     [groupItems]=" [ {label: 'Horizontally'}, {label: 'Vertically'} ]" [checkedValue]="gridNavigation"
                     (checkedValueChange)="onGridEntryNavigationSelection($event)" />
-            </div>
+            </div> -->
         </div>
 
     </div>

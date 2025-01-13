@@ -24,7 +24,12 @@ export interface StationForm {
 }
 
 // TODO. Not yet used
-export interface DeviceSetting {
+export interface UserInterfaceSetting {
+    id: string; // should be an enumeration
+    parameters: any;
+}
+
+export interface AppComponentState {
     id: string; // should be an enumeration
     parameters: any;
 }
@@ -56,7 +61,7 @@ export class AppDatabase extends Dexie {
     //--------------------------------------
     // Front end related tables
 
-    //deviceSettings!: Table<LoggedInUserModel, number>;
+    //userInterfaceSettings!: Table<UserInterfaceSetting, number>;
 
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
