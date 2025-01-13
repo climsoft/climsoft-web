@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
@@ -15,7 +15,7 @@ import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-ty
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
+import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 import { ObservationDefinition } from './defintions/observation.definition';
@@ -26,6 +26,8 @@ import { ObservationDefinition } from './defintions/observation.definition';
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit, OnDestroy {
+  @ViewChild('saveButton') saveButton!: ElementRef;
+
   /** Station details */
   protected station!: StationCacheModel;
 
@@ -40,8 +42,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected displayExtraInfoOption: boolean = false;
 
   protected refreshLayout: boolean = false;
-  protected incrementDateSelector: boolean = false;
-  protected gridNavigation: 'horizontal' | 'vertical' = 'horizontal';
 
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
@@ -50,6 +50,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
+
+  protected userFormSettings: UserFormSettingStruct;
 
   constructor
     (private pagesDataService: PagesDataService,
@@ -61,7 +63,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private location: Location,
       private localStorage: LocalStorageService,) {
     this.pagesDataService.setPageHeader('Data Entry');
-    this.setUserFormSettings();
+
+    //Set user form settings
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
+    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : { ...DEFAULT_USER_FORM_SETTINGS }; // pass by value. Important
   }
 
   ngOnInit(): void {
@@ -143,13 +148,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setUserFormSettings(): void {
-    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(UserFormSettingsComponent.USER_FORM_SETTING_STORAGE_NAME);
-    if (savedUserFormSetting) {
-      this.gridNavigation = savedUserFormSetting.gridNavigation === 'vertical' ? 'vertical' : 'horizontal';
-      this.incrementDateSelector = savedUserFormSetting.incrementDateSelector;
-    }
-  }
+
 
   /**
    * Used to determine whether to display element selector 
@@ -201,11 +200,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // Reset controls
     this.totalIsValid = false;
     this.refreshLayout = false;
+    this.changedObsDefs = [];
     this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
       take(1),
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
-      this.refreshLayout = true;
+      this.refreshLayout = true;     
     });
 
   }
@@ -327,15 +327,18 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
-  protected onUserFormSettingsChange(userFormSetting: UserFormSettingStruct): void {
-    this.gridNavigation = userFormSetting.gridNavigation;
-    this.incrementDateSelector = userFormSetting.incrementDateSelector;
+  protected onUserFormSettingsChange(userFormSettings: UserFormSettingStruct): void {
+    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
+    if (savedUserFormSetting) {
+      this.userFormSettings = savedUserFormSetting
+    }
   }
 
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
+    console.log('save clicked');
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
     const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
     //console.log('saving: ',  newObservations)
@@ -356,7 +359,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
 
         if (type !== ToastEventTypeEnum.ERROR) {
-          if (this.incrementDateSelector) {
+          if (this.userFormSettings.incrementDateSelector) {
             this.sequenceToNextDate();
           }
           this.loadObservations();
@@ -503,6 +506,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     if (obsDef.observationChanged) {
       this.changedObsDefs.push(obsDef);
     }
+  }
+
+  protected onFocusSaveButton(): void {
+    // TODO. Investigate why this focus raises a click event.
+    console.log('save before focus');
+    this.saveButton.nativeElement.focus();
+    console.log('save after focus');
   }
 
 }

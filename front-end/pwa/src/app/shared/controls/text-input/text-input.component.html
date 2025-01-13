@@ -5,12 +5,21 @@
     <div
       [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">
 
-      <input [type]="type" class="form-control form-control-sm" autocomplete="off" [id]="id? id:label"
-        [disabled]="disabled" [readOnly]="readonly" [class.bg-body-secondary]="readonly"
-        [class.bg-danger]="errorMessage" [class.bg-warning]="warningMessage"
-        [class.text-success]="showChanges && !errorMessage" [value]="value" [attr.max]="max"
-        [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
-        (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" appSimulateTabOnEnter />
+      <input *ngIf="simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
+        [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
+        [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.bg-danger]="errorMessage"
+        [class.bg-warning]="warningMessage" [class.text-success]="showChanges && !errorMessage" [value]="value"
+        [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
+        (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()"
+        appSimulateTabOnEnter />
+
+      <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
+        [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
+        [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.bg-danger]="errorMessage"
+        [class.bg-warning]="warningMessage" [class.text-success]="showChanges && !errorMessage" [value]="value"
+        [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
+        (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
+        (blur)="onInputBlur()" />
 
       <!-- Note in all the buttons below, btn-input-group class is needed to prevent tab selection on enter key press -->
 

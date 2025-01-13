@@ -8,21 +8,24 @@ import { StringUtils } from '../../utils/string.utils';
   styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnChanges {
-  @Input() id!: string | number;
-  @Input() label!: string;
-  @Input() disabled: boolean = false;
-  @Input() hintMessage!: string;
-  @Input() errorMessage!: string | null;
-  @Input() value!: number | null;
-  @Input() numValue!: number;
-  @Output() valueChange = new EventEmitter<number | null>();
-  @Output() numValueChange = new EventEmitter<number>();
+  @Input() public id!: string | number;
+  @Input() public label!: string;
+  @Input() public disabled!: boolean;
+  @Input() public borderSize!: number;
+  @Input() public hintMessage!: string;
+  @Input() public errorMessage!: string | null;
+  @Input() public max!: number;
+  @Input() public value!: number | null;
+  @Input() public numValue!: number;
+  @Input() public simulateTabOnEnter: boolean = true ;
+  @Output() public valueChange = new EventEmitter<number | null>();
+  @Output() public numValueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
   @Output() public inputEnterKeyPress = new EventEmitter<number | null>();
   @Output() public inputBlur = new EventEmitter<number | null>();
 
-  constructor() {
-  }
+
+  constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['numValue']) {

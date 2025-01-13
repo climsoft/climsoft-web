@@ -12,28 +12,27 @@ body {
 
 body {
     margin: 0;
-    // font-family: Roboto, "Helvetica Neue", sans-serif;
+    //font-family: Roboto, "Helvetica Neue", sans-serif;
     font-family: arial, helvetica, verdana, sans-serif;
     //font-size: 0.75rem; //12px
     // background-color: #f5f7fb
 }
 
+.app-cursor-pointer {
+    cursor: pointer;
+}
+
+// TODO. Deprecate in favour of app-cursor-pointer
 .cursor-pointer {
     cursor: pointer;
 }
 
-.table-group-divider {
-    border-top-color: #ddd;
-}
-
-/* Used by manage data module */
-.manage-data-table-container {
-    /* Adjust the height as needed */
-    height: calc(100vh - 430px);
+.app-table-container {
+    height: 60vh; // This should be overwritten depending on the component number of controls
     overflow-y: auto;
 }
 
-.manage-data-table thead th {
+.app-table-container table thead {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -45,7 +44,11 @@ body {
     /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); */
 }
 
-.value-flag-container {
+.app-table-container table tbody {
+    border-top-color: #ddd;
+}
+
+.app-value-flag-container {
     max-width: 6.875rem; // 110px
     font-size: 12px;
 }
