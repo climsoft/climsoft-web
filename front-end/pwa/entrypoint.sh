@@ -9,7 +9,7 @@ mkdir -p $(dirname "$CONFIG_FILE")
 # Generate the config.json file using the environment variable
 cat <<EOF > $CONFIG_FILE
 {
-  "apiBaseUrl": "${API_BASE_URL}"
+  "apiBaseUrl": "http://${IP_ADDRESS}:${HTTP_PORT}/api"
 }
 EOF
 

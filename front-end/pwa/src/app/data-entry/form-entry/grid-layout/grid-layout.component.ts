@@ -166,9 +166,13 @@ export class GridLayoutComponent implements OnChanges {
         if (colIndex === totalColumns - 1) {
           // Go save button
           this.focusSaveButton.emit(); 
+          return;
         } else {
-           // If vf component is the last column then just focus the first vf component of the next column
-          this.onVFEnterKeyPressed(0, colIndex + 1)
+           // If vf component is the last column then just focus the first vf component of the next column ;
+         const newNextInput = this.vfComponents.get(colIndex + 1);
+          if (newNextInput) {
+            newNextInput.focus();
+          }        
         }
       } else {
         nextInput.focus();
