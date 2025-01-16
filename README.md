@@ -96,7 +96,7 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
    Invoke-WebRequest -Uri https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml -OutFile "docker-compose.prod.yaml"
    $Env:HOST_IP_ADDRESS = Read-Host -Prompt "Enter host IP address"
    $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port"
-   $Env:HOST_DB_PASSWORD = Read-Host -Prompt "Enter database password"
+   $Env:DB_PASSWORD = Read-Host -Prompt "Enter database password"
    docker-compose -f docker-compose.prod.yaml up
    ```
    For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
