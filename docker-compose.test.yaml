@@ -1,14 +1,15 @@
 
 services:
-  nginx:
-    image: nginx:1.27.1-alpine
-    container_name: nginx_proxy
+  climsoft_nginx_proxy:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: climsoft-nginx-proxy
     restart: always
     ports: # Expose to external network
-      - "${HTTP_PORT}:80"
-      #- "${HTTPS_PORT}:443" # Use this if HTTPS is required
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - "${HOST_HTTP_PORT}:80"
+      #- "${CLIMSOFT_HTTPS_PORT}:443" # Use this if HTTPS is required
+    #volumes:
       #- ./certs:/etc/nginx/certs:ro # Use this if HTTPS is required
     depends_on:
       - climsoft_pwa
@@ -23,8 +24,8 @@ services:
     container_name: climsoft-pwa
     restart: always
     environment:
-      IP_ADDRESS: "${IP_ADDRESS}" # used in config.json.
-      HTTP_PORT: "${HTTP_PORT}" # used in config.json.
+      HOST_IP_ADDRESS: "${HOST_IP_ADDRESS}" # used in config.json.
+      HOST_HTTP_PORT: "${HOST_HTTP_PORT}" # used in config.json.
     expose: 
       - 80 # Expose to internal network only.
     depends_on:
@@ -44,7 +45,6 @@ services:
       DB_NAME: climsoft
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
-      SESSION_SECRET: "${DB_PASSWORD}"
     expose: 
       - 3000 # Expose to internal network only.
     depends_on:

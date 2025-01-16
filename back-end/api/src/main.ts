@@ -53,7 +53,7 @@ async function bootstrap() {
   app.use(
     session({
       name: 'ssid',
-      secret: process.env.SESSION_SECRET ? process.env.SESSION_SECRET : 'climsoft_secret',
+      secret: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : 'climsoft_secret',
       resave: false,
       saveUninitialized: false,
       cookie: {
