@@ -55,6 +55,7 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
 - Activate the Docker engine using the Docker Desktop application.
 - Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
 - For CI/CD(continuous integration and development) workflows, we recommend using [GitHub Desktop](https://desktop.github.com/) to pull latest changes.
+- Use Windows Powershell (5.1 and above) to execute the commands outlined.
 
 ### Setup
 1. **Clone the Repository**:
@@ -64,45 +65,79 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
    ```
 
 2. **Initialise Containers**:
-   Within the cloned repository directory, execute the following command to initialise the PWA, API and PostgreSQL containers:
+   Within the cloned repository directory, execute the following command to build and initialise the PWA, API and PostgreSQL containers:
    ```bash
-   docker-compose -f docker-compose.test.yaml up
+   docker-compose -f docker-compose.test.yaml up --build
    ```
+   Note, the application will use the `.env` to to set the required environment variables.
 
 3. **Access the Application**:
-   Navigate to `http://localhost:8080/` in your web browser to interact with the application. Default username is `admin@climsoft.org` and default password `climsoft@admin!2`
+   Navigate to `http://localhost:8080/` in your web browser to interact with the application.
+   Default username is `admin@climsoft.org` and default password is `climsoft@admin!2`
 
-4. **Stopping the Application**:
-   Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
+5. **Stopping the Application**:
+   Press `Ctrl + C` or execute the following command to stop the PWA, API and PostgreSQL containers:
    ```bash
    docker-compose -f docker-compose.test.yaml down
    ```
 
-## Production Deployment Guide
+## Production Deployment Guide For Windows
 For production deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
 
 ### Prerequisites
 - Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
 - Activate the Docker engine using the Docker Desktop application.
+- You can use Windows Powershell (5.1 and above) or docker desktop terminal to execute the commands outlined. 
 
-### Setup
-1. **Download required files**:
-   Download [docker-compose.prod.yaml](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/docker-compose.prod.yaml), [.env](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/.env) and [nginx.conf](https://raw.githubusercontent.com/climsoft/climsoft-web/refs/heads/main/nginx.conf) files. 
-   
-2. **Edit .env file**
-   Replace the contents of the file with your specific settings.
-   
-3. **Initialise Containers**:
-   Within the directory that has the `docker-compose.prod.yaml` and `.env` files, execute the following command to initialise the PWA, API and PostgreSQL containers:
+### Setup   
+1. **Install and Initialse Application**:
+   Using your terminal commands to navigate to the directory of your choice and within the directory execute the following commands to download the latest [docker-compose.prod.yaml](https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml) file and initialise the PWA, API and PostgreSQL containers:
    ```bash
+   Invoke-WebRequest -Uri https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml -OutFile "docker-compose.prod.yaml"
+   $Env:HOST_IP_ADDRESS = Read-Host -Prompt "Enter host IP address"
+   $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port"
+   $Env:HOST_DB_PASSWORD = Read-Host -Prompt "Enter database password" -MaskInput
    docker-compose -f docker-compose.prod.yaml up
    ```
+   For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
 
-4. **Access the Application**:
-   Navigate to `http://localhost:8080/` in your web browser to interact with the application. Default username is `admin@climsoft.org` and default password `climsoft@admin!2`
+2. **Access the Application**:
+   Navigate to `http://HOST_IP_ADDRESS:HOST_HTTP_PORT/` (Replace `HOST_IP_ADDRESS` and `HOST_HTTP_PORT` with what you entered when prompted) in your web browser to interact with the application.
+   Default username is `admin@climsoft.org` and default password is `climsoft@admin!2`
 
-5. **Stopping the Application**:
-   Within the cloned repository directory, execute the following command to stop the PWA, API and PostgreSQL containers:
+3. **Stopping the Application**:
+   Press `Ctrl + C` or execute the following command to stop the PWA, API and PostgreSQL containers:
+   ```bash
+   docker-compose -f docker-compose.prod.yaml down
+   ```
+
+## Production Deployment Guide For Linux
+For production deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
+
+### Prerequisites
+- Make sure Docker Engine and Docker Compose is downloaded and installed on your machine.
+- Activate the Docker engine.
+- You can use Windows Powershell (5.1 and above) or docker desktop terminal to execute the commands outlined. 
+
+### Setup   
+1. **Install and Initialse Application**:
+   Using your terminal commands to navigate to the directory of your choice and within the directory execute the following commands to download the latest [docker-compose.prod.yaml](https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml) file and initialise the PWA, API and PostgreSQL containers:
+   ```bash
+   wget "https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml" -O "docker-compose.prod.yaml"
+   read -p "Enter host IP address: " HOST_IP_ADDRESS
+   read -p "Enter host HTTP port: " HOST_HTTP_PORT
+   read -sp "Enter database Password: " DB_PASSWORD
+   echo
+   docker-compose -f docker-compose.prod.yaml up
+   ```
+   For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
+
+2. **Access the Application**:
+   Navigate to `http://HOST_IP_ADDRESS:HOST_HTTP_PORT/` (Replace `HOST_IP_ADDRESS` and `HOST_HTTP_PORT` with what you entered when prompted) in your web browser to interact with the application.
+   Default username is `admin@climsoft.org` and default password is `climsoft@admin!2`
+
+3. **Stopping the Application**:
+   Press `Ctrl + C` or execute the following command to stop the PWA, API and PostgreSQL containers:
    ```bash
    docker-compose -f docker-compose.prod.yaml down
    ```
