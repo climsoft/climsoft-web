@@ -67,7 +67,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
     {
         name: 'Admin',
         url: '/admin',
-        icon: 'bi bi-people',
+        icon: 'bi bi-gear',
         open: false,
         children: [
             {

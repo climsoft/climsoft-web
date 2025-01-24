@@ -332,6 +332,8 @@ export class ClimsoftV4Service {
             take: 1000,
         };
 
+        // TODO Left here. Check why its not saving.
+
         // TODO. Optimise this to only fetch fields required
         const obsEntities: ObservationEntity[] = await this.observationRepo.find(findOptions);
 
