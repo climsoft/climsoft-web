@@ -112,8 +112,7 @@ export class ClimsoftV4Service {
 
             // If there is an active connection then end it
             if (this.v4DBPool) {
-                await this.v4DBPool.end();
-                this.v4DBPool = null;
+               await this.disconnect();
             }
 
 
@@ -148,6 +147,14 @@ export class ClimsoftV4Service {
         }
     }
 
+    
+    public async disconnect(): Promise<void> {
+         // If there is an active connection then end it
+         if (this.v4DBPool) {
+            await this.v4DBPool.end();
+            this.v4DBPool = null;
+        }
+    }
 
     private async getV4Elements(): Promise<V4ElementModel[]> {
         if (!this.v4DBPool) {

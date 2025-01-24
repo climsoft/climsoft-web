@@ -65,7 +65,19 @@ export class ClimsoftV4Component {
 
 
   protected onConnectToV4DBClick(): void {
-    this.climsoftV4Service.pullElements().subscribe((data) => {
+    this.climsoftV4Service.connectToV4DB().subscribe((data) => {
+      if (data.message === 'success') {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
+        this.connectedToV4DB = true;
+      } else if (data.message === 'error') {
+        this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
+        this.connectedToV4DB = false;
+      }
+    });
+  }
+
+  protected onDisconnectToV4DBClick(): void {
+    this.climsoftV4Service.disconnectToV4DB().subscribe((data) => {
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
         this.connectedToV4DB = true;

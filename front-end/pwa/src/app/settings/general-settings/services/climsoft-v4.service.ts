@@ -24,6 +24,20 @@ export class ClimsoftV4Service {
       );
   }
 
+  public connectToV4DB(): Observable<V4OperationsResponse> {
+    return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/connect`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public disconnectToV4DB(): Observable<V4OperationsResponse> {
+    return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/disconnect`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   public pullElements(): Observable<V4OperationsResponse> {
     return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/pull-elements`, {})
       .pipe(
