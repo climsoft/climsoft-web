@@ -56,7 +56,7 @@
           <div class="ms-1 nav-bar-title">{{pageHeaderName}}</div>
         </div>
         <div class="d-flex ">
-          <div class="me-3">
+          <div *ngIf="unsyncedObservations" class="me-3">
             <i class="bi bi-arrow-repeat nav-bar-icon" (click)="syncObservations()"></i>
             <span><sup>{{unsyncedObservations}}</sup></span>
           </div>

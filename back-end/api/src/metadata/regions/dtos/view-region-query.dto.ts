@@ -5,7 +5,7 @@ import { RegionTypeEnum } from "../enums/region-types.enum";
 
 export class ViewRegionQueryDTO {
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({each: true })
     regionIds?: number[];
 

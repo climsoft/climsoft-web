@@ -2,8 +2,8 @@ import { Component, AfterViewInit, OnDestroy } from '@angular/core';
 import * as L from 'leaflet';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
-import { GeneralSettingsService } from '../../settings/general-settings/services/general-settings.service';
-import { ClimsoftBoundaryModel } from '../../settings/general-settings/models/settings/climsoft-boundary.model';
+import { GeneralSettingsService } from '../../admin/general-settings/services/general-settings.service';
+import { ClimsoftBoundaryModel } from '../../admin/general-settings/models/settings/climsoft-boundary.model';
 import {  StationCacheModel, StationsCacheService } from '../../metadata/stations/services/stations-cache.service';
 
 @Component({

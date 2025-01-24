@@ -1,13 +1,14 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { MigrationsService } from './migrations/migrations.service';
+import { MigrationsService } from './migrations/migrations.service'; 
 
 @Injectable()
-export class AppService  implements OnModuleInit {
+export class AppService implements OnModuleInit {
 
-  constructor( 
-    private readonly migrationMetadataService: MigrationsService) { }
+  constructor(
+    private migrationMetadataService: MigrationsService,
+  ) { }
 
-    async onModuleInit() {
-      await this.migrationMetadataService.doMigrations();
-    }
+  async onModuleInit() {
+    await this.migrationMetadataService.doMigrations();
+  }
 }

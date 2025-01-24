@@ -50,7 +50,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected comment!: string | null;
 
   constructor(private observationService: ObservationsService) { }
- 
+
   ngOnChanges(changes: SimpleChanges): void {
     if (this.observationDefinition) {
       this.period = this.observationDefinition.period;
@@ -123,6 +123,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
     if (newPeriodInMins && newPeriodInMins !== this.observationDefinition.period) {
       this.observationDefinition.updatePeriodInput(newPeriodInMins);
+      // TODO. append cumulative flag?
       bValueChanged = true
     }
 

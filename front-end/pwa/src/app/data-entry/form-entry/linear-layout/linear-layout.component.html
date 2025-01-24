@@ -3,7 +3,7 @@
   <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
   <div *ngIf="largeScreen" class="row g-4">
-    <div class="col value-flag-container" *ngFor="let chunkArray of fieldDefinitionsChunks; let firstIndex = index">
+    <div class="col app-value-flag-container" *ngFor="let chunkArray of fieldDefinitionsChunks; let firstIndex = index">
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray;">
         <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
           [borderSize]="userFormSettings.fieldsBorderSize" [displayExtraInfoOption]="displayExtraInfoOption"

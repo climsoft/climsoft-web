@@ -1,7 +1,7 @@
 import { Component, AfterViewInit, Input, SimpleChanges, OnChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { ClimsoftBoundaryModel } from 'src/app/settings/general-settings/models/settings/climsoft-boundary.model';
-import { GeneralSettingsService } from 'src/app/settings/general-settings/services/general-settings.service';
+import { ClimsoftBoundaryModel } from 'src/app/admin/general-settings/models/settings/climsoft-boundary.model';
+import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import * as L from 'leaflet';
 import * as turf from "@turf/turf";
 

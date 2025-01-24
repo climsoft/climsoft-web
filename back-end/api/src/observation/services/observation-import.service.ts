@@ -118,7 +118,7 @@ export class ObservationImportService {
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
 
         // Save the rows into the database
-        await this.observationsService.bulkPut(rows as CreateObservationDto[], userId, username);
+        await this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
     }
 
     private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {

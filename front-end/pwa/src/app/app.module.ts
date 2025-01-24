@@ -17,7 +17,7 @@ import { LoginComponent } from './core/login/login.component';
 import { PasswordResetComponent } from './core/password-reset/password-reset.component';
 import { AccountVerificationComponent } from './core/account-verification/account-verification.component';
 import { NotFoundComponent } from './core/not-found/not-found.component';
-import { SettingsModule } from './settings/settings.module';
+import { AdminModule } from './admin/admin.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppAuthInterceptor } from './app-auth.interceptor';
@@ -41,7 +41,7 @@ import { AppAuthInterceptor } from './app-auth.interceptor';
     SharedModule,
     MetadataModule,
     DataEntryModule,
-    SettingsModule    
+    AdminModule,   
   ],
   providers: [
     {

@@ -28,9 +28,14 @@ RUN npm install --production
 # Copy built application from the builder stage
 COPY --from=build-stage /app/dist ./dist
 
+# Add an entrypoint script to dynamically save or check for environment variables
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose the port your NestJS app runs on
 EXPOSE 3000
 
-# Command to run the application in production
+# Set the entrypoint and command to run the application in production
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start:prod"]
 

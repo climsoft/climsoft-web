@@ -12,23 +12,22 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { DeleteObservationDto } from '../dtos/delete-observation.dto'; 
 import { ClimsoftV4Service } from './climsoft-v4.service';
-import { DeleteObservationDto } from '../dtos/delete-observation.dto';
+import { ClimsoftDBUtils } from '../utils/climsoft-db.utils';
 
 @Injectable()
 export class ObservationsService {
 
     constructor(
-        @InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>,
-        private readonly stationsService: StationsService,
-        private readonly elementsService: ElementsService,
-        private readonly sourcesService: SourcesService,
-        private readonly climsoftV4Service: ClimsoftV4Service,
+        @InjectRepository(ObservationEntity) private  observationRepo: Repository<ObservationEntity>,
+        private  stationsService: StationsService,
+        private  elementsService: ElementsService,
+        private  sourcesService: SourcesService,
+         private  climsoftV4Service: ClimsoftV4Service,
     ) { }
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
-        // TODO. Below code should be optimised using SQL INNER JOINS when querying.
-
         const obsView: ViewObservationDto[] = [];
         const obsEntities = await this.findObsEntities(selectObsevationDto);
 
@@ -100,6 +99,14 @@ export class ObservationsService {
     public async count(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto);
         return this.observationRepo.countBy(whereOptions);
+    }
+
+    public async countObservationsNotSavedToV4(): Promise<number> {
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            where: { savedToV4: false },
+            take: 1000001, // Important. Limit to 1 million and 1 for performance reasons
+        };
+        return this.observationRepo.count(findOptions);
     }
 
     private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
@@ -184,6 +191,10 @@ export class ObservationsService {
         return dtos;
     }
 
+    // public findEntities(findOptions: FindManyOptions<ObservationEntity>): Promise<ObservationEntity[]> {
+    //     return this.observationRepo.find(findOptions);
+    // }
+
     public async findObsLog(queryDto: ViewObservationLogQueryDto): Promise<ViewObservationLogDto[]> {
 
         const entity: ObservationEntity | null = await this.observationRepo.findOneBy({
@@ -221,7 +232,7 @@ export class ObservationsService {
         // Important because present values should be part of the record history
         const currentValuesAsLogObj: ViewObservationLogDto = {
             value: entity.value,
-            flag: entity.flag, 
+            flag: entity.flag,
             comment: entity.comment,
             deleted: entity.deleted,
             entryDateTime: entity.entryDateTime.toISOString()
@@ -232,7 +243,7 @@ export class ObservationsService {
         return log;
     }
 
-    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, username: string): Promise<void> {
+    public async bulkPutOrig(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: Partial<ObservationEntity>[] = [];
@@ -250,7 +261,8 @@ export class ObservationsService {
                 comment: dto.comment,
                 final: false,
                 entryUserId: userId,
-                deleted: false
+                deleted: false,
+                savedToV4: false,
             });
 
             obsEntities.push(entity);
@@ -264,15 +276,15 @@ export class ObservationsService {
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
-            await this.insertOrUpdateObsValues(batch);
+            await this.insertOrUpdateObsValuesOrig(batch);
         }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
         // Save to version 4 database as well
-        this.climsoftV4Service.saveObservations(createObservationDtos, username);
+        //this.climsoftV4Service.saveObservationstoV4DB();
     }
 
-    private async insertOrUpdateObsValues(observationsData: Partial<ObservationEntity>[]): Promise<void> {
+    private async insertOrUpdateObsValuesOrig(observationsData: Partial<ObservationEntity>[]): Promise<void> {
         await this.observationRepo
             .createQueryBuilder()
             .insert()
@@ -286,7 +298,8 @@ export class ObservationsService {
                     "final",
                     "comment",
                     "deleted",
-                    "entry_user_id"
+                    "saved_to_v4",
+                    "entry_user_id",
                 ],
                 [
                     "station_id",
@@ -294,13 +307,54 @@ export class ObservationsService {
                     "source_id",
                     "elevation",
                     "date_time",
-                    "period"
+                    "period",
                 ],
                 {
                     skipUpdateIfNoValuesChanged: true,
                 }
             )
             .execute();
+    }
+
+    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
+        let startTime = new Date().getTime();
+
+        const obsEntities: ObservationEntity[] = [];
+        for (const dto of createObservationDtos) {
+            const entity: ObservationEntity = this.observationRepo.create({
+                stationId: dto.stationId,
+                elementId: dto.elementId,
+                sourceId: dto.sourceId,
+                elevation: dto.elevation,
+                datetime: new Date(dto.datetime),
+                period: dto.period,
+                value: dto.value,
+                flag: dto.flag,
+                qcStatus: QCStatusEnum.NONE,
+                comment: dto.comment,
+                final: false,
+                entryUserId: userId,
+                deleted: false,
+                savedToV4: false,
+            });
+
+            obsEntities.push(entity);
+        }
+
+
+        console.log("DTO transformation took: ", new Date().getTime() - startTime);
+
+        startTime = new Date().getTime();
+
+        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        for (let i = 0; i < obsEntities.length; i += batchSize) {
+            const batch = obsEntities.slice(i, i + batchSize);
+            await ClimsoftDBUtils.insertOrUpdateObsValues(this.observationRepo, batch);
+        }
+        console.log("Saving entities took: ", new Date().getTime() - startTime);
+
+        // Initiate saving to version 4 database as well
+         this.climsoftV4Service.saveObservationstoV4DB();
     }
 
     public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {

@@ -3,6 +3,7 @@ export enum FlagEnum {
     ESTIMATE = "estimate", 
     DUBIOUS = "dubious", 
     GENERATED = "generated", 
+    CUMULATIVE = "cumulative", 
     TRACE = "trace", 
 }
 

@@ -22,7 +22,7 @@ export class ViewStationsMapComponent implements OnChanges {
 
     console.log('view map changes raised');
 
-    if (changes['stations'] && this.stations) {
+    if (changes['stations'] && this.stations) { 
       this.setupMap();
     }
   }
@@ -30,7 +30,7 @@ export class ViewStationsMapComponent implements OnChanges {
   private setupMap(): void {
     const featureCollection: any = {
       "type": "FeatureCollection",
-      "features": this.stations.map(item => {
+      "features": this.stations.filter(item => (item.location !== null)).map(item => {
         return {
           "type": "Feature",
           "properties": {

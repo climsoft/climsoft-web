@@ -13,8 +13,16 @@ export class ObservationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "station_id", type: "varchar" })
   stationId: string;
 
+  @ManyToOne(() => StationEntity, { onDelete: "RESTRICT" })
+  @JoinColumn({ name: "station_id" })
+  station: StationEntity;
+
   @PrimaryColumn({ name: "element_id", type: "int" })
   elementId: number;
+
+  @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
+  @JoinColumn({ name: "element_id" })
+  element: ElementEntity;
 
   /**
    * Elevation in reference to the station surface. 
@@ -31,6 +39,10 @@ export class ObservationEntity extends AppBaseEntity {
 
   @PrimaryColumn({ name: "source_id", type: "int" })
   sourceId: number;
+
+  @ManyToOne(() => SourceEntity, { onDelete: "RESTRICT" })
+  @JoinColumn({ name: "source_id" })
+  source: SourceEntity;
 
   @Column({ name: "value", type: "float", nullable: true })
   value: number | null;
@@ -59,19 +71,11 @@ export class ObservationEntity extends AppBaseEntity {
   @Column({ name: "log", type: "jsonb", nullable: true })
   log: UpdateObservationValuesLogVo[] | null;
 
-  // Relationships
+  // After full migration to v5 model, this column will no longer be needed.
+  @Column({ name: "saved_to_v4", type: "boolean", default: false })
+  @Index()
+  savedToV4: boolean; // True when value has been uploaded to v4 database
 
-  @ManyToOne(() => StationEntity, { onDelete: "RESTRICT" })
-  @JoinColumn({ name: "station_id" })
-  station: StationEntity;
-
-  @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
-  @JoinColumn({ name: "element_id" })
-  element: ElementEntity;
-
-  @ManyToOne(() => SourceEntity, { onDelete: "RESTRICT" })
-  @JoinColumn({ name: "source_id" })
-  source: SourceEntity;
 }
 
 //when changing qc, we will use the qc log

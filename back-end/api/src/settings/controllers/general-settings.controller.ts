@@ -3,12 +3,14 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { GeneralSettingsService } from '../services/general-settings.service';
-import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';
+import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';  
 
 @Controller('general-settings')
 export class GeneralSettingController {
 
-    constructor(private readonly generalSettingsService: GeneralSettingsService) { }
+    constructor(
+        private  generalSettingsService: GeneralSettingsService, 
+    ) { }
 
     @Get()
     public findAll() {
@@ -22,7 +24,7 @@ export class GeneralSettingController {
 
     @Admin()
     @Patch(':id')
-    public update(
+    public async update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
         @Body() createSourceDto: UpdateGeneralSettingDto) { // TODO. Validate the dto

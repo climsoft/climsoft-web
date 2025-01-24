@@ -56,7 +56,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
             name: data.name,
             description: data.description,
             units: data.units,
-            typeId: data.typeId,
+            typeId: data.typeId, 
             entryScaleFactor: data.entryScaleFactor,
             comment: data.comment ? data.comment : null
           };
@@ -72,9 +72,9 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
         name: '',
         description: '',
         units: '',
-        typeId: 0,
+        typeId: 0, 
         entryScaleFactor: 0,
-        comment: null
+        comment: null,
       };
     }
   }
@@ -93,7 +93,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
       abbreviation: this.element.abbreviation,
       description: this.element.description,
       units: this.element.units,
-      typeId: this.element.typeId,
+      typeId: this.element.typeId, 
       entryScaleFactor: this.element.entryScaleFactor,
       comment: this.element.comment
     }

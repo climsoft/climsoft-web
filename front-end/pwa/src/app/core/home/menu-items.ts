@@ -2,13 +2,13 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Users' | 'Settings';
+export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
     icon: string;
     open: boolean;
-    children: { name: string, url: string, featureTitle: string }[];
+    children: { name: string, url: string }[];
 }
 // Holds the features navigation items
 export const FEATURES_MENU_ITEMS: MenuItem[] = [
@@ -28,17 +28,14 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             {
                 name: 'Forms',
                 url: '/station-form-selection',
-                featureTitle: 'Form Data Entry'
             },
             {
                 name: 'Import',
                 url: '/import-selection',
-                featureTitle: 'Import Data Entry'
             },
             {
                 name: 'Manage Data',
                 url: '/manage-data',
-                featureTitle: 'View Entries'
             }
         ]
     },
@@ -52,45 +49,41 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             {
                 name: 'Elements',
                 url: '/elements',
-                featureTitle: 'Elements'
             },
             {
                 name: 'Stations',
                 url: '/stations',
-                featureTitle: 'Stations'
             },
             {
                 name: 'Regions',
                 url: '/view-regions',
-                featureTitle: 'Regions'
             },
             {
                 name: 'Sources',
                 url: '/sources',
-                featureTitle: 'Sources'
             },
         ]
     },
     {
-        name: 'Users',
-        url: '/users',
-        icon: 'bi bi-people',
-        open: false,
-        children: []
-    },
-    {
-        name: 'Settings',
-        url: '/settings',
-        icon: 'bi bi-people',
+        name: 'Admin',
+        url: '/admin',
+        icon: 'bi bi-gear',
         open: false,
         children: [
             {
-                name: 'General',
+                name: 'Settings',
                 url: '/view-general-settings',
-                featureTitle: 'General'
+            },
+            {
+                name: 'Climsoft V4',
+                url: '/climsoft-v4',
+            },
+            {
+                name: 'Users',
+                url: '/view-users',
             },
         ]
-    }
+    },
 
 
 ];

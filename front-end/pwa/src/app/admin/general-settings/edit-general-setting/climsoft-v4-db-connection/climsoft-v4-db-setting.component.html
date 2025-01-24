@@ -1,0 +1,39 @@
+<div>
+    <div class="mb-2">
+        <app-check-box-input [label]="'Save observations to V4 database'" [(value)]="climsoftV4DB.saveToV4DB" />
+    </div>
+
+    <div *ngIf="climsoftV4DB.saveToV4DB">
+        <div >       
+            <div class="fw-bold ">V4 Database Settings</div>
+            <div class="text-danger mb-2" style="font-size: smaller;">
+                You will need to disconnect and reconnect to V4 database for changes to apply
+              </div>
+            <div class="ms-2">
+                <div class="mb-2">
+                    <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-number-input [label]="'Port'" [(numValue)]="climsoftV4DB.port" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Database Name'" [(value)]="climsoftV4DB.databaseName" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Username'" [(value)]="climsoftV4DB.username" />
+                </div>
+        
+                <div class="mb-2">
+                    <app-text-input [label]="'Password'" [type]="'password'" [(value)]="climsoftV4DB.password"  />
+                </div>
+                <div class="mb-2">
+                    <app-number-input [label]="'UTC Offset'" [(numValue)]="climsoftV4DB.utcOffset"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

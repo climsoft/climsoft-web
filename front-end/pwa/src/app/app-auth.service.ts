@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { LoggedInUserModel } from './core/models/users/logged-in-user.model';
+import { LoggedInUserModel } from './admin/users/models/logged-in-user.model';
 import { BehaviorSubject, catchError, tap, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http'; 
 import { AppConfigService } from './app-config.service';

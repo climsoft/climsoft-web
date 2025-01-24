@@ -15,8 +15,8 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 @Controller('observations')
 export class ObservationsController {
   constructor(
-    private readonly observationsService: ObservationsService,
-    private readonly observationUpload: ObservationImportService) { }
+    private observationsService: ObservationsService,
+    private observationUpload: ObservationImportService,) { }
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
@@ -26,6 +26,11 @@ export class ObservationsController {
   @Get('count')
   count(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
     return this.observationsService.count(viewObsevationQuery);
+  }
+
+  @Get('count-v4-unsaved-observations')
+  countObservationsNotSavedToV4() {
+    return this.observationsService.countObservationsNotSavedToV4();
   }
 
   @Get('raw')
@@ -43,7 +48,7 @@ export class ObservationsController {
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
     const user = AuthUtil.getLoggedInUser(request);
-    await this.observationsService.bulkPut(observationDtos, user.id, user.username);
+    await this.observationsService.bulkPut(observationDtos, user.id);
     return { message: "success" };
   }
 
@@ -93,7 +98,6 @@ export class ObservationsController {
     }
 
   }
-
 
   @Patch('restore')
   async restore(

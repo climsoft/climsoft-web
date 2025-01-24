@@ -7,13 +7,13 @@ import { StationObservationEnvironmentEntity } from "./station-observation-envir
 import { OrganisationEntity } from "./organisation.entity";
 
 @Entity("stations")
-@Check("CHK_stations_id_not_empty", `"id" <> ''`) // This adds the CHECK constraint to ensure id is not an empty string
-@Check("CHK_stations_name_not_empty", `"name" <> ''`)
+@Check("CHK_stations_id_not_empty", `"id" <> ''`) // Not empty CHECK constraint
+@Check("CHK_stations_name_not_empty", `"name" <> ''`)// Not empty CHECK constraint
 export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;
 
-  @Column({ name: "name", type: 'varchar', unique: true })
+  @Column({ name: "name", type: 'varchar' })
   name: string;
 
   @Column({ name: "description", type: 'varchar', nullable: true })

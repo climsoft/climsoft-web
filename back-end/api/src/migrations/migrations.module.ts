@@ -20,6 +20,6 @@ import { SqlScriptsModule } from 'src/sql-scripts/sql-scripts.module';
         SqlScriptsModule,
     ],
     providers: [MigrationsService],
-    exports: [MigrationsService]
+    exports: [MigrationsService],
 })
 export class MigrationsModule { }
