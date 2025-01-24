@@ -28,14 +28,10 @@ const routes: Routes = [
       {
         path: 'metadata',
         loadChildren: () => import('./metadata/metadata.module').then((m) => m.MetadataModule)
-      },
+      }, 
       {
-        path: 'users', 
-        loadChildren: () => import('./user/user.module').then((m) => m.UserModule)
-      },
-      {
-        path: 'settings',
-        loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule)
+        path: 'admin',
+        loadChildren: () => import('./admin/admin.module').then((m) => m.AdminModule)
       },
     ]
   },

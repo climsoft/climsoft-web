@@ -28,6 +28,11 @@ export class ObservationsController {
     return this.observationsService.count(viewObsevationQuery);
   }
 
+  @Get('count-v4-unsaved-observations')
+  countObservationsNotSavedToV4() {
+    return this.observationsService.countObservationsNotSavedToV4();
+  }
+
   @Get('raw')
   getRaw(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
     return this.observationsService.findRawObs(createObsevationQuery);
@@ -93,7 +98,6 @@ export class ObservationsController {
     }
 
   }
-
 
   @Patch('restore')
   async restore(

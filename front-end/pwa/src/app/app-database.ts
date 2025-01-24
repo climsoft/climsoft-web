@@ -11,7 +11,7 @@ import { ViewElementSubdomainModel } from "./metadata/elements/models/view-eleme
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model"; 
 import { CachedObservationModel } from "./data-entry/services/observations.service";
-import { LoggedInUserModel } from "./core/models/users/logged-in-user.model";
+import { LoggedInUserModel } from "./admin/users/models/logged-in-user.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog

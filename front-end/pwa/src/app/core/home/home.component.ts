@@ -3,7 +3,7 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.s
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
-import { UserRoleEnum } from '../models/users/user-role.enum';
+import { UserRoleEnum } from '../../admin/users/models/user-role.enum';
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
 
@@ -109,7 +109,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   private setAllowedNavigationLinks(role: UserRoleEnum): void {
     // Change the navigation links accessible if user not admin
     if (role !== UserRoleEnum.ADMINISTRATOR) {
-      const adminModules: mainMenus[] = ['Metadata', 'Users', 'Settings'];
+      // TODO. Later we should allow certain aspects of metadata to be accessible by users that are not admins
+      const adminModules: mainMenus[] = ['Metadata', 'Admin'];
       this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
     }
   }

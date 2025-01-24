@@ -101,6 +101,14 @@ export class ObservationsService {
         return this.observationRepo.countBy(whereOptions);
     }
 
+    public async countObservationsNotSavedToV4(): Promise<number> {
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            where: { savedToV4: false },
+            take: 1000001, // Important. Limit to 1 million and 1 for performance reasons
+        };
+        return this.observationRepo.count(findOptions);
+    }
+
     private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 

@@ -2,13 +2,13 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Users' | 'Settings';
+export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
     icon: string;
     open: boolean;
-    children: { name: string, url: string}[];
+    children: { name: string, url: string }[];
 }
 // Holds the features navigation items
 export const FEATURES_MENU_ITEMS: MenuItem[] = [
@@ -27,7 +27,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'Forms',
-                url: '/station-form-selection', 
+                url: '/station-form-selection',
             },
             {
                 name: 'Import',
@@ -65,28 +65,25 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         ]
     },
     {
-        name: 'Users',
-        url: '/users',
-        icon: 'bi bi-people',
-        open: false,
-        children: []
-    },
-    {
-        name: 'Settings',
-        url: '/settings',
+        name: 'Admin',
+        url: '/admin',
         icon: 'bi bi-people',
         open: false,
         children: [
             {
-                name: 'General',
-                url: '/view-general-settings', 
+                name: 'Settings',
+                url: '/view-general-settings',
             },
             {
                 name: 'Climsoft V4',
                 url: '/climsoft-v4',
             },
+            {
+                name: 'Users',
+                url: '/view-users',
+            },
         ]
-    }
+    },
 
 
 ];

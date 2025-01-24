@@ -93,7 +93,6 @@ export class ClimsoftV4Service {
         if (this.firstConnectionAttemptAlreadyTried) {
             return;
         } else {
-            this.firstConnectionAttemptAlreadyTried = true;
             await this.setupV4DBConnection();
         }
     }
@@ -108,11 +107,12 @@ export class ClimsoftV4Service {
      * @returns 
      */
     public async setupV4DBConnection(): Promise<void> {
+        this.firstConnectionAttemptAlreadyTried = true;
         try {
 
             // If there is an active connection then end it
             if (this.v4DBPool) {
-               await this.disconnect();
+                await this.disconnect();
             }
 
 
@@ -147,10 +147,10 @@ export class ClimsoftV4Service {
         }
     }
 
-    
+
     public async disconnect(): Promise<void> {
-         // If there is an active connection then end it
-         if (this.v4DBPool) {
+        // If there is an active connection then end it
+        if (this.v4DBPool) {
             await this.v4DBPool.end();
             this.v4DBPool = null;
         }
@@ -311,13 +311,17 @@ export class ClimsoftV4Service {
 
     public async saveObservationstoV4DB(): Promise<void> {
 
+        console.log('attempting connection to save');
         await this.attemptFirstConnectionIfNotTried();
 
         // if version 4 database pool is not set up then return.
         // If still saving. then just return
         if (!this.v4DBPool || this.isSaving) {
+            console.log('no connection, aborting');
             return;
         }
+
+        console.log('attempting to save');
 
         this.isSaving = true;
         // Check if there is observations that have not been uploaded to v4
@@ -328,15 +332,18 @@ export class ClimsoftV4Service {
             take: 1000,
         };
 
-        // const obsEntities: ObservationEntity[] = await this.observationsService.findEntities(findOptions);
+        // TODO. Optimise this to only fetch fields required
         const obsEntities: ObservationEntity[] = await this.observationRepo.find(findOptions);
 
         if (obsEntities.length > 0) {
+            // TODO Implement a bulk delete operation when soft delete happens
             if (await this.bulkPutToV4(obsEntities)) {
                 // TODO. update the v5 column
                 obsEntities.forEach(item => {
                     item.savedToV4 = true;
                 });
+                // TODO. Optimise this to do updates because it is indeed an update operation only
+                // and we only need to update the save to v4 column.
                 ClimsoftDBUtils.insertOrUpdateObsValues(this.observationRepo, obsEntities);
                 this.isSaving = false;
                 this.saveObservationstoV4DB();
