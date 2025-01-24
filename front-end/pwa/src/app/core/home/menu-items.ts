@@ -8,7 +8,7 @@ export interface MenuItem {
     url: string;
     icon: string;
     open: boolean;
-    children: { name: string, url: string, featureTitle: string }[];
+    children: { name: string, url: string}[];
 }
 // Holds the features navigation items
 export const FEATURES_MENU_ITEMS: MenuItem[] = [
@@ -27,18 +27,15 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'Forms',
-                url: '/station-form-selection',
-                featureTitle: 'Form Data Entry'
+                url: '/station-form-selection', 
             },
             {
                 name: 'Import',
                 url: '/import-selection',
-                featureTitle: 'Import Data Entry'
             },
             {
                 name: 'Manage Data',
                 url: '/manage-data',
-                featureTitle: 'View Entries'
             }
         ]
     },
@@ -52,22 +49,18 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             {
                 name: 'Elements',
                 url: '/elements',
-                featureTitle: 'Elements'
             },
             {
                 name: 'Stations',
                 url: '/stations',
-                featureTitle: 'Stations'
             },
             {
                 name: 'Regions',
                 url: '/view-regions',
-                featureTitle: 'Regions'
             },
             {
                 name: 'Sources',
                 url: '/sources',
-                featureTitle: 'Sources'
             },
         ]
     },
@@ -86,8 +79,11 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'General',
-                url: '/view-general-settings',
-                featureTitle: 'General'
+                url: '/view-general-settings', 
+            },
+            {
+                name: 'Climsoft V4',
+                url: '/climsoft-v4',
             },
         ]
     }

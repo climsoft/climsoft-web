@@ -52,6 +52,7 @@ if [ -n "$missing_vars" ]; then
   exit 1
 fi
 
+# TODO. Don't echo password
 # Debug: Print environment variables to verify
 echo "Loaded environment variables:"
 printenv | grep -E "^($(echo $REQUIRED_VARS | sed 's/ /|/g'))="

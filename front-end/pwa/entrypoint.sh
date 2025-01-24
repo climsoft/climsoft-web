@@ -11,7 +11,7 @@ fi
 
 # Check if the required environment variables are set
 if [ -z "$HOST_IP_ADDRESS" ] || [ -z "$HOST_HTTP_PORT" ]; then
-  echo "Error: Environment variables IP_ADDRESS and HTTP_PORT must be set." >&2
+  echo "Error: Environment variables HOST_IP_ADDRESS and HOST_HTTP_PORT must be set." >&2
   exit 1
 fi
 

@@ -9,8 +9,9 @@ import { UserModule } from 'src/user/user.module';
 import { SourceCheckController } from './controllers/source-check.controller';
 import { SourceCheckService } from './services/source-check.service';
 import { SharedModule } from 'src/shared/shared.module';
+import { SettingsModule } from 'src/settings/settings.module'; 
+import { ClimsoftV4Controller } from './controllers/climsoft-v4.controller';
 import { ClimsoftV4Service } from './services/climsoft-v4.service';
-import { SettingsModule } from 'src/settings/settings.module';
 
 @Module({
   imports: [
@@ -18,17 +19,18 @@ import { SettingsModule } from 'src/settings/settings.module';
     SharedModule,
     UserModule,
     MetadataModule,
-    SettingsModule,
+    SettingsModule, 
   ],
   controllers: [
     ObservationsController,
     SourceCheckController,
+    ClimsoftV4Controller,
   ],
   providers: [
     ObservationsService,
     ObservationImportService,
     SourceCheckService,
     ClimsoftV4Service,
-  ]
+  ],
 })
 export class ObservationModule { }

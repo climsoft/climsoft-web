@@ -1,8 +1,10 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementTypeEntity } from "./element-type.entity";
 
 @Entity("elements")
+@Check("CHK_elements_abbreviation_not_empty", `"abbreviation" <> ''`)
+@Check("CHK_elements_name_not_empty", `"name" <> ''`)
 export class ElementEntity extends AppBaseEntity {
   @PrimaryColumn({ type: "int" })
   id: number;
@@ -16,11 +18,10 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "varchar", name: "description", nullable: true })
   description: string | null;
 
-  @Column({ type: "varchar", name: "units" })
+  @Column({ type: "varchar", name: "units" , nullable: true })
   units: string;
 
   //---------------------------
-  // TODO. Call this column, element_type_id?
   @Column({ type: "int", name: "type_id" })
   typeId: number;
   // ManyToOne relationship with ElementTypeEntity

@@ -6,11 +6,34 @@ import { DataSource } from 'typeorm';
 @Injectable()
 export class SqlScriptsLoaderService {
 
-    private readonly LOG_SCRIPTS_DIR_NAME: string = 'logs';
+    private readonly DEFAULTS_SCRIPTS_DIR_NAME: string = 'default-triggers';
+    private readonly LOG_SCRIPTS_DIR_NAME: string = 'logging-triggers';
+
 
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,) { }
+
+         /**
+     * Used by the migrations service
+     */
+     public async addEntryDatetimeTriggerToDB() {
+        try {
+            // Get the script directory from absolute path of this service file
+            const scriptsDirPath: string = path.dirname(__filename);
+
+            // Get the observation log absolute file path name. For windows platform, replace the backslashes with forward slashes.
+            const scriptFilePathAndName: string = path.join(scriptsDirPath, this.DEFAULTS_SCRIPTS_DIR_NAME, 'default-entry-date-time.sql').replaceAll("\\", "\/");
+            const sql: string = await this.fileIOService.readFile(`${scriptFilePathAndName}`, 'utf8');
+
+            // TODO. Later add other log triggers
+
+            await this.dataSource.query(sql);
+        } catch (error) {
+            console.error('Developer error in adding entry date time triggers: ', error);
+            throw new Error(error);
+        }
+    }
 
     /**
      * Used by the migrations service
@@ -33,5 +56,7 @@ export class SqlScriptsLoaderService {
         }
 
     }
+
+    
 
 }

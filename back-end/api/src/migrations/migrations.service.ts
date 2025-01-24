@@ -19,7 +19,7 @@ export class MigrationsService {
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
-    @InjectRepository(DatabaseVersionEntity) private dbVersionRepo: Repository<DatabaseVersionEntity>, 
+    @InjectRepository(DatabaseVersionEntity) private dbVersionRepo: Repository<DatabaseVersionEntity>,
     private sqlScriptsService: SqlScriptsLoaderService,
     private userService: UsersService,
     private elementSubdomainsService: ElementSubdomainsService,
@@ -48,11 +48,12 @@ export class MigrationsService {
     }
 
     // Depending on the version the seeding will be different
-    this.seedDatabase();
+    await this.seedDatabase();
 
     // After successful migrations, then add the new database version
     const newDBVersion = this.dbVersionRepo.create({
-      version: this.SUPPORTED_DB_VERSION
+      version: this.SUPPORTED_DB_VERSION,
+      entryUserId: 1,
     });
     await this.dbVersionRepo.save(newDBVersion);
 
@@ -83,6 +84,7 @@ export class MigrationsService {
   }
 
   private async seedTriggers() {
+    this.sqlScriptsService.addEntryDatetimeTriggerToDB();
     this.sqlScriptsService.addLogsTriggersToDB();
   }
 

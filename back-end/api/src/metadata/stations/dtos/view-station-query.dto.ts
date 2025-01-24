@@ -15,12 +15,12 @@ export class ViewStationQueryDTO {
     obsProcessingMethods?: StationObsProcessingMethodEnum[];
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({each: true })
     obsEnvironmentIds?: number[];
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({each: true })
     obsFocusIds?: number[];
 

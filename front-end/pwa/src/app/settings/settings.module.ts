@@ -5,16 +5,18 @@ import { ViewGeneralSettingsComponent } from './general-settings/view-general-se
 import { EditGeneralSettingComponent } from './general-settings/edit-general-setting/edit-general-setting.component';
 import { ClimsoftBoundaryComponent } from './general-settings/edit-general-setting/climsoft-boundary/climsoft-boundary.component';
 import { MetadataModule } from '../metadata/metadata.module';
-import { ClimsoftDBComponent } from './general-settings/edit-general-setting/climsoft-v4-db-connection/climsoft-v4-db.component';
+import { ClimsoftDBSettingComponent } from './general-settings/edit-general-setting/climsoft-v4-db-connection/climsoft-v4-db-setting.component';
 import { ClimsoftDisplayTimezoneComponent } from './general-settings/edit-general-setting/climsoft-display-timezone/climsoft-display-timezone.component';
+import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 
 @NgModule({
   declarations: [
     ViewGeneralSettingsComponent,
     EditGeneralSettingComponent,
     ClimsoftBoundaryComponent,
-    ClimsoftDBComponent,
-    ClimsoftDisplayTimezoneComponent,    
+    ClimsoftDBSettingComponent,
+    ClimsoftDisplayTimezoneComponent,   
+    ClimsoftV4Component, 
   ],
   imports: [
     SharedModule,

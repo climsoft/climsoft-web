@@ -8,7 +8,7 @@ services:
     restart: always
     ports: # Expose to external network
       - "${HOST_HTTP_PORT}:80"
-      #- "${CLIMSOFT_HTTPS_PORT}:443" # Use this if HTTPS is required
+      #- "${HOST_HTTPS_PORT}:443" # Use this if HTTPS is required
     #volumes:
       #- ./certs:/etc/nginx/certs:ro # Use this if HTTPS is required
     depends_on:
@@ -46,7 +46,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
     expose: 
-      - 3000 # Expose to internal network only.
+      - "3000:3000" # Expose to both external and internal network because of saving to mariadb
     depends_on:
       - climsoft_db
     networks:

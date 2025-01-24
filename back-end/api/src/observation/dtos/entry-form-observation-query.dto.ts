@@ -9,7 +9,7 @@ export class EntryFormObservationQueryDto {
     @IsInt()
     sourceId: number;
 
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds: number[];
 

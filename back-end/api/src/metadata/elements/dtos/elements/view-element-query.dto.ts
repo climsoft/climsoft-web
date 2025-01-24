@@ -4,12 +4,12 @@ import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ViewElementQueryDTO {
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds?: number[];
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     typeIds?: number[];
 

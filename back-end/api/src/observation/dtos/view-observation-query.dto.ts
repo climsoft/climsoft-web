@@ -10,7 +10,7 @@ export class ViewObservationQueryDTO {
     stationIds?: string[];
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds?: number[];
 
@@ -23,7 +23,7 @@ export class ViewObservationQueryDTO {
     elevation?: number;
 
     @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     sourceIds?: number[];
 

@@ -23,7 +23,7 @@ export interface ElementCacheModel {
     subdomainName: string;
     domain: ElementDomainEnum;
     domainName: string;
-    entryScaleFactor: number;
+    entryScaleFactor: number; 
     comment: string;
 }
 
@@ -61,11 +61,11 @@ export class ElementsCacheService {
                     units: element.units,
                     typeId: element.typeId,
                     typeName: elementType ? elementType.name : '',
-                    subdomainId: elementSubdomain ? elementSubdomain.id : 0,
+                                     subdomainId: elementSubdomain ? elementSubdomain.id : 0,
                     subdomainName: elementSubdomain ? elementSubdomain.name : '',
                     domain: domain,
                     domainName: StringUtils.formatEnumForDisplay(domain),
-                    entryScaleFactor: element.entryScaleFactor,
+                    entryScaleFactor: element.entryScaleFactor, 
                     comment: element.comment ? element.comment : '',
                 }
             );

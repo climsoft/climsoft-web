@@ -14,8 +14,6 @@ import { UpdateGeneralSettingModel } from 'src/app/settings/general-settings/mod
 export class EditGeneralSettingComponent implements OnInit {
   protected setting!: CreateViewGeneralSettingModel;
 
-
-
   constructor(
     private pagesDataService: PagesDataService,
     private route: ActivatedRoute,

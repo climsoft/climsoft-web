@@ -1,6 +1,6 @@
 import { SettingsParametersValidity } from "../update-general-setting.dto";
 
-export class ClimsoftV4DBDto implements SettingsParametersValidity {
+export class ClimsoftV4DBSettingsDto implements SettingsParametersValidity {
     saveToV4DB: boolean;
     serverIPAddress: string; // e.g., 'localhost' or the server's IP address
     username: string   // MariaDB username

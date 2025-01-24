@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
-import { ElementEntity } from '../../elements/entities/element.entity'; 
+import { ElementEntity } from '../../elements/entities/element.entity';
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
 import { UpdateElementDto } from '../dtos/elements/update-element.dto';
 import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
@@ -12,7 +12,7 @@ import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-
 export class ElementsService {
     constructor(
         @InjectRepository(ElementEntity) private elementRepo: Repository<ElementEntity>,
-    ) {  }
+    ) { }
 
     public async findOne(id: number): Promise<CreateViewElementDto> {
         return this.createViewDto(await this.getEntity(id));
@@ -82,7 +82,7 @@ export class ElementsService {
 
     public async update(id: number, updateDto: UpdateElementDto, userId: number): Promise<CreateViewElementDto> {
         const entity: ElementEntity = await this.getEntity(id);
-  
+
         this.updateEntity(entity, updateDto, userId);
 
         await this.elementRepo.save(entity);
@@ -96,7 +96,7 @@ export class ElementsService {
     }
 
     public async bulkPut(dtos: CreateViewElementDto[], userId: number) {
-        const entities: Partial<ElementEntity>[] = [];
+        const entities: ElementEntity[] = [];
         for (const dto of dtos) {
             const entity: ElementEntity = await this.elementRepo.create({
                 id: dto.id,
@@ -113,7 +113,7 @@ export class ElementsService {
         }
     }
 
-    private async insertOrUpdateValues(entities: Partial<ElementEntity>[]): Promise<void> {
+    private async insertOrUpdateValues(entities: ElementEntity[]): Promise<void> {
         await this.elementRepo
             .createQueryBuilder()
             .insert()
@@ -125,10 +125,11 @@ export class ElementsService {
                     "name",
                     "description",
                     "units",
-                    "type_id",
+                    "type_id",                    
+                    "disabled",
                     "entry_scale_factor",
                     "comment",
-                    "entry_user_id"
+                    "entry_user_id",
                 ],
                 ["id"],
                 {
@@ -148,11 +149,12 @@ export class ElementsService {
     private updateEntity(entity: ElementEntity, dto: UpdateElementDto, userId: number): void {
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
-        entity.description = dto.description? dto.description: null;
+        entity.description = dto.description ? dto.description : null;
         entity.units = dto.units;
         entity.typeId = dto.typeId;
-        entity.entryScaleFactor = dto.entryScaleFactor? dto.entryScaleFactor : null;
-        entity.comment = dto.comment? dto.comment: null;
+        entity.entryScaleFactor = dto.entryScaleFactor ? dto.entryScaleFactor : null;
+        entity.comment = dto.comment ? dto.comment : null;
+        entity.totalEntryRequired = dto.totalEntryRequired ? dto.totalEntryRequired : null;
         entity.entryUserId = userId;
     }
 
@@ -183,6 +185,7 @@ export class ElementsService {
             typeId: entity.typeId,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
+            totalEntryRequired: entity.totalEntryRequired,
         }
     }
 

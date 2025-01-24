@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';   
 import { ViewGeneralSettingsComponent } from './general-settings/view-general-settings/view-general-settings.component';
 import { EditGeneralSettingComponent } from './general-settings/edit-general-setting/edit-general-setting.component';
+import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 
 
 const routes: Routes = [
@@ -25,14 +26,9 @@ const routes: Routes = [
         component: EditGeneralSettingComponent
       },
       {
-        path: 'view-user-settings',
-        component: ViewGeneralSettingsComponent, 
-      }, 
-      {
-        path: 'view-user-setting/:id',
-        component: ViewGeneralSettingsComponent
-      },
-      
+        path: 'climsoft-v4',
+        component: ClimsoftV4Component, 
+      },       
      
     ]
   }

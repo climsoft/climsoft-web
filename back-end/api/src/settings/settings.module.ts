@@ -5,6 +5,7 @@ import { SharedModule } from 'src/shared/shared.module';
 import { UserModule } from 'src/user/user.module';
 import { GeneralSettingController } from './controllers/general-settings.controller';
 import { GeneralSettingsService } from './services/general-settings.service'; 
+import { MetadataModule } from 'src/metadata/metadata.module';
 
 @Module({
     imports: [
@@ -13,9 +14,10 @@ import { GeneralSettingsService } from './services/general-settings.service';
         ]),
         SharedModule,
         UserModule,
+        MetadataModule,
     ],
     controllers: [
-        GeneralSettingController
+        GeneralSettingController,
     ],
     providers: [
         GeneralSettingsService,

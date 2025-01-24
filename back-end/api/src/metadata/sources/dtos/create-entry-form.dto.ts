@@ -21,12 +21,12 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
   layout: LayoutType;
 
   /** Elements ids allowed to be recorded by the form */
-  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
   @IsInt({ each: true })
   elementIds: number[];
 
   /** Hours allowed to be recorded by the form */
-  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToNumberArray(value.toString()) : [])
+  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
   @IsInt({ each: true })
   hours: number[];
 
