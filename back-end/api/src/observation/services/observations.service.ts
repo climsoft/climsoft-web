@@ -12,7 +12,7 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
-import { DeleteObservationDto } from '../dtos/delete-observation.dto'; 
+import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
 import { ClimsoftDBUtils } from '../utils/climsoft-db.utils';
 
@@ -20,11 +20,11 @@ import { ClimsoftDBUtils } from '../utils/climsoft-db.utils';
 export class ObservationsService {
 
     constructor(
-        @InjectRepository(ObservationEntity) private  observationRepo: Repository<ObservationEntity>,
-        private  stationsService: StationsService,
-        private  elementsService: ElementsService,
-        private  sourcesService: SourcesService,
-         private  climsoftV4Service: ClimsoftV4Service,
+        @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
+        private stationsService: StationsService,
+        private elementsService: ElementsService,
+        private sourcesService: SourcesService,
+        private climsoftV4Service: ClimsoftV4Service,
     ) { }
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
@@ -101,12 +101,16 @@ export class ObservationsService {
         return this.observationRepo.countBy(whereOptions);
     }
 
+    /**
+     * Counts the number of records needed to be saved to V4.
+     * Important note. Maximum count is 1,000,001 to limit compute needed
+     * @returns 
+     */
     public async countObservationsNotSavedToV4(): Promise<number> {
-        const findOptions: FindManyOptions<ObservationEntity> = {
+        return this.observationRepo.count({
             where: { savedToV4: false },
             take: 1000001, // Important. Limit to 1 million and 1 for performance reasons
-        };
-        return this.observationRepo.count(findOptions);
+        });
     }
 
     private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
@@ -349,12 +353,44 @@ export class ObservationsService {
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
-            await ClimsoftDBUtils.insertOrUpdateObsValues(this.observationRepo, batch);
+            await this.insertOrUpdateObsValues(this.observationRepo, batch);
         }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
         // Initiate saving to version 4 database as well
-         this.climsoftV4Service.saveObservationstoV4DB();
+        this.climsoftV4Service.saveObservationstoV4DB();
+    }
+
+    private async insertOrUpdateObsValues(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]) {
+        return observationRepo
+            .createQueryBuilder()
+            .insert()
+            .into(ObservationEntity)
+            .values(observationsData)
+            .orUpdate(
+                [
+                    "value",
+                    "flag",
+                    "qc_status",
+                    "final",
+                    "comment",
+                    "deleted",
+                    "saved_to_v4",
+                    "entry_user_id",
+                ],
+                [
+                    "station_id",
+                    "element_id",
+                    "source_id",
+                    "elevation",
+                    "date_time",
+                    "period",
+                ],
+                {
+                    skipUpdateIfNoValuesChanged: true,
+                }
+            )
+            .execute();
     }
 
     public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {

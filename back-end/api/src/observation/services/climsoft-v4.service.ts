@@ -5,7 +5,7 @@ import { ClimsoftV4DBSettingsDto } from 'src/settings/dtos/settings/climsoft-v4-
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { ObservationEntity } from '../entities/observation.entity';
-import { FindManyOptions, Repository } from 'typeorm';
+import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
 import { CreateStationDto } from 'src/metadata/stations/dtos/create-update-station.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
@@ -13,6 +13,7 @@ import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/stat
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClimsoftDBUtils } from 'src/observation/utils/climsoft-db.utils';
+import { NumberUtils } from 'src/shared/utils/number.utils';
 
 interface V4ElementModel {
     elementId: number;
@@ -191,10 +192,12 @@ export class ClimsoftV4Service {
         for (let i = 0; i < v4Elements.length; i++) {
             const v4Element: V4ElementModel = v4Elements[i];
 
+            // Make sure abbreviation is not empty
             if (StringUtils.isNullOrEmpty(v4Element.abbreviation, true)) {
                 v4Element.abbreviation = `Empty_${i + 1}`;
             }
 
+            // Make sure name is not empty
             if (StringUtils.isNullOrEmpty(v4Element.elementName, true)) {
                 v4Element.elementName = `Empty_${i + 1}`;
             }
@@ -224,7 +227,7 @@ export class ClimsoftV4Service {
             v5Dtos.push(dto);
         }
 
-        console.log('saving elements: ', v5Dtos[0])
+        //console.log('saving elements: ', v5Dtos[0])
         await this.elementsService.bulkPut(v5Dtos, userId);
 
         // TODO. create and save upper limit and lower limit qc test
@@ -277,9 +280,14 @@ export class ClimsoftV4Service {
         for (let i = 0; i < v4Stations.length; i++) {
             const v4Station: V4StationModel = v4Stations[i];
 
-            // Make sure name is not em[ty]. V5 doesn't accept empty names 
+            // Make sure name is not empty. V5 doesn't accept empty names 
             if (StringUtils.isNullOrEmpty(v4Station.stationName, true)) {
                 v4Station.stationName = `Empty_${i + 1}`;
+            }
+
+            // Make sure the name is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.name === v4Station.stationName)) {
+                v4Station.stationName = `${v4Station.stationName}_${(i + 1)}`;
             }
 
             const dto: CreateStationDto = {
@@ -310,65 +318,75 @@ export class ClimsoftV4Service {
     }
 
     public async saveObservationstoV4DB(): Promise<void> {
-
-        console.log('attempting connection to save');
         await this.attemptFirstConnectionIfNotTried();
 
         // if version 4 database pool is not set up then return.
         // If still saving. then just return
         if (!this.v4DBPool || this.isSaving) {
-            console.log('no connection, aborting');
+            console.log('no connection pool or still saving. Aborting saving.');
             return;
         }
 
-        console.log('attempting to save');
-
+        // Set is saving to true to prevent any further saving to v4 requests
         this.isSaving = true;
+
         // Check if there is observations that have not been uploaded to v4
         // If there are, then attempt to save them
-
-        const findOptions: FindManyOptions<ObservationEntity> = {
+        const obsEntities: ObservationEntity[] = await this.observationRepo.find({
             where: { savedToV4: false },
+            order: { entryDateTime: "ASC" },
             take: 1000,
-        };
+        });
 
-        // TODO Left here. Check why its not saving.
+        console.log('entities found not saved to v4:', obsEntities.length, '. Aborting saving.');
 
-        // TODO. Optimise this to only fetch fields required
-        const obsEntities: ObservationEntity[] = await this.observationRepo.find(findOptions);
-
-        if (obsEntities.length > 0) {
-            // TODO Implement a bulk delete operation when soft delete happens
-            if (await this.bulkPutToV4(obsEntities)) {
-                // TODO. update the v5 column
-                obsEntities.forEach(item => {
-                    item.savedToV4 = true;
-                });
-                // TODO. Optimise this to do updates because it is indeed an update operation only
-                // and we only need to update the save to v4 column.
-                ClimsoftDBUtils.insertOrUpdateObsValues(this.observationRepo, obsEntities);
-                this.isSaving = false;
-                this.saveObservationstoV4DB();
-            } else {
-                this.isSaving = false;
-            }
-        } else {
+        if (obsEntities.length === 0) {
             this.isSaving = false;
+            console.log('No entities found. Aborting saving.');
+            return;
         }
+
+        console.log('Saving ', obsEntities.length, ' changes to V4 database');
+
+        const deletedEntities: ObservationEntity[] = [];
+        const insertedOrUpdatedEntities: ObservationEntity[] = [];
+
+        for (const entity of obsEntities) {
+            if (entity.deleted) {
+                deletedEntities.push(entity);
+            } else {
+                insertedOrUpdatedEntities.push(entity);
+            }
+        }
+
+        // Bulk delete when soft delete happens
+        if (deletedEntities.length > 0) { 
+            if (await this.deleteSoftDeletedV5DataFromV4DB(this.v4DBPool, deletedEntities)) {
+                // Update the save to v4 column in the V5 database.
+                await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
+            }
+        }
+
+        // Bulk insert or update when there are new inserts or updates
+        if (insertedOrUpdatedEntities.length > 0) {
+            if (await this.insertOrUpdateV5DataToV4DB(this.v4DBPool, insertedOrUpdatedEntities)) {
+                // Update the save to v4 column in the V5 database.
+                await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
+            }
+        }
+
+        // Set saving to false before initiating another save operation
+        this.isSaving = false;
+
+        // Asynchronously initiate another save to version 4 operation
+        this.saveObservationstoV4DB();
+
     }
 
-    private async bulkPutToV4(entities: ObservationEntity[]): Promise<boolean> {
-        // if version 4 database pool is not set up then return. 
-        if (!this.v4DBPool || this.isSaving) {
-            return false;
-        }
-
-        console.log(' v4DBPool: ', this.v4DBPool);
-
+    private async insertOrUpdateV5DataToV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
         // Get a connection from the pool
-        const connection = await this.v4DBPool.getConnection();
+        const connection = await v4DBPool.getConnection();
         try {
-            const batchSize = 1000;
             const upsertStatement = `
                 INSERT INTO observationinitial (
                     recordedFrom, 
@@ -397,66 +415,46 @@ export class ClimsoftV4Service {
                     capturedBy = VALUES(capturedBy)
             `;
 
-            for (let i = 0; i < entities.length; i += batchSize) {
-                const batch = entities.slice(i, i + batchSize);
-
-                const values: (string | number | null)[][] = [];
-                for (const entity of batch) {
-
-
-                    const v4Element = this.v4Elements.get(entity.elementId);
-                    // If element not found, just continue
-                    if (!v4Element) {
-                        continue;
-                    }
-
-                    const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
-
-
-                    values.push([
-                        entity.stationId,
-                        entity.elementId,
-                        v4ValueMap.v4DBDatetime,
-                        v4ValueMap.v4Elevation,
-                        v4ValueMap.v4ScaledValue,
-                        v4ValueMap.v4Flag,
-                        v4ValueMap.v4DBPeriod, // period
-                        0, // qcStatus
-                        null, // qcTypeLog
-                        7, // acquisitionType
-                        null, // dataForm
-                        entity.entryUserId // SHould we save with the username? 
-                    ]);
-
+            const values: (string | number | null)[][] = [];
+            for (const entity of entities) {
+                const v4Element = this.v4Elements.get(entity.elementId);
+                // If element not found, just continue
+                if (!v4Element) {
+                    continue;
                 }
 
+                const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
 
-                // const values = batch.map(dto => [
-                //     dto.stationId,
-                //     dto.elementId,
-                //     this.getV4AdjustedDatetimeInDBFormat(dto.datetime),
-                //     'surface',
-                //     dto.value === null ? null : dto.value,
-                //     dto.flag === null ? null : dto.flag,
-                //     null, // period
-                //     0, // qcStatus
-                //     null, // qcTypeLog
-                //     7, // acquisitionType
-                //     null, // dataForm
-                //     username
-                // ]);
-
-                // Execute the batch upsert
-                const saved = await connection.batch(upsertStatement, values);
-
-                console.log('saved:', saved);
+                values.push([
+                    entity.stationId,
+                    entity.elementId,
+                    v4ValueMap.v4DBDatetime,
+                    v4ValueMap.v4Elevation,
+                    v4ValueMap.v4ScaledValue,
+                    v4ValueMap.v4Flag,
+                    v4ValueMap.v4DBPeriod, // period
+                    0, // qcStatus
+                    null, // qcTypeLog
+                    7, // acquisitionType
+                    null, // dataForm
+                    entity.entryUserId // SHould we save with the username? 
+                ]);
 
             }
 
-            return true;
+            // Execute the batch upsert
+            // TODO. Investigate if this will ever return an array
+            const results: mariadb.UpsertResult = await connection.batch(upsertStatement, values);
+
+            console.log('V4 insert update status:', results);
+
+            // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
+            // Once for detecting the conflict (i.e., attempting to insert)
+            // Once for performing the update
+            // So more affected rows should return true as well.
+            return results.affectedRows >= entities.length;
         } catch (err) {
             console.error('Error saving observations to v4 initial table:', err);
-            //throw err;
             return false;
         } finally {
             if (connection) connection.release(); // Ensure the connection is released back to the pool
@@ -465,18 +463,108 @@ export class ClimsoftV4Service {
 
     private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
         const period: number | null = (v4Element.elementType === 'daily') ? (entity.period / 1440) : null;
-        const scaledValue: number | null = (v4Element.elementScale && entity.value) ? (entity.value / v4Element.elementScale) : entity.value;
+        const scaledValue: number | null = (entity.value && v4Element.elementScale ) ? NumberUtils.roundOff((entity.value / v4Element.elementScale), 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
+        console.log('scaled value: ', scaledValue);
         return { v4Elevation: elevation, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
-
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
         const dateAdjusted = new Date(date);
         dateAdjusted.setHours(dateAdjusted.getHours() + this.v4UtcOffset);
         return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
     }
+
+    private async deleteSoftDeletedV5DataFromV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
+        // Get a connection from the pool
+        const connection = await v4DBPool.getConnection();
+        try {
+            // Define the DELETE statement using the composite keys
+            const deleteStatement = `
+            DELETE FROM observationinitial
+            WHERE recordedFrom = ?
+              AND describedBy = ?
+              AND obsDatetime = ?
+              AND obsLevel = ?
+              AND qcStatus = ?
+              AND acquisitionType = ?
+          `;
+
+            // Build an array of values for each row to delete.
+            // In this example we assume that the values used to generate the composite key 
+            // are derived in the same way as in your insert/upsert function.
+            const values: (string | number | null)[][] = [];
+            for (const entity of entities) {
+
+                // If it's not 
+                if (!entity.deleted) {
+                    continue;
+                }
+
+                // Retrieve the v4 element information
+                const v4Element = this.v4Elements.get(entity.elementId);
+                if (!v4Element) {
+                    // Skip entities that do not have a corresponding v4 element
+                    continue;
+                }
+
+                // Get the value mapping for the entity
+                const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
+
+                // Populate the parameters for the composite key. These should match the values
+                // that were inserted/updated originally.
+                values.push([
+                    entity.stationId,            // recordedFrom
+                    entity.elementId,            // describedBy
+                    v4ValueMap.v4DBDatetime,     // obsDatetime
+                    v4ValueMap.v4Elevation,      // obsLevel
+                    0,                           // qcStatus (as used in the upsert)
+                    7                            // acquisitionType (as used in the upsert)
+                ]);
+            }
+
+            // Execute the batch deletion.
+            // Each set of parameters will run the DELETE statement.
+            const results: mariadb.UpsertResult = await connection.batch(deleteStatement, values);
+
+            console.log('Vv4 Delete status:', results);
+
+            // Note:
+            // If some of the keys do not exist in the database the affectedRows count may be lower
+            // than the number of entities. So just return true
+            return true;
+        } catch (err) {
+            console.error('Error deleting observations from v4 initial table:', err);
+            return false;
+        } finally {
+            if (connection) connection.release(); // Ensure the connection is returned to the pool
+        }
+    }
+
+    public async updateV5DBWithNewV4SaveStatus( observationRepo: Repository<ObservationEntity>,  observationsData: ObservationEntity[] ): Promise<UpdateResult> {
+        // Build an array of objects representing each composite primary key.
+        // Note: use the property names defined in your entity (not the DB column names).
+        const compositeKeys = observationsData.map((obs) => ({
+            stationId: obs.stationId,
+            elementId: obs.elementId,
+            elevation: obs.elevation,
+            datetime: obs.datetime,
+            period: obs.period,
+            sourceId: obs.sourceId,
+        }));
+
+        // Use QueryBuilder's whereInIds to update all matching rows in a single query.
+        return observationRepo
+            .createQueryBuilder()
+            .update(ObservationEntity)
+            .set({ savedToV4: true })
+            .whereInIds(compositeKeys)
+            .execute();
+    }
+
+
+
 
 }

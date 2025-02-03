@@ -2,7 +2,7 @@
   <div class="d-flex justify-content-end">
     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
       (click)="dlgEdit.openDialog(station.id)">Edit</button>
-    <app-station-characteristics-edit-dialog #dlgEdit  />
+    <app-station-characteristics-edit-dialog #dlgEdit />
   </div>
 
   <app-label-input [label]="'Id'" [value]="station.id" [labelColWidth]="4" />
@@ -17,12 +17,11 @@
 
   <hr />
 
-  <app-label-input *ngIf="station.location" [label]="'Latitude'" [value]="station.location.latitude"
-    [labelColWidth]="4" />
+  <app-label-input [label]="'Latitude'" [value]="station.location? station.location.latitude: ''" [labelColWidth]="4" />
 
   <hr />
 
-  <app-label-input *ngIf="station.location" [label]="'Longitude'" [value]="station.location.longitude"
+  <app-label-input [label]="'Longitude'" [value]="station.location? station.location.longitude: ''"
     [labelColWidth]="4" />
 
   <hr />
