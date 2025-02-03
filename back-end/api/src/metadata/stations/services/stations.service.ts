@@ -138,7 +138,7 @@ export class StationsService {
     private createViewDto(entity: StationEntity): CreateStationDto {
         return {
             id: entity.id,
-            name: entity.name,
+            name: entity.name, 
             description: entity.description,
             longitude: entity.location ? entity.location.coordinates[0] : null,
             latitude: entity.location ? entity.location.coordinates[1] : null,
@@ -182,7 +182,7 @@ export class StationsService {
             .values(entities)
             .orUpdate(
                 [
-                    "name",
+                    "name", 
                     "description",
                     "observation_processing_method",
                     "location",

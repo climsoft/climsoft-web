@@ -6,9 +6,6 @@
     <div *ngIf="climsoftV4DB.saveToV4DB">
         <div >       
             <div class="fw-bold ">V4 Database Settings</div>
-            <div class="text-danger mb-2" style="font-size: smaller;">
-                You will need to disconnect and reconnect to V4 database for changes to apply
-              </div>
             <div class="ms-2">
                 <div class="mb-2">
                     <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />

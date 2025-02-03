@@ -75,11 +75,12 @@
             <div class="me-2">
               Observations NOT saved:
             </div>
-            <div class="text-danger">
+            <div class="text-danger" ngClass=""
+              [ngClass]="{ 'text-danger':unsavedObservations>0, 'text-success':unsavedObservations===0 }">
               {{unsavedObservations> 1000000? 'Over 1M' : (unsavedObservations | number:'1.0-0' )}}
             </div>
           </div>
-          <button *ngIf="unsavedObservations" type="button" class="btn btn-sm btn-outline-primary"
+          <button *ngIf="unsavedObservations>0" type="button" class="btn btn-sm btn-outline-primary"
             (click)="onSaveObservationsClick()">
             Save
           </button>

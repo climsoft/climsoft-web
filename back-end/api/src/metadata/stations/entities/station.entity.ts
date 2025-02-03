@@ -13,6 +13,7 @@ export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;
 
+  // Note, name should not be unique because it can be retained if a station location change is not significant.
   @Column({ name: "name", type: 'varchar' })
   name: string;
 

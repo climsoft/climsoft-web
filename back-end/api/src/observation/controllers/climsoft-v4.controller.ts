@@ -17,16 +17,16 @@ export class ClimsoftV4Controller {
   @Admin()
   @Post('connect')
   async connect() {
-     await this.climsoftv4Service.setupV4DBConnection();
-     const connected: boolean = await this.climsoftv4Service.getConnectionState()
+    await this.climsoftv4Service.setupV4DBConnection();
+    const connected: boolean = await this.climsoftv4Service.getConnectionState()
     return { message: connected ? 'success' : 'error' };
   }
 
   @Admin()
   @Post('disconnect')
   async disconnect() {
-     await this.climsoftv4Service.disconnect();
-    return { message:  'success' };
+    await this.climsoftv4Service.disconnect();
+    return { message: 'success' };
   }
 
   @Admin()
@@ -47,7 +47,7 @@ export class ClimsoftV4Controller {
   @Post('save-observations')
   async saveObservations() {
     console.log('calling save');
-    this.climsoftv4Service.saveObservationstoV4DB();
+    await this.climsoftv4Service.saveObservationstoV4DB();
     console.log('returning success');
     return { message: 'success' };
   }
