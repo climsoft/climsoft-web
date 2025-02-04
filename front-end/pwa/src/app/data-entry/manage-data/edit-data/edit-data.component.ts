@@ -248,7 +248,6 @@ export class EditDataComponent implements OnDestroy {
     this.updatedObservations();
   }
 
-
   private updatedObservations(): void {
     this.enableSave = false;
     // Create required observation dtos 

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -357,7 +357,7 @@ export class ObservationsService {
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
         // Initiate saving to version 4 database as well
-        this.climsoftV4Service.saveObservationstoV4DB();
+        this.climsoftV4Service.saveV5ObservationstoV4DB();
     }
 
     private async insertOrUpdateObsValues(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]) {
@@ -400,30 +400,37 @@ export class ObservationsService {
         return this.softDeleteOrRestore(obsDtos, false, userId)
     }
 
-    private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deleteObs: boolean, userId: number): Promise<number> {
-        // TODO. Later optimise this. Change it to accomodate batch inserts.
-        let succesfulChanges: number = 0;
-        for (const dto of obsDtos) {
-            const result = await this.observationRepo
-                .createQueryBuilder()
-                .update(ObservationEntity)
-                .set({
-                    deleted: deleteObs,
-                    entryUserId: userId
-                }).where('station_id = :station_id', { station_id: dto.stationId })
-                .andWhere('element_id = :element_id', { element_id: dto.elementId })
-                .andWhere('elevation = :elevation', { elevation: dto.elevation })
-                .andWhere('date_time = :date_time', { date_time: dto.datetime })
-                .andWhere('period = :period', { period: dto.period })
-                .andWhere('source_id = :source_id', { source_id: dto.sourceId })
-                .execute();
+    private async softDeleteOrRestore(obsDtos: DeleteObservationDto[], deletedStatus: boolean, userId: number): Promise<number> {
+        // Build an array of objects representing each composite primary key. 
+        const compositeKeys = obsDtos.map((obs) => ({
+            stationId: obs.stationId,
+            elementId: obs.elementId,
+            elevation: obs.elevation,
+            datetime: obs.datetime,
+            period: obs.period,
+            sourceId: obs.sourceId,
+        }));
 
-            if (result.affected) {
-                succesfulChanges = succesfulChanges + 1;
-            }
 
-        }
-        return succesfulChanges;
+         // Use QueryBuilder's whereInIds to update all matching rows in a single query.
+        const updatedResults: UpdateResult = await this.observationRepo
+            .createQueryBuilder()
+            .update(ObservationEntity)
+            .set({
+                deleted: deletedStatus,
+                savedToV4: false,
+                entryUserId: userId,
+            })
+            .whereInIds(compositeKeys)
+            .execute();
+
+        console.log('Soft Deleted Observations: ', updatedResults);
+
+        this.climsoftV4Service.saveV5ObservationstoV4DB();
+
+        // If affected results not supported then just return the dtos length.
+        // Note, affected results will always be defined because the API uses postgres.
+        return updatedResults.affected ? updatedResults.affected : obsDtos.length;
     }
 
     public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {

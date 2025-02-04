@@ -127,7 +127,6 @@ export class ClimsoftV4Service {
         }
     }
 
-
     public async disconnect(): Promise<void> {
         // If there is an active connection then end it
         if (this.v4DBPool) {
@@ -295,7 +294,7 @@ export class ClimsoftV4Service {
         return true;
     }
 
-    public async saveObservationstoV4DB(): Promise<void> {
+    public async saveV5ObservationstoV4DB(): Promise<void> {
         await this.attemptFirstConnectionIfNotTried();
 
         // if version 4 database pool is not set up then return.
@@ -357,7 +356,7 @@ export class ClimsoftV4Service {
         this.isSaving = false;
 
         // Asynchronously initiate another save to version 4 operation
-        this.saveObservationstoV4DB();
+        this.saveV5ObservationstoV4DB();
 
     }
 
@@ -451,7 +450,7 @@ export class ClimsoftV4Service {
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
         const dateAdjusted = new Date(date);
-         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
+         // Subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
         dateAdjusted.setHours(dateAdjusted.getHours() - this.v4UtcOffset); 
         DateUtils.getDateInSQLFormat
         return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
@@ -524,8 +523,7 @@ export class ClimsoftV4Service {
     }
 
     public async updateV5DBWithNewV4SaveStatus( observationRepo: Repository<ObservationEntity>,  observationsData: ObservationEntity[] ): Promise<UpdateResult> {
-        // Build an array of objects representing each composite primary key.
-        // Note: use the property names defined in your entity (not the DB column names).
+        // Build an array of objects representing each composite primary key. 
         const compositeKeys = observationsData.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
