@@ -5,14 +5,13 @@ import { ClimsoftV4DBSettingsDto } from 'src/settings/dtos/settings/climsoft-v4-
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { ObservationEntity } from '../entities/observation.entity';
-import { FindManyOptions, Repository, UpdateResult } from 'typeorm';
+import { Repository, UpdateResult } from 'typeorm';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
 import { CreateStationDto } from 'src/metadata/stations/dtos/create-update-station.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/station-obs-processing-method.enum';
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ClimsoftDBUtils } from 'src/observation/utils/climsoft-db.utils';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 
 interface V4ElementModel {
@@ -62,31 +61,6 @@ export class ClimsoftV4Service {
     ) {
     }
 
-    public async testV4DBConnection(dto: ClimsoftV4DBSettingsDto): Promise<boolean> {
-        try {
-            // Create v4 database connection pool
-            const v4DBPoolTest = mariadb.createPool({
-                host: dto.serverIPAddress,
-                user: dto.username,
-                password: dto.password,
-                database: dto.databaseName,
-                port: dto.port
-            });
-
-            // Get a connection from the pool
-            const connection = await v4DBPoolTest.getConnection();
-
-            // If connection is successful, close it and terminate the pool
-            connection.release(); // Release the connection back to the pool
-            await v4DBPoolTest.end(); // Close the pool
-
-            return true; // Connection was successful
-        } catch (error) {
-            console.error('Testing V4 database  connection failed: ', error);
-            return false;
-        }
-    }
-
     private async attemptFirstConnectionIfNotTried(): Promise<void> {
         if (this.v4DBPool !== null) {
             return;
@@ -108,6 +82,7 @@ export class ClimsoftV4Service {
      * @returns 
      */
     public async setupV4DBConnection(): Promise<void> {
+        console.log('Attempting to connect: ', 'Current connection pool: ', this.v4DBPool , '. Is first connection attempt',  this.firstConnectionAttemptAlreadyTried);
         this.firstConnectionAttemptAlreadyTried = true;
         try {
 
@@ -120,11 +95,13 @@ export class ClimsoftV4Service {
             // Load V4 DB connection setting
             const v4Setting: ClimsoftV4DBSettingsDto = (await this.generalSettingsService.find(1)).parameters as ClimsoftV4DBSettingsDto;
 
+            console.log('V4 connection settings: ' , v4Setting);
+
             // If indicated as not to save to version 4 database then just return.
             if (!v4Setting.saveToV4DB) {
                 return;
             }
-
+           
             this.v4UtcOffset = v4Setting.utcOffset;
 
             // create v4 database connection pool
@@ -145,6 +122,7 @@ export class ClimsoftV4Service {
             this.getV4Stations(); // TODO. Delete this later
         } catch (error) {
             console.error('Setting up V4 database connection failed: ', error);
+            this.v4DBPool = null;
         }
     }
 
@@ -234,7 +212,6 @@ export class ClimsoftV4Service {
 
         return true;
     }
-
 
     private convertv4EntryScaleDecimalTov5WholeNumber(input: number): number {
         // If the input is a whole number, return it as is
@@ -463,17 +440,17 @@ export class ClimsoftV4Service {
 
     private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
         const period: number | null = (v4Element.elementType === 'daily') ? (entity.period / 1440) : null;
+        // Important to round off due to precision errors
         const scaledValue: number | null = (entity.value && v4Element.elementScale ) ? NumberUtils.roundOff((entity.value / v4Element.elementScale), 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
-        console.log('scaled value: ', scaledValue);
         return { v4Elevation: elevation, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
         const dateAdjusted = new Date(date);
-        dateAdjusted.setHours(dateAdjusted.getHours() + this.v4UtcOffset);
+        dateAdjusted.setHours(dateAdjusted.getHours() + this.v4UtcOffset); // TODO. minus
         return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
     }
 

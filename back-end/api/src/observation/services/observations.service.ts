@@ -14,7 +14,6 @@ import { SourcesService } from 'src/metadata/sources/services/sources.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
-import { ClimsoftDBUtils } from '../utils/climsoft-db.utils';
 
 @Injectable()
 export class ObservationsService {

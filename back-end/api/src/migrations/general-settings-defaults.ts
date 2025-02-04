@@ -11,8 +11,8 @@ export class GeneralSettingsDefaults {
             description: 'Version 4 database connection settings.',
             parameters: {
                 saveToV4DB: false,
-                serverIPAddress: 'localhost', // e.g., 'localhost' or the server's IP address
-                username: 'root',   // MariaDB username
+                serverIPAddress: 'host.docker.internal', // For easier docker management support connecting to the host machine only.
+                username: 'my_user',   // MariaDB username
                 password: 'my_password',  // MariaDB password
                 databaseName: 'mariadb_climsoft_db_v4', // MariaDB database name 
                 port: 3306,

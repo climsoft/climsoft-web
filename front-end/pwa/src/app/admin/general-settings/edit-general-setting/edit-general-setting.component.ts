@@ -32,17 +32,15 @@ export class EditGeneralSettingComponent implements OnInit {
   }
 
   protected onSaveClick(): void {
-   
     // TODO. do validations
 
     const settingParam: UpdateGeneralSettingModel = {
       parameters: this.setting.parameters
     }
 
-   
     this.generalSettingsService.update(this.setting.id, settingParam).subscribe((data) => {
       if (data) {
-        this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.id} updated`, type: ToastEventTypeEnum.SUCCESS });
+        this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
       }
     });
