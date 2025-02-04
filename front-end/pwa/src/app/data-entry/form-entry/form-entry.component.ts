@@ -183,11 +183,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     let strUtcDiff: string = "in";
 
     if (utcDiff > 0) {
-      // Subtract the offset to get UTC time. Local time is ahead of UTC, so to move "back" to UTC
-      strUtcDiff = `-${utcDiff}`;
-    } else if (utcDiff < 0) {
-      // Add the offset to get UTC time. Local time is behind UTC, so to move "forward" to UTC
-      strUtcDiff = `-${Math.abs(utcDiff)}`;
+        strUtcDiff = `+${utcDiff}`;
+    } else if (utcDiff < 0) {    
+      strUtcDiff = `${utcDiff}`;
     }
 
     return ` (${strUtcDiff} UTC)`;

@@ -13,6 +13,7 @@ import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/stat
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
+import { DateUtils } from 'src/shared/utils/date.utils';
 
 interface V4ElementModel {
     elementId: number;
@@ -450,7 +451,9 @@ export class ClimsoftV4Service {
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
         const dateAdjusted = new Date(date);
-        dateAdjusted.setHours(dateAdjusted.getHours() + this.v4UtcOffset); // TODO. minus
+         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
+        dateAdjusted.setHours(dateAdjusted.getHours() - this.v4UtcOffset); 
+        DateUtils.getDateInSQLFormat
         return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
     }
 

@@ -33,6 +33,9 @@ export class SourceEntity extends AppBaseEntity {
     @Column({ name: "parameters", type: "jsonb" })
     parameters: SourceParametersValidity;
 
+    @Column({ name: "comment", type: "varchar", nullable: true })
+    comment: string | null;
+
     @Column({ name: 'log', type: 'jsonb', nullable: true })
     log: BaseLogVo[] | null;
 }
