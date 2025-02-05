@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
+import { Between, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -412,7 +412,7 @@ export class ObservationsService {
         }));
 
 
-         // Use QueryBuilder's whereInIds to update all matching rows in a single query.
+        // Use QueryBuilder's whereInIds to update all matching rows in a single query.
         const updatedResults: UpdateResult = await this.observationRepo
             .createQueryBuilder()
             .update(ObservationEntity)
@@ -434,7 +434,29 @@ export class ObservationsService {
     }
 
     public async hardDelete(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
-        // TODO. Later optimise this. Change it to accomodate batch inserts.
+        // Build an array of objects representing each composite primary key. 
+        const compositeKeys = deleteObsDtos.map((obs) => ({
+            stationId: obs.stationId,
+            elementId: obs.elementId,
+            elevation: obs.elevation,
+            datetime: obs.datetime,
+            period: obs.period,
+            sourceId: obs.sourceId,
+        }));
+
+        // Use QueryBuilder's whereInIds to update all matching rows in a single query.
+        const updatedResults: DeleteResult = await this.observationRepo.createQueryBuilder()
+            .delete()
+            .from(ObservationEntity)
+            .whereInIds(compositeKeys)
+            .execute();
+
+        return updatedResults.affected ? updatedResults.affected : deleteObsDtos.length;
+    }
+
+    // NOTE. Left here for future reference. In fututure we want to be able to delete by station id and source id. 
+    // This will be useful code to reuse.
+    public async hardDeleteBy(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
         let succesfulChanges: number = 0;
         for (const dto of deleteObsDtos) {
             const result = await this.observationRepo.createQueryBuilder()
@@ -455,6 +477,7 @@ export class ObservationsService {
 
         return succesfulChanges;
     }
+
 
 
 

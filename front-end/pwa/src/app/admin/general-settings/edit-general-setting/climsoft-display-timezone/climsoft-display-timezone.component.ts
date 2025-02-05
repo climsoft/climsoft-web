@@ -1,5 +1,4 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { ClimsoftV4DBSettingModel } from '../../models/settings/climsoft-v4-db-setting.model';
 import { SettingsParametersValidity } from '../../models/update-general-setting.model';
 import { ClimsoftDisplayTimeZoneModel } from '../../models/settings/climsoft-display-timezone.model';
 
@@ -21,5 +20,4 @@ export class ClimsoftDisplayTimezoneComponent implements OnChanges {
       this.displayTimezone = this.settingParameter as ClimsoftDisplayTimeZoneModel;
     }
   }
-
 }
