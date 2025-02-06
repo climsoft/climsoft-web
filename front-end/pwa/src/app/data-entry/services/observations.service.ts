@@ -27,7 +27,9 @@ export class ObservationsService {
   private isSyncing: boolean = false;
   private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0);
 
-  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+  constructor(
+    private appConfigService: AppConfigService,
+    private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
 
@@ -104,7 +106,7 @@ export class ObservationsService {
             // Note, even though the 2 operations below are asynchronous they will execute sequentially.
 
             // If there is server data then update the local database with the new data asynchronously
-            this.saveDataToLocalDatabase(observations, 'true'); 
+            this.saveDataToLocalDatabase(observations, 'true');
 
             // Then refetch from the local database because there might be unsynced observations that should be displayed as well
             return from(this.fetchObservationsLocally(entryFormObsQuery));

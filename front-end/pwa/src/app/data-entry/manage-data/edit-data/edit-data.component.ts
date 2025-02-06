@@ -13,6 +13,8 @@ import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
+import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -46,6 +48,7 @@ export class EditDataComponent implements OnDestroy {
   protected enableView: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
+  private utcOffset: number = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -53,7 +56,8 @@ export class EditDataComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
     private sourcesService: SourcesCacheService,
-    private observationService: ObservationsService
+    private observationService: ObservationsService,
+    private generalSettingsService: GeneralSettingsService,
   ) {
 
     this.elementService.cachedElements.pipe(
@@ -67,6 +71,13 @@ export class EditDataComponent implements OnDestroy {
     ).subscribe(data => {
       this.sourcessMetadata = data;
     });
+
+    // Get the climsoft v4 setting
+    this.generalSettingsService.findOne(3).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((data) => {
+      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    });
   }
 
   ngOnDestroy() {
@@ -79,6 +90,7 @@ export class EditDataComponent implements OnDestroy {
   }
 
   protected onViewClick(): void {
+    console.log('view click')
     // Get the data based on the selection filter
     this.observationFilter = { deleted: false };
 
@@ -186,7 +198,6 @@ export class EditDataComponent implements OnDestroy {
     }
   }
 
-
   protected includeLowerBoundaryLine(index: number): boolean {
     return this.allBoundariesIndices.includes(index);
   }
@@ -195,9 +206,15 @@ export class EditDataComponent implements OnDestroy {
     return (observationsDef.observation as ViewObservationModel);
   }
 
-  protected getFormattedDatetime(strDateTime: string): string {
-    // TODO. Use the display UTC setting
-    return strDateTime.replace('T', ' ').replace('Z', '');
+  protected getFormattedDatetime(strDateTimeInUTC: string): string {
+    // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
+    // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
+    const dateAdjusted = new Date(strDateTimeInUTC);
+    dateAdjusted.setHours(dateAdjusted.getHours() + this.utcOffset); 
+
+    // TODO. Leaving this loggging here to show Angular change detection effects
+    console.log('Before conversion: ', strDateTimeInUTC, '. After conversion: ',dateAdjusted.toISOString(), '. Offset: ', this.utcOffset );
+    return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
   }
 
   protected getPeriodName(minutes: number): string {
@@ -230,7 +247,6 @@ export class EditDataComponent implements OnDestroy {
     this.deleteObservations();
     this.updatedObservations();
   }
-
 
   private updatedObservations(): void {
     this.enableSave = false;

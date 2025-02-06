@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { take } from 'rxjs'; 
-import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
+import { take } from 'rxjs';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { CreateViewGeneralSettingModel } from '../models/create-view-general-setting.model';
 import { GeneralSettingsService } from '../services/general-settings.service';
 
@@ -22,12 +22,10 @@ export class ViewGeneralSettingsComponent {
 
     // Get all sources 
     this.generalSettingsService.findAll().pipe(take(1)).subscribe((data) => {
-      this.settings = data;
+      this.settings = data.filter(item => (item.id !== 1));
     });
 
   }
-
-  protected onSearch(): void { }
 
   protected onEditGeneralSetting(generalSetting: CreateViewGeneralSettingModel): void {
     this.router.navigate(['edit-general-setting', generalSetting.id], { relativeTo: this.route.parent });

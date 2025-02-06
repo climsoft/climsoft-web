@@ -7,9 +7,10 @@
         <div >       
             <div class="fw-bold ">V4 Database Settings</div>
             <div class="ms-2">
-                <div class="mb-2">
+                <!-- Disabled because deployments assumes that you will have mariadb on the same host that has climsoft web -->
+                <!-- <div class="mb-2">
                     <app-text-input [label]="'Server IP Address'" [(value)]="climsoftV4DB.serverIPAddress" />
-                </div>
+                </div> -->
         
                 <div class="mb-2">
                     <app-number-input [label]="'Port'" [(numValue)]="climsoftV4DB.port" />

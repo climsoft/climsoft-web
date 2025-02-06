@@ -71,17 +71,19 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         open: false,
         children: [
             {
-                name: 'Settings',
-                url: '/view-general-settings',
+                name: 'Users',
+                url: '/view-users',
             },
             {
                 name: 'Climsoft V4',
                 url: '/climsoft-v4',
             },
             {
-                name: 'Users',
-                url: '/view-users',
+                name: 'Settings',
+                url: '/view-general-settings',
             },
+           
+         
         ]
     },
 

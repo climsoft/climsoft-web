@@ -36,8 +36,8 @@ services:
       DB_NAME: climsoft
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
-    ports: 
-      - "3000:3000" # Expose to both external and internal network because of saving to mariadb 
+    expose: 
+      - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
     depends_on:
       - climsoft_db
     networks:

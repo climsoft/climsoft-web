@@ -47,7 +47,7 @@ export class ClimsoftV4Controller {
   @Post('save-observations')
   async saveObservations() {
     console.log('calling save');
-    await this.climsoftv4Service.saveObservationstoV4DB();
+    await this.climsoftv4Service.saveV5ObservationstoV4DB();
     console.log('returning success');
     return { message: 'success' };
   }
