@@ -92,11 +92,25 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
 ### Setup   
 1. **Install and Initialse Application**:
    Using your terminal commands to navigate to the directory of your choice and within the directory execute the following commands to download the latest [docker-compose.prod.yaml](https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml) file and initialise the PWA, API and PostgreSQL containers:
-   ```bash
+   ```
    Invoke-WebRequest -Uri https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml -OutFile "docker-compose.prod.yaml"
    $Env:HOST_IP_ADDRESS = Read-Host -Prompt "Enter host IP address"
-   $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port"
-   $Env:DB_PASSWORD = Read-Host -Prompt "Enter database password"
+   $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port for Climsoft web"
+   $Env:DB_PASSWORD = Read-Host -Prompt "Enter Climsoft web database password"
+   $Env:V4_SAVE = Read-Host -Prompt "Save to Climsoft V4 database? yes or no"
+   if ($Env:V4_SAVE -eq "yes") {
+    $Env:V4_DB_PORT = Read-Host -Prompt "Enter Climsoft V4 database port"
+    $Env:V4_DB_NAME = Read-Host -Prompt "Enter Climsoft V4 database name"
+    $Env:V4_DB_USERNAME = Read-Host -Prompt "Enter Climsoft V4 database username"
+    $Env:V4_DB_PASSWORD = Read-Host -Prompt "Enter Climsoft V4 database password"
+    $Env:V4_DB_UTCOFFSET = Read-Host -Prompt "Enter Climsoft V4 database UTC offset"
+   } else {
+    $Env:V4_DB_PORT = ""
+    $Env:V4_DB_NAME = ""
+    $Env:V4_DB_USERNAME = ""
+    $Env:V4_DB_PASSWORD = ""
+    $Env:V4_DB_UTCOFFSET = ""
+   }   
    docker-compose -f docker-compose.prod.yaml up
    ```
    For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
@@ -126,7 +140,22 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
    wget "https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml" -O "docker-compose.prod.yaml"
    read -p "Enter host IP address: " HOST_IP_ADDRESS
    read -p "Enter host HTTP port: " HOST_HTTP_PORT
-   read -p "Enter database Password: " DB_PASSWORD
+   read -p "Enter database password: " DB_PASSWORD
+   read -p "Save to Climsoft V4 database? yes or no: " V4_SAVE
+   if [ "$V4_SAVE" == "yes" ]; then
+    read -p "Enter Climsoft V4 database port: " V4_DB_PORT
+    read -p "Enter Climsoft V4 database name: " V4_DB_NAME
+    read -p "Enter Climsoft V4 database username: " V4_DB_USERNAME
+    read -p "Enter Climsoft V4 database password: " V4_DB_PASSWORD
+    read -p "Enter Climsoft V4 database UTC offset: " V4_DB_UTCOFFSET"
+   else
+    V4_DB_PORT=""
+    V4_DB_NAME=""
+    V4_DB_USERNAME=""
+    V4_DB_PASSWORD=""
+    V4_DB_UTCOFFSET=""
+   fi
+   export HOST_IP_ADDRESS HOST_HTTP_PORT DB_PASSWORD V4_SAVE V4_DB_PORT V4_DB_NAME V4_DB_USERNAME V4_DB_PASSWORD V4_DB_UTCOFFSET
    docker-compose -f docker-compose.prod.yaml up
    ```
    For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
