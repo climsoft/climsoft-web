@@ -140,7 +140,22 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
    wget "https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml" -O "docker-compose.prod.yaml"
    read -p "Enter host IP address: " HOST_IP_ADDRESS
    read -p "Enter host HTTP port: " HOST_HTTP_PORT
-   read -p "Enter database Password: " DB_PASSWORD
+   read -p "Enter database password: " DB_PASSWORD
+   read -p "Save to Climsoft V4 database? yes or no: " V4_SAVE
+   if [ "$V4_SAVE" == "yes" ]; then
+    read -p "Enter Climsoft V4 database port: " V4_DB_PORT
+    read -p "Enter Climsoft V4 database name: " V4_DB_NAME
+    read -p "Enter Climsoft V4 database username: " V4_DB_USERNAME
+    read -p "Enter Climsoft V4 database password: " V4_DB_PASSWORD
+    read -p "Enter Climsoft V4 database UTC offset: " V4_DB_UTCOFFSET"
+   else
+    V4_DB_PORT=""
+    V4_DB_NAME=""
+    V4_DB_USERNAME=""
+    V4_DB_PASSWORD=""
+    V4_DB_UTCOFFSET=""
+   fi
+   export HOST_IP_ADDRESS HOST_HTTP_PORT DB_PASSWORD V4_SAVE V4_DB_PORT V4_DB_NAME V4_DB_USERNAME V4_DB_PASSWORD V4_DB_UTCOFFSET
    docker-compose -f docker-compose.prod.yaml up
    ```
    For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
