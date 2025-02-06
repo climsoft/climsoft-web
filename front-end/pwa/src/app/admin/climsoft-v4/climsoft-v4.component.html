@@ -1,36 +1,6 @@
-<div *ngIf="climsoftv4Setting" class="card border-0">
-
-  <div class="card-header d-flex ">
-    <ul class="nav nav-tabs card-header-tabs">
-      <li class="nav-item">
-        <button class="nav-link active" [class.active]="activeTab === 'connection'" (click)="onTabClick('connection')">
-          Connection Settings
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab === 'data'" (click)="onTabClick('data')">
-          Metadata & Data State
-        </button>
-      </li>
-    </ul>
-
-  </div>
-
-  <!-- selected tab contents -->
-  <div class="card-body p-0 mt-2">
-
-    <div *ngIf="activeTab === 'connection' && climsoftv4Setting.parameters" class="card border-0">
-      <div class="card-body">
-        <app-climsoft-v4-db [settingParameter]="climsoftv4Setting.parameters" />
-      </div>
-      <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-        <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveConnectionsClick()">
-          Save
-        </button>
-      </div>
-    </div>
-
-    <div *ngIf="activeTab === 'data'" class="mt-2">
+<div class="card border-0">
+  <div class="card-body p-0">
+    <div >
       <div>
         <div class="fw-bold">Connection State:</div>
         <div class="d-flex align-items-center">
@@ -46,8 +16,9 @@
           </button>
         </div>
       </div>
-      <hr />
-      <div>
+      <!-- Only show capabilty to pull metadata when it's connected to v4 database -->
+      <div *ngIf="connectedToV4DB">
+        <hr />
         <div class="fw-bold">Metadata:</div>
         <div class="text-danger" style="font-size: smaller;">
           Pulling metadata will overwrite any updates done via web interface
@@ -89,8 +60,5 @@
     </div>
 
   </div>
-
-
-
 
 </div>

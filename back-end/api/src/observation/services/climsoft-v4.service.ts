@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as mariadb from 'mariadb';
-import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
-import { ClimsoftV4DBSettingsDto } from 'src/settings/dtos/settings/climsoft-v4-db.dto';
+import * as mariadb from 'mariadb'; 
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -45,23 +43,25 @@ interface V4StationModel {
     authority: string;
 }
 
-
 @Injectable()
 export class ClimsoftV4Service {
     private firstConnectionAttemptAlreadyTried: boolean = false;
     private v4DBPool: mariadb.Pool | null = null;
     private v4UtcOffset: number = 0;
-    private readonly v4Elements: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
+    private readonly v4ElementsForV5Mapping: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
     private isSaving: boolean = false;
 
     constructor(
-        private generalSettingsService: GeneralSettingsService,
         private elementsService: ElementsService,
         private stationsService: StationsService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
     ) {
     }
 
+    /**
+     * Attempts first connection to V4 database if the v4 db pool is not null and first attempt has never been tried.
+     * @returns 
+     */
     private async attemptFirstConnectionIfNotTried(): Promise<void> {
         if (this.v4DBPool !== null) {
             return;
@@ -83,7 +83,7 @@ export class ClimsoftV4Service {
      * @returns 
      */
     public async setupV4DBConnection(): Promise<void> {
-        console.log('Attempting to connect: ', 'Current connection pool: ', this.v4DBPool , '. Is first connection attempt',  this.firstConnectionAttemptAlreadyTried);
+        console.log('Attempting to connect: ', 'Current connection pool: ', this.v4DBPool, '. Is first connection attempt', this.firstConnectionAttemptAlreadyTried);
         this.firstConnectionAttemptAlreadyTried = true;
         try {
 
@@ -92,39 +92,65 @@ export class ClimsoftV4Service {
                 await this.disconnect();
             }
 
+            let v4Save: boolean;
+            let host: string;
+            let user: string;
+            let password: string;
+            let database: string;
+            let port: number;
+            let utcOffset: number;
 
-            // Load V4 DB connection setting
-            const v4Setting: ClimsoftV4DBSettingsDto = (await this.generalSettingsService.find(1)).parameters as ClimsoftV4DBSettingsDto;
+            if (process.env.V4_SAVE && process.env.V4_DB_USERNAME && process.env.V4_DB_PASSWORD && process.env.V4_DB_NAME && process.env.V4_DB_PORT && process.env.V4_DB_UTCOFFSET) {
+                console.log('Setting up production mode v4 settings.');
+                v4Save = process.env.V4_SAVE === 'yes';
+                host = 'host.docker.internal';
+                user = process.env.V4_DB_USERNAME;
+                password = process.env.V4_DB_PASSWORD;
+                database = process.env.V4_DB_NAME;
+                port = +process.env.V4_DB_PORT;
+                utcOffset = +process.env.V4_DB_UTCOFFSET;
+            } else {
+                console.log('Setting up development mode v4 settings.');
+                // If any of the env variable V4_SAVE env is undefined then assume it's a dev environment. 
+                v4Save = true;
+                host = 'localhost';
+                user = 'my_user';
+                password = 'my_password';
+                database = 'mariadb_climsoft_db_v4';
+                port = 3306;
+                utcOffset = 0;
+            }
 
-            console.log('V4 connection settings: ' , v4Setting);
-
-            // If indicated as not to save to version 4 database then just return.
-            if (!v4Setting.saveToV4DB) {
+            if (!v4Save) {
+                console.log('Saving to v4 database disabled.');
                 return;
             }
-           
-            this.v4UtcOffset = v4Setting.utcOffset;
+
+            this.v4UtcOffset = utcOffset;
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
-                host: v4Setting.serverIPAddress,
-                user: v4Setting.username,
-                password: v4Setting.password,
-                database: v4Setting.databaseName,
-                port: v4Setting.port
+                host: host,
+                user: user,
+                password: password,
+                database: database,
+                port: port,
             });
 
-            // Get V4 elements for mapping
-            this.v4Elements.clear();
-
-            const arrV4Elements: V4ElementModel[] = await this.getV4Elements();
-            arrV4Elements.forEach((item) => this.v4Elements.set(item.elementId, item));
-
-            this.getV4Stations(); // TODO. Delete this later
+            // set up V4 elements used v5 to v4 database for mapping  
+            await this.setupV4ElementsForV5Mapping(); 
         } catch (error) {
             console.error('Setting up V4 database connection failed: ', error);
             this.v4DBPool = null;
         }
+    }
+
+    private async setupV4ElementsForV5Mapping(): Promise<void>{
+        // Get V4 elements for mapping
+        this.v4ElementsForV5Mapping.clear();
+
+        const arrV4Elements: V4ElementModel[] = await this.getV4Elements();
+        arrV4Elements.forEach((item) => this.v4ElementsForV5Mapping.set(item.elementId, item));
     }
 
     public async disconnect(): Promise<void> {
@@ -205,8 +231,10 @@ export class ClimsoftV4Service {
             v5Dtos.push(dto);
         }
 
-        //console.log('saving elements: ', v5Dtos[0])
         await this.elementsService.bulkPut(v5Dtos, userId);
+
+        // Important to do this just incase observations were not being saved to v4 database due to lack of elements or changes in v4 configuration
+        await this.setupV4ElementsForV5Mapping(); 
 
         // TODO. create and save upper limit and lower limit qc test
 
@@ -337,7 +365,7 @@ export class ClimsoftV4Service {
         }
 
         // Bulk delete when soft delete happens
-        if (deletedEntities.length > 0) { 
+        if (deletedEntities.length > 0) {
             if (await this.deleteSoftDeletedV5DataFromV4DB(this.v4DBPool, deletedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
@@ -394,7 +422,7 @@ export class ClimsoftV4Service {
 
             const values: (string | number | null)[][] = [];
             for (const entity of entities) {
-                const v4Element = this.v4Elements.get(entity.elementId);
+                const v4Element = this.v4ElementsForV5Mapping.get(entity.elementId);
                 // If element not found, just continue
                 if (!v4Element) {
                     continue;
@@ -441,7 +469,7 @@ export class ClimsoftV4Service {
     private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
         const period: number | null = (v4Element.elementType === 'daily') ? (entity.period / 1440) : null;
         // Important to round off due to precision errors
-        const scaledValue: number | null = (entity.value && v4Element.elementScale ) ? NumberUtils.roundOff((entity.value / v4Element.elementScale), 4) : entity.value;
+        const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff((entity.value / v4Element.elementScale), 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
@@ -450,8 +478,8 @@ export class ClimsoftV4Service {
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
         const dateAdjusted = new Date(date);
-         // Subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
-        dateAdjusted.setHours(dateAdjusted.getHours() - this.v4UtcOffset); 
+        // Subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
+        dateAdjusted.setHours(dateAdjusted.getHours() - this.v4UtcOffset);
         DateUtils.getDateInSQLFormat
         return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
     }
@@ -483,7 +511,7 @@ export class ClimsoftV4Service {
                 }
 
                 // Retrieve the v4 element information
-                const v4Element = this.v4Elements.get(entity.elementId);
+                const v4Element = this.v4ElementsForV5Mapping.get(entity.elementId);
                 if (!v4Element) {
                     // Skip entities that do not have a corresponding v4 element
                     continue;
@@ -522,7 +550,7 @@ export class ClimsoftV4Service {
         }
     }
 
-    public async updateV5DBWithNewV4SaveStatus( observationRepo: Repository<ObservationEntity>,  observationsData: ObservationEntity[] ): Promise<UpdateResult> {
+    public async updateV5DBWithNewV4SaveStatus(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]): Promise<UpdateResult> {
         // Build an array of objects representing each composite primary key. 
         const compositeKeys = observationsData.map((obs) => ({
             stationId: obs.stationId,
