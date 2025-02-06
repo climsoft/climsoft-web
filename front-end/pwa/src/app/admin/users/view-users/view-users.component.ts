@@ -5,6 +5,7 @@ import { ViewUserModel } from '../models/view-user.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { UserRoleEnum } from '../models/user-role.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { take } from 'rxjs';
 
 
 @Component({
@@ -21,12 +22,12 @@ export class ViewUsersComponent {
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Users');
-    this.usersService.findAll().subscribe(data => {
+    this.usersService.findAll().pipe(take(1)).subscribe(data => {
       this.users = data;
     });
   }
 
-  protected getFormattedUserRole(userRole: UserRoleEnum):string{
+  protected getFormattedUserRole(userRole: UserRoleEnum): string {
     return StringUtils.formatEnumForDisplay(userRole);
   }
 

@@ -1,9 +1,10 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "src/metadata/sources/enums/source-type.enum";
 import { SourceParametersValidity } from "../dtos/create-update-source.dto";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("sources")
+@Check("CHK_sources_name_not_empty", `"name" <> ''`)
 export class SourceEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
@@ -23,7 +24,7 @@ export class SourceEntity extends AppBaseEntity {
 
     @Column({ name: "allow_missing_value", type: "boolean" })
     allowMissingValue: boolean;
-    
+
     @Column({ name: "scale_values", type: "boolean" })
     scaleValues: boolean;
 

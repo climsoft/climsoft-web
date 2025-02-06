@@ -12,14 +12,6 @@
     </div>
 
     <div class="card-body px-0">
-        <!-- <app-table-view [clickable]="true" [columnsData]="[ 
-            {id: 'name', name: 'Name'},
-            {id: 'email', name: 'Email'}, 
-            {id: 'phone', name: 'Phone'},
-            {id: 'role', name: 'Role'},
-            {id: 'disabled', name: 'Disabled'} ]" [rowsData]="users" (rowDataClicked)="onEditUserClick($event)" /> -->
-
-
         <table class="table table-striped table-sm table-hover">
             <thead>
                 <tr>
@@ -28,11 +20,12 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Role</th>
-                    <th>Disabled</th> 
+                    <th>Disabled</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="cursor-pointer" *ngFor="let user of users">
+                <tr class="app-cursor-pointer" *ngFor="let user of users">
                     <td (click)="onEditUserClick(user)"><i class="bi bi-arrow-right-short"></i></td>
                     <td (click)="onEditUserClick(user)">{{ user.name }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.email }}</td>
@@ -41,13 +34,14 @@
                     <td (click)="onEditUserClick(user)">{{ user.disabled }}</td>
                     <td>
                         <button class="btn btn-outline-secondary btn-sm"
-                            (click)="passwordChangeDialog.open = true">Change Password</button>
-                        <app-password-change #passwordChangeDialog [userId]="user.id" [userEmail]="user.email" />
+                            (click)="passwordChangeDialog.openDialog(user.id, user.email)">Change Password</button>
+                       
                     </td>
                 </tr>
             </tbody>
         </table>
 
+        <app-password-change #passwordChangeDialog  />
     </div>
 
 </div>

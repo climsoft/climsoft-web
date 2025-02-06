@@ -27,14 +27,20 @@ export class StationsSearchDialogComponent {
   protected searchName: string = '';
   protected saveSearch: boolean = false;
 
-  constructor(private stationsCacheService: StationsCacheService) { 
+  constructor(private stationsCacheService: StationsCacheService) {
   }
 
-  public openDialog(): void {
-    this.loadSearchHistory();
+  public openDialog(selectedIds?: string[]): void {
     this.open = true;
+    if (selectedIds && selectedIds.length > 0) {
+      this.searchedIds = selectedIds;
+      this.loadStationSelections();
+      this.activeTab = 'new';
+    } else {
+      this.loadSearchHistory();
+    }
   }
- 
+
   private async loadSearchHistory(): Promise<void> {
     this.previousSearches = await AppDatabase.instance.stationsSearchHistory.toArray();
   }
@@ -43,12 +49,12 @@ export class StationsSearchDialogComponent {
     this.searchedIds = [];
     this.searchName = '';
     this.saveSearch = false;
-    if(selectedTab === 'new'){
+    if (selectedTab === 'new') {
       this.loadStationSelections();
     }
-   
+
     this.activeTab = selectedTab;
-   }
+  }
 
   protected onPreviousSearchSelected(selectedSearch: StationSearchHistoryModel): void {
     this.searchedIds = selectedSearch.stationIds;
@@ -56,7 +62,7 @@ export class StationsSearchDialogComponent {
   }
 
   protected onEditPreviousSearch(selectedSearch: StationSearchHistoryModel): void {
-    this.onIdsSelected(selectedSearch.stationIds);
+    this.searchedIds = selectedSearch.stationIds;
     this.onSearchNameInput(selectedSearch.name);
     this.saveSearch = selectedSearch.name ? true : false;
 
@@ -140,11 +146,7 @@ export class StationsSearchDialogComponent {
   }
 
   private setSearchedIdsFromStationSelections(): void {
-    this.onIdsSelected(this.stationsSelections.filter(item => item.selected).map(item => item.station.id));
-  }
-
-  private onIdsSelected(searchedIds: string[]): void {
-    this.searchedIds = searchedIds;
+    this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id)
   }
 
   protected onSearchNameInput(searchName: string): void {

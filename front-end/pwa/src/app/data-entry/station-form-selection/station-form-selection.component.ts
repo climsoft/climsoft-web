@@ -69,7 +69,7 @@ export class StationFormSelectionComponent implements OnDestroy {
 
     // No need to reload the station forms if already loaded if they have
     if (!stationView.forms) {
-      this.stationFormsService.find(stationView.station.id).pipe(
+      this.stationFormsService.getFormsAssignedToStations(stationView.station.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe(data => {
         if (data) {

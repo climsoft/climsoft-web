@@ -15,6 +15,9 @@ export class OrganisationEntity extends AppBaseEntity {
   @Column({ name: "extra_metadata", type: 'jsonb' })
   extraMetadata: string;
 
+  @Column({ name: "comment", type: 'varchar', nullable: true })
+  comment: string | null;
+
   @Column({ name: "log", type: 'jsonb', nullable: true })
   log: OrganisationLogVo[] | null;
 }

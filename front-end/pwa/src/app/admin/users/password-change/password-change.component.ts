@@ -9,23 +9,21 @@ import { UsersService } from '../services/users.service';
   styleUrls: ['./password-change.component.scss']
 })
 export class PasswordChangeComponent {
-
-  @Input()
-  public userId!: number;
-
-  @Input()
-  public userEmail!: string;
-
-  public open: boolean = false;
-
+  protected open: boolean = false;
+  protected userEmail!: string;
+  private userId!: number;
   protected newPassword: string = '';
-
   protected confirmPassword: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
     private userService: UsersService,) {
+  }
 
+  public openDialog(userId: number, userEmail: string): void {
+    this.userId = userId;
+    this.userEmail = userEmail;
+    this.open = true;
   }
 
   protected onOkClick(): void {
