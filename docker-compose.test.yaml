@@ -45,6 +45,12 @@ services:
       DB_NAME: climsoft
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
+      V4_SAVE: "${V4_SAVE}"
+      V4_DB_PORT: "${V4_DB_PORT}"
+      V4_DB_NAME: "${V4_DB_NAME}"
+      V4_DB_USERNAME: "${V4_DB_USERNAME}"
+      V4_DB_PASSWORD: "${V4_DB_PASSWORD}"
+      V4_DB_UTCOFFSET: "${V4_DB_UTCOFFSET}"
     expose: 
       - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
     depends_on:

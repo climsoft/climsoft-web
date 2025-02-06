@@ -30,7 +30,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
   ngAfterViewInit(): void {
     // Load the climsoft boundary setting.
-    this.generalSettingsService.findOne(2).pipe(
+    this.generalSettingsService.findOne(1).pipe(
       take(1)
     ).subscribe((data) => {
       if (data && data.parameters) {

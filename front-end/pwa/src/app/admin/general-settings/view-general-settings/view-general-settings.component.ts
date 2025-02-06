@@ -22,7 +22,7 @@ export class ViewGeneralSettingsComponent {
 
     // Get all sources 
     this.generalSettingsService.findAll().pipe(take(1)).subscribe((data) => {
-      this.settings = data.filter(item => (item.id !== 1));
+      this.settings = data;
     });
 
   }

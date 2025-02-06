@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ClimsoftV4DBSettingModel } from '../general-settings/models/settings/climsoft-v4-db-setting.model';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
 import { ClimsoftV4Service } from './services/climsoft-v4.service';
 import { CreateViewGeneralSettingModel } from '../general-settings/models/create-view-general-setting.model';
 import { GeneralSettingsService } from '../general-settings/services/general-settings.service';
@@ -14,28 +13,16 @@ import { take } from 'rxjs';
   styleUrls: ['./climsoft-v4.component.scss']
 })
 export class ClimsoftV4Component {
-  protected activeTab: 'connection' | 'data' = 'connection';
-  protected climsoftv4Setting!: CreateViewGeneralSettingModel;
+  protected activeTab: 'connection' | 'data' = 'connection'; 
   protected unsavedObservations: number = 0;
   protected connectedToV4DB: boolean = false;
 
   constructor(
-    private pagesDataService: PagesDataService,
-    private generalSettingsService: GeneralSettingsService,
+    private pagesDataService: PagesDataService, 
     private climsoftV4Service: ClimsoftV4Service,
     private observationsService: ObservationsService,
   ) {
-    this.pagesDataService.setPageHeader('Climsoft V4');
-
-    // Get the climsoft v4 setting
-    this.generalSettingsService.findOne(1).pipe(take(1)).subscribe((data) => {
-      this.climsoftv4Setting = data;
-    });
-
-  }
-
-  protected get connectionSettings() {
-    return this.climsoftv4Setting.parameters as ClimsoftV4DBSettingModel;
+    this.pagesDataService.setPageHeader('Climsoft V4 Status');
   }
 
   protected onTabClick(selectedTab: 'connection' | 'data'): void {
@@ -58,22 +45,6 @@ export class ClimsoftV4Component {
     this.observationsService.countObsNotSavedToV4().pipe(take(1)).subscribe((data) => {
       this.unsavedObservations = data;
     });
-  }
-
-  protected onSaveConnectionsClick(): void {
-
-    // TODO. do validations
-
-    const settingParam: UpdateGeneralSettingModel = {
-      parameters: this.climsoftv4Setting.parameters
-    }
-
-    this.generalSettingsService.update(this.climsoftv4Setting.id, settingParam).subscribe((data) => {
-      if (data) {
-        this.pagesDataService.showToast({ title: 'V4 Connection Settings', message: `V4 Connection Settings updated`, type: ToastEventTypeEnum.SUCCESS });
-      }
-    });
-
   }
 
   protected onConnectToV4DBClick(): void {

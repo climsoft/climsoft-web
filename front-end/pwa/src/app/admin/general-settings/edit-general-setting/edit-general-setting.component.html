@@ -14,10 +14,8 @@
     <div *ngIf="setting.parameters" class="mt-2 card border-0">
       <div class="card-header fw-bold">Parameters</div>
       <div class="card-body">
-        
-        <app-climsoft-v4-db *ngIf="setting.id === 1" [settingParameter]="setting.parameters" />
-        <app-climsoft-boundary *ngIf="setting.id === 2" [settingParameter]="setting.parameters" />
-        <app-climsoft-display-timezone *ngIf="setting.id === 3" [settingParameter]="setting.parameters" />
+        <app-climsoft-boundary *ngIf="setting.id === 1" [settingParameter]="setting.parameters" />
+        <app-climsoft-display-timezone *ngIf="setting.id === 2" [settingParameter]="setting.parameters" />
       </div>
     </div>
 
