@@ -5,7 +5,7 @@
         Count: {{ stationViews.length | number:'1.0-0' }}
       </div>
       <div class="mb-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.openDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.showDialog()">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />

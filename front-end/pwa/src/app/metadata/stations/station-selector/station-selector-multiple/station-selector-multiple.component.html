@@ -1,6 +1,6 @@
 <app-selector-multiple-input [id]="id" [label]="label" [placeholder]="placeholder" [displayAdvancedSearchOption]="true"
     [errorMessage]="errorMessage" [options]="stations" [optionDisplayFn]="optionDisplayFunction"
     [(selectedOptions)]="selectedStations" (selectedOptionsChange)="onSelectedOptionsChange($event)"
-    (displayAdvancedSearchOptionClick)="stationsSearch.openDialog()" />
+    (displayAdvancedSearchOptionClick)="stationsSearch.showDialog()" />
 
 <app-stations-search-dialog #stationsSearch (searchedIdsChange)="onAdvancedSearchInput($event)" />

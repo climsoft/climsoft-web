@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
@@ -6,6 +6,7 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourcesCacheService } from '../services/sources-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';
+import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 
 interface ViewSource extends ViewSourceModel {
   // Applicable to form source only
@@ -18,7 +19,10 @@ interface ViewSource extends ViewSourceModel {
   styleUrls: ['./view-sources.component.scss']
 })
 export class ViewSourcesComponent implements OnDestroy {
+  @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
+
   protected sources!: ViewSource[];
+  protected selectedSource!: ViewSource;
 
   private destroy$ = new Subject<void>();
 
@@ -37,7 +41,7 @@ export class ViewSourcesComponent implements OnDestroy {
     ).subscribe((sources) => {
 
       this.sources = sources.map(item => {
-        return { ...item, assignedStations: 3 }
+        return { ...item, assignedStations: 0 }
       });
 
       this.stationFormsService.getStationCountPerForm().pipe(
@@ -55,7 +59,6 @@ export class ViewSourcesComponent implements OnDestroy {
     });
 
   }
-
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -101,11 +104,24 @@ export class ViewSourcesComponent implements OnDestroy {
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
   }
 
-  protected onAssignFormToStationsClick(formSource: ViewSource, stationIds: string[]): void {
-    this.stationFormsService.putStationsAssignedToUseForm(formSource.id, stationIds).pipe(
-      take(1)
-    ).subscribe(data => {
-      formSource.assignedStations = data.length;
+
+  protected onAssignStationsClicked(selectedSource: ViewSource) {
+    this.selectedSource = selectedSource;
+    this.stationFormsService.getStationsAssignedToUseForm(selectedSource.id).pipe(
+      take(1),
+    ).subscribe((data) => {
+      this.appStationSearchDialog.showDialog(data);
     });
   }
+
+  protected onAssignFormToStationsInput(stationIds: string[]): void {
+    this.stationFormsService.putStationsAssignedToUseForm(this.selectedSource.id, stationIds).pipe(
+      take(1)
+    ).subscribe(data => {
+      this.selectedSource.assignedStations = data.length;
+    });
+  }
+
+
+
 }

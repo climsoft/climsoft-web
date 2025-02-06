@@ -42,14 +42,13 @@
           <td (click)="onEditSource(source)">{{ source.description }}</td> 
           <td>
             <div *ngIf="source.sourceType === 'form' " class="d-flex align-items-center">
-              <button class="btn btn-outline-secondary btn-sm" (click)="stationSearch.openDialog()">Assign Stations</button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="onAssignStationsClicked(source)">Assign Stations</button>
               <div class="ms-2">{{ source.assignedStations }}</div>
             </div>
-            <app-stations-search-dialog #stationSearch (searchedIdsChange)="onAssignFormToStationsClick(source, $event)" />
           </td> 
         </tr>
       </tbody>
     </table>
-   
+        <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignFormToStationsInput( $event)" />
   </div>
 </div>
