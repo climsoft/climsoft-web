@@ -92,11 +92,25 @@ For production deployment with Docker containers for PWA, API and PostgreSQL, fo
 ### Setup   
 1. **Install and Initialse Application**:
    Using your terminal commands to navigate to the directory of your choice and within the directory execute the following commands to download the latest [docker-compose.prod.yaml](https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml) file and initialise the PWA, API and PostgreSQL containers:
-   ```bash
+   ```
    Invoke-WebRequest -Uri https://github.com/climsoft/climsoft-web/releases/download/v1.0.0-latest/docker-compose.prod.yaml -OutFile "docker-compose.prod.yaml"
    $Env:HOST_IP_ADDRESS = Read-Host -Prompt "Enter host IP address"
-   $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port"
-   $Env:DB_PASSWORD = Read-Host -Prompt "Enter database password"
+   $Env:HOST_HTTP_PORT = Read-Host -Prompt "Enter host HTTP port for Climsoft web"
+   $Env:DB_PASSWORD = Read-Host -Prompt "Enter Climsoft web database password"
+   $Env:V4_SAVE = Read-Host -Prompt "Save to Climsoft V4 database? yes or no"
+   if ($Env:V4_SAVE -eq "yes") {
+    $Env:V4_DB_PORT = Read-Host -Prompt "Enter Climsoft V4 database port"
+    $Env:V4_DB_NAME = Read-Host -Prompt "Enter Climsoft V4 database name"
+    $Env:V4_DB_USERNAME = Read-Host -Prompt "Enter Climsoft V4 database username"
+    $Env:V4_DB_PASSWORD = Read-Host -Prompt "Enter Climsoft V4 database password"
+    $Env:V4_DB_UTCOFFSET = Read-Host -Prompt "Enter Climsoft V4 database UTC offset"
+   } else {
+    $Env:V4_DB_PORT = ""
+    $Env:V4_DB_NAME = ""
+    $Env:V4_DB_USERNAME = ""
+    $Env:V4_DB_PASSWORD = ""
+    $Env:V4_DB_UTCOFFSET = ""
+   }   
    docker-compose -f docker-compose.prod.yaml up
    ```
    For local access to the application you can use `localhost` as your host IP address and `8080` as your host http port number.
