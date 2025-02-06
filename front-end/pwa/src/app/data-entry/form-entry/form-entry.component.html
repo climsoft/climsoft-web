@@ -35,7 +35,7 @@
         <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
           <div class="fw-bold p-1 form-header">Fields</div>
           <div>
-            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Add Extra Info', 'Settings']"
+            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Extra Info', 'Settings']"
               (dropDownOptionClick)="onOptions($event)" [translateX]="true" [buttonText]="'Options'" />
             <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
             <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormSettingsChange($event)" />

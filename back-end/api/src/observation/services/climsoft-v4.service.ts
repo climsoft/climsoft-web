@@ -100,7 +100,12 @@ export class ClimsoftV4Service {
             let port: number;
             let utcOffset: number;
 
-            if (process.env.V4_SAVE && process.env.V4_DB_USERNAME && process.env.V4_DB_PASSWORD && process.env.V4_DB_NAME && process.env.V4_DB_PORT && process.env.V4_DB_UTCOFFSET) {
+            if (process.env.V4_SAVE !== undefined && 
+                process.env.V4_DB_USERNAME  !== undefined && 
+                process.env.V4_DB_PASSWORD !== undefined && 
+                process.env.V4_DB_NAME!== undefined && 
+                process.env.V4_DB_PORT !== undefined && 
+                process.env.V4_DB_UTCOFFSET!== undefined) {
                 console.log('Setting up production mode v4 settings.');
                 v4Save = process.env.V4_SAVE === 'yes';
                 host = 'host.docker.internal';

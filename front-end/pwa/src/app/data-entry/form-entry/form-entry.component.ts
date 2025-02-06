@@ -281,7 +281,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Updates its internal state depending on the options passed
    * @param option  'Same Input' | 'Clear Input' | 'Add Extra Info' | 'Settings'
    */
-  protected onOptions(option: 'Same Input' | 'Clear Input' | 'Add Extra Info' | 'Settings'): void {
+  protected onOptions(option: 'Same Input' | 'Clear Input' | 'Extra Info' | 'Settings'): void {
     switch (option) {
       case 'Same Input':
         this.openSameInputDialog = true;
@@ -289,7 +289,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       case 'Clear Input':
         this.clear();
         break;
-      case 'Add Extra Info':
+      case 'Extra Info':
         this.displayExtraInfoOption = !this.displayExtraInfoOption;
         break;
       case 'Settings':
