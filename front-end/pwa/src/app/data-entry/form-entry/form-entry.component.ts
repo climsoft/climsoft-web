@@ -19,6 +19,8 @@ import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSet
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 import { ObservationDefinition } from './defintions/observation.definition';
+import { LnearLayoutComponent } from './linear-layout/linear-layout.component';
+import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 
 @Component({
   selector: 'app-form-entry',
@@ -26,6 +28,8 @@ import { ObservationDefinition } from './defintions/observation.definition';
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit, OnDestroy {
+  @ViewChild('appLinearLayout') linearLayoutComponent!: LnearLayoutComponent;
+  @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent; 
   @ViewChild('saveButton') saveButton!: ElementRef;
 
   /** Station details */
@@ -145,8 +149,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-
 
   /**
    * Used to determine whether to display element selector 
@@ -307,6 +309,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         obsDef.updateCommentInput(input.comment);
       }
     }
+
+    if(this.linearLayoutComponent){
+      this.linearLayoutComponent.sameInput(input.valueFlag, input.comment);
+    }
+    
+    if(this.gridLayoutComponent){
+      this.gridLayoutComponent.sameInput(input.valueFlag, input.comment);
+    }
  
   }
 
@@ -314,12 +324,21 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   * Clears all the observation value flags if they are not cleared and updates its internal state
   */
   private clear(): void {
-    for (const obsDef of this.formDefinitions.allObsDefs) {
-      // Clear the value flag input
-      obsDef.updateValueFlagFromUserInput('');
-      obsDef.updateCommentInput('');
-      obsDef.updatePeriodInput(this.formDefinitions.formMetadata.period);
-    };
+    // for (const obsDef of this.formDefinitions.allObsDefs) {
+    //   // Clear the value flag input
+    //   obsDef.updateValueFlagFromUserInput('');
+    //   obsDef.updateCommentInput('');
+    //   obsDef.updatePeriodInput(this.formDefinitions.formMetadata.period);
+    
+    // };
+
+    if(this.linearLayoutComponent){
+      this.linearLayoutComponent.clear();
+    }
+    
+    if(this.gridLayoutComponent){
+      this.gridLayoutComponent.clear();
+    }
   }
 
   protected onUserFormSettingsChange(userFormSettings: UserFormSettingStruct): void {

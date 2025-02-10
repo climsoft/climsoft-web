@@ -33,27 +33,19 @@ export class DateInputComponent implements OnChanges {
   }
 
   protected onValueChange(value: string) {
-    if (value) {
-      this.valueChange.emit(value);
-    }
+    this.valueChange.emit(value ? value : null);
   }
 
   protected onInputClick(): void {
-    if (this.value) {
-      this.inputClick.emit(this.value);
-    }
+    this.inputClick.emit(this.value ? this.value : null);
   }
 
   protected onEnterKeyPressed() {
-    if (this.value) {
-      this.inputEnterKeyPress.emit(this.value);
-    }
+    this.inputEnterKeyPress.emit(this.value ? this.value : null);
   }
 
   protected onInputBlur() {
-    if (this.value) {
-      this.inputBlur.emit(this.value);
-    }
+    this.inputBlur.emit(this.value ? this.value : null);
   }
 
   protected onPrevious(): void {
@@ -61,7 +53,6 @@ export class DateInputComponent implements OnChanges {
     newCalculatedDate.setDate(newCalculatedDate.getDate() - 1);
 
     this.value = newCalculatedDate.toISOString().slice(0, 10);
-    console.log('next: ', this.value);
     this.valueChange.emit(this.value);
     this.setNextButtonDisabledState();
   }
@@ -76,7 +67,6 @@ export class DateInputComponent implements OnChanges {
     }
 
     this.value = newCalculatedDate.toISOString().slice(0, 10);
-    console.log('previous: ', this.value);
     this.valueChange.emit(this.value);
     this.setNextButtonDisabledState();
   }

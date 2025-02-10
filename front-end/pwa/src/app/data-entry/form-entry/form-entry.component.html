@@ -46,14 +46,14 @@
 
         <div class="mt-2 mx-2">
           <!-- list layout -->
-          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
+          <app-linear-layout #appLinearLayout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
             [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
             [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
             (userInputVF)="onUserInputVF($event)" />
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [userFormSettings]="userFormSettings"
+          <app-grid-layout #appGridLayout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [userFormSettings]="userFormSettings"
             [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
             [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
             (userInputVF)="onUserInputVF($event)" (focusSaveButton) = "onFocusSaveButton()">

@@ -47,7 +47,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected activeTab: 'new' | 'history' = 'new';
 
   // These variables are needed because they are set in a dialog 
-  protected valueFlagInput: string = '';
+
   protected periodInDays: number | null = null;
   protected disablePeriodEditing: boolean = false;
   protected comment!: string | null;
@@ -56,17 +56,8 @@ export class ValueFlagInputComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.observationDefinition) {
-      // Get the value flag from database
-      this.valueFlagInput = this.observationDefinition.getvalueFlagForDisplay();
 
-      // Disable period editing if the observation is already cumulative
-      this.disablePeriodEditing = this.observationDefinition.existsInDatabase ;
-
-      // Get period in days for data that has a period of a day or greater
-      this.periodInDays = this.observationDefinition.period >= 1440 ? NumberUtils.roundOff(this.observationDefinition.period / 1440, 4) : null;
-      
-      // Get the comment from database
-      this.comment = this.observationDefinition.comment;
+      this.resetInternals();
 
       // If not declared as disabled then disable any future data entry
       if (!this.disableValueFlagEntry) {
@@ -81,6 +72,39 @@ export class ValueFlagInputComponent implements OnChanges {
 
   public focus(): void {
     this.textInputComponent.focus();
+  }
+
+  public clear(): void {
+    if (this.disableValueFlagEntry) {
+      return;
+    }
+    this.observationDefinition.updateValueFlagFromUserInput('');
+    this.observationDefinition.updateCommentInput('');
+    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.resetInternals();
+    this.userInputVF.emit(this.observationDefinition);
+  }
+
+  public onSameValueInput(valueFlagInput: string, comment: string | null): void {
+    if (this.disableValueFlagEntry) {
+      return;
+    }
+    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
+    this.observationDefinition.updateCommentInput(comment);
+    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.resetInternals();
+    this.userInputVF.emit(this.observationDefinition);
+  }
+
+  private resetInternals(): void {
+    // Disable period editing if the observation is already cumulative
+    this.disablePeriodEditing = this.observationDefinition.existsInDatabase;
+
+    // Get period in days for data that has a period of a day or greater
+    this.periodInDays = this.observationDefinition.period >= 1440 ? NumberUtils.roundOff(this.observationDefinition.period / 1440, 4) : null;
+
+    // Get the comment from database
+    this.comment = this.observationDefinition.comment;
   }
 
   /**
@@ -99,9 +123,8 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
-    if (!this.valueFlagInput) {
-      this.valueFlagInput = 'M';
-      this.onInputEntry(this.valueFlagInput);
+    if (!this.observationDefinition.valueFlagInput) {
+      this.onInputEntry('M');
     }
 
     // Emit the enter key press event
@@ -129,8 +152,9 @@ export class ValueFlagInputComponent implements OnChanges {
       const newPeriodInMins: number = this.periodInDays * 1440;
       if (newPeriodInMins > this.observationDefinition.period) {
         this.observationDefinition.updatePeriodInput(newPeriodInMins);
-        this.valueFlagInput = this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`;
-        this.observationDefinition.updateValueFlagFromUserInput(this.valueFlagInput);
+        this.observationDefinition.updateValueFlagFromUserInput(
+          this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`
+        )
         bValueChanged = true
       }
     }

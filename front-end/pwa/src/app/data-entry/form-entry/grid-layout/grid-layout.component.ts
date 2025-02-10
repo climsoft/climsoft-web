@@ -4,6 +4,7 @@ import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
+import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 
 @Component({
   selector: 'app-grid-layout',
@@ -13,7 +14,7 @@ import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.co
 export class GridLayoutComponent implements OnChanges {
   // Collect all input elements in the table
   @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
-  @ViewChildren(ValueFlagInputComponent) totalComponents!: QueryList<ValueFlagInputComponent>;
+  @ViewChildren(NumberInputComponent) totalComponents!: QueryList<NumberInputComponent>;
 
   @Input() public userFormSettings!: UserFormSettingStruct;
 
@@ -132,8 +133,8 @@ export class GridLayoutComponent implements OnChanges {
     let currentInputIndex: number;
     let nextInputIndex: number;
 
-     // If total input is required and it's the last row then just focus the total component in the column
-    if (this.formDefinitions.formMetadata.requireTotalInput && rowIndex === totalRows - 1 ) {
+    // If total input is required and it's the last row then just focus the total component in the column
+    if (this.formDefinitions.formMetadata.requireTotalInput && rowIndex === totalRows - 1) {
       const nextInput = this.totalComponents.get(colIndex);
       if (nextInput) {
         nextInput.focus();
@@ -149,14 +150,14 @@ export class GridLayoutComponent implements OnChanges {
       // If it's the last row, the first vf component of the next column should be next input's index
       nextInputIndex = colIndex + 1;
     } else {
-       // Calculate the current input's index
+      // Calculate the current input's index
       currentInputIndex = rowIndex * totalColumns + colIndex;
-       // Calculate the next input's index (same column, next row)
+      // Calculate the next input's index (same column, next row)
       nextInputIndex = currentInputIndex + totalColumns;
     }
 
     //console.log('nextInputIndex', nextInputIndex)
-    
+
     // Get the next input and set focus if it exists
     const nextInput = this.vfComponents.get(nextInputIndex);
 
@@ -165,14 +166,14 @@ export class GridLayoutComponent implements OnChanges {
         // If vf component is disabled and it's the last column then just focus the save button
         if (colIndex === totalColumns - 1) {
           // Go save button
-          this.focusSaveButton.emit(); 
+          this.focusSaveButton.emit();
           return;
         } else {
-           // If vf component is the last column then just focus the first vf component of the next column ;
-         const newNextInput = this.vfComponents.get(colIndex + 1);
+          // If vf component is the last column then just focus the first vf component of the next column ;
+          const newNextInput = this.vfComponents.get(colIndex + 1);
           if (newNextInput) {
             newNextInput.focus();
-          }        
+          }
         }
       } else {
         nextInput.focus();
@@ -189,7 +190,7 @@ export class GridLayoutComponent implements OnChanges {
     // If it's the last row and column then focus the save button
     if (colIndex == totalColumns - 1) {
       // Go to save buton
-      this.focusSaveButton.emit(); 
+      this.focusSaveButton.emit();
       return;
     }
 
@@ -199,7 +200,18 @@ export class GridLayoutComponent implements OnChanges {
       nextInput.focus();
     }
 
+  }
 
+  public clear(): void {
+    this.vfComponents.forEach(component => {
+      component.clear();
+    })
+  }
+
+  public sameInput(valueFlag: string, comment: string| null): void {
+    this.vfComponents.forEach(component => {
+      component.onSameValueInput(valueFlag, comment);
+    })
   }
 
 

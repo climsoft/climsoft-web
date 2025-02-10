@@ -1,5 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges, ViewChild } from '@angular/core';
 import { StringUtils } from '../../utils/string.utils';
+import { TextInputComponent } from '../text-input/text-input.component';
 
 
 @Component({
@@ -8,6 +9,7 @@ import { StringUtils } from '../../utils/string.utils';
   styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnChanges {
+   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
   @Input() public id!: string | number;
   @Input() public label!: string;
   @Input() public disabled!: boolean;
@@ -34,6 +36,10 @@ export class NumberInputComponent implements OnChanges {
     } else if (changes['value'] && this.value !== null && StringUtils.containsNumbersOnly(this.value.toString())) {
       this.numValue = +this.value;
     }
+  }
+
+  public focus(): void {
+    this.textInputComponent.focus();
   }
 
   protected onValueChange(value: string) {

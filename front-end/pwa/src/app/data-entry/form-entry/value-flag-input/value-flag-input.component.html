@@ -1,6 +1,6 @@
 <ng-container *ngIf="observationDefinition">
     <app-text-input #appTextInput [id]="id" [label]="label" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
-        [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
+        [value]="observationDefinition.valueFlagInput" [dropDownOptionMaxHeight]="300"
         [errorMessage]="observationDefinition.validationErrorMessage"
         [warningMessage]="observationDefinition.validationWarningMessage"
         [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"
