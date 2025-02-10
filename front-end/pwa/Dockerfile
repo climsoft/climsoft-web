@@ -23,7 +23,7 @@ FROM nginx:1.27.1-alpine AS final-stage
 COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
 # Copy climsoft front end custom nginx.conf to the container's configuration directory
-COPY nginx.conf /etc/nginx/nginx.conf
+#COPY nginx.conf /etc/nginx/nginx.conf
 
 # Copy and execute an entrypoint script to dynamically create config.json
 COPY entrypoint.sh /entrypoint.sh
