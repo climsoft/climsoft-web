@@ -9,8 +9,11 @@ export class StationFormEntity extends AppBaseEntity {
     @PrimaryColumn({ type: "varchar" ,name: "station_id"})
     stationId: string;
 
-    @PrimaryColumn({ type: "int", name:"source_id" })
-    sourceId: number;
+    // Note. 
+    // This will always be a form source that's why form_id is used instead of source_id. 
+    // To explicitly self document that it's not just any other source
+    @PrimaryColumn({ type: "int", name:"form_id" })
+    formId: number; 
 
     // ManyToOne relationship with StationEntity
     @ManyToOne(() => StationEntity, { onDelete: "CASCADE" })
@@ -19,7 +22,7 @@ export class StationFormEntity extends AppBaseEntity {
 
     // ManyToOne relationship with SourceEntity
     @ManyToOne(() => SourceEntity, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "source_id" })
+    @JoinColumn({ name: "form_id" })
     source: SourceEntity;
   
 }

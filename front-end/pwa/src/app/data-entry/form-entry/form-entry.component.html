@@ -1,7 +1,15 @@
 <div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
-    <div class="card-title fw-bold my-1 form-header">{{source.name}} data entry for {{station.id}} - {{station.name}}
+    <div class="d-flex justify-content-between">
+      <div class="card-title fw-bold my-1 form-header">{{source.name}} data entry for {{station.id}} - {{station.name}}  </div>
+      <div>
+        <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Fields','Extra Info', 'Settings']"
+          (dropDownOptionClick)="onOptions($event)" [translateX]="true" [buttonText]="'Options'" />
+        <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
+        <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormSettingsChange($event)" />
+      </div>
     </div>
+  
     <!-- entry selectors -->
     <div class="card border-0 ">
       <div class="card-body p-0">
@@ -17,7 +25,7 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayYearMonthSelector">
-            <app-year-month-input [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
+            <app-year-month-input [label]="'Year & Month'" [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
@@ -34,24 +42,18 @@
       <div class="card-body p-0">
         <div class="card-header d-flex justify-content-between px-1 py-0 align-items-center">
           <div class="fw-bold p-1 form-header">Fields</div>
-          <div>
-            <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Input','Add Extra Info', 'Settings']"
-              (dropDownOptionClick)="onOptions($event)" [translateX]="true" [buttonText]="'Options'" />
-            <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
-            <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormSettingsChange($event)" />
-          </div>
         </div>
 
         <div class="mt-2 mx-2">
           <!-- list layout -->
-          <app-linear-layout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
+          <app-linear-layout #appLinearLayout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
             [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
             [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
             (userInputVF)="onUserInputVF($event)" />
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [userFormSettings]="userFormSettings"
+          <app-grid-layout #appGridLayout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [userFormSettings]="userFormSettings"
             [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
             [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
             (userInputVF)="onUserInputVF($event)" (focusSaveButton) = "onFocusSaveButton()">

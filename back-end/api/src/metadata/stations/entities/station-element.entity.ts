@@ -19,6 +19,9 @@ export class StationElementEntity extends AppBaseEntity {
     @Column({ type: "jsonb", name: "month_limits", nullable: true })
     monthLimits: StationElementLimit[] | null;
 
+    @Column({ name: "comment", type: 'varchar', nullable: true })
+    comment: string | null;
+
     @Column({ type: "jsonb", nullable: true })
     log: StationElementEntityLogVo[] | null;
 

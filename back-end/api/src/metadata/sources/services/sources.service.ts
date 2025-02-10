@@ -139,6 +139,7 @@ export class SourcesService {
             scaleValues: entity.scaleValues
         }
 
+        // TODO. Remove this block. Forms can now use cached elements and reconstruct this on the front end
         if (dto.sourceType == SourceTypeEnum.FORM) {
             const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
             const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({ elementIds: createEntryFormDTO.elementIds });

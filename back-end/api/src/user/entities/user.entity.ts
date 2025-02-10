@@ -1,6 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { UserRoleEnum } from "../enums/user-roles.enum";
 
+// TODO. Add a check for empty name and password to enofrce non empty.
+
 @Entity("users")
 export class UserEntity {
 
@@ -25,7 +27,7 @@ export class UserEntity {
   @Column({ type: "varchar", array: true, name: "authorised_station_ids", nullable: true })
   authorisedStationIds: string[] | null; 
 
-  @Column({ name: "can_download_data", type: "boolean", default: false })
+  @Column({ name: "can_download_data", type: "boolean", default: false }) // TODO. Remove the default. Not necessary
   canDownloadData: boolean;
 
   @Column({ type: "int", array: true, name: "authorised_element_ids", nullable: true })
@@ -36,6 +38,9 @@ export class UserEntity {
 
   @Column({ type: "boolean", default: false })
   disabled: boolean;
+
+  @Column({ name: "comment", type: 'varchar', nullable: true })
+  comment: string | null;
 
   //for consistency in date time storage. 
   // This should be set at application level instead of relying on typeorm and database

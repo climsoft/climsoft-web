@@ -1,9 +1,11 @@
-import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { FormEntryDefinition } from '../defintions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintions/field.definition';
 import { ObservationDefinition } from '../defintions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
+import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
+import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 
 @Component({
   selector: 'app-linear-layout',
@@ -11,6 +13,9 @@ import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.
   styleUrls: ['./linear-layout.component.scss']
 })
 export class LnearLayoutComponent implements OnChanges {
+  @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
+  @ViewChild('appTotal') totalComponent!: NumberInputComponent;
+
   @Input()
   public userFormSettings!: UserFormSettingStruct;
 
@@ -126,6 +131,18 @@ export class LnearLayoutComponent implements OnChanges {
 
     // If no error, then emit true. If error detected emit false
     this.totalIsValid.emit(this.totalErrorMessage === '');
+  }
+
+  public clear(): void {
+    this.vfComponents.forEach(component => {
+      component.clear();
+    })
+  }
+
+  public sameInput(valueFlag: string, comment: string | null): void {
+    this.vfComponents.forEach(component => {
+      component.onSameValueInput(valueFlag, comment);
+    })
   }
 
 

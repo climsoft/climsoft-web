@@ -1,9 +1,6 @@
 import { Component } from '@angular/core';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ClimsoftV4Service } from './services/climsoft-v4.service';
-import { CreateViewGeneralSettingModel } from '../general-settings/models/create-view-general-setting.model';
-import { GeneralSettingsService } from '../general-settings/services/general-settings.service';
-import { UpdateGeneralSettingModel } from '../general-settings/models/update-general-setting.model';
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { take } from 'rxjs';
 
@@ -13,60 +10,59 @@ import { take } from 'rxjs';
   styleUrls: ['./climsoft-v4.component.scss']
 })
 export class ClimsoftV4Component {
-  protected activeTab: 'connection' | 'data' = 'connection'; 
   protected unsavedObservations: number = 0;
   protected connectedToV4DB: boolean = false;
+  protected v4Conflicts: string[] = [];
 
   constructor(
-    private pagesDataService: PagesDataService, 
+    private pagesDataService: PagesDataService,
     private climsoftV4Service: ClimsoftV4Service,
     private observationsService: ObservationsService,
   ) {
     this.pagesDataService.setPageHeader('Climsoft V4 Status');
-  }
 
-  protected onTabClick(selectedTab: 'connection' | 'data'): void {
-    this.activeTab = selectedTab;
-    if (selectedTab === 'data') {
-      this.checkStates();
-    }
-  }
+    // Check the connection state
+    this.checkConnectionState();
 
-  private checkStates(): void {
-    // Get the connection state
-    this.climsoftV4Service.getConnectionState().pipe(take(1)).subscribe((data) => {
-      if (data.message === 'success') {
-        this.connectedToV4DB = true;
-      } else if (data.message === 'error') {
-        this.connectedToV4DB = false;
-      }
-    });
-
+    // Count unsaved observations
     this.observationsService.countObsNotSavedToV4().pipe(take(1)).subscribe((data) => {
       this.unsavedObservations = data;
+    });
+
+  }
+
+  private checkConnectionState(): void {
+    this.climsoftV4Service.getConnectionState().pipe(take(1)).subscribe((data) => {
+      this.connectedToV4DB = data.message === 'success';
+      if (this.connectedToV4DB) {
+        // Get V4 conflicts
+        this.climsoftV4Service.getV4Conflicts().pipe(take(1)).subscribe((data) => {
+          this.v4Conflicts = data;
+        });
+      } else {
+        this.v4Conflicts = [];
+      }
     });
   }
 
   protected onConnectToV4DBClick(): void {
     this.climsoftV4Service.connectToV4DB().pipe(take(1)).subscribe((data) => {
+      this.checkConnectionState();
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
-        this.connectedToV4DB = true;
       } else if (data.message === 'error') {
         this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
-        this.connectedToV4DB = false;
       }
     });
   }
 
   protected onDisconnectToV4DBClick(): void {
     this.climsoftV4Service.disconnectToV4DB().pipe(take(1)).subscribe((data) => {
+      this.checkConnectionState();
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB successful`, type: ToastEventTypeEnum.SUCCESS });
-        this.connectedToV4DB = true;
       } else if (data.message === 'error') {
         this.pagesDataService.showToast({ title: 'V4 DB Connection', message: `Connection to V4 DB NOT successful`, type: ToastEventTypeEnum.ERROR });
-        this.connectedToV4DB = false;
       }
     });
   }
@@ -93,11 +89,9 @@ export class ClimsoftV4Component {
 
   protected onSaveObservationsClick(): void {
     this.climsoftV4Service.saveObservations().pipe(take(1)).subscribe((data) => {
+      this.checkConnectionState();
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 initiated`, type: ToastEventTypeEnum.SUCCESS });
-      } else if (data.message === 'error') {
-        // This will never be called. TODO remove or ammend this block
-        this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 not initiated`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }

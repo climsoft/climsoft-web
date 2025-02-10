@@ -23,44 +23,48 @@ export class StationsSearchDialogComponent {
   protected activeTab: 'new' | 'history' = 'history';
   protected previousSearches!: StationSearchHistoryModel[];
   protected stationsSelections!: StationSearchModel[];
-  protected searchedIds: string[] = [];
+
   protected searchName: string = '';
   protected saveSearch: boolean = false;
+  protected numOfSelectedIds: number = 0;
 
-  constructor(private stationsCacheService: StationsCacheService) { 
+  constructor(private stationsCacheService: StationsCacheService) {
   }
 
-  public openDialog(): void {
-    this.loadSearchHistory();
+  public showDialog(selectedIds?: string[]): void {
     this.open = true;
+    if (selectedIds && selectedIds.length > 0) {
+      this.setStationSelections(selectedIds);
+      this.activeTab = 'new';
+    } else {
+      this.loadSearchHistory();
+    }
   }
- 
+
   private async loadSearchHistory(): Promise<void> {
     this.previousSearches = await AppDatabase.instance.stationsSearchHistory.toArray();
   }
 
   protected onTabChange(selectedTab: 'new' | 'history'): void {
-    this.searchedIds = [];
     this.searchName = '';
     this.saveSearch = false;
-    if(selectedTab === 'new'){
-      this.loadStationSelections();
+    if (selectedTab === 'new') {
+      this.setStationSelections([]);
     }
-   
+
     this.activeTab = selectedTab;
-   }
+  }
 
   protected onPreviousSearchSelected(selectedSearch: StationSearchHistoryModel): void {
-    this.searchedIds = selectedSearch.stationIds;
     this.searchName = selectedSearch.name;
+    this.setStationSelections(selectedSearch.stationIds);
   }
 
   protected onEditPreviousSearch(selectedSearch: StationSearchHistoryModel): void {
-    this.onIdsSelected(selectedSearch.stationIds);
-    this.onSearchNameInput(selectedSearch.name);
+    this.searchName = selectedSearch.name;
     this.saveSearch = selectedSearch.name ? true : false;
 
-    this.loadStationSelections();
+    this.setStationSelections(selectedSearch.stationIds);
     this.sortStationSelectionBySelected();
     this.activeTab = 'new';
   }
@@ -70,16 +74,7 @@ export class StationsSearchDialogComponent {
     this.loadSearchHistory();
   }
 
-  private loadStationSelections(): void {
-    this.stationsCacheService.cachedStations.pipe(take(1)).subscribe(stations => {
-      this.stationsSelections = stations.map(station => {
-        return {
-          station: station,
-          selected: this.searchedIds.includes(station.id),
-        };
-      });
-    });
-  }
+
 
   protected onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
@@ -118,15 +113,37 @@ export class StationsSearchDialogComponent {
 
   protected onStationSelected(stationSelection: StationSearchModel): void {
     stationSelection.selected = !stationSelection.selected;
-    this.setSearchedIdsFromStationSelections()
   }
 
   private selectAll(select: boolean): void {
     for (const item of this.stationsSelections) {
       item.selected = select;
     }
+  }
 
-    this.setSearchedIdsFromStationSelections()
+  protected onSearchNameInput(searchName: string): void {
+    this.searchName = searchName;
+  }
+
+  protected onOkClick(): void {
+    const searchedIds: string[] = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
+    if (this.searchName && searchedIds.length > 0) {
+      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: searchedIds });
+    }
+    this.searchedIdsChange.emit(searchedIds);
+  }
+
+  private setStationSelections(searchedIds: string[]): void {
+    this.stationsCacheService.cachedStations.pipe(take(1)).subscribe(stations => {
+      this.stationsSelections = stations.map(station => {
+        return {
+          station: station,
+          selected: searchedIds.includes(station.id),
+        };
+      });
+      // Set number of selected ids
+      this.numOfSelectedIds = this.stationsSelections.filter(item => item.selected).length;
+    });
   }
 
   private sortStationSelectionBySelected(): void {
@@ -137,26 +154,6 @@ export class StationsSearchDialogComponent {
       }
       return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
     });
-  }
-
-  private setSearchedIdsFromStationSelections(): void {
-    this.onIdsSelected(this.stationsSelections.filter(item => item.selected).map(item => item.station.id));
-  }
-
-  private onIdsSelected(searchedIds: string[]): void {
-    this.searchedIds = searchedIds;
-  }
-
-  protected onSearchNameInput(searchName: string): void {
-    this.searchName = searchName;
-  }
-
-  protected onOkClick(): void {
-    if (this.searchedIds.length > 0 && this.searchName) {
-      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });
-    }
-
-    this.searchedIdsChange.emit(this.searchedIds);
   }
 
 }

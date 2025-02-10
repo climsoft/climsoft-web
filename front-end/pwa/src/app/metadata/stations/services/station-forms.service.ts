@@ -16,7 +16,14 @@ export class StationFormsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-forms`;
   }
 
-  public find(stationId: string): Observable<ViewSourceModel[]> {
+  public getStationCountPerForm(): Observable<{ formId: number; stationCount: number }[]> {
+    return this.http.get<{ formId: number; stationCount: number }[]>( `${this.endPointUrl}/stations-count-per-form`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public getFormsAssignedToStations(stationId: string): Observable<ViewSourceModel[]> {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(AppDatabase.instance.stationForms.get(stationId)).pipe(
       map(localData => {
@@ -26,7 +33,7 @@ export class StationFormsService {
     );
 
     // Step 2: Observable for fetching from the server
-    const serverData$ = this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/${stationId}`).pipe(
+    const serverData$ = this.http.get<ViewSourceModel[]>(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`).pipe(
       take(1), // Ensure serverData$ emits once and completes
       tap(serverData => {
         // Save the server data to the local database. This ensures that the local database is in sync with the server database.
@@ -42,22 +49,42 @@ export class StationFormsService {
     );
   }
 
-  public update(stationId: string, formIds: number[]): Observable<number[]> {
-    const url = `${this.endPointUrl}/${stationId}`;
-    return this.http.post<number[]>(url, formIds)
+  public putFormsAssignedToStations(stationId: string, formIds: number[]): Observable<number[]> {
+    return this.http.put<number[]>(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`, formIds)
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public delete(stationId: string, formIds: number[]): Observable<number[]> {
-    const url = `${this.endPointUrl}/${stationId}`;
-    return this.http.delete<number[]>(url, { body: formIds })
+  public deleteFormsAssignedToStations(stationId: string) {
+    return this.http.delete(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`)
       .pipe(
         catchError(this.handleError)
       );
   }
+ 
+  public getStationsAssignedToUseForm(formId: number): Observable<string[]> {
+          return this.http.get<string[]>(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`)
+        .pipe(
+          catchError(this.handleError)
+        );
+    }
+    
+    public putStationsAssignedToUseForm(formId: number, stationIds: string[]): Observable<string[]> {
+      return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`, stationIds)
+        .pipe(
+          catchError(this.handleError)
+        );
+    }
 
+    public deleteStationsAssignedToUseForm(formId: number){
+      return this.http.delete(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`)
+        .pipe(
+          catchError(this.handleError)
+        );
+    }
+
+  
 
   // TODO. Push to another class 
   private handleError(error: HttpErrorResponse

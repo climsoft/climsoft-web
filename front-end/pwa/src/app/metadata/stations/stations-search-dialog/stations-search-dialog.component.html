@@ -70,8 +70,8 @@
                     <hr />
 
                     <div>
-                        <div *ngIf="searchedIds && searchedIds.length>0" class="d-flex justify-content-end pe-4">
-                            [{{ searchedIds.length | number:'1.0-0' }}]
+                        <div *ngIf="numOfSelectedIds" class="d-flex justify-content-end pe-4">
+                            [{{ numOfSelectedIds | number:'1.0-0' }}]
                         </div>
 
                         <div class="search-contents pe-1">

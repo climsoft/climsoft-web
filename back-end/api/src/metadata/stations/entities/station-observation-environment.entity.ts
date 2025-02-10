@@ -1,4 +1,4 @@
-import { AppBaseEntity } from "src/shared/entity/app-base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 /**
@@ -16,4 +16,9 @@ export class StationObservationEnvironmentEntity extends AppBaseEntity {
   @Column({ type: "varchar" })
   description: string;
 
+  @Column({ name: "comment", type: 'varchar', nullable: true })
+  comment: string | null;
+
+  @Column({ name: 'log', type: 'jsonb', nullable: true })
+  log: BaseLogVo[] | null;
 }

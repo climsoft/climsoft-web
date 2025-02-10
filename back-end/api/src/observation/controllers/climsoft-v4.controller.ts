@@ -8,17 +8,24 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 export class ClimsoftV4Controller {
   constructor(private climsoftv4Service: ClimsoftV4Service) { }
 
+  @Admin()
   @Get('connection-state')
   async checkConnectionState() {
-    const connected: boolean = await this.climsoftv4Service.getConnectionState()
+    const connected: boolean = await this.climsoftv4Service.getConnectionState();
     return { message: connected ? 'success' : 'error' };
+  }
+
+  @Admin()
+  @Get('v4-conflicts')
+  getV4Conflicts() {
+    return this.climsoftv4Service.getV4Conflicts();
   }
 
   @Admin()
   @Post('connect')
   async connect() {
     await this.climsoftv4Service.setupV4DBConnection();
-    const connected: boolean = await this.climsoftv4Service.getConnectionState()
+    const connected: boolean = await this.climsoftv4Service.getConnectionState();
     return { message: connected ? 'success' : 'error' };
   }
 
@@ -46,9 +53,8 @@ export class ClimsoftV4Controller {
   @Admin()
   @Post('save-observations')
   async saveObservations() {
-    console.log('calling save');
+    this.climsoftv4Service.resetV4Conflicts();
     await this.climsoftv4Service.saveV5ObservationstoV4DB();
-    console.log('returning success');
     return { message: 'success' };
   }
 

@@ -20,7 +20,9 @@ export class ObservationDefinition {
     /**
      * holds original value, flag, period and comment  values
      */
-    private databaseValues: string = ""; 
+    private _databaseValues: string = '';
+
+    private _existsInDatabase: boolean = false;
 
     /**
      * Determines whether to invalidate missing value input
@@ -54,6 +56,9 @@ export class ObservationDefinition {
      */
     private rangeThreshold: RangeThresholdQCTestParamsModel | undefined;
 
+    public valueFlagInput!: string;
+    public originalPeriod: number;
+
     constructor(observation: CreateObservationModel, elementMetadata: CreateViewElementModel, allowMissingValues: boolean, scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
@@ -61,13 +66,19 @@ export class ObservationDefinition {
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
 
-        // set original database values for future comparison
-        this.databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
+        this.originalPeriod = observation.period;
+        this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
+
         // validate database values
-        this.validateDBValue();
+        this.validateOriginalValue();
+
+        this._existsInDatabase = observation.value !== null || observation.flag !== null;
+        // set original database values for future comparison
+        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
+
     }
 
-    private validateDBValue(): void {
+    private validateOriginalValue(): void {
         // Validate input format validity. If there is a response then entry is invalid
         this._validationErrorMessage = this.checkInputFormatValidity(this.getvalueFlagForDisplay())
         if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
@@ -111,7 +122,7 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this.databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this._databaseValues;
     }
 
     public get comment(): string | null {
@@ -120,6 +131,10 @@ export class ObservationDefinition {
 
     public get period(): number {
         return this.observation.period;
+    }
+
+    public get existsInDatabase(): boolean {
+        return this._existsInDatabase;
     }
 
     public updateCommentInput(comment: string | null): void {
@@ -139,18 +154,18 @@ export class ObservationDefinition {
      */
     public updateValueFlagFromUserInput(newValueFlagInput: string): void {
         // Important, trim any white spaces (empty values will always be ignored)
-        const valueFlagInput: string = newValueFlagInput.trim();
+        this.valueFlagInput = newValueFlagInput.trim();
         this._validationErrorMessage = "";
         this._validationWarningMessage = "";
 
         // Validate input format validity. If there is a response then entry is invalid
-        this._validationErrorMessage = this.checkInputFormatValidity(valueFlagInput)
+        this._validationErrorMessage = this.checkInputFormatValidity(this.valueFlagInput)
         if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
             return;
         }
 
         // Extract and set the value and flag
-        const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput);
+        const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(this.valueFlagInput);
 
         // Transform the value to actual scale 
         const value: number | null = extractedScaledValFlag[0] === null ? null : this.getValueBasedOnScaleDefinition(extractedScaledValFlag[0]);
@@ -174,6 +189,7 @@ export class ObservationDefinition {
         // Set the value and flag to the observation model 
         this.observation.value = value;
         this.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
+        this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
     }
 
     private constructValueFlagForDisplayStr(value: number | null, flag: FlagEnum | null): string {

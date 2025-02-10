@@ -9,7 +9,7 @@
         [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
         [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.bg-danger]="errorMessage"
         [class.bg-warning]="warningMessage" [class.text-success]="showChanges && !errorMessage" [value]="value"
-        [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
+        [attr.min]="min" [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
         (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()"
         appSimulateTabOnEnter />
 

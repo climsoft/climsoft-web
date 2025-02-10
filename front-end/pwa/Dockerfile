@@ -22,7 +22,10 @@ FROM nginx:1.27.1-alpine AS final-stage
 # Copy built Angular files from the previous stage
 COPY --from=build-stage /app/dist/pwa /usr/share/nginx/html
 
-# Add an entrypoint script to dynamically create config.json
+# Copy climsoft front end custom nginx.conf to the container's configuration directory
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy and execute an entrypoint script to dynamically create config.json
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

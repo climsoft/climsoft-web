@@ -14,7 +14,7 @@
       <div class="app-value-flag-container"
         *ngIf="formDefinitions.formMetadata.requireTotalInput && firstIndex === this.fieldDefinitionsChunks.length - 1"
         class="row mb-2">
-        <app-number-input [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
+        <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
           [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
           (inputEnterKeyPress)="onTotalValueChange($event)" />
       </div>
@@ -30,7 +30,7 @@
       (userInputVF)="onUserInputVF($event)" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
-      <app-number-input [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
+      <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
         [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
         (inputEnterKeyPress)="onTotalValueChange($event)" />
     </div>

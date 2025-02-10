@@ -72,8 +72,8 @@ export class EditDataComponent implements OnDestroy {
       this.sourcessMetadata = data;
     });
 
-    // Get the climsoft v4 setting
-    this.generalSettingsService.findOne(3).pipe(
+    // Get the climsoft time zone display setting
+    this.generalSettingsService.findOne(2).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;

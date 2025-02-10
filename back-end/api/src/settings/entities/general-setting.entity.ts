@@ -16,6 +16,9 @@ export class GeneralSettingEntity extends AppBaseEntity {
   @Column({ name: 'parameters', type: 'jsonb' })
   parameters: SettingsParametersValidity; // will vary depending on the setting
 
+  @Column({ name: "comment", type: 'varchar', nullable: true })
+  comment: string | null;
+
   @Column({ name: 'log', type: 'jsonb', nullable: true })
   log: BaseLogVo[] | null;
 }

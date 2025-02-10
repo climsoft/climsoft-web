@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ObservationModule } from './observation/observation.module'; 
+import { ObservationModule } from './observation/observation.module';
 import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
-import { MigrationsModule } from './migrations/migrations.module'; 
+import { MigrationsModule } from './migrations/migrations.module';
 
 @Module({
   imports: [

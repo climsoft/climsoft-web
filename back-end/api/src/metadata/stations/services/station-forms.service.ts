@@ -1,8 +1,7 @@
-import { In, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { DateUtils } from "src/shared/utils/date.utils";
-import { StationFormEntity } from "../entities/station-form.entity";  
+import { StationFormEntity } from "../entities/station-form.entity";
 import { SourcesService } from "src/metadata/sources/services/sources.service";
 import { ViewSourceDto } from "src/metadata/sources/dtos/view-source.dto";
 
@@ -14,55 +13,78 @@ export class StationFormsService {
         private sourcesService: SourcesService) {
     }
 
-    public async find(stationId: string): Promise<ViewSourceDto[]> {
+    public async getFormsAssignedToStation(stationId: string): Promise<ViewSourceDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
-        const stationFormIds: number[] = stationForms.map(form => form.sourceId);
+        const stationFormIds: number[] = stationForms.map(form => form.formId);
         return stationFormIds.length > 0 ? await this.sourcesService.findSourcesByIds(stationFormIds) : [];
     }
 
-    public async save(stationId: string, formIds: number[], userId: number): Promise<number[]> {
-        //fetch existing station elements
-        const existingForms: StationFormEntity[] = await this.stationFormsRepo.find({
-            where: {
-                stationId: stationId,
-                sourceId: In(formIds),
-            }
-        });
-
-        // get existing form ids from the entities
-        const existingFormIds = existingForms.map(form => form.sourceId);
+    public async putFormsAssignedToStation(stationId: string, formIds: number[], userId: number): Promise<number[]> {
+        // Delete all station forms first
+        await this.deleteFormsAsignedToStation(stationId);
 
         //save new station forms
         const stationFormEntities: StationFormEntity[] = [];
-        for (const id of formIds) {
-            if (!existingFormIds.includes(id)) {
-                const stationFormEntity: StationFormEntity = this.stationFormsRepo.create({
-                    stationId: stationId,
-                    sourceId: id,
-                    entryUserId: userId,
-                    entryDateTime: DateUtils.getTodayDateInSQLFormat()
-                });
-
-                stationFormEntities.push(stationFormEntity);
-            }
+        for (const formId of formIds) {        
+            stationFormEntities.push(this.stationFormsRepo.create({
+                stationId: stationId,
+                formId: formId,
+                entryUserId: userId
+            }));
         }
 
-        return (await this.stationFormsRepo.save(stationFormEntities)).map(form => form.sourceId);
+        return (await this.stationFormsRepo.save(stationFormEntities)).map(form => form.formId);
     }
 
-    public async delete(stationId: string, formId: number[]): Promise<number[]> {
+    public async deleteFormsAsignedToStation(stationId: string): Promise<void> {
         //fetch existing station elements
-        const existingElements = await this.stationFormsRepo.find({
-            where: {
-                stationId: stationId,
-                sourceId: In(formId),
-            }
+        const existingElements = await this.stationFormsRepo.findBy({
+            stationId: stationId,
         });
 
-        const FormsDeleted: StationFormEntity[] = await this.stationFormsRepo.remove(existingElements);
-
-        return FormsDeleted.map(data => data.sourceId);
+        await this.stationFormsRepo.remove(existingElements);
     }
 
+    public async getStationsAssignedToUseForm(formId: number): Promise<string[]> {
+        const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ formId: formId });
+        return stationForms.map(form => form.stationId);
+    }
+
+    public async putStationsAssignedToUseForm(formId: number, stationIds: string[], userId: number): Promise<string[]> {
+        // Delete station forms first
+        await this.deleteStationsAssignedToUseForm(formId);
+        
+        // Save new station forms
+        const stationFormEntities: StationFormEntity[] = [];
+        for (const stationId of stationIds) {
+            const stationFormEntity: StationFormEntity = this.stationFormsRepo.create({
+                stationId: stationId,
+                formId: formId,
+                entryUserId: userId,
+            });
+
+            stationFormEntities.push(stationFormEntity);
+        }
+
+        return (await this.stationFormsRepo.save(stationFormEntities)).map(form => form.stationId);
+    }
+
+    public async deleteStationsAssignedToUseForm(formId: number): Promise<void> {
+        // Fetch existing station forms
+        const existingStationsForms: StationFormEntity[] = await this.stationFormsRepo.findBy({
+            formId: formId,
+        });
+
+        await this.stationFormsRepo.remove(existingStationsForms);
+    }
+
+    public async getStationCountPerForm(): Promise<{ formId: number; stationCount: number }[]> {
+        return await this.stationFormsRepo
+            .createQueryBuilder('sf') // Alias is required 
+            .select('sf.form_id', 'formId') // Directly referencing source_id
+            .addSelect('COUNT(DISTINCT sf.station_id)', 'stationCount')
+            .groupBy('sf.form_id')
+            .getRawMany();
+    }
 
 }

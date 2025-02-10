@@ -2,6 +2,8 @@ import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, Simpl
 import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { ObservationDefinition } from '../defintions/observation.definition';
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
+import { NumberUtils } from 'src/app/shared/utils/number.utils';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 /**
  * Component for data entry of observations
@@ -45,17 +47,17 @@ export class ValueFlagInputComponent implements OnChanges {
   protected activeTab: 'new' | 'history' = 'new';
 
   // These variables are needed because they are set in a dialog 
-  protected period!: number | null;
-  protected periodType!: string;
+
+  protected periodInDays: number | null = null;
+  protected disablePeriodEditing: boolean = false;
   protected comment!: string | null;
 
   constructor(private observationService: ObservationsService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.observationDefinition) {
-      this.period = this.observationDefinition.period;
-      this.periodType = 'Minutes';
-      this.comment = this.observationDefinition.comment;
+
+      this.resetInternals();
 
       // If not declared as disabled then disable any future data entry
       if (!this.disableValueFlagEntry) {
@@ -72,6 +74,39 @@ export class ValueFlagInputComponent implements OnChanges {
     this.textInputComponent.focus();
   }
 
+  public clear(): void {
+    if (this.disableValueFlagEntry) {
+      return;
+    }
+    this.observationDefinition.updateValueFlagFromUserInput('');
+    this.observationDefinition.updateCommentInput('');
+    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.resetInternals();
+    this.userInputVF.emit(this.observationDefinition);
+  }
+
+  public onSameValueInput(valueFlagInput: string, comment: string | null): void {
+    if (this.disableValueFlagEntry) {
+      return;
+    }
+    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
+    this.observationDefinition.updateCommentInput(comment);
+    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.resetInternals();
+    this.userInputVF.emit(this.observationDefinition);
+  }
+
+  private resetInternals(): void {
+    // Disable period editing if the observation is already cumulative
+    this.disablePeriodEditing = this.observationDefinition.existsInDatabase;
+
+    // Get period in days for data that has a period of a day or greater
+    this.periodInDays = this.observationDefinition.period >= 1440 ? NumberUtils.roundOff(this.observationDefinition.period / 1440, 4) : null;
+
+    // Get the comment from database
+    this.comment = this.observationDefinition.comment;
+  }
+
   /**
    * Handles input change and updates its internal state
    * @param valueFlagInput e.g '200', '200E', 'M', '
@@ -80,7 +115,6 @@ export class ValueFlagInputComponent implements OnChanges {
   protected onInputEntry(valueFlagInput: string): void {
     // Validate input format validity. If there is a response then entry is invalid
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
-    //this.valueFlagInput = this.observationDefinition.getvalueFlagForDisplay();
     this.userInputVF.emit(this.observationDefinition);
   }
 
@@ -89,7 +123,7 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onEnterKeyPressed(): void {
     // If nothing has been input then put the M flag
-    if (!this.observationDefinition.getvalueFlagForDisplay()) {
+    if (!this.observationDefinition.valueFlagInput) {
       this.onInputEntry('M');
     }
 
@@ -111,20 +145,18 @@ export class ValueFlagInputComponent implements OnChanges {
     }
   }
 
-  protected onExtraInfoChanged(): void {
+  protected onExtraInfoOkClicked(): void {
     let bValueChanged: boolean = false;
 
-    let newPeriodInMins: number | null;
-    if (this.periodType === 'Days' && this.period) {
-      newPeriodInMins = this.period * 1440;
-    } else {
-      newPeriodInMins = this.period;
-    }
-
-    if (newPeriodInMins && newPeriodInMins !== this.observationDefinition.period) {
-      this.observationDefinition.updatePeriodInput(newPeriodInMins);
-      // TODO. append cumulative flag?
-      bValueChanged = true
+    if (!this.disablePeriodEditing && this.periodInDays !== null) {
+      const newPeriodInMins: number = this.periodInDays * 1440;
+      if (newPeriodInMins > this.observationDefinition.period) {
+        this.observationDefinition.updatePeriodInput(newPeriodInMins);
+        this.observationDefinition.updateValueFlagFromUserInput(
+          this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`
+        )
+        bValueChanged = true
+      }
     }
 
     if (this.comment !== this.observationDefinition.comment) {

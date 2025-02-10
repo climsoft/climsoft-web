@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementSubdomainEntity } from "./element-subdomain.entity";
-import { AppBaseEntity } from "src/shared/entity/app-base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("element_types")
 export class ElementTypeEntity extends AppBaseEntity {
@@ -20,4 +20,10 @@ export class ElementTypeEntity extends AppBaseEntity {
     @ManyToOne(() => ElementSubdomainEntity, { onDelete: "RESTRICT" })
     @JoinColumn({ name: "subdomain_id" })
     elementSubdomain: ElementSubdomainEntity;
+
+    @Column({ name: "comment", type: 'varchar', nullable: true })
+    comment: string | null;
+
+    @Column({ name: 'log', type: 'jsonb', nullable: true })
+    log: BaseLogVo[] | null;
 }
