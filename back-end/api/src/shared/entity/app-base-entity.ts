@@ -21,7 +21,7 @@ export abstract class AppBaseEntity {
 
 
 export interface BaseLogVo {
-    entryUserId: number | null;
+    entryUserId: number;
 
     // Note, don't use Date type here because this will always be a JSON object.
     // There is no standard JSON representation of dates and therefore the JSON parser called by typeorm will always return this in a string format.

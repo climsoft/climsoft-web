@@ -7,10 +7,12 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { SourcesCacheService } from '../services/sources-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 interface ViewSource extends ViewSourceModel {
   // Applicable to form source only
   assignedStations: number;
+  sourceTypeName: string;
 }
 
 @Component({
@@ -41,7 +43,7 @@ export class ViewSourcesComponent implements OnDestroy {
     ).subscribe((sources) => {
 
       this.sources = sources.map(item => {
-        return { ...item, assignedStations: 0 }
+        return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType) , assignedStations: 0 }
       });
 
       this.stationFormsService.getStationCountPerForm().pipe(
@@ -64,6 +66,8 @@ export class ViewSourcesComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+ 
 
   protected onOptionsClicked(sourceTypeName: 'Add Form Source' | 'Add Import Source' | 'Delete All') {
     let routeName: string = '';

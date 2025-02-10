@@ -90,11 +90,7 @@ export class StationsService {
 
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
-
         this.updateEntity(entity, updateDto, userId);
-
-        console.log('entity: ', entity);
-
         return this.createViewDto(await this.stationRepo.save(entity));
     }
 
@@ -157,7 +153,7 @@ export class StationsService {
     }
 
     public async bulkPut(dtos: CreateStationDto[], userId: number) {
-        const entities: Partial<StationEntity>[] = [];
+        const entities: StationEntity[] = [];
         for (const dto of dtos) {
             const entity: StationEntity = await this.stationRepo.create({
                 id: dto.id,
@@ -174,7 +170,7 @@ export class StationsService {
         }
     }
 
-    private async insertOrUpdateValues(entities: Partial<StationEntity>[]): Promise<void> {
+    private async insertOrUpdateValues(entities: StationEntity[]): Promise<void> {
         await this.stationRepo
             .createQueryBuilder()
             .insert()

@@ -57,10 +57,6 @@ export class ObservationEntity extends AppBaseEntity {
   @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
   qcTestLog: QCTestLogVo | null;
 
-  @Column({ name: "final", type: "boolean", default: false })
-  @Index()
-  final: boolean;
-
   @Column({ name: "comment", type: "varchar", nullable: true })
   comment: string | null;
 
@@ -82,9 +78,17 @@ export class ObservationEntity extends AppBaseEntity {
 export interface UpdateObservationValuesLogVo extends BaseLogVo {
   value: number | null;
   flag: FlagEnum | null;
-  final: boolean;
   comment: string | null;
   deleted: boolean;
+}
+
+export class ViewObservationLogDto {
+  value: number | null;
+  flag: FlagEnum | null;
+  comment: string | null;
+  deleted: boolean;
+  entryUserEmail: string;
+  entryDateTime: string;
 }
 
 export interface QCTestLogVo {

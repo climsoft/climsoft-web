@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
-import { ObservationEntity } from '../entities/observation.entity';
+import { ObservationEntity, ViewObservationLogDto } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
@@ -9,11 +9,12 @@ import { StationsService } from 'src/metadata/stations/services/stations.service
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
-import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { SourcesService } from 'src/metadata/sources/services/sources.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
+import { UsersService } from 'src/user/services/users.service';
+import { ViewUserDto } from 'src/user/dtos/view-user.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -24,6 +25,7 @@ export class ObservationsService {
         private elementsService: ElementsService,
         private sourcesService: SourcesService,
         private climsoftV4Service: ClimsoftV4Service,
+        private usersService: UsersService,
     ) { }
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
@@ -47,7 +49,6 @@ export class ObservationsService {
             viewObs.value = obsEntity.value;
             viewObs.flag = obsEntity.flag;
             viewObs.comment = obsEntity.comment;
-            viewObs.final = obsEntity.final;
             viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
 
             const station = stationEntities.find(data => data.id === obsEntity.stationId);
@@ -199,7 +200,6 @@ export class ObservationsService {
     // }
 
     public async findObsLog(queryDto: ViewObservationLogQueryDto): Promise<ViewObservationLogDto[]> {
-
         const entity: ObservationEntity | null = await this.observationRepo.findOneBy({
             stationId: queryDto.stationId,
             elementId: queryDto.elementId,
@@ -212,22 +212,21 @@ export class ObservationsService {
             throw new NotFoundException('Observation not found');
         }
 
-        //console.log("entity log: ", entity.log, " type of: ", typeof entity.log);
-
-        let log: ViewObservationLogDto[] = [];
-
+        const viewLogDto: ViewObservationLogDto[] = [];
         if (entity.log) {
-            log = entity.log.map(item => {
-                const logObj: ViewObservationLogDto = {
+            for (const item of entity.log) {
+                viewLogDto.push({
                     value: item.value,
                     flag: item.flag,
                     comment: item.comment,
                     deleted: item.deleted,
+                    entryUserEmail: (await this.usersService.findOne(item.entryUserId)).email,
                     entryDateTime: item.entryDateTime,
-                }
-                return logObj;
+                });
+            }
 
-            })
+
+
 
         }
 
@@ -238,85 +237,13 @@ export class ObservationsService {
             flag: entity.flag,
             comment: entity.comment,
             deleted: entity.deleted,
+            entryUserEmail: (await this.usersService.findOne(entity.entryUserId)).email,
             entryDateTime: entity.entryDateTime.toISOString()
         }
 
-        log.push(currentValuesAsLogObj);
+        viewLogDto.push(currentValuesAsLogObj);
 
-        return log;
-    }
-
-    public async bulkPutOrig(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
-        let startTime = new Date().getTime();
-
-        const obsEntities: Partial<ObservationEntity>[] = [];
-        for (const dto of createObservationDtos) {
-            const entity: Partial<ObservationEntity> = this.observationRepo.create({
-                stationId: dto.stationId,
-                elementId: dto.elementId,
-                sourceId: dto.sourceId,
-                elevation: dto.elevation,
-                datetime: new Date(dto.datetime),
-                period: dto.period,
-                value: dto.value,
-                flag: dto.flag,
-                qcStatus: QCStatusEnum.NONE,
-                comment: dto.comment,
-                final: false,
-                entryUserId: userId,
-                deleted: false,
-                savedToV4: false,
-            });
-
-            obsEntities.push(entity);
-        }
-
-
-        console.log("DTO transformation took: ", new Date().getTime() - startTime);
-
-        startTime = new Date().getTime();
-
-        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
-        for (let i = 0; i < obsEntities.length; i += batchSize) {
-            const batch = obsEntities.slice(i, i + batchSize);
-            await this.insertOrUpdateObsValuesOrig(batch);
-        }
-        console.log("Saving entities took: ", new Date().getTime() - startTime);
-
-        // Save to version 4 database as well
-        //this.climsoftV4Service.saveObservationstoV4DB();
-    }
-
-    private async insertOrUpdateObsValuesOrig(observationsData: Partial<ObservationEntity>[]): Promise<void> {
-        await this.observationRepo
-            .createQueryBuilder()
-            .insert()
-            .into(ObservationEntity)
-            .values(observationsData)
-            .orUpdate(
-                [
-                    "value",
-                    "flag",
-                    "qc_status",
-                    "final",
-                    "comment",
-                    "deleted",
-                    "saved_to_v4",
-                    "entry_user_id",
-                ],
-                [
-                    "station_id",
-                    "element_id",
-                    "source_id",
-                    "elevation",
-                    "date_time",
-                    "period",
-                ],
-                {
-                    skipUpdateIfNoValuesChanged: true,
-                }
-            )
-            .execute();
+        return viewLogDto;
     }
 
     public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
@@ -335,7 +262,6 @@ export class ObservationsService {
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NONE,
                 comment: dto.comment,
-                final: false,
                 entryUserId: userId,
                 deleted: false,
                 savedToV4: false,
@@ -371,7 +297,6 @@ export class ObservationsService {
                     "value",
                     "flag",
                     "qc_status",
-                    "final",
                     "comment",
                     "deleted",
                     "saved_to_v4",

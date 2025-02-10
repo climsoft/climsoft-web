@@ -1,15 +1,15 @@
 <ng-container *ngIf="observationDefinition">
     <app-text-input #appTextInput [id]="id" [label]="label" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
-        [value]="observationDefinition.getvalueFlagForDisplay()" [dropDownOptionMaxHeight]="300"
+        [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
         [errorMessage]="observationDefinition.validationErrorMessage"
         [warningMessage]="observationDefinition.validationWarningMessage"
         [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"
         [displayExtraInfoOption]="displayExtraInfoOption"
         (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()" (valueChange)="onInputEntry($event)"
-        (inputEnterKeyPress)="onEnterKeyPressed()" [simulateTabOnEnter]="false"/>
+        (inputEnterKeyPress)="onEnterKeyPressed()" [simulateTabOnEnter]="false" />
 
     <app-dialog [title]="'Extra Information'" [okButtonLabel]="'Ok'" [cancelButtonLabel]="'Cancel'"
-        [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoChanged()">
+        [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoOkClicked()">
         <div *ngIf="displayExtraInfoDialog" class="card border-0">
 
             <!-- tab header -->
@@ -18,12 +18,11 @@
                     <li class="nav-item">
                         <button class="nav-link active" [class.active]="activeTab === 'new'"
                             (click)="onTabChange('new')">New</button>
-                    </li>
+                    </li> 
                     <li class="nav-item">
                         <button class="nav-link" [class.active]="activeTab === 'history'"
                             (click)="onTabChange('history')">History</button>
-                    </li>
-
+                    </li>              
                 </ul>
             </div>
 
@@ -31,24 +30,21 @@
             <div class="card-body p-0">
 
                 <div *ngIf="activeTab === 'new'" class="mt-2">
-
-                    <div class="mb-2 d-flex align-items-end">
-                        <div style="max-width: 90px;">
-                            <app-number-input [label]="'Period'" [(value)]="period" />
+                    <div *ngIf="periodInDays !== null">
+                        <div class="d-flex ">
+                            <div  style="max-width: 90px;"> 
+                                <app-number-input [label]="'Period'" [disabled]="disablePeriodEditing" [(numValue)]="periodInDays" />
+                            </div>
+                            <div class="ms-2 d-flex align-items-end">
+                                days
+                            </div>
                         </div>
-
-                        <div class="px-2">in</div>
-                        <app-radio-buttons-input [asButtons]="true" [inline]="true" [groupName]="'vf_period_options'"
-                            [groupItems]=" [ {label: 'Minutes'}, {label: 'Days'} ]" [(checkedValue)]="periodType" />
+                        <hr />
                     </div>
-
-                    <hr />
-
                     <div>
                         <app-text-input [label]="'Comment'" [(value)]="comment" />
                     </div>
                 </div>
-
 
                 <div *ngIf="activeTab === 'history'">
                     <div *ngIf="observationDefinition.observationLog.length===0" class="p-4">
@@ -62,15 +58,17 @@
                                     <th>Flag</th>
                                     <th>Comment</th>
                                     <th>Deleted</th>
+                                    <th>User Email</th>
                                     <th>Entry Time</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr *ngFor="let row of observationDefinition.observationLog ">
                                     <td>{{ row.value }}</td>
-                                    <td>{{ row.flag }}</td>
+                                    <td>{{row.flag}}</td>
                                     <td>{{ row.comment }}</td>
-                                    <td>{{ row.deleted }}</td>
+                                    <td> <app-check-box-input [id]="row.entryDateTime" [disabled]="true" [value]="row.deleted" /> </td>
+                                    <td>{{row.entryUserEmail}}</td>
                                     <td>{{ row.entryDateTime }}</td>
                                 </tr>
                             </tbody>

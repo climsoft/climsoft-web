@@ -9,7 +9,7 @@ export class PeriodsUtil {
         { id: 360, name: "6 hrs" },
         { id: 720, name: "12 hrs" },
         { id: 1440, name: "Daily" },
-        //{ id: 2880, name: "2 Days" },
+        { id: 2880, name: "2 Days" },
         { id: 14400, name: "Dekadal" },
         { id: 40320, name: "28 Days" },
         { id: 41760, name: "29 Days" },

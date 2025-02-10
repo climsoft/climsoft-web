@@ -1,23 +1,25 @@
 <div class="card border-0">
   <div class="card-body p-0">
-    <div >
-      <div>
-        <div class="fw-bold">Connection State:</div>
-        <div class="d-flex align-items-center">
-          <div *ngIf="connectedToV4DB" class="text-success"> Connected </div>
-          <button *ngIf="connectedToV4DB" type="button" class="btn btn-sm btn-outline-secondary ms-2"
-            (click)="onConnectToV4DBClick()">
-            Disconnect
-          </button>
-          <div *ngIf="!connectedToV4DB">Not Connected</div>
-          <button *ngIf="!connectedToV4DB" type="button" class="btn btn-sm btn-outline-secondary ms-2"
-            (click)="onConnectToV4DBClick()">
-            Connect
-          </button>
-        </div>
+    <div>
+      <div class="fw-bold">Connection State:</div>
+      <div class="d-flex align-items-center">
+        <div *ngIf="connectedToV4DB" class="text-success">Connected</div>
+        <button *ngIf="connectedToV4DB" type="button" class="btn btn-sm btn-outline-secondary ms-2"
+          (click)="onDisconnectToV4DBClick()">
+          Disconnect
+        </button>
+        <div *ngIf="!connectedToV4DB">Not Connected</div>
+        <button *ngIf="!connectedToV4DB" type="button" class="btn btn-sm btn-outline-secondary ms-2"
+          (click)="onConnectToV4DBClick()">
+          Connect
+        </button>
       </div>
-      <!-- Only show capabilty to pull metadata when it's connected to v4 database -->
-      <div *ngIf="connectedToV4DB">
+    </div>
+
+    <!-- Only show capabilty to pull metadata when it's connected to v4 database -->
+    <div *ngIf="connectedToV4DB">
+
+      <div>
         <hr />
         <div class="fw-bold">Metadata:</div>
         <div class="text-danger" style="font-size: smaller;">
@@ -35,30 +37,41 @@
             </button>
           </div>
         </div>
-
       </div>
 
-      <hr />
       <div>
-        <div class="fw-bold">Data State:</div>
-        <div class="d-flex align-items-center">
-          <div class="d-flex me-2">
-            <div class="me-2">
-              Observations NOT saved:
+        <hr />
+        <div>
+          <div class="fw-bold">Data State:</div>
+          <div class="d-flex align-items-center">
+            <div class="d-flex me-2">
+              <div class="me-2">Observations NOT saved:</div>
+              <div class="text-danger"
+                [ngClass]="{ 'text-danger':unsavedObservations>0, 'text-success':unsavedObservations===0 }">
+                {{unsavedObservations> 1000000? 'Over 1M' : (unsavedObservations | number:'1.0-0' )}}
+              </div>
             </div>
-            <div class="text-danger" ngClass=""
-              [ngClass]="{ 'text-danger':unsavedObservations>0, 'text-success':unsavedObservations===0 }">
-              {{unsavedObservations> 1000000? 'Over 1M' : (unsavedObservations | number:'1.0-0' )}}
-            </div>
+            <button *ngIf="unsavedObservations>0" type="button" class="btn btn-sm btn-outline-primary"
+              (click)="onSaveObservationsClick()">
+              Save
+            </button>
           </div>
-          <button *ngIf="unsavedObservations>0" type="button" class="btn btn-sm btn-outline-primary"
-            (click)="onSaveObservationsClick()">
-            Save
-          </button>
         </div>
       </div>
+
+      <div *ngIf="v4Conflicts && v4Conflicts.length>0">
+        <hr />
+        <div>
+          <div class="fw-bold">Conflicts:</div>
+          <div class="d-flex flex-column text-danger">
+            <div *ngFor="let conflict of v4Conflicts">
+              {{conflict}}
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>
-
 </div>

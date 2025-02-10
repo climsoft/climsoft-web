@@ -48,7 +48,7 @@
 
         <!--period-->
         <div>
-            <app-period-single-input [label]="'Period'" [includeOnlyIds]="[60, 180, 360, 720, 1440]"
+            <app-period-single-input [label]="'Period'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
                 [selectedId]="selectedPeriodId" (selectedIdChange)="onPeriodSelected($event)" />
         </div>
 
@@ -64,7 +64,7 @@
 
         <!--UTC Offset-->
         <div>
-            <app-number-input [label]="'UTC Offset'" [(numValue)]="utcDifference" />
+            <app-number-input [label]="'UTC Offset'" [(numValue)]="utcOffset" />
         </div>
 
         <hr class="border border-secondary border-1">

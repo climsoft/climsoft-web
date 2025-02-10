@@ -24,6 +24,13 @@ export class ClimsoftV4Service {
       );
   }
 
+  public getV4Conflicts(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.endPointUrl}/v4-conflicts`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   public connectToV4DB(): Observable<V4OperationsResponse> {
     return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/connect`, {})
       .pipe(

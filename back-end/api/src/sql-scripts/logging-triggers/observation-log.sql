@@ -3,19 +3,17 @@ RETURNS TRIGGER AS $$
 BEGIN
         IF (
             NEW.value IS DISTINCT FROM OLD.value OR 
-            NEW.flag IS DISTINCT FROM OLD.flag OR 
-            NEW.final IS DISTINCT FROM OLD.final OR 
+            NEW.flag IS DISTINCT FROM OLD.flag OR
             NEW.comment IS DISTINCT FROM OLD.comment OR 
             NEW.deleted IS DISTINCT FROM OLD.deleted
         ) THEN
             NEW.log := COALESCE(OLD.log, '[]'::JSONB) || jsonb_build_object(
             'value', OLD.value,
             'flag', OLD.flag,
-            'final', OLD.final,
             'comment', OLD.comment,
             'entryUserId', OLD.entry_user_id,
             'deleted', OLD.deleted,
-            'entryDateTime', CURRENT_TIMESTAMP
+            'entryDateTime', OLD.entry_date_time
         );
         END IF;
  RETURN NEW;

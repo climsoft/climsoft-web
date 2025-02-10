@@ -45,6 +45,7 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: ViewElementTypeModel): string {
+    // TODO. Include the domain and subdomain name for display to distinguish them.
     return `${option.name}`;
   }
 

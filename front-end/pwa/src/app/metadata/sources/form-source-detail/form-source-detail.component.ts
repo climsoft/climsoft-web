@@ -32,7 +32,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
   protected selectedPeriodId: number | null = null;
-  protected utcDifference: number = 0;
+  protected utcOffset: number = 0;
   protected allowMissingValue: boolean = true;
   protected requireTotalInput: boolean = false;
   protected selectorsErrorMessage: string = '';
@@ -111,7 +111,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
     this.selectedPeriodId = entryForm.period;
-    this.utcDifference = this.viewSource.utcOffset;
+    this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
   }
@@ -235,7 +235,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       name: this.viewSource.name,
       description: this.viewSource.description,
       sourceType: SourceTypeEnum.FORM,
-      utcOffset: this.utcDifference,
+      utcOffset: this.utcOffset,
       allowMissingValue: this.allowMissingValue,
       sampleImage: '',
       parameters: entryForm,

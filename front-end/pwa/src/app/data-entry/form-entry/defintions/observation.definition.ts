@@ -20,7 +20,9 @@ export class ObservationDefinition {
     /**
      * holds original value, flag, period and comment  values
      */
-    private databaseValues: string = ""; 
+    private _databaseValues: string = '';
+
+    private _existsInDatabase: boolean = false;
 
     /**
      * Determines whether to invalidate missing value input
@@ -61,8 +63,9 @@ export class ObservationDefinition {
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
 
+        this._existsInDatabase = observation.value !== null || observation.flag !== null;
         // set original database values for future comparison
-        this.databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
+        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
         // validate database values
         this.validateDBValue();
     }
@@ -111,7 +114,7 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this.databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this._databaseValues;
     }
 
     public get comment(): string | null {
@@ -120,6 +123,10 @@ export class ObservationDefinition {
 
     public get period(): number {
         return this.observation.period;
+    }
+
+    public get existsInDatabase(): boolean {
+        return this._existsInDatabase;
     }
 
     public updateCommentInput(comment: string | null): void {

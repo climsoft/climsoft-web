@@ -132,9 +132,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
         // Gets default year-month value (YYYY-MM) used by year-month selector
         this.defaultYearMonthValue =
-          this.formDefinitions.yearSelectorValue +
-          '-' +
-          StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue);
+        `${this.formDefinitions.yearSelectorValue}-${StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)}` ;
       },
       error: err => {
         console.error(err);
@@ -227,14 +225,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * @param yearMonth 
    * @returns 
    */
-  protected onYearMonthChange(yearMonth: string | null): void {
-    if (yearMonth === null) {
+  protected onYearMonthChange(yearMonth: string | null ): void { 
+    if(!yearMonth){
       return;
     }
-
-    const date: Date = new Date(yearMonth);
-    this.formDefinitions.yearSelectorValue = date.getFullYear();
-    this.formDefinitions.monthSelectorValue = date.getMonth() + 1;
+    const splitValue = yearMonth.split('-');
+    this.formDefinitions.yearSelectorValue = +splitValue[0];
+    this.formDefinitions.monthSelectorValue = +splitValue[1];
     this.loadObservations();
   }
 
@@ -243,15 +240,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * @param strDate 
    * @returns 
    */
-  protected onDateChange(strDate: string | null): void {
-    if (strDate === null) {
+  protected onDateChange(strDate: string | null ): void {
+    if(!strDate){
       return;
     }
-
-    const oDate: Date = new Date(strDate);
-    this.formDefinitions.yearSelectorValue = oDate.getFullYear();
-    this.formDefinitions.monthSelectorValue = oDate.getMonth() + 1;
-    this.formDefinitions.daySelectorValue = oDate.getDate();
+    const splitValue = strDate.split('-');
+    this.formDefinitions.yearSelectorValue = +splitValue[0];
+    this.formDefinitions.monthSelectorValue = +splitValue[1];
+    this.formDefinitions.daySelectorValue = +splitValue[2];
     this.loadObservations();
   }
 
@@ -281,12 +277,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Updates its internal state depending on the options passed
    * @param option  'Same Input' | 'Clear Input' | 'Add Extra Info' | 'Settings'
    */
-  protected onOptions(option: 'Same Input' | 'Clear Input' | 'Extra Info' | 'Settings'): void {
+  protected onOptions(option: 'Same Input' | 'Clear Fields' | 'Extra Info' | 'Settings'): void {
     switch (option) {
       case 'Same Input':
         this.openSameInputDialog = true;
         break;
-      case 'Clear Input':
+      case 'Clear Fields':
         this.clear();
         break;
       case 'Extra Info':
@@ -311,6 +307,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         obsDef.updateCommentInput(input.comment);
       }
     }
+ 
   }
 
   /**
@@ -322,7 +319,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       obsDef.updateValueFlagFromUserInput('');
       obsDef.updateCommentInput('');
       obsDef.updatePeriodInput(this.formDefinitions.formMetadata.period);
-    }
+    };
   }
 
   protected onUserFormSettingsChange(userFormSettings: UserFormSettingStruct): void {

@@ -38,7 +38,7 @@
         <tr class="app-cursor-pointer" *ngFor="let source of sources">
           <td (click)="onEditSource(source)"><i class="bi bi-arrow-right-short"></i></td>
           <td (click)="onEditSource(source)">{{ source.name }}</td>
-          <td (click)="onEditSource(source)">{{ source.sourceType }}</td>
+          <td (click)="onEditSource(source)">{{ source.sourceTypeName }}</td>
           <td (click)="onEditSource(source)">{{ source.description }}</td> 
           <td>
             <div *ngIf="source.sourceType === 'form' " class="d-flex align-items-center">

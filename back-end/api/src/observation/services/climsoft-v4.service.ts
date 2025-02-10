@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as mariadb from 'mariadb'; 
+import * as mariadb from 'mariadb';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -12,6 +12,8 @@ import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.en
 import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
+import { UsersService } from 'src/user/services/users.service';
+import { SourcesService } from 'src/metadata/sources/services/sources.service';
 
 interface V4ElementModel {
     elementId: number;
@@ -48,12 +50,18 @@ export class ClimsoftV4Service {
     private firstConnectionAttemptAlreadyTried: boolean = false;
     private v4DBPool: mariadb.Pool | null = null;
     private v4UtcOffset: number = 0;
-    private readonly v4ElementsForV5Mapping: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
     private isSaving: boolean = false;
+    private readonly v4ElementsForV5MappingAndChecking: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
+    private readonly v4StationsForV5Checking: Set<string> = new Set();
+    private readonly v5Sources: Map<number, string> = new Map();
+    private readonly v5Users: Map<number, string> = new Map();
+    private v4Conflicts: string[] = [];
 
     constructor(
         private elementsService: ElementsService,
         private stationsService: StationsService,
+        private sourcesService: SourcesService,
+        private usersService: UsersService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
     ) {
     }
@@ -83,7 +91,7 @@ export class ClimsoftV4Service {
      * @returns 
      */
     public async setupV4DBConnection(): Promise<void> {
-        console.log('Attempting to connect: ', 'Current connection pool: ', this.v4DBPool, '. Is first connection attempt', this.firstConnectionAttemptAlreadyTried);
+        console.log('Attempting to connect: ', 'Is Current connection pool active? ', (this.v4DBPool != null), '. Is first connection attempt? ', this.firstConnectionAttemptAlreadyTried);
         this.firstConnectionAttemptAlreadyTried = true;
         try {
 
@@ -100,12 +108,12 @@ export class ClimsoftV4Service {
             let port: number;
             let utcOffset: number;
 
-            if (process.env.V4_SAVE !== undefined && 
-                process.env.V4_DB_USERNAME  !== undefined && 
-                process.env.V4_DB_PASSWORD !== undefined && 
-                process.env.V4_DB_NAME!== undefined && 
-                process.env.V4_DB_PORT !== undefined && 
-                process.env.V4_DB_UTCOFFSET!== undefined) {
+            if (process.env.V4_SAVE !== undefined &&
+                process.env.V4_DB_USERNAME !== undefined &&
+                process.env.V4_DB_PASSWORD !== undefined &&
+                process.env.V4_DB_NAME !== undefined &&
+                process.env.V4_DB_PORT !== undefined &&
+                process.env.V4_DB_UTCOFFSET !== undefined) {
                 console.log('Setting up production mode v4 settings.');
                 v4Save = process.env.V4_SAVE === 'yes';
                 host = 'host.docker.internal';
@@ -142,21 +150,45 @@ export class ClimsoftV4Service {
                 port: port,
             });
 
+            // Clear any previous conflicts
+            this.v4Conflicts = [];
+
             // set up V4 elements used v5 to v4 database for mapping  
-            await this.setupV4ElementsForV5Mapping(); 
+            await this.setupV4ElementsForV5MappingAndChecking();
+
+            // set up v4 stations used to check if v4 has elements that are in v5 database
+            await this.setupV4StationsForV5Checking();
+
+            await this.setupV5Sources();
+
+            await this.setupV5Users();
+
         } catch (error) {
             console.error('Setting up V4 database connection failed: ', error);
             this.v4DBPool = null;
         }
     }
 
-    private async setupV4ElementsForV5Mapping(): Promise<void>{
-        // Get V4 elements for mapping
-        this.v4ElementsForV5Mapping.clear();
-
-        const arrV4Elements: V4ElementModel[] = await this.getV4Elements();
-        arrV4Elements.forEach((item) => this.v4ElementsForV5Mapping.set(item.elementId, item));
+    private async setupV4ElementsForV5MappingAndChecking(): Promise<void> {
+        this.v4ElementsForV5MappingAndChecking.clear();
+        (await this.getV4Elements()).forEach((item) => this.v4ElementsForV5MappingAndChecking.set(item.elementId, item));
     }
+
+    private async setupV4StationsForV5Checking(): Promise<void> {
+        this.v4StationsForV5Checking.clear();
+        (await this.getV4Stations()).forEach((item) => this.v4StationsForV5Checking.add(item.stationId));
+    }
+
+    private async setupV5Sources(): Promise<void> {
+        this.v5Sources.clear();
+        (await this.sourcesService.findAll()).forEach(item => this.v5Sources.set(item.id, item.name));
+    }
+
+    private async setupV5Users(): Promise<void> {
+        this.v5Users.clear();
+        (await this.usersService.findAll()).forEach(item => this.v5Users.set(item.id, item.email));
+    }
+
 
     public async disconnect(): Promise<void> {
         // If there is an active connection then end it
@@ -164,6 +196,14 @@ export class ClimsoftV4Service {
             await this.v4DBPool.end();
             this.v4DBPool = null;
         }
+    }
+
+    public getV4Conflicts(): string[] {
+        return this.v4Conflicts;
+    }
+
+    public resetV4Conflicts(): void{
+          this.v4Conflicts =[];
     }
 
     private async getV4Elements(): Promise<V4ElementModel[]> {
@@ -174,7 +214,7 @@ export class ClimsoftV4Service {
         let conn;
         try {
             conn = await this.v4DBPool.getConnection();
-            const rows: V4ElementModel[] = await conn.query("SELECT elementId as elementId, abbreviation as abbreviation, elementName as elementName, description as description, elementScale as elementScale, upperLimit as upperLimit, lowerLimit as lowerLimit, units as units, elementtype as elementType, qcTotalRequired as qcTotalRequired, selected as selected FROM obselement");
+            const rows: V4ElementModel[] = await conn.query("SELECT elementId as elementId, abbreviation as abbreviation, elementName as elementName, description as description, elementScale as elementScale, upperLimit as upperLimit, lowerLimit as lowerLimit, units as units, elementtype as elementType, qcTotalRequired as qcTotalRequired, selected as selected FROM obselement WHERE selected = 1");
             rows.forEach(item => {
                 item.elementId = Number(item.elementId); // version 4 stores element ids as BigInt, so convert to number (int)
                 item.elementType = item.elementType.trim().toLowerCase();
@@ -196,6 +236,7 @@ export class ClimsoftV4Service {
             return false;
         }
 
+        const currentV5Elements: CreateViewElementDto[] = await this.elementsService.find();
         const v4Elements: V4ElementModel[] = await this.getV4Elements();
         const v5Dtos: CreateViewElementDto[] = [];
         for (let i = 0; i < v4Elements.length; i++) {
@@ -221,16 +262,18 @@ export class ClimsoftV4Service {
                 v4Element.elementName = `${v4Element.elementName}_${(i + 1)}`;
             }
 
+            const currentV5Element = currentV5Elements.find(item => item.id === v4Element.elementId);
+
             const dto: CreateViewElementDto = {
                 id: v4Element.elementId,
                 abbreviation: v4Element.abbreviation,
                 name: v4Element.elementName,
                 description: v4Element.description,
                 units: v4Element.units,
-                typeId: 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
+                typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,
                 totalEntryRequired: v4Element.qcTotalRequired === 1 ? true : false,
-                comment: null,
+                comment: 'pulled from v4 model',
             };
 
             v5Dtos.push(dto);
@@ -239,7 +282,7 @@ export class ClimsoftV4Service {
         await this.elementsService.bulkPut(v5Dtos, userId);
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of elements or changes in v4 configuration
-        await this.setupV4ElementsForV5Mapping(); 
+        await this.setupV4ElementsForV5MappingAndChecking();
 
         // TODO. create and save upper limit and lower limit qc test
 
@@ -285,6 +328,7 @@ export class ClimsoftV4Service {
             return false;
         }
 
+        const currentV5Stations: CreateStationDto[] = await this.stationsService.find();
         const v4Stations: V4StationModel[] = await this.getV4Stations();
         const v5Dtos: CreateStationDto[] = [];
         for (let i = 0; i < v4Stations.length; i++) {
@@ -300,23 +344,25 @@ export class ClimsoftV4Service {
                 v4Station.stationName = `${v4Station.stationName}_${(i + 1)}`;
             }
 
+            const currentV5Station = currentV5Stations.find(item => item.id === v4Station.stationId);
+
             const dto: CreateStationDto = {
                 id: v4Station.stationId,
                 name: v4Station.stationName,
-                description: null,
+                description: currentV5Station ? currentV5Station.description : null,
                 longitude: v4Station.longitude,
                 latitude: v4Station.latitude,
                 elevation: StringUtils.containsNumbersOnly(v4Station.elevation) ? Number.parseFloat(v4Station.elevation) : null,
-                stationObsProcessingMethod: StationObsProcessingMethodEnum.MANUAL, // TODO. Extrapolate from name?
-                stationObsEnvironmentId: null,// Give fixed land by default?
-                stationObsFocusId: null, // extrapolate from qualifier?
+                stationObsProcessingMethod: currentV5Station ? currentV5Station.stationObsProcessingMethod : StationObsProcessingMethodEnum.MANUAL, // TODO. Extrapolate from name?
+                stationObsEnvironmentId: currentV5Station ? currentV5Station.stationObsEnvironmentId : null,// Give fixed land by default?
+                stationObsFocusId: currentV5Station ? currentV5Station.stationObsFocusId : null, // extrapolate from qualifier?
                 wmoId: v4Station.wmoid,
                 wigosId: v4Station.wsi,
                 icaoId: v4Station.icaoid,
                 status: v4Station.stationOperational ? StationStatusEnum.OPERATIONAL : StationStatusEnum.CLOSED,
-                dateEstablished: null, // TODO. Confirm the date format and convert accordingly
-                dateClosed: null, // TODO. Confirm the date format and convert accordingly
-                comment: null,
+                dateEstablished: currentV5Station ? currentV5Station.dateEstablished : null, // TODO. Confirm the date format and convert accordingly
+                dateClosed: currentV5Station ? currentV5Station.dateClosed : null, // TODO. Confirm the date format and convert accordingly
+                comment: 'pulled from v4 model',
             };
 
             v5Dtos.push(dto);
@@ -333,7 +379,12 @@ export class ClimsoftV4Service {
         // if version 4 database pool is not set up then return.
         // If still saving. then just return
         if (!this.v4DBPool || this.isSaving) {
-            console.log('no connection pool or still saving. Aborting saving.');
+            console.log('Aborting saving. No connection pool or still saving. ');
+            return;
+        }
+
+        if (this.v4Conflicts.length > 0) {
+            console.log('Aborting saving. V5 database has conflicts with v4 database: ', this.v4Conflicts);
             return;
         }
 
@@ -348,11 +399,9 @@ export class ClimsoftV4Service {
             take: 1000,
         });
 
-        console.log('entities found not saved to v4:', obsEntities.length, '. Aborting saving.');
-
         if (obsEntities.length === 0) {
             this.isSaving = false;
-            console.log('No entities found. Aborting saving.');
+            console.log('Aborting saving. No entities found. ');
             return;
         }
 
@@ -397,40 +446,86 @@ export class ClimsoftV4Service {
         // Get a connection from the pool
         const connection = await v4DBPool.getConnection();
         try {
-            const upsertStatement = `
-                INSERT INTO observationinitial (
-                    recordedFrom, 
-                    describedBy, 
-                    obsDatetime, 
-                    obsLevel,
-                    obsValue, 
-                    flag,
-                    period,             
-                    qcStatus,
-                    qcTypeLog,
-                    acquisitionType,
-                    dataForm,
-                    capturedBy
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    obsLevel = VALUES(obsLevel),
-                    obsValue = VALUES(obsValue),
-                    flag = VALUES(flag),
-                    period = VALUES(period),
-                    qcStatus = VALUES(qcStatus),
-                    qcTypeLog = VALUES(qcTypeLog),
-                    acquisitionType = VALUES(acquisitionType),
-                    dataForm = VALUES(dataForm),
-                    capturedBy = VALUES(capturedBy)
-            `;
+            // const upsertStatement = `
+            //     INSERT INTO observationinitial (
+            //         recordedFrom, 
+            //         describedBy, 
+            //         obsDatetime, 
+            //         obsLevel,
+            //         obsValue, 
+            //         flag,
+            //         period,             
+            //         qcStatus,
+            //         qcTypeLog,
+            //         acquisitionType,
+            //         dataForm,
+            //         capturedBy
+            //     )
+            //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            //     ON DUPLICATE KEY UPDATE
+            //         obsLevel = VALUES(obsLevel),
+            //         obsValue = VALUES(obsValue),
+            //         flag = VALUES(flag),
+            //         period = VALUES(period),
+            //         qcStatus = VALUES(qcStatus),
+            //         qcTypeLog = VALUES(qcTypeLog),
+            //         acquisitionType = VALUES(acquisitionType),
+            //         dataForm = VALUES(dataForm),
+            //         capturedBy = VALUES(capturedBy)
+            // `;
 
-            const values: (string | number | null)[][] = [];
+
+            const upsertStatement = `
+            INSERT INTO observationinitial (
+                recordedFrom, 
+                describedBy, 
+                obsDatetime, 
+                obsLevel,
+                obsValue, 
+                flag,
+                period,             
+                qcStatus,
+                qcTypeLog,
+                acquisitionType,
+                dataForm,
+                capturedBy
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+                obsValue = VALUES(obsValue),
+                flag = VALUES(flag),
+                period = VALUES(period),
+                qcTypeLog = VALUES(qcTypeLog),
+                capturedBy = VALUES(capturedBy)
+        `;
+
+            const values: (string | number | null | undefined)[][] = [];
             for (const entity of entities) {
-                const v4Element = this.v4ElementsForV5Mapping.get(entity.elementId);
+
+                if (!this.v4StationsForV5Checking.has(entity.stationId)) {
+                    this.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
+                    continue;
+                }
+
+                const v4Element = this.v4ElementsForV5MappingAndChecking.get(entity.elementId);
                 // If element not found, just continue
                 if (!v4Element) {
+                    this.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
                     continue;
+                }
+
+                let sourceName: string | undefined = this.v5Sources.get(entity.sourceId);
+                // if source name not found then a new user was added. So refetch v5 sources and attempt to find the source name again
+                if (!sourceName) {
+                    await this.setupV5Sources();
+                    sourceName = this.v5Sources.get(entity.sourceId);
+                }
+
+                let userEmail: string | undefined = this.v5Users.get(entity.entryUserId);
+                // if email not found then a new user was added. So refetch v5 users and attempt to find the email again
+                if (!userEmail) {
+                    await this.setupV5Users();
+                    userEmail = this.v5Users.get(entity.entryUserId);
                 }
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
@@ -446,14 +541,17 @@ export class ClimsoftV4Service {
                     0, // qcStatus
                     null, // qcTypeLog
                     7, // acquisitionType
-                    null, // dataForm
-                    entity.entryUserId // SHould we save with the username? 
+                    sourceName, // dataForm.  
+                    userEmail  // capturedBy. T
                 ]);
 
             }
 
-            // Execute the batch upsert
-            // TODO. Investigate if this will ever return an array
+            if (this.v4Conflicts.length > 0) {
+                return false;
+            }
+
+            // Execute the batch upsert 
             const results: mariadb.UpsertResult = await connection.batch(upsertStatement, values);
 
             console.log('V4 insert update status:', results);
@@ -472,9 +570,15 @@ export class ClimsoftV4Service {
     }
 
     private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
-        const period: number | null = (v4Element.elementType === 'daily') ? (entity.period / 1440) : null;
+        let period: number | null = null;
+        // If element is daily and period is greater than 1 day then calculate the period using day as scale.
+        // V4 period supports cumulation at daily interval only.
+        if (v4Element.elementType === 'daily' && entity.period > 1440) {
+            // Important to round off due to precision errors
+            period = NumberUtils.roundOff(entity.period / 1440, 4);
+        }
         // Important to round off due to precision errors
-        const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff((entity.value / v4Element.elementScale), 4) : entity.value;
+        const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
@@ -502,12 +606,13 @@ export class ClimsoftV4Service {
               AND obsLevel = ?
               AND qcStatus = ?
               AND acquisitionType = ?
+              AND dataForm = ?
           `;
 
             // Build an array of values for each row to delete.
             // In this example we assume that the values used to generate the composite key 
             // are derived in the same way as in your insert/upsert function.
-            const values: (string | number | null)[][] = [];
+            const values: (string | number | null | undefined)[][] = [];
             for (const entity of entities) {
 
                 // If it's not 
@@ -516,11 +621,13 @@ export class ClimsoftV4Service {
                 }
 
                 // Retrieve the v4 element information
-                const v4Element = this.v4ElementsForV5Mapping.get(entity.elementId);
+                const v4Element = this.v4ElementsForV5MappingAndChecking.get(entity.elementId);
                 if (!v4Element) {
                     // Skip entities that do not have a corresponding v4 element
                     continue;
                 }
+
+                const sourceName: string | undefined = this.v5Sources.get(entity.sourceId);
 
                 // Get the value mapping for the entity
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
@@ -533,7 +640,8 @@ export class ClimsoftV4Service {
                     v4ValueMap.v4DBDatetime,     // obsDatetime
                     v4ValueMap.v4Elevation,      // obsLevel
                     0,                           // qcStatus (as used in the upsert)
-                    7                            // acquisitionType (as used in the upsert)
+                    7,                           // acquisitionType (as used in the upsert)
+                    sourceName                   // source name (as used in the upsert)                            
                 ]);
             }
 
