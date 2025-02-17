@@ -2,7 +2,7 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Admin';
+export type mainMenus = 'Dashboard' | 'Data Entry' | 'Data Visualisation' | 'Data Extraction' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
@@ -30,16 +30,43 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/station-form-selection',
             },
             {
-                name: 'Import',
+                name: 'Manual Import',
                 url: '/import-selection',
             },
             {
-                name: 'Manage Data',
+                name: 'Auto Import',
+                url: '/import-selection',
+            },
+            {
+                name: 'Data Assessment',
                 url: '/manage-data',
-            }
+            },
+            
         ]
     },
-
+    {
+        name: 'Data Visualisation',
+        url: '/data-visualisation',
+        icon: 'bi bi-sliders',
+        open: false,
+        children: []
+    },
+    {
+        name: 'Data Extraction',
+        url: '/data-extraction',
+        icon: 'bi bi-file-earmark-text',
+        open: false,
+        children: [
+            {
+                name: 'Manual Export',
+                url: '/station-form-selection',
+            },
+            {
+                name: 'Auto Export',
+                url: '/auto-export',
+            },
+        ]
+    },
     {
         name: 'Metadata',
         url: '/metadata',
@@ -62,6 +89,14 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 name: 'Sources',
                 url: '/sources',
             },
+            {
+                name: 'Exports',
+                url: '/exports',
+            },
+            {
+                name: 'Connectors',
+                url: '/connectors',
+            },
         ]
     },
     {
@@ -82,7 +117,10 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 name: 'Settings',
                 url: '/view-general-settings',
             },
-           
+            {
+                name: 'Audit',
+                url: '/audit',
+            },
          
         ]
     },
