@@ -2,7 +2,7 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Entry' | 'Data Visualisation' | 'Data Extraction' | 'Metadata' | 'Admin';
+export type mainMenus = 'Dashboard' | 'Data Acquisition' | 'Data Extraction' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
@@ -20,13 +20,13 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: []
     },
     {
-        name: 'Data Entry',
+        name: 'Data Acquisition',
         url: '/data-entry',
         icon: 'bi bi-file-earmark-text',
         open: false,
         children: [
             {
-                name: 'Forms',
+                name: 'Data Entry',
                 url: '/station-form-selection',
             },
             {
@@ -38,18 +38,23 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/import-selection',
             },
             {
-                name: 'Data Assessment',
+                name: 'Data Correction',
+                url: '/manage-data',
+            },
+            {
+                name: 'Data Visualisation',
+                url: '/manage-data',
+            },           
+            {
+                name: 'Quality Control',
+                url: '/manage-data',
+            },
+            {
+                name: 'Deleted Data',
                 url: '/manage-data',
             },
             
         ]
-    },
-    {
-        name: 'Data Visualisation',
-        url: '/data-visualisation',
-        icon: 'bi bi-sliders',
-        open: false,
-        children: []
     },
     {
         name: 'Data Extraction',
