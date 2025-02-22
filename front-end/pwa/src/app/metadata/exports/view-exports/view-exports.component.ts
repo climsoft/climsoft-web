@@ -3,11 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { SourcesCacheService } from '../services/sources-cache.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
 import { StationFormsService } from '../../stations/services/station-forms.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { SourcesCacheService } from '../../sources/services/sources-cache.service';
 
 interface ViewSource extends ViewSourceModel {
   // Applicable to form source only
@@ -16,11 +16,11 @@ interface ViewSource extends ViewSourceModel {
 }
 
 @Component({
-  selector: 'app-view-sources',
-  templateUrl: './view-sources.component.html',
-  styleUrls: ['./view-sources.component.scss']
+  selector: 'app-view-exports',
+  templateUrl: './view-exports.component.html',
+  styleUrls: ['./view-exports.component.scss']
 })
-export class ViewSourcesComponent implements OnDestroy {
+export class ViewExportsComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
 
   protected sources!: ViewSource[];

@@ -23,10 +23,6 @@ export class CreateExportDto {
 
 }
 
-// export interface ExportParametersValidity {
-//   isValid(): boolean;
-// }
-
 export interface ExportParametersDto {
   stationIds?: string[];
   elementIds?: number[];

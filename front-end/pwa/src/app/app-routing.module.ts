@@ -23,8 +23,12 @@ const routes: Routes = [
         component: DashboardComponent
       },
       {
-        path: 'data-entry',
-        loadChildren: () => import('./data-entry/data-entry.module').then((m) => m.DataEntryModule)
+        path: 'data-acquisition',
+        loadChildren: () => import('./data-acquisition/data-acquisition.module').then((m) => m.DataAcquisitionModule)
+      },
+      {
+        path: 'data-extraction',
+        loadChildren: () => import('./data-extraction/data-extraction.module').then((m) => m.DataExtractionModule)
       },
       {
         path: 'metadata',

@@ -21,7 +21,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
     },
     {
         name: 'Data Acquisition',
-        url: '/data-entry',
+        url: '/data-acquisition',
         icon: 'bi bi-file-earmark-text',
         open: false,
         children: [
@@ -31,29 +31,29 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             },
             {
                 name: 'Manual Import',
-                url: '/import-selection',
+                url: '/manual-import-selection',
             },
             {
                 name: 'Auto Import',
-                url: '/import-selection',
+                url: '/auto-import-selection',
             },
             {
                 name: 'Data Correction',
-                url: '/manage-data',
-            },
-            {
-                name: 'Data Visualisation',
-                url: '/manage-data',
-            },           
-            {
-                name: 'Quality Control',
-                url: '/manage-data',
+                url: '/data-correction',
             },
             {
                 name: 'Deleted Data',
-                url: '/manage-data',
+                url: '/deleted-data',
             },
-            
+            {
+                name: 'Missing Data',
+                url: '/missing-data',
+            },
+            {
+                name: 'Quality Control',
+                url: '/quality-control',
+            },
+
         ]
     },
     {
@@ -64,11 +64,11 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'Manual Export',
-                url: '/station-form-selection',
+                url: '/manual-export-selection',
             },
             {
                 name: 'Auto Export',
-                url: '/auto-export',
+                url: '/auto-export-selection',
             },
         ]
     },
@@ -80,11 +80,11 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'Elements',
-                url: '/elements',
+                url: '/view-elements',
             },
             {
                 name: 'Stations',
-                url: '/stations',
+                url: '/view-stations',
             },
             {
                 name: 'Regions',
@@ -92,15 +92,15 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             },
             {
                 name: 'Sources',
-                url: '/sources',
+                url: '/view-sources',
             },
             {
                 name: 'Exports',
-                url: '/exports',
+                url: '/view-exports',
             },
             {
                 name: 'Connectors',
-                url: '/connectors',
+                url: '/view-connectors',
             },
         ]
     },
@@ -123,10 +123,10 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/view-general-settings',
             },
             {
-                name: 'Audit',
-                url: '/audit',
+                name: 'Audits',
+                url: '/view-audits',
             },
-         
+
         ]
     },
 

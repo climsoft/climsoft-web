@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ClimsoftV4Service } from './services/climsoft-v4.service';
-import { ObservationsService } from 'src/app/data-entry/services/observations.service';
+import { ClimsoftV4Service } from './services/climsoft-v4.service'; 
 import { take } from 'rxjs';
+import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
 
 @Component({
   selector: 'app-climsoft-v4',

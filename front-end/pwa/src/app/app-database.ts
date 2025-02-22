@@ -9,9 +9,9 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model"; 
-import { CachedObservationModel } from "./data-entry/services/observations.service";
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";  
 import { LoggedInUserModel } from "./admin/users/models/logged-in-user.model";
+import { CachedObservationModel } from "./data-acquisition/services/observations.service";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog

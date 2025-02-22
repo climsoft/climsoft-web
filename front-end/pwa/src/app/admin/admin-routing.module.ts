@@ -5,6 +5,7 @@ import { EditGeneralSettingComponent } from './general-settings/edit-general-set
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
+import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
 
 
 const routes: Routes = [
@@ -35,6 +36,10 @@ const routes: Routes = [
       {
         path: 'user-detail/:id',
         component: UserDetailsComponent
+      },
+      {
+        path: 'view-audits',
+        component: ViewAuditsComponent,
       },
     ]
   }
