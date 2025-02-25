@@ -8,6 +8,9 @@ import { ViewSourcesComponent } from './sources/view-sources/view-sources.compon
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
+import { ViewExportsComponent } from './exports/view-exports/view-exports.component';
+import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
+import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 
 const routes: Routes = [
   {
@@ -18,11 +21,11 @@ const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'elements',
+        redirectTo: 'view-elements',
         pathMatch: 'full',
       },
       {
-        path: 'elements',
+        path: 'view-elements',
         component: ViewElementsComponent, 
       },
       {
@@ -30,7 +33,7 @@ const routes: Routes = [
         component: ElementDetailComponent
       },
       {
-        path: 'sources',
+        path: 'view-sources',
         component: ViewSourcesComponent, 
       }, 
       {
@@ -42,7 +45,7 @@ const routes: Routes = [
         component: ImportSourceDetailComponent
       },
       {
-        path: 'stations',
+        path: 'view-stations',
         component: ViewStationsComponent, 
       },
       {
@@ -53,6 +56,19 @@ const routes: Routes = [
         path: 'view-regions',
         component: ViewRegionsComponent
       }, 
+      {
+        path: 'view-exports',
+        component: ViewExportsComponent
+      },
+      {
+        path: 'export-detail/:id',
+        component: ExportDetailComponent
+      }, 
+      {
+        path: 'view-connectors',
+        component: ViewConnectorsComponent
+      }, 
+
      
     ]
   }

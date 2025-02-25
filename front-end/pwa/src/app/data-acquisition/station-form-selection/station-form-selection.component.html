@@ -1,0 +1,73 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+    <div class="d-flex align-items-center">
+      <div *ngIf="stationViews" class="d-flex mx-2">
+        Count: {{ stationViews.length | number:'1.0-0' }}
+      </div>
+      <div class="mb-1">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.showDialog()">
+          Search
+        </button>
+        <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
+      </div>
+    </div>
+
+  </div>
+
+  <div *ngIf="stationViews" class="card-body p-0">
+
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th style="width: 2%;"></th>
+          <th style="width: 15%;">Id</th>
+          <th style="width: 73%;">Name</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        <ng-container *ngFor="let stationView of stationViews">
+          <tr class="cursor-pointer" (click)="onStationSelected(stationView)">
+            <td>
+              <app-toggle-chevron [clickable]="false" [open]="stationView.station.id === stationIdSelected" />
+            </td>
+            <td>{{ stationView.station.id}}</td>
+            <td>{{ stationView.station.name}}</td>
+          </tr>
+
+          <tr *ngIf="stationView.station.id === stationIdSelected">
+            <td></td>
+            <td colspan="2">
+              <table class="table table-sm table-striped table-hover cursor-pointer">
+                <thead>
+                  <tr>
+                    <th>Forms</th>
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                  <tr *ngFor="let form of stationView.forms" (click)="onFormClick(stationView.station.id, form.id)">
+                    <td>
+                      <div class="d-flex flex-row">
+                        <div class="d-flex flex-row">
+                          <div><i class="bi bi-arrow-right-short"></i></div>
+                          <div>{{form.name}}</div>
+                        </div>
+                        <div class="ms-1 me-1">-</div>
+                        <div>{{form.description}}</div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+
+          </tr>
+
+        </ng-container>
+
+
+      </tbody>
+    </table>
+
+  </div>
+
+</div>

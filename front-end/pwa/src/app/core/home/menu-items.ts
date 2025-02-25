@@ -2,7 +2,7 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Entry' | 'Metadata' | 'Admin';
+export type mainMenus = 'Dashboard' | 'Data Acquisition' | 'Data Extraction' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
@@ -20,26 +20,58 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: []
     },
     {
-        name: 'Data Entry',
-        url: '/data-entry',
+        name: 'Data Acquisition',
+        url: '/data-acquisition',
         icon: 'bi bi-file-earmark-text',
         open: false,
         children: [
             {
-                name: 'Forms',
+                name: 'Data Entry',
                 url: '/station-form-selection',
             },
             {
-                name: 'Import',
-                url: '/import-selection',
+                name: 'Manual Import',
+                url: '/manual-import-selection',
             },
             {
-                name: 'Manage Data',
-                url: '/manage-data',
-            }
+                name: 'Auto Import',
+                url: '/auto-import-selection',
+            },
+            {
+                name: 'Data Correction',
+                url: '/data-correction',
+            },
+            {
+                name: 'Deleted Data',
+                url: '/deleted-data',
+            },
+            {
+                name: 'Missing Data',
+                url: '/missing-data',
+            },
+            {
+                name: 'Quality Control',
+                url: '/quality-control',
+            },
+
         ]
     },
-
+    {
+        name: 'Data Extraction',
+        url: '/data-extraction',
+        icon: 'bi bi-file-earmark-text',
+        open: false,
+        children: [
+            {
+                name: 'Manual Export',
+                url: '/manual-export-selection',
+            },
+            {
+                name: 'Auto Export',
+                url: '/auto-export-selection',
+            },
+        ]
+    },
     {
         name: 'Metadata',
         url: '/metadata',
@@ -48,11 +80,11 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: [
             {
                 name: 'Elements',
-                url: '/elements',
+                url: '/view-elements',
             },
             {
                 name: 'Stations',
-                url: '/stations',
+                url: '/view-stations',
             },
             {
                 name: 'Regions',
@@ -60,7 +92,15 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
             },
             {
                 name: 'Sources',
-                url: '/sources',
+                url: '/view-sources',
+            },
+            {
+                name: 'Exports',
+                url: '/view-exports',
+            },
+            {
+                name: 'Connectors',
+                url: '/view-connectors',
             },
         ]
     },
@@ -82,8 +122,11 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 name: 'Settings',
                 url: '/view-general-settings',
             },
-           
-         
+            {
+                name: 'Audits',
+                url: '/view-audits',
+            },
+
         ]
     },
 

@@ -1,0 +1,19 @@
+<div class="card border-0">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'source'" (click)="onTabClick('source')">Source Check</button>
+      </li> 
+      <li class="nav-item">
+        <button class="nav-link"  [class.active] = "activeTab === 'qc'" (click)="onTabClick('qc')">QC Data</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-0 mt-2">
+    <app-source-check *ngIf="activeTab === 'source' " /> 
+    <app-qc-data *ngIf="activeTab === 'qc' " />  
+  </div>
+
+
+</div>

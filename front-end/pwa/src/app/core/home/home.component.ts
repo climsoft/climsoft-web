@@ -4,8 +4,8 @@ import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
 import { UserRoleEnum } from '../../admin/users/models/user-role.enum';
-import { ObservationsService } from 'src/app/data-entry/services/observations.service';
 import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
+import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
 
 @Component({
   selector: 'app-home',

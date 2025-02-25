@@ -2,12 +2,11 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 //--------------------------------------------
 import { SharedModule } from './shared/shared.module';
 import { MetadataModule } from './metadata/metadata.module';
-import { DataEntryModule } from './data-entry/data-entry.module';
 //--------------------------------------------
 
 //------------components------------------------------ 
@@ -21,6 +20,8 @@ import { AdminModule } from './admin/admin.module';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppAuthInterceptor } from './app-auth.interceptor';
+import { DataExtractionModule } from './data-extraction/data-extraction.module';
+import { DataAcquisitionModule } from './data-acquisition/data-acquisition.module';
 
 
 @NgModule({
@@ -32,7 +33,6 @@ import { AppAuthInterceptor } from './app-auth.interceptor';
     PasswordResetComponent,
     AccountVerificationComponent,
     NotFoundComponent,
-
   ],
   imports: [
     BrowserModule,   
@@ -40,7 +40,8 @@ import { AppAuthInterceptor } from './app-auth.interceptor';
     AppRoutingModule,
     SharedModule,
     MetadataModule,
-    DataEntryModule,
+    DataAcquisitionModule,
+    DataExtractionModule,
     AdminModule,   
   ],
   providers: [

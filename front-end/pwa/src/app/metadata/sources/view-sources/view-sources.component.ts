@@ -16,7 +16,7 @@ interface ViewSource extends ViewSourceModel {
 }
 
 @Component({
-  selector: 'app-view--sources',
+  selector: 'app-view-sources',
   templateUrl: './view-sources.component.html',
   styleUrls: ['./view-sources.component.scss']
 })
