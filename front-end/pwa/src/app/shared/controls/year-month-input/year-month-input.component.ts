@@ -11,6 +11,7 @@ export class YearMonthInputComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public disabled: boolean = false;
   @Input() public hintMessage!: string;
+  @Input() public showNavigationButtons!: boolean;
   @Input() public errorMessage!: string | null;
   @Input() public value!: string;
   @Output() public valueChange = new EventEmitter<string | null>();

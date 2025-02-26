@@ -47,7 +47,7 @@ export class AppDatabase extends Dexie {
     elementSubdomains!: Table<ViewElementSubdomainModel, number>;
     elementTypes!: Table<ViewElementTypeModel, number>;
     elements!: Table<CreateViewElementModel, number>;
-    sources!: Table<ViewSourceModel, number>;
+    sourceTemplates!: Table<ViewSourceModel, number>;
     regions!: Table<ViewRegionModel, number>;
 
     // cached differently
@@ -77,7 +77,7 @@ export class AppDatabase extends Dexie {
             elementSubdomains: `id, name`,
             elementTypes: `id, name, subdomainId`,
             elements: `id, name, abbreviation, typeId`,
-            sources: `id, name, sourceType`,
+            sourceTemplates: `id, name, sourceType`,
             regions: `id, name, regionType`,
 
             stationForms: `stationId`,

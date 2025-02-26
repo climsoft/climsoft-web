@@ -26,7 +26,7 @@ export class ViewElementsComponent implements OnDestroy {
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.pagesDataService.setPageHeader('Elements Metadata');
+    this.pagesDataService.setPageHeader('Elements');
 
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),

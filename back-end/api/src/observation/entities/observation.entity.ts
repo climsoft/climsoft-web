@@ -4,7 +4,7 @@ import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
-import { SourceEntity } from "src/metadata/sources/entities/source.entity";
+import { SourceTemplateEntity } from "src/metadata/sources/entities/source-template.entity";
 
 @Entity("observations")
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
@@ -40,9 +40,9 @@ export class ObservationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "source_id", type: "int" })
   sourceId: number;
 
-  @ManyToOne(() => SourceEntity, { onDelete: "RESTRICT" })
+  @ManyToOne(() => SourceTemplateEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
-  source: SourceEntity;
+  source: SourceTemplateEntity;
 
   @Column({ name: "value", type: "float", nullable: true })
   value: number | null;

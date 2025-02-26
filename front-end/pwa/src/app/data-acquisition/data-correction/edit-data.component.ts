@@ -11,7 +11,7 @@ import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period
 import { ObservationDefinition } from '../form-entry/defintions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
@@ -55,7 +55,7 @@ export class EditDataComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
-    private sourcesService: SourcesCacheService,
+    private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {

@@ -5,7 +5,7 @@ import { StationsController } from './stations/controllers/stations.controller';
 import { StationsService } from './stations/services/stations.service';
 import { ElementsController } from './elements/controllers/elements.controller';
 import { ElementEntity } from './elements/entities/element.entity';
-import { SourcesController } from 'src/metadata/sources/controllers/sources.controller';
+import { SourceTemplatesController } from 'src/metadata/sources/controllers/source-templates.controller';
 import { StationElementEntity } from './stations/entities/station-element.entity';
 import { StationFormEntity } from './stations/entities/station-form.entity';
 import { InstrumentEntity } from './instruments/entities/instrument.entity';
@@ -25,9 +25,9 @@ import { StationObsFocusesService } from './stations/services/station-obs-focuse
 import { StationObsFocusesController } from './stations/controllers/station-obs-focuses.controller';
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
-import { SourcesService } from './sources/services/sources.service';
+import { SourceTemplatesService } from './sources/services/source-templates.service';
 import { RegionEntity } from './regions/entities/region.entity';
-import { SourceEntity } from './sources/entities/source.entity';
+import { SourceTemplateEntity } from './sources/entities/source-template.entity';
 import { ElementsService } from './elements/services/elements.service';
 import { ElementQCTestEntity } from './elements/entities/element-qc-test.entity';
 import { ElementsQCTestsController } from './elements/controllers/elements-qc-tests.controller';
@@ -43,6 +43,9 @@ import { MetadataUpdatesController } from './metadata-updates/metadata-updates.c
 import { ElementTypesService } from './elements/services/element-types.service';
 import { ElementSubdomainsService } from './elements/services/element-subdomains.service';
 import { ElementsImportExportService } from './elements/services/elements-import-export.service';
+import { ExportTemplateEntity } from './exports/entities/export-template.entity';
+import { ExportTemplatesController } from './exports/controllers/export-templates.controller';
+import { ExportTemplatesService } from './exports/services/export-templates.service';
 
 @Module({
     imports: [
@@ -50,7 +53,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         ElementSubdomainEntity,
         ElementTypeEntity,
         ElementEntity,
-        SourceEntity,
+        SourceTemplateEntity,
         InstrumentTypeEntity,
         InstrumentEntity,
         OrganisationEntity,
@@ -63,6 +66,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationFormEntity,
         StationNetworkAffiliationEntity,
         ElementQCTestEntity,
+        ExportTemplateEntity,
     ]),
         SharedModule,
         UserModule,
@@ -71,7 +75,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         ElementsController,
         ElementTypesController,
         ElementSubdomainsController,
-        SourcesController,
+        SourceTemplatesController,
         StationObsEnvsController,
         StationObsFocusesController,
         StationsController,
@@ -79,13 +83,14 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationFormsController,
         ElementsQCTestsController,
         RegionsController,
+        ExportTemplatesController,
         MetadataUpdatesController,
     ],
     providers: [
         ElementSubdomainsService,
         ElementTypesService,
         ElementsService,
-        SourcesService,
+        SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
@@ -95,13 +100,14 @@ import { ElementsImportExportService } from './elements/services/elements-import
         RegionsService, 
         StationsImportExportService,
         ElementsImportExportService,
+        ExportTemplatesService,
     ],
 
     exports: [
         ElementSubdomainsService,
         ElementTypesService,
         ElementsService,
-        SourcesService,
+        SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
@@ -109,6 +115,7 @@ import { ElementsImportExportService } from './elements/services/elements-import
         StationFormsService,
         ElementsQCTestsService,
         RegionsService,
+        ExportTemplatesService,
     ]
 })
 export class MetadataModule { }

@@ -6,7 +6,7 @@ import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { SourceTypeEnum } from 'src/metadata/sources/enums/source-type.enum';
 import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
 import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
-import { SourceEntity } from '../entities/source.entity';
+import { SourceTemplateEntity } from '../entities/source-template.entity';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
@@ -15,10 +15,10 @@ import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create
 // TODO refactor this service later
 
 @Injectable()
-export class SourcesService {
+export class SourceTemplatesService {
 
     constructor(
-        @InjectRepository(SourceEntity) private readonly sourceRepo: Repository<SourceEntity>,
+        @InjectRepository(SourceTemplateEntity) private readonly sourceRepo: Repository<SourceTemplateEntity>,
         private elementsService: ElementsService
     ) { }
 
@@ -27,8 +27,8 @@ export class SourcesService {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<SourceEntity>): Promise<ViewSourceDto[]> {
-        const findOptions: FindManyOptions<SourceEntity> = {
+    public async findAll(selectOptions?: FindOptionsWhere<SourceTemplateEntity>): Promise<ViewSourceDto[]> {
+        const findOptions: FindManyOptions<SourceTemplateEntity> = {
             order: {
                 id: "ASC"
             }
@@ -47,20 +47,20 @@ export class SourcesService {
     }
 
     public async findSourcesByIds(ids: number[]): Promise<ViewSourceDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceEntity> = {
+        const findOptionsWhere: FindOptionsWhere<SourceTemplateEntity> = {
             id: In(ids)
         };
         return this.findAll(findOptionsWhere);
     }
 
     public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceEntity> = {
+        const findOptionsWhere: FindOptionsWhere<SourceTemplateEntity> = {
             sourceType: sourceType
         };
         return this.findAll(findOptionsWhere);
     }
 
-    private async findEntity(id: number): Promise<SourceEntity> {
+    private async findEntity(id: number): Promise<SourceTemplateEntity> {
         const entity = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -120,13 +120,13 @@ export class SourcesService {
     }
 
     public async deleteAll(): Promise<boolean> {
-        const entities: SourceEntity[] = await this.sourceRepo.find();
+        const entities: SourceTemplateEntity[] = await this.sourceRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.sourceRepo.remove(entities);
         return true;
     }
 
-    private async createViewDto(entity: SourceEntity): Promise<ViewSourceDto> {
+    private async createViewDto(entity: SourceTemplateEntity): Promise<ViewSourceDto> {
         const dto: ViewSourceDto = {
             id: entity.id,
             name: entity.name,
@@ -159,7 +159,7 @@ export class SourcesService {
             // If number of records in server are not the same as those in the client then changes detected
             changesDetected = true;
         } else {
-            const whereOptions: FindOptionsWhere<SourceEntity> = {};
+            const whereOptions: FindOptionsWhere<SourceTemplateEntity> = {};
 
             if (updatesQueryDto.lastModifiedDate) {
                 whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));

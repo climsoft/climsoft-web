@@ -11,6 +11,7 @@ export class DateInputComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public disabled!: boolean;
   @Input() public hintMessage!: string;
+  @Input() public showNavigationButtons!: boolean;
   @Input() public errorMessage!: string | null;
   @Input() public value!: string | null;
   @Output() public valueChange = new EventEmitter<string | null>();

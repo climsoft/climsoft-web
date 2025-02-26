@@ -10,7 +10,7 @@ import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period
 import { ObservationDefinition } from '../form-entry/defintions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -47,7 +47,7 @@ export class DeletedDataComponent {
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
-    private sourcesService: SourcesCacheService,
+    private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService
   ) {
     this.pagesDataService.setPageHeader('Deleted Data');

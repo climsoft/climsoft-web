@@ -17,7 +17,7 @@ import { MissingDataComponent } from './manage-qc-data/missing-data/missing-data
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
-import { DataAcquisitionRoutingModule } from './data-acquisition-routing.module';
+import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
 
@@ -44,7 +44,7 @@ import { MetadataModule } from '../metadata/metadata.module';
     ManageQCComponent,
   ],
   imports: [
-    DataAcquisitionRoutingModule,
+    DataIngestionRoutingModule,
     SharedModule,
     MetadataModule, 
   ]

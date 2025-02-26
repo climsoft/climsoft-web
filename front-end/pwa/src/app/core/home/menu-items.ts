@@ -2,7 +2,7 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Acquisition' | 'Data Extraction' | 'Metadata' | 'Admin';
+export type mainMenus = 'Dashboard' | 'Data Ingestion' | 'Data Extraction' | 'Metadata' | 'Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
@@ -20,7 +20,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         children: []
     },
     {
-        name: 'Data Acquisition',
+        name: 'Data Ingestion',
         url: '/data-acquisition',
         icon: 'bi bi-file-earmark-text',
         open: false,
@@ -34,7 +34,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/manual-import-selection',
             },
             {
-                name: 'Auto Import',
+                name: 'Scheduled Import',
                 url: '/auto-import-selection',
             },
             {
@@ -59,7 +59,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
     {
         name: 'Data Extraction',
         url: '/data-extraction',
-        icon: 'bi bi-file-earmark-text',
+        icon: 'bi bi-file-earmark-arrow-down',
         open: false,
         children: [
             {
@@ -67,7 +67,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/manual-export-selection',
             },
             {
-                name: 'Auto Export',
+                name: 'Scheduled Export',
                 url: '/auto-export-selection',
             },
         ]
@@ -91,15 +91,15 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/view-regions',
             },
             {
-                name: 'Sources',
+                name: 'Source Templates',
                 url: '/view-sources',
             },
             {
-                name: 'Exports',
+                name: 'Export Templates',
                 url: '/view-exports',
             },
             {
-                name: 'Connectors',
+                name: 'Integration Connectors',
                 url: '/view-connectors',
             },
         ]
@@ -123,7 +123,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
                 url: '/view-general-settings',
             },
             {
-                name: 'Audits',
+                name: 'Audit Logs',
                 url: '/view-audits',
             },
 

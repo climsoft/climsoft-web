@@ -4,7 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 
 @Component({
   selector: 'app-import-selection',
@@ -18,7 +18,7 @@ export class ImportSelectionComponent  implements OnDestroy{
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourceCacheService: SourcesCacheService,
+    private sourceCacheService: SourceTemplatesCacheService,
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Import Source');

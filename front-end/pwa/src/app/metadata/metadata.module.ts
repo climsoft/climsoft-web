@@ -51,7 +51,7 @@ import { ElementSelectorMultipleComponent } from './elements/element-selector/el
 import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
 import { StationSelectorSingleComponent } from './stations/station-selector/station-single-input/station-selector-single.component';
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
-import { ViewExportsComponent } from './exports/view-exports/view-exports.component';
+import { ViewExportTemplatesComponent } from './exports/view-exports/view-exports.component';
 import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 
@@ -111,7 +111,7 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
 
-    ViewExportsComponent,
+    ViewExportTemplatesComponent,
     ExportDetailComponent,
 
     ViewConnectorsComponent,

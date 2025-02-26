@@ -13,7 +13,7 @@ export class ViewConnectorsComponent  {
   private destroy$ = new Subject<void>();
 
   constructor(private pagesService: PagesDataService){
-    this.pagesService.setPageHeader('Connectors');
+    this.pagesService.setPageHeader('Integration Connectors');
   }
   
 }

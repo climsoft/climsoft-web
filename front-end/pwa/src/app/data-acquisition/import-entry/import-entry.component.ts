@@ -7,7 +7,7 @@ import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { environment } from 'src/environments/environment';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
 @Component({
@@ -30,7 +30,7 @@ export class ImportEntryComponent implements OnInit {
   constructor(
     private appConfigService: AppConfigService, 
     private pagesDataService: PagesDataService,
-    private importSourcesService: SourcesCacheService,
+    private importSourcesService: SourceTemplatesCacheService,
     private http: HttpClient,
     private route: ActivatedRoute) {
   }

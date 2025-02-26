@@ -95,6 +95,16 @@
                 <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'" [(value)]="viewSource.scaleValues" />
             </div>
         </div>
+        
+        <div *ngIf="errorMessage">
+            <hr class="border border-secondary border-1">
+
+            <!-- TODO. link the error to individual controls and possibly use bootstrap alert component-->
+            <div style="color: red;">
+                {{ errorMessage }}
+            </div>
+        </div>
+
     </div>
 
 

@@ -1,7 +1,7 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationEntity } from "./station.entity";  
-import { SourceEntity } from "src/metadata/sources/entities/source.entity";
+import { SourceTemplateEntity } from "src/metadata/sources/entities/source-template.entity";
 
 @Entity("station_forms")
 export class StationFormEntity extends AppBaseEntity {
@@ -21,8 +21,8 @@ export class StationFormEntity extends AppBaseEntity {
     station: StationEntity;
 
     // ManyToOne relationship with SourceEntity
-    @ManyToOne(() => SourceEntity, { onDelete: "CASCADE" })
+    @ManyToOne(() => SourceTemplateEntity, { onDelete: "CASCADE" })
     @JoinColumn({ name: "form_id" })
-    source: SourceEntity;
+    source: SourceTemplateEntity;
   
 }

@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { take } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 
 export interface ItemSelection extends ViewSourceModel {
   selected: boolean;
@@ -23,7 +23,7 @@ export class FormSelectorDialogComponent {
   private selectedIds: number[] = [];
 
 
-  constructor(private readonly sourceCacheService: SourcesCacheService) { }
+  constructor(private readonly sourceCacheService: SourceTemplatesCacheService) { }
 
   public openDialog( selectedIds: number[] = []): void {
     this.selectedIds = selectedIds;

@@ -84,7 +84,7 @@ export class MetadataUpdatesService {
                 return 'element-types';
             case 'elements':
                 return 'elements';
-            case 'sources':
+            case 'sourceTemplates':
                 return 'sources';
             case 'regions':
                 return 'regions';

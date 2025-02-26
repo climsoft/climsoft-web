@@ -8,8 +8,8 @@ import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateUpdateSourceModel } from 'src/app/metadata/sources/models/create-update-source.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model'; 
-import { SourcesCacheService } from '../services/sources-cache.service';
+import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
+import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 
 @Component({
   selector: 'app-import-source-detail',
@@ -23,7 +23,7 @@ export class ImportSourceDetailComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: SourcesCacheService,
+    private importSourcesService: SourceTemplatesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -32,19 +32,19 @@ export class ImportSourceDetailComponent implements OnInit {
     const sourceId = this.route.snapshot.params['id'];
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Import Parameters');
+      this.pagesDataService.setPageHeader('Edit Import Template');
 
       // Todo. handle errors where the source is not found for the given id
       this.importSourcesService.findOne(+sourceId).pipe(
         take(1)
       ).subscribe((data) => {
-        if(data){
+        if (data) {
           this.viewSource = data;
-        }        
+        }
       });
 
     } else {
-      this.pagesDataService.setPageHeader('New Import Parameters');
+      this.pagesDataService.setPageHeader('New Import Template');
 
       const defaultTabularDefs: ImportTabularSourceModel = {
         rowsToSkip: 1,
@@ -68,8 +68,8 @@ export class ImportSourceDetailComponent implements OnInit {
         isValid: () => true
       }
 
-      const defaultImportSourceDefs: CreateImportSourceModel = { 
-        dataStructureType: DataStructureTypeEnum.TABULAR,       
+      const defaultImportSourceDefs: CreateImportSourceModel = {
+        dataStructureType: DataStructureTypeEnum.TABULAR,
         sourceMissingValueFlags: '',
         dataStructureParameters: defaultTabularDefs,
         isValid: () => true
@@ -105,6 +105,22 @@ export class ImportSourceDetailComponent implements OnInit {
   }
 
   protected onSave(): void {
+    this.errorMessage = '';
+
+    if (!this.viewSource) {
+      this.errorMessage = 'Template not defined';
+      return;
+    }
+
+    if (!this.viewSource.name) {
+      this.errorMessage = 'Enter template name';
+      return;
+    }
+
+    if (!this.viewSource.description) {
+      this.errorMessage = 'Enter template description';
+      return;
+    }
 
     // TODO. Validate the definitions, for instance, making sure column positions are unique.
 
@@ -127,7 +143,7 @@ export class ImportSourceDetailComponent implements OnInit {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions saved`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Import Template', message: `Import ${this.viewSource.name} template saved`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
@@ -138,7 +154,7 @@ export class ImportSourceDetailComponent implements OnInit {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Import Definitions', message: `Import ${this.viewSource.name} definitions updated`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Import Template', message: `Import ${this.viewSource.name} template updated`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }

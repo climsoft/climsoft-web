@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { take } from 'rxjs';
 
 @Component({
@@ -18,7 +18,7 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   protected options!: ViewSourceModel[];
   protected selectedOption!: ViewSourceModel | null;
 
-  constructor(private sourcesService: SourcesCacheService) {
+  constructor(private sourcesService: SourceTemplatesCacheService) {
   
   }
 

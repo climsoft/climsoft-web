@@ -2,7 +2,7 @@ import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { StationFormEntity } from "../entities/station-form.entity";
-import { SourcesService } from "src/metadata/sources/services/sources.service";
+import { SourceTemplatesService } from "src/metadata/sources/services/source-templates.service";
 import { ViewSourceDto } from "src/metadata/sources/dtos/view-source.dto";
 
 @Injectable()
@@ -10,7 +10,7 @@ export class StationFormsService {
 
     public constructor(
         @InjectRepository(StationFormEntity) private stationFormsRepo: Repository<StationFormEntity>,
-        private sourcesService: SourcesService) {
+        private sourcesService: SourceTemplatesService) {
     }
 
     public async getFormsAssignedToStation(stationId: string): Promise<ViewSourceDto[]> {

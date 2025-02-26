@@ -25,7 +25,7 @@ export class ViewStationsComponent implements OnDestroy {
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.pagesDataService.setPageHeader('Stations Metadata');
+    this.pagesDataService.setPageHeader('Stations');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
