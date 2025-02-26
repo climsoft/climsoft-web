@@ -1,5 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy } from '@angular/core'; 
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
@@ -22,12 +21,10 @@ export class ViewRegionsComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private router: Router,
-    private route: ActivatedRoute,
     private regionsService: RegionsCacheService,
   ) {
 
-    this.pagesDataService.setPageHeader('Regions Metadata');
+    this.pagesDataService.setPageHeader('Regions');
 
     // Get all sources 
     this.regionsService.cachedRegions.pipe(

@@ -1,10 +1,10 @@
 import { Check, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { ExportParametersDto } from "../dtos/create-export.dto";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity"; 
+import { ExportTemplateParametersDto } from "../dtos/export-template-paramers.dto";
 
-@Entity("exports")
-@Check("CHK_exports_name_not_empty", `"name" <> ''`)
-export class ExportEntity extends AppBaseEntity {
+@Entity("export_templates")
+@Check("CHK_export_templates_name_not_empty", `"name" <> ''`)
+export class ExportTemplateEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
 
@@ -18,7 +18,7 @@ export class ExportEntity extends AppBaseEntity {
     utcOffset: number;
 
     @Column({ name: "parameters", type: "jsonb" })
-    parameters: ExportParametersDto;
+    parameters: ExportTemplateParametersDto;
 
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment: string | null;

@@ -9,7 +9,7 @@ import { StationsService } from 'src/metadata/stations/services/stations.service
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
-import { SourcesService } from 'src/metadata/sources/services/sources.service';
+import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
@@ -23,7 +23,7 @@ export class ObservationsService {
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private stationsService: StationsService,
         private elementsService: ElementsService,
-        private sourcesService: SourcesService,
+        private sourcesService: SourceTemplatesService,
         private climsoftV4Service: ClimsoftV4Service,
         private usersService: UsersService,
     ) { }

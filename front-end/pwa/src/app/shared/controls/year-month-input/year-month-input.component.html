@@ -2,8 +2,13 @@
   <app-text-input [type]="'month'" [id]="id" [label]="label" [disabled]="disabled" [(value)]="value" [max]="maxDate"
     [errorMessage]="errorMessage" [hintMessage]="hintMessage" (valueChange)="onValueChange($event)"
     (inputClick)="onInputClick()" (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()" />
-  <button class="btn btn-sm btn-outline-secondary mt-4" (click)="onPrevious()"><i
-      class="bi bi-chevron-left"></i></button>
-  <button class="btn btn-sm btn-outline-secondary mt-4" [disabled]="disableNextButton" (click)="onNext()"><i
-      class="bi bi-chevron-right"></i></button>
+  <div *ngIf="showNavigationButtons" class="d-flex">
+    <!-- Add marging top of 4 when there is a label so that the buttons can align well with the text input -->
+    <button class="btn btn-sm btn-outline-secondary mt-4" (click)="onPrevious()">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary mt-4" [disabled]="disableNextButton" (click)="onNext()">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
 </div>

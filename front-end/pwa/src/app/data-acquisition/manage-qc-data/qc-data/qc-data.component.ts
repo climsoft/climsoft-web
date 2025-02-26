@@ -7,7 +7,7 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -44,7 +44,7 @@ export class QCDataComponent {
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
-    private sourcesService: SourcesCacheService, 
+    private sourcesService: SourceTemplatesCacheService, 
   ) {
 
     this.elementService.cachedElements.pipe(take(1)).subscribe(data => {

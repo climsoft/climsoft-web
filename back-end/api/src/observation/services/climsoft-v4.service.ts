@@ -13,7 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { UsersService } from 'src/user/services/users.service';
-import { SourcesService } from 'src/metadata/sources/services/sources.service';
+import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
 
 interface V4ElementModel {
     elementId: number;
@@ -60,7 +60,7 @@ export class ClimsoftV4Service {
     constructor(
         private elementsService: ElementsService,
         private stationsService: StationsService,
-        private sourcesService: SourcesService,
+        private sourcesService: SourceTemplatesService,
         private usersService: UsersService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
     ) {

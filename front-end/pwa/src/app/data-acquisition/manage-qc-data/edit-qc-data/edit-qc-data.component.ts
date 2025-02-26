@@ -6,7 +6,7 @@ import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util'; 
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
 import { ObservationsService } from '../../services/observations.service';
@@ -46,7 +46,7 @@ export class EditQCDataComponent {
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
-    private sourcesService: SourcesCacheService,
+    private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService
   ) {
     this.pagesDataService.setPageHeader('Manage Data');

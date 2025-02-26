@@ -90,7 +90,7 @@
         <!--------->
 
         <!-- no elements -->
-        <div *ngIf="elementAndValueDefinition.noElement" class="ms-4">
+        <div *ngIf="elementAndValueDefinition.noElement">
             <div class="mt-2">
                 <app-element-selector-single [label]="'Element:'"
                     [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />

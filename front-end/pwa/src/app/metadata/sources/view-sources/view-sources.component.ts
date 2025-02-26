@@ -4,7 +4,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { SourcesCacheService } from '../services/sources-cache.service';
+import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -30,12 +30,12 @@ export class ViewSourcesComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourcesCacheService,
+    private sourcesCacheService: SourceTemplatesCacheService,
     private stationFormsService: StationFormsService,
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.pagesDataService.setPageHeader('Sources Metadata');
+    this.pagesDataService.setPageHeader('Source Templates');
 
     // Get all sources 
     this.sourcesCacheService.cachedSources.pipe(
@@ -107,7 +107,6 @@ export class ViewSourcesComponent implements OnDestroy {
     }
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
   }
-
 
   protected onAssignStationsClicked(selectedSource: ViewSource) {
     this.selectedSource = selectedSource;

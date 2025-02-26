@@ -9,7 +9,7 @@ import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourcesCacheService } from '../services/sources-cache.service';
+import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 
 // TODO. Try using angular forms?
 
@@ -46,7 +46,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourcesCacheService,
+    private sourcesCacheService: SourceTemplatesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -54,8 +54,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Form Parameters');
-      // TODO. handle errors where the source is not found for the given id
+      this.pagesDataService.setPageHeader('Edit Form Template');
       this.sourcesCacheService.findOne(+sourceId).pipe(
         takeUntil(this.destroy$),
       ).subscribe(data => {
@@ -65,6 +64,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         }
       });
     } else {
+      this.pagesDataService.setPageHeader('New Form Template');
       const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
       this.viewSource = {
         id: 0,
@@ -76,8 +76,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         scaleValues: true, // By default forms usually have scaled values.
         sampleImage: '',
         parameters: entryForm
-      };
-      this.pagesDataService.setPageHeader('New Form Parameters');
+      };      
     }
   }
 
@@ -174,19 +173,20 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   }
 
   protected onSave(): void {
-
+    this.errorMessage = '';
+    
     if (!this.viewSource) {
-      this.errorMessage = 'Form not defined';
+      this.errorMessage = 'Template not defined';
       return;
     }
 
     if (!this.viewSource.name) {
-      this.errorMessage = 'Enter form name';
+      this.errorMessage = 'Enter template name';
       return;
     }
 
     if (!this.viewSource.description) {
-      this.errorMessage = 'Enter form description';
+      this.errorMessage = 'Enter template description';
       return;
     }
 
@@ -248,7 +248,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Parameters', message: `Form ${this.viewSource.name} parameters saved`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Form Template', message: `Form ${this.viewSource.name} template saved`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
@@ -259,7 +259,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Form Parameters', message: `Form  ${this.viewSource.name} parameters updated`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Form Template', message: `Form  ${this.viewSource.name} template updated`, type: ToastEventTypeEnum.SUCCESS
           });
           this.location.back();
         }
@@ -271,12 +271,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected onDelete(): void {
     //todo. prompt for confirmation first
     this.sourcesCacheService.delete(this.viewSource.id).subscribe((data) => {
-      if (data) {
-        this.location.back();
-      } else {
-        //TODO. Show error
-      }
-
+      this.location.back();
     });
 
   }

@@ -8,7 +8,7 @@ import { ViewSourcesComponent } from './sources/view-sources/view-sources.compon
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ViewExportsComponent } from './exports/view-exports/view-exports.component';
+import { ViewExportTemplatesComponent } from './exports/view-exports/view-exports.component';
 import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 
@@ -58,7 +58,7 @@ const routes: Routes = [
       }, 
       {
         path: 'view-exports',
-        component: ViewExportsComponent
+        component: ViewExportTemplatesComponent
       },
       {
         path: 'export-detail/:id',

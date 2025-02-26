@@ -5,7 +5,7 @@ import { StationsService } from '../stations/services/stations.service';
 import { MetadataUpdatesQueryDto } from './dtos/metadata-updates-query.dto';
 import { StationObsEnvService } from '../stations/services/station-obs-env.service';
 import { StationObsFocusesService } from '../stations/services/station-obs-focuses.service';
-import { SourcesService } from '../sources/services/sources.service';
+import { SourceTemplatesService } from '../sources/services/source-templates.service';
 import { ElementsService } from '../elements/services/elements.service';
 import { RegionsService } from '../regions/services/regions.service';
 import { ElementTypesService } from '../elements/services/element-types.service';
@@ -17,7 +17,7 @@ export class MetadataUpdatesController {
     private stationsService: StationsService,
     private stationObsEnvservice: StationObsEnvService,
     private stationObsFocuseservice: StationObsFocusesService,
-    private sourcesService: SourcesService,
+    private sourcesService: SourceTemplatesService,
     private elementSubdomainsService: ElementSubdomainsService,
     private elementTypesService: ElementTypesService,
     private elementsService: ElementsService,

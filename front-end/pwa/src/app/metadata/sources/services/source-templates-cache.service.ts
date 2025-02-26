@@ -10,7 +10,7 @@ import { AppConfigService } from "src/app/app-config.service";
 @Injectable({
     providedIn: 'root'
 })
-export class SourcesCacheService {
+export class SourceTemplatesCacheService {
     private endPointUrl: string;
     private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
@@ -18,18 +18,18 @@ export class SourcesCacheService {
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/sources`;
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/source-templates`;
         this.loadSources();
     }
 
     private async loadSources() {
-        this._cachedSources.next(await AppDatabase.instance.sources.toArray());
+        this._cachedSources.next(await AppDatabase.instance.sourceTemplates.toArray());
     }
 
     private checkForUpdates(): void {
         console.log('checking sources updates');
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('sources').subscribe(res => {
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('sourceTemplates').subscribe(res => {
             console.log('source-cache response', res);
             if (res) {
                 this.loadSources();

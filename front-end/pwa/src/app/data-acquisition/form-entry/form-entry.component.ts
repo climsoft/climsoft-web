@@ -12,7 +12,7 @@ import { SameInputStruct } from './assign-same-input/assign-same-input.component
 import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
-import { SourcesCacheService } from 'src/app/metadata/sources/services/sources-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
@@ -59,7 +59,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   constructor
     (private pagesDataService: PagesDataService,
-      private sourcesService: SourcesCacheService,
+      private sourcesService: SourceTemplatesCacheService,
       private stationsService: StationsCacheService,
       private observationService: ObservationsService,
       private qcTestsService: ElementsQCTestsService,

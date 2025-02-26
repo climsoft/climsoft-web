@@ -21,11 +21,11 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayDateSelector">
-            <app-date-input [label]="'Date'" [value]="defaultDateValue" (valueChange)="onDateChange($event)" />
+            <app-date-input [label]="'Date'" [showNavigationButtons]="true" [value]="defaultDateValue" (valueChange)="onDateChange($event)" />
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayYearMonthSelector">
-            <app-year-month-input [label]="'Year & Month'" [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
+            <app-year-month-input [showNavigationButtons]="true" [label]="'Year & Month'" [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
