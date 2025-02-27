@@ -27,6 +27,9 @@ export interface CreateUpdateSourceModel {
 
   /** Sample paper image that resembles the source design */
   sampleImage: string;
+
+  disabled: boolean;
+  comment: string | null;
 }
 
 export interface SourceParametersValidity {

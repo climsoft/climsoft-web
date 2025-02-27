@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm"; 
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { UserEntity } from "src/user/entities/user.entity";
 import { ExportTemplateEntity } from "./export-template.entity";
 
@@ -19,7 +19,16 @@ export class ExportAuditLogEntity {
     user: UserEntity;
 
     @PrimaryColumn({ name: "export_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
-    exportDateTime: Date;
+    exportDateTime: Date;// Note, this will eventually be used to calculate end observation date when it comes to schedule exports resends
+
+    @Column({ name: "observation_start_date", type: "timestamptz" })
+    observationStartDate: Date;
+
+    @Column({ name: "observation_end_date", type: "timestamptz" })
+    observationEndDate: Date;
+
+    @Column({ name: "record_num", type: "float" })
+    RecordNum: number;
 
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment: string | null;

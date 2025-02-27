@@ -4,6 +4,7 @@ import { ExportTemplateParametersDto } from "../dtos/export-template-paramers.dt
 
 @Entity("export_templates")
 @Check("CHK_export_templates_name_not_empty", `"name" <> ''`)
+@Check("CHK_export_templates_description_not_empty", `"description" <> ''`)
 export class ExportTemplateEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
@@ -19,6 +20,9 @@ export class ExportTemplateEntity extends AppBaseEntity {
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters: ExportTemplateParametersDto;
+
+    @Column({ type: "boolean", default: false })
+    disabled: boolean;
 
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment: string | null;

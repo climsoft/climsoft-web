@@ -5,6 +5,7 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("source_templates")
 @Check("CHK_source_templates_name_not_empty", `"name" <> ''`)
+@Check("CHK_source_templates_description_not_empty", `"description" <> ''`)
 export class SourceTemplateEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
@@ -33,6 +34,9 @@ export class SourceTemplateEntity extends AppBaseEntity {
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters: SourceParametersValidity;
+
+    @Column({ type: "boolean", default: false })
+    disabled: boolean;
 
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment: string | null;

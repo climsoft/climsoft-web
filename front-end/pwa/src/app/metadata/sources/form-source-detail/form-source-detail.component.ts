@@ -75,7 +75,9 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         allowMissingValue: true,
         scaleValues: true, // By default forms usually have scaled values.
         sampleImage: '',
-        parameters: entryForm
+        parameters: entryForm,
+        disabled: false,
+        comment: '',
       };      
     }
   }
@@ -174,7 +176,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   protected onSave(): void {
     this.errorMessage = '';
-    
+
     if (!this.viewSource) {
       this.errorMessage = 'Template not defined';
       return;
@@ -239,7 +241,9 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       allowMissingValue: this.allowMissingValue,
       sampleImage: '',
       parameters: entryForm,
-      scaleValues: true // By default form values are always scaled
+      scaleValues: true, // By default form values are always scaled.
+      disabled: this.viewSource.disabled,
+      comment: this.viewSource.comment,
     }
 
     if (this.viewSource.id === 0) {

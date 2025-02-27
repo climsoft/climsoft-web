@@ -6,4 +6,6 @@ export class ViewTemplateExportDto {
   description: string;
   parameters: ExportTemplateParametersDto; //TODO. Implement validations
   utcOffset: number;
+  disabled: boolean;
+  comment: string | null;
 }

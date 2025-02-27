@@ -47,8 +47,7 @@
                 { label:'Select', checked: viewExportTemplate.parameters.period !== undefined }]"
                 (checkedValueChange)="onPeriodsStatusSelection($event)" />
             <div *ngIf="viewExportTemplate.parameters.period">
-                <app-period-single-input [id]="'period'"
-                    [(selectedId)]="viewExportTemplate.parameters.period" />
+                <app-period-single-input [id]="'period'" [(selectedId)]="viewExportTemplate.parameters.period" />
             </div>
         </div>
 
@@ -57,27 +56,34 @@
 
         <div>
             <div>Observation Date:</div>
-            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'rangeStatus'"
-                [groupItems]="
-              [{ label:'All', checked: viewExportTemplate.parameters.ObservationDate === undefined },  
-               { label:'Within' , checked: viewExportTemplate.parameters.ObservationDate && viewExportTemplate.parameters.ObservationDate.within  !== undefined},
-               { label:'Last' , checked: viewExportTemplate.parameters.ObservationDate && viewExportTemplate.parameters.ObservationDate.last !== undefined}]"
-                (checkedValueChange)="onRangeStatusSelection($event)" />
-            <div *ngIf="viewExportTemplate.parameters.ObservationDate">
+            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'rangeStatus'" [groupItems]="
+              [
+               { label:'All', checked: viewExportTemplate.parameters.observationDate === undefined },  
+               { label:'Within' , checked: viewExportTemplate.parameters.observationDate && viewExportTemplate.parameters.observationDate.within  !== undefined},
+               { label:'Last' , checked: viewExportTemplate.parameters.observationDate && viewExportTemplate.parameters.observationDate.last !== undefined}
+               ]" (checkedValueChange)="onRangeStatusSelection($event)" />
+            <div *ngIf="viewExportTemplate.parameters.observationDate">
 
-                <div *ngIf="viewExportTemplate.parameters.ObservationDate.last !== undefined"
+                <div *ngIf="viewExportTemplate.parameters.observationDate.last !== undefined"
                     class="d-flex align-items-center">
                     <app-number-input [id]="'days'"
-                        [(numValue)]="viewExportTemplate.parameters.ObservationDate.last" />
-                    <div class="ms-2">days</div>
+                        [(numValue)]="viewExportTemplate.parameters.observationDate.last.duration" />
+                    <div class="ms-2">
+                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'lastDuration'"
+                            [groupItems]=" 
+                             [ 
+                                 { label:'Days', checked: viewExportTemplate.parameters.observationDate.last.durationType === 'days'},   
+                                 { label:'Minutes' , checked: viewExportTemplate.parameters.observationDate.last.durationType === 'minutes'}
+                             ]" (checkedValueChange)="onLastStatusSelection($event)" />
+                    </div>
                 </div>
-                <div *ngIf="viewExportTemplate.parameters.ObservationDate.within">
+                <div *ngIf="viewExportTemplate.parameters.observationDate.within">
                     <div class="d-flex align-items-center ">
                         <app-date-input [id]="'start_date'"
-                            [value]="viewExportTemplate.parameters.ObservationDate.within.startDate" />
+                            [value]="viewExportTemplate.parameters.observationDate.within.startDate" />
                         <div class="mx-2">To</div>
                         <app-date-input [id]="'end_date'"
-                            [value]="viewExportTemplate.parameters.ObservationDate.within.endDate" />
+                            [value]="viewExportTemplate.parameters.observationDate.within.endDate" />
                     </div>
                 </div>
 
@@ -91,12 +97,25 @@
             <div *ngIf="expression.value">
                 <div class="fw-bold">Expressions will be supported in next version release</div>
                 <div class="text-info">
-                    Expressions will allow advanced processing of data into the expected file output, for instance they will be used transform or aggregate data (dekadal, monthly, annual summaries etc.)
+                    Expressions will allow advanced processing of data into the expected file output, for instance they
+                    will be used transform or aggregate data (dekadal, monthly, annual summaries etc.)
                 </div>
                 <div class="text-info">
                     Expressions will also allow pecifications of file formats like Bufr, Parquet etc.
                 </div>
             </div>
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <div>
+            <app-check-box-input [label]="'Disable'" [(value)]="viewExportTemplate.disabled" />
+        </div>
+
+        <hr class="border border-secondary border-1">
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewExportTemplate.comment" />
         </div>
 
         <div *ngIf="errorMessage">

@@ -57,7 +57,9 @@ export class ExportDetailComponent implements OnInit {
         name: '',
         description: '',
         utcOffset: 0,
-        parameters: {}
+        parameters: {},
+        disabled: false,
+        comment: null,
       };
 
     }
@@ -77,21 +79,37 @@ export class ExportDetailComponent implements OnInit {
 
   protected onRangeStatusSelection(option: string): void {
     if (option === 'All') {
-      this.viewExportTemplate.parameters.ObservationDate = undefined;
+      this.viewExportTemplate.parameters.observationDate = undefined;
     } else if (option === 'Within') {
-      this.viewExportTemplate.parameters.ObservationDate = {
+      this.viewExportTemplate.parameters.observationDate = {
         within: {
           startDate: '',
           endDate: '',
         },
       };
     } else if (option === 'Last') {
-      this.viewExportTemplate.parameters.ObservationDate = {
-        last: 365,
+      this.viewExportTemplate.parameters.observationDate = {
+        last: {
+          duration: 31,
+          durationType: 'days',
+        }
       };
     }
 
   }
+
+  protected onLastStatusSelection(option: string): void {
+    if (!(this.viewExportTemplate.parameters.observationDate && this.viewExportTemplate.parameters.observationDate.last)) {
+      return;
+    }
+
+    if (option === 'Days') {
+      this.viewExportTemplate.parameters.observationDate.last.durationType = 'days';
+    } else if (option === 'Minutes') {
+      this.viewExportTemplate.parameters.observationDate.last.durationType = 'minutes';
+    }
+  }
+
 
   protected onSave(): void {
     this.errorMessage = '';
@@ -101,45 +119,56 @@ export class ExportDetailComponent implements OnInit {
       return;
     }
 
-    if(!this.viewExportTemplate.name){
+    if (!this.viewExportTemplate.name) {
       this.errorMessage = 'Enter template name';
       return;
     }
 
-    if(!this.viewExportTemplate.description){
+    if (!this.viewExportTemplate.description) {
       this.errorMessage = 'Enter template description';
       return;
     }
-     const createExportTemplate: CreateExportTemplateModel = {
-          name: this.viewExportTemplate.name,
-          description: this.viewExportTemplate.description, 
-          utcOffset: this.viewExportTemplate.utcOffset, 
-          parameters: this.viewExportTemplate.parameters, 
-        }
 
-      if (this.viewExportTemplate.id === 0) {
-          this.exportTemplatesService.put(createExportTemplate).pipe(
-            take(1)
-          ).subscribe((data) => {
-            if (data) {
-              this.pagesDataService.showToast({
-                title: 'Export Template', message: `Export ${this.viewExportTemplate.name} template saved`, type: ToastEventTypeEnum.SUCCESS
-              });
-              this.location.back();
-            }
+    // if( this.viewExportTemplate.parameters.ObservationDate &&  this.viewExportTemplate.parameters.ObservationDate.last ){
+    //   this.viewExportTemplate.parameters.ObservationDate = {
+    //     last: 365,
+    //   };
+    // }
+
+
+
+    const createExportTemplate: CreateExportTemplateModel = {
+      name: this.viewExportTemplate.name,
+      description: this.viewExportTemplate.description,
+      utcOffset: this.viewExportTemplate.utcOffset,
+      parameters: this.viewExportTemplate.parameters,
+      disabled: this.viewExportTemplate.disabled,
+      comment: this.viewExportTemplate.comment,
+    }
+
+    if (this.viewExportTemplate.id === 0) {
+      this.exportTemplatesService.put(createExportTemplate).pipe(
+        take(1)
+      ).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Export Template', message: `Export ${this.viewExportTemplate.name} template saved`, type: ToastEventTypeEnum.SUCCESS
           });
-        } else {
-          this.exportTemplatesService.update(this.viewExportTemplate.id, createExportTemplate).pipe(
-            take(1)
-          ).subscribe((data) => {
-            if (data) {
-              this.pagesDataService.showToast({
-                title: 'Export Template', message: `Export  ${this.viewExportTemplate.name} template updated`, type: ToastEventTypeEnum.SUCCESS
-              });
-              this.location.back();
-            }
-          });
+          this.location.back();
         }
+      });
+    } else {
+      this.exportTemplatesService.update(this.viewExportTemplate.id, createExportTemplate).pipe(
+        take(1)
+      ).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Export Template', message: `Export  ${this.viewExportTemplate.name} template updated`, type: ToastEventTypeEnum.SUCCESS
+          });
+          this.location.back();
+        }
+      });
+    }
 
   }
 

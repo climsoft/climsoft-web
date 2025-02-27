@@ -1,4 +1,4 @@
-import { catchError, Observable, Subscription, throwError } from "rxjs";
+import { catchError, Observable, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";

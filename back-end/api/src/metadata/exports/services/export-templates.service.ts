@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm'; 
+import { InjectRepository } from '@nestjs/typeorm';
 import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
 import { ExportTemplateEntity } from '../entities/export-template.entity';
 import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
@@ -9,7 +9,7 @@ import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
 export class ExportTemplatesService {
 
     constructor(
-        @InjectRepository(ExportTemplateEntity) private  exportsRepo: Repository<ExportTemplateEntity>, 
+        @InjectRepository(ExportTemplateEntity) private exportsRepo: Repository<ExportTemplateEntity>,
     ) { }
 
 
@@ -31,10 +31,10 @@ export class ExportTemplatesService {
         const sourceEntities = await this.exportsRepo.find(findOptions);
         const dtos: ViewTemplateExportDto[] = [];
         for (const entity of sourceEntities) {
-            dtos.push( this.createViewDto(entity));
+            dtos.push(this.createViewDto(entity));
         }
         return dtos;
-    }   
+    }
 
     private async findEntity(id: number): Promise<ExportTemplateEntity> {
         const entity = await this.exportsRepo.findOneBy({
@@ -59,9 +59,11 @@ export class ExportTemplatesService {
             });
         }
 
-        entity.description = dto.description; 
-        entity.utcOffset = dto.utcOffset; 
+        entity.description = dto.description;
+        entity.utcOffset = dto.utcOffset;
         entity.parameters = dto.parameters;
+        entity.disabled = dto.disabled ? true : false;
+        entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
 
         await this.exportsRepo.save(entity);
@@ -73,8 +75,8 @@ export class ExportTemplatesService {
     public async update(id: number, dto: CreateExportTemplateDto, userId: number) {
         const source = await this.findEntity(id);
         source.name = dto.name;
-        source.description = dto.description; 
-        source.utcOffset = dto.utcOffset; 
+        source.description = dto.description;
+        source.utcOffset = dto.utcOffset;
         source.parameters = dto.parameters;
         source.entryUserId = userId;
 
@@ -95,17 +97,17 @@ export class ExportTemplatesService {
         return true;
     }
 
-    private  createViewDto(entity: ExportTemplateEntity): ViewTemplateExportDto {
+    private createViewDto(entity: ExportTemplateEntity): ViewTemplateExportDto {
         const dto: ViewTemplateExportDto = {
             id: entity.id,
             name: entity.name,
             description: entity.description,
             parameters: entity.parameters,
-            utcOffset: entity.utcOffset, 
+            utcOffset: entity.utcOffset,
+            disabled: entity.disabled,
+            comment: entity.comment,
         }
         return dto;
     }
-
-     
 
 }
