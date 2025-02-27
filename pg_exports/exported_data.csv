@@ -1,0 +1,2 @@
+entry_user_id,entry_date_time,station_id,element_id,elevation,date_time,period,source_id,value,flag,qc_status,qc_test_log,comment,deleted,log,saved_to_v4
+1,2025-02-27 06:46:46.910244+00,1,5,0,2025-02-27 08:00:00+00,1440,1,30,,none,,,f,,t
