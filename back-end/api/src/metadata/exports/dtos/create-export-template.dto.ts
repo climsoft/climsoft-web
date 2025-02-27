@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString } from 'class-validator'; 
+import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
 import { ExportTemplateParametersDto } from './export-template-paramers.dto';
 
 export class CreateExportTemplateDto {
@@ -21,4 +21,11 @@ export class CreateExportTemplateDto {
    */
   @IsInt()
   utcOffset: number;
+
+  @IsBoolean()
+  disabled: boolean;
+
+  @IsOptional()
+  @IsString()
+  comment: string | null;
 }

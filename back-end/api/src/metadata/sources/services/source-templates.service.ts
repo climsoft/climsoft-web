@@ -90,6 +90,8 @@ export class SourceTemplatesService {
         entity.scaleValues = dto.scaleValues;
         entity.sampleImage = dto.sampleImage;
         entity.parameters = dto.parameters;
+        entity.disabled = dto.disabled? true: false;
+        entity.comment = dto.comment? dto.comment: null;
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
@@ -136,7 +138,9 @@ export class SourceTemplatesService {
             allowMissingValue: entity.allowMissingValue,
             sampleImage: entity.sampleImage,
             parameters: entity.parameters,
-            scaleValues: entity.scaleValues
+            scaleValues: entity.scaleValues,
+            disabled: entity.disabled,
+            comment: entity.comment,
         }
 
         // TODO. Remove this block. Forms can now use cached elements and reconstruct this on the front end

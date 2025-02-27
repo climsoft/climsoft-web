@@ -6,4 +6,6 @@ export interface CreateExportTemplateModel {
   description: string;
   parameters: ExportTemplateParametersModel; //TODO. Implement validations
   utcOffset: number;
+  disabled: boolean;
+  comment: string | null;
 }

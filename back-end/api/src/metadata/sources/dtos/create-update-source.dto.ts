@@ -41,6 +41,13 @@ export class CreateUpdateSourceDto {
   /** Sample paper image that resembles the source design */
   @IsString()
   sampleImage: string;
+
+  @IsBoolean()
+  disabled: boolean;
+
+  @IsOptional()
+  @IsString()
+  comment: string | null;
 }
 
 export interface SourceParametersValidity {

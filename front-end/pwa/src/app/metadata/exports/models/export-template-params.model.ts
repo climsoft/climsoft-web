@@ -1,9 +1,12 @@
 export interface ExportTemplateParametersModel {
   stationIds?: string[];
   elementIds?: number[];
-  period?: number; 
-  ObservationDate?: {
-    last?: number; // In days
+  period?: number;
+  observationDate?: {
+    last?: {
+      duration: number,
+      durationType: 'days' | 'minutes',
+    };
     within?: {
       startDate: string;
       endDate: string;

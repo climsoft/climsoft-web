@@ -96,6 +96,18 @@
             </div>
         </div>
         
+        <hr class="border border-secondary border-1">
+        
+        <div>
+            <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
+        </div>
+       
+        <hr class="border border-secondary border-1">
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewSource.comment" />
+        </div>
+        
         <div *ngIf="errorMessage">
             <hr class="border border-secondary border-1">
 

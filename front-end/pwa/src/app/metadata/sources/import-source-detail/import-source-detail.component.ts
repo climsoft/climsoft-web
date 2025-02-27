@@ -85,6 +85,8 @@ export class ImportSourceDetailComponent implements OnInit {
         utcOffset: 0,
         parameters: defaultImportSourceDefs,
         scaleValues: false,
+        disabled: false,
+        comment: '',
       };
 
     }
@@ -132,7 +134,9 @@ export class ImportSourceDetailComponent implements OnInit {
       allowMissingValue: this.viewSource.allowMissingValue,
       sampleImage: this.viewSource.sampleImage,
       utcOffset: this.viewSource.utcOffset,
-      parameters: this.viewSource.parameters
+      parameters: this.viewSource.parameters,
+      disabled: this.viewSource.disabled,
+      comment: this.viewSource.comment,
     };
 
     // console.log('saved', createUpdateSource)
