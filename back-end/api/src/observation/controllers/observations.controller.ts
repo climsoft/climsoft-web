@@ -11,12 +11,15 @@ import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-que
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
+import { ExportObservationsService } from '../services/export-observations.service';
 
 @Controller('observations')
 export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
-    private observationUpload: ObservationImportService,) { }
+    private observationUpload: ObservationImportService,
+    private exportObservationsService: ExportObservationsService,
+  ) { }
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {

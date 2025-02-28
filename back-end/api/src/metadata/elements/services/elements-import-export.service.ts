@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { TableData } from 'duckdb-async';
@@ -47,8 +47,8 @@ export class ElementsImportExportService {
             alterSQLs = alterSQLs + this.getAlterDescriptionColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + this.getAlterUnitsColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + await this.getAlterElementTypesColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterEntryScaleFactorColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterCommentsColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlterEntryScaleFactorColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlterCommentsColumnSQL(tmpTableName);
 
             // Execute the duckdb DDL SQL commands
             await this.fileIOService.duckDb.exec(alterSQLs);
@@ -150,7 +150,7 @@ export class ElementsImportExportService {
     //------------------------------------
     // EXPORT FUNCTIONAILTY
 
-    public async export(userId: number): Promise<string> {
+    public async export(userId: number): Promise<StreamableFile> {
         try {
             const allElements = await this.elementsService.find();
             const allElementTypes = await this.elementTypesService.find();
@@ -188,8 +188,8 @@ export class ElementsImportExportService {
             // Delete the stations table 
             this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);
 
-            // Return the path of the generated CSV file
-            return filePathName;
+            // Return the generated CSV file
+            return this.fileIOService.createStreamableFile(filePathName);
         } catch (error) {
             console.error("Elements Export Failed: ", error);
             throw new BadRequestException("File export Failed");

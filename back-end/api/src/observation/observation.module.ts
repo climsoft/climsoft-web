@@ -12,6 +12,7 @@ import { SharedModule } from 'src/shared/shared.module';
 import { SettingsModule } from 'src/settings/settings.module'; 
 import { ClimsoftV4Controller } from './controllers/climsoft-v4.controller';
 import { ClimsoftV4Service } from './services/climsoft-v4.service';
+import { ExportObservationsService } from './services/export-observations.service';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ClimsoftV4Service } from './services/climsoft-v4.service';
     ObservationsService,
     ObservationImportService,
     SourceCheckService,
+    ExportObservationsService,
     ClimsoftV4Service,
   ],
 })

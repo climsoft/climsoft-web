@@ -6,7 +6,8 @@ import { ObservationModule } from './observation/observation.module';
 import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
-import { MigrationsModule } from './migrations/migrations.module';
+import { MigrationsModule } from './migrations/migrations.module'; 
+import { AppConfig } from './app.config';
 
 @Module({
   imports: [
@@ -18,13 +19,13 @@ import { MigrationsModule } from './migrations/migrations.module';
     MetadataModule,
     TypeOrmModule.forRoot({
       type: "postgres",
-      host: process.env.DB_HOST ? process.env.DB_HOST : "localhost",
-      port: process.env.DB_PORT ? +process.env.DB_PORT : 5432,
-      username: process.env.DB_USERNAME ? process.env.DB_USERNAME : "postgres",
-      password: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : "my_password",
-      database: process.env.DB_NAME ? process.env.DB_NAME : "climsoft",
+      host: AppConfig.dbCredentials.host,
+      port: AppConfig.dbCredentials.port,
+      username: AppConfig.dbCredentials.username  ,
+      password: AppConfig.dbCredentials.password ,
+      database: AppConfig.dbCredentials.database ,
       autoLoadEntities: true, // models will be loaded automatically
-      synchronize: true, // your entities will be synced with the database(TODO: disable in production)
+      synchronize: AppConfig.devMode, // in dev mode synce entities with the database but in production disable
       // TODO. Investigate whether we should increase the connection pool size after monitoring the connection pool utilisation.
     }),
 

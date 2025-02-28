@@ -14,6 +14,7 @@ import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { UsersService } from 'src/user/services/users.service';
 import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
+import { AppConfig } from 'src/app.config';
 
 interface V4ElementModel {
     elementId: number;
@@ -100,54 +101,21 @@ export class ClimsoftV4Service {
                 await this.disconnect();
             }
 
-            let v4Save: boolean;
-            let host: string;
-            let user: string;
-            let password: string;
-            let database: string;
-            let port: number;
-            let utcOffset: number;
-
-            if (process.env.V4_SAVE !== undefined &&
-                process.env.V4_DB_USERNAME !== undefined &&
-                process.env.V4_DB_PASSWORD !== undefined &&
-                process.env.V4_DB_NAME !== undefined &&
-                process.env.V4_DB_PORT !== undefined &&
-                process.env.V4_DB_UTCOFFSET !== undefined) {
-                console.log('Setting up production mode v4 settings.');
-                v4Save = process.env.V4_SAVE === 'yes';
-                host = 'host.docker.internal';
-                user = process.env.V4_DB_USERNAME;
-                password = process.env.V4_DB_PASSWORD;
-                database = process.env.V4_DB_NAME;
-                port = +process.env.V4_DB_PORT;
-                utcOffset = +process.env.V4_DB_UTCOFFSET;
-            } else {
-                console.log('Setting up development mode v4 settings.');
-                // If any of the env variable V4_SAVE env is undefined then assume it's a dev environment. 
-                v4Save = true;
-                host = 'localhost';
-                user = 'my_user';
-                password = 'my_password';
-                database = 'mariadb_climsoft_db_v4';
-                port = 3306;
-                utcOffset = 0;
-            }
-
-            if (!v4Save) {
+            // If not in dev mode and saving to version 4 is disabled then just return
+            if(!AppConfig.devMode && !AppConfig.v4DbCredentials.v4Save ){
                 console.log('Saving to v4 database disabled.');
                 return;
-            }
+            } 
 
-            this.v4UtcOffset = utcOffset;
+            this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
-                host: host,
-                user: user,
-                password: password,
-                database: database,
-                port: port,
+                host: AppConfig.devMode? 'localhost': AppConfig.v4DbCredentials.host,
+                user: AppConfig.v4DbCredentials.username,
+                password: AppConfig.v4DbCredentials.password,
+                database: AppConfig.v4DbCredentials.databaseName,
+                port: AppConfig.v4DbCredentials.port,
             });
 
             // Clear any previous conflicts
@@ -446,35 +414,6 @@ export class ClimsoftV4Service {
         // Get a connection from the pool
         const connection = await v4DBPool.getConnection();
         try {
-            // const upsertStatement = `
-            //     INSERT INTO observationinitial (
-            //         recordedFrom, 
-            //         describedBy, 
-            //         obsDatetime, 
-            //         obsLevel,
-            //         obsValue, 
-            //         flag,
-            //         period,             
-            //         qcStatus,
-            //         qcTypeLog,
-            //         acquisitionType,
-            //         dataForm,
-            //         capturedBy
-            //     )
-            //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            //     ON DUPLICATE KEY UPDATE
-            //         obsLevel = VALUES(obsLevel),
-            //         obsValue = VALUES(obsValue),
-            //         flag = VALUES(flag),
-            //         period = VALUES(period),
-            //         qcStatus = VALUES(qcStatus),
-            //         qcTypeLog = VALUES(qcTypeLog),
-            //         acquisitionType = VALUES(acquisitionType),
-            //         dataForm = VALUES(dataForm),
-            //         capturedBy = VALUES(capturedBy)
-            // `;
-
-
             const upsertStatement = `
             INSERT INTO observationinitial (
                 recordedFrom, 

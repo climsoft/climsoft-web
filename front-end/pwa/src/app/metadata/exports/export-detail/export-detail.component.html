@@ -100,15 +100,15 @@
         <hr class="border border-secondary border-1">
 
         <div>
-            <app-check-box-input #expression [label]="'Use expression'" [value]="false" />
+            <app-check-box-input #expression [label]="'Format Export'" [value]="false" />
             <div *ngIf="expression.value">
-                <div class="fw-bold">Expressions will be supported in next version release</div>
+                <div class="fw-bold">Export formating will be supported in next version release</div>
                 <div class="text-info">
-                    Expressions will allow advanced processing of data into the expected file output, for instance they
-                    will be used transform or aggregate data (dekadal, monthly, annual summaries etc.)
+                    Formating will allow advanced processing of data into the expected file output, for instance they
+                    will be used to transform or aggregate data (dekadal, monthly, annual summaries etc.)
                 </div>
                 <div class="text-info">
-                    Expressions will also allow pecifications of file formats like Bufr, Parquet etc.
+                    Formating will also allow specifications of file formats like Parquet etc.
                 </div>
             </div>
         </div>
