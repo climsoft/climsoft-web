@@ -7,6 +7,7 @@ export interface ExportTemplateParametersModel {
       duration: number,
       durationType: 'days' | 'minutes',
     };
+    fromDate?: string;
     within?: {
       startDate: string;
       endDate: string;

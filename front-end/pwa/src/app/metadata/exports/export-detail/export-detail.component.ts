@@ -77,15 +77,19 @@ export class ExportDetailComponent implements OnInit {
     this.viewExportTemplate.parameters.period = option === 'All' ? undefined : 1440;
   }
 
-  protected onRangeStatusSelection(option: string): void {
+  protected onDateStatusSelection(option: string): void {
     if (option === 'All') {
       this.viewExportTemplate.parameters.observationDate = undefined;
     } else if (option === 'Within') {
       this.viewExportTemplate.parameters.observationDate = {
         within: {
-          startDate: '',
-          endDate: '',
+          startDate: new Date().toISOString().slice(0, 10),
+          endDate: new Date().toISOString().slice(0, 10),
         },
+      };
+    } else if (option === 'From') {
+      this.viewExportTemplate.parameters.observationDate = {
+        fromDate: new Date().toISOString().slice(0, 10),
       };
     } else if (option === 'Last') {
       this.viewExportTemplate.parameters.observationDate = {

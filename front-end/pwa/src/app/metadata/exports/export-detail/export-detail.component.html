@@ -60,10 +60,11 @@
               [
                { label:'All', checked: viewExportTemplate.parameters.observationDate === undefined },  
                { label:'Within' , checked: viewExportTemplate.parameters.observationDate && viewExportTemplate.parameters.observationDate.within  !== undefined},
+               { label:'From' , checked: viewExportTemplate.parameters.observationDate && viewExportTemplate.parameters.observationDate.fromDate !== undefined},
                { label:'Last' , checked: viewExportTemplate.parameters.observationDate && viewExportTemplate.parameters.observationDate.last !== undefined}
-               ]" (checkedValueChange)="onRangeStatusSelection($event)" />
+               ]" (checkedValueChange)="onDateStatusSelection($event)" />
             <div *ngIf="viewExportTemplate.parameters.observationDate">
-
+                
                 <div *ngIf="viewExportTemplate.parameters.observationDate.last !== undefined"
                     class="d-flex align-items-center">
                     <app-number-input [id]="'days'"
@@ -77,6 +78,12 @@
                              ]" (checkedValueChange)="onLastStatusSelection($event)" />
                     </div>
                 </div>
+                
+                <div *ngIf="viewExportTemplate.parameters.observationDate.fromDate">
+                    <app-date-input [id]="'from_date'"
+                        [value]="viewExportTemplate.parameters.observationDate.fromDate" />
+                </div>
+
                 <div *ngIf="viewExportTemplate.parameters.observationDate.within">
                     <div class="d-flex align-items-center ">
                         <app-date-input [id]="'start_date'"
