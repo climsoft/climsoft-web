@@ -12,7 +12,7 @@ export class AutoImportSelectionComponent  {
   private destroy$ = new Subject<void>();
 
   constructor(private pagesDataService: PagesDataService){
-    this.pagesDataService.setPageHeader('Select Auto Import');
+    this.pagesDataService.setPageHeader('Select Scheduled Import');
   }
 
   
