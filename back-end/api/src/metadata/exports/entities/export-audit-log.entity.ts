@@ -21,12 +21,6 @@ export class ExportAuditLogEntity {
     @PrimaryColumn({ name: "export_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
     exportDateTime: Date;// Note, this will eventually be used to calculate end observation date when it comes to schedule exports resends
 
-    @Column({ name: "observation_start_date", type: "timestamptz" })
-    observationStartDate: Date;
-
-    @Column({ name: "observation_end_date", type: "timestamptz" })
-    observationEndDate: Date;
-
     @Column({ name: "record_num", type: "float" })
     RecordNum: number;
 

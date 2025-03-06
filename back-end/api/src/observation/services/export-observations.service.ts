@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 import { DataSource } from "typeorm"
 import { ExportTemplateParametersDto } from 'src/metadata/exports/dtos/export-template-paramers.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -12,21 +12,12 @@ export class ExportObservationsService {
         private exportTemplatesService: ExportTemplatesService,
         private readonly dataSource: DataSource,
         private readonly fileIOService: FileIOService,) {
-        // console.log('Temp Folder: ', fileIOService.tempFilesFolderPath);
     }
 
-    public async exportObservations(exportObs: { exportTemplateId: number; comment: string }, userId: number,) {
-        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportObs.exportTemplateId)
-        const outputPath = await this.generateObservations(viewTemplateExportDto);
-
-        // TODO. Log the export 
-
-        return this.fileIOService.createStreamableFile(outputPath);
-    }
-
-    public async generateObservations(viewTemplateExportDto: ViewTemplateExportDto) {
+    public async generateExports(exportTemplateId: number): Promise<number> {
+        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId)
         const exportParams: ExportTemplateParametersDto = viewTemplateExportDto.parameters;
-        const outputPath: string = (AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/var/lib/postgresql/exports') + `/${viewTemplateExportDto.id}.csv`;
+        const outputPath: string = `/var/lib/postgresql/exports/${exportTemplateId}.csv`;
 
         console.log('Export output path: ', outputPath);
 
@@ -70,18 +61,26 @@ export class ExportObservationsService {
             ) TO '${outputPath}' WITH CSV HEADER;
         `;
 
-        console.log('Executing COPY command:', sql); // Debugging log
+        //console.log('Executing COPY command:', sql); // Debugging log
 
         // Execute raw SQL query (without parameterized placeholders)
         const results = await this.dataSource.manager.query(sql);
 
-        console.log('Copying done:', outputPath, ' Results: ', results);
+        console.log('Copying done: ', outputPath, ' Results: ', results);
 
         // Return the path to the generated CSV file
-        return outputPath
+        return viewTemplateExportDto.id
     }
 
+    public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {
 
+        const outputPath: string = (AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/var/lib/postgresql/exports') + `/${exportTemplateId}.csv`;
+       
+        console.log('Downloading: ', outputPath);
 
+        // TODO log the export
+        
+        return this.fileIOService.createStreamableFile(outputPath);
+    }
 
 }

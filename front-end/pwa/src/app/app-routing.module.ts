@@ -5,7 +5,7 @@ import { DashboardComponent } from './core/dashboard/dashboard.component';
 import { LoginComponent } from './core/login/login.component';
 import { NotFoundComponent } from './core/not-found/not-found.component';
 import { appAuthGuard } from './app-auth.guard';
-import { HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 
 const routes: Routes = [
   {

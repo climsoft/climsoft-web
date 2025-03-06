@@ -236,7 +236,7 @@ export class ClimsoftV4Service {
                 id: v4Element.elementId,
                 abbreviation: v4Element.abbreviation,
                 name: v4Element.elementName,
-                description: v4Element.description,
+                description:  v4Element.description,
                 units: v4Element.units,
                 typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,

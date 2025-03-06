@@ -1,0 +1,48 @@
+<div *ngIf="viewExportTemplate" class="card border-0">
+   <!-- <div class="card-header d-flex justify-content-end   align-items-center px-1 py-0">
+      <div class="mb-1 d-flex">
+       
+      </div>
+   </div> -->
+
+   <div class="card-body px-0">
+
+      <div *ngIf="!downloadLink">
+         <div class="d-flex justify-content-center">
+            <button type="button" class="btn btn-primary btn-sm" (click)="onExportClick()">
+               Export
+            </button>
+         </div>
+         <div *ngIf="!hidePreparingExport" class="mt-2">
+            <div class="px-4 w-100">
+               <div class="progress">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
+                  </div>
+               </div>
+            </div>
+            <div class="mt-2 d-flex justify-content-center">
+               Preparing data for export...
+            </div>
+         </div>
+      </div>
+
+      <div *ngIf="downloadLink" class="d-flex flex-column justify-content-center">
+         <div *ngIf="!hideDownloadButton">
+            <div class="d-flex justify-content-center">
+               Export is now ready for download. Click the download button below to download the export.
+            </div>
+            <div class="d-flex  justify-content-center">
+               <button type="button" class="btn btn-outline-secondary btn-sm"
+                  (click)="elementDownloadLink.click(); onDownloadStarted();">
+                  Download
+               </button>
+               <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
+            </div>
+         </div>
+         <div *ngIf="hideDownloadButton" class="d-flex  justify-content-center">
+            Downloading export. Check download status.
+         </div>
+      </div>
+
+
+   </div>

@@ -62,6 +62,17 @@ export class ObservationsService {
       );
   }
 
+  public generateExport(exportTemplateId: number): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/generate-export/${exportTemplateId}`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public getDownloadExportLink(exportTemplateId: number): string {
+    return `${this.endPointUrl}/download-export/${exportTemplateId}`;
+  } 
+
   // TODO. Not used
   // This implementation was meant to check the local database first then the server.
   // It proved to be a bit risky because of potential stale values.

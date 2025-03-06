@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';   
 import { ManualExportSelectionComponent } from './manual-export-selection/manual-export-selection.component';
 import { AutoExportSelectionComponent } from './auto-export-selection/auto-export-selection.component';
+import { ManualExportDownloadComponent } from './manual-export/manual-export-download.component';
 
 const routes: Routes = [
   {
@@ -18,6 +19,10 @@ const routes: Routes = [
       {
         path: 'manual-export-selection',
         component: ManualExportSelectionComponent, 
+      }, 
+      {
+        path: 'manual-export-download/:id',
+        component: ManualExportDownloadComponent, 
       }, 
       {
         path: 'auto-export-selection',
