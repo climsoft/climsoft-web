@@ -1,4 +1,4 @@
-import { Column, Index, JoinColumn, ManyToOne, UpdateDateColumn } from "typeorm";
+import { Column, Index, JoinColumn, ManyToOne } from "typeorm";
 import { UserEntity } from "src/user/entities/user.entity";
 
 export abstract class AppBaseEntity {
@@ -10,11 +10,7 @@ export abstract class AppBaseEntity {
     @JoinColumn({ name: "entry_user_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
     entryUser: UserEntity;
 
-    // set default to make the entry date time to be optional
-    // Setting of default timestamp is also useful for seeding migrations which populate the database with default values like elements.
-    // TODO This can also be done through a before insert and update trigger functions. 
-    // TODO. Evaluate doing at that level to enforce it at database level, for all tables that need it. 
-    @UpdateDateColumn({ name: "entry_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
+    @Column({ name: "entry_date_time", type: 'timestamptz'})
     @Index()
     entryDateTime: Date;
 }

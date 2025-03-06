@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { UserRoleEnum } from 'src/app/admin/users/models/user-role.enum';
+
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
@@ -10,12 +10,12 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 export class UserRoleSingleInputComponent {
   @Input() public label: string = 'User Role';
   @Input() public errorMessage: string = '';
-  @Input() public includeOnlyIds!: UserRoleEnum[];
-  @Input() public selectedId!: UserRoleEnum | null;
-  @Output() public selectedIdChange = new EventEmitter<UserRoleEnum | null>();
+  @Input() public includeOnlyIds!: string[];
+  @Input() public selectedId!: string | null;
+  @Output() public selectedIdChange = new EventEmitter<string | null>();
 
-  protected options!: UserRoleEnum[];
-  protected selectedOption!: UserRoleEnum | null;
+  protected options!: string[];
+  protected selectedOption!: string | null;
 
   constructor() {
 
@@ -30,11 +30,11 @@ export class UserRoleSingleInputComponent {
 
     //load options once
     if (!this.options) {
-      this.options = Object.values(UserRoleEnum);
+     // this.options = Object.values(UserRoleEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = Object.values(UserRoleEnum).filter(item => this.includeOnlyIds.includes(item));
+      //this.options = Object.values(UserRoleEnum).filter(item => this.includeOnlyIds.includes(item));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
@@ -50,11 +50,11 @@ export class UserRoleSingleInputComponent {
   }
 
 
-  protected optionDisplayFunction(option: UserRoleEnum): string {
+  protected optionDisplayFunction(option: string): string {
     return StringUtils.formatEnumForDisplay(option);
   }
 
-  protected onSelectedOptionChange(selectedOption: UserRoleEnum | null) {
+  protected onSelectedOptionChange(selectedOption: string | null) {
     this.selectedOption = selectedOption;
     this.selectedIdChange.emit(selectedOption);
   }

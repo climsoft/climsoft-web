@@ -13,30 +13,40 @@ export class AuthorisedStationsPipe implements PipeTransform {
   public transform(value: any, metadata: ArgumentMetadata) {
     const user = AuthUtil.getSessionUser(this.request);
 
-    // If user is not logged in, return the value. Authorization will be handled by another pipe.
+    // If user is not logged in, return the value. Authorization will be handled by authentication guard.
     if (!user) return value;
 
-    // If user is admin or has no restrictions on authorized stations, return the value.
-    if (AuthUtil.sessionUserIsAdmin(this.request) || user.authorisedStationIds === null) return value;
+    // If user is admin return the value.
+    if (AuthUtil.sessionUserIsAdmin(this.request)) return value;
+
+       // TODO. Throw the correct exception that relates to authorisation
+    if (!user.permissions)   throw new BadRequestException('Could not check for permissions');
+
+    //if (user.permissions.entryPermissions?.stationsIds)  
+
+      //const authorisedStationIds = user.permissions.entryPermissions.stationsIds;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize stations');
     }
 
+    const authorisedStationIds: any = [];
+
     // Handle different types of metatype
     switch (metadata.metatype.name) {
       case 'Array':
-        return this.handleArray(value, user.authorisedStationIds);
+        return this.handleArray(value, authorisedStationIds);
       case 'String':
-        return this.handleString(value, user.authorisedStationIds);
+        return this.handleString(value, authorisedStationIds);
       case ViewStationQueryDTO.name:
-        return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, user.authorisedStationIds);
+        return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
       case ViewObservationQueryDTO.name:
-        return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, user.authorisedStationIds);
+        return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, authorisedStationIds);
       case EntryFormObservationQueryDto.name:
-        return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, user.authorisedStationIds);
+        return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, authorisedStationIds);
       default:
+        // TODO. Throw the correct exception that relates to authorisation
         throw new BadRequestException('Could not determine how to authorize stations');
     }
   }

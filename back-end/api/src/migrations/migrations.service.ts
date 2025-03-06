@@ -1,5 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { UserRoleEnum } from 'src/user/enums/user-roles.enum';
+import { Injectable, Logger } from '@nestjs/common'; 
 import { UsersService } from 'src/user/services/users.service';
 import { DatabaseVersionEntity } from './entities/database-version.entity';
 import { Repository } from 'typeorm';
@@ -96,12 +95,12 @@ export class MigrationsService {
           name: "admin",
           email: "admin@climsoft.org",
           phone: '',
-          role: UserRoleEnum.ADMINISTRATOR,
-          authorisedStationIds: null,
-          canDownloadData: true,
-          authorisedElementIds: null,
+          isSystemAdmin: true,
+          permissions: null,  
+          userGroupId: null,
           extraMetadata: null,
-          disabled: false
+          disabled: false,
+          comment: null,
         }
       );
 

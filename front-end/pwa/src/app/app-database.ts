@@ -9,9 +9,9 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";  
-import { LoggedInUserModel } from "./admin/users/models/logged-in-user.model";
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";   
 import { CachedObservationModel } from "./data-acquisition/services/observations.service";
+import { UserSettingEnum } from "./app-config.service";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -23,9 +23,8 @@ export interface StationForm {
     forms: ViewSourceModel[];
 }
 
-// TODO. Not yet used
-export interface UserInterfaceSetting {
-    id: string; // should be an enumeration
+export interface UserSetting {
+    name: UserSettingEnum; 
     parameters: any;
 }
 
@@ -60,9 +59,7 @@ export class AppDatabase extends Dexie {
 
     //--------------------------------------
     // Front end related tables
-
-    //userInterfaceSettings!: Table<UserInterfaceSetting, number>;
-
+    userSettings!: Table<UserSetting, string>;
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
     //--------------------------------------
@@ -82,9 +79,12 @@ export class AppDatabase extends Dexie {
 
             stationForms: `stationId`,
             elementsQcTests: `id, elementId, qcTestType, observationPeriod, [elementId+qcTestType+observationPeriod]`,
-            // Compoud key [stationId+elementId+sourceId+elevation+datetime+period] is used for putting and deleting data in the local database. 
-            // Compound index [stationId+sourceId+elevation+elementId+datetime] is used by entry forms.
+            
+            // Note. Compoud key [stationId+elementId+sourceId+elevation+datetime+period] is used for putting and deleting data in the local database. 
+            // Note. Compound index [stationId+sourceId+elevation+elementId+datetime] is used by entry forms.
             observations: `[stationId+elementId+sourceId+elevation+datetime+period], stationId, elementId, sourceId, elevation, datetime, period, synced, entryDatetime, [stationId+sourceId+elevation+elementId+datetime]`,
+           
+            userSettings: `name`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,
         });

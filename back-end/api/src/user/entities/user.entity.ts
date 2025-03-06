@@ -1,18 +1,22 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { UserRoleEnum } from "../enums/user-roles.enum";
-
-// TODO. Add a check for empty name and password to enofrce non empty.
+import { Check, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserGroupEntity } from "./user-group.entity";
+import { UserPermissionDto } from "../dtos/user-permission.dto";
 
 @Entity("users")
+@Check("CHK_users_name_not_empty", `"name" <> ''`)
+@Check("CHK_users_email_not_empty", `"email" <> ''`)
+@Check("CHK_users_password_not_empty", `"hashed_password" <> ''`)
+@Check("CHK_users_admin_no_permissions_or_user_has_permissions",
+  `("is_system_admin" = true AND "permissions" IS NULL) OR ("is_system_admin" = false AND "permissions" IS NOT NULL)`) // SYstem admins must not have permissions because they can access all the features
 export class UserEntity {
 
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
-  @Column({ type: 'varchar' })
+  @Column({ name: "name", type: 'varchar' })
   name: string;
 
-  @Column({ type: "varchar", unique: true })
+  @Column({ name: "email", type: "varchar", unique: true })
   email: string;
 
   @Column({ type: "varchar", unique: true })
@@ -21,20 +25,24 @@ export class UserEntity {
   @Column({ name: "hashed_password", type: "varchar" })
   hashedPassword: string;
 
-  @Column({ type: "enum", enum: UserRoleEnum})
-  role: UserRoleEnum;
+  @Column({ type: "boolean", name: 'is_system_admin' })
+  isSystemAdmin: boolean;
 
-  @Column({ type: "varchar", array: true, name: "authorised_station_ids", nullable: true })
-  authorisedStationIds: string[] | null; 
+  // User group for permissions assignments
+  // -----------------------------------------
+  @Column({ name: "user_group_id", type: "int", nullable: true })
+  userGroupId: number | null;
 
-  @Column({ name: "can_download_data", type: "boolean", default: false }) // TODO. Remove the default. Not necessary
-  canDownloadData: boolean;
-
-  @Column({ type: "int", array: true, name: "authorised_element_ids", nullable: true })
-  authorisedElementIds: number[] | null;
+  @ManyToOne(() => UserGroupEntity, { onDelete: "SET NULL", nullable: true })
+  @JoinColumn({ name: "user_group_id" })
+  userGroup: UserGroupEntity | null;
+  // -----------------------------------------
+  
+  @Column({ type: "jsonb", name: "permissions", nullable: true })
+  permissions: UserPermissionDto | null;
 
   @Column({ type: "jsonb", name: "extra_metadata", nullable: true })
-  extraMetadata: string | null; //TODO. Structure will be determined later
+  extraMetadata: string | null; //TODO. Determine Structure
 
   @Column({ type: "boolean", default: false })
   disabled: boolean;
@@ -42,28 +50,24 @@ export class UserEntity {
   @Column({ name: "comment", type: 'varchar', nullable: true })
   comment: string | null;
 
-  //for consistency in date time storage. 
-  // This should be set at application level instead of relying on typeorm and database
-  //for instance typeorm will set the field to microseconds with precision of 6 which breaks consistency with how we store date time in other areas.
-  //we also need the transformer to yield consistent results
-  //there could also be inconsistency if typeorm ended up using different timezone
-  @Column({ type: 'timestamptz', name: "entry_date_time" })
+  // This will be set by a trigger
+  @Column({ name: "entry_date_time", type: 'timestamptz', })
   entryDateTime: Date;
 
-  //maps to observation log model
   @Column({ type: 'jsonb', nullable: true })
   log: UserLogVo[] | null;
-
 }
 
-// Note should not extend the BaseLogVo
+
+// Note should not extend the BaseLogVo.
+// This structure will be changed when logging is done.
 export interface UserLogVo {
   name: string;
   email: string;
   phone: string;
   password: string;
-  roleId: UserRoleEnum;
-  authorisedStationIds: string[] | null;
+  //roleId: UserRoleEnum;
+  //authorisedStationIds: string[] | null;
   extraMetadata: string | null;
   reset: boolean;
   disabled: boolean;

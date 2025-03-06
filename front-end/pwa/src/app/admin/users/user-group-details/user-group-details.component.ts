@@ -8,11 +8,11 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateUserModel } from '../models/create-user.model';
 
 @Component({
-  selector: 'app-user-details',
-  templateUrl: './user-details.component.html',
-  styleUrls: ['./user-details.component.scss']
+  selector: 'app-user-group-details',
+  templateUrl: './user-group-details.component.html',
+  styleUrls: ['./user-group-details.component.scss']
 })
-export class UserDetailsComponent implements OnInit {
+export class UserGroupDetailsComponent implements OnInit {
   protected viewUser!: ViewUserModel;
   protected bEnableSave: boolean = true;//todo. should be false by default
 

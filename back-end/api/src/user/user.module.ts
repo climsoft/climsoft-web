@@ -7,11 +7,26 @@ import { SharedModule } from 'src/shared/shared.module';
 
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './guards/auth.guard';
+import { UserGroupEntity } from './entities/user-group.entity';
+import { UserGroupsService } from './services/user-groups.service';
+import { UserGroupsController } from './controllers/user-groups.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity]), SharedModule],
-  providers: [UsersService, {provide: APP_GUARD, useClass: AuthGuard}, ],
-  controllers: [UsersController],
-  exports: [UsersService]
+  imports: [
+    TypeOrmModule.forFeature([UserGroupEntity, UserEntity]),
+    SharedModule,
+  ],
+  providers: [
+    UserGroupsService,
+    UsersService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+  ],
+  controllers: [
+    UsersController,
+    UserGroupsController,
+  ],
+  exports: [
+    UsersService
+  ]
 })
 export class UserModule { }

@@ -12,6 +12,8 @@ import { UserRoleSingleInputComponent } from './users/user-role-single-input/use
 import { PasswordChangeComponent } from './users/password-change/password-change.component';
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
+import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
+import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +22,9 @@ import { ViewAuditsComponent } from './audits/view-audits/view-audits.component'
     ClimsoftBoundaryComponent, 
     ClimsoftDisplayTimezoneComponent,
     ClimsoftV4Component,
+    ViewUserGroupsComponent,
     ViewUsersComponent,
+    UserGroupDetailsComponent,
     UserDetailsComponent,
     UserRoleSingleInputComponent,
     PasswordChangeComponent,

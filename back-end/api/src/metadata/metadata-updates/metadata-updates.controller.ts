@@ -34,13 +34,36 @@ export class MetadataUpdatesController {
   async staionObsFocusesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.stationObsFocuseservice.checkUpdates(updatesQueryDto);
-  } 
+  }
 
   @Get('stations')
   async stationUpdates(
     @Req() request: Request,
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    const authorisedStationIds = AuthUtil.getLoggedInUser(request).authorisedStationIds;
+    let authorisedStationIds: string[] | null = null;
+    const user = AuthUtil.getLoggedInUser(request);
+    if (user.permissions) {
+      authorisedStationIds = [];
+      if (user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.entryPermissions.stationIds);
+      }
+
+      if (user.permissions.qcPermissions && user.permissions.qcPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.qcPermissions.stationIds);
+      }
+
+      if (user.permissions.analysisPermissions && user.permissions.analysisPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.analysisPermissions.stationIds);
+      }
+
+      if (user.permissions.stationsMetadataPermissions && user.permissions.stationsMetadataPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.stationsMetadataPermissions.stationIds);
+      }
+
+      // Get distinct ids
+      authorisedStationIds = Array.from(new Set(authorisedStationIds));
+    }
+
     return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
   }
 

@@ -111,6 +111,10 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         open: false,
         children: [
             {
+                name: 'User Groups',
+                url: '/view-user-groups',
+            },
+            {
                 name: 'Users',
                 url: '/view-users',
             },

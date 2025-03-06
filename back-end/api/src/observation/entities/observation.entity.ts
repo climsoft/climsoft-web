@@ -48,6 +48,7 @@ export class ObservationEntity extends AppBaseEntity {
   value: number | null;
 
   @Column({ name: "flag", type: "enum", enum: FlagEnum, nullable: true })
+  @Index()
   flag: FlagEnum | null;
 
   @Column({ name: "qc_status", type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NONE })
@@ -55,7 +56,7 @@ export class ObservationEntity extends AppBaseEntity {
   qcStatus: QCStatusEnum;
 
   @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
-  qcTestLog: QCTestLogVo | null;
+  qcTestLog: QCTestLogVo | null; // TODO Index the test logs
 
   @Column({ name: "comment", type: "varchar", nullable: true })
   comment: string | null;

@@ -1,10 +1,9 @@
 <div class="card border-0">
-    <div class="card-header d-flex justify-content-between p-0 align-items-center">
-        <div class="fw-bold">Showing Users</div>
+    <div class="card-header d-flex justify-content-end p-0 align-items-center">
         <div class="mb-1">
-            <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
+            <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
                 Search
-            </button>
+            </button> -->
             <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewUserClick()">
                 New
             </button>
@@ -19,7 +18,7 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Role</th>
+                    <th>Group</th>
                     <th>Disabled</th>
                     <th></th>
                 </tr>
@@ -30,18 +29,17 @@
                     <td (click)="onEditUserClick(user)">{{ user.name }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.email }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.phone }}</td>
-                    <td (click)="onEditUserClick(user)">{{ getFormattedUserRole(user.role) }}</td>
+                    <td (click)="onEditUserClick(user)">{{user.groupName}}</td>
                     <td (click)="onEditUserClick(user)">{{ user.disabled }}</td>
                     <td>
                         <button class="btn btn-outline-secondary btn-sm"
                             (click)="passwordChangeDialog.openDialog(user.id, user.email)">Change Password</button>
-                       
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <app-password-change #passwordChangeDialog  />
+        <app-password-change #passwordChangeDialog />
     </div>
 
 </div>

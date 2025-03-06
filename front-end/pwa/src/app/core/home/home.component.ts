@@ -2,10 +2,10 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { AppAuthService } from '../../app-auth.service';
-import { UserRoleEnum } from '../../admin/users/models/user-role.enum';
+import { AppAuthService } from '../../app-auth.service'; 
 import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
 import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
+import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 
 @Component({
   selector: 'app-home',
@@ -34,7 +34,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (user) {
-        this.setAllowedNavigationLinks(user.role);
+        this.setAllowedNavigationLinks(user);
       }
     });
 
@@ -106,9 +106,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  private setAllowedNavigationLinks(role: UserRoleEnum): void {
+  private setAllowedNavigationLinks(user: LoggedInUserModel): void {
     // Change the navigation links accessible if user not admin
-    if (role !== UserRoleEnum.ADMINISTRATOR) {
+    if (!user.isSystemAdmin) {
       // TODO. Later we should allow certain aspects of metadata to be accessible by users that are not admins
       const adminModules: mainMenus[] = ['Metadata', 'Admin'];
       this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
