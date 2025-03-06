@@ -13,8 +13,7 @@ import { SourceTemplatesService } from 'src/metadata/sources/services/source-tem
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
-import { UsersService } from 'src/user/services/users.service';
-import { ViewUserDto } from 'src/user/dtos/view-user.dto';
+import { UsersService } from 'src/user/services/users.service'; 
 
 @Injectable()
 export class ObservationsService {
@@ -32,8 +31,7 @@ export class ObservationsService {
         const obsView: ViewObservationDto[] = [];
         const obsEntities = await this.findObsEntities(selectObsevationDto);
 
-        // TODO. Remove this because front end caches the metadata.
-        // OR Later use inner joins, this will make the loading of metadata redundant. 
+        // TODO. Remove this because front end caches the metadata. 
         const stationEntities = await this.stationsService.find();
         const elementEntities = await this.elementsService.find();
         const sourceEntities = await this.sourcesService.findAll();
@@ -43,7 +41,7 @@ export class ObservationsService {
             viewObs.stationId = obsEntity.stationId;
             viewObs.elementId = obsEntity.elementId;
             viewObs.sourceId = obsEntity.sourceId;
-            viewObs.elevation = obsEntity.elevation;
+            viewObs.level = obsEntity.level;
             viewObs.period = obsEntity.period;
             viewObs.datetime = obsEntity.datetime.toISOString();
             viewObs.value = obsEntity.value;
@@ -83,7 +81,7 @@ export class ObservationsService {
             order: {
                 stationId: "ASC",
                 elementId: "ASC",
-                elevation: "ASC",
+                level: "ASC",
                 period: "ASC",
                 datetime: "ASC",
                 sourceId: "ASC"
@@ -128,8 +126,8 @@ export class ObservationsService {
             whereOptions.period = selectObsevationDto.period;
         }
 
-        if (selectObsevationDto.elevation !== undefined) {
-            whereOptions.elevation = selectObsevationDto.elevation;
+        if (selectObsevationDto.level !== undefined) {
+            whereOptions.level = selectObsevationDto.level;
         }
 
         if (selectObsevationDto.sourceIds) {
@@ -173,9 +171,9 @@ export class ObservationsService {
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
             sourceId: queryDto.sourceId,
-            elevation: queryDto.elevation,
+            level: queryDto.level,
             datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
-            //period: queryDto.period,
+            //period: queryDto.period, // Note, period is commented out because of cumulative period in entry forms
             deleted: false
         });
 
@@ -183,7 +181,7 @@ export class ObservationsService {
             stationId: data.stationId,
             elementId: data.elementId,
             sourceId: data.sourceId,
-            elevation: data.elevation,
+            level: data.level,
             datetime: data.datetime.toISOString(),
             period: data.period,
             value: data.value,
@@ -195,11 +193,7 @@ export class ObservationsService {
         return dtos;
     }
 
-    // public findEntities(findOptions: FindManyOptions<ObservationEntity>): Promise<ObservationEntity[]> {
-    //     return this.observationRepo.find(findOptions);
-    // }
-
-    public async findObsLog(queryDto: ViewObservationLogQueryDto): Promise<ViewObservationLogDto[]> {
+    public async findObservationLog(queryDto: ViewObservationLogQueryDto): Promise<ViewObservationLogDto[]> {
         const entity: ObservationEntity | null = await this.observationRepo.findOneBy({
             stationId: queryDto.stationId,
             elementId: queryDto.elementId,
@@ -224,10 +218,6 @@ export class ObservationsService {
                     entryDateTime: item.entryDateTime,
                 });
             }
-
-
-
-
         }
 
         // Include the current values as log.
@@ -255,7 +245,7 @@ export class ObservationsService {
                 stationId: dto.stationId,
                 elementId: dto.elementId,
                 sourceId: dto.sourceId,
-                elevation: dto.elevation,
+                level: dto.level,
                 datetime: new Date(dto.datetime),
                 period: dto.period,
                 value: dto.value,
@@ -306,7 +296,7 @@ export class ObservationsService {
                     "station_id",
                     "element_id",
                     "source_id",
-                    "elevation",
+                    "level",
                     "date_time",
                     "period",
                 ],
@@ -330,7 +320,7 @@ export class ObservationsService {
         const compositeKeys = obsDtos.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
-            elevation: obs.elevation,
+            level: obs.level,
             datetime: obs.datetime,
             period: obs.period,
             sourceId: obs.sourceId,
@@ -363,7 +353,7 @@ export class ObservationsService {
         const compositeKeys = deleteObsDtos.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
-            elevation: obs.elevation,
+            level: obs.level,
             datetime: obs.datetime,
             period: obs.period,
             sourceId: obs.sourceId,
@@ -389,7 +379,7 @@ export class ObservationsService {
                 .from(ObservationEntity)
                 .where('station_id = :station_id', { station_id: dto.stationId })
                 .andWhere('element_id = :element_id', { element_id: dto.elementId })
-                .andWhere('elevation = :elevation', { elevation: dto.elevation })
+                .andWhere('level = :level', { level: dto.level })
                 .andWhere('date_time = :date_time', { date_time: dto.datetime })
                 .andWhere('period = :period', { period: dto.period })
                 .andWhere('source_id = :source_id', { source_id: dto.sourceId })

@@ -473,7 +473,7 @@ export class ClimsoftV4Service {
                     entity.stationId,
                     entity.elementId,
                     v4ValueMap.v4DBDatetime,
-                    v4ValueMap.v4Elevation,
+                    v4ValueMap.v4Level,
                     v4ValueMap.v4ScaledValue,
                     v4ValueMap.v4Flag,
                     v4ValueMap.v4DBPeriod, // period
@@ -508,7 +508,7 @@ export class ClimsoftV4Service {
         }
     }
 
-    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
+    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
         let period: number | null = null;
         // If element is daily and period is greater than 1 day then calculate the period using day as scale.
         // V4 period supports cumulation at daily interval only.
@@ -519,9 +519,9 @@ export class ClimsoftV4Service {
         // Important to round off due to precision errors
         const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
-        const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
+        const level: string = entity.level === 0 ? 'surface' : `${entity.level}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
-        return { v4Elevation: elevation, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
+        return { v4Level: level, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
@@ -577,7 +577,7 @@ export class ClimsoftV4Service {
                     entity.stationId,            // recordedFrom
                     entity.elementId,            // describedBy
                     v4ValueMap.v4DBDatetime,     // obsDatetime
-                    v4ValueMap.v4Elevation,      // obsLevel
+                    v4ValueMap.v4Level,      // obsLevel
                     0,                           // qcStatus (as used in the upsert)
                     7,                           // acquisitionType (as used in the upsert)
                     sourceName                   // source name (as used in the upsert)                            
@@ -607,7 +607,7 @@ export class ClimsoftV4Service {
         const compositeKeys = observationsData.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
-            elevation: obs.elevation,
+            level: obs.level,
             datetime: obs.datetime,
             period: obs.period,
             sourceId: obs.sourceId,

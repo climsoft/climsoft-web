@@ -232,7 +232,7 @@ export class FormEntryDefinition {
             stationId: this.station.id,
             sourceId: this.source.id,
             elementId: 0,
-            elevation: 0,
+            level: 0,
             datetime: '',
             value: null,
             flag: null,
@@ -266,7 +266,7 @@ export class FormEntryDefinition {
                 newObs.stationId === dbObservation.stationId &&
                 newObs.elementId === dbObservation.elementId &&
                 newObs.sourceId === dbObservation.sourceId &&
-                newObs.elevation === dbObservation.elevation &&
+                newObs.level === dbObservation.level &&
                 newObs.datetime === dbObservation.datetime //&& newObs.period === dbObservation.period
             ) {
                 return dbObservation;
@@ -286,7 +286,7 @@ export class FormEntryDefinition {
         const observationQuery: EntryFormObservationQueryModel = {
             stationId: this.station.id,
             sourceId: this.source.id,
-            elevation: 0,
+            level: 0,
             elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
             datetimes: []
         };

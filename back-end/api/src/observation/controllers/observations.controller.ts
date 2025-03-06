@@ -43,7 +43,7 @@ export class ObservationsController {
 
   @Get('log')
   getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
-    return this.observationsService.findObsLog(viewObsevationQuery);
+    return this.observationsService.findObservationLog(viewObsevationQuery);
   }
 
   @Get('generate-export/:templateid')

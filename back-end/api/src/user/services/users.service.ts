@@ -115,7 +115,7 @@ export class UsersService {
         entity.phone = dto.phone;
         entity.isSystemAdmin = dto.isSystemAdmin;
         entity.permissions = dto.permissions;
-        entity.userGroupId = dto.userGroupId; 
+        entity.groupId = dto.groupId; 
         entity.extraMetadata = dto.extraMetadata;
         entity.disabled = dto.disabled; 
         entity.comment = dto.comment;
@@ -129,7 +129,7 @@ export class UsersService {
             phone: entity.phone,
             isSystemAdmin: entity.isSystemAdmin,
             permissions: entity.permissions,
-            userGroupId: entity.userGroupId,
+            groupId: entity.groupId,
             extraMetadata: entity.extraMetadata,
             disabled: entity.disabled,
             comment: entity.comment,

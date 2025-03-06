@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, take, throwError } from 'rxjs';
+import { catchError, Subject, take, takeUntil, throwError } from 'rxjs';
 import { ImportTabularSourceModel } from 'src/app/metadata/sources/models/create-import-source-tabular.model';
 import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/sources/models/create-import-source.model';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
@@ -15,7 +15,7 @@ import { AppConfigService } from 'src/app/app-config.service';
   templateUrl: './import-entry.component.html',
   styleUrls: ['./import-entry.component.scss']
 })
-export class ImportEntryComponent implements OnInit {
+export class ImportEntryComponent implements OnInit, OnDestroy {
   protected viewSource!: ViewSourceModel;
 
   protected uploadMessage: string = "Upload File";
@@ -27,8 +27,10 @@ export class ImportEntryComponent implements OnInit {
   protected selectedStationId!: string | null;
   protected disableUpload: boolean = false;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
-    private appConfigService: AppConfigService, 
+    private appConfigService: AppConfigService,
     private pagesDataService: PagesDataService,
     private importSourcesService: SourceTemplatesCacheService,
     private http: HttpClient,
@@ -38,8 +40,8 @@ export class ImportEntryComponent implements OnInit {
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
     // Todo. handle errors where the source is not found for the given id
-    this.importSourcesService.findOne(sourceId).pipe(
-      take(1)
+    this.importSourcesService.findOne(+sourceId).pipe(
+      takeUntil(this.destroy$),
     ).subscribe((data) => {
       if (!data) {
         return;
@@ -53,7 +55,11 @@ export class ImportEntryComponent implements OnInit {
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });
+  }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected onFileSelected(fileInputEvent: any): void {

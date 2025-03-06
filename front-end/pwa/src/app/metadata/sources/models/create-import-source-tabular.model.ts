@@ -13,7 +13,7 @@ export interface ImportTabularSourceModel extends  DataStructureValidity{
     periodDefinition: PeriodDefinition;
 
     /** Whether to fetch elevation and its column position */
-    elevationColumnPosition?: number;
+    levelColumnPosition?: number;
 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;

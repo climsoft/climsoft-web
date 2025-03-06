@@ -5,7 +5,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { catchError, EMPTY, map, NEVER, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
-import { FormEntryDefinition } from './defintions/form-entry.definition';
+import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { ViewEntryFormModel } from 'src/app/metadata/sources/models/view-entry-form.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
@@ -17,7 +17,7 @@ import { StationCacheModel, StationsCacheService } from 'src/app/metadata/statio
 import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
-import { ObservationDefinition } from './defintions/observation.definition';
+import { ObservationDefinition } from './defintitions/observation.definition';
 import { LnearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 import { ObservationsService } from '../services/observations.service';
@@ -50,12 +50,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
 
-  private destroy$ = new Subject<void>();
-
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
 
   protected userFormSettings: UserFormSettingStruct;
+  
+  private destroy$ = new Subject<void>();
 
   constructor
     (private pagesDataService: PagesDataService,

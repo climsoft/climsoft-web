@@ -30,10 +30,10 @@ export class ViewUserGroupsComponent {
   protected onSearchClick() { }
 
   protected onNewUserGroupClick() {
-    this.router.navigate(['user-group-detail', 'new'], { relativeTo: this.route.parent });
+    this.router.navigate(['user-group-details', 'new'], { relativeTo: this.route.parent });
   }
 
   protected onEditUserGroupClick(viewUser: ViewUserGroupModel) {
-    this.router.navigate(['user-group-detail', viewUser.id], { relativeTo: this.route.parent });
+    this.router.navigate(['user-group-details', viewUser.id], { relativeTo: this.route.parent });
   }
 }

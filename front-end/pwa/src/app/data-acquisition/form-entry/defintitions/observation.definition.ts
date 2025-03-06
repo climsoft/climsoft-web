@@ -322,7 +322,7 @@ export class ObservationDefinition {
             stationId: this.observation.stationId,
             elementId: this.observation.elementId,
             sourceId: this.observation.sourceId,
-            elevation: this.observation.elevation,
+            level: this.observation.level,
             datetime: this.observation.datetime,
             period: this.observation.period
         };

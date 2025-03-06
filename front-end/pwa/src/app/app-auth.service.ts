@@ -14,26 +14,33 @@ export class AppAuthService {
 
   constructor(private appConfigService: AppConfigService, private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
-    this.autoLogin();
   }
 
   public get user() {
     return this._user;
   }
 
-  private async autoLogin(): Promise<void> {
+  public async setLoggedInUserFromLocalDB(): Promise<void> {
     const user = await AppDatabase.instance.userSettings.get(UserSettingEnum.USER_PROFILE);
     if (user) {
-      this._user.next(JSON.parse(user.parameters));
+      this._user.next(user.parameters);
     }
   }
 
   public login(email: string, password: string) {
     return this.http.post<LoggedInUserModel>(`${this.endPointUrl}/login`, { email: email, password: password })
       .pipe(
-        tap((data) => this.handleAuthentication(data)),
+        tap((data) => {
+          this.saveLoggedInUser(data);
+        }),
         catchError((error) => this.handleError(error)),
       );
+  }
+
+  private saveLoggedInUser(loggedInUser: LoggedInUserModel): void {
+    // Save the user data
+    AppDatabase.instance.userSettings.put({ name: UserSettingEnum.USER_PROFILE, parameters: loggedInUser });
+    this._user.next(loggedInUser)
   }
 
   public logout() {
@@ -47,30 +54,12 @@ export class AppAuthService {
       );
   }
 
-  private handleAuthentication(loggedInUser: LoggedInUserModel) {
-    this.updateUserExpiryDateAndSave(loggedInUser)
-    this._user.next(loggedInUser)
-  }
 
   public removeUser() {
     AppDatabase.instance.userSettings.delete(UserSettingEnum.USER_PROFILE);
     this._user.next(null);
   }
 
-  // Also called by the app authenticator everytime there is a response
-  public updateUserExpiryDateAndSave(loggedInUser?: LoggedInUserModel): void {
-    if (!loggedInUser && this._user.value) {
-      loggedInUser = this._user.value
-    }
-    if (loggedInUser) {
-      // Calculate the expiry date based on expires in value that is set in the server 
-      loggedInUser.expirationDate = new Date(new Date().getTime() + loggedInUser.expiresIn).getTime();
-
-      // Save the user data
-      AppDatabase.instance.userSettings.put({ name: UserSettingEnum.USER_PROFILE, parameters: loggedInUser });
-    }
-
-  }
 
   private handleError(error: HttpErrorResponse) {
     let errorMessage: string = 'An unknown error occurred. Please try again later.';

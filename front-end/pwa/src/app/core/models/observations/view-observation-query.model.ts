@@ -2,7 +2,7 @@ export interface ViewObservationQueryModel {
     stationIds?: string[];
     elementIds?: number[];
     period?: number;
-    elevation?: number;
+    level?: number;
     sourceIds?: number[]; 
     useEntryDate?: boolean;
     fromDate?: string;

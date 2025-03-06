@@ -6,7 +6,4 @@ export interface LoggedInUserModel {
     isSystemAdmin: boolean;
     permissions: UserPermissionModel | null; 
     expiresIn: number; //milliseconds
-
-    // Used by application auth service and guard to check user session expiration 
-    expirationDate?: number; //milliseconds
 }

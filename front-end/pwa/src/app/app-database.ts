@@ -52,7 +52,7 @@ export class AppDatabase extends Dexie {
     // cached differently
     stationForms!: Table<StationForm, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
-    // stationId, elementId, sourceId, elevation, datetime, period  as compund key
+    // stationId, elementId, sourceId, level, datetime, period  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
 
     //--------------------------------------
@@ -80,9 +80,9 @@ export class AppDatabase extends Dexie {
             stationForms: `stationId`,
             elementsQcTests: `id, elementId, qcTestType, observationPeriod, [elementId+qcTestType+observationPeriod]`,
             
-            // Note. Compoud key [stationId+elementId+sourceId+elevation+datetime+period] is used for putting and deleting data in the local database. 
-            // Note. Compound index [stationId+sourceId+elevation+elementId+datetime] is used by entry forms.
-            observations: `[stationId+elementId+sourceId+elevation+datetime+period], stationId, elementId, sourceId, elevation, datetime, period, synced, entryDatetime, [stationId+sourceId+elevation+elementId+datetime]`,
+            // Note. Compoud key [stationId+elementId+sourceId+level+datetime+period] is used for putting and deleting data in the local database. 
+            // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.
+            observations: `[stationId+elementId+sourceId+level+datetime+period], stationId, elementId, sourceId, level, datetime, period, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
            
             userSettings: `name`,
             stationsSearchHistory: `name`,

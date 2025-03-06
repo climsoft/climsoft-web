@@ -8,7 +8,7 @@ import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.mod
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
-import { ObservationDefinition } from '../form-entry/defintions/observation.definition';
+import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
@@ -33,7 +33,7 @@ export class EditDataComponent implements OnDestroy {
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
   protected period: number | null = null;
-  protected elevation: number | null = null;
+  protected level: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
   protected hour: number | null = null;
@@ -107,8 +107,8 @@ export class EditDataComponent implements OnDestroy {
       this.observationFilter.period = this.period;
     }
 
-    if (this.elevation !== null) {
-      this.observationFilter.elevation = this.elevation;
+    if (this.level !== null) {
+      this.observationFilter.level = this.level;
     }
 
     if (this.sourceId !== null) {
@@ -186,7 +186,7 @@ export class EditDataComponent implements OnDestroy {
 
     for (let i = 0; i < observationsEntries.length; i++) {
       const obs = observationsEntries[i].obsDef.observation;
-      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.elevation}-${obs.period}-${obs.datetime}`;
+      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.period}-${obs.datetime}`;
       // Update the map with the latest index for each unique identifier
       obsIdentifierMap.set(obsIdentifier, i);
     }
@@ -262,7 +262,7 @@ export class EditDataComponent implements OnDestroy {
           stationId: viewModel.stationId,
           elementId: viewModel.elementId,
           sourceId: viewModel.sourceId,
-          elevation: viewModel.elevation,
+          level: viewModel.level,
           datetime: viewModel.datetime,
           period: viewModel.period,
           value: viewModel.value,
@@ -306,7 +306,7 @@ export class EditDataComponent implements OnDestroy {
           stationId: viewModel.stationId,
           elementId: viewModel.elementId,
           sourceId: viewModel.sourceId,
-          elevation: viewModel.elevation,
+          level: viewModel.level,
           datetime: viewModel.datetime,
           period: viewModel.period
         })

@@ -11,7 +11,7 @@ export class DeleteObservationDto {
     sourceId: number;
 
     @IsNumber()
-    elevation: number;
+    level: number;
 
     @IsDateString()
     datetime: string;

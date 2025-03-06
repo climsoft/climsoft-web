@@ -15,7 +15,7 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
 
     /** Whether to fetch elevation and its column position */
     @IsInt()
-    elevationColumnPosition?: number;
+    levelColumnPosition?: number;
 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;

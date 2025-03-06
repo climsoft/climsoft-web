@@ -1,6 +1,6 @@
 import { Component } from '@angular/core'; 
 import { take } from 'rxjs'; 
-import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
+import { ObservationDefinition } from '../../form-entry/defintitions/observation.definition';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';

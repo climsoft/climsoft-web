@@ -8,6 +8,7 @@ import { SourceTemplateEntity } from "src/metadata/sources/entities/source-templ
 
 @Entity("observations")
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
+@Check("CHK_observations_no_future_dates", `"date_time" <= NOW()`)
 export class ObservationEntity extends AppBaseEntity {
 
   @PrimaryColumn({ name: "station_id", type: "varchar" })
@@ -25,11 +26,10 @@ export class ObservationEntity extends AppBaseEntity {
   element: ElementEntity;
 
   /**
-   * Elevation in reference to the station surface. 
-   * Can be above or below the station surface depending on the element.
+   * Level in reference to the nature of observation and element being observed e.g upper air, soil moisture. 
    */
-  @PrimaryColumn({ name: "elevation", type: "float" })
-  elevation: number; // TODO, should we call this level?
+  @PrimaryColumn({ name: "level", type: "float" })
+  level: number;
 
   @PrimaryColumn({ name: "date_time", type: "timestamptz" })
   datetime: Date;
@@ -72,7 +72,6 @@ export class ObservationEntity extends AppBaseEntity {
   @Column({ name: "saved_to_v4", type: "boolean", default: false })
   @Index()
   savedToV4: boolean; // True when value has been uploaded to v4 database
-
 }
 
 //when changing qc, we will use the qc log

@@ -20,7 +20,7 @@ export class CreateUserDto {
 
     @IsOptional()
     @IsInt()
-    userGroupId: number | null;
+    groupId: number | null;
 
     @IsOptional()
     @IsString()

@@ -61,7 +61,7 @@ export class ImportSourceDetailComponent implements OnInit {
         periodDefinition: {
           columnPosition: 1
         },
-        elevationColumnPosition: undefined,
+        levelColumnPosition: undefined,
         datetimeDefinition: {
           dateTimeColumnPostion: 1
         },

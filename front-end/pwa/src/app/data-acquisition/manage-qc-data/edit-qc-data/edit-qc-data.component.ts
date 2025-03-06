@@ -8,7 +8,7 @@ import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
 import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { ObservationDefinition } from '../../form-entry/defintions/observation.definition';
+import { ObservationDefinition } from '../../form-entry/defintitions/observation.definition';
 import { ObservationsService } from '../../services/observations.service';
 
 interface ObservationEntry {

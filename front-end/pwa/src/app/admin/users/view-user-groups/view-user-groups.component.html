@@ -16,19 +16,20 @@
                 <tr>
                     <th style="width: 2%;"></th>
                     <th>Name</th>
-                    <th>Description</th>  
+                    <th>Description</th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="app-cursor-pointer" *ngFor="let userGroup of userGroups">
-                    <td (click)="onEditUserGroupClick(userGroup)"><i class="bi bi-arrow-right-short"></i></td>
-                    <td (click)="onEditUserGroupClick(userGroup)">{{ userGroup.name }}</td>
-                    <td (click)="onEditUserGroupClick(userGroup)">{{ userGroup.description }}</td> 
+                <tr class="app-cursor-pointer" *ngFor="let userGroup of userGroups"
+                    (click)="onEditUserGroupClick(userGroup)">
+                    <td><i class="bi bi-arrow-right-short"></i></td>
+                    <td>{{ userGroup.name }}</td>
+                    <td>{{ userGroup.description }}</td>
                 </tr>
             </tbody>
         </table>
 
-        <app-password-change #passwordChangeDialog  />
+        <app-password-change #passwordChangeDialog />
     </div>
 
 </div>

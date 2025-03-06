@@ -97,7 +97,7 @@ export class MigrationsService {
           phone: '',
           isSystemAdmin: true,
           permissions: null,  
-          userGroupId: null,
+          groupId: null,
           extraMetadata: null,
           disabled: false,
           comment: null,

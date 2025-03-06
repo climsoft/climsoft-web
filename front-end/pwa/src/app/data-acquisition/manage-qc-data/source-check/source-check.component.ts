@@ -101,7 +101,7 @@ export class SourceCheckComponent {
     }
 
     if (this.elevation !== null) {
-      this.observationFilter.elevation = this.elevation;
+      this.observationFilter.level = this.elevation;
     }
 
     if (this.sourceId !== null) {

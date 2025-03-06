@@ -25,23 +25,7 @@
           (selectedIdChange)="onRoleSelection($event)" /> -->
       </div>
 
-      <div *ngIf="userRoleIsNotAdmin">
-        <div class="mb-3">
-          <!-- <app-station-selector-multiple [label]="'Authorised stations'" [placeholder]="'All stations'"
-            [selectedIds]="viewUser.authorisedStationIds? viewUser.authorisedStationIds: []"
-            (selectedIdsChange)="onStationsSelection($event)" /> -->
-        </div>
-
-        <div class="mb-3">
-          <!-- <app-check-box-input [label]="'User can download data'" [(value)]="viewUser.canDownloadData" />
-          <div *ngIf="viewUser.canDownloadData" class="ms-2">
-            <app-element-selector-multiple [label]="'Authorised Elements'" [placeholder]="'All elements'"
-              [selectedIds]="viewUser.authorisedElementIds? viewUser.authorisedElementIds : []"
-              (selectedIdsChange)="onElementsSelection($event)" />
-          </div> -->
-        </div>
-
-      </div>
+ 
 
       <div class="mb-3">
         <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />

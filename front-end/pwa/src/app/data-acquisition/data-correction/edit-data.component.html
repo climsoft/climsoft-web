@@ -13,7 +13,7 @@
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-number-input [label]="'Elevation'" [(value)]="elevation" />
+                    <app-number-input [label]="'Level'" [(value)]="level" />
                 </div>
 
                 <div class="col-auto mb-2">
@@ -78,7 +78,7 @@
                             <th>#</th>
                             <th>Station</th>
                             <th>Element</th>
-                            <th>Elevation</th>
+                            <th>Level</th>
                             <th>Date Time</th>
                             <th>Period</th>
                             <th>Source</th>
@@ -93,7 +93,7 @@
                             <td>{{ getRowNumber(i) }}</td>
                             <td> {{ asViewObservationModel(obsEntry.obsDef).stationName }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).elementAbbrv }}</td>
-                            <td>{{ obsEntry.obsDef.observation.elevation }}</td>
+                            <td>{{ obsEntry.obsDef.observation.level }}</td>
                             <td>{{ getFormattedDatetime(asViewObservationModel(obsEntry.obsDef).datetime) }}</td>
                             <td>{{ getPeriodName(obsEntry.obsDef.observation.period) }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>

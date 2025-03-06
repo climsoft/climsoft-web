@@ -1,5 +1,4 @@
-<div class="card border-0">
-
+<div *ngIf="viewSource" class="card border-0">
   <div class="card-header d-flex px-1 py-0 flex-column">
     <div *ngIf="showStationSelection" class="mt-1">
       <app-station-selector-single [label]="'Station'" [(selectedId)]="selectedStationId" />

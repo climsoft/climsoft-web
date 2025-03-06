@@ -6,7 +6,7 @@ export interface CreateUserModel{
     phone: string;
     isSystemAdmin: boolean;
     permissions: UserPermissionModel | null;
-    userGroupId: number | null;
+    groupId: number | null;
     extraMetadata: string | null; //TODO. Determine Structure
     disabled: boolean;
     comment: string | null;

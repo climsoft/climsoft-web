@@ -104,8 +104,8 @@ export class SourceCheckService {
             where = `${where} AND period = ${selectObsevationDto.period}`;
         }
 
-        if (selectObsevationDto.elevation !== undefined) {
-            where = `${where} AND elevation = ${selectObsevationDto.elevation}`;
+        if (selectObsevationDto.level !== undefined) {
+            where = `${where} AND elevation = ${selectObsevationDto.level}`;
         }
 
         const dateOperator: string | null = this.getProcessedObsDateFilter(selectObsevationDto);

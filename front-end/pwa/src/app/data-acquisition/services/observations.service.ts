@@ -151,12 +151,12 @@ export class ObservationsService {
     // If it was not synced then it means the server does not have it therefore return it.
 
     const localObsData = await this.getCachedEntryFormObservations(entryFormObsQuery);
-    const syncedObsDataKeys: [string, number, number, number, string, number][] = []; // [stationId+elementId+sourceId+elevation+datetime+period]
+    const syncedObsDataKeys: [string, number, number, number, string, number][] = []; // [stationId+elementId+sourceId+level+datetime+period]
     const unsyncedObsData: CachedObservationModel[] = [];
 
     for (const obsData of localObsData) {
       if (obsData.synced === 'true') {
-        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.elevation, obsData.datetime, obsData.period]);
+        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.level, obsData.datetime, obsData.period]);
       } else {
         unsyncedObsData.push(obsData);
       }
@@ -174,19 +174,19 @@ export class ObservationsService {
   }
 
   private async getCachedEntryFormObservations(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CachedObservationModel[]> {
-    // Use Compound index [stationId+sourceId+elevation+elementId+datetime]
+    // Use Compound index [stationId+sourceId+level+elementId+datetime]
     const filters: [string, number, number, number, string][] = [];
     for (const elementId of entryFormObsQuery.elementIds) {
       for (const datetime of entryFormObsQuery.datetimes) {
         const filter: [string, number, number, number, string] = [
-          entryFormObsQuery.stationId, entryFormObsQuery.sourceId, entryFormObsQuery.elevation, elementId, datetime
+          entryFormObsQuery.stationId, entryFormObsQuery.sourceId, entryFormObsQuery.level, elementId, datetime
         ];
         filters.push(filter)
       }
     }
 
     const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations
-      .where('[stationId+sourceId+elevation+elementId+datetime]')
+      .where('[stationId+sourceId+level+elementId+datetime]')
       .anyOf(filters).toArray();
 
     return cachedObservations;
@@ -197,7 +197,7 @@ export class ObservationsService {
       stationId: cachedObservation.stationId,
       elementId: cachedObservation.elementId,
       sourceId: cachedObservation.sourceId,
-      elevation: cachedObservation.elevation,
+      level: cachedObservation.level,
       datetime: cachedObservation.datetime,
       period: cachedObservation.period,
       value: cachedObservation.value,

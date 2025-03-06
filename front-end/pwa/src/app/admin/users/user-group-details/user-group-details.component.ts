@@ -22,7 +22,7 @@ export class UserGroupDetailsComponent implements OnInit {
     private usersService: UsersService,
     private location: Location,
   ) {
-    this.pagesDataService.setPageHeader('User Detail');
+    this.pagesDataService.setPageHeader('User Group Detail');
   }
  
   ngOnInit() {

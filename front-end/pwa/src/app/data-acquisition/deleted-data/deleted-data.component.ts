@@ -7,7 +7,7 @@ import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
 import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
-import { ObservationDefinition } from '../form-entry/defintions/observation.definition';
+import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
@@ -28,7 +28,7 @@ export class DeletedDataComponent {
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
   protected period: number | null = null;
-  protected elevation: number | null = null;
+  protected level: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
   protected hour: number | null = null;
@@ -82,8 +82,8 @@ export class DeletedDataComponent {
       this.observationFilter.period = this.period;
     }
 
-    if (this.elevation !== null) {
-      this.observationFilter.elevation = this.elevation;
+    if (this.level !== null) {
+      this.observationFilter.level = this.level;
     }
 
     if (this.sourceId !== null) {
@@ -207,7 +207,7 @@ export class DeletedDataComponent {
         deletedObs.push({
           stationId: viewModel.stationId,
           elementId: viewModel.elementId,
-          elevation: viewModel.elevation,
+          level: viewModel.level,
           datetime: viewModel.datetime,
           period: viewModel.period,
           sourceId: viewModel.sourceId
@@ -249,7 +249,7 @@ export class DeletedDataComponent {
           stationId: viewModel.stationId,
           elementId: viewModel.elementId,
           sourceId: viewModel.sourceId,
-          elevation: viewModel.elevation,
+          level: viewModel.level,
           datetime: viewModel.datetime,
           period: viewModel.period
         })

@@ -34,7 +34,7 @@ export class ViewUsersComponent {
   private setUsergroupNames(users: ViewUserModel[]) {
     this.userGroupsService.findAll().pipe(take(1)).subscribe(userGroups => {
       this.users = users.map(element => {
-        const userG = userGroups.find(item => item.id === element.userGroupId);
+        const userG = userGroups.find(item => item.id === element.groupId);
         return { ...element, groupName: userG ? userG.name : '' }
       });
     });

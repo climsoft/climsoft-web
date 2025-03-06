@@ -28,7 +28,7 @@ import { ImportSourceElementAndValueDetailComponent } from './sources/import-sou
 import { ImportSourcePeriodDetailComponent } from './sources/import-source-detail/import-source-period-detail/import-source-period-detail.component';
 import { ImportSourceDateDetailComponent } from './sources/import-source-detail/import-source-date-detail/import-source-date-detail.component';
 import { ImportSourceDelimeterDetailComponent } from './sources/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
-import { ImportSourceElevationDetailComponent } from './sources/import-source-detail/import-source-elevation-detail/import-source-elevation-detail.component';
+import { ImportSourceLevelDetailComponent } from './sources/import-source-detail/import-source-level-detail/import-source-level-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './sources/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './sources/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
@@ -80,7 +80,7 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     ImportSourcePeriodDetailComponent,
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
-    ImportSourceElevationDetailComponent,
+    ImportSourceLevelDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,

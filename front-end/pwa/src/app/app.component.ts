@@ -19,15 +19,24 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.userSub = this.authService.user.subscribe(user => {
-      if (!user) {
-        // TODO. Check why this is not able to work at the guard interceptor level yet it works at guard (canActivate) level
-        this.router.navigate(['../../login', { relativeTo: this.activatedRoute }]);
-      }
-    });
+    this.initialiseUser();
   }
 
   ngOnDestroy(): void {
     this.userSub.unsubscribe();
+  }
+
+  private async initialiseUser() {
+    // Set logged in user credentials from local db first. 
+    // This makes sure any logged in user is retrived before subscription of user changes
+    await this.authService.setLoggedInUserFromLocalDB();
+
+    // Then Create subscription to listen to any log out event or invalidation of user
+    this.userSub = this.authService.user.subscribe(user => {
+      // TODO. Check why this is not able to work at the guard interceptor level yet can work at guard (canActivate) level 
+      if (!user) {
+        this.router.navigate(['../../login', { relativeTo: this.activatedRoute }]);
+      }
+    });
   }
 }

@@ -30,12 +30,12 @@ export class UserEntity {
 
   // User group for permissions assignments
   // -----------------------------------------
-  @Column({ name: "user_group_id", type: "int", nullable: true })
-  userGroupId: number | null;
+  @Column({ name: "group_id", type: "int", nullable: true })
+  groupId: number | null;
 
   @ManyToOne(() => UserGroupEntity, { onDelete: "SET NULL", nullable: true })
-  @JoinColumn({ name: "user_group_id" })
-  userGroup: UserGroupEntity | null;
+  @JoinColumn({ name: "group_id" })
+  group: UserGroupEntity | null;
   // -----------------------------------------
   
   @Column({ type: "jsonb", name: "permissions", nullable: true })
