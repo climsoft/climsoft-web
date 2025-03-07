@@ -9,11 +9,14 @@ export interface UserPermissionModel {
         // TODO. Include range
     };
 
-    exportPermissions?: number[];
-
     analysisPermissions?: {
         stationIds?: string[];
         // TODO. Include range
+    };
+
+    exportPermissions?: {
+        exportTemplateIds: number[];
+        // TODO. In future add permissions like frequency and priority
     };
 
     stationsMetadataPermissions?: {

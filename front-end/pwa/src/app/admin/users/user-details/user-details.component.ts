@@ -27,7 +27,6 @@ export class UserDetailsComponent implements OnInit {
 
   ngOnInit() {
     const userId = this.route.snapshot.params['id'];
-    //console.log("element id", elementId)
     if (StringUtils.containsNumbersOnly(userId)) {
       this.usersService.findOne(+userId).subscribe((data) => {
         this.viewUser = data;
@@ -38,8 +37,9 @@ export class UserDetailsComponent implements OnInit {
 
   }
 
-  protected get userRoleIsNotAdmin() {
-    return this.viewUser.isSystemAdmin
+  protected onIsSytemAdminChange(isSystemAdmin: boolean): void {
+    this.viewUser.isSystemAdmin = isSystemAdmin;
+    this.viewUser.permissions = this.viewUser.isSystemAdmin ? null : {};
   }
 
   protected onRoleSelection(role: string | null): void {

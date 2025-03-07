@@ -1,15 +1,15 @@
 <div *ngIf="viewUserGroup" class="card border-0">
   <div class="card-body p-0">
     <div>
-      <div class="mb-3">
+      <div>
         <app-text-input [label]="'Name'" [(value)]="viewUserGroup.name" />
       </div>
-
-      <div class="mb-3">
+      <hr class="border border-secondary border-1">
+      <div>
         <app-text-input [label]="'Description'" [(value)]="viewUserGroup.description" />
       </div>
-
-      <div class="mb-3">
+      <hr class="border border-secondary border-1">
+      <div>
         <app-text-input [label]="'Comment'" [(value)]="viewUserGroup.comment" />
       </div>
     </div>

@@ -2,7 +2,7 @@
  * File for all feature menu items
  */
 
-export type mainMenus = 'Dashboard' | 'Data Ingestion' | 'Data Extraction' | 'Metadata' | 'Admin';
+export type mainMenus = 'Dashboard' | 'Data Ingestion' | 'Data Extraction' | 'Metadata' | 'System Admin';
 export interface MenuItem {
     name: mainMenus;
     url: string;
@@ -105,7 +105,7 @@ export const FEATURES_MENU_ITEMS: MenuItem[] = [
         ]
     },
     {
-        name: 'Admin',
+        name: 'System Admin',
         url: '/admin',
         icon: 'bi bi-gear',
         open: false,

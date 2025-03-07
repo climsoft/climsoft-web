@@ -1,0 +1,54 @@
+<div *ngIf="userPermissions" class="card border-0">
+
+  <div>
+    <app-check-box-input [label]="'Can edit station metadata'" [value]="userPermissions.stationsMetadataPermissions? true: false" />
+    <div *ngIf="userPermissions.stationsMetadataPermissions">
+      <app-station-selector-multiple [id]="'metadataStations'" 
+      [selectedIds]="userPermissions.stationsMetadataPermissions.stationIds? userPermissions.stationsMetadataPermissions.stationIds: []"
+      (selectedIdsChange)="onStationsSelection($event)" />
+    </div>
+  </div>
+
+  <div>
+    <app-check-box-input [label]="'Can enter data'" [value]="userPermissions.entryPermissions? true: false" />
+    <div *ngIf="userPermissions.entryPermissions">
+      <app-station-selector-multiple [id]="'entryStations'" 
+      [selectedIds]="userPermissions.entryPermissions.stationIds? userPermissions.entryPermissions.stationIds: []"
+      (selectedIdsChange)="onStationsSelection($event)" />
+    </div>
+  </div>
+
+  <div>
+    <app-check-box-input [label]="'Can quality control data'" [value]="userPermissions.qcPermissions? true: false" />
+    <div *ngIf="userPermissions.qcPermissions">
+      <app-station-selector-multiple [id]="'qcStations'" 
+      [selectedIds]="userPermissions.qcPermissions.stationIds? userPermissions.qcPermissions.stationIds: []"
+      (selectedIdsChange)="onStationsSelection($event)" />
+    </div>
+  </div>
+
+  <div>
+    <app-check-box-input [label]="'Can analyse data'" [value]="userPermissions.analysisPermissions? true: false" />
+    <div *ngIf="userPermissions.analysisPermissions">
+      <app-station-selector-multiple [id]="'analysisStations'" 
+      [selectedIds]="userPermissions.analysisPermissions.stationIds? userPermissions.analysisPermissions.stationIds: []"
+      (selectedIdsChange)="onStationsSelection($event)" />
+    </div>
+  </div>
+
+  <!-- <div>
+    <app-check-box-input [label]="'Can export data'" [value]="userPermissions.exportPermissions? true: false" />
+    <div *ngIf="userPermissions.exportPermissions">
+      <app-station-selector-multiple [id]="'exportTemplates'" 
+      [selectedIds]="userPermissions.exportPermissions.exportTemplateIds? userPermissions.exportPermissions.exportTemplateIds: []"
+      (selectedIdsChange)="onStationsSelection($event)" />
+    </div>
+  </div> -->
+
+      
+
+
+
+
+
+</div>

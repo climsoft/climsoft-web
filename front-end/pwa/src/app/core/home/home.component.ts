@@ -110,7 +110,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Change the navigation links accessible if user not admin
     if (!user.isSystemAdmin) {
       // TODO. Later we should allow certain aspects of metadata to be accessible by users that are not admins
-      const adminModules: mainMenus[] = ['Metadata', 'Admin'];
+      const adminModules: mainMenus[] = ['Metadata', 'System Admin'];
       this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
     }
   }

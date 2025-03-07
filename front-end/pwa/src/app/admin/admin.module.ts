@@ -14,6 +14,7 @@ import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
 import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
+import { EditUserPermissionsComponent } from './users/permissions/edit-user-permissions.component';
 
 @NgModule({
   declarations: [
@@ -26,9 +27,10 @@ import { UserGroupDetailsComponent } from './users/user-group-details/user-group
     ViewUsersComponent,
     UserGroupDetailsComponent,
     UserDetailsComponent,
+    EditUserPermissionsComponent,
     UserRoleSingleInputComponent,
     PasswordChangeComponent,
-    ViewAuditsComponent,
+    ViewAuditsComponent, 
   ],
   imports: [
     SharedModule,

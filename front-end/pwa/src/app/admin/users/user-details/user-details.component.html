@@ -7,43 +7,38 @@
   <div class="card-body p-0">
 
     <div>
-
-      <div class="mb-3">
+      <div>
         <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
       </div>
+      
+      <hr class="border border-secondary border-1">
 
-      <div class="mb-3">
+      <div>
         <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
       </div>
-
-      <div class="mb-3">
+      
+      <hr class="border border-secondary border-1">
+      
+      <div>
         <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
       </div>
+      
+      <hr class="border border-secondary border-1">
 
-      <div class="mb-3">
-        <!-- <app-user-role-single-input [label]="'Role'" [selectedId]="viewUser.role"
-          (selectedIdChange)="onRoleSelection($event)" /> -->
+      <div >
+        <app-check-box-input [label]="'Is system admin'" [value]="viewUser.isSystemAdmin" (valueChange)="onIsSytemAdminChange($event)" />
       </div>
 
-      <div *ngIf="userRoleIsNotAdmin">
-        <div class="mb-3">
-          <!-- <app-station-selector-multiple [label]="'Authorised stations'" [placeholder]="'All stations'"
-            [selectedIds]="viewUser.authorisedStationIds? viewUser.authorisedStationIds: []"
-            (selectedIdsChange)="onStationsSelection($event)" /> -->
-        </div>
+      <hr class="border border-secondary border-1">
 
-        <div class="mb-3">
-          <!-- <app-check-box-input [label]="'User can download data'" [(value)]="viewUser.canDownloadData" />
-          <div *ngIf="viewUser.canDownloadData" class="ms-2">
-            <app-element-selector-multiple [label]="'Authorised Elements'" [placeholder]="'All elements'"
-              [selectedIds]="viewUser.authorisedElementIds? viewUser.authorisedElementIds : []"
-              (selectedIdsChange)="onElementsSelection($event)" />
-          </div> -->
-        </div>
-
+      <div *ngIf="viewUser.permissions">
+        <div>Permissions:</div>
+        <app-edit-user-permissions [userPermissions]="viewUser.permissions" />
       </div>
 
-      <div class="mb-3">
+      <hr class="border border-secondary border-1">
+      
+      <div >
         <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
       </div>
 
