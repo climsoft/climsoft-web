@@ -46,7 +46,7 @@ import { MetadataModule } from '../metadata/metadata.module';
   imports: [
     DataIngestionRoutingModule,
     SharedModule,
-    MetadataModule, 
+    MetadataModule,
   ]
 })
 export class DataAcquisitionModule { }

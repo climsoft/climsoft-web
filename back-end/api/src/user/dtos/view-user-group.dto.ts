@@ -5,6 +5,6 @@ export class ViewUserGroupDto {
     id: number;
     name: string;
     description: string;
-    permissions: UserPermissionDto | null;
+    permissions: UserPermissionDto;
     comment: string | null;
 }

@@ -8,8 +8,8 @@ import { ViewSourcesComponent } from './sources/view-sources/view-sources.compon
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ViewExportTemplatesComponent } from './exports/view-exports/view-exports.component';
-import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
+import { ViewExportTemplatesComponent } from './exports/view-export-templates/view-export-templates.component';
+import { ExportTemplateDetailComponent } from './exports/export-template-detail/export-template-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 
 const routes: Routes = [
@@ -62,7 +62,7 @@ const routes: Routes = [
       },
       {
         path: 'export-detail/:id',
-        component: ExportDetailComponent
+        component: ExportTemplateDetailComponent
       }, 
       {
         path: 'view-connectors',

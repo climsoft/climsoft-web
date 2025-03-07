@@ -12,7 +12,7 @@ export class UserPermissionDto {
 
     exportPermissions?: number[];
 
-    analysisPermissions: {
+    analysisPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };

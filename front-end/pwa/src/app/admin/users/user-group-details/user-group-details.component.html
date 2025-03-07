@@ -1,45 +1,24 @@
-<div *ngIf="viewUser" class="card border-0">
-
-  <div class="card-header d-flex justify-content-between p-0 align-items-center mb-3">
-    <div class="fw-bold">Edit user details</div>
-  </div>
-
+<div *ngIf="viewUserGroup" class="card border-0">
   <div class="card-body p-0">
-
     <div>
-
       <div class="mb-3">
-        <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
+        <app-text-input [label]="'Name'" [(value)]="viewUserGroup.name" />
       </div>
 
       <div class="mb-3">
-        <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
+        <app-text-input [label]="'Description'" [(value)]="viewUserGroup.description" />
       </div>
 
       <div class="mb-3">
-        <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
+        <app-text-input [label]="'Comment'" [(value)]="viewUserGroup.comment" />
       </div>
-
-      <div class="mb-3">
-        <!-- <app-user-role-single-input [label]="'Role'" [selectedId]="viewUser.role"
-          (selectedIdChange)="onRoleSelection($event)" /> -->
-      </div>
-
- 
-
-      <div class="mb-3">
-        <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
-      </div>
-
     </div>
-
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
       Save
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
   </div>
-
 </div>

@@ -19,7 +19,7 @@ export class UserGroupsService {
     return this.http.get<ViewUserGroupModel[]>(this.endPointUrl);
   }
 
-  public findOne(userId: string): Observable<ViewUserGroupModel> {
+  public findOne(userId: number): Observable<ViewUserGroupModel> {
     return this.http.get<ViewUserGroupModel>(`${this.endPointUrl}/${userId}`);
   }
 

@@ -1,10 +1,10 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router'; 
+import { ActivatedRoute } from '@angular/router';
 import { UsersService } from '../services/users.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewUserModel } from '../models/view-user.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils'; 
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateUserModel } from '../models/create-user.model';
 
 @Component({
@@ -24,12 +24,12 @@ export class UserDetailsComponent implements OnInit {
   ) {
     this.pagesDataService.setPageHeader('User Detail');
   }
- 
+
   ngOnInit() {
     const userId = this.route.snapshot.params['id'];
     //console.log("element id", elementId)
     if (StringUtils.containsNumbersOnly(userId)) {
-      this.usersService.findOne(userId).subscribe((data) => {
+      this.usersService.findOne(+userId).subscribe((data) => {
         this.viewUser = data;
       });
     } else {
@@ -46,11 +46,10 @@ export class UserDetailsComponent implements OnInit {
     if (role) {
       //this.viewUser.role = role;
     }
-
   }
 
   protected onStationsSelection(stationIds: string[]): void {
-   // this.viewUser.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
+    // this.viewUser.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
   }
 
   protected onElementsSelection(elementIds: number[]): void {

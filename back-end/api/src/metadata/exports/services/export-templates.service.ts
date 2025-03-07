@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
@@ -47,17 +47,19 @@ export class ExportTemplatesService {
         return entity;
     }
 
-    public async put(dto: CreateExportTemplateDto, userId: number): Promise<ViewTemplateExportDto> {
-        // sources are required to have unique names
+    public async create(dto: CreateExportTemplateDto, userId: number): Promise<ViewTemplateExportDto> {
+        // Export templates are required to have unique names
         let entity = await this.exportsRepo.findOneBy({
             name: dto.name,
         });
 
-        if (!entity) {
-            entity = this.exportsRepo.create({
-                name: dto.name,
-            });
+        if (entity) {
+            throw new BadRequestException(`Export template with name ${dto.name} found`);
         }
+
+        entity = this.exportsRepo.create({
+            name: dto.name,
+        });
 
         entity.description = dto.description;
         entity.utcOffset = dto.utcOffset;

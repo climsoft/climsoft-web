@@ -11,7 +11,7 @@ export interface UserPermissionModel {
 
     exportPermissions?: number[];
 
-    analysisPermissions: {
+    analysisPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };

@@ -23,7 +23,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
   @Output()
   public cancelClick = new EventEmitter<void>();
 
-  protected title: string = "";
+  protected title: string = '';
   protected bNew: boolean = false;
   protected element!: CreateViewElementModel;
 

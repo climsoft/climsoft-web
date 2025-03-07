@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, Patch, Post, } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req, } from '@nestjs/common';
 import { Admin } from '../decorators/admin.decorator';
 import { UserGroupsService } from '../services/user-groups.service';
 import { CreateUserGroupDto } from '../dtos/create-user-group.dto';
+import { Request } from 'express';
+import { AuthUtil } from '../services/auth.util';
 
 @Controller('user-groups')
 export class UserGroupsController {
@@ -21,16 +23,19 @@ export class UserGroupsController {
 
     @Admin()
     @Post('create')
-    public createUserGroup(@Body() createUserGroupDto: CreateUserGroupDto) {
-        return this.userService.createUserGroup(createUserGroupDto);
+    public createUserGroup(
+         @Req() request: Request,
+         @Body() createUserGroupDto: CreateUserGroupDto) {
+        return this.userService.create(createUserGroupDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
     @Patch('update/:id')
     updateUserGroup(
-        @Param('id') userId: number,
+        @Req() request: Request,
+        @Param('id') userGroupId: number,
         @Body() createUserGroupDto: CreateUserGroupDto) {
-        return this.userService.updateUserGroup(userId, createUserGroupDto);
+        return this.userService.update(userGroupId, createUserGroupDto, AuthUtil.getLoggedInUserId(request));
     }
 
     // TODO. Implement deleting of user groups. 

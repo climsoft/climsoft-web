@@ -1,5 +1,5 @@
 
-import { IsOptional, IsString } from "class-validator";
+import { IsOptional, IsString, ValidateNested } from "class-validator";
 import { UserPermissionDto } from "./user-permission.dto";
 export class CreateUserGroupDto {
     @IsString()
@@ -9,11 +9,10 @@ export class CreateUserGroupDto {
     description: string;
 
     // TODO. Not optional, validate the structure
-    permissions: UserPermissionDto | null;
+    @ValidateNested()
+    permissions: UserPermissionDto;
 
     @IsOptional()
     @IsString()
     comment: string | null;
-    
-
 }

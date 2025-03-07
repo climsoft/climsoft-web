@@ -42,7 +42,7 @@ import { DataAcquisitionModule } from './data-acquisition/data-ingestion.module'
     MetadataModule,
     DataAcquisitionModule,
     DataExtractionModule,
-    AdminModule,   
+    AdminModule,
   ],
   providers: [
     {

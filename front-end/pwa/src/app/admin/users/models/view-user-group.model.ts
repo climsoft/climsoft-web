@@ -4,6 +4,6 @@ export interface ViewUserGroupModel {
     id: number;
     name: string;
     description: string;
-    permissions: UserPermissionModel | null;
+    permissions: UserPermissionModel;
     comment: string | null;
 }

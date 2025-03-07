@@ -31,7 +31,7 @@ export class SourceTemplatesController {
     public create(
         @Req() request: Request,
         @Body() createSourceDto: CreateUpdateSourceDto) { // TODO. Validate the dto
-        return this.sourcesService.put(createSourceDto, AuthUtil.getLoggedInUserId(request));
+        return this.sourcesService.create(createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()

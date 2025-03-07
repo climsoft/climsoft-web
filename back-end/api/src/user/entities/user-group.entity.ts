@@ -14,8 +14,8 @@ export class UserGroupEntity extends AppBaseEntity {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: "jsonb", name: "permissions", nullable: true })
-  permissions: UserPermissionDto | null;
+  @Column({ type: 'jsonb', name: 'permissions' })
+  permissions: UserPermissionDto;
 
   @Column({ name: 'comment', type: 'varchar', nullable: true })
   comment: string | null;

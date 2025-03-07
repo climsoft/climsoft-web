@@ -34,24 +34,24 @@ export class UserGroupsService {
         return this.getUserGroupDto(userEntity);
     }
 
-    public async createUserGroup(createUserDto: CreateUserGroupDto): Promise<ViewUserGroupDto> {
+    public async create(dto: CreateUserGroupDto, userId: number): Promise<ViewUserGroupDto> {
         let userEntity = await this.userRepo.findOneBy({
-            name: createUserDto.name,
+            name: dto.name,
         });
 
-        if (userEntity) {
-            throw new BadRequestException('email exists');
+        if (userEntity) { 
+            throw new BadRequestException(`User group with name ${dto.name} found`);
         }
 
         userEntity = this.userRepo.create();
 
-        this.updateUserGroupEntity(userEntity, createUserDto);
+        this.updateUserGroupEntity(userEntity, dto, userId);
 
         return this.getUserGroupDto(await this.userRepo.save(userEntity));
     }
 
 
-    public async updateUserGroup(id: number, createUserDto: CreateUserGroupDto): Promise<ViewUserGroupDto> {
+    public async update(id: number, createUserDto: CreateUserGroupDto, userId: number): Promise<ViewUserGroupDto> {
         const userEntity = await this.userRepo.findOneBy({
             id: id,
         });
@@ -61,16 +61,17 @@ export class UserGroupsService {
         }
 
         // TODO. Check if email and phone number already used in database 
-        this.updateUserGroupEntity(userEntity, createUserDto);
+        this.updateUserGroupEntity(userEntity, createUserDto, userId);
 
         return this.getUserGroupDto(await this.userRepo.save(userEntity));
     }
 
-    private updateUserGroupEntity(entity: UserGroupEntity, dto: CreateUserGroupDto): void {
+    private updateUserGroupEntity(entity: UserGroupEntity, dto: CreateUserGroupDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description; 
         entity.permissions = dto.permissions; 
-        entity.comment = dto.comment;
+        entity.comment = dto.comment? dto.comment : null;
+        entity.entryUserId = userId;
     }
 
     private getUserGroupDto(entity: UserGroupEntity): ViewUserGroupDto {

@@ -21,7 +21,7 @@ export class UsersService {
     return this.http.get<ViewUserModel[]>(this.endPointUrl);
   }
 
-  public findOne(userId: string): Observable<ViewUserModel> {
+  public findOne(userId: number): Observable<ViewUserModel> {
     return this.http.get<ViewUserModel>(`${this.endPointUrl}/${userId}`);
   }
 

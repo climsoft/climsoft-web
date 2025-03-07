@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
@@ -71,17 +71,19 @@ export class SourceTemplatesService {
         return entity;
     }
 
-    public async put(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
-        // sources are required to have unique names
+    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+        // Source templates are required to have unique names
         let entity = await this.sourceRepo.findOneBy({
             name: dto.name,
         });
 
-        if (!entity) {
-            entity = this.sourceRepo.create({
-                name: dto.name,
-            });
+        if (entity) {
+            throw new BadRequestException(`Source template with name ${dto.name} found`);
         }
+
+        entity = this.sourceRepo.create({
+            name: dto.name,
+        });
 
         entity.description = dto.description;
         entity.sourceType = dto.sourceType;
@@ -90,8 +92,8 @@ export class SourceTemplatesService {
         entity.scaleValues = dto.scaleValues;
         entity.sampleImage = dto.sampleImage;
         entity.parameters = dto.parameters;
-        entity.disabled = dto.disabled? true: false;
-        entity.comment = dto.comment? dto.comment: null;
+        entity.disabled = dto.disabled ? true : false;
+        entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);

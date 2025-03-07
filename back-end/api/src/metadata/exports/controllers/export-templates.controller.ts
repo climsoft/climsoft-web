@@ -8,16 +8,16 @@ import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
 @Controller('export-templates')
 export class ExportTemplatesController {
 
-    constructor(private readonly sourcesService: ExportTemplatesService) { }
+    constructor(private readonly exportTemplateService: ExportTemplatesService) { }
 
     @Get()
     public findAll() {
-        return this.sourcesService.findAll();
+        return this.exportTemplateService.findAll();
     }
 
     @Get(':id')
     public find(@Param('id', ParseIntPipe) id: number) {
-        return this.sourcesService.find(id);
+        return this.exportTemplateService.find(id);
     }
 
     @Admin()
@@ -25,7 +25,7 @@ export class ExportTemplatesController {
     public create(
         @Req() request: Request,
         @Body() createSourceDto: CreateExportTemplateDto) {
-        return this.sourcesService.put(createSourceDto, AuthUtil.getLoggedInUserId(request));
+        return this.exportTemplateService.create(createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
@@ -34,19 +34,19 @@ export class ExportTemplatesController {
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
         @Body() createSourceDto: CreateExportTemplateDto) {
-        return this.sourcesService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
+        return this.exportTemplateService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
     @Delete()
     public deleteAll() {
-        return this.sourcesService.deleteAll();
+        return this.exportTemplateService.deleteAll();
     }
 
     @Admin()
     @Delete(':id')
     public delete(@Param('id', ParseIntPipe) id: number) {
-        return this.sourcesService.delete(id);
+        return this.exportTemplateService.delete(id);
     }
 
 

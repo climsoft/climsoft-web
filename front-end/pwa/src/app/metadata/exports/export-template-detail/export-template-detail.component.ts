@@ -11,11 +11,11 @@ import { CreateExportTemplateModel } from '../models/create-export-template.mode
 // TODO. Try using angular forms?
 
 @Component({
-  selector: 'app-export-detail',
-  templateUrl: './export-detail.component.html',
-  styleUrls: ['./export-detail.component.scss']
+  selector: 'app-export-template-detail',
+  templateUrl: './export-template-detail.component.html',
+  styleUrls: ['./export-template-detail.component.scss']
 })
-export class ExportDetailComponent implements OnInit {
+export class ExportTemplateDetailComponent implements OnInit {
 
   protected viewExportTemplate!: ViewExportTemplateModel;
 
@@ -114,7 +114,6 @@ export class ExportDetailComponent implements OnInit {
     }
   }
 
-
   protected onSave(): void {
     this.errorMessage = '';
 
@@ -138,8 +137,6 @@ export class ExportDetailComponent implements OnInit {
     //     last: 365,
     //   };
     // }
-
-
 
     const createExportTemplate: CreateExportTemplateModel = {
       name: this.viewExportTemplate.name,
