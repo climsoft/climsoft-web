@@ -14,7 +14,7 @@ import { CreateUserModel } from '../models/create-user.model';
 })
 export class UserDetailsComponent implements OnInit {
   protected viewUser!: ViewUserModel;
-  protected bEnableSave: boolean = true;//todo. should be false by default
+  protected errorMessage: string = ''; 
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -32,7 +32,7 @@ export class UserDetailsComponent implements OnInit {
         this.viewUser = data;
       });
     } else {
-      //this.viewUser = { id: 0, name: "", email: "", phone: "", role: UserRoleEnum.ADMINISTRATOR, authorisedStationIds: null, canDownloadData: false, authorisedElementIds: null, extraMetadata: null, disabled: false };
+      this.viewUser = { id: 0, name: '', email: '', phone: '', isSystemAdmin: true, groupId: 0, permissions: null,  extraMetadata: null, disabled: false, comment: null };
     }
 
   }
@@ -59,34 +59,46 @@ export class UserDetailsComponent implements OnInit {
   protected onSaveClick(): void {
     // TODO. do validations
 
-    // const createUser: CreateUserModel = {
-    //   name: this.viewUser.name,
-    //   email: this.viewUser.email,
-    //   phone: this.viewUser.phone,
-    //   role: this.viewUser.role,
-    //   authorisedStationIds: this.viewUser.authorisedStationIds,
-    //   canDownloadData: this.viewUser.canDownloadData,
-    //   authorisedElementIds: this.viewUser.authorisedElementIds,
-    //   extraMetadata: this.viewUser.extraMetadata,
-    //   disabled: this.viewUser.disabled
-    // }
+    this.errorMessage = '';
+    
+    if (!this.viewUser.name) {
+      this.errorMessage = 'Input name';
+      return;
+    }
 
-    // if (this.viewUser.id > 0) {
-    //   this.usersService.update(this.viewUser.id, createUser).subscribe((data) => {
-    //     if (data) {
-    //       this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS});
-    //       this.location.back();
-    //     }
-    //   });
+    if (!this.viewUser.email) {
+      this.errorMessage = 'Input email';
+      return;
+    }
 
-    // } else {
-    //   this.usersService.create(createUser).subscribe((data) => {
-    //     if (data) {
-    //       this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
-    //       this.location.back();
-    //     }
-    //   });
-    // }
+    const createUser: CreateUserModel = {
+      name: this.viewUser.name,
+      email: this.viewUser.email,
+      phone: this.viewUser.phone,
+      isSystemAdmin: this.viewUser.isSystemAdmin,
+      groupId: this.viewUser.groupId?  this.viewUser.groupId: null,
+      permissions: this.viewUser.permissions,
+      extraMetadata: this.viewUser.extraMetadata,
+      disabled: this.viewUser.disabled,
+      comment: this.viewUser.comment? this.viewUser.comment: null,
+    }
+
+    if (this.viewUser.id > 0) {
+      this.usersService.update(this.viewUser.id, createUser).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS});
+          this.location.back();
+        }
+      });
+
+    } else {
+      this.usersService.create(createUser).subscribe((data) => {
+        if (data) {
+          this.pagesDataService.showToast({ title: 'User Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
+          this.location.back();
+        }
+      });
+    }
 
   }
 

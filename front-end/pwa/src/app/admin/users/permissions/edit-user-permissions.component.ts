@@ -1,11 +1,7 @@
 import { Location } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService } from '../services/users.service';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ViewUserModel } from '../models/view-user.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { CreateUserModel } from '../models/create-user.model';
 import { UserPermissionModel } from '../models/user-permission.model';
 
 @Component({
@@ -13,38 +9,68 @@ import { UserPermissionModel } from '../models/user-permission.model';
   templateUrl: './edit-user-permissions.component.html',
   styleUrls: ['./edit-user-permissions.component.scss']
 })
-export class EditUserPermissionsComponent implements OnInit {
+export class EditUserPermissionsComponent {
   @Input()
-  public userPermissions!: UserPermissionModel; 
+  public userPermissions!: UserPermissionModel;
 
-  constructor(
-
-    private route: ActivatedRoute,
-    private usersService: UsersService,
-    private location: Location,
-  ) {
-
+  constructor() {
   }
 
-  ngOnInit() {
-   
-
+  //-----------------------------------------------------
+  protected onCanEditStationMetadataChange(change: boolean): void {
+    this.userPermissions.stationsMetadataPermissions = change ? {} : undefined;
   }
 
-
-
-  protected onRoleSelection(role: string | null): void {
-    if (role) {
-      //this.viewUser.role = role;
+  protected onStationMetadataSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.stationsMetadataPermissions) {
+      this.userPermissions.stationsMetadataPermissions.stationIds = (selectionType === 'All') ? undefined : [];
     }
   }
 
-  protected onStationsSelection(stationIds: string[]): void {
-    // this.viewUser.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
+  //-----------------------------------------------------
+  protected onCanEnterDataChange(change: boolean): void {
+    this.userPermissions.entryPermissions = change ? {} : undefined;
   }
 
-  protected onElementsSelection(elementIds: number[]): void {
-    //this.viewUser.authorisedElementIds = elementIds.length > 0 ? elementIds : null;
+  protected onEntryStationsSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.entryPermissions) {
+      this.userPermissions.entryPermissions.stationIds = (selectionType === 'All') ? undefined : [];
+    }
   }
+
+  //-----------------------------------------------------
+  protected onCanQCDataChange(change: boolean): void {
+    this.userPermissions.qcPermissions = change ? {} : undefined;
+  }
+
+  protected onQCStationsSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.qcPermissions) {
+      this.userPermissions.qcPermissions.stationIds = (selectionType === 'All') ? undefined : [];
+    }
+  }
+
+  //-----------------------------------------------------
+  protected onCanAnalyseDataChange(change: boolean): void {
+    this.userPermissions.analysisPermissions = change ? {} : undefined;
+  }
+
+  protected onAnalysisStationsSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.analysisPermissions) {
+      this.userPermissions.analysisPermissions.stationIds = (selectionType === 'All') ? undefined : [];
+    }
+  }
+
+  //-----------------------------------------------------
+  protected onCanExportDataChange(change: boolean): void {
+    this.userPermissions.exportPermissions = change ? {} : undefined;
+  }
+
+  protected onExportStationsSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.exportPermissions) {
+      this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
+    }
+  }
+
+
 
 }

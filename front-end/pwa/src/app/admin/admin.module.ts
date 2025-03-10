@@ -8,7 +8,7 @@ import { MetadataModule } from '../metadata/metadata.module';
 import { ClimsoftDisplayTimezoneComponent } from './general-settings/edit-general-setting/climsoft-display-timezone/climsoft-display-timezone.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
-import { UserRoleSingleInputComponent } from './users/user-role-single-input/user-role-single-input.component';
+import { UserGroupSelectorSingleComponent } from './users/user-group-selector-single/user-group-selector-single.component';
 import { PasswordChangeComponent } from './users/password-change/password-change.component';
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
@@ -28,7 +28,7 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
     UserGroupDetailsComponent,
     UserDetailsComponent,
     EditUserPermissionsComponent,
-    UserRoleSingleInputComponent,
+    UserGroupSelectorSingleComponent,
     PasswordChangeComponent,
     ViewAuditsComponent, 
   ],

@@ -1,4 +1,9 @@
 export interface UserPermissionModel {
+    stationsMetadataPermissions?: {
+        stationIds?: string[];
+        // TODO. Include ability to to assign forms, elements, instruments, etc
+    };
+
     entryPermissions?: {
         stationIds?: string[];
         // TODO. Include range in future.
@@ -15,12 +20,9 @@ export interface UserPermissionModel {
     };
 
     exportPermissions?: {
-        exportTemplateIds: number[];
+        exportTemplateIds?: number[];
         // TODO. In future add permissions like frequency and priority
     };
 
-    stationsMetadataPermissions?: {
-        stationIds: string[];
-        // TODO. Include ability to to assign forms, elements, instruments, etc
-    };
+  
 }

@@ -54,6 +54,8 @@ import { StationSelectorMultipleComponent } from './stations/station-selector/st
 import { ViewExportTemplatesComponent } from './exports/view-export-templates/view-export-templates.component';
 import { ExportTemplateDetailComponent } from './exports/export-template-detail/export-template-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
+import { ExportTemplateSelectorSingleComponent } from './exports/export-template-selector/export-template-selector-single/export-template-selector-single.component';
+import { ExportTemplateSelectorMultipleComponent } from './exports/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
 
 @NgModule({
   declarations: [
@@ -113,6 +115,8 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
 
     ViewExportTemplatesComponent,
     ExportTemplateDetailComponent,
+    ExportTemplateSelectorSingleComponent,
+    ExportTemplateSelectorMultipleComponent,
 
     ViewConnectorsComponent,
 
@@ -130,9 +134,12 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     FormSelectorDialogComponent,   
 
     StationSelectorMultipleComponent,
-    StationSelectorSingleComponent,
+    StationSelectorSingleComponent, 
     StationsSearchDialogComponent, 
     ViewStationsMapComponent,
+
+    ExportTemplateSelectorSingleComponent,
+    ExportTemplateSelectorMultipleComponent,
   ]
 })
 export class MetadataModule { }

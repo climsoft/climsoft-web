@@ -7,22 +7,22 @@ export class ExportAuditLogEntity {
     @PrimaryColumn({ name: "export_id", type: "int" })
     exportId: number;
 
-    @ManyToOne(() => ExportTemplateEntity, { nullable: false, onDelete: "RESTRICT" }) // This restricts deleting of users that have entered records
-    @JoinColumn({ name: "extends" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
+    @ManyToOne(() => ExportTemplateEntity, { nullable: false, onDelete: "SET NULL" }) 
+    @JoinColumn({ name: "export_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
     export: ExportTemplateEntity;
 
     @PrimaryColumn({ name: "user_id", type: "int" })
     userId: number;
 
     @ManyToOne(() => UserEntity, { nullable: false, onDelete: "RESTRICT" }) // This restricts deleting of users that have entered records
-    @JoinColumn({ name: "user_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
+    @JoinColumn({ name: "user_id" }) 
     user: UserEntity;
 
     @PrimaryColumn({ name: "export_date_time", type: "timestamptz", default: () => "CURRENT_TIMESTAMP" })
     exportDateTime: Date;// Note, this will eventually be used to calculate end observation date when it comes to schedule exports resends
 
     @Column({ name: "record_num", type: "float" })
-    RecordNum: number;
+    RecordNum: number; // number of records exported
 
     @Column({ name: "comment", type: "varchar", nullable: true })
     comment: string | null;
