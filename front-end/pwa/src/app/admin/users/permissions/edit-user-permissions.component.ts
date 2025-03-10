@@ -1,7 +1,4 @@
-import { Location } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { UsersService } from '../services/users.service';
 import { UserPermissionModel } from '../models/user-permission.model';
 
 @Component({

@@ -33,9 +33,15 @@ export class ViewUsersComponent {
 
   private setUsergroupNames(users: ViewUserModel[]) {
     this.userGroupsService.findAll().pipe(take(1)).subscribe(userGroups => {
-      this.users = users.map(element => {
-        const userG = userGroups.find(item => item.id === element.groupId);
-        return { ...element, groupName: userG ? userG.name : '' }
+      this.users = users.map(user => {
+        let groupName = '';
+        if (user.groupId) {
+          const userG = userGroups.find(item => item.id === user.groupId);
+          groupName = userG ? userG.name : ''
+        } else if (user.isSystemAdmin) {
+          groupName = 'System Administrator';
+        }
+        return { ...user, groupName: groupName }
       });
     });
   }

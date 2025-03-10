@@ -20,8 +20,8 @@ export interface CreateEntryFormModel extends SourceParametersValidity {
     /** Hours allowed to be recorded by the form */
     hours: number[];
 
-    /** Period for observation */
-    period: number;
+    /** Interval for observation */
+    interval: number;
 
     /**
      * Determines whether user is required to type in observation total or not.

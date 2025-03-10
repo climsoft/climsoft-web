@@ -3,7 +3,7 @@ import { ViewObservationQueryModel } from 'src/app/core/models/observations/view
 import { take } from 'rxjs';
 import { DuplicateModel, SourceCheckService } from '../../services/source-check.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 
@@ -20,7 +20,7 @@ export class SourceCheckComponent {
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
-  protected period: number | null = null;
+  protected interval: number | null = null;
   protected elevation: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
@@ -29,7 +29,7 @@ export class SourceCheckComponent {
   protected observationsEntries: DuplicateModel[] = [];
   protected stationsMetdata: StationCacheModel[] = [];
   private elementsMetadata: ElementCacheModel[] = []; 
-  private periods: Period[] = PeriodsUtil.possiblePeriods;
+  private periods: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableView: boolean = true;
@@ -96,8 +96,8 @@ export class SourceCheckComponent {
       this.observationFilter.elementIds = [this.elementId];
     }
 
-    if (this.period !== null) {
-      this.observationFilter.period = this.period;
+    if (this.interval !== null) {
+      this.observationFilter.interval = this.interval;
     }
 
     if (this.elevation !== null) {

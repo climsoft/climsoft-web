@@ -1,5 +1,5 @@
-export class PeriodsUtil {
-    public static possiblePeriods: Period[] = [
+export class IntervalsUtil {
+    public static possibleIntervals: Interval[] = [
         { id: 5, name: "5 mins" },
         { id: 10, name: "10 mins" },
         { id: 15, name: "15 mins" },
@@ -19,12 +19,12 @@ export class PeriodsUtil {
         { id: 527040, name: "366 Days" }
     ];
 
-    public static findPeriod(minutes: number): Period | undefined {
-        return this.possiblePeriods.find(item => item.id === minutes)
+    public static findInterval(minutes: number): Interval | undefined {
+        return this.possibleIntervals.find(item => item.id === minutes)
     }
 }
 
-export interface Period {
+export interface Interval {
     id: number;
     name: string;
 }

@@ -1,5 +1,5 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Check, Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementTypeEntity } from "./element-type.entity";
 
 @Entity("elements")
@@ -23,6 +23,7 @@ export class ElementEntity extends AppBaseEntity {
 
   //---------------------------
   @Column({ type: "int", name: "type_id" })
+   @Index()
   typeId: number;
   // ManyToOne relationship with ElementTypeEntity
   @ManyToOne(() => ElementTypeEntity, { onDelete: "RESTRICT" })

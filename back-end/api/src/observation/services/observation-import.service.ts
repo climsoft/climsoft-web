@@ -24,7 +24,7 @@ export class ObservationImportService {
     private readonly SOURCE_ID_PROPERTY_NAME: keyof CreateObservationDto = "sourceId";
     private readonly level: keyof CreateObservationDto = "level";
     private readonly DATE_TIME_PROPERTY_NAME: keyof CreateObservationDto = "datetime";
-    private readonly PERIOD_PROPERTY_NAME: keyof CreateObservationDto = "period";
+    private readonly INTERVAL_PROPERTY_NAME: keyof CreateObservationDto = "interval";
     private readonly VALUE_PROPERTY_NAME: keyof CreateObservationDto = "value";
     private readonly FLAG_PROPERTY_NAME: keyof CreateObservationDto = "flag";
     private readonly COMMENT_PROPERTY_NAME: keyof CreateObservationDto = "comment";
@@ -87,7 +87,7 @@ export class ObservationImportService {
         // Add the rest of the columns
         alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
         alterSQLs = alterSQLs + this.getAlterLevelColumnSQL(tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + this.getAlterPeriodColumnSQL(tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterIntervalColumnSQL(tabularDef, tmpObsTableName);
         alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
         alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tmpObsTableName);
         // Note, it is important for the element and value alterations to be last because for multiple elements option, 
@@ -110,7 +110,7 @@ export class ObservationImportService {
 
         startTime = new Date().getTime();
         // Get the rows of the columns that match the dto properties
-        const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.PERIOD_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
+        const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
 
         console.log("DuckDB fetch rows took: ", new Date().getTime() - startTime);
 
@@ -243,14 +243,14 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterPeriodColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterIntervalColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string;
-        if (source.periodDefinition.columnPosition !== undefined) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.periodDefinition.columnPosition - 1} TO ${this.PERIOD_PROPERTY_NAME};`
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD_PROPERTY_NAME} SET NOT NULL;`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.PERIOD_PROPERTY_NAME} TYPE INTEGER;`;
+        if (source.intervalDefinition.columnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.intervalDefinition.columnPosition - 1} TO ${this.INTERVAL_PROPERTY_NAME};`
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} SET NOT NULL;`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} TYPE INTEGER;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.PERIOD_PROPERTY_NAME} INTEGER DEFAULT ${source.periodDefinition.defaultPeriod};`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.INTERVAL_PROPERTY_NAME} INTEGER DEFAULT ${source.intervalDefinition.defaultInterval};`;
         }
         return sql;
     }

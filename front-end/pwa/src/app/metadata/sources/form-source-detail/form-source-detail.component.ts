@@ -65,7 +65,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Template');
-      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], period: 1440, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
+      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -111,7 +111,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedLayout = entryForm.layout;
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
-    this.selectedPeriodId = entryForm.period;
+    this.selectedPeriodId = entryForm.interval;
     this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
@@ -228,7 +228,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       layout: this.selectedLayout,
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
-      period: this.selectedPeriodId,
+      interval: this.selectedPeriodId,
       requireTotalInput: this.requireTotalInput,
       isValid: () => true
     };

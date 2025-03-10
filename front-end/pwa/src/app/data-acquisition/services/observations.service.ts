@@ -156,7 +156,7 @@ export class ObservationsService {
 
     for (const obsData of localObsData) {
       if (obsData.synced === 'true') {
-        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.level, obsData.datetime, obsData.period]);
+        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.level, obsData.datetime, obsData.interval]);
       } else {
         unsyncedObsData.push(obsData);
       }
@@ -199,7 +199,7 @@ export class ObservationsService {
       sourceId: cachedObservation.sourceId,
       level: cachedObservation.level,
       datetime: cachedObservation.datetime,
-      period: cachedObservation.period,
+      interval: cachedObservation.interval,
       value: cachedObservation.value,
       flag: cachedObservation.flag,
       comment: cachedObservation.comment,

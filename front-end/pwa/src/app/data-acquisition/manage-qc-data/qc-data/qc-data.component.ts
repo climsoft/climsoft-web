@@ -4,7 +4,7 @@ import { ObservationDefinition } from '../../form-entry/defintitions/observation
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
@@ -35,7 +35,7 @@ export class QCDataComponent {
   protected observationsEntries: ObservationEntry[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
-  private periods: Period[] = PeriodsUtil.possiblePeriods;
+  private periods: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;

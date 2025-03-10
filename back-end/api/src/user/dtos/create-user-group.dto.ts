@@ -8,9 +8,9 @@ export class CreateUserGroupDto {
     @IsString()
     description: string;
 
-    // TODO. Not optional, validate the structure
-    @ValidateNested()
-    permissions: UserPermissionDto;
+    @IsOptional()
+    //@ValidateNested()  // TODO. validate the structure
+    permissions: UserPermissionDto ;
 
     @IsOptional()
     @IsString()

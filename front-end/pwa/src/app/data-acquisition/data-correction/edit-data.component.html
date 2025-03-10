@@ -17,7 +17,7 @@
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
+                    <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
                 </div>
 
                 <div class="col-auto mb-2">
@@ -80,7 +80,7 @@
                             <th>Element</th>
                             <th>Level</th>
                             <th>Date Time</th>
-                            <th>Period</th>
+                            <th>Interval</th>
                             <th>Source</th>
                             <th>Value & Flag</th>
                             <th>Delete</th>
@@ -95,7 +95,7 @@
                             <td>{{ asViewObservationModel(obsEntry.obsDef).elementAbbrv }}</td>
                             <td>{{ obsEntry.obsDef.observation.level }}</td>
                             <td>{{ getFormattedDatetime(asViewObservationModel(obsEntry.obsDef).datetime) }}</td>
-                            <td>{{ getPeriodName(obsEntry.obsDef.observation.period) }}</td>
+                            <td>{{ getPeriodName(obsEntry.obsDef.observation.interval) }}</td>
                             <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>
                             <td>
                                 <div class="px-2 app-value-flag-container">

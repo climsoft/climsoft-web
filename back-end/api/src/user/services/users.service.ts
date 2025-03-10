@@ -87,7 +87,7 @@ export class UsersService {
             id: changedPassword.userId,
         });
 
-        if (!userEntity) { 
+        if (!userEntity) {
             throw new NotFoundException('no user found');
         }
 
@@ -115,9 +115,9 @@ export class UsersService {
         entity.phone = dto.phone;
         entity.isSystemAdmin = dto.isSystemAdmin;
         entity.permissions = dto.permissions;
-        entity.groupId = dto.groupId; 
+        entity.groupId = dto.groupId;
         entity.extraMetadata = dto.extraMetadata;
-        entity.disabled = dto.disabled; 
+        entity.disabled = dto.disabled;
         entity.comment = dto.comment;
     }
 

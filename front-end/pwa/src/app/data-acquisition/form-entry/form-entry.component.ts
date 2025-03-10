@@ -101,7 +101,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             const findQCTestQuery: FindQCTestQueryModel = {
               elementIds: sourceParams.elementIds,
               qcTestTypes: [QCTestTypeEnum.RANGE_THRESHOLD],
-              observationPeriod: sourceParams.period,
+              observationPeriod: sourceParams.interval,
             };
 
             // Get quality control tests

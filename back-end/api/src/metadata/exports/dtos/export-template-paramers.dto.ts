@@ -15,7 +15,7 @@ export class ExportTemplateParametersDto {
 
   @IsOptional()
   @IsInt()
-  period?: number;
+  interval?: number;
 
   @IsOptional() // TODO. Important to validate the options here
   observationDate?: {

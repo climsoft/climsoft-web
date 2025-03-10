@@ -9,8 +9,8 @@ export interface ImportTabularSourceModel extends  DataStructureValidity{
     /**Whether to include elements or not */
     elementAndValueDefinition: ElementAndValueDefinition;
 
-    /** Period of the observation */
-    periodDefinition: PeriodDefinition;
+    /** Interval of the observation */
+    intervalDefinition: IntervalDefinition;
 
     /** Whether to fetch elevation and its column position */
     levelColumnPosition?: number;
@@ -118,12 +118,12 @@ export interface ElementAndValueDefinition {
 }
 
 /**
- * When columnPosition is not specified then the defaultPeriod should be specified, that is, 
- * either columnPosition or defaultPeriod must be provided, but not both.
+ * When columnPosition is not specified then the defaultInterval should be specified, that is, 
+ * either columnPosition or defaultInterval must be provided, but not both.
  */
-export interface PeriodDefinition {
+export interface IntervalDefinition {
     columnPosition?: number;
-    defaultPeriod?: number;
+    defaultInterval?: number;
 }
 
 export interface FlagDefinition {

@@ -58,7 +58,7 @@ export class ImportSourceDetailComponent implements OnInit {
             }
           }
         },
-        periodDefinition: {
+        intervalDefinition: {
           columnPosition: 1
         },
         levelColumnPosition: undefined,

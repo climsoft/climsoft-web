@@ -5,12 +5,12 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
 
-export interface DuplicateModel{
- stationId: string;
-   elementId: number;
+export interface DuplicateModel {
+  stationId: string;
+  elementId: number;
   elevation: number;
   datetime: string
-  period: number;
+  interval: number;
   duplicates: number;
 }
 

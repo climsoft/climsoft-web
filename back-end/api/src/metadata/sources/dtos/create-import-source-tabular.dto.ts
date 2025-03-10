@@ -10,8 +10,8 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
     /**elements and value definition*/
     elementAndValueDefinition: ElementAndValueDefinition;
 
-    /** Period of the observation */
-    periodDefinition: PeriodDefinition;
+    /** Interval of the observation */
+    intervalDefinition: IntervalDefinition;
 
     /** Whether to fetch elevation and its column position */
     @IsInt()
@@ -133,12 +133,12 @@ export class ElementAndValueDefinition {
 }
 
 /**
- * When columnPosition is not specified then the defaultPeriod should be specified, that is, 
- * either columnPosition or defaultPeriod must be provided, but not both.
+ * When columnPosition is not specified then the defaultinterval should be specified, that is, 
+ * either columnPosition or defaultinterval must be provided, but not both.
  */
-export class PeriodDefinition {
+export class IntervalDefinition {
     columnPosition?: number;
-    defaultPeriod?: number;
+    defaultInterval?: number;
 }
 
 export class FlagDefinition {

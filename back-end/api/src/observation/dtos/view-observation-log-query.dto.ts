@@ -17,6 +17,6 @@ export class ViewObservationLogQueryDto {
     datetime: string;
 
     @IsInt()
-    period: number;
+    interval: number;
  
 }

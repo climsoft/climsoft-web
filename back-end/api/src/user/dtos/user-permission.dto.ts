@@ -1,5 +1,10 @@
 // TODO. validate this class
 export class UserPermissionDto {
+    stationsMetadataPermissions?: {
+        stationIds?: string[];
+        // TODO. Include ability to to assign forms, elements, instruments, etc
+    };
+
     entryPermissions?: {
         stationIds?: string[];
         // TODO. Include range in future.
@@ -10,15 +15,15 @@ export class UserPermissionDto {
         // TODO. Include range
     };
 
-    exportPermissions?: number[];
-
     analysisPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };
 
-    stationsMetadataPermissions?: {
-        stationIds: string[];
-        // TODO. Include ability to to assign forms, elements, instruments, etc
+    exportPermissions?: {
+        exportTemplateIds?: number[];
+        // TODO. In future add permissions like frequency and priority
     };
+
+ 
 }

@@ -4,11 +4,20 @@
       <div>
         <app-text-input [label]="'Name'" [(value)]="viewUserGroup.name" />
       </div>
+
       <hr class="border border-secondary border-1">
+
       <div>
         <app-text-input [label]="'Description'" [(value)]="viewUserGroup.description" />
       </div>
+
       <hr class="border border-secondary border-1">
+      <div>
+        <app-edit-user-permissions [userPermissions]="viewUserGroup.permissions" />
+      </div>
+
+      <hr class="border border-secondary border-1">
+
       <div>
         <app-text-input [label]="'Comment'" [(value)]="viewUserGroup.comment" />
       </div>

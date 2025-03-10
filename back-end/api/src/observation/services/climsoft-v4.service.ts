@@ -512,9 +512,9 @@ export class ClimsoftV4Service {
         let period: number | null = null;
         // If element is daily and period is greater than 1 day then calculate the period using day as scale.
         // V4 period supports cumulation at daily interval only.
-        if (v4Element.elementType === 'daily' && entity.period > 1440) {
+        if (v4Element.elementType === 'daily' && entity.interval > 1440) {
             // Important to round off due to precision errors
-            period = NumberUtils.roundOff(entity.period / 1440, 4);
+            period = NumberUtils.roundOff(entity.interval / 1440, 4);
         }
         // Important to round off due to precision errors
         const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
@@ -609,7 +609,7 @@ export class ClimsoftV4Service {
             elementId: obs.elementId,
             level: obs.level,
             datetime: obs.datetime,
-            period: obs.period,
+            interval: obs.interval,
             sourceId: obs.sourceId,
         }));
 

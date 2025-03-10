@@ -30,9 +30,9 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
   @IsInt({ each: true })
   hours: number[];
 
-  /** Period for observation */
+  /** Interval for observation */
   @IsInt()
-  period: number;
+  interval: number;
 
   /**
   * Determines whether user is required to type in observation total or not.

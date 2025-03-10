@@ -94,7 +94,7 @@ export class MigrationsService {
         {
           name: "admin",
           email: "admin@climsoft.org",
-          phone: '',
+          phone: null,
           isSystemAdmin: true,
           permissions: null,  
           groupId: null,

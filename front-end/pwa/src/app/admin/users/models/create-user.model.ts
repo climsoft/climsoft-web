@@ -3,7 +3,7 @@ import { UserPermissionModel } from "./user-permission.model";
 export interface CreateUserModel{
     name: string;
     email: string;
-    phone: string;
+    phone: string | null;
     isSystemAdmin: boolean;
     permissions: UserPermissionModel | null;
     groupId: number | null;

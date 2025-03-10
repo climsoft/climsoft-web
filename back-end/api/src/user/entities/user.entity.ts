@@ -1,4 +1,4 @@
-import { Check, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserGroupEntity } from "./user-group.entity";
 import { UserPermissionDto } from "../dtos/user-permission.dto";
 
@@ -9,7 +9,6 @@ import { UserPermissionDto } from "../dtos/user-permission.dto";
 @Check("CHK_users_admin_no_permissions_or_user_has_permissions",
   `("is_system_admin" = true AND "permissions" IS NULL) OR ("is_system_admin" = false AND "permissions" IS NOT NULL)`) // SYstem admins must not have permissions because they can access all the features
 export class UserEntity {
-
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
@@ -19,10 +18,11 @@ export class UserEntity {
   @Column({ name: "email", type: "varchar", unique: true })
   email: string;
 
-  @Column({ type: "varchar", unique: true })
-  phone: string;
+  @Column({ type: "varchar", unique: true , nullable: true })
+  phone: string | null;
 
   @Column({ name: "hashed_password", type: "varchar" })
+  @Index()
   hashedPassword: string;
 
   @Column({ type: "boolean", name: 'is_system_admin' })
@@ -31,13 +31,14 @@ export class UserEntity {
   // User group for permissions assignments
   // -----------------------------------------
   @Column({ name: "group_id", type: "int", nullable: true })
+  @Index()
   groupId: number | null;
 
   @ManyToOne(() => UserGroupEntity, { onDelete: "SET NULL", nullable: true })
   @JoinColumn({ name: "group_id" })
   group: UserGroupEntity | null;
   // -----------------------------------------
-  
+
   @Column({ type: "jsonb", name: "permissions", nullable: true })
   permissions: UserPermissionDto | null;
 
@@ -45,13 +46,14 @@ export class UserEntity {
   extraMetadata: string | null; //TODO. Determine Structure
 
   @Column({ type: "boolean", default: false })
+  @Index()
   disabled: boolean;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
   comment: string | null;
 
   // This will be set by a trigger
-  @Column({ name: "entry_date_time", type: 'timestamptz', })
+  @Column({ name: "entry_date_time", type: 'timestamptz' })
   entryDateTime: Date;
 
   @Column({ type: 'jsonb', nullable: true })
@@ -66,9 +68,10 @@ export interface UserLogVo {
   email: string;
   phone: string;
   password: string;
-  //roleId: UserRoleEnum;
-  //authorisedStationIds: string[] | null;
+  isSystemAdmin: boolean;
+  groupId: number;
+  permissions: UserPermissionDto | null;
   extraMetadata: string | null;
-  reset: boolean;
   disabled: boolean;
+  comment: string | null;
 }

@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { InstrumentTypeEntity } from "./instrument-type.entity";
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 
@@ -12,7 +12,13 @@ export class InstrumentEntity extends AppBaseEntity {
     serialNumber: string;
 
     @Column({ type: "int", name: "instrument_type_id" })
+    @Index()
     instrumentTypeId: number;
+
+    // ManyToOne relationship with InstrumentTypeEntity
+    @ManyToOne(() => InstrumentTypeEntity, { onDelete: "RESTRICT" })
+    @JoinColumn({ name: "instrument_type_id" })
+    instrumentType: InstrumentTypeEntity;
 
     @Column({ type: "varchar", nullable: true })
     stationId: string;
@@ -32,9 +38,6 @@ export class InstrumentEntity extends AppBaseEntity {
     @Column({ type: "jsonb", nullable: true })
     log: string | null;
 
-    // ManyToOne relationship with InstrumentTypeEntity
-    @ManyToOne(() => InstrumentTypeEntity, { onDelete: "CASCADE" })
-    @JoinColumn({ name: "instrument_type_id" })
-    elementType: InstrumentTypeEntity;
+
 
 }

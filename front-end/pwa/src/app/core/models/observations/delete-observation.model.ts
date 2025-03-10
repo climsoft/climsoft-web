@@ -4,5 +4,5 @@ export interface DeleteObservationModel {
     sourceId: number;
     level: number;
     datetime: string;
-    period: number;
+    interval: number;
 }

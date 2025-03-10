@@ -3,13 +3,14 @@ import { IsBoolean, IsEmail, IsInt, IsOptional, IsString } from "class-validator
 import { UserPermissionDto } from "./user-permission.dto";
 export class CreateUserDto {
     @IsString()
-    name: string;
+    name: string; // validate to not allow empty
 
     @IsEmail()
-    email: string;
+    email: string; // validate to not allow empty
 
+    @IsOptional()
     @IsString()
-    phone: string;
+    phone: string | null; // validate to not allow empty
 
     @IsBoolean()
     isSystemAdmin: boolean;

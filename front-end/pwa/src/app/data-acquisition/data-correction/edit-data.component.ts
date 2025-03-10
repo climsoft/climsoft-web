@@ -7,7 +7,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
-import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
@@ -32,7 +32,7 @@ export class EditDataComponent implements OnDestroy {
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
-  protected period: number | null = null;
+  protected interval: number | null = null;
   protected level: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
@@ -41,7 +41,7 @@ export class EditDataComponent implements OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
-  private periods: Period[] = PeriodsUtil.possiblePeriods;
+  private intervals: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
@@ -103,8 +103,8 @@ export class EditDataComponent implements OnDestroy {
       this.observationFilter.elementIds = [this.elementId];
     }
 
-    if (this.period !== null) {
-      this.observationFilter.period = this.period;
+    if (this.interval !== null) {
+      this.observationFilter.interval = this.interval;
     }
 
     if (this.level !== null) {
@@ -186,7 +186,7 @@ export class EditDataComponent implements OnDestroy {
 
     for (let i = 0; i < observationsEntries.length; i++) {
       const obs = observationsEntries[i].obsDef.observation;
-      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.period}-${obs.datetime}`;
+      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
       // Update the map with the latest index for each unique identifier
       obsIdentifierMap.set(obsIdentifier, i);
     }
@@ -219,7 +219,7 @@ export class EditDataComponent implements OnDestroy {
   }
 
   protected getPeriodName(minutes: number): string {
-    const periodFound = this.periods.find(item => item.id === minutes);
+    const periodFound = this.intervals.find(item => item.id === minutes);
     return periodFound ? periodFound.name : minutes + 'mins';
   }
 
@@ -264,7 +264,7 @@ export class EditDataComponent implements OnDestroy {
           sourceId: viewModel.sourceId,
           level: viewModel.level,
           datetime: viewModel.datetime,
-          period: viewModel.period,
+          interval: viewModel.interval,
           value: viewModel.value,
           flag: viewModel.flag,
           comment: viewModel.comment
@@ -308,7 +308,7 @@ export class EditDataComponent implements OnDestroy {
           sourceId: viewModel.sourceId,
           level: viewModel.level,
           datetime: viewModel.datetime,
-          period: viewModel.period
+          interval: viewModel.interval
         })
       }
     }

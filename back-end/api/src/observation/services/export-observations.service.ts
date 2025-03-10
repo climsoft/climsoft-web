@@ -32,8 +32,8 @@ export class ExportObservationsService {
             sqlCondition = sqlCondition + ` AND element_id IN (${exportParams.elementIds.join(',')})`;
         }
 
-        if (exportParams.period) {
-            sqlCondition = sqlCondition + ` AND period = ${exportParams.period}`;
+        if (exportParams.interval) {
+            sqlCondition = sqlCondition + ` AND interval = ${exportParams.interval}`;
         }
 
         if (exportParams.observationDate) {
@@ -54,7 +54,7 @@ export class ExportObservationsService {
         const sql = `
             COPY (
                 SELECT 
-                station_id, element_id, source_id, elevation, period, date_time, value, flag, qc_status, qc_test_log, comment, entry_date_time, log 
+                station_id, element_id, source_id, elevation, interval, date_time, value, flag, qc_status, qc_test_log, comment, entry_date_time, log 
                 FROM observations
                 WHERE deleted = false 
                 ${sqlCondition}

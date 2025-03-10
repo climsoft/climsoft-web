@@ -1,5 +1,5 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementEntity } from "../../elements/entities/element.entity"; 
 import { InstrumentEntity } from "../../instruments/entities/instrument.entity";
 import { StationEntity } from "./station.entity";
@@ -8,12 +8,15 @@ import { StationEntity } from "./station.entity";
 export class StationElementEntity extends AppBaseEntity {
 
     @PrimaryColumn({ type: "varchar", name: "station_id" })
+    @Index()
     stationId: string;
 
     @PrimaryColumn({ type: "int", name: "element_id" })
+    @Index()
     elementId: number;
 
     @Column({ type: "int", name: "instrument_id", nullable: true })
+    @Index()
     instrumentId: number | null;
 
     @Column({ type: "jsonb", name: "month_limits", nullable: true })
@@ -36,7 +39,7 @@ export class StationElementEntity extends AppBaseEntity {
     element: ElementEntity;
 
     // ManyToOne relationship with StationEntity
-    @ManyToOne(() => StationEntity, { nullable: true, onDelete: "SET NULL" })
+    @ManyToOne(() => StationEntity, { nullable: true, onDelete: "CASCADE" })
     @JoinColumn({ name: "instrument_id" })
     instrument: InstrumentEntity;
 

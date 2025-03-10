@@ -66,7 +66,7 @@ export class ObservationDefinition {
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
 
-        this.originalPeriod = observation.period;
+        this.originalPeriod = observation.interval;
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
 
         // validate database values
@@ -130,7 +130,7 @@ export class ObservationDefinition {
     }
 
     public get period(): number {
-        return this.observation.period;
+        return this.observation.interval;
     }
 
     public get existsInDatabase(): boolean {
@@ -142,7 +142,7 @@ export class ObservationDefinition {
     }
 
     public updatePeriodInput(period: number): void {
-        this.observation.period = period;
+        this.observation.interval = period;
     }
 
     /**
@@ -324,7 +324,7 @@ export class ObservationDefinition {
             sourceId: this.observation.sourceId,
             level: this.observation.level,
             datetime: this.observation.datetime,
-            period: this.observation.period
+            interval: this.observation.interval
         };
 
         observationService.findObsLog(query).pipe(

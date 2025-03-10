@@ -17,5 +17,5 @@ export class DeleteObservationDto {
     datetime: string;
 
     @IsInt()
-    period: number;
+    interval: number;
 }

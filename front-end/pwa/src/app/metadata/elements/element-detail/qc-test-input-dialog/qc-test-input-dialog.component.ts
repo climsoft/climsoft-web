@@ -58,7 +58,7 @@ export class QCTestInputDialogComponent {
         id: 0,
         qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
         elementId: elementId,
-        observationPeriod: 1440,
+        observationInterval: 1440,
         parameters: rangeThreshold,
         disabled: false,
         comment: null
@@ -167,7 +167,7 @@ export class QCTestInputDialogComponent {
     const createQCTest: CreateElementQCTestModel = {
       qcTestType: this.updateQcTest.qcTestType,
       elementId: this.updateQcTest.elementId,
-      observationPeriod: this.updateQcTest.observationPeriod,
+      observationInterval: this.updateQcTest.observationInterval,
       parameters: this.updateQcTest.parameters,
       disabled: this.updateQcTest.disabled,
       comment: this.updateQcTest.comment

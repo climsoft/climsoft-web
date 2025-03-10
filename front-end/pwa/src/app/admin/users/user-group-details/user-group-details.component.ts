@@ -29,17 +29,13 @@ export class UserGroupDetailsComponent implements OnInit {
     if (StringUtils.containsNumbersOnly(userId)) {
       this.usersService.findOne(+userId).subscribe((data) => {
         this.viewUserGroup = data;
-        this.pagesDataService.setPageHeader('Edit User Group');
+        this.pagesDataService.setPageHeader('Edit User Group');  
       });
     } else {
       this.viewUserGroup = { id: 0, name: '', description: '', comment: '', permissions: {} };
       this.pagesDataService.setPageHeader('New User Group');
     }
 
-  }
-
-  protected onStationsSelection(stationIds: string[]): void {
-    // this.viewUser.authorisedStationIds = stationIds.length > 0 ? stationIds : null;
   }
 
   protected onElementsSelection(elementIds: number[]): void {
@@ -57,13 +53,13 @@ export class UserGroupDetailsComponent implements OnInit {
       name: this.viewUserGroup.name,
       description: this.viewUserGroup.description,
       comment: this.viewUserGroup.comment,
-      permissions: {},
+      permissions: this.viewUserGroup.permissions,
     }
 
     if (this.viewUserGroup.id > 0) {
       this.usersService.update(this.viewUserGroup.id, createUser).subscribe((data) => {
         if (data) {
-          this.pagesDataService.showToast({ title: 'User  GroupDetails', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
+          this.pagesDataService.showToast({ title: 'User Group Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
           this.location.back();
         }
       });

@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
-import { Period, PeriodsUtil } from './Periods.util';
+import { Interval, IntervalsUtil } from './Intervals.util';
 
 // TODO. Make this control to be editable
 @Component({
@@ -15,8 +15,8 @@ export class PeriodSingleInputComponent implements OnChanges {
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number>();
 
-  protected options!: Period[];
-  protected selectedOption!: Period | null;
+  protected options!: Interval[];
+  protected selectedOption!: Interval | null;
 
   constructor() { }
 
@@ -26,11 +26,11 @@ export class PeriodSingleInputComponent implements OnChanges {
 
     //load options once
     if (!this.options) {
-      this.options = PeriodsUtil.possiblePeriods;
+      this.options = IntervalsUtil.possibleIntervals;
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = PeriodsUtil.possiblePeriods.filter(data => this.includeOnlyIds.includes(data.id));
+      this.options = IntervalsUtil.possibleIntervals.filter(data => this.includeOnlyIds.includes(data.id));
     }
 
     // Only react to changes if selectedId actually changes and is not the first change
@@ -45,11 +45,11 @@ export class PeriodSingleInputComponent implements OnChanges {
 
   }
 
-  protected optionDisplayFunction(option: Period): string {
+  protected optionDisplayFunction(option: Interval): string {
     return option.name;
   }
 
-  protected onSelectedOptionChange(selectedOption: Period | null) {
+  protected onSelectedOptionChange(selectedOption: Interval | null) {
     //console.log('period selection',' this.selectedOption: ', this.selectedOption, ' selectedOption', selectedOption);
     if (selectedOption) {
       this.selectedId = selectedOption.id;

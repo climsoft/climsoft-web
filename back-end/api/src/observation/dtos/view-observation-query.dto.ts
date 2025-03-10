@@ -16,7 +16,7 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @IsInt()
-    period?: number;
+    interval?: number;
 
     @IsOptional()
     @IsDecimal()

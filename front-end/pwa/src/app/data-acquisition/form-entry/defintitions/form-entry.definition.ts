@@ -236,7 +236,7 @@ export class FormEntryDefinition {
             datetime: '',
             value: null,
             flag: null,
-            period: this.formMetadata.period,
+            interval: this.formMetadata.interval,
             comment: null,
         };
     }

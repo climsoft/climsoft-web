@@ -25,13 +25,13 @@
     <hr class="border border-secondary border-1">
 
     <div>
-      <app-user-group-selector-single [label]="'Group'" [(selectedId)]="viewUser.groupId" />
+      <app-user-group-selector-single [label]="'Group'" [selectedId]="viewUser.groupId" (selectedIdChange)="onGroupChange($event)" />
     </div>
 
     <hr class="border border-secondary border-1">
 
     <div>
-      <app-check-box-input [label]="'Is system admin'" [value]="viewUser.isSystemAdmin"
+      <app-check-box-input [label]="'Is system administrator'" [value]="viewUser.isSystemAdmin"
         (valueChange)="onIsSytemAdminChange($event)" />
 
       <div *ngIf="!viewUser.isSystemAdmin && viewUser.permissions">

@@ -42,7 +42,7 @@ export class ObservationsService {
             viewObs.elementId = obsEntity.elementId;
             viewObs.sourceId = obsEntity.sourceId;
             viewObs.level = obsEntity.level;
-            viewObs.period = obsEntity.period;
+            viewObs.interval = obsEntity.interval;
             viewObs.datetime = obsEntity.datetime.toISOString();
             viewObs.value = obsEntity.value;
             viewObs.flag = obsEntity.flag;
@@ -82,7 +82,7 @@ export class ObservationsService {
                 stationId: "ASC",
                 elementId: "ASC",
                 level: "ASC",
-                period: "ASC",
+                interval: "ASC",
                 datetime: "ASC",
                 sourceId: "ASC"
             },
@@ -122,8 +122,8 @@ export class ObservationsService {
             whereOptions.elementId = selectObsevationDto.elementIds.length === 1 ? selectObsevationDto.elementIds[0] : In(selectObsevationDto.elementIds);
         }
 
-        if (selectObsevationDto.period) {
-            whereOptions.period = selectObsevationDto.period;
+        if (selectObsevationDto.interval) {
+            whereOptions.interval = selectObsevationDto.interval;
         }
 
         if (selectObsevationDto.level !== undefined) {
@@ -173,7 +173,7 @@ export class ObservationsService {
             sourceId: queryDto.sourceId,
             level: queryDto.level,
             datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
-            //period: queryDto.period, // Note, period is commented out because of cumulative period in entry forms
+            //interval: queryDto.interval, // Note, interval is commented out because of cumulative data in entry forms
             deleted: false
         });
 
@@ -183,7 +183,7 @@ export class ObservationsService {
             sourceId: data.sourceId,
             level: data.level,
             datetime: data.datetime.toISOString(),
-            period: data.period,
+            interval: data.interval,
             value: data.value,
             flag: data.flag,
             comment: data.comment,
@@ -198,7 +198,7 @@ export class ObservationsService {
             stationId: queryDto.stationId,
             elementId: queryDto.elementId,
             sourceId: queryDto.sourceId,
-            period: queryDto.period,
+            interval: queryDto.interval,
             datetime: new Date(queryDto.datetime)
         });
 
@@ -247,7 +247,7 @@ export class ObservationsService {
                 sourceId: dto.sourceId,
                 level: dto.level,
                 datetime: new Date(dto.datetime),
-                period: dto.period,
+                interval: dto.interval,
                 value: dto.value,
                 flag: dto.flag,
                 qcStatus: QCStatusEnum.NONE,
@@ -298,7 +298,7 @@ export class ObservationsService {
                     "source_id",
                     "level",
                     "date_time",
-                    "period",
+                    "interval",
                 ],
                 {
                     skipUpdateIfNoValuesChanged: true,
@@ -322,7 +322,7 @@ export class ObservationsService {
             elementId: obs.elementId,
             level: obs.level,
             datetime: obs.datetime,
-            period: obs.period,
+            interval: obs.interval,
             sourceId: obs.sourceId,
         }));
 
@@ -355,7 +355,7 @@ export class ObservationsService {
             elementId: obs.elementId,
             level: obs.level,
             datetime: obs.datetime,
-            period: obs.period,
+            interval: obs.interval,
             sourceId: obs.sourceId,
         }));
 
@@ -381,7 +381,7 @@ export class ObservationsService {
                 .andWhere('element_id = :element_id', { element_id: dto.elementId })
                 .andWhere('level = :level', { level: dto.level })
                 .andWhere('date_time = :date_time', { date_time: dto.datetime })
-                .andWhere('period = :period', { period: dto.period })
+                .andWhere('interval = :interval', { interval: dto.interval })
                 .andWhere('source_id = :source_id', { source_id: dto.sourceId })
                 .execute();
 

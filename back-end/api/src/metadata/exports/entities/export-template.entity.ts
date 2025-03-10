@@ -1,4 +1,4 @@
-import { Check, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity"; 
 import { ExportTemplateParametersDto } from "../dtos/export-template-paramers.dto";
 
@@ -22,6 +22,7 @@ export class ExportTemplateEntity extends AppBaseEntity {
     parameters: ExportTemplateParametersDto;
 
     @Column({ type: "boolean", default: false })
+    @Index()
     disabled: boolean;
 
     @Column({ name: "comment", type: "varchar", nullable: true })

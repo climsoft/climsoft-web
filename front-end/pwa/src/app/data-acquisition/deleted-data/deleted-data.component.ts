@@ -6,7 +6,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
 import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
-import { Period, PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
@@ -27,7 +27,7 @@ export class DeletedDataComponent {
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
-  protected period: number | null = null;
+  protected interval: number | null = null;
   protected level: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
@@ -36,7 +36,7 @@ export class DeletedDataComponent {
   protected observationsEntries: ObservationEntry[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
-  private periods: Period[] = PeriodsUtil.possiblePeriods;
+  private intervals: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
@@ -78,8 +78,8 @@ export class DeletedDataComponent {
       this.observationFilter.elementIds = [this.elementId];
     }
 
-    if (this.period !== null) {
-      this.observationFilter.period = this.period;
+    if (this.interval !== null) {
+      this.observationFilter.interval = this.interval;
     }
 
     if (this.level !== null) {
@@ -162,7 +162,7 @@ export class DeletedDataComponent {
   }
 
   protected getPeriodName(minutes: number): string {
-    const periodFound = this.periods.find(item => item.id === minutes);
+    const periodFound = this.intervals.find(item => item.id === minutes);
     return periodFound ? periodFound.name : minutes + 'mins';
   }
 
@@ -209,7 +209,7 @@ export class DeletedDataComponent {
           elementId: viewModel.elementId,
           level: viewModel.level,
           datetime: viewModel.datetime,
-          period: viewModel.period,
+          interval: viewModel.interval,
           sourceId: viewModel.sourceId
         })
       }
@@ -251,7 +251,7 @@ export class DeletedDataComponent {
           sourceId: viewModel.sourceId,
           level: viewModel.level,
           datetime: viewModel.datetime,
-          period: viewModel.period
+          interval: viewModel.interval
         })
       }
     }

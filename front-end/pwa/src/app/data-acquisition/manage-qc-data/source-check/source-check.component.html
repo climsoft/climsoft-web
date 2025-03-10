@@ -22,7 +22,7 @@
                         </div>
 
                         <div class="col-auto mb-2">
-                            <app-period-single-input [label]="'Period'" [(selectedId)]="period" />
+                            <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
                         </div>
 
                         <div class="col-auto mb-2">
@@ -79,7 +79,7 @@
                                     <th>Element</th>
                                     <th>Elevation</th>
                                     <th>Date Time</th>
-                                    <th>Period</th>
+                                    <th>Interval</th>
                                     <th>Duplicates</th>
                                 </tr>
                             </thead>
@@ -91,7 +91,7 @@
                                     <td>{{ getElementAbbrv(obsEntry) }}</td>
                                     <td>{{ obsEntry.elevation }}</td>
                                     <td>{{ getFormattedDatetime(obsEntry.datetime) }}</td>
-                                    <td>{{ getPeriodName(obsEntry.period) }}</td>
+                                    <td>{{ getPeriodName(obsEntry.interval) }}</td>
                                     <td> {{ obsEntry.duplicates}} </td>
                                 </tr>
                             </tbody>
