@@ -21,7 +21,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppAuthInterceptor } from './app-auth.interceptor';
 import { DataExtractionModule } from './data-extraction/data-extraction.module';
-import { DataAcquisitionModule } from './data-acquisition/data-ingestion.module';
+import { DataIngestionModule } from './data-ingestion/data-ingestion.module';
 
 
 @NgModule({
@@ -40,7 +40,7 @@ import { DataAcquisitionModule } from './data-acquisition/data-ingestion.module'
     AppRoutingModule,
     SharedModule,
     MetadataModule,
-    DataAcquisitionModule,
+    DataIngestionModule,
     DataExtractionModule,
     AdminModule,
   ],

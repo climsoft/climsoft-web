@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
-import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
+import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 //import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/sources/dtos/create-import-source.dto';
-import { ViewSourceDto } from 'src/metadata/sources/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO } from 'src/metadata/sources/dtos/create-import-source-tabular.dto';
+import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-templates/dtos/create-import-source.dto';
+import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
+import { CreateImportTabularSourceDTO } from 'src/metadata/source-templates/dtos/create-import-source-tabular.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';

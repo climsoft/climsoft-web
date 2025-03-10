@@ -1,9 +1,9 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
 import { DataSource } from "typeorm"
-import { ExportTemplateParametersDto } from 'src/metadata/exports/dtos/export-template-paramers.dto';
+import { ExportTemplateParametersDto } from 'src/metadata/export-templates/dtos/export-template-paramers.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { ViewTemplateExportDto } from 'src/metadata/exports/dtos/view-export-template.dto';
-import { ExportTemplatesService } from 'src/metadata/exports/services/export-templates.service';
+import { ViewTemplateExportDto } from 'src/metadata/export-templates/dtos/view-export-template.dto';
+import { ExportTemplatesService } from 'src/metadata/export-templates/services/export-templates.service';
 import { AppConfig } from 'src/app.config';
 
 @Injectable()

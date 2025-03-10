@@ -13,7 +13,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { UsersService } from 'src/user/services/users.service';
-import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
+import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
 import { AppConfig } from 'src/app.config';
 
 interface V4ElementModel {

@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { take } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/metadata/sources/models/source-type.enum';
-import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
+import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 
 export interface ItemSelection extends ViewSourceModel {
   selected: boolean;

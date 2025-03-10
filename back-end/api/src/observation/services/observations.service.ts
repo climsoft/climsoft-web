@@ -9,7 +9,7 @@ import { StationsService } from 'src/metadata/stations/services/stations.service
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
-import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
+import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';

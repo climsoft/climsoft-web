@@ -1,7 +1,7 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationEntity } from "./station.entity";  
-import { SourceTemplateEntity } from "src/metadata/sources/entities/source-template.entity";
+import { SourceTemplateEntity } from "src/metadata/source-templates/entities/source-template.entity";
 
 @Entity("station_forms")
 export class StationFormEntity extends AppBaseEntity {

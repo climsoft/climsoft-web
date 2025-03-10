@@ -24,7 +24,7 @@ const routes: Routes = [
       },
       {
         path: 'data-acquisition',
-        loadChildren: () => import('./data-acquisition/data-ingestion.module').then((m) => m.DataAcquisitionModule)
+        loadChildren: () => import('./data-ingestion/data-ingestion.module').then((m) => m.DataIngestionModule)
       },
       {
         path: 'data-extraction',

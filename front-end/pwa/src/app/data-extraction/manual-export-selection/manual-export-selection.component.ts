@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take } from 'rxjs';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewExportTemplateModel } from 'src/app/metadata/exports/models/view-export-template.model';
-import { ExportTemplatesService } from 'src/app/metadata/exports/services/export-templates.service';
+import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
+import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
 
 @Component({
   selector: 'app-manual-export-selection',

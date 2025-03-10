@@ -4,7 +4,7 @@ import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service'; 
 import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
-import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 
 @Component({

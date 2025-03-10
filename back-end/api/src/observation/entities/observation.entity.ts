@@ -4,7 +4,7 @@ import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
-import { SourceTemplateEntity } from "src/metadata/sources/entities/source-template.entity";
+import { SourceTemplateEntity } from "src/metadata/source-templates/entities/source-template.entity";
 
 @Entity("observations")
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)

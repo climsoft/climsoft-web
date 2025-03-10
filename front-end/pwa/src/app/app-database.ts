@@ -1,7 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { CreateStationModel } from "./core/models/stations/create-station.model";
 import { ViewRegionModel } from "./core/models/Regions/view-region.model";
-import { ViewSourceModel } from "./metadata/sources/models/view-source.model";
+import { ViewSourceModel } from "./metadata/source-templates/models/view-source.model";
 import { ViewStationObsEnvModel } from "./core/models/stations/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "./core/models/stations/view-station-obs-focus.model";
 import { StationSearchHistoryModel } from "./metadata/stations/models/stations-search-history.model";
@@ -10,7 +10,7 @@ import { ViewElementTypeModel } from "./metadata/elements/models/view-element-ty
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";   
-import { CachedObservationModel } from "./data-acquisition/services/observations.service";
+import { CachedObservationModel } from "./data-ingestion/services/observations.service";
 import { UserSettingEnum } from "./app-config.service";
 
 export interface MetadataModificationLogModel {

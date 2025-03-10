@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
-import { ViewExportTemplateModel } from 'src/app/metadata/exports/models/view-export-template.model';
-import { ExportTemplatesService } from 'src/app/metadata/exports/services/export-templates.service';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
+import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
 
 @Component({
   selector: 'app-manual-export-download',

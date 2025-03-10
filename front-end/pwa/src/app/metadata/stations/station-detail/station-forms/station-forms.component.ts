@@ -3,7 +3,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { Observable, of, Subject } from 'rxjs';
 import { switchMap, tap, catchError, finalize, takeUntil, take } from 'rxjs/operators';
-import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
+import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { StationCacheModel } from '../../services/stations-cache.service';
 
 @Component({

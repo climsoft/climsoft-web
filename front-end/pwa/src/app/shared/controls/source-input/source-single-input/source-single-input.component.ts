@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
-import { ViewSourceModel } from 'src/app/metadata/sources/models/view-source.model';
-import { SourceTemplatesCacheService } from 'src/app/metadata/sources/services/source-templates-cache.service';
+import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { take } from 'rxjs';
 
 @Component({
