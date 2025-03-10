@@ -5,7 +5,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
-import { MenuItem, MenuItemsUtil, SubMenuNameEnum } from './menu-items';
+import { MainMenuNameEnum, MenuItem, MenuItemsUtil, SubMenuNameEnum } from './menu-items';
 
 @Component({
   selector: 'app-home',
@@ -112,28 +112,23 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private setAllowedNavigationLinks(user: LoggedInUserModel): void {
 
-    this.featuresNavItems = [];
+    this.featuresNavItems = [
+       {
+          name: MainMenuNameEnum.DASHBOARD,
+          url: '/dashboard',
+          icon: 'bi bi-sliders',
+          open: false,
+          children: []
+        },
+    ];
 
     if (user.isSystemAdmin) {
-      this.featuresNavItems = [
-        // {
-        //   name: MainMenuNameEnum.DASHBOARD,
-        //   url: '/dashboard',
-        //   icon: 'bi bi-sliders',
-        //   open: false,
-        //   children: []
-        // },
-       MenuItemsUtil. DATA_INGESTION_MENU_ITEMS,
-       MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS,
-       MenuItemsUtil. METADATA_MENU_ITEMS,
-       MenuItemsUtil. SYSTEM_ADMIN_MENU_ITEMS,
-      ];
-
-      console.log('is admin return',this.featuresNavItems );
+      this.featuresNavItems.push( MenuItemsUtil. DATA_INGESTION_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. METADATA_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. SYSTEM_ADMIN_MENU_ITEMS);
       return;
-    }
-
-    if (!user.permissions) {
+    }else if (!user.permissions) {
       return;
     }
 
@@ -156,7 +151,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     // If no ingestion analysis permissions then remove the sub-module
-    console.log('permissions: ', user.permissions)
     if (!user.permissions.ingestionAnalysisPermissions) {
       dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
         item.name !== SubMenuNameEnum.DATA_MONITORING &&
@@ -195,8 +189,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     this.featuresNavItems.push(metadataMenuItems);
     //-------------------------------------------
-
   }
-
 
 }
