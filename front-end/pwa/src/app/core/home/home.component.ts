@@ -2,10 +2,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { AppAuthService } from '../../app-auth.service'; 
-import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
+import { AppAuthService } from '../../app-auth.service';
+import { DATA_EXTRACTION_MENU_ITEMS, DATA_INGESTION_MENU_ITEMS, FEATURES_MENU_ITEMS, MainMenuNameEnum, MenuItem, METADATA_MENU_ITEMS, SubMenuNameEnum, SYSTEM_ADMIN_MENU_ITEMS } from './menu-items';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
+import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 
 @Component({
   selector: 'app-home',
@@ -106,17 +107,73 @@ export class HomeComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  private setAllowedNavigationLinks(user: LoggedInUserModel): void {
-    // Change the navigation links accessible if user not admin
-    if (!user.isSystemAdmin) {
-      // TODO. Later we should allow certain aspects of metadata to be accessible by users that are not admins
-      const adminModules: mainMenus[] = ['Metadata', 'System Admin'];
-      this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
-    }
-  }
-
   protected syncObservations() {
     this.observationsService.syncObservations();
+  }
+
+  private setAllowedNavigationLinks(user: LoggedInUserModel): void {
+
+    this.featuresNavItems = [];
+
+    if (user.isSystemAdmin) {
+      this.featuresNavItems = [
+        {
+          name: MainMenuNameEnum.DASHBOARD,
+          url: '/dashboard',
+          icon: 'bi bi-sliders',
+          open: false,
+          children: []
+        },
+        DATA_INGESTION_MENU_ITEMS,
+        DATA_EXTRACTION_MENU_ITEMS,
+        METADATA_MENU_ITEMS,
+        SYSTEM_ADMIN_MENU_ITEMS,
+      ];
+
+      return;
+    }
+
+    if (!user.permissions) {
+      return;
+    }
+
+    //-------------------------------------------
+    const dataIngestionMenuItems: MenuItem = DATA_INGESTION_MENU_ITEMS;
+    dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+      item.name === SubMenuNameEnum.MANUAL_IMPORT ||
+      item.name === SubMenuNameEnum.SCHEDULED_IMPORT ||
+      item.name === SubMenuNameEnum.DELETED_DATA
+    );
+    // If no data entry permissions then remove data entry sub-modules
+    if (!user.permissions.entryPermissions) {
+      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name === SubMenuNameEnum.DATA_ENTRY ||
+        item.name === SubMenuNameEnum.DATA_CORRECTION
+      );
+    }
+    this.featuresNavItems.push(dataIngestionMenuItems);
+    //-------------------------------------------
+
+    //-------------------------------------------
+    // If no data entry permissions then remove data entry sub-modules
+    if (user.permissions.exportPermissions) {
+      const dataExtractionMenuItems: MenuItem = DATA_EXTRACTION_MENU_ITEMS;
+      dataExtractionMenuItems.children = dataExtractionMenuItems.children.filter(item => item.name === SubMenuNameEnum.SCHEDULED_EXPORT);
+      this.featuresNavItems.push(dataIngestionMenuItems);
+    }
+    //-------------------------------------------
+
+    //-------------------------------------------
+    const metadataMenuItems: MenuItem = METADATA_MENU_ITEMS;
+    metadataMenuItems.children = metadataMenuItems.children.filter(item =>
+      item.name === SubMenuNameEnum.SOURCE_TEMPLATES ||
+      item.name === SubMenuNameEnum.EXPORT_TEMPLATES ||
+      item.name === SubMenuNameEnum.INTEGRATION_CONNECTORS
+    );
+
+    this.featuresNavItems.push(metadataMenuItems);
+    //-------------------------------------------
+
   }
 
 

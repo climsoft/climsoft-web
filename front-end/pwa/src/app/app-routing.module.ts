@@ -23,7 +23,7 @@ const routes: Routes = [
         component: DashboardComponent
       },
       {
-        path: 'data-acquisition',
+        path: 'data-ingestion',
         loadChildren: () => import('./data-ingestion/data-ingestion.module').then((m) => m.DataIngestionModule)
       },
       {
