@@ -71,7 +71,7 @@ export class ObservationsController {
     return { message: "success" };
   }
 
-
+  @Admin()
   @Post('upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -94,6 +94,7 @@ export class ObservationsController {
 
   }
 
+  @Admin()
   @Post('upload/:sourceid/:stationid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFileForStation(
@@ -118,6 +119,7 @@ export class ObservationsController {
 
   }
 
+  @Admin()
   @Patch('restore')
   async restore(
     @Req() request: Request,

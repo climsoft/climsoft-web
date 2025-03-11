@@ -34,6 +34,7 @@ export class ElementsController {
     return this.elementsService.count(viewQueryDto);
   }
 
+  @Admin()
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="elements.csv"')

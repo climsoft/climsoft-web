@@ -60,7 +60,7 @@ export class MetadataUpdatesController {
         authorisedStationIds.push(...user.permissions.stationsMetadataPermissions.stationIds);
       }
 
-      // Get distinct ids
+      // Get distinct station ids
       authorisedStationIds = Array.from(new Set(authorisedStationIds));
     }
 
@@ -96,6 +96,5 @@ export class MetadataUpdatesController {
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.regionsService.checkUpdates(updatesQueryDto);
   }
-
 
 }
