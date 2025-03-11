@@ -21,17 +21,6 @@
         </div>
         <!-- /end characteristics -->
 
-        <!-- elements -->
-        <div class="card border-0">
-            <div class="card-header px-2 fw-bold">
-                <app-toggle-chevron #elementsToggle>Elements</app-toggle-chevron>
-            </div>
-            <div class="card-body  px-2" *ngIf="elementsToggle.open">
-                <app-station-limits [station]="station" />
-            </div>
-        </div>
-        <!-- end elements -->
-
         <!-- forms -->
         <div class="card border-0"  *ngIf="isManualorHybridStation">
             <div class="card-header px-2 fw-bold">
