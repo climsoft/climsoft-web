@@ -4,6 +4,9 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
+
+type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 
 @Component({
   selector: 'app-view-elements',
@@ -18,21 +21,31 @@ export class ViewElementsComponent implements OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  protected optionClicked: 'Add' | 'Import' | 'Download' | 'Delete All' | undefined;
+  protected optionClicked: optionsType | undefined;
+
+  protected dropDownItems: optionsType[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
     private elementsCacheService: ElementsCacheService,
+    private appAuthService: AppAuthService,
     private router: Router,
     private route: ActivatedRoute) {
 
     this.pagesDataService.setPageHeader('Elements');
 
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
+    });
+
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
     ).subscribe(items => {
       this.allElements = items;
-      this.filterBasedOnSearchedIds(); 
+      this.filterBasedOnSearchedIds();
     });
 
   }
@@ -51,12 +64,12 @@ export class ViewElementsComponent implements OnDestroy {
     this.elements = this.searchedIds && this.searchedIds.length > 0 ? this.allElements.filter(item => this.searchedIds.includes(item.id)) : this.allElements;
   }
 
-  protected onOptionsClicked(option: 'Add' | 'Import' | 'Download' | 'Delete All'): void {
+  protected onOptionsClicked(option: optionsType): void {
     this.optionClicked = option;
-    if(option === 'Delete All'){
+    if (option === 'Delete All') {
       this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
-          this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS});
+          this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
         }
       });
     }
@@ -72,6 +85,6 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected get downloadLink(): string {
     return this.elementsCacheService.downloadLink;
-  } 
+  }
 
 }

@@ -37,7 +37,6 @@ export class StationsController {
     return this.stationsService.count(viewQueryDto);
   }
 
-  @Admin()
   @Get('download')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="stations.csv"')

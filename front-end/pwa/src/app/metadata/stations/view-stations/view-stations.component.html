@@ -21,7 +21,7 @@
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download', 'Delete All']"
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
           [translateX]="true" />
         <div *ngIf="optionClicked">

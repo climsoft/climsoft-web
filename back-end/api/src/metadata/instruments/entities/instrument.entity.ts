@@ -20,8 +20,11 @@ export class InstrumentEntity extends AppBaseEntity {
     @JoinColumn({ name: "instrument_type_id" })
     instrumentType: InstrumentTypeEntity;
 
-    @Column({ type: "varchar", nullable: true })
+    @Column({ type: "varchar" })
     stationId: string;
+
+    @Column({ type: "int"})
+    elementId: number;
 
     @Column({ type: "varchar", nullable: true })
     status: string;

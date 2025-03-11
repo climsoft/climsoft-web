@@ -5,6 +5,7 @@ import { Observable, of, Subject } from 'rxjs';
 import { switchMap, tap, catchError, finalize, takeUntil, take } from 'rxjs/operators';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { StationCacheModel } from '../../services/stations-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-station-forms',
@@ -18,12 +19,22 @@ export class StationFormsComponent implements OnChanges {
 
   protected forms!: ViewSourceModel[];
 
+  protected userIsSystemAdmin: boolean = false;
+
   private destroy$ = new Subject<void>();
 
   public constructor(
+    private appAuthService: AppAuthService,
     private stationFormsService: StationFormsService,
     private pagesDataService: PagesDataService,
-  ) { }
+  ) {
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.station) {
@@ -49,20 +60,20 @@ export class StationFormsComponent implements OnChanges {
   }
 
   protected onFormsEdited(formIds: number[]): void {
-    if(formIds.length>0){
+    if (formIds.length > 0) {
       this.stationFormsService.putFormsAssignedToStations(this.station.id, formIds).pipe(
         take(1)).subscribe(data => {
           this.loadForms();
           this.pagesDataService.showToast({ title: "Station Forms", message: `Forms allocated: ${data.length}`, type: ToastEventTypeEnum.SUCCESS });
         });
-    }else{
+    } else {
       // this.stationFormsService.dele(this.station.id).pipe(
       //   take(1)).subscribe(data => {
       //     this.loadForms();
       //     this.pagesDataService.showToast({ title: "Station Forms", message: "Forms Allocation Deleted" , type: ToastEventTypeEnum.SUCCESS });
       //   });
     }
-   
+
   }
 
 

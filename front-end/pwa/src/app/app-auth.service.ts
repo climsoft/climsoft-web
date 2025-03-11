@@ -12,12 +12,14 @@ export class AppAuthService {
   private _user: BehaviorSubject<LoggedInUserModel | null> = new BehaviorSubject<LoggedInUserModel | null>(null);
   private endPointUrl: string;
 
-  constructor(private appConfigService: AppConfigService, private http: HttpClient) {
+  constructor(
+    private appConfigService: AppConfigService, 
+    private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
   }
 
   public get user() {
-    return this._user;
+    return this._user.asObservable();
   }
 
   public async setLoggedInUserFromLocalDB(): Promise<void> {

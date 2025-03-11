@@ -12,7 +12,7 @@
       </div>
 
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Import','Download', 'Delete All']"
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClicked($event)"
           [translateX]="true" />
         <div *ngIf="optionClicked">
