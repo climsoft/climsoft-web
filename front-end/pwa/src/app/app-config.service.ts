@@ -4,7 +4,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class AppConfigService {
-
   private _apiBaseUrl: string;
 
   constructor() {
@@ -18,7 +17,10 @@ export class AppConfigService {
     return this._apiBaseUrl;
   }
 
+}
 
-
-
+export enum UserSettingEnum {
+  USER_PROFILE = "user_profile",
+  ENTRY_FORM_SETTINGS = "form_settings",
+  DATA_CORRECTION_SETTINGS = "data_correction_settings",
 }

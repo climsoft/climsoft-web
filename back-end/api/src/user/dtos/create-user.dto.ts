@@ -1,34 +1,37 @@
 
-import {IsBoolean, IsEmail, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
-import { UserRoleEnum } from "../enums/user-roles.enum";
+import { IsBoolean, IsEmail, IsInt, IsOptional, IsString } from "class-validator";
+import { UserPermissionDto } from "./user-permission.dto";
 export class CreateUserDto {
     @IsString()
-    name: string;
+    name: string; // validate to not allow empty
 
     @IsEmail()
-    email: string;
-
-    @IsString()
-    phone: string;
-
-    @IsEnum(UserRoleEnum, { message: 'User role must be a valid value' })
-    role: UserRoleEnum;
+    email: string; // validate to not allow empty
 
     @IsOptional()
-    @IsString({each: true})
-    authorisedStationIds: string[] | null;
+    @IsString()
+    phone: string | null; // validate to not allow empty
 
     @IsBoolean()
-    canDownloadData: boolean;
+    isSystemAdmin: boolean;
+
+    // TODO. Validate the permission structure and this is not optional only nullable
+    @IsOptional()
+    permissions: UserPermissionDto | null;
 
     @IsOptional()
-    @IsInt({each: true})
-    authorisedElementIds: number[] | null;
+    @IsInt()
+    groupId: number | null;
 
     @IsOptional()
     @IsString()
-    extraMetadata: string | null; //TODO. Later set the model
+    extraMetadata: string | null; //TODO. Determine Structure
 
     @IsBoolean()
     disabled: boolean;
+
+    @IsOptional()
+    @IsString()
+    comment: string | null;
+
 }

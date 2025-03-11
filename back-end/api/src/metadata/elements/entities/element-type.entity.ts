@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { ElementSubdomainEntity } from "./element-subdomain.entity";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
@@ -14,6 +14,7 @@ export class ElementTypeEntity extends AppBaseEntity {
     description: string;
 
     @Column({ type: "int", name: "subdomain_id" })
+    @Index()
     subdomainId: number;
 
     // ManyToOne relationship with ElementSubdomainEntity

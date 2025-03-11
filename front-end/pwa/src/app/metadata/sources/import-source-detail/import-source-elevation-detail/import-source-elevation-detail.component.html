@@ -1,8 +1,0 @@
-<div>
-    <app-check-box-input [label]="'Includes Elevations'" [value]="elevationColumnPosition !== undefined"
-        (valueChange)="onIncludeElevation($event)" />
-
-    <div class="ms-4" *ngIf="elevationColumnPosition !== undefined">
-        <app-number-input [label]="'Column Position'" [(numValue)]="elevationColumnPosition" />
-    </div>
-</div>

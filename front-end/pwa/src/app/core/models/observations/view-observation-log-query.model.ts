@@ -2,7 +2,7 @@ export interface ViewObservationLogQueryModel {
     stationId: string;
     elementId: number;
     sourceId: number;
-    elevation: number;
+    level: number;
     datetime: string;
-    period: number;
+    interval: number;
 }

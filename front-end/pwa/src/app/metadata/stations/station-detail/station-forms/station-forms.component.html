@@ -1,5 +1,5 @@
 <div>
-    <div class="d-flex justify-content-end">
+    <div *ngIf="userIsSystemAdmin" class="d-flex justify-content-end">
         <button type="button" class="btn btn-sm btn-outline-secondary me-1"
             (click)="dlgFormEdit.openDialog( formIds)">Edit</button>
         <app-form-selector-dialog #dlgFormEdit [okButtonLabel]="'Save'" (ok)="onFormsEdited($event)" />

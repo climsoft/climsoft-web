@@ -55,6 +55,8 @@ services:
       - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
     depends_on:
       - climsoft_db
+    volumes:
+      - climsoft_test_exports:/var/lib/postgresql/exports
     networks:
       - climsoft_network
 
@@ -69,12 +71,14 @@ services:
     ports: 
       - "5432:5432" # Expose to both external and internal network only.
     volumes:
-      - climsoft_test_data:/var/lib/postgresql/data
+      - climsoft_test_database:/var/lib/postgresql/data
+      - climsoft_test_exports:/var/lib/postgresql/exports
     networks:
       - climsoft_network
 
 volumes:
   climsoft_test_data:
+  climsoft_test_exports:
 
 networks:
   climsoft_network:

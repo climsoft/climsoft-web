@@ -30,6 +30,7 @@ DECLARE
         'station_observation_environments',
         'station_observation_focuses',
         'stations',
+        'user_groups',
         'users'
     ]; 
 BEGIN

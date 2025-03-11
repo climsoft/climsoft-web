@@ -61,5 +61,7 @@ export class UsersController {
         });
     }
 
+    // TODO. Do deleting of users. User should only be deleted when they have no records linked to them
+    // Note also they should not have a history of changes as well.
 
 }

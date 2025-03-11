@@ -6,6 +6,8 @@ import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
 import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
+import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
+import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 
 
 const routes: Routes = [
@@ -30,11 +32,19 @@ const routes: Routes = [
         component: ClimsoftV4Component,
       },
       {
+        path: 'view-user-groups',
+        component: ViewUserGroupsComponent,
+      },
+      {
+        path: 'user-group-details/:id',
+        component: UserGroupDetailsComponent,
+      },
+      {
         path: 'view-users',
         component: ViewUsersComponent,
       },
       {
-        path: 'user-detail/:id',
+        path: 'user-details/:id',
         component: UserDetailsComponent
       },
       {

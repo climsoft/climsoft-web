@@ -3,9 +3,9 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.s
 import { PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
-import { UserRoleEnum } from '../../admin/users/models/user-role.enum';
-import { FEATURES_MENU_ITEMS, mainMenus, MenuItem } from './menu-items';
-import { ObservationsService } from 'src/app/data-acquisition/services/observations.service';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
+import { MainMenuNameEnum, MenuItem, MenuItemsUtil, SubMenuNameEnum } from './menu-items';
 
 @Component({
   selector: 'app-home',
@@ -13,7 +13,7 @@ import { ObservationsService } from 'src/app/data-acquisition/services/observati
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  protected featuresNavItems: MenuItem[] = FEATURES_MENU_ITEMS;
+  protected featuresNavItems: MenuItem[] = [];
   protected bOpenSideNav: boolean = false;
   protected pageHeaderName: string = '';
   protected toasts: ToastEvent[] = [];
@@ -34,7 +34,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (user) {
-        this.setAllowedNavigationLinks(user.role);
+        this.setAllowedNavigationLinks(user);
       }
     });
 
@@ -106,18 +106,89 @@ export class HomeComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  private setAllowedNavigationLinks(role: UserRoleEnum): void {
-    // Change the navigation links accessible if user not admin
-    if (role !== UserRoleEnum.ADMINISTRATOR) {
-      // TODO. Later we should allow certain aspects of metadata to be accessible by users that are not admins
-      const adminModules: mainMenus[] = ['Metadata', 'Admin'];
-      this.featuresNavItems = this.featuresNavItems.filter(item => !adminModules.includes(item.name));
-    }
-  }
-
   protected syncObservations() {
     this.observationsService.syncObservations();
   }
 
+  private setAllowedNavigationLinks(user: LoggedInUserModel): void {
+
+    this.featuresNavItems = [
+       {
+          name: MainMenuNameEnum.DASHBOARD,
+          url: '/dashboard',
+          icon: 'bi bi-sliders',
+          open: false,
+          children: []
+        },
+    ];
+
+    if (user.isSystemAdmin) {
+      this.featuresNavItems.push( MenuItemsUtil. DATA_INGESTION_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. METADATA_MENU_ITEMS);
+      this.featuresNavItems.push( MenuItemsUtil. SYSTEM_ADMIN_MENU_ITEMS);
+      return;
+    }else if (!user.permissions) {
+      return;
+    }
+
+    //-------------------------------------------
+    const dataIngestionMenuItems: MenuItem = MenuItemsUtil.DATA_INGESTION_MENU_ITEMS;
+    // Remove system admin data ingestion sub-modules
+    dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+      item.name !== SubMenuNameEnum.MANUAL_IMPORT &&
+      item.name !== SubMenuNameEnum.SCHEDULED_IMPORT &&
+      item.name !== SubMenuNameEnum.DELETED_DATA
+    );
+
+
+    // If no data entry permissions then remove data entry sub-modules
+    if (!user.permissions.entryPermissions) {
+      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name !== SubMenuNameEnum.DATA_ENTRY &&
+        item.name !== SubMenuNameEnum.DATA_CORRECTION
+      );
+    }
+
+    // If no ingestion analysis permissions then remove the sub-module
+    if (!user.permissions.ingestionAnalysisPermissions) {
+      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name !== SubMenuNameEnum.DATA_MONITORING &&
+        item.name !== SubMenuNameEnum.MISSING_DATA
+      );
+    }
+
+    // If no qc permissions then remove qc sub-module
+    if (!user.permissions.qcPermissions) {
+      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name !== SubMenuNameEnum.QC_DATA
+      );
+    }
+
+    this.featuresNavItems.push(dataIngestionMenuItems);
+
+    //-------------------------------------------
+
+    //-------------------------------------------
+    // If there is export permissions then remove scheduled exports because it's for admin only.
+    if (user.permissions.exportPermissions) {
+      const dataExtractionMenuItems: MenuItem = MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS;
+      dataExtractionMenuItems.children = dataExtractionMenuItems.children.filter(item => item.name !== SubMenuNameEnum.SCHEDULED_EXPORT);
+      this.featuresNavItems.push(dataExtractionMenuItems);
+    }
+    //-------------------------------------------
+
+    //-------------------------------------------
+    // Remove admin related metadata
+    const metadataMenuItems: MenuItem = MenuItemsUtil.METADATA_MENU_ITEMS;
+    metadataMenuItems.children = metadataMenuItems.children.filter(item =>
+      item.name !== SubMenuNameEnum.SOURCE_TEMPLATES &&
+      item.name !== SubMenuNameEnum.EXPORT_TEMPLATES &&
+      item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
+    );
+
+    this.featuresNavItems.push(metadataMenuItems);
+    //-------------------------------------------
+  }
 
 }

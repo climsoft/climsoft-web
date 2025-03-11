@@ -3,10 +3,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UsersService } from '../services/users.service';
 import { ViewUserModel } from '../models/view-user.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { UserRoleEnum } from '../models/user-role.enum';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { take } from 'rxjs';
+import { UserGroupsService } from '../services/user-groups.service';
 
+
+interface ViewUser extends ViewUserModel {
+  groupName: string;
+}
 
 @Component({
   selector: 'view-app-users',
@@ -14,30 +17,43 @@ import { take } from 'rxjs';
   styleUrls: ['./view-users.component.scss']
 })
 export class ViewUsersComponent {
-  users!: ViewUserModel[];
+  users!: ViewUser[];
 
   constructor(
     private pagesDataService: PagesDataService,
     private usersService: UsersService,
+    private userGroupsService: UserGroupsService,
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Users');
-    this.usersService.findAll().pipe(take(1)).subscribe(data => {
-      this.users = data;
+    this.usersService.findAll().pipe(take(1)).subscribe(users => {
+      this.setUsergroupNames(users);
     });
   }
 
-  protected getFormattedUserRole(userRole: UserRoleEnum): string {
-    return StringUtils.formatEnumForDisplay(userRole);
+  private setUsergroupNames(users: ViewUserModel[]) {
+    this.userGroupsService.findAll().pipe(take(1)).subscribe(userGroups => {
+      this.users = users.map(user => {
+        let groupName = '';
+        if (user.groupId) {
+          const userG = userGroups.find(item => item.id === user.groupId);
+          groupName = userG ? userG.name : ''
+        } else if (user.isSystemAdmin) {
+          groupName = 'System Administrator';
+        }
+        return { ...user, groupName: groupName }
+      });
+    });
   }
 
   protected onSearchClick() { }
 
+
   protected onNewUserClick() {
-    this.router.navigate(['user-detail', 'new'], { relativeTo: this.route.parent });
+    this.router.navigate(['user-details', 'new'], { relativeTo: this.route.parent });
   }
 
   protected onEditUserClick(viewUser: ViewUserModel) {
-    this.router.navigate(['user-detail', viewUser.id], { relativeTo: this.route.parent });
+    this.router.navigate(['user-details', viewUser.id], { relativeTo: this.route.parent });
   }
 }

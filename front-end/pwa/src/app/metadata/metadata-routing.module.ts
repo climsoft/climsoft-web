@@ -3,13 +3,13 @@ import { RouterModule, Routes } from '@angular/router';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
-import { FormSourceDetailComponent } from './sources/form-source-detail/form-source-detail.component';
-import { ViewSourcesComponent } from './sources/view-sources/view-sources.component';
+import { FormSourceDetailComponent } from './source-templates/form-source-detail/form-source-detail.component';
+import { ViewSourcesComponent } from './source-templates/view-sources/view-sources.component';
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
-import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
+import { ImportSourceDetailComponent } from './source-templates/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ViewExportTemplatesComponent } from './exports/view-exports/view-exports.component';
-import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
+import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
+import { ExportTemplateDetailComponent } from './export-templates/export-template-detail/export-template-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 
 const routes: Routes = [
@@ -62,7 +62,7 @@ const routes: Routes = [
       },
       {
         path: 'export-detail/:id',
-        component: ExportDetailComponent
+        component: ExportTemplateDetailComponent
       }, 
       {
         path: 'view-connectors',

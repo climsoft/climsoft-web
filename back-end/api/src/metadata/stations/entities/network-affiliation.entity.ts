@@ -1,7 +1,8 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity("network_affiliations")
+@Check("CHK_network_affiliation_name_not_empty", `"name" <> ''`)
 export class NetworkAffiliationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;

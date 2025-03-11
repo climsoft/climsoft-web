@@ -11,12 +11,12 @@ export class ViewObservationLogQueryDto {
     sourceId: number;
 
     @IsNumber()
-    elevation: number;
+    level: number;
 
     @IsDateString()
     datetime: string;
 
     @IsInt()
-    period: number;
+    interval: number;
  
 }

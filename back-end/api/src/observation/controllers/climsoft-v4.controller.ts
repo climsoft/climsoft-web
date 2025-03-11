@@ -24,10 +24,12 @@ export class ClimsoftV4Controller {
   @Admin()
   @Post('connect')
   async connect() {
+    console.log('attempting to connect to v4');
     await this.climsoftv4Service.setupV4DBConnection();
     const connected: boolean = await this.climsoftv4Service.getConnectionState();
+    console.log('connected: ' , connected);
     return { message: connected ? 'success' : 'error' };
-  }
+  } 
 
   @Admin()
   @Post('disconnect')

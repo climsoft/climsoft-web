@@ -16,11 +16,11 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @IsInt()
-    period?: number;
+    interval?: number;
 
     @IsOptional()
     @IsDecimal()
-    elevation?: number;
+    level?: number;
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])

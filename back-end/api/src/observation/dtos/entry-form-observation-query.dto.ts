@@ -14,7 +14,7 @@ export class EntryFormObservationQueryDto {
     elementIds: number[];
 
     @IsInt()
-    elevation: number;
+    level: number;
 
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsDateString({}, { each: true })

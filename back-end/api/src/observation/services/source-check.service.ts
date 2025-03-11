@@ -22,29 +22,29 @@ export class SourceCheckService {
         const whereExpression = this.getProcessedFilter(selectObsevationDto);
 
         const query = `
-          SELECT station_id, element_id, elevation, date_time, period, COUNT(*) AS duplicates
+          SELECT station_id, element_id, level, date_time, interval, COUNT(*) AS duplicates
           FROM observations 
           WHERE ${whereExpression} 
           GROUP BY 
-            station_id, element_id, elevation, period, date_time
+            station_id, element_id, level, interval, date_time
           HAVING 
             COUNT(DISTINCT source_id) > 1
-          ORDER BY station_id, element_id, elevation, period, date_time DESC
+          ORDER BY station_id, element_id, level, interval, date_time DESC
           LIMIT ${selectObsevationDto.pageSize} 
           OFFSET ${(selectObsevationDto.page - 1) * selectObsevationDto.pageSize};
         `;
 
         // Passing limit and offset as parameters
         const result = await this.observationRepo.query(query);
-        const formattedResult: { stationId: string, elementId: number, elevation: number, datetime: string, period: number, duplicates: number }[] = [];
+        const formattedResult: { stationId: string, elementId: number, level: number, datetime: string, interval: number, duplicates: number }[] = [];
         for (const item of result) {
             formattedResult.push(
                 {
                     stationId: item.station_id,
                     elementId: item.element_id,
-                    elevation: item.elevation,
+                    level: item.level,
                     datetime: item.date_time,
-                    period: item.period,
+                    interval: item.interval,
                     duplicates: item.duplicates
                 }
             );
@@ -62,7 +62,7 @@ export class SourceCheckService {
           SELECT 1 FROM observations  
           WHERE ${whereExpression}
           GROUP BY 
-           station_id, element_id, elevation, period, date_time
+           station_id, element_id, level, interval, date_time
            HAVING COUNT(DISTINCT source_id) > 1
         );`;
 
@@ -78,7 +78,7 @@ export class SourceCheckService {
         (
           SELECT COUNT(*) - 1 AS count_num FROM observations 
           WHERE ${whereExpression} 
-          GROUP BY station_id, element_id, elevation, period, date_time
+          GROUP BY station_id, element_id, level, interval, date_time
           HAVING COUNT(DISTINCT source_id) > 1
         );`;
 
@@ -100,12 +100,12 @@ export class SourceCheckService {
             where = `${where} AND element_id = ${selectObsevationDto.elementIds[0]}`;
         }
 
-        if (selectObsevationDto.period) {
-            where = `${where} AND period = ${selectObsevationDto.period}`;
+        if (selectObsevationDto.interval) {
+            where = `${where} AND interval = ${selectObsevationDto.interval}`;
         }
 
-        if (selectObsevationDto.elevation !== undefined) {
-            where = `${where} AND elevation = ${selectObsevationDto.elevation}`;
+        if (selectObsevationDto.level !== undefined) {
+            where = `${where} AND elevation = ${selectObsevationDto.level}`;
         }
 
         const dateOperator: string | null = this.getProcessedObsDateFilter(selectObsevationDto);

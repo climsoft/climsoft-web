@@ -5,6 +5,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-station-detail',
@@ -13,15 +14,24 @@ import { StationCacheModel, StationsCacheService } from '../services/stations-ca
 })
 export class StationDetailComponent implements OnInit, OnDestroy {
   protected station!: StationCacheModel;
+  protected userIsSystemAdmin: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
+    private stationsCacheService: StationsCacheService,
     private location: Location,
     private route: ActivatedRoute,
-    private stationsCacheService: StationsCacheService,
   ) {
     this.pagesDataService.setPageHeader('Station Detail');
+
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
+    });
   }
 
   ngOnInit() {
@@ -50,7 +60,7 @@ export class StationDetailComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe((data) => {
       if (data) {
-        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: ToastEventTypeEnum.SUCCESS});
+        this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
       }
     });

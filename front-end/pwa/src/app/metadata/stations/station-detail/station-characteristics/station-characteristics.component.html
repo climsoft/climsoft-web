@@ -1,5 +1,5 @@
 <div *ngIf="station">
-  <div class="d-flex justify-content-end">
+  <div *ngIf="userIsSystemAdmin"  class="d-flex justify-content-end">
     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
       (click)="dlgEdit.openDialog(station.id)">Edit</button>
     <app-station-characteristics-edit-dialog #dlgEdit />

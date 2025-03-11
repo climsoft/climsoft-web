@@ -37,6 +37,7 @@ export class StationEntity extends AppBaseEntity {
 
   //---------------
   @Column({ name: "observation_environment_id", type: 'int', nullable: true })
+  @Index()
   obsEnvironmentId: number | null;
 
   @ManyToOne(() => StationObservationEnvironmentEntity, {
@@ -49,6 +50,7 @@ export class StationEntity extends AppBaseEntity {
 
   //---------------
   @Column({ name: "observation_focus_id", type: 'int', nullable: true })
+  @Index()
   obsFocusId: number | null;
 
   @ManyToOne(() => StationObsFocusEntity, {
@@ -61,6 +63,7 @@ export class StationEntity extends AppBaseEntity {
 
   //---------------
   @Column({ name: "organisation_id", type: "int", nullable: true })
+  @Index()
   organisationId: number | null; // name of organisation that owns the station.
 
   @ManyToOne(() => OrganisationEntity, {

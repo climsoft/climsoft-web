@@ -8,18 +8,12 @@ import { ElementCacheModel, ElementsCacheService } from '../../services/elements
   styleUrls: ['./element-selector-single.component.scss']
 })
 export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
-  @Input()
-  public id!: string;
-  @Input()
-  public label!: string;
-  @Input()
-  public errorMessage: string = '';
-  @Input()
-  public includeOnlyIds!: number[];
-  @Input()
-  public selectedId!: number | null;
-  @Output()
-  public selectedIdChange = new EventEmitter<number>();
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public errorMessage: string = '';
+  @Input() public includeOnlyIds!: number[];
+  @Input() public selectedId!: number | null;
+  @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected allElements: ElementCacheModel[] = [];
   protected elements!: ElementCacheModel[];
@@ -34,7 +28,6 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
       this.filterBasedOnSelectedIds();
     });
   }
-
 
   ngOnChanges(changes: SimpleChanges): void {
     this.filterBasedOnSelectedIds();
@@ -60,7 +53,7 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
   }
 
   protected onSelectedOptionChange(selectedOption: ElementCacheModel | null) {
-    this.selectedId = selectedOption? selectedOption.id : 0;
-    this.selectedIdChange.emit(this.selectedId );
+    this.selectedId = selectedOption ? selectedOption.id : 0;
+    this.selectedIdChange.emit(this.selectedId);
   }
 }

@@ -28,7 +28,7 @@ export class ElementsQCTestsService {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(AppDatabase.instance.elementsQcTests.filter(qcTest => {
 
-      if (findQCTestQuery.observationPeriod && findQCTestQuery.observationPeriod !== qcTest.observationPeriod) {
+      if (findQCTestQuery.observationPeriod && findQCTestQuery.observationPeriod !== qcTest.observationInterval) {
         return false;
       }
 

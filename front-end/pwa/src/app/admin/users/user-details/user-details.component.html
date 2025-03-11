@@ -7,52 +7,61 @@
   <div class="card-body p-0">
 
     <div>
+      <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
+    </div>
 
-      <div class="mb-3">
-        <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
+    </div>
+
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
+    </div>
+
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-user-group-selector-single [label]="'Group'" [selectedId]="viewUser.groupId" (selectedIdChange)="onGroupChange($event)" />
+    </div>
+
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-check-box-input [label]="'Is system administrator'" [value]="viewUser.isSystemAdmin"
+        (valueChange)="onIsSytemAdminChange($event)" />
+
+      <div *ngIf="!viewUser.isSystemAdmin && viewUser.permissions">
+        <app-edit-user-permissions [userPermissions]="viewUser.permissions" />
       </div>
+    </div>
 
-      <div class="mb-3">
-        <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
+    </div>
+
+    <hr class="border border-secondary border-1">
+
+    <div>
+      <app-text-input [label]="'Comment'" [(value)]="viewUser.comment" />
+    </div>
+
+    <div *ngIf="errorMessage">
+      <hr class="border border-secondary border-1">
+      <div class="text-danger">
+        {{errorMessage}}
       </div>
-
-      <div class="mb-3">
-        <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
-      </div>
-
-      <div class="mb-3">
-        <app-user-role-single-input [label]="'Role'" [selectedId]="viewUser.role"
-          (selectedIdChange)="onRoleSelection($event)" />
-      </div>
-
-      <div *ngIf="userRoleIsNotAdmin">
-        <div class="mb-3">
-          <app-station-selector-multiple [label]="'Authorised stations'" [placeholder]="'All stations'"
-            [selectedIds]="viewUser.authorisedStationIds? viewUser.authorisedStationIds: []"
-            (selectedIdsChange)="onStationsSelection($event)" />
-        </div>
-
-        <div class="mb-3">
-          <app-check-box-input [label]="'User can download data'" [(value)]="viewUser.canDownloadData" />
-          <div *ngIf="viewUser.canDownloadData" class="ms-2">
-            <app-element-selector-multiple [label]="'Authorised Elements'" [placeholder]="'All elements'"
-              [selectedIds]="viewUser.authorisedElementIds? viewUser.authorisedElementIds : []"
-              (selectedIdsChange)="onElementsSelection($event)" />
-          </div>
-        </div>
-
-      </div>
-
-      <div class="mb-3">
-        <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
-      </div>
-
     </div>
 
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()" [disabled]="!bEnableSave">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
       Save
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>

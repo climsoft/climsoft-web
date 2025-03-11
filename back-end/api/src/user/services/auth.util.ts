@@ -1,20 +1,18 @@
 import { Request } from 'express';
-import { LoggedInUserModel } from 'src/user/model/logged-in-user.model';
-import { UserRoleEnum } from '../enums/user-roles.enum';
+import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto'; 
 import { NotFoundException } from '@nestjs/common';
 import { ViewUserDto } from '../dtos/view-user.dto';
 
 export class AuthUtil {
 
-    public static createNewSessionUser(request: Request, userEntity: ViewUserDto): LoggedInUserModel {
+    public static createNewSessionUser(request: Request, userEntity: ViewUserDto): LoggedInUserDto {
         //if user found then set the user session  
-        const authorisedStationIds: string[] | null = userEntity.authorisedStationIds ? userEntity.authorisedStationIds : null;
         const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
-        const loggedInUser: LoggedInUserModel = {
+        const loggedInUser: LoggedInUserDto = {
             id: userEntity.id,
             username: userEntity.email,
-            role: userEntity.role,
-            authorisedStationIds: authorisedStationIds,
+            isSystemAdmin: userEntity.isSystemAdmin,
+            permissions: userEntity.permissions,
             expiresIn: expiresIn,
         };
 
@@ -33,27 +31,27 @@ export class AuthUtil {
 
     public static sessionUserIsAdmin(request: Request): boolean {
         const user = AuthUtil.getSessionUser(request);
-        return user ? user.role === UserRoleEnum.ADMINISTRATOR : false;
+        return user ? user.isSystemAdmin : false;
     }
 
-    public static getLoggedInUserId(request: Request): number  {
+    public static getLoggedInUserId(request: Request): number {
         return AuthUtil.getLoggedInUser(request).id
     }
 
-    public static getLoggedInUser(request: Request): LoggedInUserModel  {
+    public static getLoggedInUser(request: Request): LoggedInUserDto {
         const user = AuthUtil.getSessionUser(request);
-        if(!user){
+        if (!user) {
             // TODO. Throw the correct error?
-            throw  new NotFoundException(`User not logged in`);
+            throw new NotFoundException(`User not logged in`);
         }
         return user
     }
-  
-    public static getSessionUser(request: Request): LoggedInUserModel | null {
+
+    public static getSessionUser(request: Request): LoggedInUserDto | null {
         const session: any = request.session
-        return session.user ? session.user as LoggedInUserModel : null;
+        return session.user ? session.user as LoggedInUserDto : null;
     }
 
-  
+
 
 }

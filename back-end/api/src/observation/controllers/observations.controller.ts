@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseIntPipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, ParseIntPipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -11,12 +11,15 @@ import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-que
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
+import { ExportObservationsService } from '../services/export-observations.service';
 
 @Controller('observations')
 export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
-    private observationUpload: ObservationImportService,) { }
+    private observationUpload: ObservationImportService,
+    private exportObservationsService: ExportObservationsService,
+  ) { }
 
   @Get()
   getProcessed(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
@@ -40,7 +43,23 @@ export class ObservationsController {
 
   @Get('log')
   getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
-    return this.observationsService.findObsLog(viewObsevationQuery);
+    return this.observationsService.findObservationLog(viewObsevationQuery);
+  }
+
+  @Get('generate-export/:templateid')
+  generateExports(@Param('templateid', ParseIntPipe) exportTemplateId: number): Promise<number> {
+    return this.exportObservationsService.generateExports(exportTemplateId);
+  }
+
+  @Get('download-export/:templateid')
+  @Header('Content-Type', 'text/csv')
+  @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
+  async download(
+    @Req() request: Request,
+    @Param('templateid', ParseIntPipe) exportTemplateId: number// TODO. check on authorisation
+  ) {
+    // Stream the exported file to the response
+    return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
   }
 
   @Put()
@@ -52,7 +71,7 @@ export class ObservationsController {
     return { message: "success" };
   }
 
-
+  @Admin()
   @Post('upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
@@ -75,6 +94,7 @@ export class ObservationsController {
 
   }
 
+  @Admin()
   @Post('upload/:sourceid/:stationid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFileForStation(
@@ -99,6 +119,7 @@ export class ObservationsController {
 
   }
 
+  @Admin()
   @Patch('restore')
   async restore(
     @Req() request: Request,

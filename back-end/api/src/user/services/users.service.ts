@@ -50,21 +50,29 @@ export class UsersService {
 
         this.updateUserEntity(userEntity, createUserDto);
 
-        // TODO. In future create a random hashed password that will be emailed to the user
-        userEntity.hashedPassword = '';
+        // TODO. In future email password to  user
+        userEntity.hashedPassword = await this.hashPassword(this.generateRandomPassword());
 
         // TODO. Send a email with password
         return this.getUserDto(await this.userRepo.save(userEntity));
     }
 
-    public async updateUser(id: number, createUserDto: CreateUserDto): Promise<ViewUserDto> {
+    /**
+     * Generates and returns a random password of 6 characters
+     * @returns password
+     */
+    private generateRandomPassword(): string {
+        const length: number = 12;
+        const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
+    }
 
+    public async updateUser(id: number, createUserDto: CreateUserDto): Promise<ViewUserDto> {
         const userEntity = await this.userRepo.findOneBy({
             id: id,
         });
 
         if (!userEntity) {
-            // TODO. throw error to show username already takem
             throw new NotFoundException('no user found');
         }
 
@@ -75,13 +83,11 @@ export class UsersService {
     }
 
     public async changeUserPassword(changedPassword: ChangePasswordDto): Promise<ViewUserDto> {
-
         const userEntity = await this.userRepo.findOneBy({
             id: changedPassword.userId,
         });
 
         if (!userEntity) {
-            // TODO. throw error to show username already takem
             throw new NotFoundException('no user found');
         }
 
@@ -107,13 +113,12 @@ export class UsersService {
         entity.name = dto.name;
         entity.email = dto.email;
         entity.phone = dto.phone;
-        entity.role = dto.role;
-        entity.authorisedStationIds = dto.authorisedStationIds && dto.authorisedStationIds.length > 0 ? dto.authorisedStationIds : null;
-        entity.canDownloadData = dto.canDownloadData;
-        entity.authorisedElementIds = dto.authorisedElementIds && dto.authorisedElementIds.length > 0 ? dto.authorisedElementIds : null;
+        entity.isSystemAdmin = dto.isSystemAdmin;
+        entity.permissions = dto.permissions;
+        entity.groupId = dto.groupId;
         entity.extraMetadata = dto.extraMetadata;
         entity.disabled = dto.disabled;
-        entity.entryDateTime = new Date();
+        entity.comment = dto.comment;
     }
 
     private getUserDto(entity: UserEntity): ViewUserDto {
@@ -122,12 +127,12 @@ export class UsersService {
             name: entity.name,
             email: entity.email,
             phone: entity.phone,
-            role: entity.role,
-            authorisedStationIds: entity.authorisedStationIds,
-            canDownloadData: entity.canDownloadData,
-            authorisedElementIds: entity.authorisedElementIds,
+            isSystemAdmin: entity.isSystemAdmin,
+            permissions: entity.permissions,
+            groupId: entity.groupId,
             extraMetadata: entity.extraMetadata,
             disabled: entity.disabled,
+            comment: entity.comment,
         }
     }
 

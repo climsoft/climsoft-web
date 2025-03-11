@@ -9,7 +9,7 @@ import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
-import { PeriodsUtil } from 'src/app/shared/controls/period-input/period-single-input/Periods.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 interface ViewQCTest extends ViewElementQCTestModel {
@@ -88,8 +88,8 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
         }
 
 
-        const obsPeriodName = PeriodsUtil.findPeriod(item.observationPeriod)?.name.toLowerCase();
-        const formattedObsPeriod = obsPeriodName ? obsPeriodName : item.observationPeriod.toString()
+        const obsPeriodName = IntervalsUtil.findInterval(item.observationInterval)?.name.toLowerCase();
+        const formattedObsPeriod = obsPeriodName ? obsPeriodName : item.observationInterval.toString()
 
         return {
           ...item,

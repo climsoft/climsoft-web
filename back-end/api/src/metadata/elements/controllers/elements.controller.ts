@@ -7,16 +7,14 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ElementsImportExportService } from '../services/elements-import-export.service';
-import { FileIOService } from 'src/shared/services/file-io.service';
+import { ElementsImportExportService } from '../services/elements-import-export.service'; 
 
 @Controller("elements")
 export class ElementsController {
 
   constructor(
     private elementsService: ElementsService,
-    private elementsImportExportService: ElementsImportExportService,
-    private fileIOService: FileIOService,
+    private elementsImportExportService: ElementsImportExportService, 
   ) { }
 
   @Get()
@@ -42,11 +40,8 @@ export class ElementsController {
   async downloadStationsCsv(
     @Req() request: Request,
   ) {
-    // Fetch stations and generate the CSV file
-    const csvFilePath = await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
-
-    // Stream the file to the response
-    return this.fileIOService.createStreamableFile(csvFilePath);
+    // Generate the CSV file and stream the file to the response
+    return await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
   }
 
   @Admin()

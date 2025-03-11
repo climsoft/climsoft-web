@@ -1,0 +1,109 @@
+<div class="card border-0">
+    <div class="card-body px-0">
+        <div class="card-title fw-bold d-flex justify-content-between">
+            Observations from Different Sources
+        </div>
+
+        <div class="card border-0">
+            <div class="card border-0 p-0">
+                <div class="card-header mb-2 p-1 fw-bold">Filter</div>
+                <div class="card-body p-0 mt-2">
+                    <div class="row g-2 px-2">
+                        <div class="col-auto mb-2">
+                            <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId" />
+                        </div>
+
+                        <div class="col-auto mb-2">
+                            <app-element-selector-single [label]="'Element'" [(selectedId)]="elementId" />
+                        </div>
+
+                        <div class="col-auto mb-2">
+                            <app-number-input [label]="'Elevation'" [(value)]="elevation" />
+                        </div>
+
+                        <div class="col-auto mb-2">
+                            <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
+                        </div>
+
+                        <div class="col-auto mb-2">
+                            <div class="row">
+                                <div class="col-auto">
+                                    <app-radio-buttons-input [inline]="true" [asButtons]="false"
+                                        [groupName]="'filter_dates'"
+                                        [groupItems]="[{ label:'Observation Date', checked:  true},{ label:'Entry Date'}]"
+                                        (checkedValueChange)="onDateToUseSelection($event)" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-auto">
+                                    <app-date-input [id]="'from_date'" [(value)]="fromDate" />
+                                </div>
+                                <div class="col-auto d-flex align-items-center ">To</div>
+                                <div class="col-auto">
+                                    <app-date-input [id]="'to_date'" [(value)]="toDate" />
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView" (click)="onViewClick()">
+                            Query
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 p-0 mt-2">
+                <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
+                    <div class="fw-bold ms-1">Showing Entries</div>
+                    <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
+                        <app-page-input [pageInputDefinition]="pageInputDefinition"
+                            (pageInputDefinitionChange)="loadData()" />
+                        <div *ngIf="sumOfDuplicates" class="d-flex align-items-center">
+                            <div class="vr mx-2"></div>
+                            <div class="me-2">Total Duplicates: {{sumOfDuplicates | number:'1.0-0' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0 mt-2">
+                    <div class="entry-table-container">
+                        <table class="table table-striped table-sm manage-data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Station</th>
+                                    <th>Element</th>
+                                    <th>Elevation</th>
+                                    <th>Date Time</th>
+                                    <th>Interval</th>
+                                    <th>Duplicates</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-group-divider overflow-y-scroll">
+
+                                <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
+                                    <td>{{i + 1}}</td>
+                                    <td> {{ getStationName(obsEntry) }}</td>
+                                    <td>{{ getElementAbbrv(obsEntry) }}</td>
+                                    <td>{{ obsEntry.elevation }}</td>
+                                    <td>{{ getFormattedDatetime(obsEntry.datetime) }}</td>
+                                    <td>{{ getPeriodName(obsEntry.interval) }}</td>
+                                    <td> {{ obsEntry.duplicates}} </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

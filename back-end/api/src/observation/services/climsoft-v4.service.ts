@@ -13,7 +13,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { UsersService } from 'src/user/services/users.service';
-import { SourceTemplatesService } from 'src/metadata/sources/services/source-templates.service';
+import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { AppConfig } from 'src/app.config';
 
 interface V4ElementModel {
     elementId: number;
@@ -100,54 +101,21 @@ export class ClimsoftV4Service {
                 await this.disconnect();
             }
 
-            let v4Save: boolean;
-            let host: string;
-            let user: string;
-            let password: string;
-            let database: string;
-            let port: number;
-            let utcOffset: number;
-
-            if (process.env.V4_SAVE !== undefined &&
-                process.env.V4_DB_USERNAME !== undefined &&
-                process.env.V4_DB_PASSWORD !== undefined &&
-                process.env.V4_DB_NAME !== undefined &&
-                process.env.V4_DB_PORT !== undefined &&
-                process.env.V4_DB_UTCOFFSET !== undefined) {
-                console.log('Setting up production mode v4 settings.');
-                v4Save = process.env.V4_SAVE === 'yes';
-                host = 'host.docker.internal';
-                user = process.env.V4_DB_USERNAME;
-                password = process.env.V4_DB_PASSWORD;
-                database = process.env.V4_DB_NAME;
-                port = +process.env.V4_DB_PORT;
-                utcOffset = +process.env.V4_DB_UTCOFFSET;
-            } else {
-                console.log('Setting up development mode v4 settings.');
-                // If any of the env variable V4_SAVE env is undefined then assume it's a dev environment. 
-                v4Save = true;
-                host = 'localhost';
-                user = 'my_user';
-                password = 'my_password';
-                database = 'mariadb_climsoft_db_v4';
-                port = 3306;
-                utcOffset = 0;
-            }
-
-            if (!v4Save) {
+            // If not in dev mode and saving to version 4 is disabled then just return
+            if(!AppConfig.devMode && !AppConfig.v4DbCredentials.v4Save ){
                 console.log('Saving to v4 database disabled.');
                 return;
-            }
+            } 
 
-            this.v4UtcOffset = utcOffset;
+            this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
-                host: host,
-                user: user,
-                password: password,
-                database: database,
-                port: port,
+                host: AppConfig.devMode? 'localhost': AppConfig.v4DbCredentials.host,
+                user: AppConfig.v4DbCredentials.username,
+                password: AppConfig.v4DbCredentials.password,
+                database: AppConfig.v4DbCredentials.databaseName,
+                port: AppConfig.v4DbCredentials.port,
             });
 
             // Clear any previous conflicts
@@ -268,7 +236,7 @@ export class ClimsoftV4Service {
                 id: v4Element.elementId,
                 abbreviation: v4Element.abbreviation,
                 name: v4Element.elementName,
-                description: v4Element.description,
+                description:  v4Element.description,
                 units: v4Element.units,
                 typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,
@@ -446,35 +414,6 @@ export class ClimsoftV4Service {
         // Get a connection from the pool
         const connection = await v4DBPool.getConnection();
         try {
-            // const upsertStatement = `
-            //     INSERT INTO observationinitial (
-            //         recordedFrom, 
-            //         describedBy, 
-            //         obsDatetime, 
-            //         obsLevel,
-            //         obsValue, 
-            //         flag,
-            //         period,             
-            //         qcStatus,
-            //         qcTypeLog,
-            //         acquisitionType,
-            //         dataForm,
-            //         capturedBy
-            //     )
-            //     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            //     ON DUPLICATE KEY UPDATE
-            //         obsLevel = VALUES(obsLevel),
-            //         obsValue = VALUES(obsValue),
-            //         flag = VALUES(flag),
-            //         period = VALUES(period),
-            //         qcStatus = VALUES(qcStatus),
-            //         qcTypeLog = VALUES(qcTypeLog),
-            //         acquisitionType = VALUES(acquisitionType),
-            //         dataForm = VALUES(dataForm),
-            //         capturedBy = VALUES(capturedBy)
-            // `;
-
-
             const upsertStatement = `
             INSERT INTO observationinitial (
                 recordedFrom, 
@@ -534,7 +473,7 @@ export class ClimsoftV4Service {
                     entity.stationId,
                     entity.elementId,
                     v4ValueMap.v4DBDatetime,
-                    v4ValueMap.v4Elevation,
+                    v4ValueMap.v4Level,
                     v4ValueMap.v4ScaledValue,
                     v4ValueMap.v4Flag,
                     v4ValueMap.v4DBPeriod, // period
@@ -569,20 +508,20 @@ export class ClimsoftV4Service {
         }
     }
 
-    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Elevation: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
+    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
         let period: number | null = null;
         // If element is daily and period is greater than 1 day then calculate the period using day as scale.
         // V4 period supports cumulation at daily interval only.
-        if (v4Element.elementType === 'daily' && entity.period > 1440) {
+        if (v4Element.elementType === 'daily' && entity.interval > 1440) {
             // Important to round off due to precision errors
-            period = NumberUtils.roundOff(entity.period / 1440, 4);
+            period = NumberUtils.roundOff(entity.interval / 1440, 4);
         }
         // Important to round off due to precision errors
         const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
-        const elevation: string = entity.elevation === 0 ? 'surface' : `${entity.elevation}`;
+        const level: string = entity.level === 0 ? 'surface' : `${entity.level}`;
         const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
-        return { v4Elevation: elevation, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
+        return { v4Level: level, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
@@ -638,7 +577,7 @@ export class ClimsoftV4Service {
                     entity.stationId,            // recordedFrom
                     entity.elementId,            // describedBy
                     v4ValueMap.v4DBDatetime,     // obsDatetime
-                    v4ValueMap.v4Elevation,      // obsLevel
+                    v4ValueMap.v4Level,      // obsLevel
                     0,                           // qcStatus (as used in the upsert)
                     7,                           // acquisitionType (as used in the upsert)
                     sourceName                   // source name (as used in the upsert)                            
@@ -668,9 +607,9 @@ export class ClimsoftV4Service {
         const compositeKeys = observationsData.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
-            elevation: obs.elevation,
+            level: obs.level,
             datetime: obs.datetime,
-            period: obs.period,
+            interval: obs.interval,
             sourceId: obs.sourceId,
         }));
 

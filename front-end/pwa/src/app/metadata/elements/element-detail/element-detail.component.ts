@@ -1,13 +1,10 @@
 import { Location } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, Subject, take, takeUntil } from 'rxjs';
-import { ElementDomainEnum } from 'src/app/metadata/elements/models/element-domain.enum';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
+import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ElementCacheModel, ElementsCacheService } from '../services/elements-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-element-detail',
@@ -16,16 +13,24 @@ import { ElementCacheModel, ElementsCacheService } from '../services/elements-ca
 })
 export class ElementDetailComponent implements OnInit, OnDestroy {
   protected element!: ElementCacheModel;
+  protected userIsSystemAdmin: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private route: ActivatedRoute,
+    private appAuthService: AppAuthService,
     private elementsCacheService: ElementsCacheService,
+    private route: ActivatedRoute,
     private location: Location,
   ) {
-
     this.pagesDataService.setPageHeader("Element Detail");
+
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
+    });
   }
 
   ngOnInit() {

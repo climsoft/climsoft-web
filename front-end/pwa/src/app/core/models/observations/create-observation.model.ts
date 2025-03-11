@@ -4,9 +4,9 @@ export interface CreateObservationModel {
     stationId: string;
     elementId: number;
     sourceId: number;
-    elevation: number;
+    level: number;
     datetime: string;
-    period: number;
+    interval: number;
     value: number | null;
     flag: FlagEnum | null; 
     comment: string | null;

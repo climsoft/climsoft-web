@@ -1,13 +1,13 @@
-import { UserRoleEnum } from "./user-role.enum";
+import { UserPermissionModel } from "./user-permission.model"; 
 
 export interface CreateUserModel{
     name: string;
-    email: string;  
-    phone: string;
-    role: UserRoleEnum;   
-    authorisedStationIds: string[] | null;
-    canDownloadData: boolean;
-    authorisedElementIds: number[] | null;
-    extraMetadata: string | null;
+    email: string;
+    phone: string | null;
+    isSystemAdmin: boolean;
+    permissions: UserPermissionModel | null;
+    groupId: number | null;
+    extraMetadata: string | null; //TODO. Determine Structure
     disabled: boolean;
+    comment: string | null;
 }

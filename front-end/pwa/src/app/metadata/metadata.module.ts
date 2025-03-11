@@ -11,9 +11,9 @@ import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/im
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations/view-stations/view-stations-table/view-stations-table.component';
-import { ViewSourcesComponent } from './sources/view-sources/view-sources.component';
-import { FormSourceDetailComponent } from './sources/form-source-detail/form-source-detail.component';
-import { ImportSourceDetailComponent } from './sources/import-source-detail/import-source-detail.component';
+import { ViewSourcesComponent } from './source-templates/view-sources/view-sources.component';
+import { FormSourceDetailComponent } from './source-templates/form-source-detail/form-source-detail.component';
+import { ImportSourceDetailComponent } from './source-templates/import-source-detail/import-source-detail.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { StationDetailComponent } from './stations/station-detail/station-detail.component';
 import { StationCharacteristicsEditDialogComponent } from './stations/station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
@@ -23,14 +23,14 @@ import { ViewElementsComponent } from './elements/view-elements/view-elements.co
 import { StationCharacteristicsComponent } from './stations/station-detail/station-characteristics/station-characteristics.component';
 import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component';
 import { StationLimitsComponent } from './stations/station-detail/station-limits/station-limits.component';
-import { ImportSourceStationDetailComponent } from './sources/import-source-detail/import-source-station-detail/import-source-station-detail.component';
-import { ImportSourceElementAndValueDetailComponent } from './sources/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
-import { ImportSourcePeriodDetailComponent } from './sources/import-source-detail/import-source-period-detail/import-source-period-detail.component';
-import { ImportSourceDateDetailComponent } from './sources/import-source-detail/import-source-date-detail/import-source-date-detail.component';
-import { ImportSourceDelimeterDetailComponent } from './sources/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
-import { ImportSourceElevationDetailComponent } from './sources/import-source-detail/import-source-elevation-detail/import-source-elevation-detail.component';
-import { ImportSourceMissingFlagDetailComponent } from './sources/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
-import { ImportSourceFlagDetailComponent } from './sources/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
+import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
+import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
+import { ImportSourcePeriodDetailComponent } from './source-templates/import-source-detail/import-source-period-detail/import-source-period-detail.component';
+import { ImportSourceDateDetailComponent } from './source-templates/import-source-detail/import-source-date-detail/import-source-date-detail.component';
+import { ImportSourceDelimeterDetailComponent } from './source-templates/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
+import { ImportSourceLevelDetailComponent } from './source-templates/import-source-detail/import-source-level-detail/import-source-level-detail.component';
+import { ImportSourceMissingFlagDetailComponent } from './source-templates/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
+import { ImportSourceFlagDetailComponent } from './source-templates/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
 import { ElementCharacteristicsComponent } from './elements/element-detail/element-characteristics/element-characteristics.component';
 import { QCTestsComponent } from './elements/element-detail/qc-tests/qc-tests.component';
@@ -51,9 +51,11 @@ import { ElementSelectorMultipleComponent } from './elements/element-selector/el
 import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
 import { StationSelectorSingleComponent } from './stations/station-selector/station-single-input/station-selector-single.component';
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
-import { ViewExportTemplatesComponent } from './exports/view-exports/view-exports.component';
-import { ExportDetailComponent } from './exports/export-detail/export-detail.component';
+import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
+import { ExportTemplateDetailComponent } from './export-templates/export-template-detail/export-template-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
+import { ExportTemplateSelectorSingleComponent } from './export-templates/export-template-selector/export-template-selector-single/export-template-selector-single.component';
+import { ExportTemplateSelectorMultipleComponent } from './export-templates/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
 
 @NgModule({
   declarations: [
@@ -80,7 +82,7 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     ImportSourcePeriodDetailComponent,
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
-    ImportSourceElevationDetailComponent,
+    ImportSourceLevelDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceFlagDetailComponent,
     ElementCharacteristicsInputDialogComponent,
@@ -112,7 +114,9 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     StationSelectorSingleComponent,
 
     ViewExportTemplatesComponent,
-    ExportDetailComponent,
+    ExportTemplateDetailComponent,
+    ExportTemplateSelectorSingleComponent,
+    ExportTemplateSelectorMultipleComponent,
 
     ViewConnectorsComponent,
 
@@ -130,9 +134,12 @@ import { ViewConnectorsComponent } from './connectors/view-connectors/view-conne
     FormSelectorDialogComponent,   
 
     StationSelectorMultipleComponent,
-    StationSelectorSingleComponent,
+    StationSelectorSingleComponent, 
     StationsSearchDialogComponent, 
     ViewStationsMapComponent,
+
+    ExportTemplateSelectorSingleComponent,
+    ExportTemplateSelectorMultipleComponent,
   ]
 })
 export class MetadataModule { }

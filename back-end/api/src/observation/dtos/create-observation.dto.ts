@@ -13,13 +13,13 @@ export class CreateObservationDto {
     sourceId: number;
 
     @IsNumber()
-    elevation: number;
+    level: number;
 
     @IsDateString()
     datetime: string;
 
     @IsInt()
-    period: number;
+    interval: number;
 
     @IsOptional() // TODO. Not sure if this correctly represents null.
     @IsNumber()

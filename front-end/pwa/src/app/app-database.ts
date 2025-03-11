@@ -1,7 +1,7 @@
 import Dexie, { Table } from "dexie";
 import { CreateStationModel } from "./core/models/stations/create-station.model";
 import { ViewRegionModel } from "./core/models/Regions/view-region.model";
-import { ViewSourceModel } from "./metadata/sources/models/view-source.model";
+import { ViewSourceModel } from "./metadata/source-templates/models/view-source.model";
 import { ViewStationObsEnvModel } from "./core/models/stations/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "./core/models/stations/view-station-obs-focus.model";
 import { StationSearchHistoryModel } from "./metadata/stations/models/stations-search-history.model";
@@ -9,9 +9,9 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";  
-import { LoggedInUserModel } from "./admin/users/models/logged-in-user.model";
-import { CachedObservationModel } from "./data-acquisition/services/observations.service";
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";   
+import { CachedObservationModel } from "./data-ingestion/services/observations.service";
+import { UserSettingEnum } from "./app-config.service";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -23,9 +23,8 @@ export interface StationForm {
     forms: ViewSourceModel[];
 }
 
-// TODO. Not yet used
-export interface UserInterfaceSetting {
-    id: string; // should be an enumeration
+export interface UserSetting {
+    name: UserSettingEnum; 
     parameters: any;
 }
 
@@ -53,16 +52,14 @@ export class AppDatabase extends Dexie {
     // cached differently
     stationForms!: Table<StationForm, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
-    // stationId, elementId, sourceId, elevation, datetime, period  as compund key
+    // stationId, elementId, sourceId, level, datetime, peintervalriod  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
 
     //--------------------------------------
 
     //--------------------------------------
     // Front end related tables
-
-    //userInterfaceSettings!: Table<UserInterfaceSetting, number>;
-
+    userSettings!: Table<UserSetting, string>;
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
     //--------------------------------------
@@ -81,10 +78,13 @@ export class AppDatabase extends Dexie {
             regions: `id, name, regionType`,
 
             stationForms: `stationId`,
-            elementsQcTests: `id, elementId, qcTestType, observationPeriod, [elementId+qcTestType+observationPeriod]`,
-            // Compoud key [stationId+elementId+sourceId+elevation+datetime+period] is used for putting and deleting data in the local database. 
-            // Compound index [stationId+sourceId+elevation+elementId+datetime] is used by entry forms.
-            observations: `[stationId+elementId+sourceId+elevation+datetime+period], stationId, elementId, sourceId, elevation, datetime, period, synced, entryDatetime, [stationId+sourceId+elevation+elementId+datetime]`,
+            elementsQcTests: `id, elementId, qcTestType, observationInterval, [elementId+qcTestType+observationInterval]`,
+            
+            // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 
+            // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.
+            observations: `[stationId+elementId+sourceId+level+datetime+interval], stationId, elementId, sourceId, level, datetime, interval, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
+           
+            userSettings: `name`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,
         });
