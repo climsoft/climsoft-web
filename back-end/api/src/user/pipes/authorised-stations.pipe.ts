@@ -1,5 +1,5 @@
 import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransform } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
+import {  REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
 import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-query.dto';
@@ -11,13 +11,15 @@ import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observatio
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
-  constructor(@Inject(REQUEST) private readonly request: Request) { }
+  constructor(@Inject(REQUEST) private readonly request: Request ) { }
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('meta name: ', metadata.metatype?.name);
-
-  
+    console.log('meta name: ', metadata.metatype);
+    console.log('url: ', this.request.url)
+    console.log('originalUrl: ', this.request.originalUrl)
+    console.log('baseUrl: ', this.request.baseUrl)
+    console.log('Path: ', this.request.route.path)
 
     const user = AuthUtil.getSessionUser(this.request);
 
@@ -28,34 +30,39 @@ export class AuthorisedStationsPipe implements PipeTransform {
     if (AuthUtil.sessionUserIsAdmin(this.request)) return value;
 
     // TODO. Throw the correct exception that relates to authorisation
-    if (!user.permissions) throw new BadRequestException('Could not check for permissions');
+    //if (!user.permissions) throw new BadRequestException('Could not check for permissions');
 
-    //if (user.permissions.entryPermissions?.stationsIds)  
-
-    //const authorisedStationIds = user.permissions.entryPermissions.stationsIds;
+    //const authorisedStationIds = AuthUtil.getUserAuthorisedStations(user);
+    //if(!authorisedStationIds) return value;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize stations');
     }
 
-    const authorisedStationIds: any = [];
-
     // Handle different types of metatype
     switch (metadata.metatype.name) {
       case 'Array':
-        return this.handleArray(value, authorisedStationIds);
+        return value;
+      //return this.handleArray(value, authorisedStationIds);
       case 'String':
-        return this.handleString(value, authorisedStationIds);
+        return value;
+      //return this.handleString(value, authorisedStationIds);
       case ViewStationQueryDTO.name:
-        return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
+        return value;
+      //return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
       case ViewObservationQueryDTO.name:
-        return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, authorisedStationIds);
+        return value;
+      //return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, authorisedStationIds);
       case EntryFormObservationQueryDto.name:
-        return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, authorisedStationIds);
-        case ViewObservationLogQueryDto.name:
+        return value;
+      //return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, authorisedStationIds);
+      case ViewObservationLogQueryDto.name:
+        return value;
       case CreateObservationDto.name:
+        return value;
       case DeleteObservationDto.name:
+        return value;
       default:
         // TODO. Throw the correct exception that relates to authorisation
         throw new BadRequestException('Could not determine how to authorize stations');

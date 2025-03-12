@@ -9,6 +9,7 @@ import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { EditDataComponent } from './data-correction/edit-data.component';
 import { MissingDataComponent } from './missing-data/missing-data.component';
+import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
 
 
 const routes: Routes = [
@@ -62,6 +63,10 @@ const routes: Routes = [
       {
         path: 'quality-control',
         component: ManageQCComponent
+      },
+      {
+        path: 'data-monitoring',
+        component: DataMonitoringComponent
       },
     ]
   }

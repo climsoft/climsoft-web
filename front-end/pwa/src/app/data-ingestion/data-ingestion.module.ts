@@ -20,6 +20,7 @@ import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
+import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
 
 
 @NgModule({
@@ -42,6 +43,7 @@ import { MetadataModule } from '../metadata/metadata.module';
     DeletedDataComponent,
     AutoImportSelectionComponent, 
     ManageQCComponent,
+    DataMonitoringComponent,
   ],
   imports: [
     DataIngestionRoutingModule,

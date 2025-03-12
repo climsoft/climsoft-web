@@ -71,14 +71,6 @@ export class MenuItemsUtil {
                     url: '/data-correction',
                 },
                 {
-                    name: SubMenuNameEnum.DELETED_DATA,
-                    url: '/deleted-data',
-                },
-                {
-                    name: SubMenuNameEnum.DATA_MONITORING,
-                    url: '/quality-control',
-                },
-                {
                     name: SubMenuNameEnum.MISSING_DATA,
                     url: '/missing-data',
                 },
@@ -86,7 +78,14 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.QC_DATA,
                     url: '/quality-control',
                 },
-
+                {
+                    name: SubMenuNameEnum.DATA_MONITORING,
+                    url: '/data-monitoring',
+                },
+                {
+                    name: SubMenuNameEnum.DELETED_DATA,
+                    url: '/deleted-data',
+                },
             ]
         }
     }

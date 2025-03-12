@@ -51,10 +51,11 @@ export class ExportObservationsService {
             }
         }
 
+        // TODO. Add longitude and latitude
         const sql = `
             COPY (
                 SELECT 
-                station_id, element_id, source_id, elevation, interval, date_time, value, flag, qc_status, qc_test_log, comment, entry_date_time, log 
+                station_id, element_id, source_id, elevation, interval, date_time, value, flag, comment, entry_date_time 
                 FROM observations
                 WHERE deleted = false 
                 ${sqlCondition}

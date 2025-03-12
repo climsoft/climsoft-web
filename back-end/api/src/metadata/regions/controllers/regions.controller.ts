@@ -1,4 +1,4 @@
-import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
@@ -15,7 +15,7 @@ export class RegionsController {
 
   @Get()
   find(@Query() viewRegionQueryDto: ViewRegionQueryDTO) {
-    return  this.regionsService.find(viewRegionQueryDto);
+    return this.regionsService.find(viewRegionQueryDto);
   }
 
   @Get('id:id')

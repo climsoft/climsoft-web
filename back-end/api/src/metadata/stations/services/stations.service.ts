@@ -210,7 +210,7 @@ export class StationsService {
         return true;
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto, stationIds: string[] | null): Promise<MetadataUpdatesDto> {
+    private async checkUpdatesOrig(updatesQueryDto: MetadataUpdatesQueryDto, stationIds: string[] | null): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
         const whereOptions: FindOptionsWhere<StationEntity> = {};
 
@@ -238,6 +238,38 @@ export class StationsService {
         if (changesDetected) {
             // If any changes detected then return records based on station ids filter
             const allRecords = (await this.stationRepo.find({ where: whereOptions })).map(entity => {
+                return this.createViewDto(entity);
+            });
+
+            return { metadataChanged: true, metadataRecords: allRecords }
+        } else {
+            // If no changes detected then indicate no metadata changed
+            return { metadataChanged: false }
+        }
+    }
+
+    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+        let changesDetected: boolean = false;
+        const serverCount = await this.stationRepo.count();
+
+        if (serverCount !== updatesQueryDto.lastModifiedCount) {
+            // If number of records in server are not the same as those in the client then changes detected
+            changesDetected = true;
+        } else {
+            const whereOptions: FindOptionsWhere<StationEntity> = {};
+
+            // If number of stations are same as the client then check for changes using last modified date if available
+            if (updatesQueryDto.lastModifiedDate) {
+                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+            }
+
+            // If there was any changed record then changes detected
+            changesDetected = (await this.stationRepo.count({ where: whereOptions })) > 0;
+        }
+
+        if (changesDetected) {
+            // If any changes detected then return all stations
+            const allRecords = (await this.stationRepo.find()).map(entity => {
                 return this.createViewDto(entity);
             });
 
