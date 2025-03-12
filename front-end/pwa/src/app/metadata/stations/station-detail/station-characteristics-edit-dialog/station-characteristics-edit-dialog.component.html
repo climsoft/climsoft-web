@@ -1,67 +1,105 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [closeOnOkClick]="false" (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [closeOnOkClick]="false" (okClick)="onOkClick()"
+    (cancelClick)="onCancelClick()">
     <div *ngIf="station && open">
-        <div class="mb-3">
+        <div>
             <app-text-input [label]="'Id'" [(value)]="station.id" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'Name'" [(value)]="station.name" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'Description'" [(value)]="station.description" />
         </div>
 
-        <div class="mb-3">
-            <app-number-input [label]="'Latitude'" [(value)]="station.latitude" />
+        <hr />
+
+        <div>
+            <div class="d-flex justify-content-between">
+                <div>Location</div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary " (click)="requestLocation()">
+                        <i class="bi bi-geo-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex mt-2">
+                <div>
+                    <app-number-input [label]="'Latitude'" [(value)]="station.latitude" />
+                </div>
+                <div class="ms-2">
+                    <app-number-input [label]="'Longitude'" [(value)]="station.longitude" />
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <app-number-input [label]="'Longitude'" [(value)]="station.longitude" />
-        </div>
+        <hr />
 
-        <div class="mb-3">
+        <div>
             <app-number-input [label]="'Elevation'" [(value)]="station.elevation" />
         </div>
-
-        <div class="mb-3">
+        <hr />
+        <div>
             <app-station-obs-method-single-input [selectedId]="station.stationObsProcessingMethod"
                 (selectedIdChange)="onStationObsMethodChange($event)" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-station-obs-env-single-input [(selectedId)]="station.stationObsEnvironmentId" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-station-obs-focus-single-input [(selectedId)]="station.stationObsFocusId" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'WMO ID'" [(value)]="station.wmoId" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'WIGOS ID'" [(value)]="station.wigosId" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'ICAO ID'" [(value)]="station.icaoId" />
         </div>
 
-        <div class="mb-3">
-            <app-station-status-single-input [(selectedId)]="station.status"/>
+        <hr />
+
+        <div>
+            <app-station-status-single-input [(selectedId)]="station.status" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-date-input [label]="'Date Established'" [(value)]="station.dateEstablished" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-date-input [label]="'Date Closed'" [(value)]="station.dateClosed" />
         </div>
 
-        <div class="mb-3">
+        <hr />
+
+        <div>
             <app-text-input [label]="'Comment'" [(value)]="station.comment" />
         </div>
 

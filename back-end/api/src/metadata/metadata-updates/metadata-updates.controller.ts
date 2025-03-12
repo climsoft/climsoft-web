@@ -52,8 +52,8 @@ export class MetadataUpdatesController {
         authorisedStationIds.push(...user.permissions.qcPermissions.stationIds);
       }
 
-      if (user.permissions.ingestionAnalysisPermissions && user.permissions.ingestionAnalysisPermissions.stationIds) {
-        authorisedStationIds.push(...user.permissions.ingestionAnalysisPermissions.stationIds);
+      if (user.permissions.ingestionMonitoringPermissions && user.permissions.ingestionMonitoringPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.ingestionMonitoringPermissions.stationIds);
       }
 
       if (user.permissions.stationsMetadataPermissions && user.permissions.stationsMetadataPermissions.stationIds) {

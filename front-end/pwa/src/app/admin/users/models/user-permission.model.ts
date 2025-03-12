@@ -14,7 +14,7 @@ export interface UserPermissionModel {
         // TODO. Include range
     };
 
-    ingestionAnalysisPermissions?: {
+    ingestionMonitoringPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };

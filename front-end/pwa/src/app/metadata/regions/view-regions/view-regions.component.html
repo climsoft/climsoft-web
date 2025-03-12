@@ -17,8 +17,8 @@
         Search
       </button> -->
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Import', 'Delete All']"
-          (dropDownOptionClick)="onOptionsClicked($event)" [translateX]="true" />
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
+          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
 
       <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"

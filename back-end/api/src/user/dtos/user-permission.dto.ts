@@ -15,7 +15,7 @@ export class UserPermissionDto {
         // TODO. Include range
     };
 
-    ingestionAnalysisPermissions?: {
+    ingestionMonitoringPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };

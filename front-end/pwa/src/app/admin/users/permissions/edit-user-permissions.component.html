@@ -32,16 +32,16 @@
     </div>
 
     <div class="mt-3">
-      <app-check-box-input [label]="'Can evaluate data ingestion'" [value]="userPermissions.ingestionAnalysisPermissions? true: false"
+      <app-check-box-input [label]="'Can monitor data ingestion'" [value]="userPermissions.ingestionMonitoringPermissions? true: false"
         (valueChange)="onCanAnalyseDataChange($event)" />
-      <div *ngIf="userPermissions.ingestionAnalysisPermissions" class="ms-4">
-        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'ingestionAnalysisPermissions'" [groupItems]="[
-        { label:'All', checked: userPermissions.ingestionAnalysisPermissions.stationIds  === undefined}, 
-        { label:'Select', checked: userPermissions.ingestionAnalysisPermissions.stationIds  !== undefined}]"
+      <div *ngIf="userPermissions.ingestionMonitoringPermissions" class="ms-4">
+        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'ingestionMonitoringPermissions'" [groupItems]="[
+        { label:'All', checked: userPermissions.ingestionMonitoringPermissions.stationIds  === undefined}, 
+        { label:'Select', checked: userPermissions.ingestionMonitoringPermissions.stationIds  !== undefined}]"
         (checkedValueChange)="onAnalysisStationsSelectionTypeChange($event)" />
 
-        <app-station-selector-multiple *ngIf="userPermissions.ingestionAnalysisPermissions.stationIds" [id]="'ingestionAnalysisPermissions'"
-          [(selectedIds)]="userPermissions.ingestionAnalysisPermissions.stationIds"  />
+        <app-station-selector-multiple *ngIf="userPermissions.ingestionMonitoringPermissions.stationIds" [id]="'ingestionMonitoringPermissions'"
+          [(selectedIds)]="userPermissions.ingestionMonitoringPermissions.stationIds"  />
       </div>
     </div>
 

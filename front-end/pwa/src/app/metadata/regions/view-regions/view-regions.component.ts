@@ -1,8 +1,11 @@
-import { Component, OnDestroy } from '@angular/core'; 
+import { Component, OnDestroy } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
+import { AppAuthService } from 'src/app/app-auth.service';
+
+type optionsType = 'Import' | 'Delete All';
 
 @Component({
   selector: 'app-view-regions',
@@ -17,14 +20,23 @@ export class ViewRegionsComponent implements OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  protected optionClicked: 'Import' | 'Delete All' | undefined;
+  protected optionClicked: optionsType | undefined;
+  protected dropDownItems: optionsType[] = [];
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
     private regionsService: RegionsCacheService,
   ) {
 
     this.pagesDataService.setPageHeader('Regions');
+
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      this.dropDownItems = user && user.isSystemAdmin ? ['Import', 'Delete All'] : [];
+    });
 
     // Get all sources 
     this.regionsService.cachedRegions.pipe(
@@ -47,7 +59,7 @@ export class ViewRegionsComponent implements OnDestroy {
     // TODO.
   }
 
-  protected onOptionsClicked(option: 'Import' | 'Delete All'): void {
+  protected onOptionsClicked(option: optionsType): void {
     this.optionClicked = option;
     if (option === 'Delete All') {
       this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {

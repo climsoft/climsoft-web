@@ -60,7 +60,7 @@
             <div class="fw-bold ms-1">Showing Entries</div>
             <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
                 <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']"
-                    (dropDownOptionClick)="onOptionsSelected($event)" [translateX]="false" />
+                    (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
                 <div *ngIf="numOfChanges" class="d-flex align-items-center">

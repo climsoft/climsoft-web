@@ -48,12 +48,12 @@ export class EditUserPermissionsComponent {
 
   //-----------------------------------------------------
   protected onCanAnalyseDataChange(change: boolean): void {
-    this.userPermissions.ingestionAnalysisPermissions = change ? {} : undefined;
+    this.userPermissions.ingestionMonitoringPermissions = change ? {} : undefined;
   }
 
   protected onAnalysisStationsSelectionTypeChange(selectionType: string): void {
-    if (this.userPermissions.ingestionAnalysisPermissions) {
-      this.userPermissions.ingestionAnalysisPermissions.stationIds = (selectionType === 'All') ? undefined : [];
+    if (this.userPermissions.ingestionMonitoringPermissions) {
+      this.userPermissions.ingestionMonitoringPermissions.stationIds = (selectionType === 'All') ? undefined : [];
     }
   }
 

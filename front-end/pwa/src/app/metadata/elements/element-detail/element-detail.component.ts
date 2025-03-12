@@ -42,7 +42,6 @@ export class ElementDetailComponent implements OnInit, OnDestroy {
         this.element = data;
       }
     });
-
   }
 
   ngOnDestroy() {

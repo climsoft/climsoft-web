@@ -11,9 +11,9 @@ export class DropDownButtonComponent<T extends string> {
   @Input() 
   public dropDownItems!: T[];
   @Input() 
-  public translateX!: boolean ;
+  public offSetRight: boolean = true ;
   @Input() 
-  public maxHeight!: number;
+  public maxHeight: number = 200;
   @Output() 
   public dropDownOptionClick = new EventEmitter<T>();
 

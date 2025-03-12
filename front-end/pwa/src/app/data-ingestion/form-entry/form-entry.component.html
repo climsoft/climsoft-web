@@ -4,7 +4,7 @@
       <div class="card-title fw-bold my-1 form-header">{{source.name}} data entry for {{station.id}} - {{station.name}}  </div>
       <div>
         <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Fields','Extra Info', 'Settings']"
-          (dropDownOptionClick)="onOptions($event)" [translateX]="true" [buttonText]="'Options'" />
+          (dropDownOptionClick)="onOptions($event)" [offSetRight]="true" [buttonText]="'Options'" />
         <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
         <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormSettingsChange($event)" />
       </div>
