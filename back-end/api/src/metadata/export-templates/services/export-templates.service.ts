@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
 import { ExportTemplateEntity } from '../entities/export-template.entity';
@@ -17,15 +17,17 @@ export class ExportTemplatesService {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<ExportTemplateEntity>): Promise<ViewTemplateExportDto[]> {
+    public async findAll(ids?: number[]): Promise<ViewTemplateExportDto[]> {
         const findOptions: FindManyOptions<ExportTemplateEntity> = {
             order: {
                 id: "ASC"
             }
         };
 
-        if (selectOptions) {
-            findOptions.where = selectOptions;
+        if (ids && ids.length > 0) {
+            findOptions.where = {
+                id: In(ids)
+            };
         }
 
         const sourceEntities = await this.exportsRepo.find(findOptions);

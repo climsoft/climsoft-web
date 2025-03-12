@@ -13,7 +13,7 @@ import { EditDataComponent } from './data-correction/edit-data.component';
 import { QCDataComponent } from './manage-qc-data/qc-data/qc-data.component';
 import { EditQCDataComponent } from './manage-qc-data/edit-qc-data/edit-qc-data.component';
 import { SourceCheckComponent } from './manage-qc-data/source-check/source-check.component';
-import { MissingDataComponent } from './manage-qc-data/missing-data/missing-data.component';
+import { MissingDataComponent } from './missing-data/missing-data.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';

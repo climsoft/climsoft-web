@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { DuplicateModel, SourceCheckService } from '../../services/source-check.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 
 @Component({
@@ -13,7 +14,7 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
   templateUrl: './source-check.component.html',
   styleUrls: ['./source-check.component.scss']
 })
-export class SourceCheckComponent {
+export class SourceCheckComponent implements OnDestroy {
 
   protected totalRecords: number = 0;
 
@@ -28,27 +29,60 @@ export class SourceCheckComponent {
   protected useEntryDate: boolean = false;
   protected observationsEntries: DuplicateModel[] = [];
   protected stationsMetdata: StationCacheModel[] = [];
-  private elementsMetadata: ElementCacheModel[] = []; 
+  private elementsMetadata: ElementCacheModel[] = [];
   private periods: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableView: boolean = true;
   protected sumOfDuplicates: number = 0;
+  protected includeOnlyStationIds: string[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
+    private appAuthService: AppAuthService,
     private stationsService: StationsCacheService,
-    private elementService: ElementsCacheService, 
+    private elementService: ElementsCacheService,
     private sourceCheckService: SourceCheckService,
   ) {
 
-    this.stationsService.cachedStations.pipe(take(1)).subscribe(data => {
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      if (user.isSystemAdmin) {
+        this.includeOnlyStationIds = [];
+      } else if (user.permissions && user.permissions.qcPermissions) {
+        if (user.permissions.qcPermissions.stationIds) {
+          this.includeOnlyStationIds = user.permissions.qcPermissions.stationIds;
+        } else {
+          this.includeOnlyStationIds = [];
+        }
+      } else {
+        throw new Error('QC not allowed');
+      }
+    });
+
+    this.stationsService.cachedStations.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
       this.stationsMetdata = data;
     });
 
-    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
+    this.elementService.cachedElements.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
       this.elementsMetadata = data;
     });
 
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected loadData(): void {
@@ -86,7 +120,7 @@ export class SourceCheckComponent {
 
   protected onViewClick(): void {
     // Get the data based on the selection filter
-    this.observationFilter = {deleted: false};
+    this.observationFilter = { deleted: false };
 
     if (this.stationId !== null) {
       this.observationFilter.stationIds = [this.stationId];

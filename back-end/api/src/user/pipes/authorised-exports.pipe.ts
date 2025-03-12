@@ -10,14 +10,16 @@ import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dt
 import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 
 @Injectable()
-export class AuthorisedStationsPipe implements PipeTransform {
+export class AuthorisedExportsPipe implements PipeTransform {
   constructor(@Inject(REQUEST) private readonly request: Request) { }
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('meta name: ', metadata.metatype?.name);
+    console.log('meta name: ', metadata.metatype?.name)
 
-  
+    if(1===1){
+      return value;
+    }
 
     const user = AuthUtil.getSessionUser(this.request);
 

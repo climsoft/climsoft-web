@@ -1,15 +1,16 @@
 import { catchError, Observable, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewExportTemplateModel } from "../models/view-export-template.model";
 import { CreateExportTemplateModel } from "../models/create-export-template.model";
+import { StringUtils } from "src/app/shared/utils/string.utils";
 
 @Injectable({
     providedIn: 'root'
 })
 export class ExportTemplatesService {
-    private endPointUrl: string; 
+    private endPointUrl: string;
     constructor(
         private appConfigService: AppConfigService,
         private http: HttpClient) {
@@ -24,6 +25,13 @@ export class ExportTemplatesService {
 
     public findOne(id: number): Observable<ViewExportTemplateModel> {
         return this.http.get<ViewExportTemplateModel>(`${this.endPointUrl}/${id}`).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    public findSome(ids: number[]): Observable<ViewExportTemplateModel[]> {
+        let httpParams: HttpParams = StringUtils.getQueryParams<number[]>(ids);
+        return this.http.get<ViewExportTemplateModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
             catchError(this.handleError)
         );
     }

@@ -4,15 +4,16 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 export interface StationView {
   station: StationCacheModel;
   forms?: ViewSourceModel[];
 }
 
-@Component({ 
+@Component({
   selector: 'app-station-form-selection',
   templateUrl: './station-form-selection.component.html',
   styleUrls: ['./station-form-selection.component.scss']
@@ -28,18 +29,44 @@ export class StationFormSelectionComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private stationsCacheService: StationsCacheService,
     private stationFormsService: StationFormsService,
+    private appAuthService: AppAuthService,
     private router: Router,
     private route: ActivatedRoute) {
-
     this.pagesDataService.setPageHeader('Select Station');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$)
     ).subscribe(data => {
       // Filter manual and hybrid stations only
-      this.allStationViews = data.filter(
-        item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
+      const allManualStations = data.filter(
+        item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || 
+        item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
       ).map(data => { return { station: data } });
+
+      this.setStationsBasedOnPermissions(allManualStations);
+    });
+  }
+
+  private setStationsBasedOnPermissions(allManualStations: StationView[]) {
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      if (user.isSystemAdmin) {
+        this.allStationViews = allManualStations;
+      } else if (user.permissions && user.permissions.entryPermissions) {
+        if (user.permissions.entryPermissions.stationIds) {
+          const stationIdsAllowed: string[] = user.permissions.entryPermissions.stationIds;
+          this.allStationViews = allManualStations.filter(item => stationIdsAllowed.includes(item.station.id));
+        } else {
+          this.allStationViews = allManualStations;
+        }
+      } else {
+        throw new Error('Data entry not allowed');
+      }
 
       this.filterBasedOnSearchedIds();
     });

@@ -10,7 +10,8 @@
                 <div class="card-body p-0 mt-2">
                     <div class="row g-2 px-2">
                         <div class="col-auto mb-2">
-                            <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId" />
+                            <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId"
+                                [includeOnlyIds]="includeOnlyStationIds" />
                         </div>
 
                         <div class="col-auto mb-2">
@@ -49,7 +50,8 @@
                     </div>
 
                     <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView" (click)="onViewClick()">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView"
+                            (click)="onViewClick()">
                             Query
                         </button>
                     </div>

@@ -40,6 +40,7 @@ export class MetadataUpdatesController {
   async stationUpdates(
     @Req() request: Request,
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    // Important. Only send updates fro stations that the user is authorised to access
     let authorisedStationIds: string[] | null = null;
     const user = AuthUtil.getLoggedInUser(request);
     if (user.permissions) {

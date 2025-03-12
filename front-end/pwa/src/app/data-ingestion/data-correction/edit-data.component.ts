@@ -15,6 +15,7 @@ import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/s
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -49,17 +50,39 @@ export class EditDataComponent implements OnDestroy {
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
+  protected includeOnlyStationIds: string[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
     private elementService: ElementsCacheService,
     private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
+
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      if (user.isSystemAdmin) {
+        this.includeOnlyStationIds = [];
+      } else if (user.permissions && user.permissions.entryPermissions) {
+        if (user.permissions.entryPermissions.stationIds) {
+          this.includeOnlyStationIds = user.permissions.entryPermissions.stationIds;
+        } else {
+          this.includeOnlyStationIds = [];
+        }
+      } else {
+        throw new Error('Data entry not allowed');
+      }
+    });
 
     this.elementService.cachedElements.pipe(
       takeUntil(this.destroy$),
@@ -211,10 +234,10 @@ export class EditDataComponent implements OnDestroy {
     // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
     // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
     const dateAdjusted = new Date(strDateTimeInUTC);
-    dateAdjusted.setHours(dateAdjusted.getHours() + this.utcOffset); 
+    dateAdjusted.setHours(dateAdjusted.getHours() + this.utcOffset);
 
     // TODO. Leaving this loggging here to show Angular change detection effects
-    console.log('Before conversion: ', strDateTimeInUTC, '. After conversion: ',dateAdjusted.toISOString(), '. Offset: ', this.utcOffset );
+    console.log('Before conversion: ', strDateTimeInUTC, '. After conversion: ', dateAdjusted.toISOString(), '. Offset: ', this.utcOffset);
     return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
   }
 

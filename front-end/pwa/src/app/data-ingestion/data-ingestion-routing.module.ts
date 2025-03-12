@@ -8,7 +8,7 @@ import { AutoImportSelectionComponent } from './auto-import-selection/auto-impor
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { EditDataComponent } from './data-correction/edit-data.component';
-import { MissingDataComponent } from './manage-qc-data/missing-data/missing-data.component';
+import { MissingDataComponent } from './missing-data/missing-data.component';
 
 
 const routes: Routes = [

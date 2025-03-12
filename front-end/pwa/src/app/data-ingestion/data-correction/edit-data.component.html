@@ -5,7 +5,8 @@
         <div class="card-body p-0 mt-2">
             <div class="row g-2 px-2">
                 <div class="col-auto mb-2">
-                    <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId" />
+                    <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId"
+                        [includeOnlyIds]="includeOnlyStationIds" />
                 </div>
 
                 <div class="col-auto mb-2">

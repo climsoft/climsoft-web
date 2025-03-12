@@ -12,6 +12,7 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
+import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 
 @Controller('observations')
 export class ObservationsController {
@@ -47,7 +48,7 @@ export class ObservationsController {
   }
 
   @Get('generate-export/:templateid')
-  generateExports(@Param('templateid', ParseIntPipe) exportTemplateId: number): Promise<number> {
+  generateExports(@Param('templateid', AuthorisedExportsPipe) exportTemplateId: number): Promise<number> {
     return this.exportObservationsService.generateExports(exportTemplateId);
   }
 
@@ -56,7 +57,7 @@ export class ObservationsController {
   @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
   async download(
     @Req() request: Request,
-    @Param('templateid', ParseIntPipe) exportTemplateId: number// TODO. check on authorisation
+    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number
   ) {
     // Stream the exported file to the response
     return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);

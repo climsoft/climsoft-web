@@ -25,15 +25,16 @@ export class StationCharacteristicsComponent implements OnChanges {
         take(1),
       ).subscribe(user => {
         if (!user) {
-          this.userCanEditStation = false;
-        } else if (user.isSystemAdmin) {
+          throw new Error('User not logged in');
+        } 
+        
+        if (user.isSystemAdmin) {
           this.userCanEditStation = true;
         } else if (user.permissions && user.permissions.stationsMetadataPermissions) {
-          if (user.permissions.stationsMetadataPermissions.stationIds) {
-            this.userCanEditStation = user.permissions.stationsMetadataPermissions.stationIds.includes(this.station.id);
-          } else {
-            this.userCanEditStation = true;
-          }
+          const stationIds = user.permissions.stationsMetadataPermissions.stationIds;
+          this.userCanEditStation = stationIds?  stationIds.includes(this.station.id): false;
+        }else{
+          this.userCanEditStation = false;
         }
       });
     }

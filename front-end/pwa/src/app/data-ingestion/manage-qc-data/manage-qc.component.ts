@@ -11,7 +11,7 @@ export class ManageQCComponent {
   protected activeTab: 'source' | 'qc' = 'source';
 
   constructor(private pagesDataService: PagesDataService) {
-    this.pagesDataService.setPageHeader('Manage QC');
+    this.pagesDataService.setPageHeader('Quality Control');
   }
 
   protected onTabClick(selectedTab: 'source' | 'qc'): void {
