@@ -49,7 +49,7 @@
           <app-linear-layout #appLinearLayout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
             [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
             [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
-            (userInputVF)="onUserInputVF($event)" />
+            (userInputVF)="onUserInputVF($event)" (focusSaveButton) = "onFocusSaveButton()" />
           <!-- ----------- -->
 
           <!-- table layout -->

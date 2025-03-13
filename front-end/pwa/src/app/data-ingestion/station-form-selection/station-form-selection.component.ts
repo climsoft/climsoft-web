@@ -97,7 +97,7 @@ export class StationFormSelectionComponent implements OnDestroy {
 
   protected onStationSelected(stationView: StationView): void {
     if (stationView.station.id === this.stationIdSelected) {
-      this.stationIdSelected = undefined;
+      this.stationIdSelected = undefined; // will hide the forms 
       return;
     }
 

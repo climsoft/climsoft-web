@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { ViewUserDto } from '../dtos/view-user.dto';
 
 export class AuthUtil {
@@ -51,37 +51,4 @@ export class AuthUtil {
         const session: any = request.session
         return session.user ? session.user as LoggedInUserDto : null;
     }
-
-    private static getUserAuthorisedStationsDELETE(user: LoggedInUserDto): string[] | null {
-        // Important. Only send updates from stations that the user is authorised to access
-        let authorisedStationIds: string[] | null;
-        if (user.isSystemAdmin) {
-            authorisedStationIds = null;
-        } else if (user.permissions) {
-            authorisedStationIds = [];
-            if (user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds) {
-                authorisedStationIds.push(...user.permissions.entryPermissions.stationIds);
-            }
-
-            if (user.permissions.qcPermissions && user.permissions.qcPermissions.stationIds) {
-                authorisedStationIds.push(...user.permissions.qcPermissions.stationIds);
-            }
-
-            if (user.permissions.ingestionMonitoringPermissions && user.permissions.ingestionMonitoringPermissions.stationIds) {
-                authorisedStationIds.push(...user.permissions.ingestionMonitoringPermissions.stationIds);
-            }
-
-            if (user.permissions.stationsMetadataPermissions && user.permissions.stationsMetadataPermissions.stationIds) {
-                authorisedStationIds.push(...user.permissions.stationsMetadataPermissions.stationIds);
-            }
-
-            
-            authorisedStationIds = authorisedStationIds.length > 0 ? Array.from(new Set(authorisedStationIds)) : null;
-        } else {
-            throw new BadRequestException('User permissions not defined');
-        }
-
-        return authorisedStationIds;
-    }
-
 }

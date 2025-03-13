@@ -6,7 +6,7 @@
         [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"
         [displayExtraInfoOption]="displayExtraInfoOption"
         (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()" (valueChange)="onInputEntry($event)"
-        (inputEnterKeyPress)="onEnterKeyPressed()" [simulateTabOnEnter]="false" />
+        (inputEnterKeyPress)="onEnterKeyPressed()" [simulateTabOnEnter]="simulateTabOnEnter" />
 
     <app-dialog [title]="'Extra Information'" [okButtonLabel]="'Ok'" [cancelButtonLabel]="'Cancel'"
         [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoOkClicked()">

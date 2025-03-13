@@ -34,6 +34,19 @@ export class EditUserPermissionsComponent {
       this.userPermissions.entryPermissions.stationIds = (selectionType === 'All') ? undefined : [];
     }
   }
+  //-----------------------------------------------------
+
+    //-----------------------------------------------------
+    protected onCanImportDataChange(change: boolean): void {
+      this.userPermissions.importPermissions = change ? {} : undefined;
+    }
+  
+    protected onImportSelectionTypeChange(selectionType: string): void {
+      if (this.userPermissions.importPermissions) {
+        this.userPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
+      }
+    }
+    //-----------------------------------------------------
 
   //-----------------------------------------------------
   protected onCanQCDataChange(change: boolean): void {
@@ -62,7 +75,7 @@ export class EditUserPermissionsComponent {
     this.userPermissions.exportPermissions = change ? {} : undefined;
   }
 
-  protected onExportStationsSelectionTypeChange(selectionType: string): void {
+  protected onExportSelectionTypeChange(selectionType: string): void {
     if (this.userPermissions.exportPermissions) {
       this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
     }

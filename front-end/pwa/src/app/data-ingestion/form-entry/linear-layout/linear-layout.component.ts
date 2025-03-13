@@ -28,6 +28,8 @@ export class LnearLayoutComponent implements OnChanges {
   @Input()
   public displayExtraInfoOption!: boolean;
 
+  @Output() public focusSaveButton = new EventEmitter<void>();
+
   /** Emitted when observation value is changed */
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
@@ -131,6 +133,48 @@ export class LnearLayoutComponent implements OnChanges {
 
     // If no error, then emit true. If error detected emit false
     this.totalIsValid.emit(this.totalErrorMessage === '');
+  }
+
+  // TODO. Check if sumulate tab is sufficient. After confirmation delete this code
+  // protected onVFEnterKeyPressed(index: number): void {
+  //   // Below code enables vertical navigation on enter. 
+  //   // TODO. Later we can implement horizontal navigation on enter once we test this considerably 
+
+  //   const totalRows: number = this.fieldDefinitions.length; // Number of rows in the table 
+  //   let nextInputIndex: number;
+
+  //   // If total input is required and it's the last row then just focus the total component in the column
+  //   if (this.formDefinitions.formMetadata.requireTotalInput && index === totalRows - 1) {
+  //     this.totalComponent.focus();
+  //     return;
+  //   }
+
+  //   if (index === totalRows - 1) {
+  //     // If it's the last row  then focus the save button
+  //     this.focusSaveButton.emit();
+  //     return;
+  //   } else {
+  //     nextInputIndex = index + 1;
+  //   }
+
+  //   // Get the next input and set focus if it exists
+  //   const nextInput = this.vfComponents.get(nextInputIndex);
+
+  //   if (nextInput) {
+  //     if (nextInput.disableValueFlagEntry) {
+  //       this.focusSaveButton.emit();
+  //     } else {
+  //       nextInput.focus();
+  //     }
+  //   }
+
+  // }
+
+  protected onTotalEnterKeyPressed(): void {
+    if (!this.totalComponent.errorMessage) {
+      // Go to save buton
+      this.focusSaveButton.emit();
+    }
   }
 
   public clear(): void {

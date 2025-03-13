@@ -54,6 +54,8 @@ import { ExportTemplateDetailComponent } from './export-templates/export-templat
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 import { ExportTemplateSelectorSingleComponent } from './export-templates/export-template-selector/export-template-selector-single/export-template-selector-single.component';
 import { ExportTemplateSelectorMultipleComponent } from './export-templates/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
+import { SourceSelectorSingleComponent } from './source-templates/source-selector/source-single-input/source-selector-single.component';
+import { SourceSelectorMultipleComponent } from './source-templates/source-selector/source-selector-multiple/source-selector-multiple.component';
 
 @NgModule({
   declarations: [
@@ -109,6 +111,9 @@ import { ExportTemplateSelectorMultipleComponent } from './export-templates/expo
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
 
+    SourceSelectorSingleComponent,
+    SourceSelectorMultipleComponent,
+
     ViewExportTemplatesComponent,
     ExportTemplateDetailComponent,
     ExportTemplateSelectorSingleComponent,
@@ -133,6 +138,9 @@ import { ExportTemplateSelectorMultipleComponent } from './export-templates/expo
     StationSelectorSingleComponent, 
     StationsSearchDialogComponent, 
     ViewStationsMapComponent,
+
+    SourceSelectorSingleComponent,
+    SourceSelectorMultipleComponent,
 
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,

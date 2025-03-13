@@ -32,6 +32,20 @@
     </div>
 
     <div class="mt-3">
+      <app-check-box-input [label]="'Can import data'" [value]="userPermissions.importPermissions? true: false"
+        (valueChange)="onCanImportDataChange($event)" />
+      <div *ngIf="userPermissions.importPermissions" class="ms-4">
+        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'importPermissions'" [groupItems]="[
+          { label:'All', checked: userPermissions.importPermissions.importTemplateIds  === undefined}, 
+          { label:'Select', checked: userPermissions.importPermissions.importTemplateIds  !== undefined}]"
+          (checkedValueChange)="onImportSelectionTypeChange($event)" />
+
+        <app-source-selector-multiple *ngIf="userPermissions.importPermissions.importTemplateIds" [id]="'importPermissions'"
+          [(selectedIds)]="userPermissions.importPermissions.importTemplateIds" />
+      </div>
+    </div>
+
+    <div class="mt-3">
       <app-check-box-input [label]="'Can monitor data ingestion'" [value]="userPermissions.ingestionMonitoringPermissions? true: false"
         (valueChange)="onCanAnalyseDataChange($event)" />
       <div *ngIf="userPermissions.ingestionMonitoringPermissions" class="ms-4">
@@ -66,7 +80,7 @@
         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'exportPermissions'" [groupItems]="[
         { label:'All', checked: userPermissions.exportPermissions.exportTemplateIds === undefined}, 
         { label:'Select', checked: userPermissions.exportPermissions.exportTemplateIds  !== undefined}]"
-        (checkedValueChange)="onExportStationsSelectionTypeChange($event)" />
+        (checkedValueChange)="onExportSelectionTypeChange($event)" />
 
         <app-export-template-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds" [id]="'exportPermissions'"
           [(selectedIds)]="userPermissions.exportPermissions.exportTemplateIds"  />

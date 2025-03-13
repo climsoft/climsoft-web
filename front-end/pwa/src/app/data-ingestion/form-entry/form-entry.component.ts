@@ -29,7 +29,7 @@ import { ObservationsService } from '../services/observations.service';
 })
 export class FormEntryComponent implements OnInit, OnDestroy {
   @ViewChild('appLinearLayout') linearLayoutComponent!: LnearLayoutComponent;
-  @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent; 
+  @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent;
   @ViewChild('saveButton') saveButton!: ElementRef;
 
   /** Station details */
@@ -54,7 +54,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected defaultDateValue!: string;
 
   protected userFormSettings: UserFormSettingStruct;
-  
+
   private destroy$ = new Subject<void>();
 
   constructor
@@ -136,7 +136,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
         // Gets default year-month value (YYYY-MM) used by year-month selector
         this.defaultYearMonthValue =
-        `${this.formDefinitions.yearSelectorValue}-${StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)}` ;
+          `${this.formDefinitions.yearSelectorValue}-${StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)}`;
       },
       error: err => {
         console.error(err);
@@ -183,8 +183,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     let strUtcDiff: string = "in";
 
     if (utcDiff > 0) {
-        strUtcDiff = `+${utcDiff}`;
-    } else if (utcDiff < 0) {    
+      strUtcDiff = `+${utcDiff}`;
+    } else if (utcDiff < 0) {
       strUtcDiff = `${utcDiff}`;
     }
 
@@ -203,7 +203,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       take(1),
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
-      this.refreshLayout = true;     
+      this.refreshLayout = true;
     });
 
   }
@@ -227,8 +227,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * @param yearMonth 
    * @returns 
    */
-  protected onYearMonthChange(yearMonth: string | null ): void { 
-    if(!yearMonth){
+  protected onYearMonthChange(yearMonth: string | null): void {
+    if (!yearMonth) {
       return;
     }
     const splitValue = yearMonth.split('-');
@@ -242,8 +242,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * @param strDate 
    * @returns 
    */
-  protected onDateChange(strDate: string | null ): void {
-    if(!strDate){
+  protected onDateChange(strDate: string | null): void {
+    if (!strDate) {
       return;
     }
     const splitValue = strDate.split('-');
@@ -310,14 +310,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       }
     }
 
-    if(this.linearLayoutComponent){
+    if (this.linearLayoutComponent) {
       this.linearLayoutComponent.sameInput(input.valueFlag, input.comment);
     }
-    
-    if(this.gridLayoutComponent){
+
+    if (this.gridLayoutComponent) {
       this.gridLayoutComponent.sameInput(input.valueFlag, input.comment);
     }
- 
+
   }
 
   /**
@@ -329,14 +329,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     //   obsDef.updateValueFlagFromUserInput('');
     //   obsDef.updateCommentInput('');
     //   obsDef.updatePeriodInput(this.formDefinitions.formMetadata.period);
-    
+
     // };
 
-    if(this.linearLayoutComponent){
+    if (this.linearLayoutComponent) {
       this.linearLayoutComponent.clear();
     }
-    
-    if(this.gridLayoutComponent){
+
+    if (this.gridLayoutComponent) {
       this.gridLayoutComponent.clear();
     }
   }
@@ -352,7 +352,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
-    console.log('save clicked');
+    //console.log('save clicked');
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
     const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
     //console.log('saving: ',  newObservations)
@@ -523,10 +523,16 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   }
 
   protected onFocusSaveButton(): void {
-    // TODO. Investigate why this focus raises a click event.
-    console.log('save before focus');
-    this.saveButton.nativeElement.focus();
-    console.log('save after focus');
+    // Focusing the save button immediately has a bug of raising a click event immediately thus saving the contents even though its just a focus
+    // This timeout is hacky way of solving the problem. 
+    // TODO investigate why the above happens
+    //console.log('save before focus');
+    // this.saveButton.nativeElement.focus();
+    //console.log('save after focus');
+    setTimeout(() => {
+      this.saveButton.nativeElement.focus();
+    }, 0);
+  
   }
 
 }

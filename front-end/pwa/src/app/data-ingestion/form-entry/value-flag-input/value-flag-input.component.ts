@@ -34,6 +34,9 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input()
   public disableValueFlagEntry: boolean = false;
 
+  @Input()
+  public simulateTabOnEnter: boolean = false;
+
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 

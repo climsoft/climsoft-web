@@ -16,6 +16,7 @@ import { GeneralSettingsService } from 'src/app/admin/general-settings/services/
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -55,6 +56,7 @@ export class EditDataComponent implements OnDestroy {
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
   protected includeOnlyStationIds: string[] = [];
+  protected includeOnlySourceIds: number[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -78,15 +80,25 @@ export class EditDataComponent implements OnDestroy {
 
       if (user.isSystemAdmin) {
         this.includeOnlyStationIds = [];
-      } else if (user.permissions && user.permissions.entryPermissions) {
-        if (user.permissions.entryPermissions.stationIds) {
-          this.includeOnlyStationIds = user.permissions.entryPermissions.stationIds;
-        } else {
-          this.includeOnlyStationIds = [];
-        }
+        this.includeOnlySourceIds = [];
+        return;
+      } 
+
+      if(!user.permissions){
+        throw new Error('Developer error. Permissions NOT set.');
+      }
+      
+      // Set stations permitted
+      if ( user.permissions.entryPermissions) {
+        this.includeOnlyStationIds = user.permissions.entryPermissions.stationIds? user.permissions.entryPermissions.stationIds : [];
       } else {
         throw new Error('Data entry not allowed');
       }
+
+      // Set sources permitted
+      this.setSourceIdsPermitted(user.permissions);
+
+
     });
 
     this.stationsCacheService.cachedStations.pipe(
@@ -118,6 +130,19 @@ export class EditDataComponent implements OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private setSourceIdsPermitted(permissions: UserPermissionModel){
+    const sourceIds: number[]=[];
+    if ( permissions.importPermissions) {
+      if(permissions.importPermissions.importTemplateIds){
+        sourceIds.push(...permissions.importPermissions.importTemplateIds) ;
+      }
+     
+    }
+
+    // TODO. left here
+    this.includeOnlySourceIds = sourceIds;
   }
 
   protected onDateToUseSelection(selection: string): void {

@@ -23,7 +23,6 @@ import { SelectorSingleInputComponent } from './controls/selector-input/selector
 import { HourSingleInputComponent } from './controls/hour-input/hour-single-input/hour-single-input.component';
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
 import { PeriodSingleInputComponent } from './controls/period-input/period-single-input/period-single-input.component';
-import { SourceSingleInputComponent } from './controls/source-input/source-single-input/source-single-input.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { StationObsMethodSingleInputComponent } from './controls/station-obs-method-input/station-obs-method-single-input/station-obs-method-single-input.component';
 import { StationObsEnvSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-env-single-input.component';
@@ -75,9 +74,7 @@ const controlsComponents = [
   HourMultipleInputComponent,
   YearMonthInputComponent,
   PeriodSingleInputComponent,
-  SourceSingleInputComponent,
-
- 
+  
   StationObsMethodSingleInputComponent,
   StationObsEnvSingleInputComponent,
   StationObservationFocusSingleInputComponent,
