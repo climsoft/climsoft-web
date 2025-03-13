@@ -54,8 +54,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case ViewObservationQueryDTO.name:
         if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/observations/' || this.request.route.path === '/observations/count') {
+        } else if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
           return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
+        } else if (this.request.route.path === '/source-check/count' || this.request.route.path === '/source-check/count') {
+          return this.handleSourceViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         }else{
           throw new BadRequestException('Observations route path not authorised');
         }
@@ -108,6 +110,23 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
       throw new BadRequestException('Not authorised to monitor station(s)');
+    } else {
+      value.stationIds = authorisedStationIds;
+    }
+    return value;
+  }
+
+  private handleSourceViewObservationQueryDTO(value: ViewObservationQueryDTO, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
+    if (!value) throw new BadRequestException('Query value must be defined');
+
+    if (!userPermissions.qcPermissions) throw new BadRequestException('Not authorised to QC');
+
+    if (!userPermissions.qcPermissions.stationIds) return value;
+
+    const authorisedStationIds: string[] = userPermissions.qcPermissions.stationIds;
+
+    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+      throw new BadRequestException('Not authorised to QC station(s)');
     } else {
       value.stationIds = authorisedStationIds;
     }
