@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { ViewObservationModel } from 'src/app/data-ingestion/models/view-observation.model';
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { take } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
+import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';

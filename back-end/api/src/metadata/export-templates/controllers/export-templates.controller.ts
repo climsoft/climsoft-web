@@ -27,8 +27,8 @@ export class ExportTemplatesController {
     @Post()
     public create(
         @Req() request: Request,
-        @Body() createSourceDto: CreateExportTemplateDto) {
-        return this.exportTemplateService.create(createSourceDto, AuthUtil.getLoggedInUserId(request));
+        @Body() dto: CreateExportTemplateDto) {
+        return this.exportTemplateService.create(dto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
@@ -36,8 +36,8 @@ export class ExportTemplatesController {
     public update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
-        @Body() createSourceDto: CreateExportTemplateDto) {
-        return this.exportTemplateService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
+        @Body() dto: CreateExportTemplateDto) {
+        return this.exportTemplateService.update(id, dto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()

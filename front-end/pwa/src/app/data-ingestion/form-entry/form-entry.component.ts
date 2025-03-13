@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
+import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { catchError, EMPTY, map, NEVER, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';

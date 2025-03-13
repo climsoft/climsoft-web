@@ -1,4 +1,4 @@
-import { FlagEnum } from "../../../core/models/observations/flag.enum";
+import { FlagEnum } from "../../../data-ingestion/models/flag.enum";
 import { DataStructureValidity } from "./create-import-source.model";
 
 export interface ImportTabularSourceModel extends  DataStructureValidity{

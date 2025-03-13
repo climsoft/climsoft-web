@@ -2,12 +2,7 @@ import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransfor
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util';
-import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-query.dto';
-import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-observation-query.dto';
-import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
-import { CreateObservationDto } from 'src/observation/dtos/create-observation.dto';
-import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto';
-import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
+import { UserPermissionDto } from '../dtos/user-permission.dto';
 
 @Injectable()
 export class AuthorisedExportsPipe implements PipeTransform {
@@ -15,11 +10,8 @@ export class AuthorisedExportsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('meta name: ', metadata.metatype?.name)
+    console.log('exports meta name: ', metadata.metatype?.name)
 
-    if(1===1){
-      return value;
-    }
 
     const user = AuthUtil.getSessionUser(this.request);
 
@@ -29,91 +21,53 @@ export class AuthorisedExportsPipe implements PipeTransform {
     // If user is admin return the value.
     if (AuthUtil.sessionUserIsAdmin(this.request)) return value;
 
-    // TODO. Throw the correct exception that relates to authorisation
+    // user is not admin and has no permissions then throw error
     if (!user.permissions) throw new BadRequestException('Could not check for permissions');
-
-    //if (user.permissions.entryPermissions?.stationsIds)  
-
-    //const authorisedStationIds = user.permissions.entryPermissions.stationsIds;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
-      throw new BadRequestException('Could not determine how to authorize stations');
+      throw new BadRequestException('Could not determine how to authorize exports');
     }
 
     const authorisedStationIds: any = [];
 
     // Handle different types of metatype
     switch (metadata.metatype.name) {
-      case 'Array':
-        return this.handleArray(value, authorisedStationIds);
-      case 'String':
-        return this.handleString(value, authorisedStationIds);
-      case ViewStationQueryDTO.name:
-        return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
-      case ViewObservationQueryDTO.name:
-        return this.handleViewObservationQueryDTO(value as ViewObservationQueryDTO, authorisedStationIds);
-      case EntryFormObservationQueryDto.name:
-        return this.handleCreateObservationQueryDto(value as EntryFormObservationQueryDto, authorisedStationIds);
-        case ViewObservationLogQueryDto.name:
-      case CreateObservationDto.name:
-      case DeleteObservationDto.name:
-      default:
-        // TODO. Throw the correct exception that relates to authorisation
-        throw new BadRequestException('Could not determine how to authorize stations');
+      case 'Array': 
+      return this.handleArray(value, authorisedStationIds); 
+      case 'Number':
+        return this.handleNumber(value, authorisedStationIds); 
+      default: 
+        throw new BadRequestException('Could not determine how to authorize exports');
     }
   }
 
-  private handleArray(value: string[], authorisedStationIds: string[]): string[] {
+  private handleArray(value: number[],  userPermissions: UserPermissionDto): number[] {
+    if (!userPermissions.exportPermissions) throw new BadRequestException('Not authorised to export data');
+
+    if (!userPermissions.exportPermissions.exportTemplateIds) return value;
+
+    const authorisedExportIds: number[] = userPermissions.exportPermissions.exportTemplateIds;
     if (value) {
-      if (!this.allAreAuthorisedStations(value, authorisedStationIds)) {
-        throw new BadRequestException('Not authorised to access station(s)');
+      if (!this.allAreAuthorisedExports(value, authorisedExportIds)) {
+        throw new BadRequestException('Not authorised to access exports');
       }
     } else {
-      value = authorisedStationIds;
+      value = authorisedExportIds;
     }
     return value;
   }
 
-  private handleString(value: string, authorisedStationIds: string[]): string {
-    if (value && this.allAreAuthorisedStations([value], authorisedStationIds)) {
+  private handleNumber(value: number, authorisedStationIds: number[]): number {
+    if (value && this.allAreAuthorisedExports([value], authorisedStationIds)) {
       return value;
     } else {
-      throw new BadRequestException('Not authorised to access station(s)');
+      throw new BadRequestException('Not authorised to access export');
     }
   }
+ 
 
-  private handleViewStationQueryDTO(value: ViewStationQueryDTO, authorisedStationIds: string[]): ViewStationQueryDTO {
-    if (value.stationIds) {
-      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-        throw new BadRequestException('Not authorised to access station(s)');
-      }
-    } else {
-      value.stationIds = authorisedStationIds;
-    }
-    return value;
-  }
-
-  private handleViewObservationQueryDTO(value: ViewObservationQueryDTO, authorisedStationIds: string[]): ViewObservationQueryDTO {
-    if (value.stationIds) {
-      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-        throw new BadRequestException('Not authorised to access station(s)');
-      }
-    } else {
-      value.stationIds = authorisedStationIds;
-    }
-    return value;
-  }
-
-  private handleCreateObservationQueryDto(value: EntryFormObservationQueryDto, authorisedStationIds: string[]): EntryFormObservationQueryDto {
-    if (value && this.allAreAuthorisedStations([value.stationId], authorisedStationIds)) {
-      return value;
-    } else {
-      throw new BadRequestException('Not authorised to access station(s)');
-    }
-  }
-
-  private allAreAuthorisedStations(requestedIds: string[], authorisedIds: string[]): boolean {
+  private allAreAuthorisedExports(requestedIds: number[], authorisedIds: number[]): boolean {
     return requestedIds.every(id => authorisedIds.includes(id));
   }
 }

@@ -22,7 +22,8 @@
         <col style="width: 2%;" />
         <col style="width: 16%;" />
         <col style="width: 6%;"/>
-        <col style="width: 58%;"/>
+        <col style="width: 53%;"/>
+        <col style="width: 5%;"/>  
         <col style="width: 18%;"/>   
       </colgroup>
       <thead>
@@ -31,6 +32,7 @@
           <th>Name</th>
           <th>Type</th>
           <th>Description</th> 
+          <th>Disabled</th> 
           <th></th> 
         </tr>
       </thead>
@@ -40,6 +42,7 @@
           <td (click)="onEditSource(source)">{{ source.name }}</td>
           <td (click)="onEditSource(source)">{{ source.sourceTypeName }}</td>
           <td (click)="onEditSource(source)">{{ source.description }}</td> 
+          <td>{{ source.disabled? 'Yes': 'No' }}</td>
           <td>
             <div *ngIf="source.sourceType === 'form' " class="d-flex align-items-center">
               <button class="btn btn-outline-secondary btn-sm" (click)="onAssignStationsClicked(source)">Assign Stations</button>

@@ -166,7 +166,7 @@ export class ObservationsService {
 
     }
 
-    public async findRawObs(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
+    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
@@ -177,6 +177,24 @@ export class ObservationsService {
             deleted: false
         });
 
+        const dtos: CreateObservationDto[] = entities.map(data => ({
+            stationId: data.stationId,
+            elementId: data.elementId,
+            sourceId: data.sourceId,
+            level: data.level,
+            datetime: data.datetime.toISOString(),
+            interval: data.interval,
+            value: data.value,
+            flag: data.flag,
+            comment: data.comment,
+        })
+        );
+
+        return dtos;
+    }
+
+    public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
+        const entities = await this.findObsEntities(selectObsevationDto);
         const dtos: CreateObservationDto[] = entities.map(data => ({
             stationId: data.stationId,
             elementId: data.elementId,

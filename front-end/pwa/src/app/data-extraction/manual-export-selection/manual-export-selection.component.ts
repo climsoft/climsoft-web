@@ -53,9 +53,10 @@ export class ManualExportSelectionComponent implements OnDestroy {
     }
 
     subscription.pipe(
-      take(1)
+      take(1),
     ).subscribe((data) => {
-      this.exports = data;
+      // Filter out disabled exports
+      this.exports = data.filter(item => !item.disabled);
     });
 
   }

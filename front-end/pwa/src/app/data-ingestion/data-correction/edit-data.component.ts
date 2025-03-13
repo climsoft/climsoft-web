@@ -1,12 +1,11 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
-import { ViewObservationModel } from 'src/app/core/models/observations/view-observation.model';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { CreateObservationModel } from 'src/app/core/models/observations/create-observation.model';
-import { DeleteObservationModel } from 'src/app/core/models/observations/delete-observation.model';
+import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
+import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
@@ -16,12 +15,16 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
   delete: boolean;
   newStationId: string;
   newElementId: number;
+  stationName: string;
+  elementAbbrv: string;
+  sourceName: string;
 }
 
 @Component({
@@ -39,9 +42,10 @@ export class EditDataComponent implements OnDestroy {
   protected toDate: string | null = null;
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
-  protected observationsEntries: ObservationEntry[] = [];
+  protected observationsEntries: ObservationEntry[] =[] ;
+  private stationsMetadata: StationCacheModel[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
-  private sourcessMetadata: ViewSourceModel[] = [];
+  private sourcesMetadata: ViewSourceModel[] = [];
   private intervals: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
@@ -57,6 +61,7 @@ export class EditDataComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
+    private stationsCacheService: StationsCacheService,
     private elementService: ElementsCacheService,
     private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
@@ -84,6 +89,12 @@ export class EditDataComponent implements OnDestroy {
       }
     });
 
+    this.stationsCacheService.cachedStations.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
+      this.stationsMetadata = data;
+    });
+
     this.elementService.cachedElements.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
@@ -93,7 +104,7 @@ export class EditDataComponent implements OnDestroy {
     this.sourcesService.cachedSources.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
-      this.sourcessMetadata = data;
+      this.sourcesMetadata = data;
     });
 
     // Get the climsoft time zone display setting
@@ -114,7 +125,6 @@ export class EditDataComponent implements OnDestroy {
   }
 
   protected onViewClick(): void {
-    console.log('view click')
     // Get the data based on the selection filter
     this.observationFilter = { deleted: false };
 
@@ -176,35 +186,44 @@ export class EditDataComponent implements OnDestroy {
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
+    this.observationService.findCorrectionData(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
-      const observationsEntries = data.map(viewObservationModel => {
-        const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
+      const observationsEntries = data.map(observation => {
+
+        const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
+        if (!stationMetadata) {
+          throw new Error("Developer error: Station not found.");
+        }
+
+        const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
         if (!elementMetadata) {
           throw new Error("Developer error: Element not found.");
         }
 
-        const sourceMetadata = this.sourcessMetadata.find(item => item.id === viewObservationModel.sourceId);
+        const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
         if (!sourceMetadata) {
           throw new Error("Developer error: Source not found.");
         }
 
         return {
-          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+          obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
           newStationId: '',
           newElementId: 0,
-          delete: false
+          delete: false,
+          stationName: stationMetadata.name,
+          elementAbbrv: elementMetadata.name,
+          sourceName: sourceMetadata.name,
         }
 
       });
 
-      this.setRowBoundaryLineSettongs(observationsEntries);
+      this.setRowBoundaryLineSettings(observationsEntries);
       this.observationsEntries = observationsEntries;
 
     });
   }
 
-  protected setRowBoundaryLineSettongs(observationsEntries: ObservationEntry[]): void {
+  protected setRowBoundaryLineSettings(observationsEntries: ObservationEntry[]): void {
     const obsIdentifierMap = new Map<string, number>();
 
     for (let i = 0; i < observationsEntries.length; i++) {
@@ -224,10 +243,6 @@ export class EditDataComponent implements OnDestroy {
 
   protected includeLowerBoundaryLine(index: number): boolean {
     return this.allBoundariesIndices.includes(index);
-  }
-
-  protected asViewObservationModel(observationsDef: ObservationDefinition): ViewObservationModel {
-    return (observationsDef.observation as ViewObservationModel);
   }
 
   protected getFormattedDatetime(strDateTimeInUTC: string): string {
@@ -279,18 +294,17 @@ export class EditDataComponent implements OnDestroy {
     for (const obsEntry of this.observationsEntries) {
       // Get observation entries that have not been deleted nor tehir station or or element id changed.
       if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
-        // Important. Explicitly convert the view model to create model
-        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
+        const obsModel = obsEntry.obsDef.observation;
         changedObs.push({
-          stationId: viewModel.stationId,
-          elementId: viewModel.elementId,
-          sourceId: viewModel.sourceId,
-          level: viewModel.level,
-          datetime: viewModel.datetime,
-          interval: viewModel.interval,
-          value: viewModel.value,
-          flag: viewModel.flag,
-          comment: viewModel.comment
+          stationId: obsModel.stationId,
+          elementId: obsModel.elementId,
+          sourceId: obsModel.sourceId,
+          level: obsModel.level,
+          datetime: obsModel.datetime,
+          interval: obsModel.interval,
+          value: obsModel.value,
+          flag: obsModel.flag,
+          comment: obsModel.comment
         })
       }
     }
@@ -323,15 +337,14 @@ export class EditDataComponent implements OnDestroy {
     const deletedObs: DeleteObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
       if (obsEntry.delete) {
-        // Important. Explicitly convert the view model to create model
-        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
+        const obsModel = obsEntry.obsDef.observation;
         deletedObs.push({
-          stationId: viewModel.stationId,
-          elementId: viewModel.elementId,
-          sourceId: viewModel.sourceId,
-          level: viewModel.level,
-          datetime: viewModel.datetime,
-          interval: viewModel.interval
+          stationId: obsModel.stationId,
+          elementId: obsModel.elementId,
+          sourceId: obsModel.sourceId,
+          level: obsModel.level,
+          datetime: obsModel.datetime,
+          interval: obsModel.interval
         })
       }
     }

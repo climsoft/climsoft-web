@@ -92,12 +92,12 @@
                         <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
                             [class.group-row-border]="includeLowerBoundaryLine(i)">
                             <td>{{ getRowNumber(i) }}</td>
-                            <td> {{ asViewObservationModel(obsEntry.obsDef).stationName }}</td>
-                            <td>{{ asViewObservationModel(obsEntry.obsDef).elementAbbrv }}</td>
+                            <td> {{ obsEntry.stationName }}</td>
+                            <td>{{ obsEntry.elementAbbrv }}</td>
                             <td>{{ obsEntry.obsDef.observation.level }}</td>
-                            <td>{{ getFormattedDatetime(asViewObservationModel(obsEntry.obsDef).datetime) }}</td>
+                            <td>{{ getFormattedDatetime(obsEntry.obsDef.observation.datetime) }}</td>
                             <td>{{ getPeriodName(obsEntry.obsDef.observation.interval) }}</td>
-                            <td>{{ asViewObservationModel(obsEntry.obsDef).sourceName }}</td>
+                            <td>{{ obsEntry.sourceName }}</td>
                             <td>
                                 <div class="px-2 app-value-flag-container">
                                     <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"

@@ -2,7 +2,7 @@ import { FieldType } from "src/app/metadata/source-templates/models/create-entry
 import { ViewEntryFormModel } from "src/app/metadata/source-templates/models/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
-import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model"; 
+import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model"; 
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition"; 
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";

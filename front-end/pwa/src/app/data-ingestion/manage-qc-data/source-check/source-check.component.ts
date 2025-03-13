@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, take, takeUntil } from 'rxjs';
 import { DuplicateModel, SourceCheckService } from '../../services/source-check.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';

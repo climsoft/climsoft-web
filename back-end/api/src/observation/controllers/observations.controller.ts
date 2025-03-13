@@ -37,9 +37,19 @@ export class ObservationsController {
     return this.observationsService.countObservationsNotSavedToV4();
   }
 
-  @Get('raw')
-  getRaw(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
-    return this.observationsService.findRawObs(createObsevationQuery);
+  @Get('form-data')
+  getFormData(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
+    return this.observationsService.findFormData(createObsevationQuery);
+  }
+
+  @Get('correction-data')
+  getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.findCorrectionData(viewObsevationQuery);
+  }
+
+  @Get('count-correction-data')
+  countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.count(viewObsevationQuery);
   }
 
   @Get('log')
