@@ -22,13 +22,12 @@ export class ImportSelectionComponent  implements OnDestroy{
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Import Source');
-    // Get all sources 
+    // Get sources 
     this.sourceCacheService.cachedSources.pipe(
       takeUntil(this.destroy$)
     ).subscribe((data) => {
       this.importSources = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
     });
-
   }
 
   ngOnDestroy() {

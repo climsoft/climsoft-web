@@ -1,99 +1,90 @@
 <div *ngIf="viewSource" class="card border-0">
     <div class="card-body px-0">
-        <!--form name -->
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--form description -->
         <div>
             <app-text-input [label]="'Description'" [(value)]="viewSource.description" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--entry selectors-->
         <div>
             <app-selector-multiple-input [label]="'Extra Selectors'" [errorMessage]="selectorsErrorMessage"
                 [options]="possibleSelectors" [selectedOptions]="selectedSelectors"
                 (selectedOptionsChange)="onSelectorsSelected($event)" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--entry fields-->
         <div>
             <app-selector-multiple-input [label]="'Fields'" [errorMessage]="fieldsErrorMessage"
                 [options]="possibleFields" [selectedOptions]="selectedFields"
                 (selectedOptionsChange)="onFieldsSelected($event)" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--layout -->
         <div>
             <app-text-input [label]="'Layout'" [disabled]="true" [value]="selectedLayout" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--elements-->
         <div>
-            <app-element-selector-multiple [label]="'Element(s)'" [errorMessage]="elementsErrorMessage" [(selectedIds)]="selectedElementIds" />
+            <app-element-selector-multiple [label]="'Element(s)'" [errorMessage]="elementsErrorMessage"
+                [(selectedIds)]="selectedElementIds" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--period-->
         <div>
-            <app-period-single-input [label]="'Period'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
+            <app-period-single-input [label]="'Interval'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
                 [selectedId]="selectedPeriodId" (selectedIdChange)="onPeriodSelected($event)" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--hours-->
+        <div>
+            <app-number-input [label]="'UTC Offset'" [(numValue)]="utcOffset" />
+        </div>
+
+        <hr />
+
         <div>
             <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage"
                 [selectedIds]="selectedHourIds" (selectedIdsChange)="onHoursSelected($event)" />
         </div>
 
-        <hr class="border border-secondary border-1">
-
-        <!--UTC Offset-->
-        <div>
-            <app-number-input [label]="'UTC Offset'" [(numValue)]="utcOffset" />
-        </div>
-
-        <hr class="border border-secondary border-1">
+        <hr />
 
         <div>
             <app-check-box-input [label]="'Allow Missing Values'" [(value)]="allowMissingValue" />
         </div>
 
-        <hr class="border border-secondary border-1">
+        <hr />
 
-        <!--Total-->
         <div>
             <app-check-box-input [label]="'Require Total Input'" [(value)]="requireTotalInput" />
         </div>
 
-        <hr class="border border-secondary border-1">
-        
+        <hr />
+
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
         </div>
-       
-        <hr class="border border-secondary border-1">
+
+        <hr />
 
         <div>
             <app-text-input [label]="'Comment'" [(value)]="viewSource.comment" />
         </div>
 
         <div *ngIf="errorMessage">
-            <hr class="border border-secondary border-1">
+            <hr />
 
             <!-- TODO. link the error to individual controls and possibly use bootstrap alert component-->
             <div style="color: red;">
@@ -108,8 +99,7 @@
         <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
             Save
         </button>
-        <button *ngIf="viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger"
-            (click)="onDelete()">
+        <button *ngIf="viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger" (click)="onDelete()">
             Delete
         </button>
         <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">

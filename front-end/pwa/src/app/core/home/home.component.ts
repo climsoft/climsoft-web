@@ -19,6 +19,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected toasts: ToastEvent[] = [];
   protected unsyncedObservations: string = '';
   protected displayUserDropDown: boolean = false;
+protected user!: LoggedInUserModel;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -34,6 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (user) {
+        this.user = user;
         this.setAllowedNavigationLinks(user);
       }
     });

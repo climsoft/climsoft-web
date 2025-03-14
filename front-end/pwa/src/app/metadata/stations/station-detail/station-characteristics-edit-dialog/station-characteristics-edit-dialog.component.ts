@@ -55,6 +55,7 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
         take(1),
       ).subscribe(foundStation => {
         if (foundStation) {
+          this.bNew = false;
           this.station = {
             id: foundStation.id,
             name: foundStation.name,
@@ -62,7 +63,7 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
             longitude: foundStation.location ? foundStation.location.longitude : null,
             latitude: foundStation.location ? foundStation.location.latitude : null,
             elevation: foundStation.elevation,
-            stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
+            stationObsProcessingMethod: foundStation.stationObsProcessingMethod,
             stationObsEnvironmentId: foundStation.stationObsEnvironmentId,
             stationObsFocusId: foundStation.stationObsFocusId,
             wmoId: foundStation.wmoId,
@@ -73,14 +74,6 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
             dateClosed: foundStation.dateClosed,
             comment: foundStation.comment,
           };
-          this.bNew = false;
-          if (this.station.dateEstablished) {
-            this.station.dateEstablished = this.station.dateEstablished;
-          }
-
-          if (this.station.dateClosed) {
-            this.station.dateClosed = this.station.dateClosed;
-          }
         }
       });
     } else {

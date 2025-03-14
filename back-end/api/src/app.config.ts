@@ -1,7 +1,4 @@
-
-
 export class AppConfig {
-
   public static readonly devMode: boolean = true;
 
   public static readonly dbCredentials = {
@@ -21,5 +18,4 @@ export class AppConfig {
     databaseName: process.env.V4_DB_NAME ? process.env.V4_DB_NAME : 'mariadb_climsoft_db_v4',
     utcOffset: process.env.V4_DB_UTCOFFSET ? +process.env.V4_DB_UTCOFFSET : 0,
   }
-
 }

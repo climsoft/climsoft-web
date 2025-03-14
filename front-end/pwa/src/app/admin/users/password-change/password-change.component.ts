@@ -29,23 +29,29 @@ export class PasswordChangeComponent {
   protected onOkClick(): void {
 
     if (this.newPassword === "") {
+      this.pagesDataService.showToast({ title: "Password Change", message: `Empty passwords not allowed`, type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.confirmPassword === "") {
+      this.pagesDataService.showToast({ title: "Password Change", message: `Password NOT confirmed`, type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.newPassword !== this.confirmPassword) {
+      this.pagesDataService.showToast({ title: "Password Change", message: `Passwords DO NOT match`, type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     this.userService.changeUserPassword({ userId: this.userId, password: this.newPassword }).pipe(
       take(1)
-    ).subscribe((data) => {
-      if (data) {
-        this.pagesDataService.showToast({ title: "Password Changed", message: `Password for ${this.userEmail} changed`, type: ToastEventTypeEnum.SUCCESS });
-      }
+    ).subscribe({
+      next: data => {
+        this.pagesDataService.showToast({ title: "Password Change", message: `Password for ${this.userEmail} changed`, type: ToastEventTypeEnum.SUCCESS });
+       },
+       error: err =>{
+        this.pagesDataService.showToast({ title: "Password Change", message: err, type: ToastEventTypeEnum.ERROR });
+       }
     });
 
 

@@ -1,16 +1,34 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy } from '@angular/core';
 import { UserPermissionModel } from '../models/user-permission.model';
+import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
+import { Subject, takeUntil } from 'rxjs';
+import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 
 @Component({
   selector: 'app-edit-user-permissions',
   templateUrl: './edit-user-permissions.component.html',
   styleUrls: ['./edit-user-permissions.component.scss']
 })
-export class EditUserPermissionsComponent {
+export class EditUserPermissionsComponent implements OnDestroy {
   @Input()
   public userPermissions!: UserPermissionModel;
+  protected onlyIncludeImportIds: number[] = [];
+  private destroy$ = new Subject<void>();
 
-  constructor() {
+  constructor(private sourceCacheService: SourceTemplatesCacheService) {
+    // Get sources 
+    this.sourceCacheService.cachedSources.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((data) => {
+      // Note. Don't filter out disabled imports. 
+      // Admin should be able to allocate even disabled imports because they may want to occassion enable or disable large imports.
+      this.onlyIncludeImportIds = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   //-----------------------------------------------------
@@ -36,17 +54,17 @@ export class EditUserPermissionsComponent {
   }
   //-----------------------------------------------------
 
-    //-----------------------------------------------------
-    protected onCanImportDataChange(change: boolean): void {
-      this.userPermissions.importPermissions = change ? {} : undefined;
+  //-----------------------------------------------------
+  protected onCanImportDataChange(change: boolean): void {
+    this.userPermissions.importPermissions = change ? {} : undefined;
+  }
+
+  protected onImportSelectionTypeChange(selectionType: string): void {
+    if (this.userPermissions.importPermissions) {
+      this.userPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
     }
-  
-    protected onImportSelectionTypeChange(selectionType: string): void {
-      if (this.userPermissions.importPermissions) {
-        this.userPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
-      }
-    }
-    //-----------------------------------------------------
+  }
+  //-----------------------------------------------------
 
   //-----------------------------------------------------
   protected onCanQCDataChange(change: boolean): void {

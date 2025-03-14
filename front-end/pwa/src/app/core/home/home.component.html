@@ -64,7 +64,7 @@
             <i class="bi bi-person py-1 nav-bar-icon" (click)="displayUserDropDown = !displayUserDropDown"></i>
             <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
               <ul class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">Profile</a>
+                <a href="#" class="list-group-item list-group-item-action">Profile {{ user? ' - '+ user.username: '' }}</a>
                 <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">Log out</button>
               </ul>
             </div>
