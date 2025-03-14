@@ -4,12 +4,12 @@ import { Request } from 'express';
 import { AuthUtil } from '../services/auth.util'; 
 
 @Injectable()
-export class AuthorisedExportsPipe implements PipeTransform {
+export class AuthorisedImportsPipe implements PipeTransform {
   constructor(@Inject(REQUEST) private readonly request: Request) { }
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('exports meta name: ', metadata.metatype?.name)
+    console.log('imports meta name: ', metadata.metatype?.name)
 
     const user = AuthUtil.getSessionUser(this.request);
 
@@ -23,45 +23,45 @@ export class AuthorisedExportsPipe implements PipeTransform {
     if (!user.permissions) throw new BadRequestException('Could not check for permissions');
 
     // If user has no export permissions then throw not authorised error
-    if (!user.permissions.exportPermissions) throw new BadRequestException('Not authorised to export sata');
+    if (!user.permissions.importPermissions) throw new BadRequestException('Not authorised to export sata');
 
     // If user is allowed to export using any template then just return value requested
-    if (!user.permissions.exportPermissions.exportTemplateIds) return value;
+    if (!user.permissions.importPermissions.importTemplateIds) return value;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize exports');
     }
 
-    const authorisedExportIds: number[] = user.permissions.exportPermissions.exportTemplateIds;
+    const authorisedImportIds: number[] = user.permissions.importPermissions.importTemplateIds;
 
     // Handle different types of metatype
     switch (metadata.metatype.name) {
       case 'Array':
-        return this.handleArray(value, authorisedExportIds);
+        return this.handleArray(value, authorisedImportIds);
       case 'Number':
-        return this.handleNumber(value, authorisedExportIds);
+        return this.handleNumber(value, authorisedImportIds);
       default:
-        throw new BadRequestException('Could not determine how to authorize exports');
+        throw new BadRequestException('Could not determine how to authorize imports');
     }
   }
 
-  private handleArray(value: number[], authorisedExportIds: number[]): number[] {
+  private handleArray(value: number[], authorisedImportIds: number[]): number[] {
     if (value) {
-      if (!this.allAreAuthorisedExports(value, authorisedExportIds)) {
-        throw new BadRequestException('Not authorised to access the exports');
+      if (!this.allAreAuthorisedExports(value, authorisedImportIds)) {
+        throw new BadRequestException('Not authorised to access the imports');
       }
     } else {
-      value = authorisedExportIds;
+      value = authorisedImportIds;
     }
     return value;
   }
 
-  private handleNumber(value: number, authorisedExportIds: number[]): number {
-    if (value && this.allAreAuthorisedExports([value], authorisedExportIds)) {
+  private handleNumber(value: number, authorisedImportIds: number[]): number {
+    if (value && this.allAreAuthorisedExports([value], authorisedImportIds)) {
       return value;
     } else {
-      throw new BadRequestException('Not authorised to access the export');
+      throw new BadRequestException('Not authorised to access the import');
     }
   }
 

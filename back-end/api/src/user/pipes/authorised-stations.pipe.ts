@@ -37,14 +37,15 @@ export class AuthorisedStationsPipe implements PipeTransform {
     // Handle different types of metatype
     switch (metadata.metatype.name) {
       case 'Array':
-        // Used by
+        // TODO. Check where this is used
         //return this.handleArray(value, authorisedStationIds);
         return value;
       case 'String':
-        // Used by 
+        // TODO. Check path as well for station edit and validate using station metadata edit permission
         //return this.handleString(value, authorisedStationIds);
         return value;
       case ViewStationQueryDTO.name:
+        // All stations metadata are freely available to any user that has access to Climsoft, so no need to validate here.
         //return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
         return value;
       case EntryFormObservationQueryDto.name:
@@ -62,6 +63,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
           throw new BadRequestException('Observations route path not authorised');
         }
       case ViewObservationLogQueryDto.name:
+        // TODO. Validate this based on entry, monitoring and qc permissions
         return value;
       case DeleteObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);

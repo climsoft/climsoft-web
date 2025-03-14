@@ -139,7 +139,6 @@ protected user!: LoggedInUserModel;
     const dataIngestionMenuItems: MenuItem = MenuItemsUtil.DATA_INGESTION_MENU_ITEMS;
     // Remove system admin data ingestion sub-modules
     dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
-      item.name !== SubMenuNameEnum.MANUAL_IMPORT &&
       item.name !== SubMenuNameEnum.SCHEDULED_IMPORT &&
       item.name !== SubMenuNameEnum.DELETED_DATA
     );
@@ -150,6 +149,13 @@ protected user!: LoggedInUserModel;
       dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
         item.name !== SubMenuNameEnum.DATA_ENTRY &&
         item.name !== SubMenuNameEnum.DATA_CORRECTION
+      );
+    }
+
+    // If no import permissions then remove manual import sub-modules
+    if (!user.permissions.importPermissions) {
+      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name !== SubMenuNameEnum.MANUAL_IMPORT
       );
     }
 

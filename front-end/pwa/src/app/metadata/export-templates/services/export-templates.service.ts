@@ -29,12 +29,12 @@ export class ExportTemplatesService {
         );
     }
 
-    public findSome(ids: number[]): Observable<ViewExportTemplateModel[]> {
-        let httpParams: HttpParams = StringUtils.getQueryParams<number[]>(ids);
-        return this.http.get<ViewExportTemplateModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
-            catchError(this.handleError)
-        );
-    }
+    // public findSome(ids: number[]): Observable<ViewExportTemplateModel[]> {
+    //     let httpParams: HttpParams = StringUtils.getQueryParams<number[]>(ids);
+    //     return this.http.get<ViewExportTemplateModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
+    //         catchError(this.handleError)
+    //     );
+    // }
 
     public put(createDto: CreateExportTemplateModel): Observable<ViewExportTemplateModel> {
         return this.http.post<ViewExportTemplateModel>(`${this.endPointUrl}`, createDto)

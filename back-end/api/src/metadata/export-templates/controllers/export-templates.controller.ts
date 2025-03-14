@@ -12,10 +12,8 @@ export class ExportTemplatesController {
     constructor(private readonly exportTemplateService: ExportTemplatesService) { }
 
     @Get()
-    public find(
-        @Query(AuthorisedExportsPipe) exportTemplateIds: number[]
-    ) {
-        return this.exportTemplateService.findAll(exportTemplateIds);
+    public find() {
+        return this.exportTemplateService.findAll();
     }
 
     @Get(':id')
