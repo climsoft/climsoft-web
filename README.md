@@ -63,18 +63,19 @@ For testing deployment with Docker containers for PWA, API and PostgreSQL, follo
    ```bash
    git clone https://github.com/climsoft/climsoft-web.git
    ```
+   
+2. **Set environment variables**:
+   Within the cloned directoty, create a .env file and add contents from .env.example. Change the contents of your .env file to reflect your environment settings
 
-2. **Initialise Containers**:
+3. **Initialise Containers**:
    Within the cloned repository directory, execute the following command to build and initialise the PWA, API and PostgreSQL containers:
    ```bash
    docker-compose -f docker-compose.test.yaml up --build
    ```
-   Note, the application will use the `.env` to to set the required environment variables.
-
-3. **Access the Application**:
+   Note, the application will use the `.env` to set the required environment variables.
+4. **Access the Application**:
    Navigate to `http://localhost:8080/` in your web browser to interact with the application.
    Default username is `admin@climsoft.org` and default password is `climsoft@admin!2`
-
 5. **Stopping the Application**:
    Press `Ctrl + C` or execute the following command to stop the PWA, API and PostgreSQL containers:
    ```bash
