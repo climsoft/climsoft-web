@@ -6,6 +6,7 @@ import { UpdateStationModel } from 'src/app/core/models/stations/update-station.
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateStationModel } from 'src/app/core/models/stations/create-station.model';
 import { StationsCacheService } from '../../services/stations-cache.service';
+import { AppLocationService } from 'src/app/app-location.service';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -29,9 +30,11 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
   protected station!: CreateStationModel;
   protected bNew: boolean = false;
 
+
   constructor(
     private stationsCacheService: StationsCacheService,
-    private pagesDataService: PagesDataService,) { }
+    private pagesDataService: PagesDataService,
+    private locationService: AppLocationService,) { }
 
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -102,6 +105,18 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
         comment: '',
       };
     }
+  }
+
+  protected requestLocation(): void {
+    this.locationService.getUserLocation().pipe(take(1)).subscribe({
+      next: (location) => {
+        this.station.latitude = location.latitude;
+        this.station.longitude = location.longitude;
+      },
+      error: (error) => {
+        this.pagesDataService.showToast({ title: "Station Location", message: error, type: ToastEventTypeEnum.ERROR });
+      }
+    });
   }
 
   protected onStationObsMethodChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {

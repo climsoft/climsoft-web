@@ -63,7 +63,7 @@ export class GridLayoutComponent implements OnChanges {
 
     if (changes["userFormSettings"] && this.userFormSettings) {
       //this.tableHeightStyle = 'calc(100vh - 300px)';
-      this.tableHeightStyle = this.userFormSettings.gridLayoutSettings.gridHeight + 'vh';
+      this.tableHeightStyle = `${this.userFormSettings.gridLayoutSettings.gridHeight}vh`;
     }
 
   }
@@ -124,8 +124,7 @@ export class GridLayoutComponent implements OnChanges {
 
 
   protected onVFEnterKeyPressed(rowIndex: number, colIndex: number): void {
-
-    // Below code enables nvertical navigation on enter. 
+    // Below code enables vertical navigation on enter. 
     // TODO. Later we can implement horizontal navigation on enter once we test this considerably 
 
     const totalRows: number = this.rowFieldDefinitions.length; // Number of rows in the table

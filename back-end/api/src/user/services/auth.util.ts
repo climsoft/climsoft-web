@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto'; 
+import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { NotFoundException } from '@nestjs/common';
 import { ViewUserDto } from '../dtos/view-user.dto';
 
@@ -51,7 +51,4 @@ export class AuthUtil {
         const session: any = request.session
         return session.user ? session.user as LoggedInUserDto : null;
     }
-
-
-
 }

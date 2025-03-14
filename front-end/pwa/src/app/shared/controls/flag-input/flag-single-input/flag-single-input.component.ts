@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FlagEnum } from 'src/app/core/models/observations/flag.enum';
+import { FlagEnum } from 'src/app/data-ingestion/models/flag.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({

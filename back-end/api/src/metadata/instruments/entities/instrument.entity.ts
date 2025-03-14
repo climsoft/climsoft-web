@@ -2,6 +2,7 @@ import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } 
 import { InstrumentTypeEntity } from "./instrument-type.entity";
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 
+// TODO. Add this later after careful evaluation
 @Entity("instruments")
 export class InstrumentEntity extends AppBaseEntity {
 
@@ -40,7 +41,5 @@ export class InstrumentEntity extends AppBaseEntity {
 
     @Column({ type: "jsonb", nullable: true })
     log: string | null;
-
-
 
 }

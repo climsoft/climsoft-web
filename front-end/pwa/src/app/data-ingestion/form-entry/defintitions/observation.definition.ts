@@ -1,10 +1,10 @@
 import { take } from "rxjs";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 import { CreateViewElementModel } from "src/app/metadata/elements/models/create-view-element.model";
-import { CreateObservationModel } from "src/app/core/models/observations/create-observation.model";
-import { FlagEnum } from "src/app/core/models/observations/flag.enum";
-import { ViewObservationLogQueryModel } from "src/app/core/models/observations/view-observation-log-query.model";
-import { ViewObservationLogModel } from "src/app/core/models/observations/view-observation-log.model";
+import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model";
+import { FlagEnum } from "src/app/data-ingestion/models/flag.enum";
+import { ViewObservationLogQueryModel } from "src/app/data-ingestion/models/view-observation-log-query.model";
+import { ViewObservationLogModel } from "src/app/data-ingestion/models/view-observation-log.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";

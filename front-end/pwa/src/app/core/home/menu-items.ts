@@ -71,22 +71,22 @@ export class MenuItemsUtil {
                     url: '/data-correction',
                 },
                 {
-                    name: SubMenuNameEnum.DELETED_DATA,
-                    url: '/deleted-data',
-                },
-                {
                     name: SubMenuNameEnum.DATA_MONITORING,
-                    url: '/quality-control',
+                    url: '/data-monitoring',
                 },
-                {
-                    name: SubMenuNameEnum.MISSING_DATA,
-                    url: '/missing-data',
-                },
+                //Possibly put it under QC
+                // {
+                //     name: SubMenuNameEnum.MISSING_DATA,
+                //     url: '/missing-data',
+                // },
                 {
                     name: SubMenuNameEnum.QC_DATA,
                     url: '/quality-control',
                 },
-
+                {
+                    name: SubMenuNameEnum.DELETED_DATA,
+                    url: '/deleted-data',
+                },
             ]
         }
     }

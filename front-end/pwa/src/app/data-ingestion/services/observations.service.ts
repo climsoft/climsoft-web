@@ -3,13 +3,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, concat, from, Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
-import { ViewObservationQueryModel } from '../../core/models/observations/view-observation-query.model';
-import { ViewObservationModel } from '../../core/models/observations/view-observation.model';
-import { CreateObservationModel } from '../../core/models/observations/create-observation.model';
+import { ViewObservationQueryModel } from '../models/view-observation-query.model';
+import { ViewObservationModel } from '../models/view-observation.model';
+import { CreateObservationModel } from '../models/create-observation.model';
 import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
-import { ViewObservationLogQueryModel } from '../../core/models/observations/view-observation-log-query.model';
-import { ViewObservationLogModel } from '../../core/models/observations/view-observation-log.model';
-import { DeleteObservationModel } from '../../core/models/observations/delete-observation.model';
+import { ViewObservationLogQueryModel } from '../models/view-observation-log-query.model';
+import { ViewObservationLogModel } from '../models/view-observation-log.model';
+import { DeleteObservationModel } from '../models/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppDatabase } from 'src/app/app-database';
@@ -33,6 +33,7 @@ export class ObservationsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
 
+  
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
@@ -40,16 +41,16 @@ export class ObservationsService {
       );
   }
 
-  public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
-    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
+   // TODO. There should be a limit requirement for performance reasons
+   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  // TODO. There should be a limit requirement for performance reasons
-  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+  public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
+    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -72,6 +73,22 @@ export class ObservationsService {
   public getDownloadExportLink(exportTemplateId: number): string {
     return `${this.endPointUrl}/download-export/${exportTemplateId}`;
   } 
+
+  public findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<CreateObservationModel[]> {
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+    // TODO. There should be a limit requirement for performance reasons
+    public countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+      return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+        .pipe(
+          catchError(this.handleError)
+        );
+    }
+
 
   // TODO. Not used
   // This implementation was meant to check the local database first then the server.
@@ -110,7 +127,7 @@ export class ObservationsService {
 
   // This implementation checks the server first then the local database. It is simpler but takes time to show contents on the entry forms
   public findEntryFormData(entryFormObsQuery: EntryFormObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/raw`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) })
+    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/form-data`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) })
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {

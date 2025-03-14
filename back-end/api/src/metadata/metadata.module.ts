@@ -6,15 +6,10 @@ import { StationsService } from './stations/services/stations.service';
 import { ElementsController } from './elements/controllers/elements.controller';
 import { ElementEntity } from './elements/entities/element.entity';
 import { SourceTemplatesController } from 'src/metadata/source-templates/controllers/source-templates.controller';
-import { StationElementEntity } from './stations/entities/station-element.entity';
-import { StationFormEntity } from './stations/entities/station-form.entity';
-import { InstrumentEntity } from './instruments/entities/instrument.entity';
-import { InstrumentTypeEntity } from './instruments/entities/instrument-type.entity';
+import { StationFormEntity } from './stations/entities/station-form.entity'; 
 import { ElementSubdomainEntity } from './elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from './elements/entities/element-type.entity';
 import { UserModule } from 'src/user/user.module';
-import { StationElementsService } from './stations/services/station-elements.service';
-import { StationElementsController } from './stations/controllers/station-elements.controller';
 import { StationFormsController } from './stations/controllers/station-forms.controller';
 import { StationFormsService } from './stations/services/station-forms.service';
 import { StationObservationEnvironmentEntity } from './stations/entities/station-observation-environment.entity';
@@ -54,15 +49,14 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         ElementTypeEntity,
         ElementEntity,
         SourceTemplateEntity,
-        InstrumentTypeEntity,
-        InstrumentEntity,
+        //InstrumentTypeEntity, // TODO add later
+        //InstrumentEntity, // TODO add later
         OrganisationEntity,
         NetworkAffiliationEntity,
         RegionEntity,
         StationObservationEnvironmentEntity,
         StationObservationFocusEntity,
         StationEntity,
-        StationElementEntity,
         StationFormEntity,
         StationNetworkAffiliationEntity,
         ElementQCTestEntity,
@@ -78,8 +72,7 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         SourceTemplatesController,
         StationObsEnvsController,
         StationObsFocusesController,
-        StationsController,
-        StationElementsController,
+        StationsController, 
         StationFormsController,
         ElementsQCTestsController,
         RegionsController,
@@ -93,8 +86,7 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
-        StationsService,
-        StationElementsService,
+        StationsService, 
         StationFormsService,
         ElementsQCTestsService,
         RegionsService, 
@@ -110,8 +102,7 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
-        StationsService,
-        StationElementsService,
+        StationsService, 
         StationFormsService,
         ElementsQCTestsService,
         RegionsService,

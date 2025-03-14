@@ -7,7 +7,12 @@ export class UserPermissionDto {
 
     entryPermissions?: {
         stationIds?: string[];
-        // TODO. Include range in future.
+        // TODO. Include observation date range in future.
+    };
+
+    importPermissions?: {
+        importTemplateIds?: number[]; 
+         // TODO. In future add permissions like observation date range
     };
 
     qcPermissions?: {
@@ -15,7 +20,7 @@ export class UserPermissionDto {
         // TODO. Include range
     };
 
-    ingestionAnalysisPermissions?: {
+    ingestionMonitoringPermissions?: {
         stationIds?: string[];
         // TODO. Include range
     };

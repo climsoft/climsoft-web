@@ -7,7 +7,8 @@
       <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray;">
         <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
           [borderSize]="userFormSettings.fieldsBorderSize" [displayExtraInfoOption]="displayExtraInfoOption"
-          [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)" />
+          [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
+          [simulateTabOnEnter] = "true" />
       </div>
 
       <!-- If total is required then add the total control as the last row -->
@@ -16,7 +17,7 @@
         class="row mb-2">
         <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
           [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
-          (inputEnterKeyPress)="onTotalValueChange($event)" />
+          (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalEnterKeyPressed()" />
       </div>
 
     </div>
@@ -24,15 +25,15 @@
 
   <!-- For small screens, just use a column flex container -->
   <div *ngIf="!largeScreen" class="d-flex flex-column">
-    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let i = index" [id]="fieldDef.name"
-      [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
-      [displayExtraInfoOption]="displayExtraInfoOption" [observationDefinition]="getObservationDefByIndex(i)"
-      (userInputVF)="onUserInputVF($event)" />
+    <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let firstIndex = index"
+      [id]="fieldDef.name" [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
+      [displayExtraInfoOption]="displayExtraInfoOption" [observationDefinition]="getObservationDefByIndex(firstIndex)"
+      (userInputVF)="onUserInputVF($event)" [simulateTabOnEnter] = "true" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
       <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
         [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
-        (inputEnterKeyPress)="onTotalValueChange($event)" />
+        (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalEnterKeyPressed()" />
     </div>
   </div>
 

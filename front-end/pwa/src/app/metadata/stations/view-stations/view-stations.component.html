@@ -23,7 +23,7 @@
       <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
-          [translateX]="true" />
+          [offSetRight]="true" />
         <div *ngIf="optionClicked">
           <app-station-characteristics-edit-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
             (cancelClick)="onOptionsDialogClosed()" />

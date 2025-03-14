@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'app-text-input',
@@ -43,7 +43,7 @@ export class TextInputComponent {
 
 
   // For Year-month, date and number controls control
-  @Input() public max: string | number| undefined ;
+  @Input() public max: string | number | undefined;
 
   @Input() public min: string | number | undefined;
 

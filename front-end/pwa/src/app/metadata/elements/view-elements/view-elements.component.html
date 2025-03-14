@@ -14,7 +14,7 @@
       <div>
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClicked($event)"
-          [translateX]="true" />
+          [offSetRight]="true" />
         <div *ngIf="optionClicked">
           <app-element-characteristics-input-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
             (cancelClick)="onOptionsDialogClosed()" />

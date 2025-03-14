@@ -151,7 +151,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     // If no ingestion analysis permissions then remove the sub-module
-    if (!user.permissions.ingestionAnalysisPermissions) {
+    if (!user.permissions.ingestionMonitoringPermissions) {
       dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
         item.name !== SubMenuNameEnum.DATA_MONITORING &&
         item.name !== SubMenuNameEnum.MISSING_DATA

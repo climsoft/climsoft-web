@@ -36,7 +36,7 @@ export class ViewElementsComponent implements OnDestroy {
 
     // Check on allowed options
     this.appAuthService.user.pipe(
-      take(1),
+      takeUntil(this.destroy$),
     ).subscribe(user => {
       this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
     });

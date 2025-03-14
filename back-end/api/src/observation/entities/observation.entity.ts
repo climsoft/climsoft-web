@@ -10,7 +10,7 @@ import { SourceTemplateEntity } from "src/metadata/source-templates/entities/sou
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
 @Check("CHK_observations_no_future_dates", `"date_time" <= NOW()`)
 export class ObservationEntity extends AppBaseEntity {
-  // ------------------
+  //------------------
   @PrimaryColumn({ name: "station_id", type: "varchar" })
   @Index()
   stationId: string;
@@ -18,7 +18,7 @@ export class ObservationEntity extends AppBaseEntity {
   @ManyToOne(() => StationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "station_id" })
   station: StationEntity;
-  // ------------------
+  //------------------
   // ------------------
   @PrimaryColumn({ name: "element_id", type: "int" })
   @Index()
@@ -26,13 +26,13 @@ export class ObservationEntity extends AppBaseEntity {
 
   @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "element_id" })
-  element: ElementEntity;
-  // ------------------
+  element: ElementEntity; 
+  //------------------
 
   /**
    * Level in reference to the nature of observation and element being observed e.g upper air, soil moisture. 
    */
-  @PrimaryColumn({ name: "level", type: "float" })
+  @PrimaryColumn({ name: "level", type: "int" })
   @Index()
   level: number;
 
@@ -43,7 +43,7 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   interval: number;
 
-  // ------------------
+  //------------------
   @PrimaryColumn({ name: "source_id", type: "int" })
   @Index()
   sourceId: number;
@@ -51,7 +51,7 @@ export class ObservationEntity extends AppBaseEntity {
   @ManyToOne(() => SourceTemplateEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
   source: SourceTemplateEntity;
-  // ------------------
+  //------------------
 
   @Column({ name: "value", type: "float", nullable: true })
   value: number | null;

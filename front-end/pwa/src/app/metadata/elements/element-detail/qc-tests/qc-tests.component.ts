@@ -1,5 +1,6 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
+import { AppAuthService } from 'src/app/app-auth.service';
 import { ContextualQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model';
 import { FlatLineQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/flat-line-qc-test-params.model';
 import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
@@ -28,10 +29,20 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
   public elementId!: number;
 
   protected qcTests!: ViewQCTest[];
+  protected userIsSystemAdmin: boolean = false;
+
 
   private destroy$ = new Subject<void>();
 
-  constructor(private qcTestsService: ElementsQCTestsService) { }
+  constructor(
+    private qcTestsService: ElementsQCTestsService,
+    private appAuthService: AppAuthService,) {
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
+    });
+   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.elementId) {

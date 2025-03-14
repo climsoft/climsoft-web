@@ -1,17 +1,16 @@
-<app-drop-down-container [translateX]="false" [(displayDropDown)]="displayDropDown"
-  [maxHeight]="dropDownOptionMaxHeight">
+<app-drop-down-container [(displayDropDown)]="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
   <div main-content>
     <label *ngIf="label" [for]="id? id:label">{{ label + ':' }}</label>
     <div
       [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">
 
-      <input *ngIf="simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
-        [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
-        [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.bg-danger]="errorMessage"
-        [class.bg-warning]="warningMessage" [class.text-success]="showChanges && !errorMessage" [value]="value"
-        [attr.min]="min" [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
-        (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()"
-        appSimulateTabOnEnter />
+      <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
+        class="form-control form-control-sm" [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled"
+        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly"
+        [class.bg-danger]="errorMessage" [class.bg-warning]="warningMessage"
+        [class.text-success]="showChanges && !errorMessage" [value]="value" [attr.min]="min" [attr.max]="max"
+        [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
+        (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
         [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"

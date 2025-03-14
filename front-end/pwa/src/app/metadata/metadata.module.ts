@@ -4,7 +4,6 @@ import { MetadataRoutingModule } from './metadata-routing.module';
 
 import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component';
 import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
-import { StationElementLimitsInputDialogComponent } from './controls/station-element-limits-input-dialog/station-element-limits-input-dialog.component';
 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
@@ -21,8 +20,7 @@ import { ImportStationsDialogComponent } from './stations/import-stations-dialog
 import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { StationCharacteristicsComponent } from './stations/station-detail/station-characteristics/station-characteristics.component';
-import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component';
-import { StationLimitsComponent } from './stations/station-detail/station-limits/station-limits.component';
+import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component'; 
 import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
 import { ImportSourcePeriodDetailComponent } from './source-templates/import-source-detail/import-source-period-detail/import-source-period-detail.component';
@@ -56,12 +54,13 @@ import { ExportTemplateDetailComponent } from './export-templates/export-templat
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 import { ExportTemplateSelectorSingleComponent } from './export-templates/export-template-selector/export-template-selector-single/export-template-selector-single.component';
 import { ExportTemplateSelectorMultipleComponent } from './export-templates/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
+import { SourceSelectorSingleComponent } from './source-templates/source-selector/source-single-input/source-selector-single.component';
+import { SourceSelectorMultipleComponent } from './source-templates/source-selector/source-selector-multiple/source-selector-multiple.component';
 
 @NgModule({
   declarations: [
     ElementsSelectorDialogComponent,
-    FormSelectorDialogComponent,
-    StationElementLimitsInputDialogComponent,
+    FormSelectorDialogComponent, 
 
     ViewSourcesComponent,
     FormSourceDetailComponent,
@@ -75,8 +74,7 @@ import { ExportTemplateSelectorMultipleComponent } from './export-templates/expo
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
-    StationFormsComponent,
-    StationLimitsComponent,
+    StationFormsComponent, 
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -113,6 +111,9 @@ import { ExportTemplateSelectorMultipleComponent } from './export-templates/expo
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
 
+    SourceSelectorSingleComponent,
+    SourceSelectorMultipleComponent,
+
     ViewExportTemplatesComponent,
     ExportTemplateDetailComponent,
     ExportTemplateSelectorSingleComponent,
@@ -137,6 +138,9 @@ import { ExportTemplateSelectorMultipleComponent } from './export-templates/expo
     StationSelectorSingleComponent, 
     StationsSearchDialogComponent, 
     ViewStationsMapComponent,
+
+    SourceSelectorSingleComponent,
+    SourceSelectorMultipleComponent,
 
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,

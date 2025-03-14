@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { take } from 'rxjs'; 
-import { ViewObservationQueryModel } from 'src/app/core/models/observations/view-observation-query.model'; 
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
 import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';

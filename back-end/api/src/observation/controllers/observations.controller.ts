@@ -12,6 +12,7 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
+import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 
 @Controller('observations')
 export class ObservationsController {
@@ -36,9 +37,19 @@ export class ObservationsController {
     return this.observationsService.countObservationsNotSavedToV4();
   }
 
-  @Get('raw')
-  getRaw(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
-    return this.observationsService.findRawObs(createObsevationQuery);
+  @Get('form-data')
+  getFormData(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
+    return this.observationsService.findFormData(createObsevationQuery);
+  }
+
+  @Get('correction-data')
+  getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.findCorrectionData(viewObsevationQuery);
+  }
+
+  @Get('count-correction-data')
+  countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationsService.count(viewObsevationQuery);
   }
 
   @Get('log')
@@ -47,7 +58,7 @@ export class ObservationsController {
   }
 
   @Get('generate-export/:templateid')
-  generateExports(@Param('templateid', ParseIntPipe) exportTemplateId: number): Promise<number> {
+  generateExports(@Param('templateid', AuthorisedExportsPipe) exportTemplateId: number): Promise<number> {
     return this.exportObservationsService.generateExports(exportTemplateId);
   }
 
@@ -56,7 +67,7 @@ export class ObservationsController {
   @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
   async download(
     @Req() request: Request,
-    @Param('templateid', ParseIntPipe) exportTemplateId: number// TODO. check on authorisation
+    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number
   ) {
     // Stream the exported file to the response
     return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);

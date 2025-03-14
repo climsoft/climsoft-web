@@ -41,7 +41,7 @@ export class StationDetailComponent implements OnInit, OnDestroy {
     ).subscribe((data) => {
       if (data) {
         this.station = data;
-      }
+      } 
     });
   }
 

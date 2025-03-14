@@ -1,4 +1,4 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common';
 import { DataSource } from "typeorm"
 import { ExportTemplateParametersDto } from 'src/metadata/export-templates/dtos/export-template-paramers.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -15,7 +15,13 @@ export class ExportObservationsService {
     }
 
     public async generateExports(exportTemplateId: number): Promise<number> {
-        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId)
+        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId);
+
+        // If export is disabled then don't generate it
+        if (viewTemplateExportDto.disabled) {
+            throw new BadRequestException('Export disabled');
+        }
+
         const exportParams: ExportTemplateParametersDto = viewTemplateExportDto.parameters;
         const outputPath: string = `/var/lib/postgresql/exports/${exportTemplateId}.csv`;
 
@@ -51,10 +57,11 @@ export class ExportObservationsService {
             }
         }
 
+        // TODO. Add longitude and latitude
         const sql = `
             COPY (
                 SELECT 
-                station_id, element_id, source_id, elevation, interval, date_time, value, flag, qc_status, qc_test_log, comment, entry_date_time, log 
+                station_id, element_id, source_id, elevation, interval, date_time, value, flag, comment, entry_date_time 
                 FROM observations
                 WHERE deleted = false 
                 ${sqlCondition}
@@ -73,13 +80,19 @@ export class ExportObservationsService {
     }
 
     public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {
+        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId);
+
+        // If export is disabled then don't generate it
+        if (viewTemplateExportDto.disabled) {
+            throw new BadRequestException('Export disabled');
+        }
 
         const outputPath: string = (AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/var/lib/postgresql/exports') + `/${exportTemplateId}.csv`;
-       
+
         console.log('Downloading: ', outputPath);
 
         // TODO log the export
-        
+
         return this.fileIOService.createStreamableFile(outputPath);
     }
 

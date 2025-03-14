@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Req } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query, Req } from '@nestjs/common';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
 import { StationsService } from '../stations/services/stations.service';
@@ -40,9 +40,12 @@ export class MetadataUpdatesController {
   async stationUpdates(
     @Req() request: Request,
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    let authorisedStationIds: string[] | null = null;
+    // Important. Only send updates from stations that the user is authorised to access
+    let authorisedStationIds: string[] | null;
     const user = AuthUtil.getLoggedInUser(request);
-    if (user.permissions) {
+    if (user.isSystemAdmin) {
+      authorisedStationIds = null;
+    } else if (user.permissions) {
       authorisedStationIds = [];
       if (user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds) {
         authorisedStationIds.push(...user.permissions.entryPermissions.stationIds);
@@ -52,8 +55,8 @@ export class MetadataUpdatesController {
         authorisedStationIds.push(...user.permissions.qcPermissions.stationIds);
       }
 
-      if (user.permissions.ingestionAnalysisPermissions && user.permissions.ingestionAnalysisPermissions.stationIds) {
-        authorisedStationIds.push(...user.permissions.ingestionAnalysisPermissions.stationIds);
+      if (user.permissions.ingestionMonitoringPermissions && user.permissions.ingestionMonitoringPermissions.stationIds) {
+        authorisedStationIds.push(...user.permissions.ingestionMonitoringPermissions.stationIds);
       }
 
       if (user.permissions.stationsMetadataPermissions && user.permissions.stationsMetadataPermissions.stationIds) {
@@ -62,9 +65,12 @@ export class MetadataUpdatesController {
 
       // Get distinct station ids
       authorisedStationIds = Array.from(new Set(authorisedStationIds));
+    } else {
+      throw new BadRequestException('User permissions not defined');
     }
 
-    return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
+   // return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
+    return this.stationsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('element-subdomains')

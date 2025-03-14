@@ -7,7 +7,7 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
   styleUrls: ['./missing-data.component.scss']
 })
 export class MissingDataComponent {
-constructor(private pageService: PagesDataService){
-  this.pageService.setPageHeader("Missing Data");
-}
+  constructor(private pageService: PagesDataService) {
+    //this.pageService.setPageHeader("Missing Data");
+  }
 }

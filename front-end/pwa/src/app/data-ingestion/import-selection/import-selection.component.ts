@@ -13,7 +13,7 @@ import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/s
 })
 export class ImportSelectionComponent  implements OnDestroy{
 
-  protected sources!: ViewSourceModel[] ;
+  protected importSources!: ViewSourceModel[] ;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -26,7 +26,7 @@ export class ImportSelectionComponent  implements OnDestroy{
     this.sourceCacheService.cachedSources.pipe(
       takeUntil(this.destroy$)
     ).subscribe((data) => {
-      this.sources = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT);
+      this.importSources = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
     });
 
   }

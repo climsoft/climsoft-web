@@ -4,7 +4,7 @@
     <div class="d-flex align-items-center">
         <button class="btn btn-sm" (click)="onFirst()"><i class="bi bi-chevron-double-left"></i></button>
         <button class="btn btn-sm" (click)="onPrevious()"><i class="bi bi-chevron-left"></i></button>
-        <app-drop-down-container [translateX]="false" [(displayDropDown)]="displayVisibleRowsDropDown">
+        <app-drop-down-container [(displayDropDown)]="displayVisibleRowsDropDown">
             <div main-content (click)="onDisplayVisibleRowsDropDown()" class="cursor-pointer">
                 {{ pageInputDefinition.page }} / {{ pageInputDefinition.totalPages | number:'1.0-0' }}
             </div>

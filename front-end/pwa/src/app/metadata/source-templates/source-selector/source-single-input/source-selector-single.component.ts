@@ -4,13 +4,14 @@ import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/s
 import { take } from 'rxjs';
 
 @Component({
-  selector: 'app-source-single-input',
-  templateUrl: './source-single-input.component.html',
-  styleUrls: ['./source-single-input.component.scss']
+  selector: 'app-source-selector-single',
+  templateUrl: './source-selector-single.component.html',
+  styleUrls: ['./source-selector-single.component.scss']
 })
-export class SourceSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Source';
-  @Input() errorMessage: string = '';
+export class SourceSelectorSingleComponent implements OnInit, OnChanges {
+  @Input() public id!: string ;
+  @Input() public label!: string ;
+  @Input() errorMessage!: string;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
@@ -19,7 +20,6 @@ export class SourceSingleInputComponent implements OnInit, OnChanges {
   protected selectedOption!: ViewSourceModel | null;
 
   constructor(private sourcesService: SourceTemplatesCacheService) {
-  
   }
 
   ngOnInit(): void {

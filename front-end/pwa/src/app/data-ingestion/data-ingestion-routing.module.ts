@@ -7,8 +7,8 @@ import { ImportSelectionComponent } from './import-selection/import-selection.co
 import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
-import { EditDataComponent } from './data-correction/edit-data.component';
-import { MissingDataComponent } from './manage-qc-data/missing-data/missing-data.component';
+import { EditDataComponent } from './data-correction/edit-data.component'; 
+import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
 
 
 const routes: Routes = [
@@ -56,12 +56,12 @@ const routes: Routes = [
         component: DeletedDataComponent
       },
       {
-        path: 'missing-data',
-        component: MissingDataComponent
-      },
-      {
         path: 'quality-control',
         component: ManageQCComponent
+      },
+      {
+        path: 'data-monitoring',
+        component: DataMonitoringComponent
       },
     ]
   }

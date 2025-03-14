@@ -29,6 +29,7 @@
                                     [observationDefinition]="getObservationDef(rowIndex,colIndex)"
                                     [displayExtraInfoOption]="displayExtraInfoOption"
                                     (userInputVF)="onUserInputVF($event,colIndex)"
+                                    [simulateTabOnEnter]="false"
                                     (enterKeyPress)="onVFEnterKeyPressed(rowIndex,colIndex)" />
                             </div>
                         </td>
@@ -46,6 +47,7 @@
                                     [borderSize]="userFormSettings.fieldsBorderSize"
                                     [errorMessage]="totalErrorMessage[colIndex]"
                                     (valueChange)="onTotalValueChange(colIndex,$event)"
+                                    [simulateTabOnEnter]="false"
                                     (inputEnterKeyPress)="onTotalEnterKeyPressed(colIndex)" />
                             </div>
                         </td>

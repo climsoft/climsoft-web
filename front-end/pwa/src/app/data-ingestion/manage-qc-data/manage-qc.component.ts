@@ -8,13 +8,13 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class ManageQCComponent {
 
-  protected activeTab: 'source' | 'qc' = 'source';
+  protected activeTab: 'source'| 'missing' | 'qc' = 'source';
 
   constructor(private pagesDataService: PagesDataService) {
-    this.pagesDataService.setPageHeader('Manage QC');
+    this.pagesDataService.setPageHeader('Quality Control');
   }
 
-  protected onTabClick(selectedTab: 'source' | 'qc'): void {
+  protected onTabClick(selectedTab: 'source'| 'missing'  | 'qc'): void {
     this.activeTab = selectedTab;
   }
 

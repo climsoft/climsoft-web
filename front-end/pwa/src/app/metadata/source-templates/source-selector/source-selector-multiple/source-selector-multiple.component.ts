@@ -1,14 +1,14 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { take } from 'rxjs';
-import { ViewExportTemplateModel } from '../../models/view-export-template.model';
-import { ExportTemplatesService } from '../../services/export-templates.service';
+import { Subject, takeUntil } from 'rxjs';
+import { SourceTemplatesCacheService } from '../../services/source-templates-cache.service';
+import { ViewSourceModel } from '../../models/view-source.model';
 
 @Component({
-  selector: 'app-export-template-selector-multiple',
-  templateUrl: './export-template-selector-multiple.component.html',
-  styleUrls: ['./export-template-selector-multiple.component.scss']
+  selector: 'app-source-selector-multiple',
+  templateUrl: './source-selector-multiple.component.html',
+  styleUrls: ['./source-selector-multiple.component.scss']
 })
-export class ExportTemplateSelectorMultipleComponent implements OnChanges {
+export class SourceSelectorMultipleComponent implements OnChanges {
   @Input()
   public id!: string;
   @Input()
@@ -24,22 +24,28 @@ export class ExportTemplateSelectorMultipleComponent implements OnChanges {
   @Output()
   public selectedIdsChange = new EventEmitter<number[]>();
 
-  protected allTemplates: ViewExportTemplateModel[] = [];
-  protected templates!: ViewExportTemplateModel[];
-  protected selectedTemplates!: ViewExportTemplateModel[];
+  protected allTemplates: ViewSourceModel[] = [];
+  protected templates!: ViewSourceModel[];
+  protected selectedTemplates!: ViewSourceModel[];
 
-  constructor(private exportTemplatesService: ExportTemplatesService) {
-    this.exportTemplatesService.findAll().pipe(
-      take(1),
+  private destroy$ = new Subject<void>();
+
+  constructor(private sourcesService: SourceTemplatesCacheService) {
+    this.sourcesService.cachedSources.pipe(
+      takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allTemplates = data;
       this.filterBasedOnSelectedIds();
     });
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     this.filterBasedOnSelectedIds();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private filterBasedOnSelectedIds(): void {
@@ -50,11 +56,11 @@ export class ExportTemplateSelectorMultipleComponent implements OnChanges {
     this.selectedTemplates = this.selectedIds && this.selectedIds.length > 0 ? this.templates.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 
-  protected optionDisplayFunction(option: ViewExportTemplateModel): string {
+  protected optionDisplayFunction(option: ViewSourceModel): string {
     return `${option.id} - ${option.name}`;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: ViewExportTemplateModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: ViewSourceModel[]) {
     this.selectedIds = selectedOptions.map(data => data.id);
     this.selectedIdsChange.emit(this.selectedIds);
   }
