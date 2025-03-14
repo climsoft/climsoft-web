@@ -44,9 +44,9 @@ export class ImportSelectionComponent  implements OnDestroy{
   
         if (user.isSystemAdmin) {
           this.importSources = allImportSources;
-        } else if (user.permissions && user.permissions.importPermissions) {
-          if (user.permissions.importPermissions.importTemplateIds) {
-            const importIdsAllowed: number[] = user.permissions.importPermissions.importTemplateIds;
+        } else if (user.permissions && user.permissions.entryPermissions && user.permissions.entryPermissions.importPermissions) {
+          if (user.permissions.entryPermissions.importPermissions.importTemplateIds) {
+            const importIdsAllowed: number[] = user.permissions.entryPermissions.importPermissions.importTemplateIds;
             this.importSources = allImportSources.filter(item => importIdsAllowed.includes(item.id));
           } else {
             this.importSources = allImportSources;

@@ -72,23 +72,23 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
           throw new Error('User not logged in');
         }
   
-        if (user.isSystemAdmin) {
-          this.onlyIncludeStationIds = [];
-        } else if (user.permissions && user.permissions.importPermissions) {
-          if(user.permissions.importPermissions){
-            if(user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds){
+        // if (user.isSystemAdmin) {
+        //   this.onlyIncludeStationIds = [];
+        // } else if (user.permissions && user.permissions.importPermissions) {
+        //   if(user.permissions.importPermissions){
+        //     if(user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds){
 
-            }
-          }
-          // if (user.permissions.entryPermissions.stationIds) {
-          //   const stationIdsAllowed: string[] = user.permissions.entryPermissions.stationIds;
-          //   this.allStationViews = allManualStations.filter(item => stationIdsAllowed.includes(item.station.id));
-          // } else {
-          //   this.allStationViews = allManualStations;
-          // }
-        } else {
-          throw new Error('Data entry not allowed');
-        }
+        //     }
+        //   }
+        //   // if (user.permissions.entryPermissions.stationIds) {
+        //   //   const stationIdsAllowed: string[] = user.permissions.entryPermissions.stationIds;
+        //   //   this.allStationViews = allManualStations.filter(item => stationIdsAllowed.includes(item.station.id));
+        //   // } else {
+        //   //   this.allStationViews = allManualStations;
+        //   // }
+        // } else {
+        //   throw new Error('Data entry not allowed');
+        // }
   
       });
     }

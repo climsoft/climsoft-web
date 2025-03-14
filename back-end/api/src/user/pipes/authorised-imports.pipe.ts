@@ -19,21 +19,24 @@ export class AuthorisedImportsPipe implements PipeTransform {
     // If user is admin return the value.
     if (AuthUtil.sessionUserIsAdmin(this.request)) return value;
 
-    // user is not admin and has no permissions then throw error
+    // If user is not admin and has no permissions then throw error
     if (!user.permissions) throw new BadRequestException('Could not check for permissions');
 
+    // If useris not allowed to enter data then throw error
+    if (!user.permissions.entryPermissions) throw new BadRequestException('Not authorised to enter data');
+
     // If user has no export permissions then throw not authorised error
-    if (!user.permissions.importPermissions) throw new BadRequestException('Not authorised to export sata');
+    if (!user.permissions.entryPermissions.importPermissions) throw new BadRequestException('Not authorised to export data');
 
     // If user is allowed to export using any template then just return value requested
-    if (!user.permissions.importPermissions.importTemplateIds) return value;
+    if (!user.permissions.entryPermissions.importPermissions.importTemplateIds) return value;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize exports');
     }
 
-    const authorisedImportIds: number[] = user.permissions.importPermissions.importTemplateIds;
+    const authorisedImportIds: number[] = user.permissions.entryPermissions.importPermissions.importTemplateIds;
 
     // Handle different types of metatype
     switch (metadata.metatype.name) {

@@ -19,7 +19,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected toasts: ToastEvent[] = [];
   protected unsyncedObservations: string = '';
   protected displayUserDropDown: boolean = false;
-protected user!: LoggedInUserModel;
+  protected user!: LoggedInUserModel;
 
   private destroy$ = new Subject<void>();
 
@@ -116,22 +116,22 @@ protected user!: LoggedInUserModel;
   private setAllowedNavigationLinks(user: LoggedInUserModel): void {
 
     this.featuresNavItems = [
-       {
-          name: MainMenuNameEnum.DASHBOARD,
-          url: '/dashboard',
-          icon: 'bi bi-sliders',
-          open: false,
-          children: []
-        },
+      {
+        name: MainMenuNameEnum.DASHBOARD,
+        url: '/dashboard',
+        icon: 'bi bi-sliders',
+        open: false,
+        children: []
+      },
     ];
 
     if (user.isSystemAdmin) {
-      this.featuresNavItems.push( MenuItemsUtil. DATA_INGESTION_MENU_ITEMS);
-      this.featuresNavItems.push( MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS);
-      this.featuresNavItems.push( MenuItemsUtil. METADATA_MENU_ITEMS);
-      this.featuresNavItems.push( MenuItemsUtil. SYSTEM_ADMIN_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.DATA_INGESTION_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.DATA_EXTRACTION_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.METADATA_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.SYSTEM_ADMIN_MENU_ITEMS);
       return;
-    }else if (!user.permissions) {
+    } else if (!user.permissions) {
       return;
     }
 
@@ -148,16 +148,19 @@ protected user!: LoggedInUserModel;
     if (!user.permissions.entryPermissions) {
       dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
         item.name !== SubMenuNameEnum.DATA_ENTRY &&
-        item.name !== SubMenuNameEnum.DATA_CORRECTION
-      );
-    }
-
-    // If no import permissions then remove manual import sub-modules
-    if (!user.permissions.importPermissions) {
-      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+        item.name !== SubMenuNameEnum.DATA_CORRECTION &&
         item.name !== SubMenuNameEnum.MANUAL_IMPORT
       );
+    } else {
+      // If no import permissions then remove manual import sub-modules
+      if (!user.permissions.entryPermissions.importPermissions) {
+        dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
+          item.name !== SubMenuNameEnum.MANUAL_IMPORT
+        );
+      }
     }
+
+
 
     // If no ingestion analysis permissions then remove the sub-module
     if (!user.permissions.ingestionMonitoringPermissions) {
@@ -181,7 +184,7 @@ protected user!: LoggedInUserModel;
     //-------------------------------------------
     // If there is export permissions then remove scheduled exports because it's for admin only.
     if (user.permissions.exportPermissions) {
-      const dataExtractionMenuItems: MenuItem = MenuItemsUtil. DATA_EXTRACTION_MENU_ITEMS;
+      const dataExtractionMenuItems: MenuItem = MenuItemsUtil.DATA_EXTRACTION_MENU_ITEMS;
       dataExtractionMenuItems.children = dataExtractionMenuItems.children.filter(item => item.name !== SubMenuNameEnum.SCHEDULED_EXPORT);
       this.featuresNavItems.push(dataExtractionMenuItems);
     }

@@ -52,17 +52,18 @@ export class EditUserPermissionsComponent implements OnDestroy {
       this.userPermissions.entryPermissions.stationIds = (selectionType === 'All') ? undefined : [];
     }
   }
-  //-----------------------------------------------------
 
-  //-----------------------------------------------------
   protected onCanImportDataChange(change: boolean): void {
-    this.userPermissions.importPermissions = change ? {} : undefined;
+    if (this.userPermissions.entryPermissions) {
+      this.userPermissions.entryPermissions.importPermissions = change ? {} : undefined;
+    }
+ 
   }
 
   protected onImportSelectionTypeChange(selectionType: string): void {
-    if (this.userPermissions.importPermissions) {
-      this.userPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
-    }
+    if (this.userPermissions.entryPermissions && this.userPermissions.entryPermissions.importPermissions) {
+      this.userPermissions.entryPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
+    } 
   }
   //-----------------------------------------------------
 
