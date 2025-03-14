@@ -13,6 +13,7 @@ import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
+import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 
 @Controller('observations')
 export class ObservationsController {
@@ -82,12 +83,11 @@ export class ObservationsController {
     return { message: "success" };
   }
 
-  @Admin()
   @Post('upload/:sourceid')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Req() request: Request,
-    @Param('sourceid', ParseIntPipe) sourceId: number,
+    @Param('sourceid', AuthorisedImportsPipe) sourceId: number,
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
@@ -110,8 +110,8 @@ export class ObservationsController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFileForStation(
     @Req() request: Request,
-    @Param('sourceid', ParseIntPipe) sourceId: number,
-    @Param('stationid') stationId: string,
+    @Param('sourceid', AuthorisedImportsPipe) sourceId: number,
+    @Param('stationid', AuthorisedStationsPipe) stationId: string,
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }), // 1GB

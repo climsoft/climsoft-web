@@ -379,7 +379,7 @@ export class ClimsoftV4Service {
         const obsEntities: ObservationEntity[] = await this.observationRepo.find({
             where: { savedToV4: false },
             order: { entryDateTime: "ASC" },
-            take: 1000,
+            take: 1000,// Monitor this valuue for performance. The idea is to not keep nodeJS work thread for long when saving to v4 model
         });
 
         if (obsEntities.length === 0) {

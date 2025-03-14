@@ -1,13 +1,14 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { catchError, Subject, takeUntil, throwError } from 'rxjs';
+import { catchError, Subject, take, takeUntil, throwError } from 'rxjs';
 import { ImportTabularSourceModel } from 'src/app/metadata/source-templates/models/create-import-source-tabular.model';
 import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-templates/models/create-import-source.model';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-import-entry',
@@ -25,12 +26,14 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
   protected showStationSelection: boolean = false;
   protected selectedStationId!: string | null;
   protected disableUpload: boolean = false;
+  protected onlyIncludeStationIds: number[]=[];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private appConfigService: AppConfigService,
     private pagesDataService: PagesDataService,
+     private appAuthService: AppAuthService,
     private importSourcesService: SourceTemplatesCacheService,
     private http: HttpClient,
     private route: ActivatedRoute) {
@@ -60,6 +63,36 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+   private setStationsBasedOnPermissions(onlyIncludeStationIds: string[]) {
+      this.appAuthService.user.pipe(
+        take(1),
+      ).subscribe(user => {
+        if (!user) {
+          throw new Error('User not logged in');
+        }
+  
+        if (user.isSystemAdmin) {
+          this.onlyIncludeStationIds = [];
+        } else if (user.permissions && user.permissions.importPermissions) {
+          if(user.permissions.importPermissions){
+            if(user.permissions.entryPermissions && user.permissions.entryPermissions.stationIds){
+
+            }
+          }
+          // if (user.permissions.entryPermissions.stationIds) {
+          //   const stationIdsAllowed: string[] = user.permissions.entryPermissions.stationIds;
+          //   this.allStationViews = allManualStations.filter(item => stationIdsAllowed.includes(item.station.id));
+          // } else {
+          //   this.allStationViews = allManualStations;
+          // }
+        } else {
+          throw new Error('Data entry not allowed');
+        }
+  
+      });
+    }
+  
 
   protected onFileSelected(fileInputEvent: any): void {
     if (fileInputEvent.target.files.length === 0) {

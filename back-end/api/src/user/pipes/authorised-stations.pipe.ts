@@ -16,7 +16,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('stations meta name: ', metadata.metatype, ' | Path: ', this.request.route.path)
+    console.log('stations meta name: ', metadata.metatype, ' | Path: ', this.request.route.path, ' | value: ', value)
 
     const user = AuthUtil.getSessionUser(this.request);
 

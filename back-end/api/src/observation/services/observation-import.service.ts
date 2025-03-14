@@ -13,6 +13,7 @@ import { CreateImportTabularSourceDTO } from 'src/metadata/source-templates/dtos
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 
 
 
@@ -46,6 +47,11 @@ export class ObservationImportService {
         try {
             // Get the source definition using the source id
             const sourceDef = await this.sourcesService.find(sourceId);
+
+            if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
+                throw new BadRequestException("Error: Source is not an import source");
+            }
+
             const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
 
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {

@@ -9,7 +9,7 @@ export class AuthorisedExportsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('exports meta name: ', metadata.metatype?.name)
+    console.log('exports meta name: ', metadata.metatype?.name,  ' | Path: ', this.request.route.path, ' | value: ', value)
 
     const user = AuthUtil.getSessionUser(this.request);
 

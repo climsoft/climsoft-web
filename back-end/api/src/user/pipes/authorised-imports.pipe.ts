@@ -1,7 +1,7 @@
 import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransform } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
-import { AuthUtil } from '../services/auth.util'; 
+import { AuthUtil } from '../services/auth.util';
 
 @Injectable()
 export class AuthorisedImportsPipe implements PipeTransform {
@@ -9,7 +9,7 @@ export class AuthorisedImportsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('imports meta name: ', metadata.metatype?.name)
+    console.log('imports meta name: ', metadata.metatype?.name, ' | Path: ', this.request.route.path, ' | value: ', value)
 
     const user = AuthUtil.getSessionUser(this.request);
 

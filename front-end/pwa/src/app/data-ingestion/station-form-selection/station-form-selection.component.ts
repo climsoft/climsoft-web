@@ -57,6 +57,12 @@ export class StationFormSelectionComponent implements OnDestroy {
     });
   }
 
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   private setStationsBasedOnPermissions(allManualStations: StationView[]) {
     this.appAuthService.user.pipe(
       take(1),
@@ -80,11 +86,6 @@ export class StationFormSelectionComponent implements OnDestroy {
 
       this.filterBasedOnSearchedIds();
     });
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   protected onSearchInput(searchedIds: string[]): void {
