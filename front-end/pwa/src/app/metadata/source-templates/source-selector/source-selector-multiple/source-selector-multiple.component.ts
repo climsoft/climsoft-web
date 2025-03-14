@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { take } from 'rxjs'; 
+import { Subject, takeUntil } from 'rxjs';
 import { SourceTemplatesCacheService } from '../../services/source-templates-cache.service';
 import { ViewSourceModel } from '../../models/view-source.model';
 
@@ -28,18 +28,24 @@ export class SourceSelectorMultipleComponent implements OnChanges {
   protected templates!: ViewSourceModel[];
   protected selectedTemplates!: ViewSourceModel[];
 
+  private destroy$ = new Subject<void>();
+
   constructor(private sourcesService: SourceTemplatesCacheService) {
     this.sourcesService.cachedSources.pipe(
-      take(1),
+      takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allTemplates = data;
       this.filterBasedOnSelectedIds();
     });
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     this.filterBasedOnSelectedIds();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private filterBasedOnSelectedIds(): void {

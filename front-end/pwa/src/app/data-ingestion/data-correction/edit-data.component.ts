@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
@@ -26,6 +26,8 @@ interface ObservationEntry {
   stationName: string;
   elementAbbrv: string;
   sourceName: string;
+  formattedDatetime: string;
+  intervalName: string;
 }
 
 @Component({
@@ -34,16 +36,17 @@ interface ObservationEntry {
   styleUrls: ['./edit-data.component.scss']
 })
 export class EditDataComponent implements OnDestroy {
-  protected stationId: string | null = null;
-  protected sourceId: number | null = null;
-  protected elementId: number | null = null;
+  protected stationIds: string[] = [];
+  protected includeOnlyStationIds: string[] = [];
+  protected sourceIds: number[] = [];
+  protected elementIds: number[] = [];
   protected interval: number | null = null;
   protected level: number | null = null;
   protected fromDate: string | null = null;
   protected toDate: string | null = null;
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
-  protected observationsEntries: ObservationEntry[] =[] ;
+  protected observationsEntries: ObservationEntry[] = [];
   private stationsMetadata: StationCacheModel[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcesMetadata: ViewSourceModel[] = [];
@@ -51,12 +54,11 @@ export class EditDataComponent implements OnDestroy {
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
-  protected enableView: boolean = true;
+  protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
-  protected includeOnlyStationIds: string[] = [];
-  protected includeOnlySourceIds: number[] = [];
+
 
   private destroy$ = new Subject<void>();
 
@@ -80,25 +82,19 @@ export class EditDataComponent implements OnDestroy {
 
       if (user.isSystemAdmin) {
         this.includeOnlyStationIds = [];
-        this.includeOnlySourceIds = [];
         return;
-      } 
+      }
 
-      if(!user.permissions){
+      if (!user.permissions) {
         throw new Error('Developer error. Permissions NOT set.');
       }
-      
+
       // Set stations permitted
-      if ( user.permissions.entryPermissions) {
-        this.includeOnlyStationIds = user.permissions.entryPermissions.stationIds? user.permissions.entryPermissions.stationIds : [];
+      if (user.permissions.entryPermissions) {
+        this.includeOnlyStationIds = user.permissions.entryPermissions.stationIds ? user.permissions.entryPermissions.stationIds : [];
       } else {
         throw new Error('Data entry not allowed');
       }
-
-      // Set sources permitted
-      this.setSourceIdsPermitted(user.permissions);
-
-
     });
 
     this.stationsCacheService.cachedStations.pipe(
@@ -132,33 +128,20 @@ export class EditDataComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  private setSourceIdsPermitted(permissions: UserPermissionModel){
-    const sourceIds: number[]=[];
-    if ( permissions.importPermissions) {
-      if(permissions.importPermissions.importTemplateIds){
-        sourceIds.push(...permissions.importPermissions.importTemplateIds) ;
-      }
-     
-    }
-
-    // TODO. left here
-    this.includeOnlySourceIds = sourceIds;
-  }
-
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';
   }
 
-  protected onViewClick(): void {
+  protected onQueryClick(): void {
     // Get the data based on the selection filter
     this.observationFilter = { deleted: false };
 
-    if (this.stationId !== null) {
-      this.observationFilter.stationIds = [this.stationId];
+    if (this.stationIds.length > 0) {
+      this.observationFilter.stationIds = this.stationIds;
     }
 
-    if (this.elementId !== null) {
-      this.observationFilter.elementIds = [this.elementId];
+    if (this.elementIds.length > 0) {
+      this.observationFilter.elementIds = this.elementIds;
     }
 
     if (this.interval !== null) {
@@ -169,18 +152,17 @@ export class EditDataComponent implements OnDestroy {
       this.observationFilter.level = this.level;
     }
 
-    if (this.sourceId !== null) {
-      this.observationFilter.sourceIds = [this.sourceId];
+    if (this.sourceIds.length > 0) {
+      this.observationFilter.sourceIds = this.sourceIds;
     }
 
-    // TODO. Investigate. If this is set to false, the dto is sets it true for some reasons
+    // TODO. Investigate. If this is set to false, the dto sets it true for some reasons
     // So only setting to true (making it to defined) when its to be set to true.
     // When this.useEntryDate is false then don't define it, to avoid the bug defined above.
     if (this.useEntryDate) {
       this.observationFilter.useEntryDate = true;
     }
 
-    // TODO. Use the display UTC setting
     if (this.fromDate !== null) {
       this.observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
     }
@@ -191,14 +173,22 @@ export class EditDataComponent implements OnDestroy {
 
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
-    this.enableView = false;
-    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(count => {
-      this.enableView = true;
-      this.pageInputDefinition.setTotalRowCount(count);
-      if (count > 0) {
-        this.loadData();
-      }
-    });
+    this.enableQueryButton = false;
+    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(
+      {
+        next: count => {
+          this.pageInputDefinition.setTotalRowCount(count);
+          if (count > 0) {
+            this.loadData();
+          }
+        },
+        error: err => {
+          this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+        },
+        complete: () => {
+          this.enableQueryButton = true;
+        }
+      });
 
   }
 
@@ -213,7 +203,7 @@ export class EditDataComponent implements OnDestroy {
 
     this.observationService.findCorrectionData(this.observationFilter).pipe(take(1)).subscribe(data => {
       this.enableSave = true;
-      const observationsEntries = data.map(observation => {
+      const observationsEntries: ObservationEntry[] = data.map(observation => {
 
         const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
         if (!stationMetadata) {
@@ -238,6 +228,8 @@ export class EditDataComponent implements OnDestroy {
           stationName: stationMetadata.name,
           elementAbbrv: elementMetadata.name,
           sourceName: sourceMetadata.name,
+          formattedDatetime: this.getFormattedDatetime(observation.datetime),
+          intervalName: this.getIntervalName(observation.interval)
         }
 
       });
@@ -270,20 +262,22 @@ export class EditDataComponent implements OnDestroy {
     return this.allBoundariesIndices.includes(index);
   }
 
-  protected getFormattedDatetime(strDateTimeInUTC: string): string {
+  private getFormattedDatetime(strDateTimeInUTC: string): string {
+    if (this.utcOffset === 0) {
+      return strDateTimeInUTC.replace('T', ' ').replace('Z', '');
+    }
+
     // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
     // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
     const dateAdjusted = new Date(strDateTimeInUTC);
     dateAdjusted.setHours(dateAdjusted.getHours() + this.utcOffset);
 
-    // TODO. Leaving this loggging here to show Angular change detection effects
-    console.log('Before conversion: ', strDateTimeInUTC, '. After conversion: ', dateAdjusted.toISOString(), '. Offset: ', this.utcOffset);
     return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
   }
 
-  protected getPeriodName(minutes: number): string {
-    const periodFound = this.intervals.find(item => item.id === minutes);
-    return periodFound ? periodFound.name : minutes + 'mins';
+  private getIntervalName(minutes: number): string {
+    const intervalFound = this.intervals.find(item => item.id === minutes);
+    return intervalFound ? intervalFound.name : minutes + 'mins';
   }
 
   protected onOptionsSelected(optionSlected: 'Delete All'): void {
@@ -313,7 +307,6 @@ export class EditDataComponent implements OnDestroy {
   }
 
   private updatedObservations(): void {
-    this.enableSave = false;
     // Create required observation dtos 
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
@@ -339,25 +332,32 @@ export class EditDataComponent implements OnDestroy {
       return;
     }
 
+    this.enableSave = false;
     // Send to server for saving
-    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe((data) => {
-      this.enableSave = true;
-      if (data) {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
-        });
+    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe({
+      next: data => {
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
+          });
 
-        this.onViewClick();
-      } else {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
-        });
+          this.onQueryClick();
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
+          });
+        }
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableSave = true;
       }
     });
   }
 
   private deleteObservations(): void {
-    this.enableSave = false;
     // Create required observation dtos 
     const deletedObs: DeleteObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
@@ -379,23 +379,31 @@ export class EditDataComponent implements OnDestroy {
       return;
     }
 
+    this.enableSave = false;
     // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe((data) => {
-      this.enableSave = true;
-      if (data) {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
-        });
+    this.observationService.softDelete(deletedObs).subscribe({
+      next: data => {
+        this.enableSave = true;
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
+          });
 
-        this.onViewClick();
-      } else {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
-        });
+          this.onQueryClick();
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
+          });
+        }
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableSave = true;
       }
     });
   }
-
 
   protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);

@@ -18,7 +18,7 @@
     </div>
 
     <div class="mt-3">
-      <app-check-box-input [label]="'Can enter data'" [value]="userPermissions.entryPermissions? true: false"
+      <app-check-box-input [label]="'Can enter and correct data'" [value]="userPermissions.entryPermissions? true: false"
         (valueChange)="onCanEnterDataChange($event)" />
       <div *ngIf="userPermissions.entryPermissions" class="ms-4">
         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'entryPermissions'" [groupItems]="[

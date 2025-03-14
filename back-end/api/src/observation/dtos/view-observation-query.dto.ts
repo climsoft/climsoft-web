@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { IsDateString, IsDecimal, IsInt, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ViewObservationQueryDTO {
@@ -19,7 +19,7 @@ export class ViewObservationQueryDTO {
     interval?: number;
 
     @IsOptional()
-    @IsDecimal()
+    @IsInt()
     level?: number;
 
     @IsOptional()

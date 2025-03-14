@@ -8,6 +8,6 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 })
 export class MissingDataComponent {
   constructor(private pageService: PagesDataService) {
-    this.pageService.setPageHeader("Missing Data");
+    //this.pageService.setPageHeader("Missing Data");
   }
 }

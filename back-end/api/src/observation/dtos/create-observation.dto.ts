@@ -2,7 +2,6 @@ import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'cla
 import { FlagEnum } from '../enums/flag.enum'; 
 
 export class CreateObservationDto {
-
     @IsString()
     stationId: string;
 
@@ -12,7 +11,7 @@ export class CreateObservationDto {
     @IsInt()
     sourceId: number;
 
-    @IsNumber()
+    @IsInt()
     level: number;
 
     @IsDateString()
@@ -22,7 +21,7 @@ export class CreateObservationDto {
     interval: number;
 
     @IsOptional() // TODO. Not sure if this correctly represents null.
-    @IsNumber()
+    @IsNumber() // covers both integers and floats
     value: number | null;
 
     @IsOptional() // TODO. Not sure if this correctly represents null.

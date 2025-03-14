@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 })
 export class AppLocationService {
 
-    getUserLocation(): Observable<{ latitude: number, longitude: number }> {
+   public getUserLocation(): Observable<{ latitude: number, longitude: number }> {
         return new Observable(observer => {
             if (!('geolocation' in navigator)) {
                 observer.error('Geolocation is not supported by your browser.');

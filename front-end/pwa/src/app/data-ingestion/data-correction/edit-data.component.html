@@ -5,12 +5,12 @@
         <div class="card-body p-0 mt-2">
             <div class="row g-2 px-2">
                 <div class="col-auto mb-2">
-                    <app-station-selector-single [label]="'Station'" [(selectedId)]="stationId"
+                    <app-station-selector-multiple [label]="'Stations'" [(selectedIds)]="stationIds"
                         [includeOnlyIds]="includeOnlyStationIds" />
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-element-selector-single [label]="'Element'" [(selectedId)]="elementId" />
+                    <app-element-selector-multiple [label]="'Elements'" [(selectedIds)]="elementIds" />
                 </div>
 
                 <div class="col-auto mb-2">
@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-source-selector-single [label]="'Source'" [(selectedId)]="sourceId" />
+                    <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds" />
                 </div>
 
                 <div class="col-auto mb-2">
@@ -48,8 +48,8 @@
             </div>
 
             <div class="d-flex justify-content-end">
-                <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableView"
-                    (click)="onViewClick()">
+                <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!enableQueryButton"
+                    (click)="onQueryClick()">
                     Query
                 </button>
             </div>
@@ -95,8 +95,8 @@
                             <td> {{ obsEntry.stationName }}</td>
                             <td>{{ obsEntry.elementAbbrv }}</td>
                             <td>{{ obsEntry.obsDef.observation.level }}</td>
-                            <td>{{ getFormattedDatetime(obsEntry.obsDef.observation.datetime) }}</td>
-                            <td>{{ getPeriodName(obsEntry.obsDef.observation.interval) }}</td>
+                            <td>{{ obsEntry.formattedDatetime }}</td>
+                            <td>{{ obsEntry.intervalName }}</td>
                             <td>{{ obsEntry.sourceName }}</td>
                             <td>
                                 <div class="px-2 app-value-flag-container">
