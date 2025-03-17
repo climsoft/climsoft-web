@@ -2,11 +2,11 @@ import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeVa
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
-import { CreateStationDto } from '../dtos/create-update-station.dto'; 
+import { CreateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { Request } from 'express'; 
+import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StationsImportExportService } from '../services/stations-import-export.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -21,13 +21,13 @@ export class StationsController {
 
   @Get()
   find(
-    @Query(AuthorisedStationsPipe) viewQueryDto: ViewStationQueryDTO): Promise<CreateStationDto[]> {
+    @Query() viewQueryDto: ViewStationQueryDTO): Promise<CreateStationDto[]> {
     return this.stationsService.find(viewQueryDto);
   }
 
   @Get('id/:id')
   findOne(
-    @Param('id', AuthorisedStationsPipe) id: string): Promise<CreateStationDto> {
+    @Param('id') id: string): Promise<CreateStationDto> {
     return this.stationsService.findOne(id);
   }
 
@@ -78,11 +78,10 @@ export class StationsController {
     }
   }
 
-  @Admin() // TODO.
   @Patch(':id')
   async update(
     @Req() request: Request,
-    @Param('id') id: string,
+    @Param('id', AuthorisedStationsPipe) id: string,
     @Body() item: UpdateStationDto): Promise<CreateStationDto> {
     return this.stationsService.update(id, item, AuthUtil.getLoggedInUserId(request));
   }

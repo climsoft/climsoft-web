@@ -30,36 +30,20 @@ export class ManualExportSelectionComponent implements OnDestroy {
         throw new Error('User not logged in');
       }
 
-      if (user.isSystemAdmin) {
-        this.loadExportTemplates();
-      } else if (user.permissions && user.permissions.exportPermissions) {
-        if (user.permissions.exportPermissions.exportTemplateIds) {
-          this.loadExportTemplates(user.permissions.exportPermissions.exportTemplateIds);
-        } else {
-          this.loadExportTemplates();
-        }
+      if (user.isSystemAdmin || (user.permissions && user.permissions.exportPermissions)) {
+        console.log('fetching exports')
+          this.exportTemplateService.findAll().pipe(
+            take(1)
+          ).subscribe(data => {
+            this.exports = data;
+          });
       } else {
-        throw new Error('Export not allowed');
+        throw new Error('User not allowed to export data');
       }
     });
   }
 
-  private loadExportTemplates(templateIdsToLoad?: number[]) {
-    let subscription: Observable<ViewExportTemplateModel[]>;
-    if (templateIdsToLoad) {
-      subscription = this.exportTemplateService.findSome(templateIdsToLoad);
-    } else {
-      subscription = this.exportTemplateService.findAll();
-    }
 
-    subscription.pipe(
-      take(1),
-    ).subscribe((data) => {
-      // Filter out disabled exports
-      this.exports = data.filter(item => !item.disabled);
-    });
-
-  }
 
   ngOnDestroy() {
     this.destroy$.next();

@@ -1,8 +1,7 @@
 import { ArgumentMetadata, BadRequestException, Inject, Injectable, PipeTransform } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
-import { AuthUtil } from '../services/auth.util';
-import { UserPermissionDto } from '../dtos/user-permission.dto';
+import { AuthUtil } from '../services/auth.util'; 
 
 @Injectable()
 export class AuthorisedExportsPipe implements PipeTransform {
@@ -10,8 +9,7 @@ export class AuthorisedExportsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('exports meta name: ', metadata.metatype?.name)
-
+    console.log('exports meta name: ', metadata.metatype?.name,  ' | Path: ', this.request.route.path, ' | value: ', value)
 
     const user = AuthUtil.getSessionUser(this.request);
 
@@ -24,33 +22,34 @@ export class AuthorisedExportsPipe implements PipeTransform {
     // user is not admin and has no permissions then throw error
     if (!user.permissions) throw new BadRequestException('Could not check for permissions');
 
+    // If user has no export permissions then throw not authorised error
+    if (!user.permissions.exportPermissions) throw new BadRequestException('Not authorised to export sata');
+
+    // If user is allowed to export using any template then just return value requested
+    if (!user.permissions.exportPermissions.exportTemplateIds) return value;
+
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize exports');
     }
 
-    const authorisedStationIds: any = [];
+    const authorisedExportIds: number[] = user.permissions.exportPermissions.exportTemplateIds;
 
     // Handle different types of metatype
     switch (metadata.metatype.name) {
-      case 'Array': 
-      return this.handleArray(value, authorisedStationIds); 
+      case 'Array':
+        return this.handleArray(value, authorisedExportIds);
       case 'Number':
-        return this.handleNumber(value, authorisedStationIds); 
-      default: 
+        return this.handleNumber(value, authorisedExportIds);
+      default:
         throw new BadRequestException('Could not determine how to authorize exports');
     }
   }
 
-  private handleArray(value: number[],  userPermissions: UserPermissionDto): number[] {
-    if (!userPermissions.exportPermissions) throw new BadRequestException('Not authorised to export data');
-
-    if (!userPermissions.exportPermissions.exportTemplateIds) return value;
-
-    const authorisedExportIds: number[] = userPermissions.exportPermissions.exportTemplateIds;
+  private handleArray(value: number[], authorisedExportIds: number[]): number[] {
     if (value) {
       if (!this.allAreAuthorisedExports(value, authorisedExportIds)) {
-        throw new BadRequestException('Not authorised to access exports');
+        throw new BadRequestException('Not authorised to access the exports');
       }
     } else {
       value = authorisedExportIds;
@@ -58,14 +57,14 @@ export class AuthorisedExportsPipe implements PipeTransform {
     return value;
   }
 
-  private handleNumber(value: number, authorisedStationIds: number[]): number {
-    if (value && this.allAreAuthorisedExports([value], authorisedStationIds)) {
+  private handleNumber(value: number, authorisedExportIds: number[]): number {
+    if (value && this.allAreAuthorisedExports([value], authorisedExportIds)) {
       return value;
     } else {
-      throw new BadRequestException('Not authorised to access export');
+      throw new BadRequestException('Not authorised to access the export');
     }
   }
- 
+
 
   private allAreAuthorisedExports(requestedIds: number[], authorisedIds: number[]): boolean {
     return requestedIds.every(id => authorisedIds.includes(id));

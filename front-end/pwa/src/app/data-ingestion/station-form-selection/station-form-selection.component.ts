@@ -10,7 +10,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 
-export interface StationView {
+interface StationView {
   station: StationCacheModel;
   forms?: ViewSourceModel[];
 }
@@ -41,6 +41,7 @@ export class StationFormSelectionComponent implements OnDestroy {
     this.sourceCacheService.cachedSources.pipe(
       takeUntil(this.destroy$)
     ).subscribe((data) => {
+      // Important. Remove disabled forms
       this.formSourcesNotDisabled = data.filter(item => item.sourceType === SourceTypeEnum.FORM && !item.disabled);
     });
 
@@ -48,12 +49,18 @@ export class StationFormSelectionComponent implements OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(data => {
       // Filter manual and hybrid stations only
-      const allManualStations = data.filter(
+      const allManualStations: StationView[] = data.filter(
         item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL ||
           item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
       ).map(data => { return { station: data } });
       this.setStationsBasedOnPermissions(allManualStations);
     });
+  }
+
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setStationsBasedOnPermissions(allManualStations: StationView[]) {
@@ -81,11 +88,6 @@ export class StationFormSelectionComponent implements OnDestroy {
     });
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   protected onSearchInput(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
     this.filterBasedOnSearchedIds();
@@ -109,7 +111,7 @@ export class StationFormSelectionComponent implements OnDestroy {
         takeUntil(this.destroy$)
       ).subscribe(data => {
         //Filter out any disabled form
-        stationView.forms = data.filter(stationForm => this.formSourcesNotDisabled.find(form => stationForm.id === form.id));       
+        stationView.forms = data.filter(stationForm => this.formSourcesNotDisabled.find(form => stationForm.id === form.id));
       });
     }
 

@@ -6,14 +6,12 @@ export interface UserPermissionModel {
 
     entryPermissions?: {
         stationIds?: string[];
+        importPermissions?: {
+            importTemplateIds?: number[]; 
+        };
         // TODO. Include observation date range in future.
     };
-
-    importPermissions?: {
-        importTemplateIds?: number[]; 
-         // TODO. In future add permissions like observation date range
-    };
-
+ 
     qcPermissions?: {
         stationIds?: string[];
         // TODO. Include range

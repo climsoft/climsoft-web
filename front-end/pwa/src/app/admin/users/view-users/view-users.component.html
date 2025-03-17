@@ -30,7 +30,7 @@
                     <td (click)="onEditUserClick(user)">{{ user.email }}</td>
                     <td (click)="onEditUserClick(user)">{{ user.phone }}</td>
                     <td (click)="onEditUserClick(user)">{{user.groupName}}</td>
-                    <td (click)="onEditUserClick(user)">{{ user.disabled }}</td>
+                    <td (click)="onEditUserClick(user)">{{ user.disabled? 'Yes': 'No' }}</td>
                     <td>
                         <button class="btn btn-outline-secondary btn-sm"
                             (click)="passwordChangeDialog.openDialog(user.id, user.email)">Change Password</button>

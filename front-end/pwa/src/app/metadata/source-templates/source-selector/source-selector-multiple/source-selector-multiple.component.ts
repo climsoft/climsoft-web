@@ -57,7 +57,7 @@ export class SourceSelectorMultipleComponent implements OnChanges {
   }
 
   protected optionDisplayFunction(option: ViewSourceModel): string {
-    return `${option.id} - ${option.name}`;
+    return `${option.name}`;
   }
 
   protected onSelectedOptionsChange(selectedOptions: ViewSourceModel[]) {

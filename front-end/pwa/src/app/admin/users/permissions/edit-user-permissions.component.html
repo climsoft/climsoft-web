@@ -8,54 +8,60 @@
         [value]="userPermissions.stationsMetadataPermissions? true: false"
         (valueChange)="onCanEditStationMetadataChange($event)" />
       <div *ngIf="userPermissions.stationsMetadataPermissions" class="ms-4">
-        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationsMetadataPermissions'" [groupItems]="[
+        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationsMetadataPermissions'"
+          [groupItems]="[
         { label:'All', checked: userPermissions.stationsMetadataPermissions.stationIds  === undefined}, 
         { label:'Select', checked: userPermissions.stationsMetadataPermissions.stationIds  !== undefined}]"
-        (checkedValueChange)="onStationMetadataSelectionTypeChange($event)" />
-        <app-station-selector-multiple *ngIf="userPermissions.stationsMetadataPermissions.stationIds" [id]="'metadataStations'"
-          [(selectedIds)]="userPermissions.stationsMetadataPermissions.stationIds"  />
+          (checkedValueChange)="onStationMetadataSelectionTypeChange($event)" />
+        <app-station-selector-multiple *ngIf="userPermissions.stationsMetadataPermissions.stationIds"
+          [id]="'metadataStations'" [(selectedIds)]="userPermissions.stationsMetadataPermissions.stationIds" />
       </div>
     </div>
 
     <div class="mt-3">
-      <app-check-box-input [label]="'Can enter and correct data'" [value]="userPermissions.entryPermissions? true: false"
-        (valueChange)="onCanEnterDataChange($event)" />
+      <app-check-box-input [label]="'Can enter and correct data'"
+        [value]="userPermissions.entryPermissions? true: false" (valueChange)="onCanEnterDataChange($event)" />
       <div *ngIf="userPermissions.entryPermissions" class="ms-4">
-        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'entryPermissions'" [groupItems]="[
-          { label:'All', checked: userPermissions.entryPermissions.stationIds  === undefined}, 
-          { label:'Select', checked: userPermissions.entryPermissions.stationIds  !== undefined}]"
-          (checkedValueChange)="onEntryStationsSelectionTypeChange($event)" />
+        <div>
+          <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'entryPermissions'" [groupItems]="[
+        { label:'All', checked: userPermissions.entryPermissions.stationIds  === undefined}, 
+        { label:'Select', checked: userPermissions.entryPermissions.stationIds  !== undefined}]"
+            (checkedValueChange)="onEntryStationsSelectionTypeChange($event)" />
 
-        <app-station-selector-multiple *ngIf="userPermissions.entryPermissions.stationIds" [id]="'entryStations'"
-          [(selectedIds)]="userPermissions.entryPermissions.stationIds" />
+          <app-station-selector-multiple *ngIf="userPermissions.entryPermissions.stationIds" [id]="'entryStations'"
+            [(selectedIds)]="userPermissions.entryPermissions.stationIds" />
+        </div>
+        <div class="mt-2">
+          <app-check-box-input [label]="'Can import data'" [value]="userPermissions.entryPermissions.importPermissions? true: false"
+            (valueChange)="onCanImportDataChange($event)" />
+          <div *ngIf="userPermissions.entryPermissions.importPermissions" class="ms-4">
+            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'importPermissions'" [groupItems]="[
+              { label:'All', checked: userPermissions.entryPermissions.importPermissions.importTemplateIds  === undefined}, 
+              { label:'Select', checked: userPermissions.entryPermissions.importPermissions.importTemplateIds  !== undefined}]"
+              (checkedValueChange)="onImportSelectionTypeChange($event)" />
+    
+            <app-source-selector-multiple *ngIf="userPermissions.entryPermissions.importPermissions.importTemplateIds"
+              [id]="'importPermissions'" [includeOnlyIds]="onlyIncludeImportIds"
+              [(selectedIds)]="userPermissions.entryPermissions.importPermissions.importTemplateIds" />
+          </div> 
+        </div>
       </div>
     </div>
 
     <div class="mt-3">
-      <app-check-box-input [label]="'Can import data'" [value]="userPermissions.importPermissions? true: false"
-        (valueChange)="onCanImportDataChange($event)" />
-      <div *ngIf="userPermissions.importPermissions" class="ms-4">
-        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'importPermissions'" [groupItems]="[
-          { label:'All', checked: userPermissions.importPermissions.importTemplateIds  === undefined}, 
-          { label:'Select', checked: userPermissions.importPermissions.importTemplateIds  !== undefined}]"
-          (checkedValueChange)="onImportSelectionTypeChange($event)" />
-
-        <app-source-selector-multiple *ngIf="userPermissions.importPermissions.importTemplateIds" [id]="'importPermissions'"
-          [(selectedIds)]="userPermissions.importPermissions.importTemplateIds" />
-      </div>
-    </div>
-
-    <div class="mt-3">
-      <app-check-box-input [label]="'Can monitor data ingestion'" [value]="userPermissions.ingestionMonitoringPermissions? true: false"
+      <app-check-box-input [label]="'Can monitor data ingestion'"
+        [value]="userPermissions.ingestionMonitoringPermissions? true: false"
         (valueChange)="onCanAnalyseDataChange($event)" />
       <div *ngIf="userPermissions.ingestionMonitoringPermissions" class="ms-4">
-        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'ingestionMonitoringPermissions'" [groupItems]="[
+        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'ingestionMonitoringPermissions'"
+          [groupItems]="[
         { label:'All', checked: userPermissions.ingestionMonitoringPermissions.stationIds  === undefined}, 
         { label:'Select', checked: userPermissions.ingestionMonitoringPermissions.stationIds  !== undefined}]"
-        (checkedValueChange)="onAnalysisStationsSelectionTypeChange($event)" />
+          (checkedValueChange)="onAnalysisStationsSelectionTypeChange($event)" />
 
-        <app-station-selector-multiple *ngIf="userPermissions.ingestionMonitoringPermissions.stationIds" [id]="'ingestionMonitoringPermissions'"
-          [(selectedIds)]="userPermissions.ingestionMonitoringPermissions.stationIds"  />
+        <app-station-selector-multiple *ngIf="userPermissions.ingestionMonitoringPermissions.stationIds"
+          [id]="'ingestionMonitoringPermissions'"
+          [(selectedIds)]="userPermissions.ingestionMonitoringPermissions.stationIds" />
       </div>
     </div>
 
@@ -66,10 +72,10 @@
         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'qcPermissions'" [groupItems]="[
         { label:'All', checked: userPermissions.qcPermissions.stationIds  === undefined}, 
         { label:'Select', checked: userPermissions.qcPermissions.stationIds  !== undefined}]"
-        (checkedValueChange)="onQCStationsSelectionTypeChange($event)" />
+          (checkedValueChange)="onQCStationsSelectionTypeChange($event)" />
 
-        <app-station-selector-multiple  *ngIf="userPermissions.qcPermissions.stationIds" [id]="'qcStations'"
-          [(selectedIds)]="userPermissions.qcPermissions.stationIds"  />
+        <app-station-selector-multiple *ngIf="userPermissions.qcPermissions.stationIds" [id]="'qcStations'"
+          [(selectedIds)]="userPermissions.qcPermissions.stationIds" />
       </div>
     </div>
 
@@ -80,10 +86,10 @@
         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'exportPermissions'" [groupItems]="[
         { label:'All', checked: userPermissions.exportPermissions.exportTemplateIds === undefined}, 
         { label:'Select', checked: userPermissions.exportPermissions.exportTemplateIds  !== undefined}]"
-        (checkedValueChange)="onExportSelectionTypeChange($event)" />
+          (checkedValueChange)="onExportSelectionTypeChange($event)" />
 
-        <app-export-template-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds" [id]="'exportPermissions'"
-          [(selectedIds)]="userPermissions.exportPermissions.exportTemplateIds"  />
+        <app-export-template-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds"
+          [id]="'exportPermissions'" [(selectedIds)]="userPermissions.exportPermissions.exportTemplateIds" />
       </div>
     </div>
 

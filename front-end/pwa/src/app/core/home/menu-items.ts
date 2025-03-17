@@ -74,11 +74,6 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.DATA_MONITORING,
                     url: '/data-monitoring',
                 },
-                //Possibly put it under QC
-                // {
-                //     name: SubMenuNameEnum.MISSING_DATA,
-                //     url: '/missing-data',
-                // },
                 {
                     name: SubMenuNameEnum.QC_DATA,
                     url: '/quality-control',

@@ -102,16 +102,16 @@ export class ClimsoftV4Service {
             }
 
             // If not in dev mode and saving to version 4 is disabled then just return
-            if(!AppConfig.devMode && !AppConfig.v4DbCredentials.v4Save ){
+            if (!AppConfig.devMode && !AppConfig.v4DbCredentials.v4Save) {
                 console.log('Saving to v4 database disabled.');
                 return;
-            } 
+            }
 
             this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
-                host: AppConfig.devMode? 'localhost': AppConfig.v4DbCredentials.host,
+                host: AppConfig.devMode ? 'localhost' : AppConfig.v4DbCredentials.host,
                 user: AppConfig.v4DbCredentials.username,
                 password: AppConfig.v4DbCredentials.password,
                 database: AppConfig.v4DbCredentials.databaseName,
@@ -170,8 +170,8 @@ export class ClimsoftV4Service {
         return this.v4Conflicts;
     }
 
-    public resetV4Conflicts(): void{
-          this.v4Conflicts =[];
+    public resetV4Conflicts(): void {
+        this.v4Conflicts = [];
     }
 
     private async getV4Elements(): Promise<V4ElementModel[]> {
@@ -236,7 +236,7 @@ export class ClimsoftV4Service {
                 id: v4Element.elementId,
                 abbreviation: v4Element.abbreviation,
                 name: v4Element.elementName,
-                description:  v4Element.description,
+                description: v4Element.description,
                 units: v4Element.units,
                 typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,
@@ -312,6 +312,21 @@ export class ClimsoftV4Service {
                 v4Station.stationName = `${v4Station.stationName}_${(i + 1)}`;
             }
 
+            // Make sure the wmo id is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
+                v4Station.wmoid = `${v4Station.wmoid}_${(i + 1)}`;
+            }
+
+            // Make sure the wigos id is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.wigosId === v4Station.wsi)) {
+                v4Station.wsi = `${v4Station.wsi}_${(i + 1)}`;
+            }
+
+            // Make sure the icao id is unique. V5 doesn't accept duplicates like v4 model
+            if (v5Dtos.find(item => item.icaoId === v4Station.icaoid)) {
+                v4Station.icaoid = `${v4Station.icaoid}_${(i + 1)}`;
+            }
+
             const currentV5Station = currentV5Stations.find(item => item.id === v4Station.stationId);
 
             const dto: CreateStationDto = {
@@ -364,7 +379,7 @@ export class ClimsoftV4Service {
         const obsEntities: ObservationEntity[] = await this.observationRepo.find({
             where: { savedToV4: false },
             order: { entryDateTime: "ASC" },
-            take: 1000,
+            take: 1000,// Monitor this valuue for performance. The idea is to not keep nodeJS work thread for long when saving to v4 model
         });
 
         if (obsEntities.length === 0) {

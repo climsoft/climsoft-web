@@ -59,7 +59,7 @@ export class ImportSourceDetailComponent implements OnInit {
           }
         },
         intervalDefinition: {
-          columnPosition: 1
+          defaultInterval: 1440
         },
         levelColumnPosition: undefined,
         datetimeDefinition: {

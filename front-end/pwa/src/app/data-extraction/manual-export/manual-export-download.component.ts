@@ -21,17 +21,17 @@ export class ManualExportDownloadComponent implements OnInit {
     private pagesDataService: PagesDataService,
     private route: ActivatedRoute,
     private exportTemplateService: ExportTemplatesService,
-    private observationService: ObservationsService, ) {
+    private observationService: ObservationsService,) {
   }
 
   ngOnInit(): void {
     const exportTemplateId = this.route.snapshot.params['id'];
     // TODO. handle errors where the export is not found for the given id
-    this.exportTemplateService.findOne(exportTemplateId).pipe(
+    this.exportTemplateService.findOne(+exportTemplateId).pipe(
       take(1)
     ).subscribe((data) => {
       this.viewExportTemplate = data;
-      this.pagesDataService.setPageHeader('Export From ' + this.viewExportTemplate.name);
+      this.pagesDataService.setPageHeader(`Export From ${this.viewExportTemplate.name}`);
     });
   }
 
@@ -49,8 +49,6 @@ export class ManualExportDownloadComponent implements OnInit {
   protected onDownloadStarted(): void {
     this.pagesDataService.showToast({ title: `${this.viewExportTemplate.name} Download`, message: 'Downloading...', type: ToastEventTypeEnum.INFO });
     this.hideDownloadButton = true;
-
-
   }
 
 }
