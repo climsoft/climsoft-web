@@ -58,11 +58,14 @@ export class StationDetailComponent implements OnInit, OnDestroy {
     // TODO. Show an 'are you sure dialog'.
     this.stationsCacheService.delete(this.station.id).pipe(
       take(1)
-    ).subscribe((data) => {
-      if (data) {
+    ).subscribe({
+      next: data => {
         this.pagesDataService.showToast({ title: "Station Deleted", message: `Station ${this.station.id} deleted`, type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
-      }
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: "Station Delete", message: err, type: ToastEventTypeEnum.ERROR });
+              }
     });
 
   }

@@ -10,28 +10,25 @@ export class StationFormsController {
 
   constructor(private readonly stationFormsService: StationFormsService) { }
 
-  @Admin()
   @Get('stations-count-per-form')
   public getStationCountPerForm() {
     return this.stationFormsService.getStationCountPerForm();
   }
 
   @Get('forms-assigned-to-station/:id')
-  public getFormsAssignedToStation(@Param('id', AuthorisedStationsPipe) stationId: string) {
+  public getFormsAssignedToStation(@Param('id') stationId: string) {
     return this.stationFormsService.getFormsAssignedToStation(stationId);
   }
 
-  @Admin()
   @Get('stations-assigned-to-use-form/:id')
   public getStationsAssignedToUseForm(@Param('id', ParseIntPipe) formId: number) {
     return this.stationFormsService.getStationsAssignedToUseForm(formId);
   }
 
-  @Admin()
   @Put('forms-assigned-to-station/:id')
   public putFormsAssignedToStation(
     @Req() request: Request,
-    @Param('id') stationId: string,
+    @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) formIds: number[]) {
     return this.stationFormsService.putFormsAssignedToStation(stationId, formIds, AuthUtil.getLoggedInUserId(request));
   }
@@ -39,7 +36,7 @@ export class StationFormsController {
   @Admin()
   @Delete('forms-assigned-to-station/:id')
   public async deleteFormsAsignedToStation(
-    @Param('id') stationId: string) {
+    @Param('id', AuthorisedStationsPipe) stationId: string) {
     await this.stationFormsService.deleteFormsAsignedToStation(stationId);
     return { message: 'success' };
   }

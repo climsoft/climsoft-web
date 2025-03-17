@@ -41,8 +41,18 @@ export class AuthorisedStationsPipe implements PipeTransform {
         //return this.handleArray(value, authorisedStationIds);
         return value;
       case 'String':
+        // TODO. Use guards to authenticate? In similar way to Admin() decorator used by the app guard
+        const routePath = this.request.route.path;
+        if (
+          routePath === '/stations/:id' ||
+          routePath === '/station-network-affiliations/forms-assigned-to-station/:id' ||
+          routePath === '/station-forms/forms-assigned-to-station/:id' ||
+          routePath === '/observations/upload/:sourceid/:stationid'
+        ) {
+          return this.handleString(value, user.permissions);
+        }
 
-
+        // TODO. delete these
         if (this.request.method === 'PATCH') {
           // Used by stations controller when updating station characteristics
           return this.handleString(value, user.permissions);

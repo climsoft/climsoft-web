@@ -10,36 +10,32 @@ export class StationNetworkAffiliationsController {
 
   constructor(private readonly stationNetworkAffiliationsService: StationNetworkAffiliationsService) { }
 
-  @Admin()
   @Get('stations-count-per-network-affiliation')
   public getStationCountPerForm() {
     return this.stationNetworkAffiliationsService.getStationCountPerNetwork();
   }
 
   @Get('network-affiliations-assigned-to-station/:id')
-  public getFormsAssignedToStation(@Param('id', AuthorisedStationsPipe) stationId: string) {
+  public getFormsAssignedToStation(@Param('id') stationId: string) {
     return this.stationNetworkAffiliationsService.getNetworksAssignedToStation(stationId);
   }
 
-  @Admin()
   @Get('stations-assigned-to-network-affiliation/:id')
   public getStationsAssignedToUseForm(@Param('id', ParseIntPipe) formId: number) {
     return this.stationNetworkAffiliationsService.getStationsAssignedToNetwork(formId);
   }
 
-  @Admin()
   @Put('network-affiliations-assigned-to-station/:id')
   public putFormsAssignedToStation(
     @Req() request: Request,
-    @Param('id') stationId: string,
+    @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) formIds: number[]) {
     return this.stationNetworkAffiliationsService.putNetworksAssignedToStation(stationId, formIds, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Admin()
   @Delete('network-affiliations-assigned-to-station/:id')
   public async deleteFormsAsignedToStation(
-    @Param('id') stationId: string) {
+    @Param('id', AuthorisedStationsPipe) stationId: string) {
     await this.stationNetworkAffiliationsService.deleteNetworksAsignedToStation(stationId);
     return { message: 'success' };
   }
