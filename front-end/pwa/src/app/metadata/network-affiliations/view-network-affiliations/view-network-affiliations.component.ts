@@ -5,6 +5,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewNetworkAffiliatioModel } from '../models/view-network-affiliation.model';
 import { NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
+import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -16,6 +17,7 @@ type optionsType = 'Add' | 'Delete All';
 export class ViewNetworkAffiliationsComponent implements OnDestroy {
   protected networkAffiliations!: ViewNetworkAffiliatioModel[];
   protected dropDownItems: optionsType[] = [];
+  protected user! : LoggedInUserModel;
 
   private destroy$ = new Subject<void>();
 
@@ -34,6 +36,9 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Delete All'] : [];
+      if(user){
+        this.user = user;
+      }
     });
 
     // Get all sources 
@@ -66,7 +71,11 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
   }
 
   protected onEditNetworkAffiliation(networkAff: ViewNetworkAffiliatioModel): void {
-    this.router.navigate(['network-affiliation-details', networkAff.id], { relativeTo: this.route.parent });
+    // Only allow edits to network affiliations when user is admin
+    if(this.user && this.user.isSystemAdmin){
+      this.router.navigate(['network-affiliation-details', networkAff.id], { relativeTo: this.route.parent });
+    }
+   
   }
 
 }

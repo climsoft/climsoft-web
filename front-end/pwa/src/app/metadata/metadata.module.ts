@@ -66,6 +66,8 @@ import { RegionTypeInputComponent } from './regions/region-type-selector/region-
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
+import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
+import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
 
 @NgModule({
   declarations: [
@@ -74,6 +76,7 @@ import { OrganisationSelectorSingleComponent } from './organisations/organisatio
 
     ViewNetworkAffiliationsComponent,
     NetworkAffiliationDetailsComponent,
+    NetworkAffiliationSelectorDialogComponent,
 
     ViewOrganisationsComponent,
     OrganisationDetailsComponent,
@@ -99,6 +102,7 @@ import { OrganisationSelectorSingleComponent } from './organisations/organisatio
     ViewStationsTableComponent,
     ViewStationsMapComponent,
     StationsSearchDialogComponent,
+    StationNetworksComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
@@ -176,5 +180,5 @@ import { OrganisationSelectorSingleComponent } from './organisations/organisatio
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,
   ]
-})
+}) 
 export class MetadataModule { }

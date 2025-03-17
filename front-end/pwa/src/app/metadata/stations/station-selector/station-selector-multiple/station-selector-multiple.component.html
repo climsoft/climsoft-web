@@ -2,5 +2,5 @@
     [errorMessage]="errorMessage" [options]="stations" [optionDisplayFn]="optionDisplayFunction"
     [(selectedOptions)]="selectedStations" (selectedOptionsChange)="onSelectedOptionsChange($event)"
     (displayAdvancedSearchOptionClick)="stationsSearch.showDialog()" />
-
+ 
 <app-stations-search-dialog #stationsSearch (searchedIdsChange)="onAdvancedSearchInput($event)" />

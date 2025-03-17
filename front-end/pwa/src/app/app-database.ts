@@ -1,4 +1,4 @@
-import Dexie, { Table } from "dexie"; 
+import Dexie, { Table } from "dexie";
 import { ViewRegionModel } from "./metadata/regions/models/view-region.model";
 import { ViewSourceModel } from "./metadata/source-templates/models/view-source.model";
 import { ViewStationObsEnvModel } from "./metadata/stations/models/view-station-obs-env.model";
@@ -8,7 +8,7 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";   
+import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
 import { CachedObservationModel } from "./data-ingestion/services/observations.service";
 import { UserSettingEnum } from "./app-config.service";
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
@@ -25,8 +25,13 @@ export interface StationForm {
     forms: ViewSourceModel[];
 }
 
+export interface StationNetwork {
+    stationId: string;
+    networkAffiliations: ViewNetworkAffiliatioModel[];
+}
+
 export interface UserSetting {
-    name: UserSettingEnum; 
+    name: UserSettingEnum;
     parameters: any;
 }
 
@@ -57,6 +62,7 @@ export class AppDatabase extends Dexie {
 
     // cached differently
     stationForms!: Table<StationForm, string>;
+    stationNetworks!: Table<StationNetwork, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
     // stationId, elementId, sourceId, level, datetime, peintervalriod  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
@@ -84,15 +90,15 @@ export class AppDatabase extends Dexie {
             elementTypes: `id, name, subdomainId`,
             elements: `id, name, abbreviation, typeId`,
             sourceTemplates: `id, name, sourceType`,
-           
 
+            stationNetworks: `stationId`,
             stationForms: `stationId`,
             elementsQcTests: `id, elementId, qcTestType, observationInterval, [elementId+qcTestType+observationInterval]`,
-            
+
             // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 
             // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.
             observations: `[stationId+elementId+sourceId+level+datetime+interval], stationId, elementId, sourceId, level, datetime, interval, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
-           
+
             userSettings: `name`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,

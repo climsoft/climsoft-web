@@ -3,10 +3,9 @@
 
         <!-- header -->
         <div class="card-title fw-bold d-flex justify-content-between">
-            <div>Showing station details</div>
+            <div>Showing station details: {{ station.id +' - '+ station.name }}</div>
             <div *ngIf="userIsSystemAdmin">
-                <button type="button" class="btn btn-sm btn-outline-danger"
-                    (click)="onDelete()">Delete</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" (click)="onDelete()">Delete</button>
             </div>
         </div>
 
@@ -16,13 +15,13 @@
                 <app-toggle-chevron #characteristicsToggle [open]="true">Characteristics</app-toggle-chevron>
             </div>
             <div class="card-body px-2" *ngIf="characteristicsToggle.open">
-                <app-station-characteristics [station]="station"/>
+                <app-station-characteristics [station]="station" />
             </div>
         </div>
-        <!-- /end characteristics -->
+
 
         <!-- forms -->
-        <div class="card border-0"  *ngIf="isManualorHybridStation">
+        <div class="card border-0" *ngIf="isManualorHybridStation">
             <div class="card-header px-2 fw-bold">
                 <app-toggle-chevron #formsToggle>Forms</app-toggle-chevron>
             </div>
@@ -30,7 +29,18 @@
                 <app-station-forms [station]="station" />
             </div>
         </div>
-        <!-- end forms -->
+
+
+        <!-- network-affiliations -->
+        <div class="card border-0">
+            <div class="card-header px-2 fw-bold">
+                <app-toggle-chevron #networkAffiliationsToggle>Network Affiliations</app-toggle-chevron>
+            </div>
+            <div class="card-body px-2" *ngIf="networkAffiliationsToggle.open">
+                <app-station-network-affiliations [station]="station" />
+            </div>
+        </div>
+
 
         <!-- contacts -->
         <!-- <div class="card border-0">

@@ -107,7 +107,7 @@ export class StationFormSelectionComponent implements OnDestroy {
 
     // No need to reload the station forms if already loaded if they have
     if (!stationView.forms) {
-      this.stationFormsService.getFormsAssignedToStations(stationView.station.id).pipe(
+      this.stationFormsService.getFormsAssignedToStation(stationView.station.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe(data => {
         //Filter out any disabled form

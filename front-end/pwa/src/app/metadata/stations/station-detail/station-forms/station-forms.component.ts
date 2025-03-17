@@ -19,7 +19,7 @@ export class StationFormsComponent implements OnChanges {
 
   protected forms!: ViewSourceModel[];
 
-  protected userIsSystemAdmin: boolean = false;
+  protected userCanEditStation: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -28,18 +28,37 @@ export class StationFormsComponent implements OnChanges {
     private stationFormsService: StationFormsService,
     private pagesDataService: PagesDataService,
   ) {
-    // Check on allowed options
-    this.appAuthService.user.pipe(
-      take(1),
-    ).subscribe(user => {
-      this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
-    });
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.station) {
       this.loadForms();
+
+      // Check on allowed options
+      this.appAuthService.user.pipe(
+        take(1),
+      ).subscribe(user => {
+        if (!user) {
+          throw new Error('User not logged in');
+        }
+
+        if (user.isSystemAdmin) {
+          this.userCanEditStation = true;
+        } else if (user.permissions && user.permissions.stationsMetadataPermissions) {
+          const stationIds = user.permissions.stationsMetadataPermissions.stationIds;
+          if (stationIds) {
+            this.userCanEditStation = stationIds.includes(this.station.id)
+          } else {
+            this.userCanEditStation = true;
+          }
+        } else {
+          this.userCanEditStation = false;
+        }
+      });
     }
+
+
   }
 
   ngOnDestroy() {
@@ -48,7 +67,7 @@ export class StationFormsComponent implements OnChanges {
   }
 
   protected loadForms(): void {
-    this.stationFormsService.getFormsAssignedToStations(this.station.id).pipe(
+    this.stationFormsService.getFormsAssignedToStation(this.station.id).pipe(
       takeUntil(this.destroy$)
     ).subscribe((data) => {
       this.forms = data;

@@ -20,7 +20,7 @@ import { StationObsFocusesService } from './stations/services/station-obs-focuse
 import { StationObsFocusesController } from './stations/controllers/station-obs-focuses.controller';
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
-import { SourceTemplatesService } from './source-templates/services/source-templates.service'; 
+import { SourceTemplatesService } from './source-templates/services/source-templates.service';
 import { SourceTemplateEntity } from './source-templates/entities/source-template.entity';
 import { ElementsService } from './elements/services/elements.service';
 import { ElementQCTestEntity } from './elements/entities/element-qc-test.entity';
@@ -39,12 +39,14 @@ import { ElementSubdomainsService } from './elements/services/element-subdomains
 import { ElementsImportExportService } from './elements/services/elements-import-export.service';
 import { ExportTemplateEntity } from './export-templates/entities/export-template.entity';
 import { ExportTemplatesController } from './export-templates/controllers/export-templates.controller';
-import { ExportTemplatesService } from './export-templates/services/export-templates.service'; 
+import { ExportTemplatesService } from './export-templates/services/export-templates.service';
 import { OrganisationsController } from './organisations/controllers/organisations.controller';
 import { OrganisationsService } from './organisations/services/organisations.service';
 import { RegionEntity } from './regions/entities/region.entity';
 import { NetworkAffiliationsController } from './network-affiliations/controllers/network-affiliation.controller';
 import { NetworkAffiliationsService } from './network-affiliations/services/network-affiliations.service';
+import { StationNetworkAffiliationsController } from './stations/controllers/station-network-affiliations.controller';
+import { StationNetworkAffiliationsService } from './stations/services/station-networks.service';
 
 @Module({
     imports: [
@@ -86,24 +88,31 @@ import { NetworkAffiliationsService } from './network-affiliations/services/netw
         StationObsFocusesController,
         StationsController,
         StationFormsController,
+        StationNetworkAffiliationsController,
 
         SourceTemplatesController,
 
         ExportTemplatesController,
-        
+
         MetadataUpdatesController,
     ],
     providers: [
         ElementSubdomainsService,
         ElementTypesService,
         ElementsService,
+        
         OrganisationsService,
         NetworkAffiliationsService,
-        SourceTemplatesService,
+
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
         StationFormsService,
+        StationNetworkAffiliationsService,
+
+
+        SourceTemplatesService,
+
         ElementsQCTestsService,
         RegionsService,
         StationsImportExportService,
