@@ -2,7 +2,7 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, Point, PrimaryColumn } from "typeorm";
 import { StationStatusEnum } from "../enums/station-status.enum"; 
 import { StationObservationEnvironmentEntity } from "./station-observation-environment.entity";
-import { OrganisationEntity } from "./organisation.entity";
+import { OrganisationEntity } from "../../organisations/entities/organisation.entity";
 import { StationObsProcessingMethodEnum } from "../enums/station-obs-processing-method.enum";
 import { StationObservationFocusEntity } from "./station-observation-focus.entity";
 

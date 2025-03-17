@@ -9,13 +9,15 @@ import { SourceTemplatesService } from '../source-templates/services/source-temp
 import { ElementsService } from '../elements/services/elements.service';
 import { RegionsService } from '../regions/services/regions.service';
 import { ElementTypesService } from '../elements/services/element-types.service';
-import { ElementSubdomainsService } from '../elements/services/element-subdomains.service';
-import { OrganisationsService } from '../stations/services/organisations.service';
+import { ElementSubdomainsService } from '../elements/services/element-subdomains.service'; 
+import { OrganisationsService } from '../organisations/services/organisations.service';
+import { NetworkAffiliationsService } from '../network-affiliations/services/network-affiliations.service';
 
 @Controller('metadata-updates')
 export class MetadataUpdatesController {
   constructor(
     private organisationsService: OrganisationsService,
+    private networkAffiliationsService: NetworkAffiliationsService,
     private regionsService: RegionsService,
     private stationsService: StationsService,
     private stationObsEnvservice: StationObsEnvService,
@@ -31,6 +33,12 @@ export class MetadataUpdatesController {
   async organisationsUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.organisationsService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('network-affiliations')
+  async networkAffiliationsUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.networkAffiliationsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('regions')

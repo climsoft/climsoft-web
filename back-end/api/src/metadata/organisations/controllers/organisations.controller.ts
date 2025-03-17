@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
-import { Admin } from 'src/user/decorators/admin.decorator';
-import { OrganisationsService } from '../../stations/services/organisations.service';
+import { Admin } from 'src/user/decorators/admin.decorator'; 
 import { ViewOrganisationQueryDTO } from '../dtos/view-organisation-query.dto';
 import { Request } from 'express';
 import { CreateUpdateOrganisationDto } from '../dtos/create-update-organisation.dto';
 import { ViewOrganisationDto } from '../dtos/view-organisation.dto';
 import { AuthUtil } from 'src/user/services/auth.util';
+import { OrganisationsService } from '../services/organisations.service';
 
 @Controller('organisations')
 export class OrganisationsController {

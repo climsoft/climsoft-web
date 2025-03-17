@@ -1,89 +1,89 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { RegionEntity } from '../entities/region.entity';
-import { ViewRegionQueryDTO } from '../../regions/dtos/view-region-query.dto';
+import { InjectRepository } from '@nestjs/typeorm'; 
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
-import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
-import { OrganisationEntity } from '../entities/organisation.entity';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto'; 
 import { ViewOrganisationDto } from '../../organisations/dtos/view-organisation.dto';
 import { ViewOrganisationQueryDTO } from '../../organisations/dtos/view-organisation-query.dto';
-import { CreateUpdateOrganisationDto } from '../../organisations/dtos/create-update-organisation.dto';
+import { CreateUpdateOrganisationDto } from '../../organisations/dtos/create-update-organisation.dto'; 
+import { NetworkAffiliationEntity } from '../entities/network-affiliation.entity';
+import { ViewNetworkAffiliationDto } from '../dtos/view-network-affiliation.dto';
+import { ViewNetworkAffiliationQueryDTO } from '../dtos/view-network-affiliation-query.dto';
 
 @Injectable()
-export class OrganisationsService {
+export class NetworkAffiliationsService {
 
     constructor(
-        @InjectRepository(OrganisationEntity) private organisationsRepo: Repository<OrganisationEntity>, 
+        @InjectRepository(NetworkAffiliationEntity) private networkAffiliationsRepo: Repository<NetworkAffiliationEntity>, 
     ) { }
 
-    private async findEntity(id: number): Promise<OrganisationEntity> {
-        const entity = await this.organisationsRepo.findOneBy({
+    private async findEntity(id: number): Promise<NetworkAffiliationEntity> {
+        const entity = await this.networkAffiliationsRepo.findOneBy({
             id: id,
         });
 
         if (!entity) {
-            throw new NotFoundException(`Source #${id} not found`);
+            throw new NotFoundException(`Network affiliation #${id} not found`);
         }
         return entity;
     }
 
-    public async findOne(id: number): Promise<ViewOrganisationDto> {
+    public async findOne(id: number): Promise<ViewNetworkAffiliationDto> {
         const entity = await this.findEntity(id);
         return this.createViewDto(entity);
     }
 
-    public async find(viewRegionQueryDto?: ViewOrganisationQueryDTO): Promise<ViewOrganisationDto[]> {
-        const findOptions: FindManyOptions<OrganisationEntity> = {
+    public async find(queryDto?: ViewNetworkAffiliationQueryDTO): Promise<ViewNetworkAffiliationDto[]> {
+        const findOptions: FindManyOptions<NetworkAffiliationEntity> = {
             order: {
                 id: "ASC"
             }
         };
 
-        if (viewRegionQueryDto) {
-            findOptions.where = this.getFilter(viewRegionQueryDto);
+        if (queryDto) {
+            findOptions.where = this.getFilter(queryDto);
             // If page and page size provided, skip and limit accordingly
-            if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
-                findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
-                findOptions.take = viewRegionQueryDto.pageSize;
+            if (queryDto.page && queryDto.page > 0 && queryDto.pageSize) {
+                findOptions.skip = (queryDto.page - 1) * queryDto.pageSize;
+                findOptions.take = queryDto.pageSize;
             }
         }
 
-        return (await this.organisationsRepo.find(findOptions)).map(entity => {
+        return (await this.networkAffiliationsRepo.find(findOptions)).map(entity => {
             return this.createViewDto(entity);
         });
     }
 
     public async count(viewRegionQueryDto: ViewOrganisationQueryDTO): Promise<number> {
-        return this.organisationsRepo.countBy(this.getFilter(viewRegionQueryDto));
+        return this.networkAffiliationsRepo.countBy(this.getFilter(viewRegionQueryDto));
     }
 
-    private getFilter(viewRegionQueryDto: ViewRegionQueryDTO): FindOptionsWhere<OrganisationEntity> {
-        const whereOptions: FindOptionsWhere<OrganisationEntity> = {};
+    private getFilter(queryDto: ViewNetworkAffiliationQueryDTO): FindOptionsWhere<NetworkAffiliationEntity> {
+        const whereOptions: FindOptionsWhere<NetworkAffiliationEntity> = {};
 
-        if (viewRegionQueryDto.regionIds) {
-            whereOptions.id = viewRegionQueryDto.regionIds.length === 1 ? viewRegionQueryDto.regionIds[0] : In(viewRegionQueryDto.regionIds);
+        if (queryDto.networkAffiliationIds) {
+            whereOptions.id = queryDto.networkAffiliationIds.length === 1 ? queryDto.networkAffiliationIds[0] : In(queryDto.networkAffiliationIds);
         }
 
         return whereOptions
     }
 
     public async add(createDto: CreateUpdateOrganisationDto, userId: number): Promise<ViewOrganisationDto> {
-        let entity: OrganisationEntity | null = await this.organisationsRepo.findOneBy({
+        let entity: NetworkAffiliationEntity | null = await this.networkAffiliationsRepo.findOneBy({
             name: createDto.name,
         });
 
         if (entity) {
-            throw new NotFoundException(`Organisation with name ${createDto.name} exists`);
+            throw new NotFoundException(`Network affiliation with name ${createDto.name} exists`);
         }
 
-        entity = this.organisationsRepo.create({
+        entity = this.networkAffiliationsRepo.create({
             name: createDto.name,
         });
 
         this.updateEntity(entity, createDto, userId);
 
-        await this.organisationsRepo.save(entity);
+        await this.networkAffiliationsRepo.save(entity);
 
         // Important. Retrieve the entity with updated properties like  name before creating the view
         return this.findOne(entity.id);
@@ -91,28 +91,28 @@ export class OrganisationsService {
     }
 
     public async update(id: number, updateDto: CreateUpdateOrganisationDto, userId: number): Promise<ViewOrganisationDto> {
-        const entity: OrganisationEntity = await this.findEntity(id);
+        const entity: NetworkAffiliationEntity = await this.findEntity(id);
 
         this.updateEntity(entity, updateDto, userId);
 
-        await this.organisationsRepo.save(entity);
+        await this.networkAffiliationsRepo.save(entity);
 
         return this.createViewDto(entity);
     }
 
     public async delete(id: number): Promise<number> {
-        await this.organisationsRepo.remove(await this.findEntity(id));
+        await this.networkAffiliationsRepo.remove(await this.findEntity(id));
         return id;
     }
 
     public async deleteAll(): Promise<boolean> {
-        const entities: OrganisationEntity[] = await this.organisationsRepo.find();
+        const entities: NetworkAffiliationEntity[] = await this.networkAffiliationsRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
-        await this.organisationsRepo.remove(entities);
+        await this.networkAffiliationsRepo.remove(entities);
         return true;
     }
 
-    private updateEntity(entity: OrganisationEntity, dto: CreateUpdateOrganisationDto, userId: number): void {
+    private updateEntity(entity: NetworkAffiliationEntity, dto: CreateUpdateOrganisationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : null;
         entity.extraMetadata = dto.extraMetadata? dto.extraMetadata: null ; 
@@ -120,7 +120,7 @@ export class OrganisationsService {
         entity.entryUserId = userId;
     }
 
-    private createViewDto(entity: OrganisationEntity): ViewOrganisationDto {
+    private createViewDto(entity: NetworkAffiliationEntity): ViewOrganisationDto {
         return {
             id: entity.id,
             name: entity.name,
@@ -133,20 +133,20 @@ export class OrganisationsService {
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 
-        const serverCount = await this.organisationsRepo.count();
+        const serverCount = await this.networkAffiliationsRepo.count();
 
         if (serverCount !== updatesQueryDto.lastModifiedCount) {
             // If number of records in server are not the same as those in the client then changes detected
             changesDetected = true;
         } else {
-            const whereOptions: FindOptionsWhere<RegionEntity> = {};
+            const whereOptions: FindOptionsWhere<NetworkAffiliationEntity> = {};
 
             if (updatesQueryDto.lastModifiedDate) {
                 whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
             }
 
             // If there was any changed record then changes detected
-            changesDetected = (await this.organisationsRepo.count({ where: whereOptions })) > 0
+            changesDetected = (await this.networkAffiliationsRepo.count({ where: whereOptions })) > 0
         }
 
         if (changesDetected) {

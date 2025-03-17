@@ -11,7 +11,7 @@ export class RegionEntity extends AppBaseEntity {
   name: string;
 
   @Column({ name: 'description', type: 'varchar', nullable: true })
-  description: string| null;
+  description: string | null;
 
   @Column({ name: 'region_type', type: 'enum', enum: RegionTypeEnum })
   @Index()

@@ -1,13 +1,20 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ElementEntity } from "./element.entity";
 import { QCTestTypeEnum } from "./qc-test-type.enum";
 import { QCTestParametersValidity } from "../dtos/qc-tests/create-qc-test.dto";
 
 @Entity("elements_qc_tests")
+@Check("CHK_elements_qc_test_name_not_empty", `"name" <> ''`)
 export class ElementQCTestEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
+
+  @Column({  name: "name" , type: "varchar", unique: true })
+  name: string;
+
+  @Column({ type: "varchar", nullable: true })
+  description: string | null;
 
   @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum })
   @Index()

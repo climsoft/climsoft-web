@@ -1,19 +1,20 @@
-import { Column, Entity, Index, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, Index, PrimaryColumn } from "typeorm";
 import { ElementDomainEnum } from "../dtos/elements/element-domain.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("element_subdomains")
+@Check("CHK_element_subdomain_name_not_empty", `"name" <> ''`)
 export class ElementSubdomainEntity extends AppBaseEntity {
     @PrimaryColumn({ type: "int" })
     id: number;
 
-    @Column({ type: "varchar", unique: true })
+    @Column({  name: "name" , type: "varchar", unique: true })
     name: string;
 
-    @Column({ type: "varchar" })
+    @Column({ type: "varchar", nullable: true })
     description: string;
 
-    @Column({ type: "enum", enum: ElementDomainEnum, name: "domain" })
+    @Column({ name: "domain" , type: "enum", enum: ElementDomainEnum})
     @Index()
     domain: ElementDomainEnum;
 

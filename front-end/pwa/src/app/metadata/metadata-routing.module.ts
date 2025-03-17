@@ -13,6 +13,8 @@ import { ExportTemplateDetailComponent } from './export-templates/export-templat
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
+import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
+import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
 
 const routes: Routes = [
   {
@@ -45,6 +47,14 @@ const routes: Routes = [
       {
         path: 'import-source-detail/:id',
         component: ImportSourceDetailComponent
+      },
+      {
+        path: 'view-network-affiliations',
+        component: ViewNetworkAffiliationsComponent
+      }, 
+      {
+        path: 'network-affiliation-details/:id',
+        component: NetworkAffiliationDetailsComponent
       },
       {
         path: 'view-organisations',

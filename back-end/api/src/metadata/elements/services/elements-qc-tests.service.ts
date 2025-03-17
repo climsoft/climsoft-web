@@ -83,6 +83,10 @@ export class ElementsQCTestsService {
     public async create(dto: CreateQCTestDto, userId: number): Promise<UpdateQCTestDto> {
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
+            // TODO. This should come from dto
+            name: `${dto.qcTestType} ${dto.elementId} ${dto.observationPeriod}`,
+            description: null,
+
             qcTestType: dto.qcTestType,
             elementId: dto.elementId,
             observationPeriod: dto.observationPeriod,

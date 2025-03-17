@@ -10,7 +10,7 @@ export class ElementTypeEntity extends AppBaseEntity {
     @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: "varchar" })
+    @Column({ type: "varchar", nullable: true })
     description: string;
 
     @Column({ type: "int", name: "subdomain_id" })

@@ -63,11 +63,16 @@ import { StationStatusSingleInputComponent } from './stations/station-status-sel
 import { StationObservationFocusSingleInputComponent } from './stations/station-focus-selector/station-obs-focus-single-input/station-obs-focus-single-input.component';
 import { StationObsEnvSingleInputComponent } from './stations/station-environment-selector/station-obs-environment-single-input/station-obs-env-single-input.component';
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
+import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
+import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
 
 @NgModule({
   declarations: [
     ElementsSelectorDialogComponent,
     FormSelectorDialogComponent,
+
+    ViewNetworkAffiliationsComponent,
+    NetworkAffiliationDetailsComponent,
 
     ViewOrganisationsComponent,
     OrganisationDetailsComponent,

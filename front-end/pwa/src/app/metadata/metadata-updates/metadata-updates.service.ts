@@ -29,7 +29,7 @@ export class MetadataUpdatesService {
         const lastModifiedDate = (await AppDatabase.instance.metadataModificationLog.get(tableName))?.lastModifiedDate;
         const lastModifiedCount = await AppDatabase.count(tableName);
         const query: MetadataUpdatesQueryModel = { lastModifiedCount: lastModifiedCount, lastModifiedDate: lastModifiedDate };
-        return query
+        return query;
     }
 
     private getUpdatesFromServer(tableName: keyof AppDatabase, query: MetadataUpdatesQueryModel): Observable<MetadataUpdatesResponseModel> {
@@ -76,8 +76,8 @@ export class MetadataUpdatesService {
                 return 'regions';
             case 'organisations':
                 return 'organisations';
-            //case 'network-affiliations':
-            //    return 'network-affiliations';
+            case 'networkAffiliations':
+               return 'network-affiliations';
             case 'stations':
                 return 'stations';
             case 'stationObsEnv':

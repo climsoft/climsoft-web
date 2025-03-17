@@ -1,0 +1,28 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+
+    <div class="d-flex align-items-center">
+      <div *ngIf="networkAffiliations" class="d-flex mx-2">
+        Count: {{ networkAffiliations.length | number:'1.0-0' }}
+      </div>
+      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
+        Search
+      </button> -->
+      <div>
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
+          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+
+      <!-- <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
+        (cancelClick)="onOptionsDialogClosed()" /> -->
+
+    </div>
+  </div>
+
+  <div *ngIf="networkAffiliations" class="card-body p-0">
+    <app-table-view [clickable]="true"
+      [columnsData]="[ {id: 'name', name: 'Name'} ,  {id: 'description', name: 'Description'} ]"
+      [rowsData]="networkAffiliations"  (rowDataClicked)="onEditNetworkAffiliation($event)"/>
+  </div>
+
+</div>

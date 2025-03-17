@@ -47,7 +47,7 @@
         <hr />
 
         <div>
-            <app-station-obs-method-single-input [label]="'Observation Method'"
+            <app-station-obs-method-single-input [label]="'Observation Processing Method'"
                 [selectedId]="station.stationObsProcessingMethod"
                 (selectedIdChange)="onStationObsMethodChange($event)" />
         </div>
@@ -55,14 +55,14 @@
         <hr />
 
         <div>
-            <app-station-obs-env-single-input [label]="'Environment'"
+            <app-station-obs-env-single-input [label]="'Observation Environment'"
                 [(selectedId)]="station.stationObsEnvironmentId" />
         </div>
 
         <hr />
 
         <div>
-            <app-station-obs-focus-single-input [label]="'Focus'" [(selectedId)]="station.stationObsFocusId" />
+            <app-station-obs-focus-single-input [label]="'Observation Focus'" [(selectedId)]="station.stationObsFocusId" />
         </div>
 
         <hr />

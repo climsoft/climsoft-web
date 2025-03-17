@@ -1,7 +1,7 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { StationEntity } from "./station.entity";
-import { NetworkAffiliationEntity } from "./network-affiliation.entity";
+import { NetworkAffiliationEntity } from "../../network-affiliations/entities/network-affiliation.entity";
 
 @Entity("station_network_affiliations")
 export class StationNetworkAffiliationEntity extends AppBaseEntity {

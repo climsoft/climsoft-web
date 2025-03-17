@@ -3,55 +3,55 @@ import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http"; 
-import { AppConfigService } from "src/app/app-config.service";
-import { ViewOrganisationModel } from "../models/view-organisation.model";
-import { CreateUpdateOrganisationModel } from "../models/create-update-organisation.model";
+import { AppConfigService } from "src/app/app-config.service"; 
+import { ViewNetworkAffiliatioModel } from "../models/view-network-affiliation.model";
+import { CreateUpdateNetworkAffiliationModel } from "../models/create-update-network-affiliation.model";
 
 @Injectable({
     providedIn: 'root'
 })
-export class OrganisationsCacheService {
+export class NetworkAffiliationsCacheService {
     private endPointUrl: string;
-    private readonly _cachedOrganisations: BehaviorSubject<ViewOrganisationModel[]> = new BehaviorSubject<ViewOrganisationModel[]>([]);
+    private readonly _cachedNetworkAffiliations: BehaviorSubject<ViewNetworkAffiliatioModel[]> = new BehaviorSubject<ViewNetworkAffiliatioModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/organisations`;
-        this.loadOrganisation();
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/network-affiliations`;
+        this.loadNetworkAffiliations();
     }
 
-    private async loadOrganisation() {
-        this._cachedOrganisations.next(await AppDatabase.instance.organisations.toArray());
+    private async loadNetworkAffiliations() {
+        this._cachedNetworkAffiliations.next(await AppDatabase.instance.networkAffiliations.toArray());
     }
 
     public checkForUpdates(): void {
-        console.log('checking organisations updates');
+        console.log('checking network-affiliations updates');
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('organisations').subscribe(res => {
-            console.log('organisations-cache response', res);
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('networkAffiliations').subscribe(res => {
+            console.log('network-affiliations-cache response', res);
             if (res) {
-                this.loadOrganisation();
+                this.loadNetworkAffiliations();
             }
         });
     }
 
-    public get cachedOrganisations(): Observable<ViewOrganisationModel[]> {
+    public get cachedNetworkAffiliations(): Observable<ViewNetworkAffiliatioModel[]> {
         this.checkForUpdates();
-        return this._cachedOrganisations.asObservable();
+        return this._cachedNetworkAffiliations.asObservable();
     }
 
-    public findOne(id: number): Observable<ViewOrganisationModel | undefined> {
-        return this.cachedOrganisations.pipe(
+    public findOne(id: number): Observable<ViewNetworkAffiliatioModel | undefined> {
+        return this.cachedNetworkAffiliations.pipe(
             map(response => {
                 return response.find(item => item.id === id);
             })
         );
     }
 
-    public create(createDto: CreateUpdateOrganisationModel): Observable<ViewOrganisationModel> {
-        return this.http.post<ViewOrganisationModel>(`${this.endPointUrl}`, createDto)
+    public create(createDto: CreateUpdateNetworkAffiliationModel): Observable<ViewNetworkAffiliatioModel> {
+        return this.http.post<ViewNetworkAffiliatioModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();
@@ -60,8 +60,8 @@ export class OrganisationsCacheService {
             );
     }
 
-    public update(id: number, updateDto: CreateUpdateOrganisationModel): Observable<ViewOrganisationModel> {
-        return this.http.patch<ViewOrganisationModel>(`${this.endPointUrl}/${id}`, updateDto)
+    public update(id: number, updateDto: CreateUpdateNetworkAffiliationModel): Observable<ViewNetworkAffiliatioModel> {
+        return this.http.patch<ViewNetworkAffiliatioModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();
