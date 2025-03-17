@@ -1,4 +1,4 @@
-import { StationObsProcessingMethodEnum } from "./station-obs-Processing-method.enum";
+import { StationObsProcessingMethodEnum } from "./station-obs-processing-method.enum";
 
 export class ViewStationQueryModel {
     stationIds?: string[];

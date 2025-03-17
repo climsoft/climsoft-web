@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-Processing-method.enum';
+import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 

@@ -68,6 +68,12 @@
         <hr />
 
         <div>
+            <app-organisation-selector-single-single [label]="'Organisation'" [(selectedId)]="station.organisationId" />
+        </div>
+
+        <hr />
+
+        <div>
             <app-text-input [label]="'WMO ID'" [(value)]="station.wmoId" />
         </div>
 

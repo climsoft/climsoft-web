@@ -77,7 +77,7 @@ export class AppDatabase extends Dexie {
             organisations: `id, name`,
             networkAffiliations: `id, name`,
             regions: `id, name, regionType`,
-            stations: `id, name, stationObsProcessingMethod, stationObsEnvironmentId, stationObsFocusId, wmoId, wigosId, icaoId, status, dateEstablished, dateClosed`,
+            stations: `id, name, stationObsProcessingMethod, stationObsEnvironmentId, stationObsFocusId, organisationId, wmoId, wigosId, icaoId, status, dateEstablished, dateClosed`,
             stationObsEnv: `id, name`,
             stationObsFocus: `id, name`,
             elementSubdomains: `id, name`,

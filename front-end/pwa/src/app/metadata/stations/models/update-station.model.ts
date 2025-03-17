@@ -1,4 +1,5 @@
-import { StationObsProcessingMethodEnum } from "./station-obs-Processing-method.enum";
+
+import { StationObsProcessingMethodEnum } from "./station-obs-processing-method.enum";
 import { StationStatusEnum } from "./station-status.enum"; 
 
 export interface UpdateStationModel {
@@ -10,6 +11,7 @@ export interface UpdateStationModel {
   stationObsProcessingMethod: StationObsProcessingMethodEnum ;
   stationObsEnvironmentId: number | null;
   stationObsFocusId: number | null; 
+  organisationId: number | null; 
   wmoId: string | null; 
   wigosId: string | null; 
   icaoId: string | null;

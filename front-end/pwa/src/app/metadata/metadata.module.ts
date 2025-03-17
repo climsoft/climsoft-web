@@ -65,6 +65,7 @@ import { StationObsEnvSingleInputComponent } from './stations/station-environmen
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
+import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
 
 @NgModule({
   declarations: [
@@ -76,6 +77,7 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
 
     ViewOrganisationsComponent,
     OrganisationDetailsComponent,
+    OrganisationSelectorSingleComponent,
 
     ViewRegionsComponent,
     ViewRegionsTableComponent,
@@ -149,8 +151,6 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
     SharedModule,
   ],
   exports: [
-
-    
     ElementsSelectorDialogComponent,
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
@@ -168,10 +168,7 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
     StationsSearchDialogComponent,
     ViewStationsMapComponent,
 
-
     FormSelectorDialogComponent,
-
-
 
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,

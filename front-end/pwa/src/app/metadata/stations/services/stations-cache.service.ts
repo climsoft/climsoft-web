@@ -5,12 +5,13 @@ import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metada
 import { AppDatabase } from "src/app/app-database";
 import { ViewStationObsEnvModel } from "src/app/metadata/stations/models/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "src/app/metadata/stations/models/view-station-obs-focus.model";
-import { StationObsProcessingMethodEnum } from "src/app/metadata/stations/models/station-obs-Processing-method.enum";
+import { StationObsProcessingMethodEnum } from "src/app/metadata/stations/models/station-obs-processing-method.enum";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { UpdateStationModel } from "src/app/metadata/stations/models/update-station.model"; 
+import { UpdateStationModel } from "src/app/metadata/stations/models/update-station.model";
 import { StationStatusEnum } from "src/app/metadata/stations/models/station-status.enum";
 import { AppConfigService } from "src/app/app-config.service";
 import { CreateStationModel } from "../models/create-station.model";
+import { ViewOrganisationModel } from "../../organisations/models/view-organisation.model";
 
 export interface StationCacheModel {
     id: string;
@@ -27,6 +28,8 @@ export interface StationCacheModel {
     stationObsEnvironmentName: string;
     stationObsFocusId: number | null;
     stationObsFocusName: string;
+    organisationId: number | null;
+    organisationName: string;
     wmoId: string;
     wigosId: string;
     icaoId: string;
@@ -55,14 +58,17 @@ export class StationsCacheService {
     private async loadStations() {
         const obsEnvs: ViewStationObsEnvModel[] = await this.getStationObsEnv();
         const obsFocuses: ViewStationObsFocusModel[] = await this.getStationObsFocus();
+        const organisations: ViewOrganisationModel[] = await AppDatabase.instance.organisations.toArray();
+        console.log('organisations: ', organisations)
         const newCachedStations: StationCacheModel[] = [];
 
         console.log('fetching stations from local db and putting into memory');
 
-        const localDBStations: CreateStationModel[] =  await AppDatabase.instance.stations.toArray();
-        for(const station of localDBStations){
+        const localDBStations: CreateStationModel[] = await AppDatabase.instance.stations.toArray();
+        for (const station of localDBStations) {
             const obsEnv = obsEnvs.find(item => item.id === station.stationObsEnvironmentId);
             const obsFocus = obsFocuses.find(item => item.id === station.stationObsFocusId);
+            const organisation = organisations.find(item => item.id === station.organisationId);
             const location = station.longitude && station.latitude ? { longitude: station.longitude, latitude: station.latitude } : null;
 
             newCachedStations.push(
@@ -74,10 +80,12 @@ export class StationsCacheService {
                     elevation: station.elevation,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
                     stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
-                    stationObsEnvironmentId: obsEnv ? obsEnv.id : 0,
+                    stationObsEnvironmentId: obsEnv ? obsEnv.id : null,
                     stationObsEnvironmentName: obsEnv ? obsEnv.name : '',
-                    stationObsFocusId: obsFocus ? obsFocus.id : 0,
+                    stationObsFocusId: obsFocus ? obsFocus.id : null,
                     stationObsFocusName: obsFocus ? obsFocus.name : '',
+                    organisationId: organisation? organisation.id: null,
+                    organisationName: organisation? organisation.name: '',
                     wmoId: station.wmoId ? station.wmoId : '',
                     wigosId: station.wigosId ? station.wigosId : '',
                     icaoId: station.icaoId ? station.icaoId : '',

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-Processing-method.enum';
+import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
