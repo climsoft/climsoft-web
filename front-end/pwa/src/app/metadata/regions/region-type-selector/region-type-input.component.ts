@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { StringUtils } from '../../utils/string.utils';
-import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
+import { StringUtils } from '../../../shared/utils/string.utils';
+import { RegionTypeEnum } from 'src/app/metadata/regions/models/region-types.enum';
 
 @Component({
   selector: 'app-region-type-input',

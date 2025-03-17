@@ -15,7 +15,7 @@ export class ElementsService {
     ) { }
 
     public async findOne(id: number): Promise<CreateViewElementDto> {
-        return this.createViewDto(await this.getEntity(id));
+        return this.createViewDto(await this.findEntity(id));
     }
 
     public async find(viewElementQueryDto?: ViewElementQueryDTO): Promise<CreateViewElementDto[]> {
@@ -58,7 +58,6 @@ export class ElementsService {
     }
 
     public async add(createDto: CreateViewElementDto, userId: number): Promise<CreateViewElementDto> {
-
         let entity: ElementEntity | null = await this.elementRepo.findOneBy({
             id: createDto.id,
         });
@@ -81,7 +80,7 @@ export class ElementsService {
     }
 
     public async update(id: number, updateDto: UpdateElementDto, userId: number): Promise<CreateViewElementDto> {
-        const entity: ElementEntity = await this.getEntity(id);
+        const entity: ElementEntity = await this.findEntity(id);
 
         this.updateEntity(entity, updateDto, userId);
 
@@ -91,7 +90,7 @@ export class ElementsService {
     }
 
     public async delete(id: number): Promise<number> {
-        await this.elementRepo.remove(await this.getEntity(id));
+        await this.elementRepo.remove(await this.findEntity(id));
         return id;
     }
 
@@ -163,7 +162,7 @@ export class ElementsService {
      * @param id 
      * @returns 
      */
-    private async getEntity(id: number): Promise<ElementEntity> {
+    private async findEntity(id: number): Promise<ElementEntity> {
         const elementEntity: ElementEntity | null = await this.elementRepo.findOneBy({
             id: id,
         });

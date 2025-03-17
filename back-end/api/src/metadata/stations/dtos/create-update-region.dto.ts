@@ -1,12 +1,13 @@
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator"; 
 import { RegionTypeEnum } from "../enums/region-types.enum";
 
 export class CreateUpdateRegionDto  {
     @IsString()
     name: string;
 
+    @IsOptional()
     @IsString()
-    description: string;
+    description: string| null;
 
     @IsEnum(RegionTypeEnum, { message: 'region type must be a valid RegionTypeEnum value' })
     regionType: RegionTypeEnum;

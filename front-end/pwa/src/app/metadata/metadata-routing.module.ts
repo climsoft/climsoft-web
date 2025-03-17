@@ -11,6 +11,8 @@ import { ViewRegionsComponent } from './regions/view-regions/view-regions.compon
 import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
 import { ExportTemplateDetailComponent } from './export-templates/export-template-detail/export-template-detail.component';
 import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
+import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
+import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 
 const routes: Routes = [
   {
@@ -45,6 +47,19 @@ const routes: Routes = [
         component: ImportSourceDetailComponent
       },
       {
+        path: 'view-organisations',
+        component: ViewOrganisationsComponent
+      }, 
+      {
+        path: 'organisation-details/:id',
+        component: OrganisationDetailsComponent
+      },
+      {
+        path: 'view-regions',
+        component: ViewRegionsComponent
+      }, 
+
+      {
         path: 'view-stations',
         component: ViewStationsComponent, 
       },
@@ -52,10 +67,7 @@ const routes: Routes = [
         path: 'station-detail/:id',
         component: StationDetailComponent
       },
-      {
-        path: 'view-regions',
-        component: ViewRegionsComponent
-      }, 
+ 
       {
         path: 'view-exports',
         component: ViewExportTemplatesComponent

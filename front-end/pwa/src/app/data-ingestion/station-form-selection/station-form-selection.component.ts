@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-Processing-method.enum';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';

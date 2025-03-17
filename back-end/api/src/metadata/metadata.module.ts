@@ -6,7 +6,7 @@ import { StationsService } from './stations/services/stations.service';
 import { ElementsController } from './elements/controllers/elements.controller';
 import { ElementEntity } from './elements/entities/element.entity';
 import { SourceTemplatesController } from 'src/metadata/source-templates/controllers/source-templates.controller';
-import { StationFormEntity } from './stations/entities/station-form.entity'; 
+import { StationFormEntity } from './stations/entities/station-form.entity';
 import { ElementSubdomainEntity } from './elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from './elements/entities/element-type.entity';
 import { UserModule } from 'src/user/user.module';
@@ -21,14 +21,14 @@ import { StationObsFocusesController } from './stations/controllers/station-obs-
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
 import { SourceTemplatesService } from './source-templates/services/source-templates.service';
-import { RegionEntity } from './regions/entities/region.entity';
+import { RegionEntity } from './stations/entities/region.entity';
 import { SourceTemplateEntity } from './source-templates/entities/source-template.entity';
 import { ElementsService } from './elements/services/elements.service';
 import { ElementQCTestEntity } from './elements/entities/element-qc-test.entity';
 import { ElementsQCTestsController } from './elements/controllers/elements-qc-tests.controller';
-import { ElementsQCTestsService } from './elements/services/elements-qc-tests.service'; 
-import { RegionsController } from './regions/controllers/regions.controller';
-import { RegionsService } from './regions/services/regions.service';
+import { ElementsQCTestsService } from './elements/services/elements-qc-tests.service';
+import { RegionsController } from './stations/controllers/regions.controller';
+import { RegionsService } from './stations/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { OrganisationEntity } from './stations/entities/organisation.entity';
 import { NetworkAffiliationEntity } from './stations/entities/network-affiliation.entity';
@@ -41,27 +41,33 @@ import { ElementsImportExportService } from './elements/services/elements-import
 import { ExportTemplateEntity } from './export-templates/entities/export-template.entity';
 import { ExportTemplatesController } from './export-templates/controllers/export-templates.controller';
 import { ExportTemplatesService } from './export-templates/services/export-templates.service';
+import { OrganisationsService } from './stations/services/organisations.service';
+import { OrganisationsController } from './stations/controllers/organisations.controller';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-        ElementSubdomainEntity,
-        ElementTypeEntity,
-        ElementEntity,
-        SourceTemplateEntity,
-        //InstrumentTypeEntity, // TODO add later
-        //InstrumentEntity, // TODO add later
-        OrganisationEntity,
-        NetworkAffiliationEntity,
-        RegionEntity,
-        StationObservationEnvironmentEntity,
-        StationObservationFocusEntity,
-        StationEntity,
-        StationFormEntity,
-        StationNetworkAffiliationEntity,
-        ElementQCTestEntity,
-        ExportTemplateEntity,
-    ]),
+            ElementSubdomainEntity,
+            ElementTypeEntity,
+            ElementEntity,
+            ElementQCTestEntity,
+
+            OrganisationEntity,
+            NetworkAffiliationEntity,
+            RegionEntity,
+            StationObservationEnvironmentEntity,
+            StationObservationFocusEntity,
+            StationEntity,
+            StationFormEntity,
+            StationNetworkAffiliationEntity,
+
+            //InstrumentTypeEntity, // TODO add later
+            //InstrumentEntity, // TODO add later
+
+            SourceTemplateEntity,
+
+            ExportTemplateEntity,
+        ]),
         SharedModule,
         UserModule,
     ],
@@ -69,27 +75,33 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         ElementsController,
         ElementTypesController,
         ElementSubdomainsController,
-        SourceTemplatesController,
+        ElementsQCTestsController,
+
+        OrganisationsController,
+        RegionsController,
         StationObsEnvsController,
         StationObsFocusesController,
-        StationsController, 
+        StationsController,
         StationFormsController,
-        ElementsQCTestsController,
-        RegionsController,
+
+        SourceTemplatesController,
+
         ExportTemplatesController,
+        
         MetadataUpdatesController,
     ],
     providers: [
         ElementSubdomainsService,
         ElementTypesService,
         ElementsService,
+        OrganisationsService,
         SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
-        StationsService, 
+        StationsService,
         StationFormsService,
         ElementsQCTestsService,
-        RegionsService, 
+        RegionsService,
         StationsImportExportService,
         ElementsImportExportService,
         ExportTemplatesService,
@@ -99,14 +111,16 @@ import { ExportTemplatesService } from './export-templates/services/export-templ
         ElementSubdomainsService,
         ElementTypesService,
         ElementsService,
+        OrganisationsService,
         SourceTemplatesService,
         StationObsEnvService,
         StationObsFocusesService,
-        StationsService, 
+        StationsService,
         StationFormsService,
         ElementsQCTestsService,
         RegionsService,
         ExportTemplatesService,
+
     ]
 })
 export class MetadataModule { }

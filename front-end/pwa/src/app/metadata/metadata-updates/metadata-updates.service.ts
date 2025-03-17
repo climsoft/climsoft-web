@@ -72,6 +72,12 @@ export class MetadataUpdatesService {
 
     private getUpdateRouteParam(tableName: keyof AppDatabase): string {
         switch (tableName) {
+            case 'regions':
+                return 'regions';
+            case 'organisations':
+                return 'organisations';
+            //case 'network-affiliations':
+            //    return 'network-affiliations';
             case 'stations':
                 return 'stations';
             case 'stationObsEnv':
@@ -86,10 +92,7 @@ export class MetadataUpdatesService {
                 return 'elements';
             case 'sourceTemplates':
                 return 'sources';
-            case 'regions':
-                return 'regions';
             default:
-                console.error('Developer error: metadata name not recognised');
                 throw new Error('Developer error: metadata name not recognised');
         }
 

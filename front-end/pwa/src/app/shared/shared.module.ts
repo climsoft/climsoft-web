@@ -24,10 +24,6 @@ import { HourSingleInputComponent } from './controls/hour-input/hour-single-inpu
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
 import { PeriodSingleInputComponent } from './controls/period-input/period-single-input/period-single-input.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
-import { StationObsMethodSingleInputComponent } from './controls/station-obs-method-input/station-obs-method-single-input/station-obs-method-single-input.component';
-import { StationObsEnvSingleInputComponent } from './controls/station-obs-env-input/station-obs-environment-single-input/station-obs-env-single-input.component';
-import { StationObservationFocusSingleInputComponent } from './controls/station-obs-focus-input/station-obs-focus-single-input/station-obs-focus-single-input.component';
-import { StationStatusSingleInputComponent } from './controls/station-status-input/station-status-single-input/station-status-single-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
@@ -38,7 +34,6 @@ import { ServerTypeInputComponent } from './controls/server-type-input/server-ty
 import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
-import { RegionTypeInputComponent } from './controls/region-type-input/region-type-input.component';
 import { MapComponent } from './controls/map/map.component';
 import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
 
@@ -75,10 +70,7 @@ const controlsComponents = [
   YearMonthInputComponent,
   PeriodSingleInputComponent,
   
-  StationObsMethodSingleInputComponent,
-  StationObsEnvSingleInputComponent,
-  StationObservationFocusSingleInputComponent,
-  StationStatusSingleInputComponent,
+  
   DropDownButtonComponent,    
   ElementDomainSingleInputComponent,  
   ElementSubdomainSingleInputComponent,
@@ -87,7 +79,7 @@ const controlsComponents = [
   FlagSingleInputComponent,
   PageInputComponent,
   DropDownContainerComponent, 
-  RegionTypeInputComponent,
+ 
   MapComponent,
   DataStructureInputComponent,
 ];

@@ -43,22 +43,26 @@
         <div>
             <app-number-input [label]="'Elevation'" [(value)]="station.elevation" />
         </div>
+
         <hr />
+
         <div>
-            <app-station-obs-method-single-input [selectedId]="station.stationObsProcessingMethod"
+            <app-station-obs-method-single-input [label]="'Observation Method'"
+                [selectedId]="station.stationObsProcessingMethod"
                 (selectedIdChange)="onStationObsMethodChange($event)" />
         </div>
 
         <hr />
 
         <div>
-            <app-station-obs-env-single-input [(selectedId)]="station.stationObsEnvironmentId" />
+            <app-station-obs-env-single-input [label]="'Environment'"
+                [(selectedId)]="station.stationObsEnvironmentId" />
         </div>
 
         <hr />
 
         <div>
-            <app-station-obs-focus-single-input [(selectedId)]="station.stationObsFocusId" />
+            <app-station-obs-focus-single-input [label]="'Focus'" [(selectedId)]="station.stationObsFocusId" />
         </div>
 
         <hr />

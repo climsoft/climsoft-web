@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-Processing-method.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
@@ -8,8 +8,8 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./station-obs-method-single-input.component.scss']
 })
 export class StationObsMethodSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Observation Method';
-  @Input() public errorMessage: string = '';
+  @Input() public label!: string ;
+  @Input() public errorMessage!: string ;
   @Input() public includeOnlyIds!: StationObsProcessingMethodEnum[];
   @Input() public selectedId!: StationObsProcessingMethodEnum | null;
   @Output() public selectedIdChange = new EventEmitter<StationObsProcessingMethodEnum | null>();

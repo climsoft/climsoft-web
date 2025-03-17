@@ -1,57 +1,58 @@
-import { BehaviorSubject, catchError, map, Observable, Subscription, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, Subscription, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { ViewRegionModel } from "src/app/metadata/regions/models/view-region.model";
 import { CreateUpdateRegionModel } from "src/app/metadata/regions/models/create-update-region.model";
 import { AppConfigService } from "src/app/app-config.service";
+import { ViewOrganisationModel } from "../models/view-organisation.model";
+import { CreateUpdateOrganisationModel } from "../models/create-update-organisation.model";
 
 @Injectable({
     providedIn: 'root'
 })
-export class RegionsCacheService {
+export class OrganisationsCacheService {
     private endPointUrl: string;
-    private readonly _cachedRegions: BehaviorSubject<ViewRegionModel[]> = new BehaviorSubject<ViewRegionModel[]>([]);
+    private readonly _cachedOrganisation: BehaviorSubject<ViewOrganisationModel[]> = new BehaviorSubject<ViewOrganisationModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/regions`;
-        this.loadRegions();
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/organisations`;
+        this.loadOrganisation();
     }
 
-    private async loadRegions() {
-        this._cachedRegions.next(await AppDatabase.instance.regions.toArray());
+    private async loadOrganisation() {
+        this._cachedOrganisation.next(await AppDatabase.instance.organisations.toArray());
     }
 
     public checkForUpdates(): void {
-        console.log('checking regions updates');
+        console.log('checking organisations updates');
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('regions').subscribe(res => {
-            console.log('regions-cache response', res);
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('organisations').subscribe(res => {
+            console.log('organisations-cache response', res);
             if (res) {
-                this.loadRegions();
+                this.loadOrganisation();
             }
         });
     }
 
-    public get cachedRegions(): Observable<ViewRegionModel[]> {
+    public get cachedOrganisations(): Observable<ViewOrganisationModel[]> {
         this.checkForUpdates();
-        return this._cachedRegions.asObservable();
+        return this._cachedOrganisation.asObservable();
     }
 
-    public findOne(id: number): Observable<ViewRegionModel | undefined> {
-        return this.cachedRegions.pipe(
+    public findOne(id: number): Observable<ViewOrganisationModel | undefined> {
+        return this.cachedOrganisations.pipe(
             map(response => {
                 return response.find(item => item.id === id);
             })
         );
     }
 
-    public create(createDto: CreateUpdateRegionModel): Observable<ViewRegionModel> {
-        return this.http.post<ViewRegionModel>(`${this.endPointUrl}`, createDto)
+    public create(createDto: CreateUpdateOrganisationModel): Observable<ViewOrganisationModel> {
+        return this.http.post<ViewOrganisationModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();
@@ -60,8 +61,8 @@ export class RegionsCacheService {
             );
     }
 
-    public update(id: number, updateDto: CreateUpdateRegionModel): Observable<ViewRegionModel> {
-        return this.http.patch<ViewRegionModel>(`${this.endPointUrl}/${id}`, updateDto)
+    public update(id: number, updateDto: CreateUpdateRegionModel): Observable<ViewOrganisationModel> {
+        return this.http.patch<ViewOrganisationModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();

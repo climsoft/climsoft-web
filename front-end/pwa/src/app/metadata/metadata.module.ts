@@ -20,7 +20,7 @@ import { ImportStationsDialogComponent } from './stations/import-stations-dialog
 import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { StationCharacteristicsComponent } from './stations/station-detail/station-characteristics/station-characteristics.component';
-import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component'; 
+import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component';
 import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
 import { ImportSourcePeriodDetailComponent } from './source-templates/import-source-detail/import-source-period-detail/import-source-period-detail.component';
@@ -56,11 +56,26 @@ import { ExportTemplateSelectorSingleComponent } from './export-templates/export
 import { ExportTemplateSelectorMultipleComponent } from './export-templates/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
 import { SourceSelectorSingleComponent } from './source-templates/source-selector/source-single-input/source-selector-single.component';
 import { SourceSelectorMultipleComponent } from './source-templates/source-selector/source-selector-multiple/source-selector-multiple.component';
+import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
+import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
+import { StationObsMethodSingleInputComponent } from './stations/station-obs-method-selector/station-obs-method-single-input/station-obs-method-single-input.component';
+import { StationStatusSingleInputComponent } from './stations/station-status-selector/station-status-single-input/station-status-single-input.component';
+import { StationObservationFocusSingleInputComponent } from './stations/station-focus-selector/station-obs-focus-single-input/station-obs-focus-single-input.component';
+import { StationObsEnvSingleInputComponent } from './stations/station-environment-selector/station-obs-environment-single-input/station-obs-env-single-input.component';
+import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 
 @NgModule({
   declarations: [
     ElementsSelectorDialogComponent,
-    FormSelectorDialogComponent, 
+    FormSelectorDialogComponent,
+
+    ViewOrganisationsComponent,
+    OrganisationDetailsComponent,
+
+    ViewRegionsComponent,
+    ViewRegionsTableComponent,
+    ViewRegionsMapComponent,
+    RegionTypeInputComponent,
 
     ViewSourcesComponent,
     FormSourceDetailComponent,
@@ -70,11 +85,18 @@ import { SourceSelectorMultipleComponent } from './source-templates/source-selec
     StationDetailComponent,
     StationCharacteristicsEditDialogComponent,
     ImportStationsDialogComponent,
+    StationObsMethodSingleInputComponent,
+    StationObsEnvSingleInputComponent,
+    StationObservationFocusSingleInputComponent,
+    StationStatusSingleInputComponent,
+    ViewStationsTableComponent,
+    ViewStationsMapComponent,
+    StationsSearchDialogComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
-    StationFormsComponent, 
+    StationFormsComponent,
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -97,14 +119,9 @@ import { SourceSelectorMultipleComponent } from './source-templates/source-selec
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
     ImportRegionsDialogComponent,
-    ViewRegionsComponent,
-    ViewRegionsTableComponent,
-    ViewRegionsMapComponent,
-    ViewStationsTableComponent,
-    ViewStationsMapComponent,
-    StationsSearchDialogComponent,
-    
-    ElementsSearchDialogComponent, 
+
+
+    ElementsSearchDialogComponent,
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
 
@@ -124,20 +141,32 @@ import { SourceSelectorMultipleComponent } from './source-templates/source-selec
   ],
   imports: [
     MetadataRoutingModule,
-    SharedModule,    
+    SharedModule,
   ],
   exports: [
+
+    
     ElementsSelectorDialogComponent,
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
     ElementsSearchDialogComponent,
-    
-    FormSelectorDialogComponent,   
 
-    StationSelectorMultipleComponent,
-    StationSelectorSingleComponent, 
-    StationsSearchDialogComponent, 
+    StationObsMethodSingleInputComponent,
+    StationObsEnvSingleInputComponent,
+    StationObservationFocusSingleInputComponent,
+    StationStatusSingleInputComponent,
+    ViewStationsTableComponent,
     ViewStationsMapComponent,
+    StationsSearchDialogComponent,
+    StationSelectorMultipleComponent,
+    StationSelectorSingleComponent,
+    StationsSearchDialogComponent,
+    ViewStationsMapComponent,
+
+
+    FormSelectorDialogComponent,
+
+
 
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,

@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { ViewStationObsFocusModel } from 'src/app/core/models/stations/view-station-obs-focus.model';
+import { ViewStationObsFocusModel } from 'src/app/metadata/stations/models/view-station-obs-focus.model';
 import { StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
@@ -8,8 +8,8 @@ import { StationsCacheService } from 'src/app/metadata/stations/services/station
   styleUrls: ['./station-obs-focus-single-input.component.scss']
 })
 export class StationObservationFocusSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Observation Focus';
-  @Input() errorMessage: string = '';
+  @Input() public label!: string ;
+  @Input() public errorMessage!: string ;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number | null>();

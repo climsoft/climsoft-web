@@ -14,7 +14,6 @@ type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
   styleUrls: ['./view-elements.component.scss']
 })
 export class ViewElementsComponent implements OnDestroy {
-
   private allElements!: CreateViewElementModel[];
   protected elements!: CreateViewElementModel[];
   private searchedIds!: number[];

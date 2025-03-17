@@ -1,9 +1,8 @@
 import { HttpClient, HttpEventType } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { RegionTypeEnum } from 'src/app/core/models/Regions/region-types.enum';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { environment } from 'src/environments/environment';
+import { RegionTypeEnum } from 'src/app/metadata/regions/models/region-types.enum';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
@@ -29,7 +28,7 @@ export class ImportRegionsDialogComponent implements OnChanges {
 
   protected disableUpload: boolean = false;
   private fileInputEvent: any;
-  protected fileName: string = "";
+  protected fileName: string = '';
 
   protected selectedRegionType!: RegionTypeEnum | null;
  
