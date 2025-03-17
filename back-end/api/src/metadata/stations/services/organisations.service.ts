@@ -2,13 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RegionEntity } from '../entities/region.entity';
-import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
+import { ViewRegionQueryDTO } from '../../regions/dtos/view-region-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { OrganisationEntity } from '../entities/organisation.entity';
-import { ViewOrganisationDto } from '../dtos/view-organisation.dto';
-import { ViewOrganisationQueryDTO } from '../dtos/view-organisation-query.dto';
-import { CreateUpdateOrganisationDto } from '../dtos/create-update-organisation.dto';
+import { ViewOrganisationDto } from '../../organisations/dtos/view-organisation.dto';
+import { ViewOrganisationQueryDTO } from '../../organisations/dtos/view-organisation-query.dto';
+import { CreateUpdateOrganisationDto } from '../../organisations/dtos/create-update-organisation.dto';
 
 @Injectable()
 export class OrganisationsService {

@@ -7,7 +7,7 @@ import { StationObsEnvService } from '../stations/services/station-obs-env.servi
 import { StationObsFocusesService } from '../stations/services/station-obs-focuses.service';
 import { SourceTemplatesService } from '../source-templates/services/source-templates.service';
 import { ElementsService } from '../elements/services/elements.service';
-import { RegionsService } from '../stations/services/regions.service';
+import { RegionsService } from '../regions/services/regions.service';
 import { ElementTypesService } from '../elements/services/element-types.service';
 import { ElementSubdomainsService } from '../elements/services/element-subdomains.service';
 import { OrganisationsService } from '../stations/services/organisations.service';

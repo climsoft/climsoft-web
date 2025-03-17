@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { OrganisationsService } from '../services/organisations.service';
+import { OrganisationsService } from '../../stations/services/organisations.service';
 import { ViewOrganisationQueryDTO } from '../dtos/view-organisation-query.dto';
 import { Request } from 'express';
 import { CreateUpdateOrganisationDto } from '../dtos/create-update-organisation.dto';

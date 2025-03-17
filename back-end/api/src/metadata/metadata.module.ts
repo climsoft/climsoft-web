@@ -27,8 +27,8 @@ import { ElementsService } from './elements/services/elements.service';
 import { ElementQCTestEntity } from './elements/entities/element-qc-test.entity';
 import { ElementsQCTestsController } from './elements/controllers/elements-qc-tests.controller';
 import { ElementsQCTestsService } from './elements/services/elements-qc-tests.service';
-import { RegionsController } from './stations/controllers/regions.controller';
-import { RegionsService } from './stations/services/regions.service';
+import { RegionsController } from './regions/controllers/regions.controller';
+import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { OrganisationEntity } from './stations/entities/organisation.entity';
 import { NetworkAffiliationEntity } from './stations/entities/network-affiliation.entity';
@@ -42,7 +42,7 @@ import { ExportTemplateEntity } from './export-templates/entities/export-templat
 import { ExportTemplatesController } from './export-templates/controllers/export-templates.controller';
 import { ExportTemplatesService } from './export-templates/services/export-templates.service';
 import { OrganisationsService } from './stations/services/organisations.service';
-import { OrganisationsController } from './stations/controllers/organisations.controller';
+import { OrganisationsController } from './organisations/controllers/organisations.controller';
 
 @Module({
     imports: [

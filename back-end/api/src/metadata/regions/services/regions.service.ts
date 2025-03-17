@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { RegionEntity } from '../entities/region.entity';
+import { RegionEntity } from '../../stations/entities/region.entity';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
