@@ -1,0 +1,19 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="okButtonLabel" (okClick)="onOkClick()">
+
+    <table *ngIf="items" class="table table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let item of items" (click)="onItemClicked(item);" class="cursor-pointer">
+                <td>{{ item.name }}</td>
+                <td>{{ item.description }}</td>
+                <td><input type="checkbox" class="form-check-input" [checked]="item.selected"></td>
+            </tr>
+        </tbody>
+    </table>
+
+</app-dialog>

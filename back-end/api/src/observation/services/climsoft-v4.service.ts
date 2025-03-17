@@ -339,6 +339,7 @@ export class ClimsoftV4Service {
                 stationObsProcessingMethod: currentV5Station ? currentV5Station.stationObsProcessingMethod : StationObsProcessingMethodEnum.MANUAL, // TODO. Extrapolate from name?
                 stationObsEnvironmentId: currentV5Station ? currentV5Station.stationObsEnvironmentId : null,// Give fixed land by default?
                 stationObsFocusId: currentV5Station ? currentV5Station.stationObsFocusId : null, // extrapolate from qualifier?
+                organisationId: currentV5Station ? currentV5Station.organisationId : null,
                 wmoId: v4Station.wmoid,
                 wigosId: v4Station.wsi,
                 icaoId: v4Station.icaoid,

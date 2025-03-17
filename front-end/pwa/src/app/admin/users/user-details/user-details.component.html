@@ -1,34 +1,30 @@
 <div *ngIf="viewUser" class="card border-0">
-
-  <div class="card-header d-flex justify-content-between p-0 align-items-center mb-3">
-    <div class="fw-bold">Edit user details</div>
-  </div>
-
   <div class="card-body p-0">
 
     <div>
       <app-text-input [label]="'Name'" [(value)]="viewUser.name" />
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
       <app-text-input [type]="'email'" [label]="'Email'" [(value)]="viewUser.email" />
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
       <app-text-input [label]="'Phone'" [(value)]="viewUser.phone" />
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
-      <app-user-group-selector-single [label]="'Group'" [selectedId]="viewUser.groupId" (selectedIdChange)="onGroupChange($event)" />
+      <app-user-group-selector-single [label]="'Group'" [selectedId]="viewUser.groupId"
+        (selectedIdChange)="onGroupChange($event)" />
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
       <app-check-box-input [label]="'Is system administrator'" [value]="viewUser.isSystemAdmin"
@@ -39,20 +35,20 @@
       </div>
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
       <app-check-box-input [label]="'Disabled'" [(value)]="viewUser.disabled" />
     </div>
 
-    <hr class="border border-secondary border-1">
+    <hr />
 
     <div>
       <app-text-input [label]="'Comment'" [(value)]="viewUser.comment" />
     </div>
 
     <div *ngIf="errorMessage">
-      <hr class="border border-secondary border-1">
+      <hr />
       <div class="text-danger">
         {{errorMessage}}
       </div>

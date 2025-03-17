@@ -1,6 +1,6 @@
 import { Transform } from "class-transformer";
 import { IsEnum, IsInt, IsOptional } from "class-validator";
-import { StringUtils } from "src/shared/utils/string.utils";
+import { StringUtils } from "src/shared/utils/string.utils"; 
 import { RegionTypeEnum } from "../enums/region-types.enum";
 
 export class ViewRegionQueryDTO {

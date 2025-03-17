@@ -34,6 +34,10 @@ export class UpdateStationDto {
     stationObsFocusId: number | null;
 
     @IsOptional()
+    @IsInt()
+    organisationId: number | null;
+
+    @IsOptional()
     @IsString()
     wmoId: string | null;
 

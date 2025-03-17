@@ -25,6 +25,5 @@ export class StationFormEntity extends AppBaseEntity {
     // ManyToOne relationship with SourceEntity
     @ManyToOne(() => SourceTemplateEntity, { onDelete: "CASCADE" })
     @JoinColumn({ name: "form_id" })
-    form: SourceTemplateEntity;
-  
+    form: SourceTemplateEntity; 
 }

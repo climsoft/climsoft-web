@@ -23,7 +23,7 @@ export class ViewStationsMapComponent implements OnChanges {
     console.log('view map changes raised');
 
     if (changes['stations'] && this.stations) { 
-      this.setupMap();
+      this.setupMap(); 
     }
   }
 

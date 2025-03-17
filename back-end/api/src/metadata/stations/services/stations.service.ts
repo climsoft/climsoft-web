@@ -121,6 +121,7 @@ export class StationsService {
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId ? dto.stationObsEnvironmentId : null;
         entity.obsFocusId = dto.stationObsFocusId ? dto.stationObsFocusId : null;
+        entity.organisationId = dto.organisationId ? dto.organisationId : null;
         entity.wmoId = dto.wmoId ? dto.wmoId : null;
         entity.wigosId = dto.wigosId ? dto.wigosId : null;
         entity.icaoId = dto.icaoId ? dto.icaoId : null;
@@ -134,7 +135,7 @@ export class StationsService {
     private createViewDto(entity: StationEntity): CreateStationDto {
         return {
             id: entity.id,
-            name: entity.name, 
+            name: entity.name,
             description: entity.description,
             longitude: entity.location ? entity.location.coordinates[0] : null,
             latitude: entity.location ? entity.location.coordinates[1] : null,
@@ -142,6 +143,7 @@ export class StationsService {
             stationObsProcessingMethod: entity.obsProcessingMethod,
             stationObsEnvironmentId: entity.obsEnvironmentId,
             stationObsFocusId: entity.obsFocusId,
+            organisationId: entity.organisationId,
             wmoId: entity.wmoId,
             wigosId: entity.wigosId,
             icaoId: entity.icaoId,
@@ -178,7 +180,7 @@ export class StationsService {
             .values(entities)
             .orUpdate(
                 [
-                    "name", 
+                    "name",
                     "description",
                     "observation_processing_method",
                     "location",

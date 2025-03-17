@@ -1,10 +1,10 @@
-import { Component, OnDestroy } from '@angular/core';
-import { CreateStationModel } from '../../../core/models/stations/create-station.model';
+import { Component, OnDestroy } from '@angular/core'; 
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { CreateStationModel } from '../models/create-station.model';
 
 type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 
@@ -15,7 +15,7 @@ type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 })
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: 'table' | 'map' = 'table';
-  private allStations!: StationCacheModel[];
+  private allStations!: StationCacheModel[]; 
   protected stations!: StationCacheModel[];
   private searchedIds!: string[];
   private destroy$ = new Subject<void>();

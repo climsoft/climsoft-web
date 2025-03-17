@@ -1,15 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { RegionEntity } from '../entities/region.entity';
+import { InjectRepository } from '@nestjs/typeorm'; 
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
 import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
-
-// TODO refactor this service later
+import { RegionEntity } from '../entities/region.entity';
 
 @Injectable()
 export class RegionsService {
@@ -32,7 +30,7 @@ export class RegionsService {
 
     public async findOne(id: number): Promise<ViewRegionDto> {
         const entity = await this.findEntity(id);
-        return this.getViewRegionDto(entity);
+        return this.createViewRegionDto(entity);
     }
 
     public async find(viewRegionQueryDto?: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
@@ -43,7 +41,7 @@ export class RegionsService {
         };
 
         if (viewRegionQueryDto) {
-            findOptions.where = this.getRegionFilter(viewRegionQueryDto);
+            findOptions.where = this.getFilter(viewRegionQueryDto);
             // If page and page size provided, skip and limit accordingly
             if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
                 findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
@@ -52,15 +50,15 @@ export class RegionsService {
         }
 
         return (await this.regionsRepo.find(findOptions)).map(entity => {
-            return this.getViewRegionDto(entity);
+            return this.createViewRegionDto(entity);
         });
     }
 
     public async count(viewRegionQueryDto: ViewRegionQueryDTO): Promise<number> {
-        return this.regionsRepo.countBy(this.getRegionFilter(viewRegionQueryDto));
+        return this.regionsRepo.countBy(this.getFilter(viewRegionQueryDto));
     }
 
-    private getRegionFilter(viewRegionQueryDto: ViewRegionQueryDTO): FindOptionsWhere<RegionEntity> {
+    private getFilter(viewRegionQueryDto: ViewRegionQueryDTO): FindOptionsWhere<RegionEntity> {
         const whereOptions: FindOptionsWhere<RegionEntity> = {};
 
         if (viewRegionQueryDto.regionIds) {
@@ -98,7 +96,7 @@ export class RegionsService {
             }
 
             entity.name = name; // Assuming the name is in properties
-            entity.description = '';
+            entity.description = null;
             entity.regionType = regionType; // Replace with appropriate region type
             entity.boundary = region.geometry;
             entity.entryUserId = userId;
@@ -112,8 +110,7 @@ export class RegionsService {
     }
 
     public async delete(id: number): Promise<number> {
-        const entity = await this.findEntity(id);
-        await this.regionsRepo.remove(entity);
+        await this.regionsRepo.remove(await this.findEntity(id));
         return id;
     }
 
@@ -124,7 +121,7 @@ export class RegionsService {
         return true;
     }
 
-    private getViewRegionDto(entity: RegionEntity): ViewRegionDto {
+    private createViewRegionDto(entity: RegionEntity): ViewRegionDto {
         return {
             id: entity.id,
             name: entity.name,

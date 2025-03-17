@@ -1,0 +1,36 @@
+<div *ngIf="viewNetworkAffiliations" class="card border-0">
+  <div class="card-body p-0">
+
+    <div>
+      <app-text-input [label]="'Name'" [(value)]="viewNetworkAffiliations.name" />
+    </div>
+
+    <hr />
+
+    <div>
+      <app-text-input [label]="'Description'" [(value)]="viewNetworkAffiliations.description" />
+    </div>
+
+    <hr />
+
+    <div>
+      <app-text-input [label]="'Comment'" [(value)]="viewNetworkAffiliations.comment" />
+    </div>
+
+    <div *ngIf="errorMessage">
+      <hr />
+      <div class="text-danger">
+        {{errorMessage}}
+      </div>
+    </div>
+
+  </div>
+
+  <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
+    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
+      Save
+    </button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+  </div>
+
+</div>

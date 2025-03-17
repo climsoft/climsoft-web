@@ -3,14 +3,15 @@ import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscripti
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
-import { ViewStationObsEnvModel } from "src/app/core/models/stations/view-station-obs-env.model";
-import { ViewStationObsFocusModel } from "src/app/core/models/stations/view-station-obs-focus.model";
-import { StationObsProcessingMethodEnum } from "src/app/core/models/stations/station-obs-Processing-method.enum";
+import { ViewStationObsEnvModel } from "src/app/metadata/stations/models/view-station-obs-env.model";
+import { ViewStationObsFocusModel } from "src/app/metadata/stations/models/view-station-obs-focus.model";
+import { StationObsProcessingMethodEnum } from "src/app/metadata/stations/models/station-obs-processing-method.enum";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { UpdateStationModel } from "src/app/core/models/stations/update-station.model";
-import { CreateStationModel } from "src/app/core/models/stations/create-station.model";
-import { StationStatusEnum } from "src/app/core/models/stations/station-status.enum";
+import { UpdateStationModel } from "src/app/metadata/stations/models/update-station.model";
+import { StationStatusEnum } from "src/app/metadata/stations/models/station-status.enum";
 import { AppConfigService } from "src/app/app-config.service";
+import { CreateStationModel } from "../models/create-station.model";
+import { ViewOrganisationModel } from "../../organisations/models/view-organisation.model";
 
 export interface StationCacheModel {
     id: string;
@@ -27,6 +28,8 @@ export interface StationCacheModel {
     stationObsEnvironmentName: string;
     stationObsFocusId: number | null;
     stationObsFocusName: string;
+    organisationId: number | null;
+    organisationName: string;
     wmoId: string;
     wigosId: string;
     icaoId: string;
@@ -55,11 +58,17 @@ export class StationsCacheService {
     private async loadStations() {
         const obsEnvs: ViewStationObsEnvModel[] = await this.getStationObsEnv();
         const obsFocuses: ViewStationObsFocusModel[] = await this.getStationObsFocus();
+        const organisations: ViewOrganisationModel[] = await AppDatabase.instance.organisations.toArray();
+        console.log('organisations: ', organisations)
         const newCachedStations: StationCacheModel[] = [];
 
-        await AppDatabase.instance.stations.each(station => {
+        console.log('fetching stations from local db and putting into memory');
+
+        const localDBStations: CreateStationModel[] = await AppDatabase.instance.stations.toArray();
+        for (const station of localDBStations) {
             const obsEnv = obsEnvs.find(item => item.id === station.stationObsEnvironmentId);
             const obsFocus = obsFocuses.find(item => item.id === station.stationObsFocusId);
+            const organisation = organisations.find(item => item.id === station.organisationId);
             const location = station.longitude && station.latitude ? { longitude: station.longitude, latitude: station.latitude } : null;
 
             newCachedStations.push(
@@ -71,10 +80,12 @@ export class StationsCacheService {
                     elevation: station.elevation,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
                     stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
-                    stationObsEnvironmentId: obsEnv ? obsEnv.id : 0,
+                    stationObsEnvironmentId: obsEnv ? obsEnv.id : null,
                     stationObsEnvironmentName: obsEnv ? obsEnv.name : '',
-                    stationObsFocusId: obsFocus ? obsFocus.id : 0,
+                    stationObsFocusId: obsFocus ? obsFocus.id : null,
                     stationObsFocusName: obsFocus ? obsFocus.name : '',
+                    organisationId: organisation? organisation.id: null,
+                    organisationName: organisation? organisation.name: '',
                     wmoId: station.wmoId ? station.wmoId : '',
                     wigosId: station.wigosId ? station.wigosId : '',
                     icaoId: station.icaoId ? station.icaoId : '',
@@ -83,10 +94,9 @@ export class StationsCacheService {
                     dateEstablished: station.dateEstablished ? station.dateEstablished.substring(0, 10) : '',
                     dateClosed: station.dateClosed ? station.dateClosed.substring(0, 10) : '',
                     comment: station.comment ? station.comment : '',
-                }
-            );
-        });
-
+                });
+        }
+        console.log('stations in memory updated');
         this._cachedStations.next(newCachedStations);
     }
 

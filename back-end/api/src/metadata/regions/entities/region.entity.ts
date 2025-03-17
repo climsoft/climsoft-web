@@ -1,6 +1,6 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, MultiPolygon, PrimaryGeneratedColumn } from "typeorm";
-import { RegionTypeEnum } from "../enums/region-types.enum";
+import { RegionTypeEnum } from "../../regions/enums/region-types.enum";
 
 @Entity("regions")
 export class RegionEntity extends AppBaseEntity {
@@ -10,8 +10,8 @@ export class RegionEntity extends AppBaseEntity {
   @Column({ name: 'name', type: 'varchar', unique: true })
   name: string;
 
-  @Column({ name: 'description', type: 'varchar' })
-  description: string;
+  @Column({ name: 'description', type: 'varchar', nullable: true })
+  description: string | null;
 
   @Column({ name: 'region_type', type: 'enum', enum: RegionTypeEnum })
   @Index()

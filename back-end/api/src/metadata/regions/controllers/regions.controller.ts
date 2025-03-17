@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { RegionTypeEnum } from '../enums/region-types.enum';
-import { RegionsService } from '../services/regions.service';
+import { RegionsService } from '../services/regions.service'; 
 import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 
 @Controller('regions')
@@ -18,7 +18,7 @@ export class RegionsController {
     return this.regionsService.find(viewRegionQueryDto);
   }
 
-  @Get('id:id')
+  @Get('id/:id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.regionsService.findOne(id);
   }

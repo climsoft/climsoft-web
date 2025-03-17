@@ -32,8 +32,11 @@ export enum SubMenuNameEnum {
     SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
-    STATIONS = 'Stations',
     REGIONS = 'Regions',
+    ORGANISATIONS = 'Organisations',
+    NETWORK_AFFILIATIONS = 'Network Affiliations',
+    STATIONS = 'Stations',
+
     SOURCE_TEMPLATES = 'Source Templates',
     EXPORT_TEMPLATES = 'Export Templates',
     INTEGRATION_CONNECTORS = 'Integration Connectors',
@@ -115,14 +118,22 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.ELEMENTS,
                     url: '/view-elements',
+                },                
+                {
+                    name: SubMenuNameEnum.ORGANISATIONS,
+                    url: '/view-organisations',
                 },
                 {
-                    name: SubMenuNameEnum.STATIONS,
-                    url: '/view-stations',
+                    name: SubMenuNameEnum.NETWORK_AFFILIATIONS,
+                    url: '/view-network-affiliations',
                 },
                 {
                     name: SubMenuNameEnum.REGIONS,
                     url: '/view-regions',
+                },
+                {
+                    name: SubMenuNameEnum.STATIONS,
+                    url: '/view-stations',
                 },
                 {
                     name: SubMenuNameEnum.SOURCE_TEMPLATES,

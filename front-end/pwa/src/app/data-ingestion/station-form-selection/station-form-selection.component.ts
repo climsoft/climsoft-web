@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { StationObsProcessingMethodEnum } from 'src/app/core/models/stations/station-obs-Processing-method.enum';
+import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
@@ -107,7 +107,7 @@ export class StationFormSelectionComponent implements OnDestroy {
 
     // No need to reload the station forms if already loaded if they have
     if (!stationView.forms) {
-      this.stationFormsService.getFormsAssignedToStations(stationView.station.id).pipe(
+      this.stationFormsService.getFormsAssignedToStation(stationView.station.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe(data => {
         //Filter out any disabled form

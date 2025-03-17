@@ -12,12 +12,11 @@ export class StationCharacteristicsComponent implements OnChanges {
   @Input()
   public station!: StationCacheModel;
 
-
   protected userCanEditStation: boolean = false;
 
   constructor(private appAuthService: AppAuthService,) {
-
   }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (this.station) {
       // Check on allowed options

@@ -1,17 +1,18 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ElementSubdomainEntity } from "./element-subdomain.entity";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("element_types")
+@Check("CHK_element_type_name_not_empty", `"name" <> ''`)
 export class ElementTypeEntity extends AppBaseEntity {
-    @PrimaryColumn({ type: "int" })
+    @PrimaryGeneratedColumn({ type: "int" })
     id: number;
 
     @Column({ type: "varchar" })
     name: string;
 
-    @Column({ type: "varchar" })
-    description: string;
+    @Column({ type: "varchar", nullable: true })
+    description: string | null;
 
     @Column({ type: "int", name: "subdomain_id" })
     @Index()

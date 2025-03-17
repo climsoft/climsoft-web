@@ -29,7 +29,7 @@ export class MetadataUpdatesService {
         const lastModifiedDate = (await AppDatabase.instance.metadataModificationLog.get(tableName))?.lastModifiedDate;
         const lastModifiedCount = await AppDatabase.count(tableName);
         const query: MetadataUpdatesQueryModel = { lastModifiedCount: lastModifiedCount, lastModifiedDate: lastModifiedDate };
-        return query
+        return query;
     }
 
     private getUpdatesFromServer(tableName: keyof AppDatabase, query: MetadataUpdatesQueryModel): Observable<MetadataUpdatesResponseModel> {
@@ -72,6 +72,12 @@ export class MetadataUpdatesService {
 
     private getUpdateRouteParam(tableName: keyof AppDatabase): string {
         switch (tableName) {
+            case 'regions':
+                return 'regions';
+            case 'organisations':
+                return 'organisations';
+            case 'networkAffiliations':
+               return 'network-affiliations';
             case 'stations':
                 return 'stations';
             case 'stationObsEnv':
@@ -86,10 +92,7 @@ export class MetadataUpdatesService {
                 return 'elements';
             case 'sourceTemplates':
                 return 'sources';
-            case 'regions':
-                return 'regions';
             default:
-                console.error('Developer error: metadata name not recognised');
                 throw new Error('Developer error: metadata name not recognised');
         }
 

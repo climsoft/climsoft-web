@@ -9,7 +9,7 @@
       <li class="nav-item">
         <button class="nav-link" [class.active]="activeTab === 'map'" (click)="onTabClick('map')">Map</button>
       </li>
-    </ul>
+    </ul> 
     <div class="d-flex align-items-center">
       <div *ngIf="stations" class="d-flex mx-2">
         Count: {{ stations.length | number:'1.0-0' }}

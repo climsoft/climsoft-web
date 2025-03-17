@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
-import { ViewRegionModel } from 'src/app/core/models/Regions/view-region.model';
+import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 
 type optionsType = 'Import' | 'Delete All';

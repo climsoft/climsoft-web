@@ -1,6 +1,6 @@
-export interface ViewElementTypeDto {
+export class ViewElementTypeDto {
     id: number;
     name: string;
-    description: string;
+    description: string  | null;
     subdomainId: number;
 }

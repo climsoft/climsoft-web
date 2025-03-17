@@ -3,8 +3,8 @@ import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { ViewRegionModel } from "src/app/core/models/Regions/view-region.model";
-import { CreateUpdateRegionModel } from "src/app/core/models/Regions/create-update-region.model";
+import { ViewRegionModel } from "src/app/metadata/regions/models/view-region.model";
+import { CreateUpdateRegionModel } from "src/app/metadata/regions/models/create-update-region.model";
 import { AppConfigService } from "src/app/app-config.service";
 
 @Injectable({

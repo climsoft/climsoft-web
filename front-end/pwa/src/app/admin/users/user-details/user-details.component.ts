@@ -25,25 +25,27 @@ export class UserDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private location: Location,
   ) {
-    this.pagesDataService.setPageHeader('User Detail');
+
   }
 
   ngOnInit() {
     const userId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(userId)) {
+      this.pagesDataService.setPageHeader('Edit User');
       this.usersService.findOne(+userId).pipe(take(1)).subscribe((data) => {
         this.viewUser = data;
       });
     } else {
+      this.pagesDataService.setPageHeader('New User');
       this.viewUser = { id: 0, name: '', email: '', phone: '', isSystemAdmin: true, groupId: 0, permissions: null, extraMetadata: null, disabled: false, comment: null };
     }
 
   }
 
-  protected onGroupChange(groupId: number): void{
+  protected onGroupChange(groupId: number): void {
     this.viewUser.groupId = groupId;
     this.onIsSytemAdminChange(false)
-    if(groupId){    
+    if (groupId) {
       this.userGroupsService.findOne(groupId).pipe(take(1)).subscribe((data) => {
         this.viewUser.permissions = data.permissions;
       });
@@ -73,7 +75,7 @@ export class UserDetailsComponent implements OnInit {
     const createUser: CreateUserModel = {
       name: this.viewUser.name,
       email: this.viewUser.email,
-      phone: this.viewUser.phone? this.viewUser.phone: null,
+      phone: this.viewUser.phone ? this.viewUser.phone : null,
       isSystemAdmin: this.viewUser.isSystemAdmin,
       groupId: this.viewUser.groupId ? this.viewUser.groupId : null,
       permissions: this.viewUser.permissions,
