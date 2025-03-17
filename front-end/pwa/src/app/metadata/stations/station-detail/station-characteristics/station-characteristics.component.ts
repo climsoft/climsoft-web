@@ -26,14 +26,18 @@ export class StationCharacteristicsComponent implements OnChanges {
       ).subscribe(user => {
         if (!user) {
           throw new Error('User not logged in');
-        } 
-        
+        }
+
         if (user.isSystemAdmin) {
           this.userCanEditStation = true;
         } else if (user.permissions && user.permissions.stationsMetadataPermissions) {
           const stationIds = user.permissions.stationsMetadataPermissions.stationIds;
-          this.userCanEditStation = stationIds?  stationIds.includes(this.station.id): false;
-        }else{
+          if (stationIds) {
+            this.userCanEditStation = stationIds.includes(this.station.id)
+          } else {
+            this.userCanEditStation = true;
+          }
+        } else {
           this.userCanEditStation = false;
         }
       });

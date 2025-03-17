@@ -7,7 +7,7 @@ import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-ob
 import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 import { CreateObservationDto } from 'src/observation/dtos/create-observation.dto';
 import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto';
-import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto'; 
+import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 import { UserPermissionDto } from '../dtos/user-permission.dto';
 
 @Injectable()
@@ -41,8 +41,16 @@ export class AuthorisedStationsPipe implements PipeTransform {
         //return this.handleArray(value, authorisedStationIds);
         return value;
       case 'String':
-        // TODO. Check path as well for station edit and validate using station metadata edit permission
-        //return this.handleString(value, authorisedStationIds);
+
+
+        if (this.request.method === 'PATCH') {
+          // Used by stations controller when updating station characteristics
+          return this.handleString(value, user.permissions);
+        } else if (this.request.method === 'POST') {
+          // Used by observations controller when importing data
+          return this.handleString(value, user.permissions);
+        }
+
         return value;
       case ViewStationQueryDTO.name:
         // All stations metadata are freely available to any user that has access to Climsoft, so no need to validate here.
@@ -59,7 +67,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
           return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else if (this.request.route.path === '/source-check/count' || this.request.route.path === '/source-check/count') {
           return this.handleSourceViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        }else{
+        } else {
           throw new BadRequestException('Observations route path not authorised');
         }
       case ViewObservationLogQueryDto.name:
@@ -67,8 +75,22 @@ export class AuthorisedStationsPipe implements PipeTransform {
         return value;
       case DeleteObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
-      default: 
+      default:
         throw new BadRequestException('Could not determine how to authorize stations');
+    }
+  }
+
+
+  private handleString(value: string, userPermissions: UserPermissionDto): string {
+    if (!userPermissions.stationsMetadataPermissions) throw new BadRequestException('Not authorised to update station');
+
+    // If allowed to update all stations then just return value
+    if (!userPermissions.stationsMetadataPermissions.stationIds) return value;
+
+    if (value && this.allAreAuthorisedStations([value], userPermissions.stationsMetadataPermissions.stationIds)) {
+      return value;
+    } else {
+      throw new BadRequestException('Not authorised to access station(s)');
     }
   }
 
@@ -135,7 +157,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-   // TODO
+  // TODO
   private handleArray(value: string[], authorisedStationIds: string[]): string[] {
     if (value) {
       if (!this.allAreAuthorisedStations(value, authorisedStationIds)) {
@@ -147,14 +169,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-   // TODO
-  private handleString(value: string, authorisedStationIds: string[]): string {
-    if (value && this.allAreAuthorisedStations([value], authorisedStationIds)) {
-      return value;
-    } else {
-      throw new BadRequestException('Not authorised to access station(s)');
-    }
-  }
+
 
   // TODO
   private handleViewStationQueryDTO(value: ViewStationQueryDTO, authorisedStationIds: string[]): ViewStationQueryDTO {

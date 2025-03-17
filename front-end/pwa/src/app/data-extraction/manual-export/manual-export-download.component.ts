@@ -21,7 +21,7 @@ export class ManualExportDownloadComponent implements OnInit {
     private pagesDataService: PagesDataService,
     private route: ActivatedRoute,
     private exportTemplateService: ExportTemplatesService,
-    private observationService: ObservationsService, ) {
+    private observationService: ObservationsService,) {
   }
 
   ngOnInit(): void {
@@ -31,7 +31,7 @@ export class ManualExportDownloadComponent implements OnInit {
       take(1)
     ).subscribe((data) => {
       this.viewExportTemplate = data;
-      this.pagesDataService.setPageHeader('Export From ' + this.viewExportTemplate.name);
+      this.pagesDataService.setPageHeader(`Export From ${this.viewExportTemplate.name}`);
     });
   }
 
