@@ -3,10 +3,11 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { Subject, take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { OrganisationsCacheService } from '../services/organisations-cache.service';
 import { ViewOrganisationModel } from '../models/view-organisation.model';
 import { CreateUpdateOrganisationModel } from '../models/create-update-organisation.model';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-organisation-details',
@@ -15,17 +16,24 @@ import { CreateUpdateOrganisationModel } from '../models/create-update-organisat
 })
 export class OrganisationDetailsComponent implements OnInit, OnDestroy {
   protected viewOrganisation!: ViewOrganisationModel;
-  protected errorMessage: string = '';
+  protected errorMessage!: string;
+  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
     private organisationsCacheService: OrganisationsCacheService,
     private route: ActivatedRoute,
     private location: Location,
   ) {
-
+    // Check on allowed options
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      this.isSystemAdmin = user && user.isSystemAdmin ? true : false;
+    });
   }
 
   ngOnInit() {
@@ -58,8 +66,8 @@ export class OrganisationDetailsComponent implements OnInit, OnDestroy {
 
     const createUser: CreateUpdateOrganisationModel = {
       name: this.viewOrganisation.name,
-      description: this.viewOrganisation.description? this.viewOrganisation.description: null, 
-      extraMetadata: this.viewOrganisation.extraMetadata, 
+      description: this.viewOrganisation.description ? this.viewOrganisation.description : null,
+      extraMetadata: this.viewOrganisation.extraMetadata,
       comment: this.viewOrganisation.comment ? this.viewOrganisation.comment : null,
     }
 
