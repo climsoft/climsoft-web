@@ -62,7 +62,7 @@ export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
     this.errorMessage = '';
 
     if (!this.viewNetworkAffiliations.name) {
-      this.errorMessage = 'Input name';
+      this.errorMessage = 'Enter name';
       return;
     }
 
