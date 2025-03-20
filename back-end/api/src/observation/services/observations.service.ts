@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
+import { Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity, ViewObservationLogDto } from '../entities/observation.entity';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -13,13 +13,14 @@ import { SourceTemplatesService } from 'src/metadata/source-templates/services/s
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
-import { UsersService } from 'src/user/services/users.service'; 
+import { UsersService } from 'src/user/services/users.service';
 
 @Injectable()
 export class ObservationsService {
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
+        private dataSource: DataSource,
         private stationsService: StationsService,
         private elementsService: ElementsService,
         private sourcesService: SourceTemplatesService,
@@ -412,6 +413,30 @@ export class ObservationsService {
     }
 
 
+    public async findStationsThatHaveLast24HoursRecords(): Promise<string[]> {
+        const results = await this.dataSource.manager.query(
+            `
+            SELECT DISTINCT o.station_id 
+            FROM observations o 
+            WHERE o.date_time >= NOW() - INTERVAL '24 HOURS' AND o.deleted = FALSE;
+            `);
+
+        // Return the path to the generated CSV file
+        return results.map((item: { station_id: any; }) => item.station_id);
+    }
+
+    public async findStationObservationsInLast24Hours(stationId: string): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
+        const results = await this.dataSource.manager.query(
+            `
+            SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
+            FROM observations o 
+            WHERE o.deleted = FALSE AND o.station_id = '${stationId}'  AND o.date_time >= NOW() - INTERVAL '24 HOURS' 
+            ORDER BY o.element_id, o.date_time;
+            `);
+
+        // Return the path to the generated CSV file
+        return results;
+    }
 
 
 }

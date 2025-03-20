@@ -1,6 +1,31 @@
-<div class="d-flex flex-column align-items-center">
-    <div class="fw-bold">Data monitoring will be supported in the next version release</div>
-    <div class="text-info">
-        Data monitoring will allow assessment of data ingestion
+<div *ngIf="operationalStations" class="card border-0">
+    <div class="card-body px-0">
+        <div *ngIf="stationMapLayerGroup">
+            <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
+        </div>
+
+        <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
+            <div class="card-body ">
+                <div class="d-flex flex-column fw-bold">
+                    <span>Stations Reporting Status</span>
+                    <span>in the last 24 hours</span>
+                </div>
+                <div>
+                    <div class="row">
+                        <div class="col-2"><span class="app-station-circle-lg app-station-bg-reporting-color"></span></div>
+                        <div class="col-auto">{{ reportingStationIds.length}}</div>
+                        <div class="col-auto">Reporting</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2"><span class="app-station-circle-lg app-station-bg-not-reporting-color"></span></div>
+                        <div class="col-auto">{{ this.operationalStations.length - this.reportingStationIds.length }}</div>
+                        <div class="col-auto">Not Reporting</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
- </div>
+
+    <app-station-data-monitoring #appStationDataMonitoring />
+
+</div>

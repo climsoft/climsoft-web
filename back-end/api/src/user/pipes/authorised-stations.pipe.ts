@@ -49,16 +49,18 @@ export class AuthorisedStationsPipe implements PipeTransform {
           routePath === '/station-forms/forms-assigned-to-station/:id' ||
           routePath === '/observations/upload/:sourceid/:stationid'
         ) {
-          return this.handleString(value, user.permissions);
+          return this.handleStationMetadataEdits(value, user.permissions);
+        } else if (routePath === '/station-observations-in-last-24hrs/:stationid') {
+          return this.handleMonitoringString(value, user.permissions); 
         }
 
         // TODO. delete these
         if (this.request.method === 'PATCH') {
           // Used by stations controller when updating station characteristics
-          return this.handleString(value, user.permissions);
+          return this.handleStationMetadataEdits(value, user.permissions);
         } else if (this.request.method === 'POST') {
           // Used by observations controller when importing data
-          return this.handleString(value, user.permissions);
+          return this.handleStationMetadataEdits(value, user.permissions);
         }
 
         return value;
@@ -71,7 +73,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case CreateObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
-        if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
+         if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
           return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
@@ -91,7 +93,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
   }
 
 
-  private handleString(value: string, userPermissions: UserPermissionDto): string {
+  private handleStationMetadataEdits(value: string, userPermissions: UserPermissionDto): string {
     if (!userPermissions.stationsMetadataPermissions) throw new BadRequestException('Not authorised to update station');
 
     // If allowed to update all stations then just return value
@@ -148,6 +150,19 @@ export class AuthorisedStationsPipe implements PipeTransform {
       value.stationIds = authorisedStationIds;
     }
     return value;
+  }
+
+  private handleMonitoringString(value: string, userPermissions: UserPermissionDto): string {
+    if (!userPermissions.ingestionMonitoringPermissions) throw new BadRequestException('Not authorised to monitor data');
+
+    // If allowed to update all stations then just return value
+    if (!userPermissions.ingestionMonitoringPermissions.stationIds) return value;
+
+    if (value && this.allAreAuthorisedStations([value], userPermissions.ingestionMonitoringPermissions.stationIds)) {
+      return value;
+    } else {
+      throw new BadRequestException('Not authorised to access station(s)');
+    }
   }
 
   private handleSourceViewObservationQueryDTO(value: ViewObservationQueryDTO, userPermissions: UserPermissionDto): ViewObservationQueryDTO {

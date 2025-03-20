@@ -21,6 +21,7 @@ import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
 import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
+import { StationDataMonitoringComponent } from './data-monitoring/station-data-monitoring/station-data-monitoring.component';
 
 
 @NgModule({
@@ -43,7 +44,9 @@ import { DataMonitoringComponent } from './data-monitoring/data-monitoring.compo
     DeletedDataComponent,
     AutoImportSelectionComponent, 
     ManageQCComponent,
+
     DataMonitoringComponent,
+    StationDataMonitoringComponent, 
   ],
   imports: [
     DataIngestionRoutingModule,

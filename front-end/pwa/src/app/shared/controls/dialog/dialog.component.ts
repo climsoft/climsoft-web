@@ -32,6 +32,9 @@ export class DialogComponent {
   closeOnOkClick: boolean = true;
 
   @Input()
+  closeOnCancelClick: boolean = true;
+
+  @Input()
   open: boolean = false;
 
   @Output()
@@ -58,7 +61,9 @@ export class DialogComponent {
   }
 
   protected onCancelClick(): void {
-    this.onClose();
+    if (this.closeOnCancelClick) {
+      this.onClose();
+    }
     this.cancelClick.emit();
   }
 

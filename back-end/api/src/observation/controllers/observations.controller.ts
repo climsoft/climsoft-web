@@ -58,6 +58,16 @@ export class ObservationsController {
     return this.observationsService.findObservationLog(viewObsevationQuery);
   }
 
+  @Get('stations-with-observations-in-last-24hrs')
+  getStationsThatHaveLast24HoursRecords() { // TODO. Create dto query to make the necessary filter
+    return this.observationsService.findStationsThatHaveLast24HoursRecords();
+  }
+
+  @Get('station-observations-in-last-24hrs/:stationid')
+  getStationObservationsLast24HoursRecords(@Param('stationid', AuthorisedStationsPipe) stationId: string) {
+    return this.observationsService.findStationObservationsInLast24Hours(stationId);
+  }
+
   @Get('generate-export/:templateid')
   generateExports(@Param('templateid', AuthorisedExportsPipe) exportTemplateId: number): Promise<number> {
     return this.exportObservationsService.generateExports(exportTemplateId);

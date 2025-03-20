@@ -1,0 +1,32 @@
+<app-dialog [(open)]="open" [title]="title" [cancelButtonLabel]="'Close'" [displayOkOption]="false"
+    [displayDeleteOption]="false" (cancelClick)="onCancelClick()" (cancelClick)="onCancelClick()">
+    <div *ngIf="station && open">
+
+        <div>
+            <table class="table table-striped table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Level</th>
+                        <th>Source</th>
+                        <th>Date Time</th> 
+                        <th>Interval</th> 
+                        <th>Value & Flag</th> 
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr class="app-cursor-pointer" *ngFor="let observation of observations">
+                        <td>{{ observation.elementAbbrv }}</td>
+                        <td>{{ observation.level }}</td>
+                        <td>{{ observation.sourceName }}</td>
+                        <td>{{ observation.presentableDatetime }}</td>
+                        <td>{{ observation.intervalName }}</td>
+                        <td>{{ observation.valueFlag }}</td> 
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+    </div>
+</app-dialog>

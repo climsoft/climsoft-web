@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import * as L from 'leaflet'; 
+import * as L from 'leaflet';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
@@ -14,6 +14,9 @@ export class ViewStationsMapComponent implements OnChanges {
 
   protected stationMapLayerGroup: L.LayerGroup;
 
+  protected stationsWithLocations!: StationCacheModel[];
+  protected stationsWithOutLocations!: StationCacheModel[];
+
   constructor() {
     this.stationMapLayerGroup = L.layerGroup();
   }
@@ -22,24 +25,25 @@ export class ViewStationsMapComponent implements OnChanges {
 
     console.log('view map changes raised');
 
-    if (changes['stations'] && this.stations) { 
-      this.setupMap(); 
+    if (changes['stations'] && this.stations) {
+      this.setupMap();
     }
   }
 
   private setupMap(): void {
+    this.stationsWithLocations = this.stations.filter(station => (station.location !== null));
+    this.stationsWithOutLocations = this.stations.filter(station => (station.location === null));
     const featureCollection: any = {
       "type": "FeatureCollection",
-      "features": this.stations.filter(item => (item.location !== null)).map(item => {
+      "features": this.stationsWithLocations.map(station => {
         return {
           "type": "Feature",
           "properties": {
-            "id": item.id,
-            "name": item.name,    // TODO. 
+            "station": station,
           },
           "geometry": {
             "type": "Point",
-            "coordinates": [item.location?.longitude, item.location?.latitude]
+            "coordinates": [station.location?.longitude, station.location?.latitude]
           }
         };
       })
@@ -52,11 +56,15 @@ export class ViewStationsMapComponent implements OnChanges {
 
   }
 
-
   private stationMarkers(feature: any, latlng: any) {
+    // Get station data and component from feature properties 
+    const station: StationCacheModel = feature.properties.station;
+
+    //let colorValue = station ? '#3BD424' : '#F73E25';
+
     //console.log("latlong", latlng, feature);
     const marker = L.circleMarker(latlng, {
-      radius: 5,
+      radius: 6,
       fillColor: '#1330BF',
       color: '#1330BF',
       weight: 1,
@@ -64,7 +72,18 @@ export class ViewStationsMapComponent implements OnChanges {
       fillOpacity: 0.8
     });
 
-    marker.bindPopup(`${feature.properties.name}`);
+    marker.bindPopup(station.name);
+
+    // Show the popup on mouseover
+    marker.on('mouseover', () => {
+      marker.openPopup();
+    });
+
+    // Hide the popup on mouseout
+    marker.on('mouseout', () => {
+      marker.closePopup();
+    });
+
     return marker;
   }
 

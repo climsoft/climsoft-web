@@ -10,8 +10,8 @@ import { AppConfig } from 'src/app.config';
 export class ExportObservationsService {
     constructor(
         private exportTemplatesService: ExportTemplatesService,
-        private readonly dataSource: DataSource,
-        private readonly fileIOService: FileIOService,) {
+        private dataSource: DataSource,
+        private fileIOService: FileIOService,) {
     }
 
     public async generateExports(exportTemplateId: number): Promise<number> {
@@ -76,7 +76,7 @@ export class ExportObservationsService {
         console.log('Copying done: ', outputPath, ' Results: ', results);
 
         // Return the path to the generated CSV file
-        return viewTemplateExportDto.id
+        return viewTemplateExportDto.id;
     }
 
     public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {
