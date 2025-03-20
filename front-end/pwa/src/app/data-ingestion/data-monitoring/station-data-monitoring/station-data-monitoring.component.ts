@@ -75,8 +75,6 @@ export class StationDataMonitoringComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-
-
   public showDialog(selectedStation: StationCacheModel): void {
     this.station = selectedStation;
     this.title = this.station.id + ' - ' + this.station.name
@@ -88,13 +86,11 @@ export class StationDataMonitoringComponent implements OnDestroy {
       console.log('24 hours observations', data);
       this.observations = data.map(observation => {
         let element = this.elements.find(item => item.id === observation.elementId);
-        let source = this.sources.find(item => item.id === observation.sourceId);
-        let interval = IntervalsUtil.findInterval(observation.interval);
+        let source = this.sources.find(item => item.id === observation.sourceId); 
         let valueFlag: string = '';
 
         if (!element) throw new Error('element not found');
-        if (!source) throw new Error('source not found');
-        if (!interval) throw new Error('interval not found');
+        if (!source) throw new Error('source not found'); 
 
         if (observation.value) {
           valueFlag = `${observation.value} `
@@ -109,7 +105,7 @@ export class StationDataMonitoringComponent implements OnDestroy {
           elementAbbrv: element.abbreviation,
           sourceName: source.name,
           presentableDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-          intervalName: interval.name,
+          intervalName: IntervalsUtil.getIntervalName(observation.interval),
           valueFlag: valueFlag
         }
       });
