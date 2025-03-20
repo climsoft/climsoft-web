@@ -1,13 +1,11 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
-import { ObservationsService } from '../services/observations.service';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
-import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util'; 
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
@@ -17,12 +15,11 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 import { AppAuthService } from 'src/app/app-auth.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { ObservationsService } from '../../services/observations.service';
+import { ObservationDefinition } from '../../form-entry/defintitions/observation.definition';
 
 interface ObservationEntry {
-  obsDef: ObservationDefinition;
-  delete: boolean;
-  newStationId: string;
-  newElementId: number;
+  obsDef: ObservationDefinition; 
   stationName: string;
   elementAbbrv: string;
   sourceName: string;
@@ -31,11 +28,11 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-data-correction',
-  templateUrl: './data-correction.component.html',
-  styleUrls: ['./data-correction.component.scss']
+  selector: 'app-data-viewing',
+  templateUrl: './data-viewing.component.html',
+  styleUrls: ['./data-viewing.component.scss']
 })
-export class DataCorrectionComponent implements OnDestroy {
+export class DataViewingComponent implements OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
   private stationsMetadata: StationCacheModel[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
@@ -60,7 +57,7 @@ export class DataCorrectionComponent implements OnDestroy {
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
-    this.pagesDataService.setPageHeader('Data Correction');
+    //this.pagesDataService.setPageHeader('Data Correction');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
@@ -94,7 +91,7 @@ export class DataCorrectionComponent implements OnDestroy {
   }
 
   protected get componentName(): string {
-    return DataCorrectionComponent.name;
+    return DataViewingComponent.name;
   }
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
@@ -194,131 +191,6 @@ export class DataCorrectionComponent implements OnDestroy {
     return this.allBoundariesIndices.includes(index);
   }
 
-
-  protected onOptionsSelected(optionSlected: 'Delete All'): void {
-    switch (optionSlected) {
-      case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true });
-        break;
-      default:
-        throw new Error("Developer error. Option not supported");
-    }
-
-    this.onUserInput();
-  }
-
-  protected onUserInput() {
-    this.numOfChanges = 0;
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete || obsEntry.newElementId || obsEntry.newStationId || obsEntry.obsDef.observationChanged) {
-        this.numOfChanges++;
-      }
-    }
-  }
-
-  protected onSave(): void {
-    this.deleteObservations();
-    this.updatedObservations();
-  }
-
-  private updatedObservations(): void {
-    // Create required observation dtos 
-    const changedObs: CreateObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      // Get observation entries that have not been deleted nor tehir station or or element id changed.
-      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
-        const obsModel = obsEntry.obsDef.observation;
-        changedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval,
-          value: obsModel.value,
-          flag: obsModel.flag,
-          comment: obsModel.comment
-        })
-      }
-    }
-
-
-    if (changedObs.length === 0) {
-      return;
-    }
-
-    this.enableSave = false;
-    // Send to server for saving
-    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe({
-      next: data => {
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-      },
-      error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
-        this.enableSave = true;
-      }
-    });
-  }
-
-  private deleteObservations(): void {
-    // Create required observation dtos 
-    const deletedObs: DeleteObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete) {
-        const obsModel = obsEntry.obsDef.observation;
-        deletedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval
-        })
-      }
-    }
-
-
-    if (deletedObs.length === 0) {
-      return;
-    }
-
-    this.enableSave = false;
-    // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe({
-      next: data => {
-        this.enableSave = true;
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-      },
-      error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
-        this.enableSave = true;
-      }
-    });
-  }
 
   protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);

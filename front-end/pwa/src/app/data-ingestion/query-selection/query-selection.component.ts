@@ -5,6 +5,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { DataCorrectionComponent } from '../data-correction/data-correction.component';
 import { SourceCheckComponent } from '../manage-qc-data/source-check/source-check.component';
+import { DataViewingComponent } from '../data-monitoring/data-viewing/data-viewing.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -81,6 +82,13 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
+          case DataViewingComponent.name:
+            if (permissions.ingestionMonitoringPermissions) {
+              this.includeOnlyStationIds = permissions.ingestionMonitoringPermissions.stationIds ? permissions.ingestionMonitoringPermissions.stationIds : [];
+            } else {
+              this.queryAllowed = false;
+            }
+          break; 
           case SourceCheckComponent.name:
             if (permissions.qcPermissions) {
               this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];

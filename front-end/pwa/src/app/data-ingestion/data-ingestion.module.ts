@@ -20,10 +20,11 @@ import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
-import { StationDataMonitoringComponent } from './data-monitoring/station-data-monitoring/station-data-monitoring.component';
+import { DataMonitoringComponent } from './data-monitoring/stations-monitoring/data-monitoring.component';
+import { StationDataMonitoringComponent } from './data-monitoring/stations-monitoring/station-data-monitoring/station-data-monitoring.component';
 import { QuerySelectionComponent } from './query-selection/query-selection.component';
-
+import { DataViewingComponent } from './data-monitoring/data-viewing/data-viewing.component';
+import { ManageDataMonitoringComponent } from './data-monitoring/manage-data-monitoring.component';
 
 @NgModule({
 
@@ -46,6 +47,8 @@ import { QuerySelectionComponent } from './query-selection/query-selection.compo
     AutoImportSelectionComponent, 
     ManageQCComponent,
 
+    ManageDataMonitoringComponent,
+    DataViewingComponent,
     DataMonitoringComponent,
     StationDataMonitoringComponent, 
 

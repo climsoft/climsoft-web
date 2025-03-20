@@ -1,0 +1,56 @@
+<div class="card border-0">
+
+    <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
+        [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
+
+    <div class="card border-0 p-0 mt-2">
+        <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
+            <div class="fw-bold ms-1">Showing Entries</div>
+            <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
+                <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
+                <div *ngIf="numOfChanges" class="d-flex align-items-center">
+                    <div class="vr mx-2"></div>
+                    <div class=" text-success me-2">Total Changes: {{numOfChanges}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-0 mt-2">
+            <div class="app-table-container">
+                <table class="table table-striped table-sm">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Station</th>
+                            <th>Element</th>
+                            <th>Level</th>
+                            <th>Date Time</th>
+                            <th>Interval</th>
+                            <th>Source</th>
+                            <th>Value & Flag</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
+                            [class.group-row-border]="includeLowerBoundaryLine(i)">
+                            <td>{{ getRowNumber(i) }}</td>
+                            <td> {{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
+                            <td>{{ obsEntry.elementAbbrv }}</td>
+                            <td>{{ obsEntry.obsDef.observation.level }}</td>
+                            <td>{{ obsEntry.formattedDatetime }}</td>
+                            <td>{{ obsEntry.intervalName }}</td>
+                            <td>{{ obsEntry.sourceName }}</td>
+                            <td>
+                                <div class="px-2 app-value-flag-container">
+                                    <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
+                                        [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="true" />
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,6 +1,6 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ObservationsService } from '../services/observations.service';
+import { ObservationsService } from '../../services/observations.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { StationStatusEnum } from 'src/app/metadata/stations/models/station-status.enum';
@@ -13,7 +13,7 @@ interface StationView extends StationCacheModel {
 }
 
 @Component({
-  selector: 'app-data-monitoring',
+  selector: 'app-stations-monitoring',
   templateUrl: './data-monitoring.component.html',
   styleUrls: ['./data-monitoring.component.scss']
 })

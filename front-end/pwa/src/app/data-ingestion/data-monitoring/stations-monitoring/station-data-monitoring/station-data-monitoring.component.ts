@@ -1,8 +1,8 @@
 import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
-import { ObservationsService } from '../../services/observations.service';
+import { ObservationsService } from '../../../services/observations.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Last24HoursObservations } from '../../models/last-24-hours-observation.model';
+import { Last24HoursObservations } from '../../../models/last-24-hours-observation.model';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
