@@ -77,7 +77,7 @@ services:
       - climsoft_network
 
 volumes:
-  climsoft_test_data:
+  climsoft_test_database:
   climsoft_test_exports:
 
 networks:

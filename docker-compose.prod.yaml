@@ -68,7 +68,7 @@ services:
       - climsoft_network
 
 volumes:
-  climsoft_data:
+  climsoft_database:
   climsoft_exports:
 
 networks:
