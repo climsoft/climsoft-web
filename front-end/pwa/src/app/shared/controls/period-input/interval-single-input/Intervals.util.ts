@@ -22,6 +22,11 @@ export class IntervalsUtil {
     public static findInterval(minutes: number): Interval | undefined {
         return this.possibleIntervals.find(item => item.id === minutes)
     }
+
+    public static getIntervalName(minutes: number): string {
+        const intervalFound = IntervalsUtil.findInterval(minutes);
+        return intervalFound ? intervalFound.name : minutes + 'mins';
+    }
 }
 
 export interface Interval {

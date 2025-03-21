@@ -9,7 +9,7 @@ import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.c
 import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
-import { EditDataComponent } from './data-correction/edit-data.component';
+import { DataCorrectionComponent } from './data-correction/data-correction.component';
 import { QCDataComponent } from './manage-qc-data/qc-data/qc-data.component';
 import { EditQCDataComponent } from './manage-qc-data/edit-qc-data/edit-qc-data.component';
 import { SourceCheckComponent } from './manage-qc-data/source-check/source-check.component';
@@ -20,8 +20,11 @@ import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
-
+import { DataMonitoringComponent } from './data-monitoring/stations-monitoring/data-monitoring.component';
+import { StationDataMonitoringComponent } from './data-monitoring/stations-monitoring/station-data-monitoring/station-data-monitoring.component';
+import { QuerySelectionComponent } from './query-selection/query-selection.component';
+import { DataViewingComponent } from './data-monitoring/data-viewing/data-viewing.component';
+import { ManageDataMonitoringComponent } from './data-monitoring/manage-data-monitoring.component';
 
 @NgModule({
 
@@ -35,7 +38,7 @@ import { DataMonitoringComponent } from './data-monitoring/data-monitoring.compo
     ValueFlagInputComponent,
     AssignSameInputComponent, 
     ImportSelectionComponent,
-    EditDataComponent,
+    DataCorrectionComponent,
     QCDataComponent,
     EditQCDataComponent,
     SourceCheckComponent,
@@ -43,7 +46,13 @@ import { DataMonitoringComponent } from './data-monitoring/data-monitoring.compo
     DeletedDataComponent,
     AutoImportSelectionComponent, 
     ManageQCComponent,
+
+    ManageDataMonitoringComponent,
+    DataViewingComponent,
     DataMonitoringComponent,
+    StationDataMonitoringComponent, 
+
+    QuerySelectionComponent,
   ],
   imports: [
     DataIngestionRoutingModule,

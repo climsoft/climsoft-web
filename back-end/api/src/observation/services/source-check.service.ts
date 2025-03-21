@@ -65,7 +65,6 @@ export class SourceCheckService {
            station_id, element_id, level, interval, date_time
            HAVING COUNT(DISTINCT source_id) > 1
         );`;
-
         const result = await this.observationRepo.query(query);
         return result && result.length > 0 ? result[0].count_num : 0;
     }
@@ -129,7 +128,7 @@ export class SourceCheckService {
                 const strFromDate = DateUtils.getDateInSQLFormatFromDate(new Date(selectObsevationDto.fromDate), true);
                 const strToDate = DateUtils.getDateInSQLFormatFromDate(new Date(selectObsevationDto.toDate), true);
                 // Between
-                dateOperator = `${dateColToUse} >= '${strFromDate}' AND ${dateColToUse} <= ${strToDate} `;
+                dateOperator = `${dateColToUse} BETWEEN '${strFromDate}' AND '${strToDate}'`;
             }
 
         } else if (selectObsevationDto.fromDate) {

@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
-import { catchError, EMPTY, map, NEVER, of, Subject, Subscription, switchMap, take, takeUntil, throwError } from 'rxjs';
+import { EMPTY, map, Subject, switchMap, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { ViewEntryFormModel } from 'src/app/metadata/source-templates/models/view-entry-form.model';
@@ -14,7 +14,7 @@ import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-ty
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingsComponent, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
+import { DEFAULT_USER_FORM_SETTINGS, USER_FORM_SETTING_STORAGE_NAME, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
 import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 import { ObservationDefinition } from './defintitions/observation.definition';

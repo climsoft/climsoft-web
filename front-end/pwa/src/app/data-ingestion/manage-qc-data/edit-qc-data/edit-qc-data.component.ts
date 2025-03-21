@@ -4,7 +4,7 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util'; 
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util'; 
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';

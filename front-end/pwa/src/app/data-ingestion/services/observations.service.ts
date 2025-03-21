@@ -13,6 +13,7 @@ import { DeleteObservationModel } from '../models/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppDatabase } from 'src/app/app-database';
+import { Last24HoursObservations } from '../models/last-24-hours-observation.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -336,6 +337,21 @@ export class ObservationsService {
 
   public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.delete<number>(`${this.endPointUrl}/hard`, { body: observations })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+
+  public findStationsThatHaveLast24HoursRecords(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.endPointUrl}/stations-with-observations-in-last-24hrs`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public findStationObservationsInLast24Hours(stationId: string): Observable<Last24HoursObservations[]> {
+    return this.http.get<Last24HoursObservations[]>(`${this.endPointUrl}/station-observations-in-last-24hrs/${stationId}`)
       .pipe(
         catchError(this.handleError)
       );

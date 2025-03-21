@@ -7,8 +7,9 @@ import { ImportSelectionComponent } from './import-selection/import-selection.co
 import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component';
 import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
-import { EditDataComponent } from './data-correction/edit-data.component'; 
-import { DataMonitoringComponent } from './data-monitoring/data-monitoring.component';
+import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
+import { DataMonitoringComponent } from './data-monitoring/stations-monitoring/data-monitoring.component';
+import { ManageDataMonitoringComponent } from './data-monitoring/manage-data-monitoring.component';
 
 
 const routes: Routes = [
@@ -49,7 +50,7 @@ const routes: Routes = [
       },
       {
         path: 'data-correction',
-        component: EditDataComponent
+        component: DataCorrectionComponent
       },
       {
         path: 'deleted-data',
@@ -61,7 +62,7 @@ const routes: Routes = [
       },
       {
         path: 'data-monitoring',
-        component: DataMonitoringComponent
+        component: ManageDataMonitoringComponent
       },
     ]
   }

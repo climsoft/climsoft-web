@@ -53,3 +53,31 @@ body {
     //max-width: 120px; // 120px 
     font-size: 12px;
 }
+
+.app-station-monitoring-stats {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    margin-top: 30px;
+    margin-right: 10px;
+}
+
+.app-station-circle-lg {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+}
+
+.app-station-bg-reporting-color {
+    background-color: #3BD424;
+}
+
+.app-station-bg-not-reporting-color {
+    background-color: #F73E25;
+}
+
+.app-station-bg-info-color {
+    background-color: rgba(255, 255, 255, 0.8);
+}

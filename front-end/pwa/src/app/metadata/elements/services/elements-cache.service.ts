@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -170,6 +170,4 @@ export class ElementsCacheService {
         // Return an observable with a user-facing error message.
         return throwError(() => new Error('Something bad happened. please try again later.'));
     }
-
-
 }

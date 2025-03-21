@@ -59,7 +59,6 @@ export class StationsCacheService {
         const obsEnvs: ViewStationObsEnvModel[] = await this.getStationObsEnv();
         const obsFocuses: ViewStationObsFocusModel[] = await this.getStationObsFocus();
         const organisations: ViewOrganisationModel[] = await AppDatabase.instance.organisations.toArray();
-        console.log('organisations: ', organisations)
         const newCachedStations: StationCacheModel[] = [];
 
         console.log('fetching stations from local db and putting into memory');

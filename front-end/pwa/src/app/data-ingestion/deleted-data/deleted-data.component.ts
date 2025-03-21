@@ -1,21 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ViewObservationModel } from 'src/app/data-ingestion/models/view-observation.model';
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { take } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { Subject, take, takeUntil } from 'rxjs';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
+import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
   restore: boolean;
   hardDelete: boolean;
+  stationName: string;
+  elementAbbrv: string;
+  sourceName: string;
+  formattedDatetime: string;
+  intervalName: string;
 }
 
 @Component({
@@ -23,7 +29,7 @@ interface ObservationEntry {
   templateUrl: './deleted-data.component.html',
   styleUrls: ['./deleted-data.component.scss']
 })
-export class DeletedDataComponent {
+export class DeletedDataComponent implements OnDestroy {
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
   protected elementId: number | null = null;
@@ -34,91 +40,76 @@ export class DeletedDataComponent {
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
   protected observationsEntries: ObservationEntry[] = [];
-  private elementsMetadata: ElementCacheModel[] = [];
-  private sourcessMetadata: ViewSourceModel[] = [];
-  private intervals: Interval[] = IntervalsUtil.possibleIntervals;
+
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private observationFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
-  protected enableView: boolean = true;
+  protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
+  private utcOffset: number = 0;
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
-    private observationService: ObservationsService
+    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private observationService: ObservationsService,
+    private generalSettingsService: GeneralSettingsService,
   ) {
     this.pagesDataService.setPageHeader('Deleted Data');
-
-    this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
-      this.elementsMetadata = data;
+    // Get the climsoft time zone display setting
+    this.generalSettingsService.findOne(2).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((data) => {
+      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     });
 
-    this.sourcesService.cachedSources.pipe(take(1)).subscribe(data => {
-      this.sourcessMetadata = data;
-    });
   }
 
-
-  protected onDateToUseSelection(selection: string): void {
-    this.useEntryDate = selection === 'Entry Date';
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  protected onViewClick(): void {
+  protected get componentName(): string {
+    return DeletedDataComponent.name;
+  }
+
+  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = { deleted: true };
+    this.observationFilter = observationFilter;
+    this.queryData();
+  }
 
-    if (this.stationId !== null) {
-      this.observationFilter.stationIds = [this.stationId];
-    }
-
-    if (this.elementId !== null) {
-      this.observationFilter.elementIds = [this.elementId];
-    }
-
-    if (this.interval !== null) {
-      this.observationFilter.interval = this.interval;
-    }
-
-    if (this.level !== null) {
-      this.observationFilter.level = this.level;
-    }
-
-    if (this.sourceId !== null) {
-      this.observationFilter.sourceIds = [this.sourceId];
-    }
-
-    // TODO. Investigate. If this is set to false, the dto is sets it true for some reasons
-    // So only setting to true (making it to defined) when its to be set to true.
-    // When this.useEntryDate is false then don't define it, to avoid the bug defined above.
-    if (this.useEntryDate) {
-      this.observationFilter.useEntryDate = true;
-    }
-
-    if (this.fromDate !== null) {
-      this.observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
-    }
-
-    if (this.toDate !== null) {
-      this.observationFilter.toDate = `${this.toDate}T23:00:00Z`;
-    }
-
+  private queryData(): void {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
-    this.enableView = false;
-    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(count => {
-      this.enableView = true;
-      this.pageInputDefinition.setTotalRowCount(count);
-      if (count > 0) {
-        this.loadData();
+    this.enableQueryButton = false;
+    this.observationService.count(this.observationFilter).pipe(
+      take(1)
+    ).subscribe({
+      next: count => {
+        this.pageInputDefinition.setTotalRowCount(count);
+        if (count > 0) {
+          this.loadData();
+        } else {
+          this.pagesDataService.showToast({ title: 'Delete Data', message: 'No data', type: ToastEventTypeEnum.INFO });
+          this.enableSave = false;
+        }
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableQueryButton = true;
       }
     });
 
   }
 
   protected loadData(): void {
+    this.enableQueryButton = false;
     this.enableSave = false;
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
@@ -126,45 +117,40 @@ export class DeletedDataComponent {
     this.observationFilter.deleted = true;
     this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
-    this.observationService.findProcessed(this.observationFilter).pipe(take(1)).subscribe(data => {
-      this.enableSave = true;
-      this.observationsEntries = data.map(viewObservationModel => {
-        const elementMetadata = this.elementsMetadata.find(item => item.id === viewObservationModel.elementId);
-        if (!elementMetadata) {
-          throw new Error("Developer error: Element not found.");
-        }
+    this.observationService.findProcessed(this.observationFilter).pipe(
+      take(1)
+    ).subscribe({
+      next: data => {
+        this.observationsEntries = data.map(observation => {
+          const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
+          const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
+          const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
-        const sourceMetadata = this.sourcessMetadata.find(item => item.id === viewObservationModel.sourceId);
-        if (!sourceMetadata) {
-          throw new Error("Developer error: Source not found.");
-        }
+          const entry: ObservationEntry = {
+            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+            restore: false,
+            hardDelete: false,
+            stationName: stationMetadata.name,
+            elementAbbrv: elementMetadata.name,
+            sourceName: sourceMetadata.name,
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
+            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+          }
 
-        return {
-          obsDef: new ObservationDefinition(viewObservationModel, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
-          newStationId: '',
-          newElementId: 0,
-          restore: false,
-          hardDelete: false
-        }
+          return entry;
+        });
 
-      });
-
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableQueryButton = true;
+        this.enableSave = true;
+      }
     });
   }
 
-
-  protected asViewObservationModel(observationsDef: ObservationDefinition): ViewObservationModel {
-    return (observationsDef.observation as ViewObservationModel);
-  }
-
-  protected getFormattedDatetime(strDateTime: string): string {
-    return strDateTime.replace('T', ' ').replace('Z', '');
-  }
-
-  protected getPeriodName(minutes: number): string {
-    const periodFound = this.intervals.find(item => item.id === minutes);
-    return periodFound ? periodFound.name : minutes + 'mins';
-  }
 
   protected onOptionsSelected(optionSlected: 'Restore All' | 'Hard Delete All'): void {
     switch (optionSlected) {
@@ -228,7 +214,7 @@ export class DeletedDataComponent {
           title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} hard deleted`, type: ToastEventTypeEnum.SUCCESS
         });
 
-        this.onViewClick();
+        this.queryData();
       } else {
         this.pagesDataService.showToast({
           title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT hard deleted`, type: ToastEventTypeEnum.ERROR
@@ -269,7 +255,7 @@ export class DeletedDataComponent {
           title: 'Observations', message: `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'} restored`, type: ToastEventTypeEnum.SUCCESS
         });
 
-        this.onViewClick();
+        this.queryData();
       } else {
         this.pagesDataService.showToast({
           title: 'Observations', message: `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'} NOT restored`, type: ToastEventTypeEnum.ERROR

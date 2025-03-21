@@ -1,7 +1,23 @@
-<div *ngIf="stations" class="card border-0">
+<div *ngIf="stationsWithLocations" class="card border-0">
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
       <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
+
+
+      <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
+        <div class="card-body ">
+          <div class="d-flex flex-column fw-bold">
+            <span>Stations Metadata Status</span>
+          </div>
+          <div>
+            <div class="d-flex">
+              <div> Stations without locations</div>
+              <div class="ms-2">{{ stationsWithOutLocations.length}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>

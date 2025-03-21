@@ -1,0 +1,20 @@
+<div class="card border-0">
+  <div class="card-header">
+    <ul class="nav nav-tabs card-header-tabs">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'station-status'"
+          (click)="onTabClick('station-status')">Stations Status</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'view'" (click)="onTabClick('view')">Data
+          Exploration</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-0 mt-2">
+    <app-stations-monitoring *ngIf="activeTab === 'station-status' " />
+    <app-data-viewing *ngIf="activeTab === 'view' " />
+  </div>
+
+</div>
