@@ -6,6 +6,7 @@ import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.
 import { DataCorrectionComponent } from '../data-correction/data-correction.component';
 import { SourceCheckComponent } from '../manage-qc-data/source-check/source-check.component';
 import { DataViewingComponent } from '../data-monitoring/data-viewing/data-viewing.component';
+import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -20,18 +21,20 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   @Input() public includeDeletedData: boolean = false;
 
+  @Input() public dateRange: DateRange; 
+
+  @Input() public displaySourceSelector: boolean = true; 
+
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
 
   protected stationIds: string[] = [];
-  protected includeOnlyStationIds: string[] = [];
   protected sourceIds: number[] = [];
   protected elementIds: number[] = [];
   protected interval: number | null = null;
   protected level: number | null = null;
-  protected fromDate: string | null = null;
-  protected toDate: string | null = null; 
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
+  protected includeOnlyStationIds: string[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -39,12 +42,15 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     private appAuthService: AppAuthService,
   ) {
 
-
-
+    // Set default dates to 1 year
+    const todayDate = new Date();
+    const lastDate: Date = new Date();
+    lastDate.setDate(todayDate.getDate() - 365);
+    this.dateRange = { fromDate: lastDate.toISOString().slice(0, 10), toDate: todayDate.toISOString().slice(0, 10)}; 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ( changes['parentComponentName'] && this.parentComponentName) {
+    if (changes['parentComponentName'] && this.parentComponentName) {
       this.setStationsAllowed();
     }
   }
@@ -63,7 +69,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       }
 
       if (user.isSystemAdmin) {
-        this.includeOnlyStationIds = []; 
+        this.includeOnlyStationIds = [];
         return;
       }
 
@@ -73,7 +79,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       }
 
       const permissions: UserPermissionModel = user.permissions;
-      
+
       switch (this.parentComponentName) {
         case DataCorrectionComponent.name:
           if (permissions.entryPermissions) {
@@ -82,21 +88,21 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
-          case DataViewingComponent.name:
-            if (permissions.ingestionMonitoringPermissions) {
-              this.includeOnlyStationIds = permissions.ingestionMonitoringPermissions.stationIds ? permissions.ingestionMonitoringPermissions.stationIds : [];
-            } else {
-              this.queryAllowed = false;
-            }
-          break; 
-          case SourceCheckComponent.name:
-            if (permissions.qcPermissions) {
-              this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
-            } else {
-              this.queryAllowed = false;
-            }
-          break; 
-      
+        case DataViewingComponent.name:
+          if (permissions.ingestionMonitoringPermissions) {
+            this.includeOnlyStationIds = permissions.ingestionMonitoringPermissions.stationIds ? permissions.ingestionMonitoringPermissions.stationIds : [];
+          } else {
+            this.queryAllowed = false;
+          }
+          break;
+        case SourceCheckComponent.name:
+          if (permissions.qcPermissions) {
+            this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
+          } else {
+            this.queryAllowed = false;
+          }
+          break;
+
         default:
           this.queryAllowed = false;
           throw new Error('Developer error. Component name not supported in query selection.');
@@ -143,12 +149,12 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       observationFilter.useEntryDate = true;
     }
 
-    if (this.fromDate !== null) {
-      observationFilter.fromDate = `${this.fromDate}T00:00:00Z`;
+    if (this.dateRange.fromDate) {
+      observationFilter.fromDate = `${this.dateRange.fromDate}T00:00:00Z`;
     }
 
-    if (this.toDate !== null) {
-      observationFilter.toDate = `${this.toDate}T23:00:00Z`;
+    if (this.dateRange.toDate) {
+      observationFilter.toDate = `${this.dateRange.toDate}T23:00:00Z`;
     }
 
     this.queryClick.emit(observationFilter);

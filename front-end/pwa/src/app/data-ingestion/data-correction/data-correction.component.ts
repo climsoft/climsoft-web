@@ -6,7 +6,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
@@ -17,6 +17,7 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 import { AppAuthService } from 'src/app/app-auth.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -37,9 +38,7 @@ interface ObservationEntry {
 })
 export class DataCorrectionComponent implements OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
-  private stationsMetadata: StationCacheModel[] = [];
-  private elementsMetadata: ElementCacheModel[] = [];
-  private sourcesMetadata: ViewSourceModel[] = [];
+ 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
 
   protected enableSave: boolean = false;
@@ -53,32 +52,12 @@ export class DataCorrectionComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private pagesDataService: PagesDataService, 
-    private stationsCacheService: StationsCacheService,
-    private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
+    private pagesDataService: PagesDataService,
+    private cachedMetadataSearchService: CachedMetadataSearchService, 
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stationsMetadata = data;
-    });
-
-    this.elementService.cachedElements.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.elementsMetadata = data;
-    });
-
-    this.sourcesService.cachedSources.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.sourcesMetadata = data;
-    });
 
     // Get the climsoft time zone display setting
     this.generalSettingsService.findOne(2).pipe(
@@ -100,10 +79,10 @@ export class DataCorrectionComponent implements OnDestroy {
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
     this.observationFilter = observationFilter;
-     this.queryData();
+    this.queryData();
   }
 
-  protected queryData( ): void {
+  private queryData(): void {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
@@ -113,6 +92,9 @@ export class DataCorrectionComponent implements OnDestroy {
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
+          } else {
+            this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
+            this.enableSave = false;
           }
         },
         error: err => {
@@ -125,49 +107,50 @@ export class DataCorrectionComponent implements OnDestroy {
   }
 
 
-  protected loadData( ): void {
+  protected loadData(): void {
+    this.enableQueryButton = false;
     this.enableSave = false;
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
-    this.observationsEntries = []; 
-   this. observationFilter.page = this.pageInputDefinition.page;
+    this.observationsEntries = [];
+    this.observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.observationFilter).pipe(take(1)).subscribe(data => {
-      this.enableSave = true;
-      const observationsEntries: ObservationEntry[] = data.map(observation => {
+    this.observationService.findCorrectionData(this.observationFilter).pipe(
+      take(1)
+    ).subscribe({
+      next: data => {
+        const observationsEntries: ObservationEntry[] = data.map(observation => {
+          const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
+          const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
+          const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
+      
+          const entry: ObservationEntry = {
+            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+            newStationId: '',
+            newElementId: 0,
+            delete: false,
+            stationName: stationMetadata.name,
+            elementAbbrv: elementMetadata.name,
+            sourceName: sourceMetadata.name,
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
+            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+          }
+          return entry;
 
-        const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
-        if (!stationMetadata) {
-          throw new Error("Developer error: Station not found.");
-        }
+        });
 
-        const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
-        if (!elementMetadata) {
-          throw new Error("Developer error: Element not found.");
-        }
+        this.setRowBoundaryLineSettings(observationsEntries);
+        this.observationsEntries = observationsEntries;
 
-        const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
-        if (!sourceMetadata) {
-          throw new Error("Developer error: Source not found.");
-        }
-
-        return {
-          obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
-          newStationId: '',
-          newElementId: 0,
-          delete: false,
-          stationName: stationMetadata.name,
-          elementAbbrv: elementMetadata.name,
-          sourceName: sourceMetadata.name,
-          formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-          intervalName: IntervalsUtil.getIntervalName(observation.interval)
-        }
-
-      });
-
-      this.setRowBoundaryLineSettings(observationsEntries);
-      this.observationsEntries = observationsEntries;
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableQueryButton = true;
+        this.enableSave = true;
+      }
 
     });
   }

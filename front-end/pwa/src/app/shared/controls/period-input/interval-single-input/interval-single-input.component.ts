@@ -4,10 +4,10 @@ import { Interval, IntervalsUtil } from './Intervals.util';
 // TODO. Make this control to be editable
 @Component({
   selector: 'app-period-single-input',
-  templateUrl: './period-single-input.component.html',
-  styleUrls: ['./period-single-input.component.scss']
+  templateUrl: './interval-single-input.component.html',
+  styleUrls: ['./interval-single-input.component.scss']
 })
-export class PeriodSingleInputComponent implements OnChanges {
+export class IntervalSingleInputComponent implements OnChanges {
   @Input() public id: string = '';
   @Input() public label: string = '';
   @Input() public errorMessage: string = '';

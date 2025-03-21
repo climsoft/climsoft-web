@@ -28,8 +28,8 @@ export class StationSelectorMultipleComponent implements  OnChanges, OnDestroy {
   protected selectedStations!: StationCacheModel[];
   private destroy$ = new Subject<void>();
 
-  constructor(private elementsCacheSevice: StationsCacheService) {
-    this.elementsCacheSevice.cachedStations.pipe(
+  constructor(private stationsCacheService: StationsCacheService) {
+    this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allStations = data;

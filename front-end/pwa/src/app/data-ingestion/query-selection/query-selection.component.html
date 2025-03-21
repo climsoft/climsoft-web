@@ -21,7 +21,7 @@
                     <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
                 </div>
 
-                <div class="col-auto mb-2">
+                <div *ngIf="displaySourceSelector" class="col-auto mb-2">
                     <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds" />
                 </div>
 
@@ -33,14 +33,9 @@
                                 (checkedValueChange)="onDateToUseSelection($event)" />
                         </div>
                     </div>
+                    
                     <div class="row">
-                        <div class="col-auto">
-                            <app-date-input [id]="'from_date'" [(value)]="fromDate" />
-                        </div>
-                        <div class="col-auto d-flex align-items-center ">To</div>
-                        <div class="col-auto">
-                            <app-date-input [id]="'to_date'" [(value)]="toDate" />
-                        </div>
+                        <app-date-range-input [(value)]="dateRange"/> 
                     </div>
 
                 </div>

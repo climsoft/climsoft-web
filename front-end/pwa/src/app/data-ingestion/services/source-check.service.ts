@@ -8,7 +8,7 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 export interface DuplicateModel {
   stationId: string;
   elementId: number;
-  elevation: number;
+  level: number;
   datetime: string
   interval: number;
   duplicates: number;
@@ -63,9 +63,6 @@ export class SourceCheckService {
         catchError(this.handleError)
       );
   }
-
-
-
 
 
   private handleError(error: HttpErrorResponse) {

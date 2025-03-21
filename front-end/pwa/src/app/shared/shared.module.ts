@@ -22,7 +22,7 @@ import { SelectorSingleInputComponent } from './controls/selector-input/selector
 
 import { HourSingleInputComponent } from './controls/hour-input/hour-single-input/hour-single-input.component';
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
-import { PeriodSingleInputComponent } from './controls/period-input/period-single-input/period-single-input.component';
+import { IntervalSingleInputComponent } from './controls/period-input/interval-single-input/interval-single-input.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
@@ -36,6 +36,7 @@ import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 import { MapComponent } from './controls/map/map.component';
 import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
+import { DateRangeInputComponent } from './controls/date-range-input/date-range-input.component';
 
 //--------------------------------
   
@@ -68,8 +69,7 @@ const controlsComponents = [
   HourSingleInputComponent,
   HourMultipleInputComponent,
   YearMonthInputComponent,
-  PeriodSingleInputComponent,
-  
+  IntervalSingleInputComponent,
   
   DropDownButtonComponent,    
   ElementDomainSingleInputComponent,  
@@ -82,6 +82,8 @@ const controlsComponents = [
  
   MapComponent,
   DataStructureInputComponent,
+
+  DateRangeInputComponent,
 ];
 
 const directives = [

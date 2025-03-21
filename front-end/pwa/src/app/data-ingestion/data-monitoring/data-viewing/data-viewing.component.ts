@@ -5,7 +5,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/period-single-input/Intervals.util'; 
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util'; 
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
@@ -38,8 +38,7 @@ export class DataViewingComponent implements OnDestroy {
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcesMetadata: ViewSourceModel[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-
-  protected enableSave: boolean = false;
+ 
   protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
@@ -56,8 +55,7 @@ export class DataViewingComponent implements OnDestroy {
     private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
-  ) {
-    //this.pagesDataService.setPageHeader('Data Correction');
+  ) { 
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
@@ -101,19 +99,21 @@ export class DataViewingComponent implements OnDestroy {
   }
 
   protected queryData( ): void {
+    this.enableQueryButton = false;
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
-    this.enableQueryButton = false;
     this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
+          }else{
+            this.pagesDataService.showToast({ title: 'Data Exploration', message: 'No data', type: ToastEventTypeEnum.INFO }); 
           }
         },
         error: err => {
-          this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+          this.pagesDataService.showToast({ title: 'Data Exploration', message: err, type: ToastEventTypeEnum.ERROR });
         },
         complete: () => {
           this.enableQueryButton = true;
@@ -123,49 +123,58 @@ export class DataViewingComponent implements OnDestroy {
 
 
   protected loadData( ): void {
-    this.enableSave = false;
+    this.enableQueryButton = false; 
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = []; 
    this. observationFilter.page = this.pageInputDefinition.page;
     this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.observationFilter).pipe(take(1)).subscribe(data => {
-      this.enableSave = true;
-      const observationsEntries: ObservationEntry[] = data.map(observation => {
-
-        const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
-        if (!stationMetadata) {
-          throw new Error("Developer error: Station not found.");
-        }
-
-        const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
-        if (!elementMetadata) {
-          throw new Error("Developer error: Element not found.");
-        }
-
-        const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
-        if (!sourceMetadata) {
-          throw new Error("Developer error: Source not found.");
-        }
-
-        return {
-          obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
-          newStationId: '',
-          newElementId: 0,
-          delete: false,
-          stationName: stationMetadata.name,
-          elementAbbrv: elementMetadata.name,
-          sourceName: sourceMetadata.name,
-          formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-          intervalName: IntervalsUtil.getIntervalName(observation.interval)
-        }
-
-      });
-
-      this.setRowBoundaryLineSettings(observationsEntries);
-      this.observationsEntries = observationsEntries;
-
+    this.observationService.findCorrectionData(this.observationFilter).pipe(
+      take(1)
+    ).subscribe({
+      next: data => {
+      
+        const observationsEntries: ObservationEntry[] = data.map(observation => {
+  
+          const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
+          if (!stationMetadata) {
+            throw new Error("Developer error: Station not found.");
+          }
+  
+          const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
+          if (!elementMetadata) {
+            throw new Error("Developer error: Element not found.");
+          }
+  
+          const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
+          if (!sourceMetadata) {
+            throw new Error("Developer error: Source not found.");
+          }
+  
+          return {
+            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+            newStationId: '',
+            newElementId: 0,
+            delete: false,
+            stationName: stationMetadata.name,
+            elementAbbrv: elementMetadata.name,
+            sourceName: sourceMetadata.name,
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
+            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+          }
+  
+        });
+  
+        this.setRowBoundaryLineSettings(observationsEntries);
+        this.observationsEntries = observationsEntries;
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Data Exploration', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+      complete: () => {
+        this.enableQueryButton = true; 
+      }
     });
   }
 

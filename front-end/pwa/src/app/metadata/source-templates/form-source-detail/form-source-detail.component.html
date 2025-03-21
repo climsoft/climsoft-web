@@ -45,6 +45,13 @@
             <app-period-single-input [label]="'Interval'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
                 [selectedId]="selectedPeriodId" (selectedIdChange)="onPeriodSelected($event)" />
         </div>
+        
+        <hr />
+
+        <div>
+            <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage"
+                [selectedIds]="selectedHourIds" (selectedIdsChange)="onHoursSelected($event)" />
+        </div>
 
         <hr />
 
@@ -52,12 +59,6 @@
             <app-number-input [label]="'UTC Offset'" [(numValue)]="utcOffset" />
         </div>
 
-        <hr />
-
-        <div>
-            <app-hour-multiple-input [label]="'Hour(s)'" [errorMessage]="hoursErrorMessage"
-                [selectedIds]="selectedHourIds" (selectedIdsChange)="onHoursSelected($event)" />
-        </div>
 
         <hr />
 
