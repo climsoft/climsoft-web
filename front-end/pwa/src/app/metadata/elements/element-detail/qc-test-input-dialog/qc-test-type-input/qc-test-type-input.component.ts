@@ -9,7 +9,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 })
 export class QCTestTypeInputComponent  implements OnChanges  {
   @Input() 
-  public label: string = 'QC Test Type';
+  public label!: string;
   @Input() 
   public errorMessage!: string;
   @Input() 

@@ -13,6 +13,7 @@ import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/vi
 import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { ElementCacheModel } from '../../services/elements-cache.service';
 
 @Component({
   selector: 'app-qc-test-input-dialog',
@@ -23,27 +24,22 @@ export class QCTestInputDialogComponent {
   @Output()
   public ok = new EventEmitter<void>();
 
+  protected displayNotYetSupported: boolean = false;
+
   protected open: boolean = false;
-  protected title: string = "";
+  protected title: string = '';
   protected updateQcTest!: ViewElementQCTestModel;
+  protected errorMessage: string = '';
 
   constructor(
-    private qcTestsService: ElementsQCTestsService,
-    private elementsService: ElementsService,
+    private qcTestsService: ElementsQCTestsService, 
     private pagesDataService: PagesDataService) { }
 
-  public openDialog(elementId: number, updateQcTestModel?: ViewElementQCTestModel): void {
+  public openDialog(element: ElementCacheModel, updateQcTestModel?: ViewElementQCTestModel): void {
     this.open = true;
 
-    // Set the element name
-    this.elementsService.findOne(elementId).pipe(
-      take(1)
-    ).subscribe((data) => {
-      if (data) {
-        this.title = updateQcTestModel ? "Edit QC Test for " : "New QC Test for ";
-        this.title = this.title + data.name;
-      }
-    });
+    this.title = updateQcTestModel ? "Edit QC Test for " : "New QC Test for ";
+    this.title = this.title + element.name;
 
     if (updateQcTestModel) {
       this.updateQcTest = updateQcTestModel;
@@ -56,8 +52,10 @@ export class QCTestInputDialogComponent {
       const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
       this.updateQcTest = {
         id: 0,
+        name: '',
+        description: '',
         qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
-        elementId: elementId,
+        elementId: element.id,
         observationInterval: 1440,
         parameters: rangeThreshold,
         disabled: false,
@@ -114,10 +112,12 @@ export class QCTestInputDialogComponent {
     return this.updateQcTest.parameters as ContextualQCTestParamsModel;
   }
 
-  protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum | null): void {
+  protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum ): void {
     if (qcTestType === null) {
       return;
     }
+
+    this.displayNotYetSupported = false;
 
     switch (qcTestType) {
       case QCTestTypeEnum.RANGE_THRESHOLD:
@@ -142,7 +142,7 @@ export class QCTestInputDialogComponent {
         break;
       case QCTestTypeEnum.DIURNAL:
         this.updateQcTest.parameters = { isValid: () => true }
-        //TODO.
+        this.displayNotYetSupported = true;
         break;
       case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
         const contextual: ContextualQCTestParamsModel = {
@@ -154,6 +154,7 @@ export class QCTestInputDialogComponent {
         this.updateQcTest.parameters = contextual;
         break;
       default:
+        this.displayNotYetSupported = true;
         throw new Error('Developer error. QC test not supported.')
     }
 
@@ -163,8 +164,15 @@ export class QCTestInputDialogComponent {
 
   protected onOkClick(): void {
     // TODO. Do validations
+    this.errorMessage = '';
+    if(!this.updateQcTest.name){
+      this.errorMessage = 'Enter name of QC test';
+      return;
+    }
 
     const createQCTest: CreateElementQCTestModel = {
+      name: this.updateQcTest.name,
+      description: this.updateQcTest.description,
       qcTestType: this.updateQcTest.qcTestType,
       elementId: this.updateQcTest.elementId,
       observationInterval: this.updateQcTest.observationInterval,
@@ -182,18 +190,15 @@ export class QCTestInputDialogComponent {
 
     saveSubscription.pipe(
       take(1)
-    ).subscribe((data) => {
-      let message: string;
-      let messageType: ToastEventTypeEnum;
-      if (data) {
-        message = this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`;
-        messageType = ToastEventTypeEnum.SUCCESS;
-      } else {
-        message = "Error in saving qc test";
-        messageType = ToastEventTypeEnum.ERROR;
+    ).subscribe({
+      next: data => {
+        this.pagesDataService.showToast({ title: "QC Tests", message: this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
+        this.ok.emit();
+        this.open = false;
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: "QC Tests", message: 'Error in saving qc test', type: ToastEventTypeEnum.ERROR });
       }
-      this.pagesDataService.showToast({ title: "QC Tests", message: message, type: messageType });
-      this.ok.emit();
     });
   }
 

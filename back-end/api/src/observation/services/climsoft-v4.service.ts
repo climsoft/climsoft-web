@@ -313,17 +313,17 @@ export class ClimsoftV4Service {
             }
 
             // Make sure the wmo id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
+            if (v4Station.wmoid !== null && v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
                 v4Station.wmoid = `${v4Station.wmoid}_${(i + 1)}`;
             }
 
             // Make sure the wigos id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.wigosId === v4Station.wsi)) {
+            if (v4Station.wsi !== null && v5Dtos.find(item => item.wigosId === v4Station.wsi)) {
                 v4Station.wsi = `${v4Station.wsi}_${(i + 1)}`;
             }
 
             // Make sure the icao id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.icaoId === v4Station.icaoid)) {
+            if (v4Station.icaoid !== null && v5Dtos.find(item => item.icaoId === v4Station.icaoid)) {
                 v4Station.icaoid = `${v4Station.icaoid}_${(i + 1)}`;
             }
 

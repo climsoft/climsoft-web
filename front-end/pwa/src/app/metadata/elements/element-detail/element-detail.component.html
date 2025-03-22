@@ -25,7 +25,7 @@
         <app-toggle-chevron #qcTestsToggle>Quality Control Tests</app-toggle-chevron>
       </div>
       <div class="card-body px-2" *ngIf="qcTestsToggle.open">
-        <app-qc-tests [elementId]="element.id" />
+        <app-qc-tests [element]="element" />
       </div>
     </div>
 
