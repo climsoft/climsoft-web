@@ -22,7 +22,6 @@ export class ViewStationsGeoMapComponent implements OnChanges {
   protected numOfUnknownStations!: number;
 
   constructor() {
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -87,7 +86,7 @@ export class ViewStationsGeoMapComponent implements OnChanges {
 
   }
 
-  private stationMarkers(feature: any, latlng: any) {
+  private stationMarkers = (feature: any, latlng: any) => {
     // Get station data and component from feature properties 
     const station: StationCacheModel = feature.properties.station;
 

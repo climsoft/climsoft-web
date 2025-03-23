@@ -41,7 +41,7 @@ import { QCTestSpikeParamsComponent } from './elements/element-detail/qc-test-in
 import { QCTestRelationalParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
 import { QCTestContextualParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
-import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-map.component';
+import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
 import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
@@ -109,7 +109,7 @@ import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stat
     StationNetworksComponent, 
 
     StationsSearchDialogComponent,
-    StationRegionSearchComponent,
+    StationRegionSearchComponent, 
 
     ElementDetailComponent,
     ViewElementsComponent,

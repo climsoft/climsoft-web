@@ -16,7 +16,7 @@ type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 })
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
-  private allStations!: StationCacheModel[]; 
+  private allStations!: StationCacheModel[];  
   protected stations!: StationCacheModel[];
   private searchedIds!: string[];
   private destroy$ = new Subject<void>();

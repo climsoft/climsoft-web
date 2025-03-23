@@ -3,10 +3,11 @@ import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/metadata/stations/models/update-station.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils'; 
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { StationsCacheService } from '../../services/stations-cache.service';
 import { AppLocationService } from 'src/app/app-location.service';
 import { CreateStationModel } from '../../models/create-station.model';
+import { StationStatusEnum } from '../../models/station-status.enum';
 
 @Component({
   selector: 'app-station-characteristics-edit-dialog',
@@ -118,6 +119,16 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
     this.station.stationObsProcessingMethod = stationObservationMethodEnum ? stationObservationMethodEnum : StationObsProcessingMethodEnum.AUTOMATIC;
   }
 
+
+  protected onStationStatusChange(status: StationStatusEnum | null): void {
+
+    // TODO. Enforce not allowing date closed when the station status is indicated as closed
+    if (status && status === StationStatusEnum.CLOSED) {
+
+    }
+
+  }
+
   protected onOkClick(): void {
 
     if (StringUtils.isNullOrEmpty(this.station.id) || StringUtils.isNullOrEmpty(this.station.name)) {
@@ -143,9 +154,9 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
       longitude: this.station.longitude,
       elevation: this.station.elevation,
       stationObsProcessingMethod: this.station.stationObsProcessingMethod,
-      stationObsEnvironmentId: this.station.stationObsEnvironmentId? this.station.stationObsEnvironmentId: null,
-      stationObsFocusId: this.station.stationObsFocusId? this.station.stationObsFocusId: null,
-      organisationId: this.station.organisationId? this.station.organisationId: null,
+      stationObsEnvironmentId: this.station.stationObsEnvironmentId ? this.station.stationObsEnvironmentId : null,
+      stationObsFocusId: this.station.stationObsFocusId ? this.station.stationObsFocusId : null,
+      organisationId: this.station.organisationId ? this.station.organisationId : null,
       wmoId: this.station.wmoId ? this.station.wmoId : null,
       wigosId: this.station.wigosId ? this.station.wigosId : null,
       icaoId: this.station.icaoId ? this.station.icaoId : null,

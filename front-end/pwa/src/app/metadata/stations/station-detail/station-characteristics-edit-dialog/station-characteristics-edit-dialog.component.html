@@ -92,7 +92,7 @@
         <hr />
 
         <div>
-            <app-station-status-single-input [(selectedId)]="station.status" />
+            <app-station-status-single-input [label]="'Status'" [(selectedId)]="station.status" (selectedIdChange)="onStationStatusChange($event)" />
         </div>
 
         <hr />
