@@ -3,11 +3,11 @@ import * as L from 'leaflet';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
-  selector: 'app-view-stations-map',
-  templateUrl: './view-stations-map.component.html',
-  styleUrls: ['./view-stations-map.component.scss']
+  selector: 'app-view-stations-geo-map',
+  templateUrl: './view-stations-geo-map.component.html',
+  styleUrls: ['./view-stations-geo-map.component.scss']
 })
-export class ViewStationsMapComponent implements OnChanges {
+export class ViewStationsGeoMapComponent implements OnChanges {
 
   @Input()
   public stations!: StationCacheModel[];

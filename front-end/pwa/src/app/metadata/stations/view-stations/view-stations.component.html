@@ -45,8 +45,8 @@
    <!-- selected tab contents -->
   <div class="card-body p-0">
     <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
-    <app-view-stations-map *ngIf="activeTab === 'geomap'" [stations]="stations" />
-    <app-view-stations-distribution *ngIf="activeTab === 'treemap'" />
+    <app-view-stations-geo-map *ngIf="activeTab === 'geomap'" [stations]="stations" />
+    <app-view-stations-tree-map *ngIf="activeTab === 'treemap'" />
   </div>
 
 </div>

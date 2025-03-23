@@ -41,7 +41,7 @@ import { QCTestSpikeParamsComponent } from './elements/element-detail/qc-test-in
 import { QCTestRelationalParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
 import { QCTestContextualParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
-import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
+import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
 import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
@@ -70,7 +70,7 @@ import { StationNetworksComponent } from './stations/station-detail/stations-net
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
 import { StationRegionSearchComponent } from './stations/stations-search-dialog/regions-search/station-regions-search.component';
 import { ElementTypeSingleInputComponent } from './elements/element-type-selector/element-type-single-input/element-type-single-input.component';
-import { ViewStationsDistributionComponent } from './stations/view-stations/view-stations-distribution/view-stations-distribution.component';
+import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
 
 @NgModule({
   declarations: [
@@ -103,10 +103,10 @@ import { ViewStationsDistributionComponent } from './stations/view-stations/view
     StationObservationFocusSingleInputComponent,
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
-    ViewStationsMapComponent,
-    ViewStationsDistributionComponent,
-    
-    StationNetworksComponent,
+    ViewStationsGeoMapComponent,
+    ViewStationsTreeMapComponent,
+     
+    StationNetworksComponent, 
 
     StationsSearchDialogComponent,
     StationRegionSearchComponent,
@@ -176,12 +176,12 @@ import { ViewStationsDistributionComponent } from './stations/view-stations/view
     StationObservationFocusSingleInputComponent,
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
-    ViewStationsMapComponent,
+    ViewStationsGeoMapComponent,
     StationsSearchDialogComponent, 
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
-    ViewStationsMapComponent,
-    ViewStationsDistributionComponent,
+    ViewStationsGeoMapComponent,
+    ViewStationsTreeMapComponent,
 
     StationsSearchDialogComponent,
     StationRegionSearchComponent,

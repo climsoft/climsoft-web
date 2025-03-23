@@ -19,11 +19,11 @@ interface DistributionView {
 }
 
 @Component({
-  selector: 'app-view-stations-distribution',
-  templateUrl: './view-stations-distribution.component.html',
-  styleUrls: ['./view-stations-distribution.component.scss']
+  selector: 'app-view-stations-tree-map',
+  templateUrl: './view-stations-tree-map.component.html',
+  styleUrls: ['./view-stations-tree-map.component.scss']
 })
-export class ViewStationsDistributionComponent implements AfterViewInit, OnDestroy {
+export class ViewStationsTreeMapComponent implements AfterViewInit, OnDestroy {
   private stations!: StationCacheModel[];
   private filteredStations!: StationCacheModel[];
   protected operationalOnly: boolean = true;
