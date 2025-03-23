@@ -1,6 +1,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import * as L from 'leaflet';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
+import { StationStatusEnum } from '../../models/station-status.enum';
 
 @Component({
   selector: 'app-view-stations-geo-map',
@@ -12,13 +13,16 @@ export class ViewStationsGeoMapComponent implements OnChanges {
   @Input()
   public stations!: StationCacheModel[];
 
-  protected stationMapLayerGroup: L.LayerGroup;
+  protected stationMapLayerGroup!: L.LayerGroup;
 
   protected stationsWithLocations!: StationCacheModel[];
-  protected stationsWithOutLocations!: StationCacheModel[];
+  protected numOfStationsWithOutLocations: number = 0;
+  protected numOfOperationalStations: number = 0;
+  protected numOfClosedStations!: number;
+  protected numOfUnknownStations!: number;
 
   constructor() {
-    this.stationMapLayerGroup = L.layerGroup();
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -31,8 +35,35 @@ export class ViewStationsGeoMapComponent implements OnChanges {
   }
 
   private setupMap(): void {
-    this.stationsWithLocations = this.stations.filter(station => (station.location !== null));
-    this.stationsWithOutLocations = this.stations.filter(station => (station.location === null));
+    this.stationsWithLocations = [];
+    this.numOfStationsWithOutLocations = 0;
+    this.numOfOperationalStations = 0;
+    this.numOfClosedStations = 0;
+    this.numOfUnknownStations = 0
+    for (const station of this.stations) {
+      if (station.location) {
+        this.stationsWithLocations.push(station)
+      } else {
+        this.numOfStationsWithOutLocations = this.numOfStationsWithOutLocations + 1;
+      }
+      switch (station.status) {
+        case StationStatusEnum.OPERATIONAL:
+          this.numOfOperationalStations = this.numOfOperationalStations + 1;
+          break;
+        case StationStatusEnum.CLOSED:
+          this.numOfClosedStations = this.numOfClosedStations + 1;
+          break;
+        case StationStatusEnum.UKNOWNN:
+          this.numOfUnknownStations = this.numOfUnknownStations + 1;
+          break;
+        default:
+          throw new Error(`Developer error: Station with unrecognised status: ${station.id}`);
+      }
+
+    }
+
+    // Set up a new layer group
+    this.stationMapLayerGroup = L.layerGroup();
     const featureCollection: any = {
       "type": "FeatureCollection",
       "features": this.stationsWithLocations.map(station => {
@@ -60,13 +91,28 @@ export class ViewStationsGeoMapComponent implements OnChanges {
     // Get station data and component from feature properties 
     const station: StationCacheModel = feature.properties.station;
 
-    //let colorValue = station ? '#3BD424' : '#F73E25';
+    let colorValue;
+
+    switch (station.status) {
+      case StationStatusEnum.OPERATIONAL:
+        colorValue = '#3bd424';//'#00FF00';
+        break;
+      case StationStatusEnum.CLOSED:
+        colorValue = '#C6C6C6';//'#1330BF'; 
+        break;
+      case StationStatusEnum.UKNOWNN:
+        colorValue = '#F73E25';
+        break;
+
+      default:
+        throw new Error(`Developer error: Station status unknown: ${station.id}`);
+    }
 
     //console.log("latlong", latlng, feature);
     const marker = L.circleMarker(latlng, {
-      radius: 6,
-      fillColor: '#1330BF',
-      color: '#1330BF',
+      radius: 7,
+      fillColor: colorValue,
+      color: '#ffffff',
       weight: 1,
       opacity: 1,
       fillOpacity: 0.8
