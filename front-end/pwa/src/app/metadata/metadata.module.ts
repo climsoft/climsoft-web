@@ -68,6 +68,7 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
 import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
+import { StationRegionSearchComponent } from './stations/stations-search-dialog/regions-search/station-regions-search.component';
 
 @NgModule({
   declarations: [
@@ -101,8 +102,11 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
-    StationsSearchDialogComponent,
+  
     StationNetworksComponent,
+
+    StationsSearchDialogComponent,
+    StationRegionSearchComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
@@ -169,8 +173,10 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     StationsSearchDialogComponent,
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
-    StationsSearchDialogComponent,
     ViewStationsMapComponent,
+
+    StationsSearchDialogComponent,
+    StationRegionSearchComponent,
 
     FormSelectorDialogComponent,
 

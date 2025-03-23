@@ -4,6 +4,14 @@ import { StationSearchHistoryModel } from '../models/stations-search-history.mod
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { take } from 'rxjs';
 
+
+export enum SelectionOptionTypeEnum {
+  SELECT_ALL = 'Select All',
+  DESLECT_ALL = 'Deselect All',
+  SORT_SELECTED =  'Sort Selected'
+}
+
+
 interface StationSearchModel {
   station: StationCacheModel;
   selected: boolean;
@@ -27,6 +35,7 @@ export class StationsSearchDialogComponent {
   protected searchName: string = '';
   protected saveSearch: boolean = false;
   protected numOfSelectedIds: number = 0;
+  protected searchBy: string = 'Id or Name';
 
   constructor(private stationsCacheService: StationsCacheService) {
   }
@@ -74,7 +83,19 @@ export class StationsSearchDialogComponent {
     this.loadSearchHistory();
   }
 
-
+protected onSearchOptionChange(option: string): void{
+  this.searchBy = option;
+  switch (option) {
+    case 'Id or Name': 
+      break;
+    case 'Region': 
+      break;
+    case 'Organisation': 
+      break;
+    default:
+      break;
+  }
+}
 
   protected onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
@@ -91,11 +112,9 @@ export class StationsSearchDialogComponent {
     });
   }
 
-  protected onOptionClick(options: 'Filter' | 'Select All' | 'Deselect All' | 'Sort Selected'): void {
+
+  protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
     switch (options) {
-      case 'Filter':
-        // TODO
-        break;
       case 'Select All':
         this.selectAll(true);
         break;
@@ -108,17 +127,19 @@ export class StationsSearchDialogComponent {
       default:
         break;
     }
-
   }
 
   protected onStationSelected(stationSelection: StationSearchModel): void {
     stationSelection.selected = !stationSelection.selected;
+    // Set number of selected ids
+    this.setNumOfSelectedStations();
   }
 
   private selectAll(select: boolean): void {
     for (const item of this.stationsSelections) {
       item.selected = select;
     }
+    this.setNumOfSelectedStations();
   }
 
   protected onSearchNameInput(searchName: string): void {
@@ -142,7 +163,7 @@ export class StationsSearchDialogComponent {
         };
       });
       // Set number of selected ids
-      this.numOfSelectedIds = this.stationsSelections.filter(item => item.selected).length;
+     this.setNumOfSelectedStations();
     });
   }
 
@@ -154,6 +175,10 @@ export class StationsSearchDialogComponent {
       }
       return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
     });
+  }
+
+  private setNumOfSelectedStations(): void{
+    this.numOfSelectedIds = this.stationsSelections.filter(item => item.selected).length;
   }
 
 }

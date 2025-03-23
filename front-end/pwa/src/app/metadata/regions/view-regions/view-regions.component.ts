@@ -18,10 +18,10 @@ export class ViewRegionsComponent implements OnDestroy {
 
   protected regions!: ViewRegionModel[];
 
-  private destroy$ = new Subject<void>();
-
   protected optionClicked: optionsType | undefined;
   protected dropDownItems: optionsType[] = [];
+  
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -38,7 +38,7 @@ export class ViewRegionsComponent implements OnDestroy {
       this.dropDownItems = user && user.isSystemAdmin ? ['Import', 'Delete All'] : [];
     });
 
-    // Get all sources 
+    // Get all regions 
     this.regionsService.cachedRegions.pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
