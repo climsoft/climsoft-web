@@ -1,0 +1,23 @@
+<div class="card border-0">
+  <div class="card-body px-0">
+    <div class="d-flex align-items-center">
+      <div class="me-2">
+        Visualise By:
+      </div>
+      <div class="me-2">
+        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'visualise_stations_options'"
+          [groupItems]="[ 
+                  { label:'Regions'}, 
+                  { label:'Organisations'}, 
+                  { label:'Network Affiliations'}
+                  ]" (checkedValueChange)="onVisualiseChange($event)" />
+      </div>
+      <div>
+        <app-check-box-input [label]="'Show operational stations only'" [value]="operationalOnly" (valueChange)="onOperationalFilter($event)"/>
+      </div>
+    </div>
+
+    <div id="treemapChart" style="width: 100%; height: 600px;"></div>
+
+  </div>
+</div>

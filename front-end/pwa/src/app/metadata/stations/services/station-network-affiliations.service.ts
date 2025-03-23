@@ -4,6 +4,7 @@ import { Observable, catchError, concat, from, map, take, tap, throwError } from
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ViewNetworkAffiliatioModel } from '../../network-affiliations/models/view-network-affiliation.model';
+import { StationCountPerNetworkAffiliationCount } from '../models/station-count-per-network-affiliation-count';
 
 @Injectable({
   providedIn: 'root'
@@ -55,8 +56,8 @@ export class StationNetworkAffiliationsService {
       );
   }
 
-  public getStationCountPerNetworkAffiliation(): Observable<{ networkAffiliationId: number; stationCount: number }[]> {
-    return this.http.get<{ networkAffiliationId: number; stationCount: number }[]>( `${this.endPointUrl}/stations-count-per-network-affiliations`)
+  public getStationCountPerNetworkAffiliation(): Observable<StationCountPerNetworkAffiliationCount[]> {
+    return this.http.get<{ networkAffiliationId: number; stationCount: number }[]>( `${this.endPointUrl}/stations-count-per-network-affiliation`)
       .pipe(
         catchError(this.handleError)
       );

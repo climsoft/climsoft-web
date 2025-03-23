@@ -81,7 +81,7 @@ export class StationNetworkAffiliationsService {
     public async getStationCountPerNetwork(): Promise<{ networkAffiliationId: number; stationCount: number }[]> {
         return await this.stationNetworksRepo
             .createQueryBuilder('sf') // Alias is required 
-            .select('sf.network_affiliation_id', 'networkAffiliationId') // Directly referencing source_id
+            .select('sf.network_affiliation_id', 'networkAffiliationId')
             .addSelect('COUNT(DISTINCT sf.station_id)', 'stationCount')
             .groupBy('sf.network_affiliation_id')
             .getRawMany();

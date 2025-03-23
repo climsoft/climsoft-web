@@ -11,7 +11,6 @@ export enum SelectionOptionTypeEnum {
   SORT_SELECTED =  'Sort Selected'
 }
 
-
 interface StationSearchModel {
   station: StationCacheModel;
   selected: boolean;

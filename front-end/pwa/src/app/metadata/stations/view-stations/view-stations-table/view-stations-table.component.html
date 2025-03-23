@@ -1,13 +1,44 @@
 <div *ngIf="stations" class="card border-0">
   <div class="card-body px-0">
-    <app-table-view [clickable]="true"  [columnsData]="[ 
+
+    <!-- <app-table-view [clickable]="true" [columnsData]="[ 
       {id: 'id', name: 'Id'},
       {id: 'name', name: 'Name'},
       {id: 'stationObsProcessingMethodName', name: 'Processing Method'},
       {id: 'stationObsEnvironmentName', name: 'Environment'},
       {id: 'stationObsFocusName', name: 'Focus'} ,
       {id: 'status', name: 'Status'} 
-      ]" [rowsData]="stations"
-      (rowDataClicked)="onEditStation($event)" />
+      ]" [rowsData]="stations" (rowDataClicked)="onEditStation($event)" /> -->
+
+
+    <table class="table table-striped table-sm table-hover">
+      <thead>
+        <tr>
+          <th style="width: 2%;"></th>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Processing Method</th>
+          <th>Environment</th>
+          <th>Focus</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        <tr class="app-cursor-pointer" *ngFor="let station of stations" (click)="onEditStation(station)">
+          <td><i class="bi bi-arrow-right-short"></i></td>
+          <td>{{ station.id }}</td>
+          <td>{{ station.name }}</td>
+          <td>{{ station.location? station.location.latitude: '' }}</td>
+          <td>{{ station.location? station.location.longitude: '' }}</td>
+          <td>{{ station.stationObsProcessingMethodName }}</td>
+          <td>{{ station.stationObsEnvironmentName }}</td>
+          <td>{{ station.stationObsFocusName }}</td>
+          <td>{{ station.status }}</td>
+        </tr>
+      </tbody>
+    </table>
+
   </div>
 </div>

@@ -69,6 +69,8 @@ import { OrganisationSelectorSingleComponent } from './organisations/organisatio
 import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
 import { StationRegionSearchComponent } from './stations/stations-search-dialog/regions-search/station-regions-search.component';
+import { ElementTypeSingleInputComponent } from './elements/element-type-selector/element-type-single-input/element-type-single-input.component';
+import { ViewStationsDistributionComponent } from './stations/view-stations/view-stations-distribution/view-stations-distribution.component';
 
 @NgModule({
   declarations: [
@@ -102,7 +104,8 @@ import { StationRegionSearchComponent } from './stations/stations-search-dialog/
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
-  
+    ViewStationsDistributionComponent,
+    
     StationNetworksComponent,
 
     StationsSearchDialogComponent,
@@ -123,6 +126,9 @@ import { StationRegionSearchComponent } from './stations/stations-search-dialog/
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
     ImportElementsDialogComponent,
+
+    ElementTypeSingleInputComponent,
+
     QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
@@ -163,6 +169,7 @@ import { StationRegionSearchComponent } from './stations/stations-search-dialog/
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
     ElementsSearchDialogComponent,
+    ElementTypeSingleInputComponent,
 
     StationObsMethodSingleInputComponent,
     StationObsEnvSingleInputComponent,
@@ -170,10 +177,11 @@ import { StationRegionSearchComponent } from './stations/stations-search-dialog/
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
     ViewStationsMapComponent,
-    StationsSearchDialogComponent,
+    StationsSearchDialogComponent, 
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
     ViewStationsMapComponent,
+    ViewStationsDistributionComponent,
 
     StationsSearchDialogComponent,
     StationRegionSearchComponent,
@@ -186,5 +194,5 @@ import { StationRegionSearchComponent } from './stations/stations-search-dialog/
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,
   ]
-}) 
+})
 export class MetadataModule { }

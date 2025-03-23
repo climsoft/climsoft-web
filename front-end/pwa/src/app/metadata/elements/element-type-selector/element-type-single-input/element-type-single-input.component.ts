@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { ElementTypesService } from 'src/app/core/services/elements/element-types.service';
 import { ViewElementTypeModel } from 'src/app/metadata/elements/models/view-element-type.model';
 import { ElementsCacheService } from '../../services/elements-cache.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -26,7 +25,7 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
   protected options!: ElementTypeView[];
   protected selectedOption!: ElementTypeView | null;
 
-  constructor(private elementTypeservice: ElementTypesService,
+  constructor(
     private elementService: ElementsCacheService,
   ) {
   }
@@ -86,7 +85,7 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
 
   protected optionDisplayFunction(option: ElementTypeView): string {
     // TODO. Include the domain and subdomain name for display to distinguish them.
-    return `${option.elementSubdomainName} - ${option.elementTypeModel.name}`;
+    return `${option.elementDomainName} -  ${option.elementSubdomainName} - ${option.elementTypeModel.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: ElementTypeView | null) {
