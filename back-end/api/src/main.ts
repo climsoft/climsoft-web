@@ -47,9 +47,6 @@ async function bootstrap() {
     },
   }));
 
-
-  // TODO. Do we need session secrets to come from environment variables. Removing that need can simplify the settings required.
-
   app.use(
     session({
       name: 'ssid',

@@ -27,6 +27,7 @@ import { AppConfig } from './app.config';
       autoLoadEntities: true, // models will be loaded automatically
       synchronize: AppConfig.devMode, // in dev mode synce entities with the database but in production disable
       // TODO. Investigate whether we should increase the connection pool size after monitoring the connection pool utilisation.
+      //logging: true,
     }),
 
   ],

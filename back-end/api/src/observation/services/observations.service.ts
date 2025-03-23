@@ -79,13 +79,16 @@ export class ObservationsService {
         }
 
         const findOptions: FindManyOptions<ObservationEntity> = {
+            // order: {
+            //     stationId: "ASC",
+            //     elementId: "ASC",
+            //     level: "ASC",
+            //     interval: "ASC",
+            //     datetime: "ASC",
+            //     sourceId: "ASC"
+            // },
             order: {
-                stationId: "ASC",
-                elementId: "ASC",
-                level: "ASC",
-                interval: "ASC",
                 datetime: "ASC",
-                sourceId: "ASC"
             },
             where: this.getProcessedFilter(viewObsevationQueryDto),
             skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
