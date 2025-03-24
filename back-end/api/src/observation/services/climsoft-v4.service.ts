@@ -313,17 +313,17 @@ export class ClimsoftV4Service {
             }
 
             // Make sure the wmo id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
+            if (v4Station.wmoid !== null && v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
                 v4Station.wmoid = `${v4Station.wmoid}_${(i + 1)}`;
             }
 
             // Make sure the wigos id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.wigosId === v4Station.wsi)) {
+            if (v4Station.wsi !== null && v5Dtos.find(item => item.wigosId === v4Station.wsi)) {
                 v4Station.wsi = `${v4Station.wsi}_${(i + 1)}`;
             }
 
             // Make sure the icao id is unique. V5 doesn't accept duplicates like v4 model
-            if (v5Dtos.find(item => item.icaoId === v4Station.icaoid)) {
+            if (v4Station.icaoid !== null && v5Dtos.find(item => item.icaoId === v4Station.icaoid)) {
                 v4Station.icaoid = `${v4Station.icaoid}_${(i + 1)}`;
             }
 
@@ -524,8 +524,9 @@ export class ClimsoftV4Service {
         }
     }
 
-    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4ScaledValue: number | null, v4Flag: string | null, v4DBDatetime: string } {
-        let period: number | null = null;
+    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4ScaledValue: number | string | null, v4Flag: string | null, v4DBDatetime: string } {
+        // V4 database model expects empty for null values
+        let period: number = 1;
         // If element is daily and period is greater than 1 day then calculate the period using day as scale.
         // V4 period supports cumulation at daily interval only.
         if (v4Element.elementType === 'daily' && entity.interval > 1440) {
@@ -533,10 +534,15 @@ export class ClimsoftV4Service {
             period = NumberUtils.roundOff(entity.interval / 1440, 4);
         }
         // Important to round off due to precision errors
-        const scaledValue: number | null = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
+        let scaledValue: number | null | string = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const level: string = entity.level === 0 ? 'surface' : `${entity.level}`;
-        const flag: string | null = entity.flag ? entity.flag[0].toUpperCase() : null;
+        const flag: string = entity.flag ? entity.flag[0].toUpperCase() : '';
+
+        // V4 database model expects empty for null values
+        if (scaledValue === null) {
+            scaledValue = '';
+        }
         return { v4Level: level, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
 

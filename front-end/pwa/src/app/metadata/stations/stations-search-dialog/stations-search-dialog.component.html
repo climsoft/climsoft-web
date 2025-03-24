@@ -55,32 +55,50 @@
             </div>
             <div *ngIf="activeTab === 'new'">
                 <div class="mt-2">
-                    <div>
-                        <div class="d-flex justify-content-end">
-                            <app-drop-down-button [buttonText]="'Options'"
-                                [dropDownItems]="['Filter','Select All', 'Deselect All', 'Sort Selected']"
-                                (dropDownOptionClick)="onOptionClick($event)" [offSetRight]="true" />
-                        </div>
+                    <div class="d-flex align-items-center">
                         <div>
-                            <app-text-input [id]="'station_search_input'" [label]="'Search'"
-                                (valueChange)="onSearchInput($event)" />
+                            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'searchOptions'"
+                                [groupItems]="[ 
+                                    { label:'Id or Name',checked: searchBy === 'Id or Name'}, 
+                                    { label:'Region', checked : searchBy === 'Region'},
+                                    { label:'Organisation', checked : searchBy === 'Organisation'},
+                                    { label:'Network Affiliation', checked : searchBy === 'Network Affiliation'},
+                                    { label:'Status', checked : searchBy === 'Status'},
+                                    { label:'Processing', checked : searchBy === 'Processing'},
+                                    { label:'Environment', checked : searchBy === 'Environment'},
+                                    { label:'Focus', checked : searchBy === 'Focus'},
+                                    ]" (checkedValueChange)="onSearchOptionChange($event)" />
                         </div>
                     </div>
 
+                    <div>
+                        <div class="flex-grow-1">
+                            <app-text-input [id]="'station_search_input'" [placeholder]="'Search'"  (valueChange)="onSearchInput($event)" />
+                        </div>
+                    </div>
                     <hr />
 
                     <div>
-                        <div *ngIf="numOfSelectedIds" class="d-flex justify-content-end pe-4">
-                            [{{ numOfSelectedIds | number:'1.0-0' }}]
+                        <div class="d-flex justify-content-end align-items-center">
+                            <div class="me-2">
+                                [{{ searchedIds.length| number:'1.0-0' }}]
+                            </div>
+                            <div>
+                                <app-drop-down-button [buttonText]="'Options'"
+                                    [dropDownItems]="['Select All', 'Deselect All', 'Sort Selected']"
+                                    (dropDownOptionClick)="onOptionClick($event)" [offSetRight]="true" />
+                            </div>
                         </div>
 
-                        <div class="search-contents pe-1">
+                        <div *ngIf="searchBy ==='Id or Name'" class="app-table-container pe-1"
+                            style="max-height: 300px;">
                             <table class="table table-sm table-hover">
                                 <thead>
                                     <tr>
                                         <th></th>
                                         <th>Id</th>
                                         <th>Name</th>
+                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="table-group-divider overflow-y-scroll">
@@ -89,9 +107,44 @@
                                         <td><i class="bi bi-cursor"></i></td>
                                         <td>{{ item.station.id }}</td>
                                         <td>{{ item.station.name }}</td>
+                                        <td>{{ item.station.statusName }}</td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div *ngIf="searchBy === 'Region'">
+                            <app-station-regions-search [searchValue]="searchValue" [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Organisation'">
+                            <app-station-organisations-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Network Affiliation'">
+                            <app-station-network-affiliations-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Status'">
+                            <app-station-status-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Processing'">
+                            <app-station-processing-method-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Environment'">
+                            <app-station-environments-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
+                        </div>
+                        <div *ngIf="searchBy === 'Focus'">
+                            <app-station-focuses-search [searchValue]="searchValue"
+                                [selectionOption]="selectionOption"
+                                (searchedIdsChange)="onSearchedIdsChanged($event)" />
                         </div>
                     </div>
 

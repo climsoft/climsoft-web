@@ -12,6 +12,7 @@ import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/vi
 import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { ElementCacheModel } from '../../services/elements-cache.service';
 
 interface ViewQCTest extends ViewElementQCTestModel {
   formattedQCTestTypeName: string,
@@ -26,7 +27,7 @@ interface ViewQCTest extends ViewElementQCTestModel {
 })
 export class QCTestsComponent implements OnChanges, OnDestroy {
   @Input()
-  public elementId!: number;
+  public element!: ElementCacheModel;
 
   protected qcTests!: ViewQCTest[];
   protected userIsSystemAdmin: boolean = false;
@@ -45,7 +46,7 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
    }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.elementId) {
+    if (this.element) {
       this.loaQCTests();
     }
   }
@@ -56,7 +57,7 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
   }
 
   protected loaQCTests(): void {
-    this.qcTestsService.findQCTestByElement(this.elementId).pipe(
+    this.qcTestsService.findQCTestByElement(this.element.id).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.qcTests = data.map(item => {

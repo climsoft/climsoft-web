@@ -27,7 +27,6 @@ import { LabelInputComponent } from './controls/label-input/label-input.componen
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
-import { ElementTypeSingleInputComponent } from './controls/element-type-input/element-type-single-input/element-type-single-input.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
 import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
@@ -74,7 +73,6 @@ const controlsComponents = [
   DropDownButtonComponent,    
   ElementDomainSingleInputComponent,  
   ElementSubdomainSingleInputComponent,
-  ElementTypeSingleInputComponent,
   ServerTypeInputComponent,
   FlagSingleInputComponent,
   PageInputComponent,

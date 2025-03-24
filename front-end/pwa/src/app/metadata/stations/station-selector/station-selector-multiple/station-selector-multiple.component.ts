@@ -1,27 +1,20 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
- 
+
 @Component({
   selector: 'app-station-selector-multiple',
   templateUrl: './station-selector-multiple.component.html',
   styleUrls: ['./station-selector-multiple.component.scss']
 })
-export class StationSelectorMultipleComponent implements  OnChanges, OnDestroy {
-  @Input()
-  public id!: string;
-  @Input()
-  public label!: string;
-  @Input()
-  public placeholder!: string;
-  @Input()
-  public errorMessage!: string;
-  @Input()
-  public includeOnlyIds!: string[];
-  @Input()
-  public selectedIds!: string[];
-  @Output()
-  public selectedIdsChange = new EventEmitter<string[]>();
+export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public placeholder!: string;
+  @Input() public errorMessage!: string;
+  @Input() public includeOnlyIds!: string[];
+  @Input() public selectedIds!: string[];
+  @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
   protected allStations: StationCacheModel[] = [];
   protected stations!: StationCacheModel[];

@@ -1,7 +1,14 @@
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { QCTestTypeEnum } from '../../entities/qc-test-type.enum';
 
-export class CreateQCTestDto {
+export class CreateElementQCTestDto {
+    @IsString()
+    name: string;
+    
+    @IsOptional()
+    @IsString()
+    description: string | null;
+
     @IsEnum(QCTestTypeEnum, { message: 'quality control test type must be a valid QualityControlTestTypeEnum value' })
     qcTestType: QCTestTypeEnum;
 
@@ -9,7 +16,7 @@ export class CreateQCTestDto {
     elementId: number;
 
     @IsInt()
-    observationPeriod: number;
+    observationInterval: number;
 
     @IsOptional() // TODO. Temporary until we implement validate nested
     parameters: QCTestParametersValidity;

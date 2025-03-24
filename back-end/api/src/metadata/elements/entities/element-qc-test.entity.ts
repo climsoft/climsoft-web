@@ -2,7 +2,7 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ElementEntity } from "./element.entity";
 import { QCTestTypeEnum } from "./qc-test-type.enum";
-import { QCTestParametersValidity } from "../dtos/qc-tests/create-qc-test.dto";
+import { QCTestParametersValidity } from "../dtos/qc-tests/create-element-qc-test.dto";
 
 @Entity("elements_qc_tests")
 @Check("CHK_elements_qc_test_name_not_empty", `"name" <> ''`)

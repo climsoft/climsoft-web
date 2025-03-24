@@ -1,7 +1,7 @@
 <div>
     <div class="d-flex justify-content-end">
         <button *ngIf="userIsSystemAdmin" type="button" class="btn btn-sm btn-outline-secondary me-1"
-            (click)="dlgQcEdit.openDialog(elementId)">Add</button>
+            (click)="dlgQcEdit.openDialog(element)">Add</button>
         <app-qc-test-input-dialog #dlgQcEdit (ok)="onQCTestInput()" />
     </div>
 
@@ -10,6 +10,7 @@
             <thead>
                 <tr>
                     <th style="width: 2%;"></th>
+                    <th>Name</th>
                     <th>Type</th>
                     <th>Period</th>
                     <th>Parameters</th>
@@ -17,8 +18,9 @@
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="userIsSystemAdmin? dlgQcEdit.openDialog(elementId, row): ''">
+                <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="userIsSystemAdmin? dlgQcEdit.openDialog(element, row): ''">
                     <td><i class="bi bi-arrow-right-short"></i></td>
+                    <td>{{row.name}}</td>
                     <td>{{row.formattedQCTestTypeName}}</td>
                     <td>{{row.formattedObsPeriod}}</td>
                     <td>{{row.formattedParameters}}</td>

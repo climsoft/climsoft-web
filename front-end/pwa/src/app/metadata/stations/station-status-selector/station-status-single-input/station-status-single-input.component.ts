@@ -23,10 +23,9 @@ export class StationStatusSingleInputComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
 
-
     //load options once
     if (!this.options) {
-      this.options = Object.values(StationStatusEnum);;
+      this.options = Object.values(StationStatusEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {

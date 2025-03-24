@@ -1,5 +1,5 @@
 import { IsInt, IsOptional } from "class-validator";
-import { QCTestParametersValidity } from "../create-qc-test.dto";
+import { QCTestParametersValidity } from "../create-element-qc-test.dto";
 
 export class RepeatedValueQCTestParamsDto implements QCTestParametersValidity {
     @IsInt() // TODO. validate minimum of 2 only because "consecutive" implies at least two or more events or periods.

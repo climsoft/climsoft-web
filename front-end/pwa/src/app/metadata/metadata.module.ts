@@ -41,7 +41,7 @@ import { QCTestSpikeParamsComponent } from './elements/element-detail/qc-test-in
 import { QCTestRelationalParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
 import { QCTestContextualParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
 import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
-import { ViewStationsMapComponent } from './stations/view-stations/view-stations-map/view-stations-map.component';
+import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
 import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
@@ -68,6 +68,15 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
 import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
+import { StationRegionSearchComponent as StationRegionsSearchComponent } from './stations/stations-search-dialog/station-regions-search/station-regions-search.component';
+import { ElementTypeSingleInputComponent } from './elements/element-type-selector/element-type-single-input/element-type-single-input.component';
+import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
+import { StationOrganisationsSearchComponent } from './stations/stations-search-dialog/station-organisations-search/station-organisations-search.component';
+import { StationNetworkAffiliationsSearchComponent } from './stations/stations-search-dialog/station-network-affiliations-search/station-network-affiliations-search.component';
+import { StationStatusSearchComponent } from './stations/stations-search-dialog/station-status-search/station-status-search.component';
+import { StationProcessingMethodSearchComponent } from './stations/stations-search-dialog/station-processing-search/station-processing-method-search.component';
+import { StationFocusesSearchComponent } from './stations/stations-search-dialog/station-focuses-search/station-focuses-search.component';
+import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
 
 @NgModule({
   declarations: [
@@ -100,10 +109,20 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     StationObservationFocusSingleInputComponent,
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
-    ViewStationsMapComponent,
-    StationsSearchDialogComponent,
-    StationNetworksComponent,
+    ViewStationsGeoMapComponent,
+    ViewStationsTreeMapComponent,
+     
+    StationNetworksComponent, 
 
+    StationsSearchDialogComponent,
+    StationRegionsSearchComponent, 
+    StationOrganisationsSearchComponent,
+    StationNetworkAffiliationsSearchComponent,
+    StationStatusSearchComponent,
+    StationProcessingMethodSearchComponent,
+    StationFocusesSearchComponent,
+    StationEnvironmentsSearchComponent,
+ 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
@@ -119,6 +138,9 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
     ImportElementsDialogComponent,
+
+    ElementTypeSingleInputComponent,
+
     QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
@@ -159,18 +181,22 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
     ElementsSearchDialogComponent,
+    ElementTypeSingleInputComponent,
 
     StationObsMethodSingleInputComponent,
     StationObsEnvSingleInputComponent,
     StationObservationFocusSingleInputComponent,
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
-    ViewStationsMapComponent,
-    StationsSearchDialogComponent,
+    ViewStationsGeoMapComponent,
+    StationsSearchDialogComponent, 
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
+    ViewStationsGeoMapComponent,
+    ViewStationsTreeMapComponent,
+
     StationsSearchDialogComponent,
-    ViewStationsMapComponent,
+    StationRegionsSearchComponent,
 
     FormSelectorDialogComponent,
 
@@ -180,5 +206,5 @@ import { NetworkAffiliationSelectorDialogComponent } from './stations/station-de
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,
   ]
-}) 
+})
 export class MetadataModule { }

@@ -104,6 +104,7 @@ export class StationsCacheService {
         // Observable to initiate metadata updates sequentially
         this.checkUpdatesSubscription.unsubscribe();
         this.checkUpdatesSubscription = this.checkUpdatesSubscription = of(null).pipe(
+            concatMap(() => this.metadataUpdatesService.checkUpdates('organisations')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsFocus')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stations')),

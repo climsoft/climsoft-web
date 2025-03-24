@@ -1,0 +1,18 @@
+
+<div class="app-table-container" style="max-height: 300px;">
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th></th> 
+                <th>Name</th> 
+            </tr>
+        </thead>
+        <tbody class="table-group-divider overflow-y-scroll">
+            <tr *ngFor="let item of stationProcessingMethods" class="cursor-pointer"
+                [class.table-primary]="item.selected" (click)="onSelected(item)">
+                <td><i class="bi bi-cursor"></i></td>
+                <td>{{ item.formattedStatus }}</td> 
+            </tr>
+        </tbody>
+    </table>
+</div>

@@ -78,7 +78,7 @@ export class DataCorrectionComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter;
+    this.observationFilter = observationFilter; 
     this.queryData();
   }
 

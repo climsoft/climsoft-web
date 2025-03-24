@@ -7,14 +7,17 @@
           (click)="onTabClick('table')">Table</button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab === 'map'" (click)="onTabClick('map')">Map</button>
+        <button class="nav-link" [class.active]="activeTab === 'geomap'" (click)="onTabClick('geomap')">Geo Map</button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="activeTab === 'treemap'" (click)="onTabClick('treemap')">Tree Map</button>
       </li>
     </ul> 
     <div class="d-flex align-items-center">
       <div *ngIf="stations" class="d-flex mx-2">
         Count: {{ stations.length | number:'1.0-0' }}
       </div>
-      <div class="me-2">
+      <div *ngIf="activeTab !== 'treemap'" class="me-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog()">
           Search
         </button>
@@ -42,7 +45,8 @@
    <!-- selected tab contents -->
   <div class="card-body p-0">
     <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
-    <app-view-stations-map *ngIf="activeTab === 'map'" [stations]="stations" />
+    <app-view-stations-geo-map *ngIf="activeTab === 'geomap'" [stations]="stations" />
+    <app-view-stations-tree-map *ngIf="activeTab === 'treemap'" />
   </div>
 
 </div>

@@ -6,6 +6,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { CreateStationModel } from '../models/create-station.model';
 
+type tab = 'table' | 'geomap' | 'treemap';
 type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 
 @Component({
@@ -14,8 +15,8 @@ type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
   styleUrls: ['./view-stations.component.scss']
 })
 export class ViewStationsComponent implements OnDestroy {
-  protected activeTab: 'table' | 'map' = 'table';
-  private allStations!: StationCacheModel[]; 
+  protected activeTab: tab = 'table';
+  private allStations!: StationCacheModel[];  
   protected stations!: StationCacheModel[];
   private searchedIds!: string[];
   private destroy$ = new Subject<void>();
@@ -51,7 +52,7 @@ export class ViewStationsComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onTabClick(selectedTab: 'table' | 'map'): void {
+  protected onTabClick(selectedTab: tab): void {
     this.activeTab = selectedTab;
   }
 

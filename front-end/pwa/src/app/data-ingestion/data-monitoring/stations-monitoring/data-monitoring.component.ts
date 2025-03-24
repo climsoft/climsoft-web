@@ -126,13 +126,13 @@ export class DataMonitoringComponent implements OnDestroy {
     const station: StationView = feature.properties.station;
 
     // Determine reporting class
-    let colorValue = station.reporting ? '#3BD424' : '#F73E25';
+    let colorValue = station.reporting ? '#3bd424' : '#F73E25';
 
     //console.log("latlong", latlng, feature);
     const marker = L.circleMarker(latlng, {
-      radius: 6,
+      radius: 7,
       fillColor: colorValue,
-      color: colorValue,
+      color: '#ffffff',
       weight: 1,
       opacity: 1,
       fillOpacity: 0.8
