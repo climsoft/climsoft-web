@@ -12,7 +12,7 @@ export enum SelectionOptionTypeEnum {
 
 interface StationSearchModel {
   station: StationCacheModel;
-  selected: boolean; 
+  selected: boolean;
 }
 
 @Component({
@@ -31,7 +31,7 @@ export class StationsSearchDialogComponent {
   protected stationsSelections!: StationSearchModel[];
 
   protected searchName: string = '';
-  protected saveSearch: boolean = false; 
+  protected saveSearch: boolean = false;
 
   protected searchBy: string = 'Id or Name';
   protected searchValue: string = '';
@@ -72,6 +72,7 @@ export class StationsSearchDialogComponent {
   }
 
   protected onEditPreviousSearch(selectedSearch: StationSearchHistoryModel): void {
+    this.searchBy = 'Id or Name';
     this.searchName = selectedSearch.name;
     this.saveSearch = selectedSearch.name ? true : false;
 
@@ -210,7 +211,7 @@ export class StationsSearchDialogComponent {
   }
 
   public onSearchedIdsChanged(searchedIds: string[]): void {
-    this.searchedIds = searchedIds; 
+    this.searchedIds = searchedIds;
   }
 
 }
