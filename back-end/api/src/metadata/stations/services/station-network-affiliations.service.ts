@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm"; 
 import { StationNetworkAffiliationEntity } from "../entities/station-network-affiliation.entity";
@@ -45,8 +45,8 @@ export class StationNetworkAffiliationsService {
         await this.stationNetworksRepo.remove(existingElements);
     }
 
-    public async getStationsAssignedToNetwork(networkAffiliationId: number): Promise<string[]> {
-        const stationNetworks: StationNetworkAffiliationEntity[] = await this.stationNetworksRepo.findBy({ networkAffiliationId: networkAffiliationId });
+    public async getStationsAssignedToNetworks(networkAffiliationId: number[]): Promise<string[]> {
+        const stationNetworks: StationNetworkAffiliationEntity[] = await this.stationNetworksRepo.findBy({ networkAffiliationId: In(networkAffiliationId) });
         return stationNetworks.map(form => form.stationId);
     }
 

@@ -1,14 +1,13 @@
 import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { AppDatabase } from 'src/app/app-database';
-import { StationSearchHistoryModel } from '../../models/stations-search-history.model';
 import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { RegionsCacheService } from 'src/app/metadata/regions/services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
+import { booleanPointInPolygon, multiPolygon, point } from '@turf/turf';
 
-export interface RegionSearchModel {
+interface SearchModel {
   region: ViewRegionModel;
   selected: boolean;
   formattedRegionType: string;
@@ -20,16 +19,19 @@ export interface RegionSearchModel {
   styleUrls: ['./station-regions-search.component.scss']
 })
 export class StationRegionSearchComponent implements OnChanges, OnDestroy {
-
-  @Input() public search!: string;
+  @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
-  @Output() public regionsSelectionChange = new EventEmitter<RegionSearchModel[]>();
+  @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected regions: RegionSearchModel[] = [];
+  protected regions: SearchModel[] = [];
+  protected stations: StationCacheModel[] = [];
 
   private destroy$ = new Subject<void>();
 
-  constructor(private regionsService: RegionsCacheService,) {
+  constructor(
+    private regionsService: RegionsCacheService,
+    private stationsCacheService: StationsCacheService
+  ) {
     // Get all regions 
     this.regionsService.cachedRegions.pipe(
       takeUntil(this.destroy$),
@@ -40,16 +42,24 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
         }
       });
     });
+
+    this.stationsCacheService.cachedStations.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(stations => {
+      this.stations = stations
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['search'] && this.search) {
-      this.onSearchInput(this.search);
+    if (changes['searchValue'] && this.searchValue) {
+      this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selection']) {
+    if (changes['selectionOption']) {
       this.onOptionSelected(this.selectionOption);
     }
+
+    //console.log('changes at regions search', changes)
   }
 
   ngOnDestroy(): void {
@@ -61,8 +71,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     // Make the searched items be the first items
     this.regions.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after
-      if (a.region.id.toString().toLowerCase().includes(searchValue)
-        || a.region.name.toLowerCase().includes(searchValue)
+      if (a.region.name.toLowerCase().includes(searchValue)
         || a.region.regionType.toLowerCase().includes(searchValue)) {
         return -1;
       }
@@ -70,9 +79,9 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     });
   }
 
-  protected onSelected(stationSelection: RegionSearchModel): void {
-    stationSelection.selected = !stationSelection.selected;
-    this.regionsSelectionChange.emit(this.regions)
+  protected onSelected(regionSelection: SearchModel): void {
+    regionSelection.selected = !regionSelection.selected;
+    this.emitSearchedStationIds();
   }
 
   private onOptionSelected(option: SelectionOptionTypeEnum): void {
@@ -95,7 +104,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     for (const item of this.regions) {
       item.selected = select;
     }
-    this.regionsSelectionChange.emit(this.regions);
+    this.emitSearchedStationIds();
   }
 
   private sortBySelected(): void {
@@ -106,6 +115,32 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
       }
       return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
     });
+  }
+
+  private emitSearchedStationIds() {
+    // TODO. a hack around due to event after view errors: Investigate later.
+    setTimeout(() => {
+      const searchedStationIds: string[] = [];
+      const selectedRegions = this.regions.filter(region => region.selected);
+      for (const selectedRegion of selectedRegions) {
+        for (const station of this.stations) {
+          if (station.location) {
+            if (this.isStationInRegion(station.location, selectedRegion.region.boundary)) {
+              searchedStationIds.push(station.id);
+            }
+          }
+        }
+      }
+
+      this.searchedIdsChange.emit(searchedStationIds);
+    }, 0);
+  }
+
+
+  public isStationInRegion(location: { longitude: number; latitude: number; }, boundary: number[][][][]): boolean {
+    const stationPoint = point([location.longitude, location.latitude]);
+    const regionPolygon = multiPolygon(boundary);
+    return booleanPointInPolygon(stationPoint, regionPolygon);
   }
 
 

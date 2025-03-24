@@ -117,7 +117,7 @@ export class ViewStationsGeoMapComponent implements OnChanges {
       fillOpacity: 0.8
     });
 
-    marker.bindPopup(station.name);
+    marker.bindPopup(`${station.id} - ${station.name}`);
 
     // Show the popup on mouseover
     marker.on('mouseover', () => {

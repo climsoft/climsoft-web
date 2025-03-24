@@ -1,10 +1,11 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, concat, from, map, take, tap, throwError } from 'rxjs';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ViewNetworkAffiliatioModel } from '../../network-affiliations/models/view-network-affiliation.model';
 import { StationCountPerNetworkAffiliationCount } from '../models/station-count-per-network-affiliation-count';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -57,32 +58,33 @@ export class StationNetworkAffiliationsService {
   }
 
   public getStationCountPerNetworkAffiliation(): Observable<StationCountPerNetworkAffiliationCount[]> {
-    return this.http.get<{ networkAffiliationId: number; stationCount: number }[]>( `${this.endPointUrl}/stations-count-per-network-affiliation`)
+    return this.http.get<{ networkAffiliationId: number; stationCount: number }[]>(`${this.endPointUrl}/stations-count-per-network-affiliation`)
       .pipe(
         catchError(this.handleError)
       );
   }
- 
-  public getStationsAssignedToNetworkAffiliation(networkAffiliationId: number): Observable<string[]> {
-          return this.http.get<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliations/${networkAffiliationId}`)
-        .pipe(
-          catchError(this.handleError)
-        );
-    }
-    
-    public putStationsAssignedToNetworkAffiliation(networkAffiliationId: number, stationIds: string[]): Observable<string[]> {
-      return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliations/${networkAffiliationId}`, stationIds)
-        .pipe(
-          catchError(this.handleError)
-        );
-    }
 
-    public deleteStationsAssignedToNetworkAffiliation(networkAffiliationId: number){
-      return this.http.delete(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`)
-        .pipe(
-          catchError(this.handleError)
-        );
-    }
+  public getStationsAssignedToNetworkAffiliations(networkAffiliationIds: number[]): Observable<string[]> {
+    const params = new HttpParams().set('networkAffiliationIds', networkAffiliationIds.join(','));
+    return this.http.get<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliations`, { params })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public putStationsAssignedToNetworkAffiliation(networkAffiliationId: number, stationIds: string[]): Observable<string[]> {
+    return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`, stationIds)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public deleteStationsAssignedToNetworkAffiliation(networkAffiliationId: number) {
+    return this.http.delete(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`)
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
   // TODO. Push to another class 
   private handleError(error: HttpErrorResponse

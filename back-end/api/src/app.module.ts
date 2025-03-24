@@ -6,7 +6,7 @@ import { ObservationModule } from './observation/observation.module';
 import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
-import { MigrationsModule } from './migrations/migrations.module'; 
+import { MigrationsModule } from './migrations/migrations.module';
 import { AppConfig } from './app.config';
 
 @Module({
@@ -21,11 +21,11 @@ import { AppConfig } from './app.config';
       type: "postgres",
       host: AppConfig.dbCredentials.host,
       port: AppConfig.dbCredentials.port,
-      username: AppConfig.dbCredentials.username  ,
-      password: AppConfig.dbCredentials.password ,
-      database: AppConfig.dbCredentials.database ,
+      username: AppConfig.dbCredentials.username,
+      password: AppConfig.dbCredentials.password,
+      database: AppConfig.dbCredentials.database,
       autoLoadEntities: true, // models will be loaded automatically
-      synchronize: AppConfig.devMode, // in dev mode synce entities with the database but in production disable
+      synchronize: true,//AppConfig.devMode, // in dev mode synce entities with the database but in production disable
       // TODO. Investigate whether we should increase the connection pool size after monitoring the connection pool utilisation.
       //logging: true,
     }),

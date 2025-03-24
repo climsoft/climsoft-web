@@ -4,16 +4,15 @@ import { StationSearchHistoryModel } from '../models/stations-search-history.mod
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { take } from 'rxjs';
 
-
 export enum SelectionOptionTypeEnum {
   SELECT_ALL = 'Select All',
   DESLECT_ALL = 'Deselect All',
-  SORT_SELECTED =  'Sort Selected'
+  SORT_SELECTED = 'Sort Selected'
 }
 
 interface StationSearchModel {
   station: StationCacheModel;
-  selected: boolean;
+  selected: boolean; 
 }
 
 @Component({
@@ -32,14 +31,18 @@ export class StationsSearchDialogComponent {
   protected stationsSelections!: StationSearchModel[];
 
   protected searchName: string = '';
-  protected saveSearch: boolean = false;
-  protected numOfSelectedIds: number = 0;
+  protected saveSearch: boolean = false; 
+
   protected searchBy: string = 'Id or Name';
+  protected searchValue: string = '';
+  protected selectionOption!: SelectionOptionTypeEnum;
+  protected searchedIds: string[] = [];
 
   constructor(private stationsCacheService: StationsCacheService) {
   }
 
   public showDialog(selectedIds?: string[]): void {
+    //this.searchBy = 'Id or Name';
     this.open = true;
     if (selectedIds && selectedIds.length > 0) {
       this.setStationSelections(selectedIds);
@@ -82,21 +85,13 @@ export class StationsSearchDialogComponent {
     this.loadSearchHistory();
   }
 
-protected onSearchOptionChange(option: string): void{
-  this.searchBy = option;
-  switch (option) {
-    case 'Id or Name': 
-      break;
-    case 'Region': 
-      break;
-    case 'Organisation': 
-      break;
-    default:
-      break;
+  protected onSearchOptionChange(option: string): void {
+    this.searchedIds = [];
+    this.searchBy = option;
   }
-}
 
   protected onSearchInput(searchValue: string): void {
+    this.searchValue = searchValue
     // Make the searched items be the first items
     this.stationsSelections.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after
@@ -111,8 +106,25 @@ protected onSearchOptionChange(option: string): void{
     });
   }
 
-
   protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
+    switch (options) {
+      case 'Select All':
+        this.selectionOption = SelectionOptionTypeEnum.SELECT_ALL;
+        break;
+      case 'Deselect All':
+        this.selectionOption = SelectionOptionTypeEnum.DESLECT_ALL;
+        break;
+      case 'Sort Selected':
+        this.selectionOption = SelectionOptionTypeEnum.SORT_SELECTED;
+        break;
+      default:
+        break;
+    }
+
+    if (this.searchBy !== 'Id or Name') {
+      return;
+    }
+
     switch (options) {
       case 'Select All':
         this.selectAll(true);
@@ -146,11 +158,28 @@ protected onSearchOptionChange(option: string): void{
   }
 
   protected onOkClick(): void {
-    const searchedIds: string[] = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
-    if (this.searchName && searchedIds.length > 0) {
-      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: searchedIds });
+    //this.searchedIds= this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
+
+
+    switch (this.searchBy) {
+      case 'Id or Name':
+        this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
+        break;
+      case 'Region':
+        break;
+      case 'Organisation':
+        break;
+      case 'Network Affiliation':
+        break;
+      default:
+        break;
     }
-    this.searchedIdsChange.emit(searchedIds);
+
+
+    if (this.searchName && this.searchedIds.length > 0) {
+      AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });
+    }
+    this.searchedIdsChange.emit(this.searchedIds);
   }
 
   private setStationSelections(searchedIds: string[]): void {
@@ -158,11 +187,11 @@ protected onSearchOptionChange(option: string): void{
       this.stationsSelections = stations.map(station => {
         return {
           station: station,
-          selected: searchedIds.includes(station.id),
+          selected: searchedIds.includes(station.id)
         };
       });
       // Set number of selected ids
-     this.setNumOfSelectedStations();
+      this.setNumOfSelectedStations();
     });
   }
 
@@ -176,8 +205,12 @@ protected onSearchOptionChange(option: string): void{
     });
   }
 
-  private setNumOfSelectedStations(): void{
-    this.numOfSelectedIds = this.stationsSelections.filter(item => item.selected).length;
+  private setNumOfSelectedStations(): void {
+    this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
+  }
+
+  public onSearchedIdsChanged(searchedIds: string[]): void {
+    this.searchedIds = searchedIds; 
   }
 
 }

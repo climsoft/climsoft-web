@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Req } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query, Req } from '@nestjs/common';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
-import { AuthUtil } from 'src/user/services/auth.util'; 
-import { StationNetworkAffiliationsService } from '../services/station-networks.service';
+import { AuthUtil } from 'src/user/services/auth.util';
+import { StationNetworkAffiliationsService } from '../services/station-network-affiliations.service';
 
 @Controller('station-network-affiliations')
 export class StationNetworkAffiliationsController {
@@ -11,22 +11,25 @@ export class StationNetworkAffiliationsController {
   constructor(private readonly stationNetworkAffiliationsService: StationNetworkAffiliationsService) { }
 
   @Get('stations-count-per-network-affiliation')
-  public getStationCountPerForm() {
+  public getStationCountPerNetwork() {
     return this.stationNetworkAffiliationsService.getStationCountPerNetwork();
   }
 
+  @Get('stations-assigned-to-network-affiliations')
+  public getStationsAssignedToUseForm(
+    @Query('networkAffiliationIds',
+      new DefaultValuePipe([]),
+      new ParseArrayPipe({ items: Number, separator: "," })) networkAffiliationIds: number[]) {
+    return this.stationNetworkAffiliationsService.getStationsAssignedToNetworks(networkAffiliationIds);
+  }
+
   @Get('network-affiliations-assigned-to-station/:id')
-  public getFormsAssignedToStation(@Param('id') stationId: string) {
+  public getNetworksAssignedToStation(@Param('id') stationId: string) {
     return this.stationNetworkAffiliationsService.getNetworksAssignedToStation(stationId);
   }
 
-  @Get('stations-assigned-to-network-affiliation/:id')
-  public getStationsAssignedToUseForm(@Param('id', ParseIntPipe) formId: number) {
-    return this.stationNetworkAffiliationsService.getStationsAssignedToNetwork(formId);
-  }
-
   @Put('network-affiliations-assigned-to-station/:id')
-  public putFormsAssignedToStation(
+  public putNetworksAssignedToStation(
     @Req() request: Request,
     @Param('id', AuthorisedStationsPipe) stationId: string,
     @Body(new ParseArrayPipe({ items: Number })) formIds: number[]) {
@@ -34,7 +37,7 @@ export class StationNetworkAffiliationsController {
   }
 
   @Delete('network-affiliations-assigned-to-station/:id')
-  public async deleteFormsAsignedToStation(
+  public async deleteNetworksAsignedToStation(
     @Param('id', AuthorisedStationsPipe) stationId: string) {
     await this.stationNetworkAffiliationsService.deleteNetworksAsignedToStation(stationId);
     return { message: 'success' };
@@ -42,18 +45,18 @@ export class StationNetworkAffiliationsController {
 
   @Admin()
   @Put('stations-assigned-to-network-affiliation/:id')
-  public putStationsAssignedToUseForm(
+  public putStationsAssignedToNetwork(
     @Req() request: Request,
-    @Param('id', ParseIntPipe) formId: number,
+    @Param('id', ParseIntPipe) networkAffiliationId: number,
     @Body(new ParseArrayPipe({ items: String })) stationIds: string[]) {
-    return this.stationNetworkAffiliationsService.putStationsAssignedToNetwork(formId, stationIds, AuthUtil.getLoggedInUserId(request));
+    return this.stationNetworkAffiliationsService.putStationsAssignedToNetwork(networkAffiliationId, stationIds, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()
   @Delete('stations-assigned-to-network-affiliation/:id')
-  public async deleteStationsAssignedToUseForm(
-    @Param('id') formId: number) {
-    await this.stationNetworkAffiliationsService.deleteStationsAssignedToNetwork(formId);
+  public async deleteStationsAssignedToNetwork(
+    @Param('id') networkAffiliationId: number) {
+    await this.stationNetworkAffiliationsService.deleteStationsAssignedToNetwork(networkAffiliationId);
     return { message: 'success' };
   }
 

@@ -84,8 +84,6 @@ export class StationFormsService {
       );
   }
 
-
-
   // TODO. Push to another class 
   private handleError(error: HttpErrorResponse
   ) {

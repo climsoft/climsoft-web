@@ -68,9 +68,15 @@ import { NetworkAffiliationDetailsComponent } from './network-affiliations/netwo
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
 import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
-import { StationRegionSearchComponent } from './stations/stations-search-dialog/regions-search/station-regions-search.component';
+import { StationRegionSearchComponent as StationRegionsSearchComponent } from './stations/stations-search-dialog/station-regions-search/station-regions-search.component';
 import { ElementTypeSingleInputComponent } from './elements/element-type-selector/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
+import { StationOrganisationsSearchComponent } from './stations/stations-search-dialog/station-organisations-search/station-organisations-search.component';
+import { StationNetworkAffiliationsSearchComponent } from './stations/stations-search-dialog/station-network-affiliations-search/station-network-affiliations-search.component';
+import { StationStatusSearchComponent } from './stations/stations-search-dialog/station-status-search/station-status-search.component';
+import { StationProcessingMethodSearchComponent } from './stations/stations-search-dialog/station-processing-search/station-processing-method-search.component';
+import { StationFocusesSearchComponent } from './stations/stations-search-dialog/station-focuses-search/station-focuses-search.component';
+import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
 
 @NgModule({
   declarations: [
@@ -109,8 +115,14 @@ import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stat
     StationNetworksComponent, 
 
     StationsSearchDialogComponent,
-    StationRegionSearchComponent, 
-
+    StationRegionsSearchComponent, 
+    StationOrganisationsSearchComponent,
+    StationNetworkAffiliationsSearchComponent,
+    StationStatusSearchComponent,
+    StationProcessingMethodSearchComponent,
+    StationFocusesSearchComponent,
+    StationEnvironmentsSearchComponent,
+ 
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
@@ -184,7 +196,7 @@ import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stat
     ViewStationsTreeMapComponent,
 
     StationsSearchDialogComponent,
-    StationRegionSearchComponent,
+    StationRegionsSearchComponent,
 
     FormSelectorDialogComponent,
 
