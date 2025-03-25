@@ -17,7 +17,7 @@ interface StationView extends StationCacheModel {
   templateUrl: './data-monitoring.component.html',
   styleUrls: ['./data-monitoring.component.scss']
 })
-export class DataMonitoringComponent implements OnDestroy {
+export class StationsActivityComponent implements OnDestroy {
   @ViewChild('appStationDataMonitoring') appStationDataMonitoring!: StationDataMonitoringComponent;
   protected operationalStations!: StationView[];
   protected reportingStationIds!: string[];
@@ -30,7 +30,7 @@ export class DataMonitoringComponent implements OnDestroy {
     private appAuthService: AppAuthService,
     private stationsCacheService: StationsCacheService,
     private observationsService: ObservationsService,) {
-    this.pageService.setPageHeader("Data Monitoring");
+    //this.pageService.setPageHeader("Data Monitoring");
 
     this.stationMapLayerGroup = L.layerGroup();
 
@@ -91,8 +91,6 @@ export class DataMonitoringComponent implements OnDestroy {
       this.setupMap();
     });
   }
-
-  
 
   private setupMap(): void {
     const featureCollection: any = {

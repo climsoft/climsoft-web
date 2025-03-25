@@ -1,5 +1,5 @@
 export class AppConfig {
-  public static readonly devMode: boolean = false;
+  public static readonly devMode: boolean = true;
 
   public static readonly dbCredentials = {
     host: process.env.DB_HOST ? process.env.DB_HOST : 'localhost',
