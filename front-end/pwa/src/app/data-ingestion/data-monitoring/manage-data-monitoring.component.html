@@ -27,7 +27,7 @@
   </div>
 
   <div class="card-body p-0 mt-2">
-    <app-stations-monitoring *ngIf="activeTab === 'station-activity'" [searchedStationIds]="searchedStationsIds" />
+    <app-stations-activity *ngIf="activeTab === 'station-activity'" [searchedStationIds]="searchedStationsIds" />
     <app-data-flow *ngIf="activeTab === 'data-flow'" />
     <app-data-explorer *ngIf="activeTab === 'data-explorer'" />
   </div>

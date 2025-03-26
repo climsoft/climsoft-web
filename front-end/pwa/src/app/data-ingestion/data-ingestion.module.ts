@@ -20,8 +20,8 @@ import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { StationsActivityComponent } from './data-monitoring/stations-monitoring/data-monitoring.component';
-import { StationDataMonitoringComponent } from './data-monitoring/stations-monitoring/station-data-monitoring/station-data-monitoring.component';
+import { StationsActivityComponent } from './data-monitoring/stations-monitoring/stations-activity.component';
+import { StationDataActivityComponent } from './data-monitoring/stations-monitoring/station-data-monitoring/station-data-activity.component';
 import { QuerySelectionComponent } from './query-selection/query-selection.component';
 import { DataExplorerComponent } from './data-monitoring/data-explorer/data-explorer.component';
 import { ManageDataMonitoringComponent } from './data-monitoring/manage-data-monitoring.component';
@@ -52,7 +52,7 @@ import { DataFlowQuerySelectionComponent } from './data-monitoring/data-flow/dat
     ManageDataMonitoringComponent,
     DataExplorerComponent,
     StationsActivityComponent,
-    StationDataMonitoringComponent, 
+    StationDataActivityComponent, 
     DataFlowComponent,
     DataFlowQuerySelectionComponent,
 

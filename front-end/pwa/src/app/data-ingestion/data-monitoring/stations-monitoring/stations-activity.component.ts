@@ -4,7 +4,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { StationStatusEnum } from 'src/app/metadata/stations/models/station-status.enum';
 import * as L from 'leaflet';
-import { StationDataMonitoringComponent } from './station-data-monitoring/station-data-monitoring.component';
+import { StationDataActivityComponent } from './station-data-monitoring/station-data-activity.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 
 interface StationView extends StationCacheModel {
@@ -12,12 +12,12 @@ interface StationView extends StationCacheModel {
 }
 
 @Component({
-  selector: 'app-stations-monitoring',
-  templateUrl: './data-monitoring.component.html',
-  styleUrls: ['./data-monitoring.component.scss']
+  selector: 'app-stations-activity',
+  templateUrl: './stations-activity.component.html',
+  styleUrls: ['./stations-activity.component.scss']
 })
 export class StationsActivityComponent implements OnChanges, OnDestroy {
-  @ViewChild('appStationActivity') appStationDataMonitoring!: StationDataMonitoringComponent;
+  @ViewChild('appStationDataActivity') appStationDataMonitoring!: StationDataActivityComponent;
   @Input() searchedStationIds!: string[];
   protected allowedStations: StationView[] = [];
   protected  stationsToRender!: StationView[];
@@ -120,9 +120,7 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
       "features": stationsToRender.filter(station => (station.location !== null)).map(station => {
         return {
           "type": "Feature",
-          "properties": {
-            "id": station.id,
-            "name": station.name,
+          "properties": { 
             "station": station
           },
           "geometry": {
@@ -158,7 +156,7 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
     });
 
     // For demonstration, bind station name to popup
-    marker.bindPopup(feature.properties.name);
+    marker.bindPopup(`${station.id} - ${station.name}`);
 
     // Show the popup on mouseover
     marker.on('mouseover', () => {

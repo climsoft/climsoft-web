@@ -21,11 +21,11 @@ interface ObservationView extends Last24HoursObservations {
 }
 
 @Component({
-  selector: 'app-station-data-monitoring',
-  templateUrl: './station-data-monitoring.component.html',
-  styleUrls: ['./station-data-monitoring.component.scss']
+  selector: 'app-station-data-activity',
+  templateUrl: './station-data-activity.component.html',
+  styleUrls: ['./station-data-activity.component.scss']
 })
-export class StationDataMonitoringComponent implements OnDestroy {
+export class StationDataActivityComponent implements OnDestroy {
 
   @Output()
   public closeClick = new EventEmitter<void>();
