@@ -20,13 +20,13 @@ import { ManageQCComponent } from './manage-qc-data/manage-qc.component';
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';
-import { StationsActivityComponent } from './data-monitoring/stations-monitoring/stations-activity.component';
-import { StationDataActivityComponent } from './data-monitoring/stations-monitoring/station-data-monitoring/station-data-activity.component';
 import { QuerySelectionComponent } from './query-selection/query-selection.component';
 import { DataExplorerComponent } from './data-monitoring/data-explorer/data-explorer.component';
 import { ManageDataMonitoringComponent } from './data-monitoring/manage-data-monitoring.component';
 import { DataFlowComponent } from './data-monitoring/data-flow/data-flow.component';
 import { DataFlowQuerySelectionComponent } from './data-monitoring/data-flow/data-flow-query-selection/data-flow-query-selection.component';
+import { StationsActivityComponent } from './data-monitoring/stations-activity/stations-activity.component';
+import { StationDataActivityComponent } from './data-monitoring/stations-activity/station-data-monitoring/station-data-activity.component';
 
 @NgModule({
 
