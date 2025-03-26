@@ -1,5 +1,4 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { ObservationsService } from '../../services/observations.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -17,51 +16,32 @@ interface StationView extends StationCacheModel {
   templateUrl: './data-monitoring.component.html',
   styleUrls: ['./data-monitoring.component.scss']
 })
-export class StationsActivityComponent implements OnDestroy {
-  @ViewChild('appStationDataMonitoring') appStationDataMonitoring!: StationDataMonitoringComponent;
-  protected operationalStations!: StationView[];
-  protected reportingStationIds!: string[];
-  protected stationMapLayerGroup: L.LayerGroup;
+export class StationsActivityComponent implements OnChanges, OnDestroy {
+  @ViewChild('appStationActivity') appStationDataMonitoring!: StationDataMonitoringComponent;
+  @Input() searchedStationIds!: string[];
+  protected allowedStations: StationView[] = [];
+  protected  stationsToRender!: StationView[];
+  protected numOfStationsReporting: number=0;
+  protected numOfStationsNotReporting: number=0;
+  
+  protected stationMapLayerGroup!: L.LayerGroup;
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    private pageService: PagesDataService,
     private appAuthService: AppAuthService,
     private stationsCacheService: StationsCacheService,
     private observationsService: ObservationsService,) {
-    //this.pageService.setPageHeader("Data Monitoring");
-
-    this.stationMapLayerGroup = L.layerGroup();
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(stations => {
-      this.filterOutOperationalStations(stations);
+      this.filterOutPermittedStationsStations(stations)
     });
   }
 
+  private filterOutPermittedStationsStations(stations: StationCacheModel[]): void {
 
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private filterOutOperationalStations(stations: StationCacheModel[]) {
-    this.observationsService.findStationsThatHaveLast24HoursRecords().pipe(
-      take(1),
-    ).subscribe(data => {
-
-      const operationalStations: StationView[] = stations.filter(station => station.status === StationStatusEnum.OPERATIONAL).map(station => {
-        return { ...station, reporting: data.includes(station.id) }
-      });
-
-      this.filterOutPermittedStationsStations(data, operationalStations);
-    });
-  }
-
-  private filterOutPermittedStationsStations(reportingStationIds: string[], operationalStations: StationView[]) {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
@@ -78,24 +58,66 @@ export class StationsActivityComponent implements OnDestroy {
         if (user.permissions.ingestionMonitoringPermissions) {
           if (user.permissions.ingestionMonitoringPermissions.stationIds) {
             const stationIds: string[] = user.permissions.ingestionMonitoringPermissions.stationIds;
-            reportingStationIds = reportingStationIds.filter(stationId => stationIds.includes(stationId));
-            operationalStations = operationalStations.filter(station => stationIds.includes(station.id));
+            stations = stations.filter(station => stationIds.includes(station.id));
           }
         } else {
           throw new Error('Data entry not allowed');
         }
       }
 
-      this.reportingStationIds = reportingStationIds;
-      this.operationalStations = operationalStations;
-      this.setupMap();
+      this.allowedStations = stations.filter(station => station.status === StationStatusEnum.OPERATIONAL).map(station => {
+        return { ...station, reporting: false }
+      });
+      this.filterOutSearchIds();
+
     });
   }
 
-  private setupMap(): void {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['searchedStationIds'] && this.searchedStationIds) {
+      // let stations : StationCacheModel[];
+      // if(this.searchedStationIds.length>0){
+      //   stations  = this.stations.filter(item => this.searchedStationIds.includes(item.id));
+      // }else{
+      //   stations = this.stations;
+      // }
+      this.filterOutSearchIds();
+    }
+
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private filterOutSearchIds() {
+  
+    if (this.searchedStationIds && this.searchedStationIds.length) {
+      this.stationsToRender = this.allowedStations.filter(item => this.searchedStationIds.includes(item.id));
+    } else {
+      this.stationsToRender = this.allowedStations;
+    }
+
+    this.observationsService.findStationsThatHaveLast24HoursRecords().pipe(
+      take(1),
+    ).subscribe(data => {
+      for (const station of this.stationsToRender) {
+        station.reporting = data.includes(station.id);
+      }
+      this.numOfStationsReporting = this.stationsToRender.filter(item => item.reporting).length;
+      this.numOfStationsNotReporting = this.stationsToRender.filter(item => !item.reporting).length;
+   
+      this.setupMap(this.stationsToRender);
+    });
+
+  }
+
+  private setupMap(stationsToRender: StationView[]): void {
+    this.stationMapLayerGroup = L.layerGroup();
     const featureCollection: any = {
       "type": "FeatureCollection",
-      "features": this.operationalStations.filter(station => (station.location !== null)).map(station => {
+      "features": stationsToRender.filter(station => (station.location !== null)).map(station => {
         return {
           "type": "Feature",
           "properties": {
@@ -117,7 +139,6 @@ export class StationsActivityComponent implements OnDestroy {
     ).addTo(this.stationMapLayerGroup);
 
   }
-
 
   private stationMarkers = (feature: any, latlng: any) => {
     // Get station data and component from feature properties 
@@ -156,5 +177,8 @@ export class StationsActivityComponent implements OnDestroy {
 
     return marker;
   }
+
+ 
+   
 
 }

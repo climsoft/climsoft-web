@@ -10,6 +10,7 @@ type tabTypes = 'station-activity'| 'data-flow' | 'data-explorer';
 export class ManageDataMonitoringComponent {
 
   protected activeTab: tabTypes = 'station-activity';
+  protected searchedStationsIds!: string[];
 
   constructor(private pagesDataService: PagesDataService) {
     this.pagesDataService.setPageHeader('Data Monitoring');
@@ -17,6 +18,10 @@ export class ManageDataMonitoringComponent {
 
   protected onTabClick(selectedTab: tabTypes): void {
     this.activeTab = selectedTab;
+  }
+
+  protected onSearchInput(stationIds: string[]){
+    this.searchedStationsIds = stationIds;
   }
 
 }
