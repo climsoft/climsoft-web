@@ -109,8 +109,8 @@ export class ExportTemplateDetailComponent implements OnInit {
 
     if (option === 'Days') {
       this.viewExportTemplate.parameters.observationDate.last.durationType = 'days';
-    } else if (option === 'Minutes') {
-      this.viewExportTemplate.parameters.observationDate.last.durationType = 'minutes';
+    } else if (option === 'Hours') {
+      this.viewExportTemplate.parameters.observationDate.last.durationType = 'hours';
     }
   }
 

@@ -5,7 +5,7 @@ export interface ExportTemplateParametersModel {
   observationDate?: {
     last?: {
       duration: number,
-      durationType: 'days' | 'minutes',
+      durationType: 'days'| 'hours' | 'minutes',
     };
     fromDate?: string;
     within?: {

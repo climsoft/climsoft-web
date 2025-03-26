@@ -21,7 +21,7 @@ export class ExportTemplateParametersDto {
   observationDate?: {
     last?: {
       duration: number,
-      durationType: 'days' | 'minutes',
+      durationType: 'days' | 'hours'| 'minutes',
     };
     fromDate?: string;
     within?: {
