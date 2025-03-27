@@ -106,6 +106,10 @@ export class UsersService {
             throw new NotFoundException('invalid_credentials');
         }
 
+        if (userEntity.disabled) {
+            throw new NotFoundException('disabled');
+        }
+
         return this.getUserDto(userEntity);
     }
 

@@ -20,10 +20,11 @@ export class DateInputComponent implements OnChanges {
   @Output() public inputBlur = new EventEmitter<string | null>();
 
   protected maxDate: string;
-  protected disableNextButton: boolean = false;
+  protected disableNextButton: boolean = false; 
 
   constructor() {
-    this.maxDate = new Date().toISOString().slice(0, 10);
+    const date = new Date();
+    this.maxDate = `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;   
   }
 
 
@@ -53,7 +54,7 @@ export class DateInputComponent implements OnChanges {
     const newCalculatedDate: Date = this.value ? new Date(this.value) : new Date();
     newCalculatedDate.setDate(newCalculatedDate.getDate() - 1);
 
-    this.value = newCalculatedDate.toISOString().slice(0, 10);
+    this.value = this.getDateString(newCalculatedDate);
     this.valueChange.emit(this.value);
     this.setNextButtonDisabledState();
   }
@@ -67,15 +68,18 @@ export class DateInputComponent implements OnChanges {
       return;
     }
 
-    this.value = newCalculatedDate.toISOString().slice(0, 10);
+    this.value = this.getDateString(newCalculatedDate);
     this.valueChange.emit(this.value);
     this.setNextButtonDisabledState();
   }
 
   private setNextButtonDisabledState(): void {
-    let todayDate = new Date();
-    const strTodayDate = `${todayDate.getFullYear()}-${StringUtils.addLeadingZero(todayDate.getMonth() + 1)}-${StringUtils.addLeadingZero(todayDate.getDate())}`
+    const strTodayDate = this.getDateString(new Date())
     this.disableNextButton = (!this.value || strTodayDate === this.value);
+  }
+
+  private getDateString(date: Date): string{
+    return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
   }
 
 }

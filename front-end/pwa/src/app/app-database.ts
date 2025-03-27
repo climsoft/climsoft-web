@@ -64,7 +64,7 @@ export class AppDatabase extends Dexie {
     stationForms!: Table<StationForm, string>;
     stationNetworks!: Table<StationNetwork, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
-    // stationId, elementId, sourceId, level, datetime, peintervalriod  as compund key
+    // stationId, elementId, sourceId, level, datetime, interval  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
 
     //--------------------------------------

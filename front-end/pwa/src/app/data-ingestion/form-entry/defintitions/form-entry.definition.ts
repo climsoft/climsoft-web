@@ -2,9 +2,9 @@ import { FieldType } from "src/app/metadata/source-templates/models/create-entry
 import { ViewEntryFormModel } from "src/app/metadata/source-templates/models/view-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
-import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model"; 
+import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ObservationDefinition } from "./observation.definition"; 
+import { ObservationDefinition } from "./observation.definition";
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
 import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
@@ -68,7 +68,71 @@ export class FormEntryDefinition {
         return this._obsDefsForGridLayout;
     }
 
+    /**
+    * Creates the observation query object for getting existing observations from the database.
+    * @param formDefinitions form defintions to use in creating the observation query dto.
+    * @returns 
+    */
+    public createObservationQuery(): EntryFormObservationQueryModel {
+        //get the data based on the selection filter
+        const observationQuery: EntryFormObservationQueryModel = {
+            stationId: this.station.id,
+            sourceId: this.source.id,
+            level: 0,
+            elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
+            fromDate: '',
+            toDate: '',
+        };
+
+        const year: number = this.yearSelectorValue;
+        const month: number = this.monthSelectorValue;
+        const hours: number[] = this.hourSelectorValue === null ? this.formMetadata.hours : [this.hourSelectorValue];
+
+        // If day value is defined then just define a single data time else define all date times for the entire month
+        if (this.daySelectorValue) {
+            //observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, this.daySelectorValue, hours));
+
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.000Z`;
+
+        } else {
+            const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
+            // for (let i = 1; i <= lastDay; i++) {
+            //     observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, i, hours));
+            // }
+
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.000Z`;
+
+        }
+
+        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+        observationQuery.fromDate = this.getDatetimesBasedOnUTCOffset(observationQuery.fromDate, 'subtract');
+        observationQuery.toDate = this.getDatetimesBasedOnUTCOffset(observationQuery.toDate, 'subtract');
+
+        console.log('query: ', observationQuery)
+        return observationQuery;
+    }
+
+    public getDatetimesBasedOnUTCOffset(strDate: string, operation: 'subtract' | 'add'): string {
+        if (this.source.utcOffset === 0) return strDate;
+        let newDate: Date = new Date(strDate);
+        if (operation === 'subtract') {
+            newDate.setHours(newDate.getHours() - this.source.utcOffset);
+        } else {
+            newDate.setHours(newDate.getHours() + this.source.utcOffset);
+        }
+
+        return newDate.toISOString();
+    }
+
     public createEntryObsDefs(dbObservations: CreateObservationModel[]): void {
+        console.log('db observations: ', dbObservations)
+        for (const dbObservation of dbObservations) {
+            dbObservation.datetime = this.getDatetimesBasedOnUTCOffset(dbObservation.datetime, 'add');
+        }
+
         switch (this.formMetadata.layout) {
             case "LINEAR":
                 this._obsDefsForLinearLayout = this.getEntryObsForLinearLayout(dbObservations);
@@ -81,8 +145,9 @@ export class FormEntryDefinition {
             default:
                 throw new Error("Developer error. Layout not supported");
         }
-
     }
+
+
 
     /**
      * Used by linear layout.
@@ -118,7 +183,7 @@ export class FormEntryDefinition {
                 datetimeVars[3] = fieldDef.id;
             }
 
-            newObs.datetime = this.getObsDatetimeInUTC(datetimeVars);
+            newObs.datetime = this.getObsDatetime(datetimeVars);
 
             //Find the equivalent observation from the database. 
             //If it exists use it to create the observation definition
@@ -182,7 +247,7 @@ export class FormEntryDefinition {
                     datetimeVars[3] = colFieldDef.id;
                 }
 
-                newObs.datetime = this.getObsDatetimeInUTC(datetimeVars);
+                newObs.datetime = this.getObsDatetime(datetimeVars);
 
                 //Find the equivalent observation from the database. 
                 //If it exists use it to create the observation definition
@@ -242,6 +307,19 @@ export class FormEntryDefinition {
     }
 
     /**
+* Date time UTC conversion is determined by the form metadata utc setting
+* @param datetimeVars year, month (1 based index), day, hour
+* @returns a date time string in an iso format.
+*/
+    private getObsDatetime(datetimeVars: [number, number, number, number]): string {
+        let [year, month, day, hour] = datetimeVars;
+        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+        //hour = hour - this.source.utcOffset;
+        return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
+    }
+
+    /**
      * Creates a new observation definition from the observation model and the element metadata
      * @param observation 
      * @returns 
@@ -273,56 +351,6 @@ export class FormEntryDefinition {
             }
         }
         return null;
-    }
-
-
-    /**
-     * Creates the observation query object for getting existing observations from the database.
-     * @param formDefinitions form defintions to use in creating the observation query dto.
-     * @returns 
-     */
-    public createObservationQuery(): EntryFormObservationQueryModel {
-        //get the data based on the selection filter
-        const observationQuery: EntryFormObservationQueryModel = {
-            stationId: this.station.id,
-            sourceId: this.source.id,
-            level: 0,
-            elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
-            datetimes: []
-        };
-
-        const year: number = this.yearSelectorValue;
-        const month: number = this.monthSelectorValue;
-        const hours: number[] = this.hourSelectorValue === null ? this.formMetadata.hours : [this.hourSelectorValue];
-
-        // If day value is defined then just define a single data time else define all date times for the entire month
-        if (this.daySelectorValue) {
-            observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, this.daySelectorValue, hours));
-        } else {
-            const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
-            for (let i = 1; i <= lastDay; i++) {
-                observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, i, hours));
-            }
-        }
-
-        return observationQuery;
-    }
-
-    private getObsDatetimesInUTC(year: number, month: number, day: number, hours: number[]): string[] {
-        return hours.map(hour => { return this.getObsDatetimeInUTC([year, month, day, hour]) });
-    }
-
-    /**
-   * Date time UTC conversion is determined by the form metadata utc setting
-   * @param datetimeVars year, month (1 based index), day, hour
-   * @returns a date time string in an iso format.
-   */
-    private getObsDatetimeInUTC(datetimeVars: [number, number, number, number]): string {
-        let [year, month, day, hour] = datetimeVars;
-        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-        hour = hour - this.source.utcOffset;
-        return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 
     public static getTotalValuesOfObs(obsDefs: ObservationDefinition[]): number | null {

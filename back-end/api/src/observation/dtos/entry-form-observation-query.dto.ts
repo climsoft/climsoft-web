@@ -16,7 +16,9 @@ export class EntryFormObservationQueryDto {
     @IsInt()
     level: number;
 
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
-    @IsDateString({}, { each: true })
-    datetimes: string[];
+    @IsDateString()
+    fromDate: string;
+
+    @IsDateString()
+    toDate: string;
 }

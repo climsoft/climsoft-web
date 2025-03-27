@@ -1,6 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, Subject, take, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
+import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
@@ -31,23 +32,37 @@ export class ManualExportSelectionComponent implements OnDestroy {
       }
 
       if (user.isSystemAdmin || (user.permissions && user.permissions.exportPermissions)) {
-        console.log('fetching exports')
-          this.exportTemplateService.findAll().pipe(
-            take(1)
-          ).subscribe(data => {
-            this.exports = data;
-          });
+        this.exportTemplateService.findAll().pipe(
+          take(1)
+        ).subscribe(data => {
+          this.exports = this.filterOutPermittedExports(user, data);          
+        });
       } else {
         throw new Error('User not allowed to export data');
       }
     });
   }
 
-
-
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // TODO. Temporary fix. This should be done at the server level
+  protected filterOutPermittedExports(user: LoggedInUserModel, exports: ViewExportTemplateModel[]): ViewExportTemplateModel[] {
+
+    if (user.isSystemAdmin) return exports;
+    if (!user.permissions) return [];
+    if (user.permissions.exportPermissions) {
+      const templateIds = user.permissions.exportPermissions.exportTemplateIds;
+      if (templateIds) {
+        exports = exports.filter(item => templateIds.includes(item.id));
+      }
+      return exports;
+    } else {
+      return [];
+    }
+
   }
 
   protected onSearch(): void { }

@@ -72,7 +72,7 @@ services:
       - "5432:5432" # Expose to both external and internal network only.
     volumes:
       - climsoft_test_database:/var/lib/postgresql/data
-      - climsoft_test_exports:/var/lib/postgresql/exports
+      - ./back-end/api/tmp:/var/lib/postgresql/exports
     networks:
       - climsoft_network
 

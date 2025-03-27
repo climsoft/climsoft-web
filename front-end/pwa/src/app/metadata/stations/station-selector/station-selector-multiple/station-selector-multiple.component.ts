@@ -18,7 +18,7 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
 
   protected allStations: StationCacheModel[] = [];
   protected stations!: StationCacheModel[];
-  protected selectedStations!: StationCacheModel[];
+  protected selectedStations: StationCacheModel[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(private stationsCacheService: StationsCacheService) {
@@ -26,26 +26,19 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allStations = data;
-      this.filterBasedOnSelectedIds();
+      this.stations = this.allStations;
     });
 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.filterBasedOnSelectedIds();
+    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
+    this.selectedStations = this.selectedIds && this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private filterBasedOnSelectedIds(): void {
-    this.stations = this.allStations;
-    if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.stations = this.allStations.filter(item => this.includeOnlyIds.includes(item.id));
-    }
-    this.selectedStations = this.selectedIds && this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 
   protected optionDisplayFunction(option: StationCacheModel): string {
@@ -58,7 +51,8 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   protected onAdvancedSearchInput(selectedIds: string[]): void {
-    this.selectedIds = selectedIds;
-    this.filterBasedOnSelectedIds();
+    this.selectedStations = selectedIds.length > 0 ? this.stations.filter(item => selectedIds.includes(item.id)) : [];
+    this.selectedIds = this.selectedStations.map(data => data.id);
+    this.selectedIdsChange.emit(this.selectedIds);
   }
 }

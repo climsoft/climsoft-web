@@ -149,7 +149,7 @@ export class ObservationsService {
             elementId: In(queryDto.elementIds),
             sourceId: queryDto.sourceId,
             level: queryDto.level,
-            datetime: In(queryDto.datetimes.map(datetime => new Date(datetime))),
+            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
             //interval: queryDto.interval, // Note, interval is commented out because of cumulative data in entry forms
             deleted: false
         });
