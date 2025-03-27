@@ -47,7 +47,7 @@ export class SourceSelectorSingleComponent implements OnInit, OnChanges {
   }
 
   protected optionDisplayFunction(option: ViewSourceModel): string {
-    return option.name;
+    return `${option.id} - ${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: ViewSourceModel | null) {

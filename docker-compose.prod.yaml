@@ -1,7 +1,7 @@
 
 services:
   climsoft_nginx_proxy:
-    image: patowiz/climsoft-nginx-proxy
+    image: climsoftdevelopers/climsoft-nginx-proxy
     container_name: climsoft-nginx-proxy
     restart: always
     ports: # Expose to external network
@@ -13,7 +13,7 @@ services:
       - climsoft_network
 
   climsoft_pwa:
-    image: patowiz/climsoft-pwa
+    image: climsoftdevelopers/climsoft-pwa
     container_name: climsoft-pwa
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: patowiz/climsoft-api
+    image: climsoftdevelopers/climsoft-api
     container_name: climsoft-api
     restart: always
     environment:

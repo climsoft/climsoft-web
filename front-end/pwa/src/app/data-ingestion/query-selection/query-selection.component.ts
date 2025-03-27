@@ -5,7 +5,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { DataCorrectionComponent } from '../data-correction/data-correction.component';
 import { SourceCheckComponent } from '../manage-qc-data/source-check/source-check.component';
-import { DataViewingComponent } from '../data-monitoring/data-viewing/data-viewing.component';
+import { DataExplorerComponent } from '../data-monitoring/data-explorer/data-explorer.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 
 @Component({
@@ -15,7 +15,7 @@ import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-i
 })
 export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
-  @Input() public parentComponentName!: string;;
+  @Input() public parentComponentName!: string;
 
   @Input() public enableQueryButton: boolean = true;
 
@@ -88,7 +88,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
-        case DataViewingComponent.name:
+        case DataExplorerComponent.name:
           if (permissions.ingestionMonitoringPermissions) {
             this.includeOnlyStationIds = permissions.ingestionMonitoringPermissions.stationIds ? permissions.ingestionMonitoringPermissions.stationIds : [];
           } else {

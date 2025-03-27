@@ -48,11 +48,13 @@ export class ExportObservationsService {
             } else if (exportParams.observationDate.fromDate) {
                 sqlCondition = sqlCondition + ` AND date_time >= '${exportParams.observationDate.fromDate}'`;
             } else if (exportParams.observationDate.last) {
-                // TODO.
+                const duration: number = exportParams.observationDate.last.duration;
                 if (exportParams.observationDate.last.durationType === 'days') {
-
+                    sqlCondition = sqlCondition + ` AND date_time >= NOW() - INTERVAL '${duration} days'`;
+                } else if (exportParams.observationDate.last.durationType === 'hours') {
+                    sqlCondition = sqlCondition + ` AND date_time >= NOW() - INTERVAL '${duration} hours'`;
                 } else if (exportParams.observationDate.last.durationType === 'minutes') {
-
+                    sqlCondition = sqlCondition + ` AND date_time >= NOW() - INTERVAL '${duration} minutes'`;
                 }
             }
         }

@@ -5,12 +5,9 @@ import { ObservationEntity, ViewObservationLogDto } from '../entities/observatio
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
-import { StationsService } from 'src/metadata/stations/services/stations.service';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
-import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftV4Service } from './climsoft-v4.service';
 import { UsersService } from 'src/user/services/users.service';
@@ -21,9 +18,6 @@ export class ObservationsService {
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private dataSource: DataSource,
-        private stationsService: StationsService,
-        private elementsService: ElementsService,
-        private sourcesService: SourceTemplatesService,
         private climsoftV4Service: ClimsoftV4Service,
         private usersService: UsersService,
     ) { }
@@ -31,40 +25,19 @@ export class ObservationsService {
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
         const obsView: ViewObservationDto[] = [];
         const obsEntities = await this.findObsEntities(selectObsevationDto);
-
-        // TODO. Remove this because front end caches the metadata. 
-        const stationEntities = await this.stationsService.find();
-        const elementEntities = await this.elementsService.find();
-        const sourceEntities = await this.sourcesService.findAll();
-
         for (const obsEntity of obsEntities) {
-            const viewObs: ViewObservationDto = new ViewObservationDto();
-            viewObs.stationId = obsEntity.stationId;
-            viewObs.elementId = obsEntity.elementId;
-            viewObs.sourceId = obsEntity.sourceId;
-            viewObs.level = obsEntity.level;
-            viewObs.interval = obsEntity.interval;
-            viewObs.datetime = obsEntity.datetime.toISOString();
-            viewObs.value = obsEntity.value;
-            viewObs.flag = obsEntity.flag;
-            viewObs.comment = obsEntity.comment;
-            viewObs.entryDatetime = obsEntity.entryDateTime.toISOString();
-
-            const station = stationEntities.find(data => data.id === obsEntity.stationId);
-            if (station) {
-                viewObs.stationName = station.name;
-            }
-
-            const element = elementEntities.find(data => data.id === obsEntity.elementId);
-            if (element) {
-                viewObs.elementAbbrv = element.abbreviation;
-            }
-
-            const source = sourceEntities.find(data => data.id === obsEntity.sourceId);
-            if (source) {
-                viewObs.sourceName = source.name;
-            }
-
+            const viewObs: ViewObservationDto = {
+                stationId: obsEntity.stationId,
+                elementId: obsEntity.elementId,
+                sourceId: obsEntity.sourceId,
+                level: obsEntity.level,
+                interval: obsEntity.interval,
+                datetime: obsEntity.datetime.toISOString(),
+                value: obsEntity.value,
+                flag: obsEntity.flag,
+                comment: obsEntity.comment,
+                entryDatetime: obsEntity.entryDateTime.toISOString()
+            };
             obsView.push(viewObs);
         }
 
