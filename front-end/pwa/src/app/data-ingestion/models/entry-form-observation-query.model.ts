@@ -2,6 +2,7 @@ export interface EntryFormObservationQueryModel {
     stationId: string;
     sourceId: number;
     level: number;  
-    elementIds: number[];   
-    datetimes: string[]; 
+    elementIds: number[];    
+    fromDate: string;
+    toDate: string;
 }

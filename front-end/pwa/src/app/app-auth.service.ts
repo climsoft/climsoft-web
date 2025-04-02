@@ -13,7 +13,7 @@ export class AppAuthService {
   private endPointUrl: string;
 
   constructor(
-    private appConfigService: AppConfigService, 
+    private appConfigService: AppConfigService,
     private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/users`;
   }
@@ -69,6 +69,10 @@ export class AppAuthService {
       switch (error.error.message) {
         case 'invalid_credentials':
           errorMessage = 'Wrong email or password';
+          break;
+        case 'disabled':
+          errorMessage = 'Contact administrator for system access';
+          break;
       }
     }
 

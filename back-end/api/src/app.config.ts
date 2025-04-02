@@ -16,6 +16,6 @@ export class AppConfig {
     username: process.env.V4_DB_USERNAME ? process.env.V4_DB_USERNAME : 'my_user',
     password: process.env.V4_DB_PASSWORD ? process.env.V4_DB_PASSWORD : 'my_password',
     databaseName: process.env.V4_DB_NAME ? process.env.V4_DB_NAME : 'mariadb_climsoft_db_v4',
-    utcOffset: process.env.V4_DB_UTCOFFSET ? +process.env.V4_DB_UTCOFFSET : 0,
+    utcOffset: process.env.V4_DB_UTCOFFSET ? +process.env.V4_DB_UTCOFFSET : 0,  
   }
 }

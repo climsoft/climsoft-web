@@ -107,7 +107,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             // Get quality control tests
             return this.qcTestsService.find(findQCTestQuery).pipe(
               takeUntil(this.destroy$),
-
               map(test => test.filter(item => !item.disabled))
             );
           })
@@ -132,7 +131,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         this.loadObservations();
 
         /** Gets default date value (YYYY-MM-DD) used by date selector */
-        this.defaultDateValue = new Date().toISOString().slice(0, 10);
+        const date: Date = new Date()
+        this.defaultDateValue = `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
 
         // Gets default year-month value (YYYY-MM) used by year-month selector
         this.defaultYearMonthValue =
@@ -178,17 +178,18 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
 
-  protected get utcDifference(): string {
-    const utcDiff: number = this.source.utcOffset;
+  protected get utcOffset(): string {
+    const utcOffset: number = this.source.utcOffset;
     let strUtcDiff: string = "in";
 
-    if (utcDiff > 0) {
-      strUtcDiff = `+${utcDiff}`;
-    } else if (utcDiff < 0) {
-      strUtcDiff = `${utcDiff}`;
+    if (utcOffset > 0) {
+      strUtcDiff = `+${utcOffset}`;
+    } else if (utcOffset < 0) {
+      strUtcDiff = `${utcOffset}`;
     }
 
-    return ` (${strUtcDiff} UTC)`;
+    //return `(${strUtcDiff} UTC)`;
+    return '';
   }
 
   /**
@@ -356,30 +357,37 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
     const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
     //console.log('saving: ',  newObservations)
-    if (savableObservations !== null) {
-      // Send to server for saving
-      this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
-        let type: ToastEventTypeEnum;
-        if (response.includes('error')) {
-          type = ToastEventTypeEnum.ERROR;
-        } else if (response.includes('local')) {
-          type = ToastEventTypeEnum.WARNING;
-        } else if (response.includes('success')) {
-          type = ToastEventTypeEnum.SUCCESS;
-        } else {
-          type = ToastEventTypeEnum.INFO;
-        }
+    if (savableObservations === null) return;
 
-        this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
-
-        if (type !== ToastEventTypeEnum.ERROR) {
-          if (this.userFormSettings.incrementDateSelector) {
-            this.sequenceToNextDate();
-          }
-          this.loadObservations();
-        }
-      });
+    for (const observation of savableObservations) {
+      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+      observation.datetime = this.formDefinitions.getDatetimesBasedOnUTCOffset(observation.datetime, 'subtract');
+      console.log('saving: ', observation.datetime)
     }
+    // Send to server for saving
+    this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
+      let type: ToastEventTypeEnum;
+      if (response.includes('error')) {
+        type = ToastEventTypeEnum.ERROR;
+      } else if (response.includes('local')) {
+        type = ToastEventTypeEnum.WARNING;
+      } else if (response.includes('success')) {
+        type = ToastEventTypeEnum.SUCCESS;
+      } else {
+        type = ToastEventTypeEnum.INFO;
+      }
+
+      this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
+
+      if (type !== ToastEventTypeEnum.ERROR) {
+        if (this.userFormSettings.incrementDateSelector) {
+          this.sequenceToNextDate();
+        }
+        this.loadObservations();
+      }
+    });
+
   }
 
   /**
@@ -532,7 +540,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     setTimeout(() => {
       this.saveButton.nativeElement.focus();
     }, 0);
-  
+
   }
 
 }

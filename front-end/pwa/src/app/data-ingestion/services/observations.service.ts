@@ -34,7 +34,7 @@ export class ObservationsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
 
-  
+
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
@@ -42,8 +42,8 @@ export class ObservationsService {
       );
   }
 
-   // TODO. There should be a limit requirement for performance reasons
-   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+  // TODO. There should be a limit requirement for performance reasons
+  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
@@ -73,7 +73,7 @@ export class ObservationsService {
 
   public getDownloadExportLink(exportTemplateId: number): string {
     return `${this.endPointUrl}/download-export/${exportTemplateId}`;
-  } 
+  }
 
   public findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<CreateObservationModel[]> {
     return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
@@ -82,13 +82,13 @@ export class ObservationsService {
       );
   }
 
-    // TODO. There should be a limit requirement for performance reasons
-    public countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-      return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-        .pipe(
-          catchError(this.handleError)
-        );
-    }
+  // TODO. There should be a limit requirement for performance reasons
+  public countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
 
 
   // TODO. Not used
@@ -194,8 +194,17 @@ export class ObservationsService {
   private async getCachedEntryFormObservations(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CachedObservationModel[]> {
     // Use Compound index [stationId+sourceId+level+elementId+datetime]
     const filters: [string, number, number, number, string][] = [];
+
+    const toDate = new Date(entryFormObsQuery.toDate);
+    const datetimes: string[] = []
+    for (let dt = new Date(entryFormObsQuery.fromDate); dt <= toDate; dt.setHours(dt.getHours() + 1)) {
+      datetimes.push(dt.toISOString());
+    }
+
+    //console.log('date times: ',datetimes);
+
     for (const elementId of entryFormObsQuery.elementIds) {
-      for (const datetime of entryFormObsQuery.datetimes) {
+      for (const datetime of datetimes) {
         const filter: [string, number, number, number, string] = [
           entryFormObsQuery.stationId, entryFormObsQuery.sourceId, entryFormObsQuery.level, elementId, datetime
         ];

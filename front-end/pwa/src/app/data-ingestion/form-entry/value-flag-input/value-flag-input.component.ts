@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core'; 
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ObservationDefinition } from '../defintitions/observation.definition';
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
@@ -64,9 +64,12 @@ export class ValueFlagInputComponent implements OnChanges {
       // If not declared as disabled then disable any future data entry
       if (!this.disableValueFlagEntry) {
         // Disable entry of future dates, excluding hour because the observation date times are in UTC.
-        const obsDate = new Date(this.observationDefinition.observation.datetime);
-        const nowDate = new Date();
-        this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
+        //const obsDate = new Date(this.observationDefinition.observation.datetime);
+        //const nowDate = new Date();
+        //this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
+        this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
+        
+        //console.log(this.observationDefinition.observation.datetime, ' obsdate: ', new Date(this.observationDefinition.observation.datetime), ' : now', new Date());
       }
     }
 
