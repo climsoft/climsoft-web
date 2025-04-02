@@ -34,6 +34,7 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
     this.selectedStations = this.selectedIds && this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
+    // TODO. Sort the data
   }
 
   ngOnDestroy() {
