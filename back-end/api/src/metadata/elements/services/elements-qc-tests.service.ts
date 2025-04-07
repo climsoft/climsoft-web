@@ -21,8 +21,8 @@ export class ElementsQCTestsService {
     public async findBy(findQCQuery: FindQCTestQueryDto): Promise<ViewElementQCTestDto[]> {
         const selectOptions: FindOptionsWhere<ElementQCTestEntity> = {};
 
-        if (findQCQuery.observationPeriod) {
-            selectOptions.observationPeriod = Equal(findQCQuery.observationPeriod)
+        if (findQCQuery.observationInterval) {
+            selectOptions.observationInterval = Equal(findQCQuery.observationInterval)
         }
 
         if (findQCQuery.qcTestTypes) {
@@ -87,7 +87,7 @@ export class ElementsQCTestsService {
             description: dto.description,
             qcTestType: dto.qcTestType,
             elementId: dto.elementId,
-            observationPeriod: dto.observationInterval,
+            observationInterval: dto.observationInterval,
             parameters: dto.parameters,
             disabled: dto.disabled,
             comment: dto.comment,
@@ -106,7 +106,7 @@ export class ElementsQCTestsService {
         qctest.description = dto.description? dto.description: null;
         qctest.qcTestType = dto.qcTestType;
         qctest.elementId = dto.elementId;
-        qctest.observationPeriod = dto.observationInterval;
+        qctest.observationInterval = dto.observationInterval;
         qctest.parameters = dto.parameters;
         qctest.disabled = dto.disabled;
         qctest.comment = dto.comment;
@@ -128,7 +128,7 @@ export class ElementsQCTestsService {
             description: entity.description,
             qcTestType: entity.qcTestType,
             elementId: entity.elementId,
-            observationInterval: entity.observationPeriod,
+            observationInterval: entity.observationInterval,
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment

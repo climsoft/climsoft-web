@@ -28,31 +28,36 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
   protected filteredOptions: T[] = this.options;
+  protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Important check because when an option is selected ngOnChanges gets raised. So to prevent restetting filtered options this check is necessary
-    if(changes['options'] ){
+    // Important check because when an option is selected ngOnChanges gets raised. 
+    // So to prevent resetting filtered options this check is necessary
+    if (changes['options']) {
       this.filteredOptions = this.options;
-    }   
+    }
+
+    if (changes['selectedOptions']) {
+      this.setDisplaySelectedOptions();
+    }
   }
 
   /**
    * Formats the selected options for display
    */
-  protected get displaySelectedOptions(): string {
-    if (!this.selectedOptions || this.selectedOptions.length === 0) {
-      return '';
+  private setDisplaySelectedOptions(): void {
+    if (this.selectedOptions.length === 0) {
+      this.displaySelectedOptions = '';
+    } else {
+      const display = this.selectedOptions
+        .map(option => this.optionDisplayFn(option))
+        .join(', ');
+      this.displaySelectedOptions = `[${this.selectedOptions.length}] ${display}`;
     }
-
-    const display = this.selectedOptions
-      .map(option => this.optionDisplayFn(option))
-      .join(', ');
-
-    return `[${this.selectedOptions.length}] ${display}`;
   }
 
   protected isSelectedOption(option: T): boolean {
-    return this.selectedOptions && this.selectedOptions.includes(option)
+    return this.selectedOptions.includes(option)
   }
 
   /**
@@ -62,7 +67,7 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onSearchInput(searchValue: string): void {
     // If empty value then just reset the filtered options with all the possible options.
     if (!searchValue) {
-      this.filteredOptions = this.options; 
+      this.filteredOptions = this.options;
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(searchValue.toLowerCase())
@@ -77,13 +82,14 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     } else {
       this.selectedOptions.splice(index, 1);
     }
-
     this.selectedOptionsChange.emit(this.selectedOptions);
+    this.setDisplaySelectedOptions();
   }
 
   protected onCancelOptionClick(): void {
-    this.selectedOptions = [];
+    this.selectedOptions.length = 0;
     this.selectedOptionsChange.emit(this.selectedOptions);
+    this.setDisplaySelectedOptions();
   }
 
   protected onAdvancedSearchClick(): void {

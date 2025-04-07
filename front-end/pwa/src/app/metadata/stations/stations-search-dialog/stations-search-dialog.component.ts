@@ -159,14 +159,11 @@ export class StationsSearchDialogComponent {
   }
 
   protected onOkClick(): void {
-    //this.searchedIds= this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
-
-
     switch (this.searchBy) {
       case 'Id or Name':
         this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
         break;
-      case 'Region':
+      case 'Region': 
         break;
       case 'Organisation':
         break;
@@ -210,7 +207,7 @@ export class StationsSearchDialogComponent {
     this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
   }
 
-  public onSearchedIdsChanged(searchedIds: string[]): void {
+  protected onSearchedIdsChanged(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
   }
 

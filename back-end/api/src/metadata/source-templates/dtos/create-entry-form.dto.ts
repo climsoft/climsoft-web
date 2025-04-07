@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsInt } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 import { SourceParametersValidity } from "./create-update-source.dto";
 
@@ -39,6 +39,12 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
   */
   @IsBoolean()
   requireTotalInput: boolean;
+
+  @IsBoolean()
+  allowIntervalEditing: boolean;
+
+  @IsBoolean()
+  allowStationSelection: boolean;
 
   isValid(): boolean {
     return true;

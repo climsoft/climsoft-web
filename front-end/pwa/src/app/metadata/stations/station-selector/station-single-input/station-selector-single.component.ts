@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core'; 
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -31,13 +31,19 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allStations = data;
-      this.filterBasedOnSelectedIds();
+      this.setStationsToInclude();
+      this.filterBasedOnSelectedId();
     });
   }
 
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.filterBasedOnSelectedIds();
+    if (changes['includeOnlyIds']) {
+      this.setStationsToInclude();
+    }
+    if (changes['selectedId']) {
+      this.filterBasedOnSelectedId();
+    }
   }
 
   ngOnDestroy() {
@@ -45,12 +51,12 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
-  private filterBasedOnSelectedIds(): void {
-    this.stations = this.allStations;
-    if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.stations = this.stations.filter(item => this.includeOnlyIds.includes(item.id));
-    }
 
+  private setStationsToInclude(): void {
+    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
+  }
+
+  private filterBasedOnSelectedId(): void {
     const foundElement = this.stations.find(data => data.id === this.selectedId);
     this.selectedStation = foundElement ? foundElement : null;
   }
@@ -60,8 +66,8 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
   }
 
   protected onSelectedOptionChange(selectedOption: StationCacheModel | null) {
-    this.selectedId = selectedOption? selectedOption.id : '';
-    this.selectedIdChange.emit(this.selectedId );
+    this.selectedId = selectedOption ? selectedOption.id : '';
+    this.selectedIdChange.emit(this.selectedId);
   }
 
 }

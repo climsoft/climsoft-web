@@ -57,7 +57,6 @@ export class ViewSourcesComponent implements OnDestroy {
         }
 
       });
-
     });
 
   }

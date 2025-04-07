@@ -127,7 +127,7 @@ export class DeletedDataComponent implements OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset),
             restore: false,
             hardDelete: false,
             stationName: stationMetadata.name,

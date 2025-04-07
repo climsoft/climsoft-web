@@ -22,8 +22,6 @@ export class GridLayoutComponent implements OnChanges {
 
   @Input() public refreshLayout!: boolean;
 
-  @Input() public displayExtraInfoOption!: boolean;
-
   /** Emitted when observation value is changed */
   @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
 
@@ -61,8 +59,7 @@ export class GridLayoutComponent implements OnChanges {
       this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     }
 
-    if (changes["userFormSettings"] && this.userFormSettings) {
-      //this.tableHeightStyle = 'calc(100vh - 300px)';
+    if (changes["userFormSettings"] && this.userFormSettings) { 
       this.tableHeightStyle = `${this.userFormSettings.gridLayoutSettings.gridHeight}vh`;
     }
 

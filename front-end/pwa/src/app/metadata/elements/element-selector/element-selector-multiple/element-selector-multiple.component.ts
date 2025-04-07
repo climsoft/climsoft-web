@@ -19,7 +19,7 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input()
   public includeOnlyIds!: number[];
   @Input()
-  public selectedIds!: number[];
+  public selectedIds: number[] = [];
   @Output()
   public selectedIdsChange = new EventEmitter<number[]>();
 
@@ -33,13 +33,21 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allElements = data;
+      this.setElementsToInclude();
       this.filterBasedOnSelectedIds();
     });
 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.filterBasedOnSelectedIds();
+    if (changes['includeOnlyIds']) {
+      this.setElementsToInclude();
+    }
+
+    if (changes['selectedIds']) {
+      this.filterBasedOnSelectedIds();
+    }
+
   }
 
   ngOnDestroy() {
@@ -47,25 +55,53 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
+  private setElementsToInclude(): void {
+    this.elements = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allElements.filter(item => this.includeOnlyIds.includes(item.id)) : this.allElements;
+  }
+
   private filterBasedOnSelectedIds(): void {
-    this.elements = this.allElements;
-    if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.elements = this.allElements.filter(item => this.includeOnlyIds.includes(item.id));
+    const selectedElements: ElementCacheModel[] = [];
+    if (this.selectedIds.length > 0) {
+      // Note. To reserve the order loop by selected ids array not the elements arrays
+      for (const id of this.selectedIds) {
+        const foundElement = this.elements.find(item => item.id === id);
+        if (foundElement) {
+          selectedElements.push(foundElement);
+        }
+      }
     }
-    this.selectedElements = this.selectedIds && this.selectedIds.length > 0 ? this.elements.filter(item => this.selectedIds.includes(item.id)) : [];
+
+    this.selectedElements = selectedElements;
   }
 
   protected optionDisplayFunction(option: ElementCacheModel): string {
     return `${option.id} - ${option.name}`;
   }
 
+  /**
+   * Called by the generic multiple selector.
+   * @param selectedOptions 
+   */
   protected onSelectedOptionsChange(selectedOptions: ElementCacheModel[]) {
-    this.selectedIds = selectedOptions.map(data => data.id);
+    this.selectedIds.length = 0;
+    this.selectedIds.push(...selectedOptions.map(data => data.id));
     this.selectedIdsChange.emit(this.selectedIds);
   }
 
-  protected onAdvancedSearchInput(selectedIds: number[]): void {
-    this.selectedIds = selectedIds;
-    this.filterBasedOnSelectedIds();
+  /**
+   * Called from advanced search dialog
+   * @param searchedIds 
+   */
+  protected onAdvancedSearchInput(searchedIds: number[]): void {
+    this.selectedIds.length = 0;
+    const selectedElements: ElementCacheModel[] = []
+    for (const element of this.elements) {
+      if (searchedIds.includes(element.id)) {
+        this.selectedIds.push(element.id);
+        selectedElements.push(element);
+      }
+    }
+    this.selectedElements = selectedElements;
+    this.selectedIdsChange.emit(this.selectedIds);
   }
 }

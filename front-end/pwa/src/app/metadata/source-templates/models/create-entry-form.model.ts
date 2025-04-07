@@ -28,4 +28,8 @@ export interface CreateEntryFormModel extends SourceParametersValidity {
      * Note, this is only enforced on the front end.
      */
     requireTotalInput: boolean;
+
+    allowIntervalEditing: boolean;
+    allowStationSelection: boolean;
+
 }

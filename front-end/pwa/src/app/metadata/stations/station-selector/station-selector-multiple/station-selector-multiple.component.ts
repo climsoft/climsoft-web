@@ -13,11 +13,11 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public placeholder!: string;
   @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: string[];
-  @Input() public selectedIds!: string[];
+  @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
   protected allStations: StationCacheModel[] = [];
-  protected stations!: StationCacheModel[];
+  protected stations: StationCacheModel[] = [];
   protected selectedStations: StationCacheModel[] = [];
   private destroy$ = new Subject<void>();
 
@@ -26,15 +26,20 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allStations = data;
-      this.stations = this.allStations;
+      this.setStationsToInclude();
+      this.filterBasedOnSelectedIds();
     });
 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
-    this.selectedStations = this.selectedIds && this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
-    // TODO. Sort the data
+    if (changes['includeOnlyIds']) {
+      this.setStationsToInclude();
+    }
+
+    if (changes['selectedIds']) {
+      this.filterBasedOnSelectedIds();
+    }
   }
 
   ngOnDestroy() {
@@ -42,18 +47,42 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
+  private setStationsToInclude(): void {
+    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
+  }
+
+  private filterBasedOnSelectedIds(): void {
+    this.selectedStations = this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
+  }
+
   protected optionDisplayFunction(option: StationCacheModel): string {
     return `${option.id} - ${option.name}`;
   }
 
+  /**
+   * Called by the generic multiple selector.
+   * @param selectedOptions 
+   */
   protected onSelectedOptionsChange(selectedOptions: StationCacheModel[]) {
-    this.selectedIds = selectedOptions.map(data => data.id);
+    this.selectedIds.length = 0;
+    this.selectedIds.push(...selectedOptions.map(data => data.id));
     this.selectedIdsChange.emit(this.selectedIds);
   }
 
-  protected onAdvancedSearchInput(selectedIds: string[]): void {
-    this.selectedStations = selectedIds.length > 0 ? this.stations.filter(item => selectedIds.includes(item.id)) : [];
-    this.selectedIds = this.selectedStations.map(data => data.id);
+  /**
+   * Called from advanced search dialog
+   * @param searchedIds 
+   */
+  protected onAdvancedSearchInput(searchedIds: string[]): void {
+    this.selectedIds.length = 0;
+    const selectedStations: StationCacheModel[] = [];
+    for (const station of this.stations) {
+      if (searchedIds.includes(station.id)) {
+        this.selectedIds.push(station.id);
+        selectedStations.push(station);
+      }
+    }
+    this.selectedStations = selectedStations;
     this.selectedIdsChange.emit(this.selectedIds);
   }
 }

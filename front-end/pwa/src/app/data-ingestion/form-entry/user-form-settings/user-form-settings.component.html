@@ -4,13 +4,24 @@
     <div *ngIf="open && userFormSettings" class="card border-0">
         <div class="card-body p-0">
             <div>
+                <app-check-box-input [label]="'Display Extra Information'"
+                    [(value)]="userFormSettings.displayExtraInformationOption" />
+            </div>
+
+            <hr />
+
+            <div>
                 <app-check-box-input [label]="'Increment date selector'"
                     [(value)]="userFormSettings.incrementDateSelector" />
             </div>
+
             <hr />
+
             <div>
-                <app-number-input [label]="'Fields border Size'" [max]="5" [(numValue)]="userFormSettings.fieldsBorderSize" />
+                <app-number-input [label]="'Fields border Size'" [max]="5"
+                    [(numValue)]="userFormSettings.fieldsBorderSize" />
             </div>
+
             <hr />
             <!-- linear or grid selections -->
             <div class="card-header d-flex">
@@ -30,14 +41,16 @@
         <!-- linear layout settings -->
         <div *ngIf="activeTab === 'linear'">
             <div class="mb-2 mt-2">
-                <app-number-input [label]="'Maximum rows (applicable to large screens only)'" [(numValue)]="userFormSettings.linearLayoutSettings.maxRows" />
+                <app-number-input [label]="'Maximum rows (applicable to large screens only)'"
+                    [(numValue)]="userFormSettings.linearLayoutSettings.maxRows" />
             </div>
         </div>
 
         <!-- grid layout settings -->
         <div *ngIf="activeTab === 'grid'">
             <div class="mb-2 mt-2">
-                <app-number-input [label]="'Grid height'" [(numValue)]="userFormSettings.gridLayoutSettings.gridHeight" />
+                <app-number-input [label]="'Grid height'"
+                    [(numValue)]="userFormSettings.gridLayoutSettings.gridHeight" />
             </div>
             <!-- TODO. Enable this later -->
             <!-- <div class="mb-2">

@@ -1,15 +1,24 @@
 <div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
     <div class="d-flex justify-content-between">
-      <div class="card-title fw-bold my-1 form-header">{{source.name}} data entry for {{station.id}} - {{station.name}}  </div>
+      <div class="card-title fw-bold my-1  d-flex align-items-center" style="font-size: 0.875rem;">
+        <div>{{source.name}} data entry for</div>
+        <div *ngIf="!formDefinitions.formMetadata.allowStationSelection">{{station.id}} - {{station.name}} </div>
+        <div
+          *ngIf="formDefinitions.formMetadata.allowStationSelection && stationsIdsAssignedToForm && stationsIdsAssignedToForm.length>0"
+          class="ms-1">
+          <app-station-selector-single [id]="'form_stations_selector'" [selectedId]="station.id"
+            [includeOnlyIds]="stationsIdsAssignedToForm" (selectedIdChange)="onStationChange($event)" />
+        </div>
+      </div>
       <div>
-        <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Fields','Extra Info', 'Settings']"
+        <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Fields','Settings']"
           (dropDownOptionClick)="onOptions($event)" [offSetRight]="true" [buttonText]="'Options'" />
         <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
-        <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="onUserFormSettingsChange($event)" />
+        <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="loadUserSettings()" />
       </div>
     </div>
-  
+
     <!-- entry selectors -->
     <div class="card border-0 ">
       <div class="card-body p-0">
@@ -21,11 +30,13 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayDateSelector">
-            <app-date-input [label]="'Date'" [showNavigationButtons]="true" [value]="defaultDateValue" (valueChange)="onDateChange($event)" />
+            <app-date-input [label]="'Date'" [showNavigationButtons]="true" [value]="defaultDateValue"
+              (valueChange)="onDateChange($event)" />
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayYearMonthSelector">
-            <app-year-month-input [showNavigationButtons]="true" [label]="'Year & Month'" [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
+            <app-year-month-input [showNavigationButtons]="true" [label]="'Year & Month'"
+              [value]="defaultYearMonthValue" (valueChange)="onYearMonthChange($event)" />
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
@@ -48,15 +59,15 @@
           <!-- list layout -->
           <app-linear-layout #appLinearLayout *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'"
             [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
-            [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
-            (userInputVF)="onUserInputVF($event)" (focusSaveButton) = "onFocusSaveButton()" />
+            (totalIsValid)="onTotalIsValid($event)" (userInputVF)="onUserInputVF($event)"
+            (focusSaveButton)="onFocusSaveButton()" />
           <!-- ----------- -->
 
           <!-- table layout -->
-          <app-grid-layout #appGridLayout *ngIf="formDefinitions.formMetadata.layout === 'GRID'" [userFormSettings]="userFormSettings"
-            [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
-            [displayExtraInfoOption]="displayExtraInfoOption" (totalIsValid)="onTotalIsValid($event)"
-            (userInputVF)="onUserInputVF($event)" (focusSaveButton) = "onFocusSaveButton()">
+          <app-grid-layout #appGridLayout *ngIf="formDefinitions.formMetadata.layout === 'GRID'"
+            [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
+            (totalIsValid)="onTotalIsValid($event)" (userInputVF)="onUserInputVF($event)"
+            (focusSaveButton)="onFocusSaveButton()">
           </app-grid-layout>
           <!-- ----------- -->
         </div>
