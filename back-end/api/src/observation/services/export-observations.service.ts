@@ -25,8 +25,6 @@ export class ExportObservationsService {
         const exportParams: ExportTemplateParametersDto = viewTemplateExportDto.parameters;
         const outputPath: string = `/var/lib/postgresql/exports/${exportTemplateId}.csv`;
 
-        console.log('Export output path: ', outputPath);
-
         // Manually construct the SQL query
         let sqlCondition: string = '';
 
@@ -75,7 +73,7 @@ export class ExportObservationsService {
         // Execute raw SQL query (without parameterized placeholders)
         const results = await this.dataSource.manager.query(sql);
 
-        console.log('Copying done: ', outputPath, ' Results: ', results);
+        console.log('PostGis copying done: ', outputPath, ' Results: ', results);
 
         // Return the path to the generated CSV file
         return viewTemplateExportDto.id;
@@ -89,9 +87,11 @@ export class ExportObservationsService {
             throw new BadRequestException('Export disabled');
         }
 
-        const outputPath: string = (AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/var/lib/postgresql/exports') + `/${exportTemplateId}.csv`;
+        //const outputPath: string = (AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/var/lib/postgresql/exports') + `/${exportTemplateId}.csv`;
 
-        console.log('Downloading: ', outputPath);
+        let outputPath: string = AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/app/exports' ;
+        outputPath =  `${outputPath}/${exportTemplateId}.csv`;
+        console.log('Downloading from: ', outputPath);
 
         // TODO log the export
 

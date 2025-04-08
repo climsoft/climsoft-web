@@ -56,7 +56,7 @@ services:
     depends_on:
       - climsoft_db
     volumes:
-      - climsoft_test_exports:/var/lib/postgresql/exports
+      - climsoft_test_exports:/app/exports
     networks:
       - climsoft_network
 
@@ -75,6 +75,9 @@ services:
       - climsoft_test_exports:/var/lib/postgresql/exports
     networks:
       - climsoft_network
+    command: >
+      sh -c "chown -R postgres:postgres /var/lib/postgresql/exports 
+      && docker-entrypoint.sh postgres"
 
 volumes:
   climsoft_test_database:
