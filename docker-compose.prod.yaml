@@ -47,7 +47,7 @@ services:
     depends_on:
       - climsoft_db
     volumes:
-      - climsoft_exports:/var/lib/postgresql/exports
+      - climsoft_exports:/app/exports
     networks:
       - climsoft_network
 
