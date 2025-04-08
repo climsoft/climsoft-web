@@ -1,7 +1,7 @@
 
 services:
   climsoft_test_db:
-    image: postgis/postgis:17-3.4
+    image: postgis/postgis:17-3.5
     environment:
       POSTGRES_DB: climsoft
       POSTGRES_USER: postgres
