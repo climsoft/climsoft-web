@@ -1,4 +1,4 @@
-<app-dialog [open]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0" [closeOnOkClick]="false"
+<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0" [closeOnOkClick]="false"
     (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
     <div *ngIf="updateQcTest">

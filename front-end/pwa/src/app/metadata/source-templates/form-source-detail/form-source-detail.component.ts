@@ -7,7 +7,6 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewEntryFormModel } from 'src/app/metadata/source-templates/models/view-entry-form.model';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 
@@ -31,15 +30,18 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected selectedElementIds: number[] = [];
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
-  protected selectedPeriodId: number | null = null;
+  protected selectedIntervalId: number | null = null;
   protected utcOffset: number = 0;
   protected allowMissingValue: boolean = true;
   protected requireTotalInput: boolean = false;
+  protected allowIntervalEditing: boolean = false;
+  protected allowStationSelection: boolean = false;
+  protected allowEntryAtStationOnly: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
   protected elementsErrorMessage: string = '';
   protected hoursErrorMessage: string = '';
-  protected periodErrorMessage: string = '';
+  protected intervalErrorMessage: string = '';
   protected errorMessage: string = '';
 
   private destroy$ = new Subject<void>();
@@ -60,12 +62,12 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       ).subscribe(data => {
         if (data) {
           this.viewSource = data;
-          this.setControlValues(this.viewSource.parameters as ViewEntryFormModel);
+          this.setControlValues(this.viewSource.parameters as CreateEntryFormModel);
         }
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Template');
-      const entryForm: ViewEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, elementsMetadata: [], isValid: () => true }
+      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowIntervalEditing: false, allowStationSelection: false, isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -78,7 +80,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         parameters: entryForm,
         disabled: false,
         comment: '',
-      };      
+      };
     }
   }
 
@@ -87,7 +89,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setControlValues(entryForm: ViewEntryFormModel): void {
+  private setControlValues(entryForm: CreateEntryFormModel): void {
     const selectedSelectors: ExtraSelectorControlType[] = [];
     const possibleFields: ExtraSelectorControlType[] = [];
     const selectedFields: ExtraSelectorControlType[] = [];
@@ -111,10 +113,11 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedLayout = entryForm.layout;
     this.selectedElementIds = entryForm.elementIds;
     this.selectedHourIds = entryForm.hours;
-    this.selectedPeriodId = entryForm.interval;
+    this.selectedIntervalId = entryForm.interval;
     this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
+    this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly;
   }
 
   public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
@@ -145,25 +148,25 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     return fields.length === 2 ? 'GRID' : 'LINEAR';
   }
 
-  protected onPeriodSelected(periodId: number | null) {
-    this.selectedPeriodId = periodId;
+  protected onIntervalSelected(intervalId: number | null) {
+    this.selectedIntervalId = intervalId;
     this.selectedHourIds = [];
-    this.periodErrorMessage = this.selectedPeriodId === null ? 'Select period' : '';
+    this.intervalErrorMessage = this.selectedIntervalId === null ? 'Select interval' : '';
   }
 
   protected onHoursSelected(hourIds: number[]) {
     this.hoursErrorMessage = '';
 
-    if (this.selectedPeriodId === 1440 && hourIds.length !== 1) {
+    if (this.selectedIntervalId === 1440 && hourIds.length !== 1) {
       // for 24 hours
       this.hoursErrorMessage = '1 hour expected only';
-    } else if (this.selectedPeriodId === 720 && hourIds.length !== 2) {
+    } else if (this.selectedIntervalId === 720 && hourIds.length !== 2) {
       //for 12 hour
       this.hoursErrorMessage = '2 hours expected only';
-    } else if (this.selectedPeriodId === 360 && hourIds.length !== 4) {
+    } else if (this.selectedIntervalId === 360 && hourIds.length !== 4) {
       //for 6 hours
       this.hoursErrorMessage = '4 hours expected only';
-    } else if (this.selectedPeriodId === 180 && hourIds.length !== 8) {
+    } else if (this.selectedIntervalId === 180 && hourIds.length !== 8) {
       //for 3 hours
       this.hoursErrorMessage = '8 hours expected only';
     }
@@ -212,8 +215,8 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.selectedPeriodId) {
-      this.errorMessage = 'Select period';
+    if (!this.selectedIntervalId) {
+      this.errorMessage = 'Select interval';
       return;
     }
 
@@ -228,8 +231,11 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       layout: this.selectedLayout,
       elementIds: this.selectedElementIds,
       hours: this.selectedHourIds,
-      interval: this.selectedPeriodId,
+      interval: this.selectedIntervalId,
       requireTotalInput: this.requireTotalInput,
+      allowEntryAtStationOnly: this.allowEntryAtStationOnly,
+      allowIntervalEditing: this.allowIntervalEditing,
+      allowStationSelection: this.allowStationSelection,
       isValid: () => true
     };
 

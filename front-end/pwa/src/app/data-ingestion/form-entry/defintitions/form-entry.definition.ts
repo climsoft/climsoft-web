@@ -1,5 +1,4 @@
-import { FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
-import { ViewEntryFormModel } from "src/app/metadata/source-templates/models/view-entry-form.model";
+import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
 import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model";
@@ -10,6 +9,7 @@ import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/vi
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
+import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
@@ -17,7 +17,7 @@ import { EntryFormObservationQueryModel } from "../../models/entry-form-observat
 export class FormEntryDefinition {
     public station: StationCacheModel;
     public source: ViewSourceModel;
-    public formMetadata: ViewEntryFormModel;
+    public formMetadata: CreateEntryFormModel;
 
     /** value of the element selector */
     public elementSelectorValue: number | null;
@@ -40,10 +40,12 @@ export class FormEntryDefinition {
 
 
     private rangeThresholdQCTests: ViewElementQCTestModel[];
+    private elements: ElementCacheModel[];
 
-    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: ViewEntryFormModel, rangeThresholdQCTests: ViewElementQCTestModel[]) {
+    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: CreateEntryFormModel, elements: ElementCacheModel[], rangeThresholdQCTests: ViewElementQCTestModel[]) {
         this.station = station;
         this.source = source;
+        this.elements = elements;
         this.formMetadata = formMetadata;
         this.rangeThresholdQCTests = rangeThresholdQCTests;
 
@@ -90,47 +92,29 @@ export class FormEntryDefinition {
 
         // If day value is defined then just define a single data time else define all date times for the entire month
         if (this.daySelectorValue) {
-            //observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, this.daySelectorValue, hours));
-
             observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.000Z`;
             observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.000Z`;
-
         } else {
             const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
-            // for (let i = 1; i <= lastDay; i++) {
-            //     observationQuery.datetimes.push(...this.getObsDatetimesInUTC(year, month, i, hours));
-            // }
-
             observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.000Z`;
             observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.000Z`;
-
         }
 
         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
         // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-        observationQuery.fromDate = this.getDatetimesBasedOnUTCOffset(observationQuery.fromDate, 'subtract');
-        observationQuery.toDate = this.getDatetimesBasedOnUTCOffset(observationQuery.toDate, 'subtract');
+        observationQuery.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(observationQuery.fromDate, this.source.utcOffset, 'subtract');
+        observationQuery.toDate = DateUtils.getDatetimesBasedOnUTCOffset(observationQuery.toDate, this.source.utcOffset, 'subtract');
 
         console.log('query: ', observationQuery)
         return observationQuery;
     }
 
-    public getDatetimesBasedOnUTCOffset(strDate: string, operation: 'subtract' | 'add'): string {
-        if (this.source.utcOffset === 0) return strDate;
-        let newDate: Date = new Date(strDate);
-        if (operation === 'subtract') {
-            newDate.setHours(newDate.getHours() - this.source.utcOffset);
-        } else {
-            newDate.setHours(newDate.getHours() + this.source.utcOffset);
-        }
 
-        return newDate.toISOString();
-    }
 
     public createEntryObsDefs(dbObservations: CreateObservationModel[]): void {
-        console.log('db observations: ', dbObservations)
         for (const dbObservation of dbObservations) {
-            dbObservation.datetime = this.getDatetimesBasedOnUTCOffset(dbObservation.datetime, 'add');
+            // Add because it needs to be displayed based on display utc offset
+            dbObservation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(dbObservation.datetime, this.source.utcOffset, 'add');
         }
 
         switch (this.formMetadata.layout) {
@@ -270,8 +254,14 @@ export class FormEntryDefinition {
         let entryFieldDefs: FieldEntryDefinition[];
         switch (entryField) {
             case 'ELEMENT':
+                entryFieldDefs = [];
                 //create field definitions for the selected elements only
-                entryFieldDefs = this.formMetadata.elementsMetadata.map(item => ({ id: item.id, name: item.abbreviation }));
+                for (const elementId of this.formMetadata.elementIds) {
+                    const element = this.elements.find(item => item.id === elementId);
+                    if (element) {
+                        entryFieldDefs.push({ id: element.id, name: element.abbreviation });
+                    }
+                }
                 break;
             case 'DAY':
                 //create field definitions for days of the selected month only
@@ -306,6 +296,8 @@ export class FormEntryDefinition {
         };
     }
 
+
+
     /**
 * Date time UTC conversion is determined by the form metadata utc setting
 * @param datetimeVars year, month (1 based index), day, hour
@@ -325,7 +317,7 @@ export class FormEntryDefinition {
      * @returns 
      */
     private createNewObsDefinition(observation: CreateObservationModel): ObservationDefinition {
-        const elementMetadata = this.formMetadata.elementsMetadata.find(item => (item.id === observation.elementId));
+        const elementMetadata = this.elements.find(item => item.id === observation.elementId);
         if (!elementMetadata) {
             //TODO. Through developer error.
             throw new Error('Developer error: Element metadata NOT found');
@@ -334,7 +326,7 @@ export class FormEntryDefinition {
         let rangeThresholdParams: RangeThresholdQCTestParamsModel | undefined = undefined;
         rangeThresholdParams = this.rangeThresholdQCTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
 
-        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, true, rangeThresholdParams);
+        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, true, rangeThresholdParams, this.source.utcOffset);
     }
 
     private findEquivalentDBObservation(newObs: CreateObservationModel, dbObservations: CreateObservationModel[]): CreateObservationModel | null {

@@ -43,9 +43,10 @@
 
         <div>
             <app-period-single-input [label]="'Interval'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
-                [selectedId]="selectedPeriodId" (selectedIdChange)="onPeriodSelected($event)" />
+                [selectedId]="selectedIntervalId" (selectedIdChange)="onIntervalSelected($event)" />
+
         </div>
-        
+
         <hr />
 
         <div>
@@ -73,6 +74,26 @@
         </div>
 
         <hr />
+        
+        <div>
+            <app-check-box-input [label]="'Allow Entry from Station Location Only'" [(value)]="allowEntryAtStationOnly" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Allow Station Selection'" [(value)]="allowStationSelection" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Allow Interval Editing'" [(value)]="allowIntervalEditing" />
+        </div>
+
+        <hr />
+
+      
 
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />

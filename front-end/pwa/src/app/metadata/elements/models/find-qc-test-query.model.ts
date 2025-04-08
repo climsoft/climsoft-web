@@ -3,5 +3,5 @@ import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-ty
 export interface FindQCTestQueryModel {
     qcTestTypes?: QCTestTypeEnum[];
     elementIds?: number[];
-    observationPeriod?: number; 
+    observationInterval?: number; 
 }

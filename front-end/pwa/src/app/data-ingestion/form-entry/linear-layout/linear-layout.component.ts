@@ -25,8 +25,7 @@ export class LnearLayoutComponent implements OnChanges {
   @Input()
   public refreshLayout!: boolean;
 
-  @Input()
-  public displayExtraInfoOption!: boolean;
+
 
   @Output() public focusSaveButton = new EventEmitter<void>();
 

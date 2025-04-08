@@ -37,6 +37,9 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input()
   public simulateTabOnEnter: boolean = false;
 
+  @Input()
+  public allowIntervalEditing: boolean = false;
+
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 
@@ -49,9 +52,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected activeTab: 'new' | 'history' = 'new';
 
   // These variables are needed because they are set in a dialog 
-
-  protected periodInDays: number | null = null;
-  protected disablePeriodEditing: boolean = false;
+  protected interval!: number;
   protected comment!: string | null;
 
   constructor(private observationService: ObservationsService) { }
@@ -68,7 +69,7 @@ export class ValueFlagInputComponent implements OnChanges {
         //const nowDate = new Date();
         //this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
         this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
-        
+
         //console.log(this.observationDefinition.observation.datetime, ' obsdate: ', new Date(this.observationDefinition.observation.datetime), ' : now', new Date());
       }
     }
@@ -102,11 +103,8 @@ export class ValueFlagInputComponent implements OnChanges {
   }
 
   private resetInternals(): void {
-    // Disable period editing if the observation is already cumulative
-    this.disablePeriodEditing = this.observationDefinition.existsInDatabase;
-
     // Get period in days for data that has a period of a day or greater
-    this.periodInDays = this.observationDefinition.period >= 1440 ? NumberUtils.roundOff(this.observationDefinition.period / 1440, 4) : null;
+    this.interval = this.observationDefinition.period;
 
     // Get the comment from database
     this.comment = this.observationDefinition.comment;
@@ -153,10 +151,9 @@ export class ValueFlagInputComponent implements OnChanges {
   protected onExtraInfoOkClicked(): void {
     let bValueChanged: boolean = false;
 
-    if (!this.disablePeriodEditing && this.periodInDays !== null) {
-      const newPeriodInMins: number = this.periodInDays * 1440;
-      if (newPeriodInMins > this.observationDefinition.period) {
-        this.observationDefinition.updatePeriodInput(newPeriodInMins);
+    if (!this.allowIntervalEditing) {
+      if (this.interval > this.observationDefinition.period) {
+        this.observationDefinition.updatePeriodInput(this.interval);
         this.observationDefinition.updateValueFlagFromUserInput(
           this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`
         )

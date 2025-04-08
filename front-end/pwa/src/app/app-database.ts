@@ -25,6 +25,11 @@ export interface StationForm {
     forms: ViewSourceModel[];
 }
 
+export interface FormStation {
+    formId: number;
+    stationIds: string[];
+}
+
 export interface StationNetwork {
     stationId: string;
     networkAffiliations: ViewNetworkAffiliatioModel[];
@@ -62,6 +67,7 @@ export class AppDatabase extends Dexie {
 
     // cached differently
     stationForms!: Table<StationForm, string>;
+    formStations!: Table<FormStation, number>;
     stationNetworks!: Table<StationNetwork, string>;
     elementsQcTests!: Table<ViewElementQCTestModel, number>;
     // stationId, elementId, sourceId, level, datetime, interval  as compund key
@@ -93,6 +99,7 @@ export class AppDatabase extends Dexie {
 
             stationNetworks: `stationId`,
             stationForms: `stationId`,
+            formStations: `formId`,
             elementsQcTests: `id, elementId, qcTestType, observationInterval, [elementId+qcTestType+observationInterval]`,
 
             // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 

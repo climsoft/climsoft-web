@@ -4,13 +4,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
-import { CreateEntryFormDTO } from '../dtos/create-entry-form.dto';
-import { ViewEntryFormDTO } from '../dtos/view-entry-form.dto';
 import { SourceTemplateEntity } from '../entities/source-template.entity';
-import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
-import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 
 // TODO refactor this service later
 
@@ -18,8 +14,7 @@ import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create
 export class SourceTemplatesService {
 
     constructor(
-        @InjectRepository(SourceTemplateEntity) private readonly sourceRepo: Repository<SourceTemplateEntity>,
-        private elementsService: ElementsService
+        @InjectRepository(SourceTemplateEntity) private  sourceRepo: Repository<SourceTemplateEntity>, 
     ) { }
 
 
@@ -144,15 +139,6 @@ export class SourceTemplatesService {
             disabled: entity.disabled,
             comment: entity.comment,
         }
-
-        // TODO. Remove this block. Forms can now use cached elements and reconstruct this on the front end
-        if (dto.sourceType == SourceTypeEnum.FORM) {
-            const createEntryFormDTO: CreateEntryFormDTO = dto.parameters as CreateEntryFormDTO
-            const elementsMetadata: CreateViewElementDto[] = await this.elementsService.find({ elementIds: createEntryFormDTO.elementIds });
-            const viewEntryForm: ViewEntryFormDTO = { ...createEntryFormDTO, elementsMetadata, isValid: () => true }
-            dto.parameters = viewEntryForm;
-        }
-
         return dto;
     }
 

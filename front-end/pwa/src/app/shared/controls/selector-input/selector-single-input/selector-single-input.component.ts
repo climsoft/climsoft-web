@@ -34,23 +34,26 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   public selectedOptionChange = new EventEmitter<T | null>();
 
   protected filteredOptions: T[] = this.options;
+  protected selectedOptionDisplay: string = '';
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Important check because when an option is selected  'ngOnChanges' gets raised. So to prevent restetting filtered options this check is necessary
+    // Important check because when an option is selected  'ngOnChanges' gets raised. 
+    // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
       this.filteredOptions = this.options;
     }
+
+    if (changes['selectedOption']) {
+      // TODO. Investigate how this can be avoided when `selectedOption` is changed within this control
+      this.setSelectedOptionDisplay();
+    }
   }
 
-  protected get selectedOptionDisplay(): string {
-    return this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
-  }
-
-  protected isSelectedOption(option: T): boolean {
-    return this.selectedOption !== null && this.selectedOption === option;
+  private setSelectedOptionDisplay(): void {
+    this.selectedOptionDisplay = this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
   }
 
   protected onSearchInput(inputValue: string): void {
@@ -66,12 +69,13 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   protected onSelectedOption(option: T): void {
     this.selectedOption = option;
     this.selectedOptionChange.emit(option);
-    this.filteredOptions = this.options;
+    this.setSelectedOptionDisplay();
   }
 
   protected onCancelOptionClick(): void {
     this.selectedOption = null;
     this.selectedOptionChange.emit(null);
+    this.setSelectedOptionDisplay();
   }
 
 }

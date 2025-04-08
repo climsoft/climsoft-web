@@ -7,14 +7,14 @@ export class FindQCTestQueryDto {
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsEnum(QCTestTypeEnum, { each: true, message: 'quality control test type must be a valid QualityControlTestTypeEnum value' })
-    qcTestTypes?: QCTestTypeEnum[] ;
+    qcTestTypes?: QCTestTypeEnum[];
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
-    elementIds?: number[] ;
+    elementIds?: number[];
 
     @IsOptional()
     @IsInt()
-    observationPeriod?: number ;
+    observationInterval?: number;
 }

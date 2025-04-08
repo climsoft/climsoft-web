@@ -1,7 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { LocalStorageService } from 'src/app/shared/services/local-storage.service';
+import { UserSettingEnum } from 'src/app/app-config.service';
+import { AppDatabase } from 'src/app/app-database';
 
 export interface UserFormSettingStruct {
+  displayExtraInformationOption: boolean,
   incrementDateSelector: boolean;
   fieldsBorderSize: number;
 
@@ -15,9 +17,8 @@ export interface UserFormSettingStruct {
   }
 }
 
-export const USER_FORM_SETTING_STORAGE_NAME: string = 'user_form_setting_v1'
-
 export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
+  displayExtraInformationOption: false,
   incrementDateSelector: false,
   fieldsBorderSize: 1,
   linearLayoutSettings: {
@@ -42,16 +43,20 @@ export class UserFormSettingsComponent {
   public openChange = new EventEmitter<boolean>();
 
   @Output()
-  public ok = new EventEmitter<UserFormSettingStruct>();
+  public ok = new EventEmitter<void>();
 
   protected activeTab: 'linear' | 'grid' = 'linear';
 
   protected userFormSettings!: UserFormSettingStruct;
 
 
-  constructor(private localStorage: LocalStorageService) {
-    const savedUserFormSetting = this.localStorage.getItem<UserFormSettingStruct>(USER_FORM_SETTING_STORAGE_NAME);
-    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting : {...DEFAULT_USER_FORM_SETTINGS}; //pass by value. Important
+  constructor() {
+    this.loadUserSettings();
+  }
+
+  private async loadUserSettings() {
+    const savedUserFormSetting = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
+    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting.parameters : { ...DEFAULT_USER_FORM_SETTINGS }; //pass by value. Important    
   }
 
   public openDialog(): void {
@@ -74,10 +79,10 @@ export class UserFormSettingsComponent {
     }
   }
 
-  protected onOkClick(): void {
-    this.localStorage.setItem(USER_FORM_SETTING_STORAGE_NAME, this.userFormSettings);
+  protected async onOkClick(): Promise<void> {
+    await AppDatabase.instance.userSettings.put({ name: UserSettingEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
     this.open = false;
-    this.ok.emit(this.userFormSettings);
+    this.ok.emit();
     this.openChange.emit(this.open);
   }
 

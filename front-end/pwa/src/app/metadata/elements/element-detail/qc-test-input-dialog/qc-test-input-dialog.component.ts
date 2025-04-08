@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { CreateElementQCTestModel } from 'src/app/core/models/elements/qc-tests/create-element-qc-test.model';
 import { ContextualQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model';
@@ -10,7 +10,6 @@ import { RepeatedValueQCTestParamsModel } from 'src/app/core/models/elements/qc-
 import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
-import { ElementsService } from 'src/app/core/services/elements/elements.service';
 import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementCacheModel } from '../../services/elements-cache.service';
@@ -35,9 +34,8 @@ export class QCTestInputDialogComponent {
     private qcTestsService: ElementsQCTestsService, 
     private pagesDataService: PagesDataService) { }
 
-  public openDialog(element: ElementCacheModel, updateQcTestModel?: ViewElementQCTestModel): void {
-    this.open = true;
-
+  public openDialog(element: ElementCacheModel, updateQcTestModel?: ViewElementQCTestModel): void { 
+    this.open = true; 
     this.title = updateQcTestModel ? "Edit QC Test for " : "New QC Test for ";
     this.title = this.title + element.name;
 
@@ -192,11 +190,12 @@ export class QCTestInputDialogComponent {
       take(1)
     ).subscribe({
       next: data => {
-        this.pagesDataService.showToast({ title: "QC Tests", message: this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
-        this.ok.emit();
         this.open = false;
+        this.pagesDataService.showToast({ title: "QC Tests", message: this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
+        this.ok.emit();      
       },
       error: err => {
+        this.open = false;
         this.pagesDataService.showToast({ title: "QC Tests", message: 'Error in saving qc test', type: ToastEventTypeEnum.ERROR });
       }
     });
@@ -215,6 +214,7 @@ export class QCTestInputDialogComponent {
         message = "Error in deleting qc test";
         messageType = ToastEventTypeEnum.ERROR;
       }
+      this.open = false;
       this.pagesDataService.showToast({ title: "QC Tests", message: message, type: messageType });
       this.ok.emit();
     });

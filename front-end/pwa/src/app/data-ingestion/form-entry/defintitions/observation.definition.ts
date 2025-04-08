@@ -59,12 +59,15 @@ export class ObservationDefinition {
     public valueFlagInput!: string;
     public originalPeriod: number;
 
-    constructor(observation: CreateObservationModel, elementMetadata: CreateViewElementModel, allowMissingValues: boolean, scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined) {
+    private utcOffset: number;
+
+    constructor(observation: CreateObservationModel, elementMetadata: CreateViewElementModel, allowMissingValues: boolean, scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined, utcOffset: number) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
         this.allowMissingValues = allowMissingValues;
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
+        this.utcOffset = utcOffset; 
 
         this.originalPeriod = observation.interval;
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
@@ -323,7 +326,9 @@ export class ObservationDefinition {
             elementId: this.observation.elementId,
             sourceId: this.observation.sourceId,
             level: this.observation.level,
-            datetime: this.observation.datetime,
+            // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+            // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+            datetime: DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract'),
             interval: this.observation.interval
         };
 

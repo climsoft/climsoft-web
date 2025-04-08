@@ -150,7 +150,7 @@ export class DataExplorerComponent implements OnDestroy {
           }
 
           const observationView: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined),
+            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset),
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,

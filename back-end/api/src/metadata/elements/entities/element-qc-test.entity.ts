@@ -22,6 +22,7 @@ export class ElementQCTestEntity extends AppBaseEntity {
 
   //-----------------------
   @Column({ type: "int", name: "element_id" })
+  @Index()
   elementId: number;
 
   // ManyToOne relationship with ElementTypeEntity
@@ -30,9 +31,9 @@ export class ElementQCTestEntity extends AppBaseEntity {
   element: ElementEntity;
   //-----------------------
 
-  @Column({ name: "observation_period", type: "int" })
+  @Column({ name: "observation_interval", type: "int" })
   @Index()
-  observationPeriod: number;
+  observationInterval: number;
 
   @Column({ name: "parameters", type: "jsonb" })
   parameters: QCTestParametersValidity;

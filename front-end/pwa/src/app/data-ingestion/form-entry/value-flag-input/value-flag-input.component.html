@@ -18,11 +18,11 @@
                     <li class="nav-item">
                         <button class="nav-link active" [class.active]="activeTab === 'new'"
                             (click)="onTabChange('new')">New</button>
-                    </li> 
+                    </li>
                     <li class="nav-item">
                         <button class="nav-link" [class.active]="activeTab === 'history'"
                             (click)="onTabChange('history')">History</button>
-                    </li>              
+                    </li>
                 </ul>
             </div>
 
@@ -30,13 +30,13 @@
             <div class="card-body p-0">
 
                 <div *ngIf="activeTab === 'new'" class="mt-2">
-                    <div *ngIf="periodInDays !== null">
+                    <div *ngIf="allowIntervalEditing">
                         <div class="d-flex ">
-                            <div  style="max-width: 90px;"> 
-                                <app-number-input [label]="'Period'" [disabled]="disablePeriodEditing" [(numValue)]="periodInDays" />
+                            <div style="max-width: 90px;">
+                                <app-number-input [label]="'Interval'" [(numValue)]="interval" />
                             </div>
                             <div class="ms-2 d-flex align-items-end">
-                                days
+                                minutes
                             </div>
                         </div>
                         <hr />
@@ -67,7 +67,8 @@
                                     <td>{{ row.value }}</td>
                                     <td>{{row.flag}}</td>
                                     <td>{{ row.comment }}</td>
-                                    <td> <app-check-box-input [id]="row.entryDateTime" [disabled]="true" [value]="row.deleted" /> </td>
+                                    <td> <app-check-box-input [id]="row.entryDateTime" [disabled]="true"
+                                            [value]="row.deleted" /> </td>
                                     <td>{{row.entryUserEmail}}</td>
                                     <td>{{ row.entryDateTime }}</td>
                                 </tr>

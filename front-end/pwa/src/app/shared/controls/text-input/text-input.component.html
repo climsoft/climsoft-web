@@ -6,16 +6,23 @@
 
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
         class="form-control form-control-sm" [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled"
-        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly"
-        [class.bg-danger]="errorMessage" [class.bg-warning]="warningMessage"
-        [class.text-success]="showChanges && !errorMessage" [value]="value" [attr.min]="min" [attr.max]="max"
+        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" 
+        [class.bg-body-secondary]="readonly"
+        [class.text-bg-danger]="errorMessage" 
+        [class.text-bg-warning]="warningMessage"
+        [class.text-bg-success]="showChanges && !errorMessage" 
+        [value]="value" [attr.min]="min" [attr.max]="max"
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
         [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
-        [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.bg-danger]="errorMessage"
-        [class.bg-warning]="warningMessage" [class.text-success]="showChanges && !errorMessage" [value]="value"
+        [ngClass]="['border-'+ borderSize]" 
+        [class.bg-body-secondary]="readonly" 
+        [class.text-bg-danger]="errorMessage"
+        [class.text-bg-warning]="warningMessage" 
+        [class.text-bg-success]="showChanges && !errorMessage" 
+        [value]="value"
         [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
         (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
         (blur)="onInputBlur()" />
@@ -28,7 +35,7 @@
       </button>
 
       <app-dialog #dlgWarningMessage [title]="'Warning'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
-        <div>{{ warningMessage }}</div>
+        <div class="fs-5">{{ warningMessage }}</div>
       </app-dialog>
 
 
@@ -38,7 +45,7 @@
       </button>
 
       <app-dialog #dlgErrorMessage [title]="'Error'" [okButtonLabel]="'Ok'" [displayCancelOption]="false">
-        <div>{{ errorMessage }}</div>
+        <div class="fs-5">{{ errorMessage }}</div>
       </app-dialog>
 
       <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
