@@ -1,5 +1,13 @@
 <div class="card border-0" *ngIf="formDefinitions">
   <div class="card-body p-0">
+
+    <div *ngIf="userLocationErrorMessage" class="alert alert-danger d-flex justify-content-between"  >
+      <div>{{userLocationErrorMessage}} </div>
+      <div>
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onRequestLocation()">Get Location</button>
+      </div>
+    </div>
+
     <div class="d-flex justify-content-between">
       <div class="card-title fw-bold my-1  d-flex align-items-center" style="font-size: 0.875rem;">
         <div>{{source.name}} data entry for</div>

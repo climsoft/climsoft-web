@@ -25,6 +25,8 @@ import { CreateEntryFormModel } from 'src/app/metadata/source-templates/models/c
 import { AppDatabase } from 'src/app/app-database';
 import { UserSettingEnum } from 'src/app/app-config.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { AppLocationService } from 'src/app/app-location.service';
+import * as turf from '@turf/turf';
 
 @Component({
   selector: 'app-form-entry',
@@ -54,6 +56,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   private totalIsValid!: boolean;
 
   protected refreshLayout: boolean = false;
+  
+  protected changedObsDefs: ObservationDefinition[] = [];
 
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
@@ -61,7 +65,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
 
-  protected userFormSettings!: UserFormSettingStruct;
+  protected userFormSettings!: UserFormSettingStruct; 
+  protected userLocationErrorMessage: string ='';
+  
 
   private destroy$ = new Subject<void>();
 
@@ -73,6 +79,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
       private qcTestsService: ElementsQCTestsService,
+      private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
     this.pagesDataService.setPageHeader('Data Entry');
@@ -120,21 +127,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             observationInterval: sourceParams.interval,
           };
 
-          console.log('findQCTestQuery', findQCTestQuery)
-
-
           this.qcTestsService.find(findQCTestQuery).pipe(
             takeUntil(this.destroy$),
           ).subscribe(qcTests => {
+
             // Note, as of 09/01/2025, when user is online this will be raised twice due to the qc test service that finds the qc twice, locally and from server
-           
-            console.log('QC Tests', this.qcTests)
 
             this.qcTests = qcTests.filter(item => !item.disabled);
 
-            console.log('loading observations')
-
-         
             this.formDefinitions = new FormEntryDefinition(
               this.station,
               this.source,
@@ -142,6 +142,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
               this.elements,
               this.qcTests
             );
+
             this.loadObservations();
 
             /** Gets default date value (YYYY-MM-DD) used by date selector */
@@ -150,7 +151,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             // Gets default year-month value (YYYY-MM) used by year-month selector
             this.defaultYearMonthValue = `${this.formDefinitions.yearSelectorValue}-${StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)}`;
 
-
             if (this.formDefinitions.formMetadata.allowStationSelection) {
               // Get the station ids assigned to use the form
               this.stationFormsService.getStationsAssignedToUseForm(sourceId).pipe(
@@ -158,6 +158,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
               ).subscribe(stationIds => {
                 this.stationsIdsAssignedToForm = stationIds;
               });
+            }
+
+            if(this.formDefinitions.formMetadata.allowEntryAtStationOnly){
+              this.onRequestLocation();
             }
 
           })
@@ -175,7 +179,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
 
   /**
    * Used to determine whether to display element selector 
@@ -371,11 +374,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
-
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
+    if(this.userLocationErrorMessage){
+      this.pagesDataService.showToast({ title: 'Observations', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
     //console.log('save clicked');
     // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
     const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
@@ -536,8 +542,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
-  protected changedObsDefs: ObservationDefinition[] = [];
-
   // Important note, this explicit event communication between components was adopted because inconsistent behavior was observed 
   // when using mutable updates to nested objects, in this case the observation object that is part of the obdervation definition object, 
   // this likely stems from Angular's reliance on object references for change detection.
@@ -566,11 +570,47 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   }
 
-
   protected async loadUserSettings() {
     const savedUserFormSetting = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
     this.userFormSettings = savedUserFormSetting ? savedUserFormSetting.parameters : { ...DEFAULT_USER_FORM_SETTINGS }; //pass by value. Important    
   }
 
+  protected onRequestLocation(): void {
+    this.userLocationErrorMessage = 'Checking location...';
+    this.locationService.getUserLocation().pipe(take(1)).subscribe({
+      next: (userLocation) => {
+        if(this.station.location){
+          if(this.isUserWithinStation(this.station.location, userLocation)){
+            this.userLocationErrorMessage = '';
+          }else{
+            this.userLocationErrorMessage = 'Location retrived is not at the station. To submit data entered, you have to be at the station.';
+          }
+        }else{
+          this.userLocationErrorMessage = 'Update station location. To submit data entered, you have to be at the station.';
+        }
+      },
+      error: (error) => {
+        this.pagesDataService.showToast({ title: "Station Location", message: error, type: ToastEventTypeEnum.ERROR });
+        this.userLocationErrorMessage = 'Error in getting your location. To submit data entered, you have to be at the station.';
+      }
+    });
+  }
+
+  /**
+   * Checks if the user's current location is within a specified distance (meters) of the station.
+   */
+  private isUserWithinStation(
+    stationLocation: { latitude: number; longitude: number; },
+    userLocation: { latitude: number; longitude: number; },
+    thresholdMeters: number = 30
+  ): boolean {
+    const stationPoint = turf.point([stationLocation.longitude, stationLocation.latitude]);
+    const userPoint = turf.point([userLocation.longitude, userLocation.latitude]);
+    const distance = turf.distance(stationPoint, userPoint, { units: 'meters' });
+    return distance <= thresholdMeters;
+  }
 
 }
+
+
+

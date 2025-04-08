@@ -6,5 +6,5 @@ export interface ViewObservationLogModel {
     comment: string | null;
     deleted: boolean;
     entryUserEmail: string;
-    entryDateTime: string;
+    entryDateTime: string; 
 }

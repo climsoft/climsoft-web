@@ -74,6 +74,12 @@
         </div>
 
         <hr />
+        
+        <div>
+            <app-check-box-input [label]="'Allow Entry from Station Location Only'" [(value)]="allowEntryAtStationOnly" />
+        </div>
+
+        <hr />
 
         <div>
             <app-check-box-input [label]="'Allow Station Selection'" [(value)]="allowStationSelection" />
@@ -86,6 +92,8 @@
         </div>
 
         <hr />
+
+      
 
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />

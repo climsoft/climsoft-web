@@ -36,6 +36,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected requireTotalInput: boolean = false;
   protected allowIntervalEditing: boolean = false;
   protected allowStationSelection: boolean = false;
+  protected allowEntryAtStationOnly: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
   protected elementsErrorMessage: string = '';
@@ -66,7 +67,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Template');
-      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowIntervalEditing: false, allowStationSelection: false, isValid: () => true }
+      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowIntervalEditing: false, allowStationSelection: false, isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -116,6 +117,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
+    this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly;
   }
 
   public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
@@ -231,6 +233,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       hours: this.selectedHourIds,
       interval: this.selectedIntervalId,
       requireTotalInput: this.requireTotalInput,
+      allowEntryAtStationOnly: this.allowEntryAtStationOnly,
       allowIntervalEditing: this.allowIntervalEditing,
       allowStationSelection: this.allowStationSelection,
       isValid: () => true

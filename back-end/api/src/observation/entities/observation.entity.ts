@@ -26,7 +26,7 @@ export class ObservationEntity extends AppBaseEntity {
 
   @ManyToOne(() => ElementEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "element_id" })
-  element: ElementEntity; 
+  element: ElementEntity;
   //------------------
 
   /**
