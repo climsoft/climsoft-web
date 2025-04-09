@@ -19,9 +19,8 @@ export class ManualExportDownloadComponent implements OnInit {
   protected stationIds: string[] = [];
   protected sourceIds: number[] = [];
   protected elementIds: number[] = [];
-  protected interval: number | null = null;
-  protected level: number | null = null;
-  protected dateRange!: DateRange;
+  protected intervals: number[] = [];
+  protected dateRange: DateRange = {fromDate: '', toDate: ''};
   protected includeOnlyStationIds: string[] = [];
   protected includeOnlyElementIds: number[] = [];
   protected includeOnlyIntervals: number[] = [];

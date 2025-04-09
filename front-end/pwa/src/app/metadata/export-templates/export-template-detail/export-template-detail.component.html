@@ -52,9 +52,9 @@
                     <div class="mt-2">
                         <div>Interval:</div>
                         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'intervalStatus'"
-                            [groupItems]="
-                      [{ label:'All', checked: viewExportTemplate.parameters.intervals === undefined }, 
-                        { label:'Select', checked: viewExportTemplate.parameters.intervals !== undefined }]"
+                            [groupItems]=" [
+                                { label:'All', checked: viewExportTemplate.parameters.intervals === undefined }, 
+                                { label:'Select', checked: viewExportTemplate.parameters.intervals !== undefined }]"
                             (checkedValueChange)="onIntervalsStatusSelection($event)" />
                         <div *ngIf="viewExportTemplate.parameters.intervals">
                             <app-interval-selector-multiple [id]="'intervals'"
@@ -112,8 +112,7 @@
                             [groupItems]="[
                                 { label:'All', checked: viewExportTemplate.parameters.qcStatus === undefined }, 
                                 { label:'Select', checked: viewExportTemplate.parameters.qcStatus !== undefined }
-                                ]"
-                            (checkedValueChange)="onQcStatusSelection($event)" />
+                                ]" (checkedValueChange)="onQcStatusSelection($event)" />
                         <div *ngIf="viewExportTemplate.parameters.qcStatus">
                             <app-qc-status-selector-single [id]="'qc'"
                                 [(selectedId)]="viewExportTemplate.parameters.qcStatus" />
