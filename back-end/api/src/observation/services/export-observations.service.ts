@@ -36,8 +36,8 @@ export class ExportObservationsService {
             sqlCondition = sqlCondition + ` AND element_id IN (${exportParams.elementIds.join(',')})`;
         }
 
-        if (exportParams.interval) {
-            sqlCondition = sqlCondition + ` AND interval = ${exportParams.interval}`;
+        if (exportParams.intervals  && exportParams.intervals.length > 0) {
+            sqlCondition = sqlCondition + ` AND interval IN (${exportParams.intervals.join(',')})`;
         }
 
         if (exportParams.observationDate) {

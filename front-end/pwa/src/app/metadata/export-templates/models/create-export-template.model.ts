@@ -1,11 +1,12 @@
 
 import { ExportTemplateParametersModel } from './export-template-params.model';
+import { ExportTypeEnum } from './export-type.enum';
 
 export interface CreateExportTemplateModel {
   name: string;
   description: string;
-  parameters: ExportTemplateParametersModel; //TODO. Implement validations
-  utcOffset: number;
+  exportType: ExportTypeEnum;
+  parameters: ExportTemplateParametersModel; 
   disabled: boolean;
   comment: string | null;
 }

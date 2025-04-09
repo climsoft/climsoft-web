@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ExportTemplateParametersDto {
@@ -14,14 +14,15 @@ export class ExportTemplateParametersDto {
   elementIds?: number[];
 
   @IsOptional()
-  @IsInt()
-  interval?: number;
+  @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+  @IsInt({ each: true })
+  intervals?: number[];
 
   @IsOptional() // TODO. Important to validate the options here
   observationDate?: {
     last?: {
       duration: number,
-      durationType: 'days' | 'hours'| 'minutes',
+      durationType: 'days' | 'hours' | 'minutes',
     };
     fromDate?: string;
     within?: {
@@ -30,6 +31,58 @@ export class ExportTemplateParametersDto {
     };
   };
 
+
+  // Data
   @IsOptional()
-  expression?: any;
+  @IsBoolean()
+  convertDatetimeToDisplayTimeZone?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  splitObservationDatetime?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  unstackData?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeFlags?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeQCStatus?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeQCLog?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeComments?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeEntryDatetime?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeEntryUserEmail?: boolean;
+
+  // Metadata
+  @IsOptional()
+  @IsBoolean()
+  includeStationName?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeStationLocation?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeElementName?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeElementUnits?: boolean;
 }

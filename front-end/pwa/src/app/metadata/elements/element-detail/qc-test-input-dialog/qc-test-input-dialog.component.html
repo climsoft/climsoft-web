@@ -28,9 +28,9 @@
 
         <hr />
 
-        <div class="card border-1">
-            <div class="card-body">
-                <div class="card-title">Parameters</div>
+        <div class="card">
+            <div class="card-header">Parameters</div>
+            <div class="card-body">               
                 <div *ngIf="!displayNotYetSupported">
                     <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
                         [rangeThresholdQCTestParameters]="rangeThresholdParam" />

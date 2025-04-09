@@ -7,6 +7,8 @@ import { ActivatedRoute } from '@angular/router';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Location } from '@angular/common';
 import { CreateExportTemplateModel } from '../models/create-export-template.model';
+import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { ExportTypeEnum } from '../models/export-type.enum';
 
 // TODO. Try using angular forms?
 
@@ -18,19 +20,6 @@ import { CreateExportTemplateModel } from '../models/create-export-template.mode
 export class ExportTemplateDetailComponent implements OnInit {
 
   protected viewExportTemplate!: ViewExportTemplateModel;
-
-  protected stationIds!: string[];
-  protected elementIds!: number[];
-  protected sourceIds!: number[];
-  protected period!: number;
-  protected ObservationRange!: {
-    last?: number; // In days
-    dateRange?: {
-      startDate: string;
-      endDate: string;
-    };
-  };
-  protected expression?: any;
   protected errorMessage!: string;
 
 
@@ -56,7 +45,7 @@ export class ExportTemplateDetailComponent implements OnInit {
         id: 0,
         name: '',
         description: '',
-        utcOffset: 0,
+        exportType: ExportTypeEnum.RAW,
         parameters: {},
         disabled: false,
         comment: null,
@@ -73,8 +62,8 @@ export class ExportTemplateDetailComponent implements OnInit {
     this.viewExportTemplate.parameters.elementIds = option === 'All' ? undefined : [];
   }
 
-  protected onPeriodsStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.period = option === 'All' ? undefined : 1440;
+  protected onIntervalsStatusSelection(option: string): void {
+    this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440];
   }
 
   protected onDateStatusSelection(option: string): void {
@@ -114,6 +103,10 @@ export class ExportTemplateDetailComponent implements OnInit {
     }
   }
 
+  protected onQcStatusSelection(option: string): void {
+    this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.ALL_QC_TESTS_PASSED_OR_ACCEPTED;
+  }
+
   protected onSave(): void {
     this.errorMessage = '';
 
@@ -131,17 +124,12 @@ export class ExportTemplateDetailComponent implements OnInit {
       this.errorMessage = 'Enter template description';
       return;
     }
-
-    // if( this.viewExportTemplate.parameters.ObservationDate &&  this.viewExportTemplate.parameters.ObservationDate.last ){
-    //   this.viewExportTemplate.parameters.ObservationDate = {
-    //     last: 365,
-    //   };
-    // }
+ 
 
     const createExportTemplate: CreateExportTemplateModel = {
       name: this.viewExportTemplate.name,
       description: this.viewExportTemplate.description,
-      utcOffset: this.viewExportTemplate.utcOffset,
+      exportType: this.viewExportTemplate.exportType,
       parameters: this.viewExportTemplate.parameters,
       disabled: this.viewExportTemplate.disabled,
       comment: this.viewExportTemplate.comment,

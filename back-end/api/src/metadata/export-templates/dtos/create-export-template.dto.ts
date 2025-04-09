@@ -1,5 +1,6 @@
-import { IsBoolean, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { ExportTemplateParametersDto } from './export-template-paramers.dto';
+import { ExportTypeEnum } from '../enums/export-type.enum';
 
 export class CreateExportTemplateDto {
   @IsString()
@@ -8,19 +9,13 @@ export class CreateExportTemplateDto {
   @IsString()
   description: string;
 
+  @IsEnum(ExportTypeEnum, { message: 'export type must be a valid value' })
+  exportType: ExportTypeEnum;
+
   //@ValidateNested()
   //@Type(function () { return this._type(); }) 
   @IsOptional() // TODO. Temporary until we implement validate nested
   parameters: ExportTemplateParametersDto; //TODO. Implement validations
-
-
-  /**
-   * Determines whether entry date time should be converted to UTC or not.
-   * If true, the entry date time will be sent to the server based on date time selection on the client
-   * If false, entry date time will be converted to UTC before being sent to sever
-   */
-  @IsInt()
-  utcOffset: number;
 
   @IsBoolean()
   disabled: boolean;

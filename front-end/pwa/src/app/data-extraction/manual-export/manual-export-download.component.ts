@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
+import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
 import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
+import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 
 @Component({
   selector: 'app-manual-export-download',
@@ -12,16 +15,29 @@ import { ExportTemplatesService } from 'src/app/metadata/export-templates/servic
   styleUrls: ['./manual-export-download.component.scss']
 })
 export class ManualExportDownloadComponent implements OnInit {
+
+  protected stationIds: string[] = [];
+  protected sourceIds: number[] = [];
+  protected elementIds: number[] = [];
+  protected interval: number | null = null;
+  protected level: number | null = null;
+  protected dateRange!: DateRange;
+  protected includeOnlyStationIds: string[] = [];
+  protected includeOnlyElementIds: number[] = [];
+  protected includeOnlyIntervals: number[] = [];
+
   protected viewExportTemplate!: ViewExportTemplateModel;
   protected hidePreparingExport: boolean = true;
   protected downloadLink: string = '';
   protected hideDownloadButton: boolean = true;
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pagesDataService: PagesDataService,
-    private route: ActivatedRoute,
     private exportTemplateService: ExportTemplatesService,
-    private observationService: ObservationsService,) {
+    private observationService: ObservationsService,
+    private route: ActivatedRoute,) {
   }
 
   ngOnInit(): void {
@@ -32,10 +48,29 @@ export class ManualExportDownloadComponent implements OnInit {
     ).subscribe((data) => {
       this.viewExportTemplate = data;
       this.pagesDataService.setPageHeader(`Export From ${this.viewExportTemplate.name}`);
+
+
+      if (this.viewExportTemplate.parameters.stationIds) {
+        this.includeOnlyStationIds = this.viewExportTemplate.parameters.stationIds;
+      }
+
+      if (this.viewExportTemplate.parameters.elementIds) {
+        this.includeOnlyElementIds = this.viewExportTemplate.parameters.elementIds;
+      }
+
+      if (this.viewExportTemplate.parameters.intervals) {
+        this.includeOnlyIntervals = this.viewExportTemplate.parameters.intervals
+      }
+
     });
   }
 
-  protected onExportClick(): void {
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  protected onGenerateExportClick(view?: ViewObservationQueryModel): void {
     this.hidePreparingExport = false;
     this.observationService.generateExport(this.viewExportTemplate.id).pipe(
       take(1)

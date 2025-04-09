@@ -2,8 +2,7 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
 
-import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component';
-import { ElementsSelectorDialogComponent } from './controls/elements-selector-dialog/elements-selector-dialog.component';
+import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component'; 
 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
@@ -69,7 +68,7 @@ import { OrganisationSelectorSingleComponent } from './organisations/organisatio
 import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
 import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
 import { StationRegionSearchComponent as StationRegionsSearchComponent } from './stations/stations-search-dialog/station-regions-search/station-regions-search.component';
-import { ElementTypeSingleInputComponent } from './elements/element-type-selector/element-type-single-input/element-type-single-input.component';
+import { ElementTypeSingleInputComponent } from './elements/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
 import { StationOrganisationsSearchComponent } from './stations/stations-search-dialog/station-organisations-search/station-organisations-search.component';
 import { StationNetworkAffiliationsSearchComponent } from './stations/stations-search-dialog/station-network-affiliations-search/station-network-affiliations-search.component';
@@ -77,10 +76,11 @@ import { StationStatusSearchComponent } from './stations/stations-search-dialog/
 import { StationProcessingMethodSearchComponent } from './stations/stations-search-dialog/station-processing-search/station-processing-method-search.component';
 import { StationFocusesSearchComponent } from './stations/stations-search-dialog/station-focuses-search/station-focuses-search.component';
 import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
+import { QCStatusSelectorSingleComponent } from './elements/element-detail/qc-status-selector-single/qc-status-selector-single.component';
+import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
 
 @NgModule({
-  declarations: [
-    ElementsSelectorDialogComponent,
+  declarations: [ 
     FormSelectorDialogComponent,
 
     ViewNetworkAffiliationsComponent,
@@ -171,13 +171,15 @@ import { StationEnvironmentsSearchComponent } from './stations/stations-search-d
 
     ViewConnectorsComponent,
 
+    QCStatusSelectorSingleComponent,
+    ExportTypeSelectorSingleComponent, 
+
   ],
   imports: [
     MetadataRoutingModule,
     SharedModule,
   ],
-  exports: [
-    ElementsSelectorDialogComponent,
+  exports: [ 
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
     ElementsSearchDialogComponent,
@@ -205,6 +207,10 @@ import { StationEnvironmentsSearchComponent } from './stations/stations-search-d
 
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,
+
+    QCStatusSelectorSingleComponent,
+    ExportTypeSelectorSingleComponent,
+  
   ]
 })
-export class MetadataModule { }
+export class MetadataModule { } 
