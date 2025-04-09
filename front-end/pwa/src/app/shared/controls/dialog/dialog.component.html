@@ -1,15 +1,14 @@
 <div *ngIf="open" class="dialog-overlay">
-    <div class="card m-3 ">
 
-        <div *ngIf="title" class="card-header bg-transparent">
+    <div class="card">
+        <div *ngIf="title" class="card-header fw-bold">
             {{ title }}
         </div>
-
         <div class="card-body max-vh-80 min-vw-50 overflow-auto">
             <ng-content></ng-content>
         </div>
 
-        <div class="card-footer bg-transparent d-flex justify-content-end">
+        <div class="card-footer  d-flex justify-content-end">
             <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                 {{okButtonLabel}}
             </button>

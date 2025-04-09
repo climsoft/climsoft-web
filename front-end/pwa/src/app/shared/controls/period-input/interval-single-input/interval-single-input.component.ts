@@ -18,17 +18,13 @@ export class IntervalSingleInputComponent implements OnChanges {
   protected options!: Interval[];
   protected selectedOption!: Interval | null;
 
-  constructor() { }
+  constructor() { 
+    this.options = IntervalsUtil.possibleIntervals;
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
 
-    //console.log('period selectedId', this.selectedId, 'existing: ', this.selectedOption, '  ', changes)
-
     //load options once
-    if (!this.options) {
-      this.options = IntervalsUtil.possibleIntervals;
-    }
-
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
       this.options = IntervalsUtil.possibleIntervals.filter(data => this.includeOnlyIds.includes(data.id));
     }

@@ -4,6 +4,7 @@ import { ManualExportSelectionComponent } from './manual-export-selection/manual
 import { DataExtractionRoutingModule } from './data-extraction-routing.module';
 import { AutoExportSelectionComponent } from './auto-export-selection/auto-export-selection.component';
 import { ManualExportDownloadComponent } from './manual-export/manual-export-download.component';
+import { MetadataModule } from '../metadata/metadata.module';
 
 
 @NgModule({
@@ -14,7 +15,8 @@ import { ManualExportDownloadComponent } from './manual-export/manual-export-dow
   ],
   imports: [
     DataExtractionRoutingModule,
-    SharedModule,    
+    SharedModule, 
+    MetadataModule,   
   ]
 })
 export class DataExtractionModule { }

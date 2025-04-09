@@ -36,6 +36,7 @@ import { DropDownContainerComponent } from './controls/drop-down-container/drop-
 import { MapComponent } from './controls/map/map.component';
 import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
 import { DateRangeInputComponent } from './controls/date-range-input/date-range-input.component';
+import { IntervalSelectorMultipleComponent } from './controls/period-input/interval-selector-multiple/interval-selector-multiple.component';
 
 //--------------------------------
   
@@ -82,6 +83,7 @@ const controlsComponents = [
   DataStructureInputComponent,
 
   DateRangeInputComponent,
+  IntervalSelectorMultipleComponent,
 ];
 
 const directives = [

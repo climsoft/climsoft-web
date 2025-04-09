@@ -93,8 +93,6 @@
 
         <hr />
 
-      
-
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
         </div>
@@ -107,9 +105,7 @@
 
         <div *ngIf="errorMessage">
             <hr />
-
-            <!-- TODO. link the error to individual controls and possibly use bootstrap alert component-->
-            <div style="color: red;">
+            <div class="text-danger">
                 {{ errorMessage }}
             </div>
         </div>

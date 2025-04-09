@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { FindManyOptions, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
 import { ExportTemplateEntity } from '../entities/export-template.entity';
@@ -63,8 +63,8 @@ export class ExportTemplatesService {
             name: dto.name,
         });
 
-        entity.description = dto.description;
-        entity.utcOffset = dto.utcOffset;
+        entity.description = dto.description; 
+        entity.exportType = dto.exportType; 
         entity.parameters = dto.parameters;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment ? dto.comment : null;
@@ -77,15 +77,16 @@ export class ExportTemplatesService {
     }
 
     public async update(id: number, dto: CreateExportTemplateDto, userId: number) {
-        const source = await this.findEntity(id);
-        source.name = dto.name;
-        source.description = dto.description;
-        source.utcOffset = dto.utcOffset;
-        source.parameters = dto.parameters;
-        source.entryUserId = userId;
+        const entity = await this.findEntity(id);
+        entity.name = dto.name;
+        entity.description = dto.description; 
+        entity.exportType = dto.exportType; 
+        entity.parameters = dto.parameters;
+        entity.comment = dto.comment ? dto.comment : null;
+        entity.entryUserId = userId;
 
         // TODO. Later Implement logging of changes in the database.
-        return this.exportsRepo.save(source);
+        return this.exportsRepo.save(entity);
     }
 
     public async delete(id: number): Promise<number> {
@@ -104,10 +105,10 @@ export class ExportTemplatesService {
     private createViewDto(entity: ExportTemplateEntity): ViewTemplateExportDto {
         const dto: ViewTemplateExportDto = {
             id: entity.id,
-            name: entity.name,
+            name: entity.name, 
             description: entity.description,
-            parameters: entity.parameters,
-            utcOffset: entity.utcOffset,
+            exportType: entity.exportType,
+            parameters: entity.parameters, 
             disabled: entity.disabled,
             comment: entity.comment,
         }

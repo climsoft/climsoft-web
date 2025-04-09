@@ -14,16 +14,14 @@ import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-i
   styleUrls: ['./query-selection.component.scss']
 })
 export class QuerySelectionComponent implements OnChanges, OnDestroy {
-
   @Input() public parentComponentName!: string;
-
   @Input() public enableQueryButton: boolean = true;
-
   @Input() public includeDeletedData: boolean = false;
-
   @Input() public dateRange: DateRange; 
-
   @Input() public displaySourceSelector: boolean = true; 
+  @Input() public displayLevelSelector: boolean = true; 
+  @Input() public displayIntervalSelector: boolean = true; 
+  @Input() public displayEntryDateSelector: boolean = true; 
 
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
 
@@ -110,7 +108,6 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
     });
   }
-
 
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';

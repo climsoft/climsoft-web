@@ -34,7 +34,7 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
   ],
   imports: [
     SharedModule,
-    MetadataModule,
+    MetadataModule, 
     AdminRoutingModule
   ] 
 })

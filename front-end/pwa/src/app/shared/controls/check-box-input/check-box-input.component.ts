@@ -10,7 +10,7 @@ export class CheckBoxInputComponent {
   @Input() label: string = ''; 
   @Input() hintMessage!: string;
   @Input() disabled!: boolean ; 
-  @Input() value!: boolean ;
+  @Input() value!: boolean | undefined ;
   @Output() valueChange = new EventEmitter<boolean>();
 
   constructor() {
