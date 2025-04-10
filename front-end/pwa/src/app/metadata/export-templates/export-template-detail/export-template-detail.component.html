@@ -137,30 +137,30 @@
                     </div>
                     <div class="mt-2">
                         <app-check-box-input [label]="'Unstack data'"
-                            [(value)]="viewExportTemplate.parameters.unstackData" />
+                            [value]="viewExportTemplate.parameters.unstackData" (valueChange)="onUnstackData($event)" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include flags'"
+                        <app-check-box-input [label]="'Include flags'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeFlags" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include quality control status'"
+                        <app-check-box-input [label]="'Include quality control status'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeQCStatus" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include quality control log'"
-                            [(value)]="viewExportTemplate.parameters.includeQCLog" />
+                        <app-check-box-input [label]="'Include quality control test log'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeQCTestLog" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include comments'"
+                        <app-check-box-input [label]="'Include comments'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeComments" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'include entry date time'"
+                        <app-check-box-input [label]="'include entry date time'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeEntryDatetime" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include entry user email'"
+                        <app-check-box-input [label]="'Include entry user email'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeEntryUserEmail" />
                     </div>
                 </div>
@@ -180,12 +180,24 @@
                             [(value)]="viewExportTemplate.parameters.includeStationLocation" />
                     </div>
                     <div class="mt-2">
+                        <app-check-box-input [label]="'Include station elevation'"
+                            [(value)]="viewExportTemplate.parameters.includeStationElevation" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include element abbreviation'"
+                            [(value)]="viewExportTemplate.parameters.includeElementAbbreviation" />
+                    </div>
+                    <div class="mt-2">
                         <app-check-box-input [label]="'Include element name'"
                             [(value)]="viewExportTemplate.parameters.includeElementName" />
                     </div>
                     <div class="mt-2">
                         <app-check-box-input [label]="'Include element units'"
                             [(value)]="viewExportTemplate.parameters.includeElementUnits" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include source name'"
+                            [(value)]="viewExportTemplate.parameters.includeSourceName" />
                     </div>
                 </div>
             </div>

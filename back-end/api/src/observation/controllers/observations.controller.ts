@@ -70,9 +70,10 @@ export class ObservationsController {
 
   @Get('generate-export/:templateid')
   generateExports(
+    @Req() request: Request,
     @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
     @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
-    return this.exportObservationsService.generateExports(exportTemplateId);
+    return this.exportObservationsService.generateExports(exportTemplateId, viewObsevationQuery,AuthUtil.getLoggedInUser(request).id);
   }
 
   @Get('download-export/:templateid')

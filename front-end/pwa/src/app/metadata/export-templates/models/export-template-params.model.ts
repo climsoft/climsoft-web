@@ -24,7 +24,7 @@ export interface ExportTemplateParametersModel {
   unstackData?: boolean;
   includeFlags?: boolean;
   includeQCStatus?: boolean;
-  includeQCLog?: boolean;
+  includeQCTestLog?: boolean;
   includeComments?: boolean;
   includeEntryDatetime?: boolean;
   includeEntryUserEmail?: boolean;
@@ -32,6 +32,11 @@ export interface ExportTemplateParametersModel {
   // Metadata
   includeStationName?: boolean;
   includeStationLocation?: boolean;
+  includeStationElevation?: boolean;
+
+  includeElementAbbreviation?: boolean;
   includeElementName?: boolean;
   includeElementUnits?: boolean;
+
+  includeSourceName?: boolean;
 }

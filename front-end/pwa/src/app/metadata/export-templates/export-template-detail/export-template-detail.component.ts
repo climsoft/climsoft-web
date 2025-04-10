@@ -22,7 +22,7 @@ export class ExportTemplateDetailComponent implements OnInit {
 
   protected viewExportTemplate!: ViewExportTemplateModel;
   protected errorMessage!: string;
-
+  protected disableStackedDataOpetions: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -39,6 +39,7 @@ export class ExportTemplateDetailComponent implements OnInit {
         take(1),
       ).subscribe(data => {
         this.viewExportTemplate = data;
+        this.disableStackedDataOpetions = this.viewExportTemplate.parameters.unstackData ? true : false;
       });
     } else {
       this.pagesDataService.setPageHeader('New Export Template');
@@ -73,7 +74,7 @@ export class ExportTemplateDetailComponent implements OnInit {
     } else if (option === 'Within') {
       this.viewExportTemplate.parameters.observationDate = {
         within: {
-          fromDate: DateUtils.getDateOnlyAsString(new Date())  ,
+          fromDate: DateUtils.getDateOnlyAsString(new Date()),
           toDate: DateUtils.getDateOnlyAsString(new Date()),
         },
       };
@@ -108,6 +109,22 @@ export class ExportTemplateDetailComponent implements OnInit {
     this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.ALL_QC_TESTS_PASSED_OR_ACCEPTED;
   }
 
+  protected onUnstackData(value: boolean) {
+    this.viewExportTemplate.parameters.unstackData = value;
+    this.disableStackedDataOpetions = value
+
+    if(value){
+      // Uncheck all stacked data options when unstack option is clicked
+      this.viewExportTemplate.parameters.includeFlags = false;
+      this.viewExportTemplate.parameters.includeQCStatus = false;
+      this.viewExportTemplate.parameters.includeQCTestLog = false;
+      this.viewExportTemplate.parameters.includeComments = false;
+      this.viewExportTemplate.parameters.includeEntryDatetime = false;
+      this.viewExportTemplate.parameters.includeEntryUserEmail = false;
+    }
+   
+  }
+
   protected onSave(): void {
     this.errorMessage = '';
 
@@ -125,7 +142,7 @@ export class ExportTemplateDetailComponent implements OnInit {
       this.errorMessage = 'Enter template description';
       return;
     }
- 
+
 
     const createExportTemplate: CreateExportTemplateModel = {
       name: this.viewExportTemplate.name,
