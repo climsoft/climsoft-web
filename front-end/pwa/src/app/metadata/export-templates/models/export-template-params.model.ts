@@ -11,8 +11,8 @@ export interface ExportTemplateParametersModel {
     };
     fromDate?: string;
     within?: {
-      startDate: string;
-      endDate: string;
+      fromDate: string;
+      toDate: string;
     };
   }; 
 

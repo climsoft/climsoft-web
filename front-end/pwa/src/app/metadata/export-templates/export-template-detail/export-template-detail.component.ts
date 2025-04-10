@@ -9,6 +9,7 @@ import { Location } from '@angular/common';
 import { CreateExportTemplateModel } from '../models/create-export-template.model';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { ExportTypeEnum } from '../models/export-type.enum';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 // TODO. Try using angular forms?
 
@@ -72,13 +73,13 @@ export class ExportTemplateDetailComponent implements OnInit {
     } else if (option === 'Within') {
       this.viewExportTemplate.parameters.observationDate = {
         within: {
-          startDate: new Date().toISOString().slice(0, 10),
-          endDate: new Date().toISOString().slice(0, 10),
+          fromDate: DateUtils.getDateOnlyAsString(new Date())  ,
+          toDate: DateUtils.getDateOnlyAsString(new Date()),
         },
       };
     } else if (option === 'From') {
       this.viewExportTemplate.parameters.observationDate = {
-        fromDate: new Date().toISOString().slice(0, 10),
+        fromDate: DateUtils.getDateOnlyAsString(new Date()),
       };
     } else if (option === 'Last') {
       this.viewExportTemplate.parameters.observationDate = {

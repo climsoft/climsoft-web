@@ -5,6 +5,10 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 
 @Component({
   selector: 'app-data-flow-query-selection',
@@ -14,7 +18,6 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
 
   @Input() public enableQueryButton: boolean = true;
-
   @Input() public dateRange: DateRange;
 
 
@@ -27,22 +30,30 @@ export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
   protected level: number = 0;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
-  protected errorMessage: string = '';
+  private utcOffset: number = 0;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
+    private generalSettingsService: GeneralSettingsService,
   ) {
 
     // Set default dates to 1 year
     const todayDate = new Date();
-    const lastDate: Date = new Date();
-    lastDate.setDate(todayDate.getDate() - 365);
-    this.dateRange = { fromDate: lastDate.toISOString().slice(0, 10), toDate: todayDate.toISOString().slice(0, 10) };
+    const firstDate: Date = new Date();
+    firstDate.setDate(todayDate.getDate() - 365);
+    this.dateRange = { fromDate: DateUtils.getDateOnlyAsString(firstDate), toDate: DateUtils.getDateOnlyAsString(todayDate) };
 
     this.setStationsAllowed();
+
+    // Get the climsoft time zone display setting
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((data) => {
+      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -97,7 +108,7 @@ export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
     }
 
     if (this.interval > 0) {
-      observationFilter.interval = this.interval;
+      observationFilter.intervals = [this.interval];
     } else {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
       return;
@@ -112,13 +123,18 @@ export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
 
     if (this.dateRange.fromDate) {
       observationFilter.fromDate = `${this.dateRange.fromDate}T00:00:00Z`;
+      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
     } else {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'From date selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.dateRange.toDate) {
-      observationFilter.toDate = `${this.dateRange.toDate}T23:00:00Z`;
+      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
     } else {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'To date selection required', type: ToastEventTypeEnum.ERROR });
       return;

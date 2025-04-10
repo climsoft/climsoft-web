@@ -18,7 +18,7 @@
             </div>
 
             <div *ngIf="displayIntervalSelector" class="col-auto mb-2">
-                <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
+                <app-interval-selector-multiple [label]="'Interval'" [(selectedIds)]="intervals" />
             </div>
 
             <div *ngIf="displaySourceSelector" class="col-auto mb-2">

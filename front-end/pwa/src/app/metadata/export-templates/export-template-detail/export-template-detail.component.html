@@ -90,16 +90,16 @@
 
                             <div *ngIf="viewExportTemplate.parameters.observationDate.fromDate">
                                 <app-date-input [id]="'from_date'"
-                                    [value]="viewExportTemplate.parameters.observationDate.fromDate" />
+                                    [(value)]="viewExportTemplate.parameters.observationDate.fromDate" />
                             </div>
 
                             <div *ngIf="viewExportTemplate.parameters.observationDate.within">
                                 <div class="d-flex align-items-center ">
                                     <app-date-input [id]="'start_date'"
-                                        [value]="viewExportTemplate.parameters.observationDate.within.startDate" />
+                                        [(value)]="viewExportTemplate.parameters.observationDate.within.fromDate" />
                                     <div class="mx-2">To</div>
                                     <app-date-input [id]="'end_date'"
-                                        [value]="viewExportTemplate.parameters.observationDate.within.endDate" />
+                                        [(value)]="viewExportTemplate.parameters.observationDate.within.toDate" />
                                 </div>
                             </div>
 

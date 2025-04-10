@@ -15,8 +15,9 @@ export class ViewObservationQueryDTO {
     elementIds?: number[];
 
     @IsOptional()
-    @IsInt()
-    interval?: number;
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @IsInt({ each: true })
+    intervals?: number[];
 
     @IsOptional()
     @IsInt()

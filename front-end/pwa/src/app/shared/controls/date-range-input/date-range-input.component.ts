@@ -17,18 +17,16 @@ export class DateRangeInputComponent implements OnChanges {
   @Input() public disabled!: boolean;
   @Input() public hintMessage!: string;
   @Input() public showNavigationButtons!: boolean;
-  @Input() public errorMessage!: string ;
-  @Input() public maximumDays!: number;
+  @Input() public errorMessage!: string;
+  @Input() public maxDate!: string;
+  @Input() public minDate!: string;
   @Input() public value!: DateRange;
-  @Output() public valueChange = new EventEmitter<DateRange >();
-  @Output() public inputClick = new EventEmitter<DateRange >();
-  @Output() public inputEnterKeyPress = new EventEmitter<DateRange >();
-  @Output() public inputBlur = new EventEmitter<DateRange >();
+  @Output() public valueChange = new EventEmitter<DateRange>();
+  @Output() public inputClick = new EventEmitter<DateRange>();
+  @Output() public inputEnterKeyPress = new EventEmitter<DateRange>();
+  @Output() public inputBlur = new EventEmitter<DateRange>();
 
-  protected maximumToDate: string;
- 
   constructor() {
-    this.maximumToDate = new Date().toISOString().slice(0, 10);
   }
 
 
@@ -36,16 +34,16 @@ export class DateRangeInputComponent implements OnChanges {
   }
 
   protected onFromDateChange(value: string | null) {
-    if (value == null) {
+    if (!value) {
       value = '';
     }
-    
+
     this.value.fromDate = value;
     this.valueChange.emit(this.value);
   }
 
   protected onToDateChange(value: string | null) {
-    if (value == null) {
+    if (!value) {
       value = '';
     }
 
@@ -54,15 +52,15 @@ export class DateRangeInputComponent implements OnChanges {
   }
 
   protected onInputClick(): void {
-    this.inputClick.emit(this.value  );
+    this.inputClick.emit(this.value);
   }
 
   protected onEnterKeyPressed() {
-    this.inputEnterKeyPress.emit(this.value  );
+    this.inputEnterKeyPress.emit(this.value);
   }
 
   protected onInputBlur() {
-    this.inputBlur.emit(this.value );
+    this.inputBlur.emit(this.value);
   }
 
 }

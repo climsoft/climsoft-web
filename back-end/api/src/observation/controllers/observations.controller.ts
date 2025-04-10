@@ -69,7 +69,9 @@ export class ObservationsController {
   }
 
   @Get('generate-export/:templateid')
-  generateExports(@Param('templateid', AuthorisedExportsPipe) exportTemplateId: number): Promise<number> {
+  generateExports(
+    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
+    @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
     return this.exportObservationsService.generateExports(exportTemplateId);
   }
 

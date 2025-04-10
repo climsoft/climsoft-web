@@ -99,8 +99,8 @@ export class SourceCheckService {
             where = `${where} AND element_id = ${selectObsevationDto.elementIds[0]}`;
         }
 
-        if (selectObsevationDto.interval) {
-            where = `${where} AND interval = ${selectObsevationDto.interval}`;
+        if (selectObsevationDto.intervals) {
+            where = `${where} AND interval = ${selectObsevationDto.intervals}`;
         }
 
         if (selectObsevationDto.level !== undefined) {

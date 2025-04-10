@@ -21,7 +21,7 @@
                       </div>
           
                       <div class="col-auto mb-2">
-                          <app-date-range-input [label]="'Observation Date'" [(value)]="dateRange" />
+                          <app-date-range-input [label]="'Observation Date'" [maxDate]="maxDateRanges.toDate" [minDate]="maxDateRanges.fromDate"  [(value)]="dateRange" />
                       </div>
           
                   </div>

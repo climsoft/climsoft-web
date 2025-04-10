@@ -392,7 +392,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
       observation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(observation.datetime, this.source.utcOffset, 'subtract');
-      //console.log('saving: ', observation.datetime)
     }
     // Send to server for saving
     this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
