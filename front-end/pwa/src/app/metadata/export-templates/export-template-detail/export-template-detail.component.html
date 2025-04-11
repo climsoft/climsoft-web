@@ -140,8 +140,16 @@
                             [value]="viewExportTemplate.parameters.unstackData" (valueChange)="onUnstackData($event)" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include flags'" [disabled]="disableStackedDataOpetions"
-                            [(value)]="viewExportTemplate.parameters.includeFlags" />
+                        <app-check-box-input [label]="'Include level'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeLevel" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include interval'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeInterval" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include flag'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeFlag" />
                     </div>
                     <div class="mt-2">
                         <app-check-box-input [label]="'Include quality control status'" [disabled]="disableStackedDataOpetions"

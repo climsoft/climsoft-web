@@ -145,13 +145,19 @@ export class ManualExportDownloadComponent implements OnInit {
     }
 
     this.hidePreparingExport = false;
-    this.observationService.generateExport(this.viewExportTemplate.id).pipe(
+    this.observationService.generateExport(this.viewExportTemplate.id, observationFilter).pipe(
       take(1)
-    ).subscribe((data) => {
-      this.hidePreparingExport = true;
-      this.downloadLink = this.observationService.getDownloadExportLink(data);
-      this.hideDownloadButton = false;
-    });
+    ).subscribe({
+      next: data => {
+        this.hidePreparingExport = true;
+        this.downloadLink = this.observationService.getDownloadExportLink(data);
+        this.hideDownloadButton = false;
+      },
+      error: err =>{
+        this.pagesDataService.showToast({ title: `Error in Generating Export`, message: err, type: ToastEventTypeEnum.ERROR });
+        this.hidePreparingExport = false;
+      }
+    } );
   }
 
   protected onDownloadStarted(): void {

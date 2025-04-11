@@ -44,14 +44,18 @@ export class ObservationsService {
 
   // TODO. There should be a limit requirement for performance reasons
   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<number>(
+      `${this.endPointUrl}/count`,
+      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
   public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
-    return this.http.get<ViewObservationLogModel[]>(`${this.endPointUrl}/log`, { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
+    return this.http.get<ViewObservationLogModel[]>(
+      `${this.endPointUrl}/log`,
+      { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -64,8 +68,10 @@ export class ObservationsService {
       );
   }
 
-  public generateExport(exportTemplateId: number): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/generate-export/${exportTemplateId}`)
+  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(
+      `${this.endPointUrl}/generate-export/${exportTemplateId}`,
+      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );

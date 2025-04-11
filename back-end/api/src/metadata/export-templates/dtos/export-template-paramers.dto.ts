@@ -51,7 +51,15 @@ export class ExportTemplateParametersDto {
 
   @IsOptional()
   @IsBoolean()
-  includeFlags?: boolean;
+  includeLevel?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeInterval?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeFlag?: boolean;
 
   @IsOptional()
   @IsBoolean()

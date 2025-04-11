@@ -66,6 +66,7 @@ export class ExportTemplateDetailComponent implements OnInit {
 
   protected onIntervalsStatusSelection(option: string): void {
     this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440];
+    console.log('interval option', option, 'params', this.viewExportTemplate.parameters.intervals)
   }
 
   protected onDateStatusSelection(option: string): void {
@@ -115,7 +116,7 @@ export class ExportTemplateDetailComponent implements OnInit {
 
     if(value){
       // Uncheck all stacked data options when unstack option is clicked
-      this.viewExportTemplate.parameters.includeFlags = false;
+      this.viewExportTemplate.parameters.includeFlag = false;
       this.viewExportTemplate.parameters.includeQCStatus = false;
       this.viewExportTemplate.parameters.includeQCTestLog = false;
       this.viewExportTemplate.parameters.includeComments = false;

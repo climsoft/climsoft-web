@@ -7,14 +7,14 @@ export interface ExportTemplateParametersModel {
   observationDate?: {
     last?: {
       duration: number,
-      durationType: 'days'| 'hours' | 'minutes',
+      durationType: 'days' | 'hours' | 'minutes',
     };
     fromDate?: string;
     within?: {
       fromDate: string;
       toDate: string;
     };
-  }; 
+  };
 
   qcStatus?: QCStatusEnum;
 
@@ -22,7 +22,9 @@ export interface ExportTemplateParametersModel {
   convertDatetimeToDisplayTimeZone?: boolean;
   splitObservationDatetime?: boolean;
   unstackData?: boolean;
-  includeFlags?: boolean;
+  includeLevel?: boolean;
+  includeInterval?: boolean;
+  includeFlag?: boolean;
   includeQCStatus?: boolean;
   includeQCTestLog?: boolean;
   includeComments?: boolean;

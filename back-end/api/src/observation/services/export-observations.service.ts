@@ -6,13 +6,18 @@ import { ViewTemplateExportDto } from 'src/metadata/export-templates/dtos/view-e
 import { ExportTemplatesService } from 'src/metadata/export-templates/services/export-templates.service';
 import { AppConfig } from 'src/app.config';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
+import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 
 @Injectable()
 export class ExportObservationsService {
     constructor(
         private exportTemplatesService: ExportTemplatesService,
         private dataSource: DataSource,
-        private fileIOService: FileIOService,) {
+        private fileIOService: FileIOService,
+        private generalSettingsService: GeneralSettingsService,
+    ) {
     }
 
     public async generateExports(exportTemplateId: number, query: ViewObservationQueryDTO, userId: number): Promise<number> {
@@ -23,8 +28,7 @@ export class ExportObservationsService {
             throw new BadRequestException('Export disabled');
         }
 
-        const exportParams: ExportTemplateParametersDto = this.filterOutTemplateUsingQuery(viewTemplateExportDto.parameters, query);
-        const outputPath: string = `/var/lib/postgresql/exports/${userId}_${exportTemplateId}.csv`;
+        const exportParams: ExportTemplateParametersDto = this.getTemplateFiltersBasedOnQuery(viewTemplateExportDto.parameters, query);
 
         // Manually construct the SQL query
         let sqlCondition: string = '';
@@ -67,108 +71,112 @@ export class ExportObservationsService {
         }
         //------------------------------------------------------------------------------------------------
 
+        const columnSelections: string[] = [];
+
+        // METADATA SELECTIONS
+        //------------------------------------------------------------------------------------------------
+
+        columnSelections.push('ob.station_id AS station_id');
+        if (exportParams.includeStationName) {
+            columnSelections.push('st.name AS station_name');
+        }
+
+        if (exportParams.includeStationLocation) {
+            columnSelections.push('ST_Y(st.location) AS station_latitude');
+            columnSelections.push('ST_X(st.location) AS station_longitude');
+        }
+
+        if (exportParams.includeStationElevation) {
+            columnSelections.push('st.elevation AS station_elevation');
+        }
+
+        columnSelections.push('ob.element_id AS element_id');
+        if (exportParams.includeElementName) {
+            columnSelections.push('el.name AS element_name');
+        }
+
+        if (exportParams.includeElementUnits) {
+            columnSelections.push('el.units AS element_units');
+        }
+
+        if (exportParams.includeSourceName) {
+            columnSelections.push('so.name AS source_name');
+        }
+
+        if (exportParams.includeLevel) {
+            columnSelections.push('ob.level AS level');
+        }
+
+        if (exportParams.includeInterval) {
+            columnSelections.push('ob.interval AS interval');
+        }
+        //------------------------------------------------------------------------------------------------
+
         // DATA PROCESSING SELECTIONS
         //------------------------------------------------------------------------------------------------
 
-        let datetimeColumns: string = 'ob.date_time, ';
-        const displayUtcOffset = 0; // TODO. Left here
+        const displayUtcOffset: number = ( ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters) as ClimsoftDisplayTimeZoneDto).utcOffset ; 
         if (exportParams.convertDatetimeToDisplayTimeZone) {
             if (exportParams.splitObservationDatetime) {
-                datetimeColumns = `
-                EXTRACT(YEAR FROM ob.date_time + INTERVAL '${displayUtcOffset} hours') AS year,
-                EXTRACT(MONTH FROM ob.date_time + INTERVAL '${displayUtcOffset} hours') AS month,
-                EXTRACT(DAY FROM ob.date_time + INTERVAL '${displayUtcOffset} hours') AS day,
-                EXTRACT(HOUR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours') ) AS hour,
-                TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs_micros,`;
+                columnSelections.push(`EXTRACT(YEAR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS year`);
+                columnSelections.push(`EXTRACT(MONTH FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS month`);
+                columnSelections.push(`EXTRACT(DAY FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS day`);
+                columnSelections.push(`EXTRACT(HOUR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS hour`);
+                columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
             } else {
-                datetimeColumns = `(ob.date_time + INTERVAL '${displayUtcOffset} hours') AS date_time`;
+                columnSelections.push(`(ob.date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS date_time`);
             }
-
         } else {
-
             if (exportParams.splitObservationDatetime) {
-                datetimeColumns = `
-                EXTRACT(YEAR FROM ob.date_time) AS year,
-                EXTRACT(MONTH FROM ob.date_time ) AS month,
-                EXTRACT(DAY FROM ob.date_time) AS day,
-                EXTRACT(HOUR FROM (ob.date_time) ) AS hour,
-                TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs_micros,`;
+                columnSelections.push('EXTRACT(YEAR FROM ob.date_time) AS year');
+                columnSelections.push('EXTRACT(MONTH FROM ob.date_time ) AS month');
+                columnSelections.push('EXTRACT(DAY FROM ob.date_time) AS day');
+                columnSelections.push('EXTRACT(HOUR FROM ob.date_time ) AS hour');
+                columnSelections.push(`TO_CHAR((date_time)::time, 'MI:SS') AS mins_secs`);
+            } else {
+                columnSelections.push('ob.date_time::timestamp AS date_time');
             }
         }
 
-
-
-        let valueColumns: string = 'ob.value, ';
+        columnSelections.push('ob.value AS value');
         if (exportParams.unstackData) {
 
         } else {
-
-            if (exportParams.includeFlags) {
-                valueColumns = valueColumns + 'ob.flag, ';
+            if (exportParams.includeFlag) {
+                columnSelections.push('ob.flag AS flag');
             }
 
             if (exportParams.includeQCStatus) {
-                valueColumns = valueColumns + 'ob.qc_status, ';
+                columnSelections.push('ob.qc_status AS qc_status');
             }
 
             if (exportParams.includeQCTestLog) {
-                valueColumns = valueColumns + 'ob.qc_test_log, ';
+                columnSelections.push('ob.qc_test_log AS qc_test_log');
             }
 
             if (exportParams.includeComments) {
-                valueColumns = valueColumns + 'ob.comment, ';
+                columnSelections.push('ob.comment AS comment');
             }
 
             if (exportParams.includeEntryDatetime) {
                 if (exportParams.convertDatetimeToDisplayTimeZone) {
-                    datetimeColumns = valueColumns + `(ob.entry_date_time + INTERVAL '${displayUtcOffset} hours') AS entry_date_time`;
+                    columnSelections.push(`(ob.entry_date_time + INTERVAL '${displayUtcOffset} hours')::timestamp AS entry_date_time`);
                 } else {
-                    valueColumns = valueColumns + 'ob.entry_date_time, ';
+                    columnSelections.push('ob.entry_date_time::timestamp AS entry_date_time');
                 }
             }
 
             if (exportParams.includeEntryUserEmail) {
-                valueColumns = valueColumns + 'us.email, ';
+                columnSelections.push('us.email AS entry_user_email');
             }
 
         }
         //------------------------------------------------------------------------------------------------
-
-        // METADATA SELECTIONS
-        //------------------------------------------------------------------------------------------------
-        let stationColumns: string = 'ob.station_id, ';
-        let elementColumns: string = 'ob.element_id, ';
-        let sourceColumns: string = 'ob.source_id, ';
-        if (exportParams.includeStationName) {
-            stationColumns = stationColumns + 'st.name, ';
-        }
-
-        if (exportParams.includeStationLocation) {
-            stationColumns = stationColumns + 'ST_Y(st.location) AS latitude, ST_X(st.location) AS longitude, ';
-        }
-
-        if (exportParams.includeStationElevation) {
-            stationColumns = stationColumns + 'st.elevation, ';
-        }
-
-        if (exportParams.includeElementName) {
-            elementColumns = elementColumns + 'el.name, ';
-        }
-
-        if (exportParams.includeElementUnits) {
-            elementColumns = elementColumns + 'el.units, ';
-        }
-
-        if (exportParams.includeSourceName) {
-            sourceColumns = sourceColumns + 'so.name, ';
-        }
-
-        //------------------------------------------------------------------------------------------------
-
+        const outputPath: string = `/var/lib/postgresql/exports/${userId}_${exportTemplateId}.csv`;
         const sql = `
             COPY (
                 SELECT 
-                ${stationColumns} ${elementColumns} ${sourceColumns}, ob.level, ob.interval, ${datetimeColumns} ${valueColumns} 
+                ${columnSelections.join(',')} 
                 FROM observations ob
                 INNER JOIN stations st on ob.station_id = st.id
                 INNER JOIN elements el on ob.element_id = el.id
@@ -192,7 +200,7 @@ export class ExportObservationsService {
         return viewTemplateExportDto.id;
     }
 
-    private filterOutTemplateUsingQuery(exportParams: ExportTemplateParametersDto, query: ViewObservationQueryDTO): ExportTemplateParametersDto {
+    private getTemplateFiltersBasedOnQuery(exportParams: ExportTemplateParametersDto, query: ViewObservationQueryDTO): ExportTemplateParametersDto {
 
         if (exportParams.stationIds && exportParams.stationIds.length > 0) {
             if (query.stationIds) {
@@ -222,8 +230,6 @@ export class ExportObservationsService {
 
         if (exportParams.observationDate) {
             if (exportParams.observationDate.within) {
-
-
                 if (query.fromDate) {
                     if (new Date(query.fromDate) < new Date(exportParams.observationDate.within.fromDate)) {
                         throw new BadRequestException('from date can not be less that what is allowed by the template');
@@ -248,8 +254,6 @@ export class ExportObservationsService {
                 }
             }
         }
-
-
 
         return exportParams;
     }
