@@ -27,8 +27,8 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: climsoftdevelopers/climsoft-api
-    container_name: climsoft-api:5.0.0_alpha_1
+    image: climsoftdevelopers/climsoft-api:5.0.0_alpha_1
+    container_name: climsoft-api
     restart: always
     environment:
       DB_HOST: climsoft_db
