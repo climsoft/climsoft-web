@@ -99,8 +99,8 @@ export class ObservationsService {
             whereOptions.elementId = selectObsevationDto.elementIds.length === 1 ? selectObsevationDto.elementIds[0] : In(selectObsevationDto.elementIds);
         }
 
-        if (selectObsevationDto.interval) {
-            whereOptions.interval = selectObsevationDto.interval;
+        if (selectObsevationDto.intervals) {
+            whereOptions.interval = selectObsevationDto.intervals.length === 1 ? selectObsevationDto.intervals[0] : In(selectObsevationDto.intervals);
         }
 
         if (selectObsevationDto.level !== undefined) {

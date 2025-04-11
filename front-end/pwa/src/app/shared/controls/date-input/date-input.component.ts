@@ -13,41 +13,45 @@ export class DateInputComponent implements OnChanges {
   @Input() public hintMessage!: string;
   @Input() public showNavigationButtons!: boolean;
   @Input() public errorMessage!: string | null;
-  @Input() public value!: string | null;
-  @Output() public valueChange = new EventEmitter<string | null>();
-  @Output() public inputClick = new EventEmitter<string | null>();
-  @Output() public inputEnterKeyPress = new EventEmitter<string | null>();
-  @Output() public inputBlur = new EventEmitter<string | null>();
+  @Input() public maxDate!: string;
+  @Input() public minDate!: string;
+  @Input() public value!: string | null | undefined;
+  @Output() public valueChange = new EventEmitter<string>();
+  @Output() public inputClick = new EventEmitter<string>();
+  @Output() public inputEnterKeyPress = new EventEmitter<string>();
+  @Output() public inputBlur = new EventEmitter<string>();
 
-  protected maxDate: string;
-  protected disableNextButton: boolean = false; 
+  protected disableNextButton: boolean = false;
 
   constructor() {
-    const date = new Date();
-    this.maxDate = `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;   
   }
-
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.value) {
       this.setNextButtonDisabledState();
     }
+
+    if (!this.maxDate) {
+      // Always set maximum date to prevent future dates selections by default   
+      this.maxDate = this.getDateString(new Date());
+    }
   }
 
   protected onValueChange(value: string) {
-    this.valueChange.emit(value ? value : null);
+    //this.value = value; // TODO. How do we prevent ngOnChanges from being raised
+    this.valueChange.emit(value);
   }
 
   protected onInputClick(): void {
-    this.inputClick.emit(this.value ? this.value : null);
+    this.inputClick.emit(this.value ? this.value : '');
   }
 
   protected onEnterKeyPressed() {
-    this.inputEnterKeyPress.emit(this.value ? this.value : null);
+    this.inputEnterKeyPress.emit(this.value ? this.value : '');
   }
 
   protected onInputBlur() {
-    this.inputBlur.emit(this.value ? this.value : null);
+    this.inputBlur.emit(this.value ? this.value : '');
   }
 
   protected onPrevious(): void {
@@ -78,7 +82,8 @@ export class DateInputComponent implements OnChanges {
     this.disableNextButton = (!this.value || strTodayDate === this.value);
   }
 
-  private getDateString(date: Date): string{
+  private getDateString(date: Date): string {
+    // Note, don't use toISO here because the user sees the date in the local timezone
     return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
   }
 

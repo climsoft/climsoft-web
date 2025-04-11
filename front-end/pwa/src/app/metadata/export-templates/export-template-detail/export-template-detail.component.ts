@@ -9,6 +9,7 @@ import { Location } from '@angular/common';
 import { CreateExportTemplateModel } from '../models/create-export-template.model';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { ExportTypeEnum } from '../models/export-type.enum';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 // TODO. Try using angular forms?
 
@@ -21,7 +22,7 @@ export class ExportTemplateDetailComponent implements OnInit {
 
   protected viewExportTemplate!: ViewExportTemplateModel;
   protected errorMessage!: string;
-
+  protected disableStackedDataOpetions: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -38,6 +39,7 @@ export class ExportTemplateDetailComponent implements OnInit {
         take(1),
       ).subscribe(data => {
         this.viewExportTemplate = data;
+        this.disableStackedDataOpetions = this.viewExportTemplate.parameters.unstackData ? true : false;
       });
     } else {
       this.pagesDataService.setPageHeader('New Export Template');
@@ -64,6 +66,7 @@ export class ExportTemplateDetailComponent implements OnInit {
 
   protected onIntervalsStatusSelection(option: string): void {
     this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440];
+    console.log('interval option', option, 'params', this.viewExportTemplate.parameters.intervals)
   }
 
   protected onDateStatusSelection(option: string): void {
@@ -72,13 +75,13 @@ export class ExportTemplateDetailComponent implements OnInit {
     } else if (option === 'Within') {
       this.viewExportTemplate.parameters.observationDate = {
         within: {
-          startDate: new Date().toISOString().slice(0, 10),
-          endDate: new Date().toISOString().slice(0, 10),
+          fromDate: DateUtils.getDateOnlyAsString(new Date()),
+          toDate: DateUtils.getDateOnlyAsString(new Date()),
         },
       };
     } else if (option === 'From') {
       this.viewExportTemplate.parameters.observationDate = {
-        fromDate: new Date().toISOString().slice(0, 10),
+        fromDate: DateUtils.getDateOnlyAsString(new Date()),
       };
     } else if (option === 'Last') {
       this.viewExportTemplate.parameters.observationDate = {
@@ -107,6 +110,22 @@ export class ExportTemplateDetailComponent implements OnInit {
     this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.ALL_QC_TESTS_PASSED_OR_ACCEPTED;
   }
 
+  protected onUnstackData(value: boolean) {
+    this.viewExportTemplate.parameters.unstackData = value;
+    this.disableStackedDataOpetions = value
+
+    if(value){
+      // Uncheck all stacked data options when unstack option is clicked
+      this.viewExportTemplate.parameters.includeFlag = false;
+      this.viewExportTemplate.parameters.includeQCStatus = false;
+      this.viewExportTemplate.parameters.includeQCTestLog = false;
+      this.viewExportTemplate.parameters.includeComments = false;
+      this.viewExportTemplate.parameters.includeEntryDatetime = false;
+      this.viewExportTemplate.parameters.includeEntryUserEmail = false;
+    }
+   
+  }
+
   protected onSave(): void {
     this.errorMessage = '';
 
@@ -124,7 +143,7 @@ export class ExportTemplateDetailComponent implements OnInit {
       this.errorMessage = 'Enter template description';
       return;
     }
- 
+
 
     const createExportTemplate: CreateExportTemplateModel = {
       name: this.viewExportTemplate.name,

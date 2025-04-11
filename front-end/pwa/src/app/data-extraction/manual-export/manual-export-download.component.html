@@ -16,17 +16,17 @@
                       </div>          
           
                       <div class="col-auto mb-2">
-                          <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" 
+                          <app-interval-selector-multiple [label]="'Interval'" [(selectedIds)]="intervals" 
                           [includeOnlyIds]="includeOnlyIntervals"/>
                       </div>
           
                       <div class="col-auto mb-2">
-                          <app-date-range-input [label]="'Observation Date'" [(value)]="dateRange" />
+                          <app-date-range-input [label]="'Observation Date'" [maxDate]="maxDateRanges.toDate" [minDate]="maxDateRanges.fromDate"  [(value)]="dateRange" />
                       </div>
           
                   </div>
           
-                  <div class="d-flex">
+                  <div class="d-flex justify-content-end">
                       <button type="button" class="btn btn-outline-primary btn-sm"   (click)="onGenerateExportClick()">
                           Generate Export
                       </button>

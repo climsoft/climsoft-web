@@ -1,5 +1,4 @@
-import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs'; 
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { Interval, IntervalsUtil } from '../interval-single-input/Intervals.util';
 
 @Component({
@@ -25,16 +24,16 @@ export class IntervalSelectorMultipleComponent implements OnChanges {
 
   protected allIntervals: Interval[];
   protected intervals!: Interval[];
-  protected selectedIntervals!: Interval[];
-  private destroy$ = new Subject<void>();
+  protected selectedIntervals!: Interval[]; 
 
   constructor() {
     this.allIntervals = IntervalsUtil.possibleIntervals;
+    this.intervals = this.allIntervals;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['includeOnlyIds']) {
-      this.setIntervalssToInclude();
+      this.setIntervalsToInclude();
     }
 
     if (changes['selectedIds']) {
@@ -42,7 +41,7 @@ export class IntervalSelectorMultipleComponent implements OnChanges {
     }
   }
 
-  private setIntervalssToInclude(): void {
+  private setIntervalsToInclude(): void {
     this.intervals = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allIntervals.filter(item => this.includeOnlyIds.includes(item.id)) : this.allIntervals;
   }
 
@@ -62,7 +61,7 @@ export class IntervalSelectorMultipleComponent implements OnChanges {
   }
 
   protected optionDisplayFunction(option: Interval): string {
-    return `${option.id} - ${option.name}`;
+    return `${option.name}`;
   }
 
   /**
@@ -75,20 +74,5 @@ export class IntervalSelectorMultipleComponent implements OnChanges {
     this.selectedIdsChange.emit(this.selectedIds);
   }
 
-  /**
-   * Called from advanced search dialog
-   * @param searchedIds 
-   */
-  protected onAdvancedSearchInput(searchedIds: number[]): void {
-    this.selectedIds.length = 0;
-    const selectedInterval: Interval[] = []
-    for (const element of this.intervals) {
-      if (searchedIds.includes(element.id)) {
-        this.selectedIds.push(element.id);
-        selectedInterval.push(element);
-      }
-    }
-    this.selectedIntervals = selectedInterval;
-    this.selectedIdsChange.emit(this.selectedIds);
-  }
+
 }

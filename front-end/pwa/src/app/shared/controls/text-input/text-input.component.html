@@ -11,7 +11,9 @@
         [class.text-bg-danger]="errorMessage" 
         [class.text-bg-warning]="warningMessage"
         [class.text-bg-success]="showChanges && !errorMessage" 
-        [value]="value" [attr.min]="min" [attr.max]="max"
+        [value]="value" 
+        [attr.min]="min" 
+        [attr.max]="max"
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
@@ -23,6 +25,7 @@
         [class.text-bg-warning]="warningMessage" 
         [class.text-bg-success]="showChanges && !errorMessage" 
         [value]="value"
+        [attr.min]="min"
         [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
         (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
         (blur)="onInputBlur()" />

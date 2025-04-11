@@ -52,9 +52,9 @@
                     <div class="mt-2">
                         <div>Interval:</div>
                         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'intervalStatus'"
-                            [groupItems]="
-                      [{ label:'All', checked: viewExportTemplate.parameters.intervals === undefined }, 
-                        { label:'Select', checked: viewExportTemplate.parameters.intervals !== undefined }]"
+                            [groupItems]=" [
+                                { label:'All', checked: viewExportTemplate.parameters.intervals === undefined }, 
+                                { label:'Select', checked: viewExportTemplate.parameters.intervals !== undefined }]"
                             (checkedValueChange)="onIntervalsStatusSelection($event)" />
                         <div *ngIf="viewExportTemplate.parameters.intervals">
                             <app-interval-selector-multiple [id]="'intervals'"
@@ -90,16 +90,16 @@
 
                             <div *ngIf="viewExportTemplate.parameters.observationDate.fromDate">
                                 <app-date-input [id]="'from_date'"
-                                    [value]="viewExportTemplate.parameters.observationDate.fromDate" />
+                                    [(value)]="viewExportTemplate.parameters.observationDate.fromDate" />
                             </div>
 
                             <div *ngIf="viewExportTemplate.parameters.observationDate.within">
                                 <div class="d-flex align-items-center ">
                                     <app-date-input [id]="'start_date'"
-                                        [value]="viewExportTemplate.parameters.observationDate.within.startDate" />
+                                        [(value)]="viewExportTemplate.parameters.observationDate.within.fromDate" />
                                     <div class="mx-2">To</div>
                                     <app-date-input [id]="'end_date'"
-                                        [value]="viewExportTemplate.parameters.observationDate.within.endDate" />
+                                        [(value)]="viewExportTemplate.parameters.observationDate.within.toDate" />
                                 </div>
                             </div>
 
@@ -112,8 +112,7 @@
                             [groupItems]="[
                                 { label:'All', checked: viewExportTemplate.parameters.qcStatus === undefined }, 
                                 { label:'Select', checked: viewExportTemplate.parameters.qcStatus !== undefined }
-                                ]"
-                            (checkedValueChange)="onQcStatusSelection($event)" />
+                                ]" (checkedValueChange)="onQcStatusSelection($event)" />
                         <div *ngIf="viewExportTemplate.parameters.qcStatus">
                             <app-qc-status-selector-single [id]="'qc'"
                                 [(selectedId)]="viewExportTemplate.parameters.qcStatus" />
@@ -138,30 +137,38 @@
                     </div>
                     <div class="mt-2">
                         <app-check-box-input [label]="'Unstack data'"
-                            [(value)]="viewExportTemplate.parameters.unstackData" />
+                            [value]="viewExportTemplate.parameters.unstackData" (valueChange)="onUnstackData($event)" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include flags'"
-                            [(value)]="viewExportTemplate.parameters.includeFlags" />
+                        <app-check-box-input [label]="'Include level'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeLevel" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include quality control status'"
+                        <app-check-box-input [label]="'Include interval'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeInterval" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include flag'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeFlag" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include quality control status'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeQCStatus" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include quality control log'"
-                            [(value)]="viewExportTemplate.parameters.includeQCLog" />
+                        <app-check-box-input [label]="'Include quality control test log'" [disabled]="disableStackedDataOpetions"
+                            [(value)]="viewExportTemplate.parameters.includeQCTestLog" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include comments'"
+                        <app-check-box-input [label]="'Include comments'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeComments" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'include entry date time'"
+                        <app-check-box-input [label]="'include entry date time'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeEntryDatetime" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Include entry user email'"
+                        <app-check-box-input [label]="'Include entry user email'" [disabled]="disableStackedDataOpetions"
                             [(value)]="viewExportTemplate.parameters.includeEntryUserEmail" />
                     </div>
                 </div>
@@ -181,12 +188,24 @@
                             [(value)]="viewExportTemplate.parameters.includeStationLocation" />
                     </div>
                     <div class="mt-2">
+                        <app-check-box-input [label]="'Include station elevation'"
+                            [(value)]="viewExportTemplate.parameters.includeStationElevation" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include element abbreviation'"
+                            [(value)]="viewExportTemplate.parameters.includeElementAbbreviation" />
+                    </div>
+                    <div class="mt-2">
                         <app-check-box-input [label]="'Include element name'"
                             [(value)]="viewExportTemplate.parameters.includeElementName" />
                     </div>
                     <div class="mt-2">
                         <app-check-box-input [label]="'Include element units'"
                             [(value)]="viewExportTemplate.parameters.includeElementUnits" />
+                    </div>
+                    <div class="mt-2">
+                        <app-check-box-input [label]="'Include source name'"
+                            [(value)]="viewExportTemplate.parameters.includeSourceName" />
                     </div>
                 </div>
             </div>

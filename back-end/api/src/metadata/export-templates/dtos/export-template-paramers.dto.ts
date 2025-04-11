@@ -1,5 +1,6 @@
 import { Transform } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
+import { QCStatusEnum } from "src/observation/enums/qc-status.enum";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ExportTemplateParametersDto {
@@ -26,11 +27,14 @@ export class ExportTemplateParametersDto {
     };
     fromDate?: string;
     within?: {
-      startDate: string;
-      endDate: string;
+      fromDate: string;
+      toDate: string;
     };
   };
 
+  @IsOptional()
+  @IsEnum(QCStatusEnum, { message: 'qc status must be a valid QCStatusEnum value' })
+  qcStatus?: QCStatusEnum;
 
   // Data
   @IsOptional()
@@ -47,7 +51,15 @@ export class ExportTemplateParametersDto {
 
   @IsOptional()
   @IsBoolean()
-  includeFlags?: boolean;
+  includeLevel?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeInterval?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeFlag?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -55,7 +67,7 @@ export class ExportTemplateParametersDto {
 
   @IsOptional()
   @IsBoolean()
-  includeQCLog?: boolean;
+  includeQCTestLog?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -80,9 +92,21 @@ export class ExportTemplateParametersDto {
 
   @IsOptional()
   @IsBoolean()
+  includeStationElevation?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeElementAbbreviation?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
   includeElementName?: boolean;
 
   @IsOptional()
   @IsBoolean()
   includeElementUnits?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  includeSourceName?: boolean;
 }

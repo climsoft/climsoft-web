@@ -4,6 +4,7 @@ import { catchError, Observable, throwError } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
 import { CreateViewGeneralSettingModel } from '../models/create-view-general-setting.model';
 import { UpdateGeneralSettingModel } from '../models/update-general-setting.model';
+import { SettingIdEnum } from '../models/setting-id.enum';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class GeneralSettingsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/general-settings`;
   }
 
-  public findOne(id: number): Observable<CreateViewGeneralSettingModel> {
+  public findOne(id: SettingIdEnum): Observable<CreateViewGeneralSettingModel> {
     const url = `${this.endPointUrl}/${id}`;
     return this.http.get<CreateViewGeneralSettingModel>(url)
       .pipe(
@@ -30,7 +31,7 @@ export class GeneralSettingsService {
       );
   }
 
-  public update(id: number, updateDto: UpdateGeneralSettingModel): Observable<CreateViewGeneralSettingModel> {
+  public update(id: SettingIdEnum, updateDto: UpdateGeneralSettingModel): Observable<CreateViewGeneralSettingModel> {
     return this.http.patch<CreateViewGeneralSettingModel>(`${this.endPointUrl}/${id}`, updateDto)
       .pipe(
         catchError(this.handleError)

@@ -10,6 +10,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-sin
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 
 
 interface ObservationView extends Last24HoursObservations {
@@ -62,7 +63,7 @@ export class StationDataActivityComponent implements OnDestroy {
     });
 
     // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;

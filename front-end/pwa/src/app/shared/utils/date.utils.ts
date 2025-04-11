@@ -70,11 +70,11 @@ export class DateUtils {
         const getMinutes = pad(useUTC ? date.getUTCMinutes() : date.getMinutes());
         const getSeconds = pad(useUTC ? date.getUTCSeconds() : date.getSeconds());
         const getMilliseconds = (useUTC ? date.getUTCMilliseconds() : date.getMilliseconds()).toString().padStart(3, '0');
-      
-        return `${getYear}-${getMonth}-${getDay} ${getHours}:${getMinutes}:${getSeconds}.${getMilliseconds}`;
-      }
 
-      public static getDayFromSQLDate(sqlDate: string): number {
+        return `${getYear}-${getMonth}-${getDay} ${getHours}:${getMinutes}:${getSeconds}.${getMilliseconds}`;
+    }
+
+    public static getDayFromSQLDate(sqlDate: string): number {
         return Number(sqlDate.substring(8, 10));
     }
 
@@ -95,18 +95,18 @@ export class DateUtils {
 
     public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number): string {
         if (utcOffset === 0) {
-          return strDateTimeInJavaScriptIso.replace('T', ' ').replace('Z', '');
+            return strDateTimeInJavaScriptIso.replace('T', ' ').replace('Z', '');
         }
-    
+
         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
         // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
         const dateAdjusted = new Date(strDateTimeInJavaScriptIso);
         dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
-    
-        return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
-      }
 
-      public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
+        return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
+    }
+
+    public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
         if (utcOffset === 0) return strDate;
         let newDate: Date = new Date(strDate);
         if (operation === 'subtract') {
@@ -115,6 +115,18 @@ export class DateUtils {
             newDate.setHours(newDate.getHours() + utcOffset);
         }
         return newDate.toISOString();
+    }
+
+
+    /**
+     * returns the date part only as string.
+     * Uses local timezone
+     * @param date 
+     * @returns 
+     */
+    public static getDateOnlyAsString(date: Date): string {
+        // Note, don't use toISO here because the user sees the date in the local timezone
+        return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
     }
 
 

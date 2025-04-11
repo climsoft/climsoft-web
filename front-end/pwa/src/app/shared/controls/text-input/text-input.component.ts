@@ -33,7 +33,7 @@ export class TextInputComponent {
   @Input() public hintMessage: string | null | undefined; // TODO. Null not needed
   @Input() public errorMessage: string | null | undefined; // TODO. Null not needed
   @Input() public warningMessage: string | undefined;
-  @Input() public value: string | number | null = '';
+  @Input() public value: string | number | null | undefined = '';
   @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();
@@ -44,11 +44,9 @@ export class TextInputComponent {
 
   // For Year-month, date and number controls control
   @Input() public max: string | number | undefined;
-
   @Input() public min: string | number | undefined;
 
   protected displayDropDown: boolean = false;
-
 
   public focus(): void {
     this.inputElRef.nativeElement.focus();

@@ -7,14 +7,14 @@ export interface ExportTemplateParametersModel {
   observationDate?: {
     last?: {
       duration: number,
-      durationType: 'days'| 'hours' | 'minutes',
+      durationType: 'days' | 'hours' | 'minutes',
     };
     fromDate?: string;
     within?: {
-      startDate: string;
-      endDate: string;
+      fromDate: string;
+      toDate: string;
     };
-  }; 
+  };
 
   qcStatus?: QCStatusEnum;
 
@@ -22,9 +22,11 @@ export interface ExportTemplateParametersModel {
   convertDatetimeToDisplayTimeZone?: boolean;
   splitObservationDatetime?: boolean;
   unstackData?: boolean;
-  includeFlags?: boolean;
+  includeLevel?: boolean;
+  includeInterval?: boolean;
+  includeFlag?: boolean;
   includeQCStatus?: boolean;
-  includeQCLog?: boolean;
+  includeQCTestLog?: boolean;
   includeComments?: boolean;
   includeEntryDatetime?: boolean;
   includeEntryUserEmail?: boolean;
@@ -32,6 +34,11 @@ export interface ExportTemplateParametersModel {
   // Metadata
   includeStationName?: boolean;
   includeStationLocation?: boolean;
+  includeStationElevation?: boolean;
+
+  includeElementAbbreviation?: boolean;
   includeElementName?: boolean;
   includeElementUnits?: boolean;
+
+  includeSourceName?: boolean;
 }
