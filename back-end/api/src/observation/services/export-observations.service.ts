@@ -140,7 +140,7 @@ export class ExportObservationsService {
 
         columnSelections.push('ob.value AS value');
         if (exportParams.unstackData) {
-
+            // TODO.
         } else {
             if (exportParams.includeFlag) {
                 columnSelections.push('ob.flag AS flag');
