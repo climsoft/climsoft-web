@@ -1,7 +1,7 @@
 
 services:
   climsoft_nginx_proxy:
-    image: climsoftdevelopers/climsoft-nginx-proxy:5.0.0_alpha_1
+    image: climsoftdevelopers/climsoft-nginx-proxy:5.0.0_alpha_2
     container_name: climsoft-nginx-proxy
     restart: always
     ports: # Expose to external network
@@ -13,7 +13,7 @@ services:
       - climsoft_network
 
   climsoft_pwa:
-    image: climsoftdevelopers/climsoft-pwa:5.0.0_alpha_1
+    image: climsoftdevelopers/climsoft-pwa:5.0.0_alpha_2
     container_name: climsoft-pwa
     restart: always
     environment:
@@ -27,7 +27,7 @@ services:
       - climsoft_network
 
   climsoft_api:
-    image: climsoftdevelopers/climsoft-api:5.0.0_alpha_1
+    image: climsoftdevelopers/climsoft-api:5.0.0_alpha_2
     container_name: climsoft-api
     restart: always
     environment:
@@ -37,6 +37,7 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: "${DB_PASSWORD}"
       V4_SAVE: "${V4_SAVE}"
+      V4_DB_HOST: "${V4_DB_HOST}"
       V4_DB_PORT: "${V4_DB_PORT}"
       V4_DB_NAME: "${V4_DB_NAME}"
       V4_DB_USERNAME: "${V4_DB_USERNAME}"

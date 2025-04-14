@@ -109,6 +109,8 @@ export class ClimsoftV4Service {
 
             this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
+            console.log('creating connection pool for: ', AppConfig.v4DbCredentials.host);
+
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
                 host: AppConfig.devMode ? 'localhost' : AppConfig.v4DbCredentials.host,
