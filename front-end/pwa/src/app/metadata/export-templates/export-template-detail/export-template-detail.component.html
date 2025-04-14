@@ -136,7 +136,7 @@
                             [(value)]="viewExportTemplate.parameters.splitObservationDatetime" />
                     </div>
                     <div class="mt-2">
-                        <app-check-box-input [label]="'Unstack data'"
+                        <app-check-box-input [label]="'Unstack data'" [disabled]="true"
                             [value]="viewExportTemplate.parameters.unstackData" (valueChange)="onUnstackData($event)" />
                     </div>
                     <div class="mt-2">
