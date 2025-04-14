@@ -11,7 +11,7 @@ export class AppConfig {
 
   public static readonly v4DbCredentials = {
     v4Save: process.env.V4_SAVE ? (process.env.V4_SAVE === 'yes') : false,
-    host: 'host.docker.internal',
+    host: process.env.V4_DB_HOST ? process.env.V4_DB_HOST : 'host.docker.internal', 
     port: process.env.V4_DB_PORT ? +process.env.V4_DB_PORT : 3306,
     username: process.env.V4_DB_USERNAME ? process.env.V4_DB_USERNAME : 'my_user',
     password: process.env.V4_DB_PASSWORD ? process.env.V4_DB_PASSWORD : 'my_password',
