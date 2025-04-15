@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Inject, Injectable } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -6,11 +7,20 @@ import { Injectable } from '@angular/core';
 export class AppConfigService {
   private _apiBaseUrl: string;
 
-  constructor() {
+  constructor(@Inject(DOCUMENT) private document: Document) {
     // Get the configurations from the appConfig global variable. 
     // The appConfig variale is set when the application is launched (main.ts  ) 
     const appConfig = (window as any).appConfig;
-    this._apiBaseUrl = appConfig?.apiBaseUrl || '';
+   
+    console.log('origin url: ', this.document.location.origin);
+
+    if(appConfig && appConfig.apiBaseUrl && (appConfig.apiBaseUrl as string).includes('use_document_location') ){
+      this._apiBaseUrl = `${this.document.location.origin}/api`;
+    }else{
+      this._apiBaseUrl = appConfig?.apiBaseUrl || '';
+    }
+  
+    console.log('API url: ', this._apiBaseUrl );
   }
 
   public get apiBaseUrl(): string {
