@@ -59,7 +59,7 @@ services:
     environment:
       POSTGRES_DB: climsoft # Default database postgres will create, required when setting up postgres the first time.
       POSTGRES_USER: postgres # Uses the default postgres username for simplicity, required when setting up postgres the first time.
-      POSTGRES_PASSWORD: ${DB_PASSWORD} # Super user password, required when setting up postgres the first time.
+      POSTGRES_PASSWORD: "${DB_PASSWORD}" # Super user password, required when setting up postgres the first time.
     ports: 
       - "5432:5432" # Expose to both external and internal network.
     volumes:
