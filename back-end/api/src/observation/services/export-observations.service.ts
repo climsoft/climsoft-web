@@ -173,7 +173,7 @@ export class ExportObservationsService {
         }
         //------------------------------------------------------------------------------------------------
         const outputPath: string = `/var/lib/postgresql/exports/${userId}_${exportTemplateId}.csv`;
-        const sql = `
+        const sql: string = `
             COPY (
                 SELECT 
                 ${columnSelections.join(',')} 

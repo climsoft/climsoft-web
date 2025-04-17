@@ -18,57 +18,134 @@
 
     <!-- Only show capabilty to pull metadata when it's connected to v4 database -->
     <div *ngIf="connectedToV4DB">
-
+      <hr />
       <div>
-        <hr />
         <div class="fw-bold">Metadata:</div>
         <div class="text-danger" style="font-size: smaller;">
-          Pulling metadata will overwrite any updates done via web interface
+          Importing metadata will overwrite any updates done via web interface
         </div>
         <div class="d-flex mb-2">
           <div>
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onPullElementsClick()">
-              Pull Elements
+            <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onImportElementsClick()">
+              Import Elements
             </button>
           </div>
           <div>
-            <button type="button" class="btn btn-sm btn-outline-primary" (click)="onPullStationsClick()">
-              Pull Stations
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="onImportStationsClick()">
+              Import Stations
             </button>
           </div>
         </div>
       </div>
+
+      <hr />
 
       <div>
-        <hr />
-        <div>
-          <div class="fw-bold">Data State:</div>
-          <div class="d-flex align-items-center">
-            <div class="d-flex me-2">
-              <div class="me-2">Observations NOT saved:</div>
-              <div class="text-danger"
-                [ngClass]="{ 'text-danger':unsavedObservations>0, 'text-success':unsavedObservations===0 }">
-                {{unsavedObservations> 1000000? 'Over 1M' : (unsavedObservations | number:'1.0-0' )}}
-              </div>
+        <div class="fw-bold">Data Sync to version 4 State:</div>
+        <div class="d-flex align-items-center">
+          <div class="d-flex me-2">
+            <div class="me-2">Observations NOT saved:</div>
+            <div [ngClass]="{ 'text-danger':unsavedObservations>0, 'text-success':unsavedObservations===0 }">
+              {{unsavedObservations> 1000000? 'Over 1M' : (unsavedObservations | number:'1.0-0' )}}
             </div>
-            <button *ngIf="unsavedObservations>0" type="button" class="btn btn-sm btn-outline-primary"
-              (click)="onSaveObservationsClick()">
-              Save
-            </button>
           </div>
+          <button *ngIf="unsavedObservations>0" type="button" class="btn btn-sm btn-outline-primary"
+            (click)="onSaveObservationsClick()">
+            Save
+          </button>
         </div>
       </div>
 
-      <!-- TODO. Enable later -->
-      <!-- <div>
-        <hr />
+      <hr />
+      <div>
+        <div class="fw-bold">Data Sync from version 4 State:</div>
         <div>
-          <div class="fw-bold">V4 Final Table State:</div>
-          <div class="d-flex align-items-center">
-            <app-check-box-input [label]="'Sync with v4 observation final'" />
+
+          <div *ngIf="!showImportStarted && !importingFromV4 && climsoftV4ImportParameters" class="mt-2">
+            <div>
+              <app-date-input [label]="'From Entry Date'" [(value)]="climsoftV4ImportParameters.fromEntryDate" />
+            </div>
+            <div class="mt-2">
+              <div>Stations:</div>
+              <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationsStatus'" [groupItems]=" [
+                      { label:'All', checked: climsoftV4ImportParameters.stationIds === undefined }, 
+                      { label:'Select', checked: climsoftV4ImportParameters.stationIds !== undefined }]"
+                (checkedValueChange)="onStationStatusSelection($event)" />
+              <div *ngIf="climsoftV4ImportParameters.stationIds">
+                <app-station-selector-multiple [id]="'stations_to_fetch'"
+                  [(selectedIds)]="climsoftV4ImportParameters.stationIds" />
+              </div>
+            </div>
+
+            <div class="mt-2">
+              <div>Elements:</div>
+              <div>
+                <table class="table table-sm ms-2">
+                  <thead>
+                    <tr>
+                      <th>Element</th>
+                      <th>Interval</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody class="table-group-divider">
+                    <tr *ngFor="let item of elementsToFetch; let i = index;">
+                      <td>
+                        <app-element-selector-single [id]="i + '_element_id'" [(selectedId)]="item.elementId"
+                          (selectedIdChange)="onElementIntervalEntry()" />
+                      </td>
+                      <td>
+                        <app-period-single-input [id]="i + '_interval'" [(selectedId)]="item.interval"
+                          (selectedIdChange)="onElementIntervalEntry()" />
+                      </td>
+                      <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                          (click)="onRemoveElementEntryClick(i)">
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="text-danger">{{errorMessage}}</div>
+          <div *ngIf="!importingFromV4" class="d-flex justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="onStartImportObservationsClick()">
+              Start Import
+            </button>
           </div>
         </div>
-      </div> -->
+
+        <div *ngIf="showImportStarted || importingFromV4" class="mt-2">
+          <div class="px-4 w-100">
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
+              </div>
+            </div>
+          </div>
+          <div *ngIf="showImportStarted && !importingFromV4" class="mt-2 d-flex justify-content-center">
+            Inititating importing from version 4 database...
+          </div>
+          <div *ngIf="importingFromV4 && !showImportStarted" class="mt-2 d-flex justify-content-center">
+            Importing records from version 4 database...
+          </div>
+
+          <div *ngIf="importingFromV4" class="mt-2 d-flex justify-content-end">
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="onStopImportObservationsClick()">
+              Stop Import
+            </button>
+          </div>
+
+        </div>
+
+     
+
+      </div>
+
+
 
       <div *ngIf="v4Conflicts && v4Conflicts.length>0">
         <hr />

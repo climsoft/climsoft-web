@@ -9,7 +9,7 @@ import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
-import { ClimsoftV4Service } from './climsoft-v4.service';
+import { ClimsoftV5ToV4SyncService } from './climsoft-v5-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class ObservationsService {
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private dataSource: DataSource,
-        private climsoftV4Service: ClimsoftV4Service,
+        private climsoftV4Service: ClimsoftV5ToV4SyncService,
         private usersService: UsersService,
     ) { }
 

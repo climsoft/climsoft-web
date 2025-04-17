@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ClimsoftV4Service } from './services/climsoft-v4.service'; 
+import { ClimsoftV4Service } from './services/climsoft-v4.service';
 import { take } from 'rxjs';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { ClimsoftV4ImportParametersModel, ElementIntervalModel } from './models/climsoft-v4-import-parameters.model';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 @Component({
   selector: 'app-climsoft-v4',
@@ -10,16 +12,21 @@ import { ObservationsService } from 'src/app/data-ingestion/services/observation
   styleUrls: ['./climsoft-v4.component.scss']
 })
 export class ClimsoftV4Component {
-  protected unsavedObservations: number = 0;
   protected connectedToV4DB: boolean = false;
+  protected unsavedObservations: number = 0;
+  protected importingFromV4: boolean = false;
+  protected climsoftV4ImportParameters!: ClimsoftV4ImportParametersModel;
   protected v4Conflicts: string[] = [];
+  protected elementsToFetch: ElementIntervalModel[] = [];
+  protected showImportStarted: boolean = false;
+  protected errorMessage: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
     private climsoftV4Service: ClimsoftV4Service,
     private observationsService: ObservationsService,
   ) {
-    this.pagesDataService.setPageHeader('Climsoft V4 Status');
+    this.pagesDataService.setPageHeader('Climsoft V4 Sync Status');
 
     // Check the connection state
     this.checkConnectionState();
@@ -27,6 +34,28 @@ export class ClimsoftV4Component {
     // Count unsaved observations
     this.observationsService.countObsNotSavedToV4().pipe(take(1)).subscribe((data) => {
       this.unsavedObservations = data;
+    });
+
+    // Check import state
+    this.checkImportState();
+
+    // Get existing import parameters
+    this.climsoftV4Service.getClimsoftV4ImportParameters().pipe(take(1)).subscribe({
+      next: data => {
+        this.climsoftV4ImportParameters = data;
+        console.log('getting elements: ', this.climsoftV4ImportParameters.elements)
+        this.elementsToFetch = [...this.climsoftV4ImportParameters.elements];
+        console.log(this.climsoftV4ImportParameters)
+      },
+      error: err => {
+        if (err.error.message === 'not_found') {
+          this.elementsToFetch = [{ elementId: 0, interval: 0 }];
+          this.climsoftV4ImportParameters = {
+            fromEntryDate: DateUtils.getDateOnlyAsString(new Date()),
+            elements: [],
+          }
+        }
+      }
     });
 
   }
@@ -67,8 +96,8 @@ export class ClimsoftV4Component {
     });
   }
 
-  protected onPullElementsClick(): void {
-    this.climsoftV4Service.pullElements().pipe(take(1)).subscribe((data) => {
+  protected onImportElementsClick(): void {
+    this.climsoftV4Service.importElements().pipe(take(1)).subscribe((data) => {
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements saved to web database`, type: ToastEventTypeEnum.SUCCESS });
       } else if (data.message === 'error') {
@@ -77,8 +106,8 @@ export class ClimsoftV4Component {
     });
   }
 
-  protected onPullStationsClick(): void {
-    this.climsoftV4Service.pullStations().pipe(take(1)).subscribe((data) => {
+  protected onImportStationsClick(): void {
+    this.climsoftV4Service.importStations().pipe(take(1)).subscribe((data) => {
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations saved to web database`, type: ToastEventTypeEnum.SUCCESS });
       } else if (data.message === 'error') {
@@ -87,11 +116,92 @@ export class ClimsoftV4Component {
     });
   }
 
+  private checkImportState(): void {
+    this.climsoftV4Service.getImportState().pipe(take(1)).subscribe((data) => {
+      this.importingFromV4 = data.message === 'success';
+    });
+  }
+
   protected onSaveObservationsClick(): void {
-    this.climsoftV4Service.saveObservations().pipe(take(1)).subscribe((data) => {
+    this.climsoftV4Service.saveObservationsToV4().pipe(take(1)).subscribe((data) => {
       this.checkConnectionState();
       if (data.message === 'success') {
         this.pagesDataService.showToast({ title: 'V4 Saving', message: `Saving to version 4 initiated`, type: ToastEventTypeEnum.SUCCESS });
+      }
+    });
+  }
+
+  protected onStationStatusSelection(option: string): void {
+    this.climsoftV4ImportParameters.stationIds = option === 'All' ? undefined : [];
+  }
+
+  protected onElementIntervalEntry(): void {
+    //If it's the last control add new placeholder for visibility of the entry controls
+    const last = this.elementsToFetch[this.elementsToFetch.length - 1];
+    if (last.elementId !== 0 && last.interval !== 0) {
+      // Set the new valid values from the place holder
+      this.climsoftV4ImportParameters.elements = [...this.elementsToFetch];
+
+      //Add new placholder values
+      this.elementsToFetch.push({ elementId: 0, interval: 0 });
+    }
+
+
+
+  }
+
+  protected onRemoveElementEntryClick(indexToRemove: number): void {
+    this.elementsToFetch.splice(indexToRemove, 1);
+  }
+
+  protected onStartImportObservationsClick(): void {
+    this.errorMessage = '';
+    if (!this.climsoftV4ImportParameters.fromEntryDate) {
+      this.errorMessage = 'From entry date required';
+      return;
+    }
+
+    if (this.climsoftV4ImportParameters.elements.length === 0) {
+      this.errorMessage = 'Elements required';
+      return;
+    }
+
+    if (this.climsoftV4ImportParameters.stationIds && this.climsoftV4ImportParameters.stationIds.length === 0) {
+      this.climsoftV4ImportParameters.stationIds = undefined;
+    }
+
+    console.log('fetched elements: ', this.elementsToFetch)
+  
+    
+    this.showImportStarted = true;
+    this.climsoftV4Service.startObservationsImportFromV4(this.climsoftV4ImportParameters).pipe(take(1)).subscribe(
+      {
+        next: data => {
+          if (data.message === 'success') {
+            this.pagesDataService.showToast({ title: 'V4 Import', message: `Importing from version 4 started`, type: ToastEventTypeEnum.SUCCESS });
+            setTimeout(() => {
+              this.checkImportState();
+              this.checkConnectionState();
+              this.showImportStarted = false;
+            }, 50);
+          } else {
+            this.showImportStarted = false;
+            this.pagesDataService.showToast({ title: 'V4 Import', message: data.message, type: ToastEventTypeEnum.ERROR });
+          }
+        },
+        error: err => {
+          this.showImportStarted = false;
+          this.pagesDataService.showToast({ title: 'V4 Import', message: err, type: ToastEventTypeEnum.ERROR });
+        }
+      }
+    );
+  }
+
+  protected onStopImportObservationsClick(): void {
+    this.climsoftV4Service.stopObservationsImportFromV4().pipe(take(1)).subscribe((data) => {
+      this.checkImportState();
+      if (data.message === 'success') {
+        this.pagesDataService.showToast({ title: 'V4 Import', message: `Importing from version 4 stopped`, type: ToastEventTypeEnum.SUCCESS });
       }
     });
   }

@@ -60,8 +60,8 @@ export class StationDefinition {
      * It is optional, meaning fetch all as valid database station ids.
      */
     stationsToFetch?: {
-        sourceId: string,
-        databaseId: string
+        sourceId: string;
+        databaseId: string;
     }[];
 
 }
@@ -82,15 +82,15 @@ export class ElementAndValueDefinition {
          */
         singleColumn?: {
 
-            elementColumnPosition: number,
+            elementColumnPosition: number;
 
             /**
              * The elements to fetch and matches the source ids to the database element ids. 
              * It is optional, meaning fetch all as database element ids.
              */
-            elementsToFetch?: { sourceId: string, databaseId: number }[],
-            valueColumnPosition: number,
-            flagDefinition?: FlagDefinition
+            elementsToFetch?: { sourceId: string; databaseId: number; }[],
+            valueColumnPosition: number;
+            flagDefinition?: FlagDefinition;
         },
 
         /**
@@ -101,12 +101,12 @@ export class ElementAndValueDefinition {
             /**
             * Represents the column position.
             */
-            columnPosition: number,
+            columnPosition: number;
 
             /**
              * Represents the corresponding database element id
              */
-            databaseId: number
+            databaseId: number;
         }[]
     };
 
@@ -117,15 +117,15 @@ export class ElementAndValueDefinition {
         /**
          * The element id in the database. 
          */
-        databaseId: number,
+        databaseId: number;
 
         /**
          * Value column position.
          */
-        valueColumnPosition: number,
+        valueColumnPosition: number;
 
         /** Flag column position. Optional */
-        flagDefinition?: FlagDefinition,
+        flagDefinition?: FlagDefinition;
     };
 
 
@@ -143,7 +143,7 @@ export class IntervalDefinition {
 
 export class FlagDefinition {
     flagColumnPosition: number;
-    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
+    flagsToFetch?: { sourceId: string; databaseId: FlagEnum }[];
 }
 
 /**
@@ -161,20 +161,20 @@ export class DateTimeDefinition {
     dateTimeInMultipleColumn?: {
 
         dateInSingleColumn?: {
-            dateColumnPosition: number,
+            dateColumnPosition: number;
             // yyyy-mm-dd, yyyy/mm/dd,
             // dd-mm-yyyy, dd/mm/yyyy,
             // iso dateformat that is, yyyy-mm-dd hh:mm:ss
-            datetimeFormat: 'yyyy-mm-dd hh:mm:ss' | 'yyyy-mm-dd' | 'yyyy/mm/dd' | 'dd-mm-yyyy' | 'dd/mm/yyyy',
-        },
+            datetimeFormat: 'yyyy-mm-dd hh:mm:ss' | 'yyyy-mm-dd' | 'yyyy/mm/dd' | 'dd-mm-yyyy' | 'dd/mm/yyyy';
+        };
 
         dateInMultipleColumn?: {
-            yearColumnPosition: number,
-            monthColumnPosition: number,
-            dayColumnPosition: number
-        },
+            yearColumnPosition: number;
+            monthColumnPosition: number;
+            dayColumnPosition: number;
+        };
 
-        hourDefinition: HourDefinition
+        hourDefinition: HourDefinition;
     };
 
 }
