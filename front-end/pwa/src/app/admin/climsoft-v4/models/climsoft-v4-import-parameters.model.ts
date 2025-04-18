@@ -5,10 +5,11 @@ export interface ClimsoftV4ImportParametersModel {
     stationIds?: string[];
 
     elements: ElementIntervalModel[];
-  
+
+    includeClimsoftWebData: boolean;
 }
 
-export interface ElementIntervalModel{
-    elementId: number; 
+export interface ElementIntervalModel {
+    elementId: number;
     interval: number;
 }

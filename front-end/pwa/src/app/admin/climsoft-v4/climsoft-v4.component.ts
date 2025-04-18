@@ -43,9 +43,8 @@ export class ClimsoftV4Component {
     this.climsoftV4Service.getClimsoftV4ImportParameters().pipe(take(1)).subscribe({
       next: data => {
         this.climsoftV4ImportParameters = data;
-        console.log('getting elements: ', this.climsoftV4ImportParameters.elements)
         this.elementsToFetch = [...this.climsoftV4ImportParameters.elements];
-        console.log(this.climsoftV4ImportParameters)
+        this.elementsToFetch.push({ elementId: 0, interval: 0 });
       },
       error: err => {
         if (err.error.message === 'not_found') {
@@ -53,6 +52,7 @@ export class ClimsoftV4Component {
           this.climsoftV4ImportParameters = {
             fromEntryDate: DateUtils.getDateOnlyAsString(new Date()),
             elements: [],
+            includeClimsoftWebData: false,
           }
         }
       }
@@ -145,9 +145,6 @@ export class ClimsoftV4Component {
       //Add new placholder values
       this.elementsToFetch.push({ elementId: 0, interval: 0 });
     }
-
-
-
   }
 
   protected onRemoveElementEntryClick(indexToRemove: number): void {
@@ -170,9 +167,6 @@ export class ClimsoftV4Component {
       this.climsoftV4ImportParameters.stationIds = undefined;
     }
 
-    console.log('fetched elements: ', this.elementsToFetch)
-  
-    
     this.showImportStarted = true;
     this.climsoftV4Service.startObservationsImportFromV4(this.climsoftV4ImportParameters).pipe(take(1)).subscribe(
       {

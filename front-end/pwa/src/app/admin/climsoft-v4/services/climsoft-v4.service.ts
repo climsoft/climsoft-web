@@ -83,8 +83,6 @@ export class ClimsoftV4Service {
   }
 
   public startObservationsImportFromV4(climsoftV4ImportParameters: ClimsoftV4ImportParametersModel): Observable<V4OperationsResponse> {
-    // TODO. LEFT HERE
-    console.log('saving elements: ', climsoftV4ImportParameters.elements) 
     return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/start-observations-import`, climsoftV4ImportParameters)
       .pipe(
         catchError(this.handleError)

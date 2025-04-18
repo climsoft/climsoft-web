@@ -1,18 +1,18 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
-import { ClimsoftV5ToV4SyncService } from '../services/climsoft-v5-to-v4-sync.service';
+import { ClimsoftWebToV4SyncService } from '../services/climsoft-web-to-v4-sync.service';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { ClimsoftV4V5SyncSetUpService } from '../services/climsoft-v4-v5-sync-set-up.service';
-import { ClimsoftV4ToV5SyncService } from '../services/climsoft-v4-to-v5-sync.service';
+import { ClimsoftV4WebSyncSetUpService } from '../services/climsoft-v4-web-sync-set-up.service';
+import { ClimsoftV4ToWebSyncService } from '../services/climsoft-v4-to-web-sync.service';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 
 @Controller('climsoft-v4')
 export class ClimsoftV4Controller {
   constructor(
-    private climsoftV4V5SetUpService: ClimsoftV4V5SyncSetUpService,
-    private climsoftV5ToV4Service: ClimsoftV5ToV4SyncService,
-    private climsoftV4ToV5SyncService: ClimsoftV4ToV5SyncService) {
+    private climsoftV4V5SetUpService: ClimsoftV4WebSyncSetUpService,
+    private climsoftV5ToV4Service: ClimsoftWebToV4SyncService,
+    private climsoftV4ToV5SyncService: ClimsoftV4ToWebSyncService) {
   }
 
   @Admin()
@@ -70,7 +70,7 @@ export class ClimsoftV4Controller {
     return { message: saved ? 'success' : 'error' };
   }
 
-  @Admin() 
+  @Admin()
   @Post('save-observations')
   async saveObservations() {
     this.climsoftV4V5SetUpService.resetV4Conflicts();
@@ -82,8 +82,7 @@ export class ClimsoftV4Controller {
   @Post('start-observations-import')
   async startObservationsImport(
     @Req() request: Request,
-    @Body() importParameters: ClimsoftV4ImportParametersDto) {
-      console.log('start import params: ', importParameters)
+    @Body() importParameters: ClimsoftV4ImportParametersDto) { 
     this.climsoftV4V5SetUpService.resetV4Conflicts();
     await this.climsoftV4ToV5SyncService.startV4Import(importParameters, AuthUtil.getLoggedInUser(request).id);
     return { message: 'success' };

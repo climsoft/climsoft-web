@@ -5,17 +5,17 @@ import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
-import { ClimsoftV4V5SyncSetUpService, V4ElementModel } from './climsoft-v4-v5-sync-set-up.service';
+import { ClimsoftV4WebSyncSetUpService, V4ElementModel } from './climsoft-v4-web-sync-set-up.service';
 import { AppConfig } from 'src/app.config';
 
 @Injectable()
-export class ClimsoftV5ToV4SyncService {
-    private readonly logger = new Logger(ClimsoftV5ToV4SyncService.name);
+export class ClimsoftWebToV4SyncService {
+    private readonly logger = new Logger(ClimsoftWebToV4SyncService.name);
     private v4UtcOffset: number = 0;
     private isSaving: boolean = false;
 
     constructor(
-        private climsoftV4V5SetupService: ClimsoftV4V5SyncSetUpService,
+        private climsoftV4webSetupService: ClimsoftV4WebSyncSetUpService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
     ) {
     }
@@ -28,10 +28,10 @@ export class ClimsoftV5ToV4SyncService {
         }
 
         // Always attempt first connection if not tried before
-        await this.climsoftV4V5SetupService.attemptFirstConnectionIfNotTried();
+        await this.climsoftV4webSetupService.attemptFirstConnectionIfNotTried();
 
         // if version 4 database pool is not set up then return
-        if (!this.climsoftV4V5SetupService.v4DBPool) {
+        if (!this.climsoftV4webSetupService.v4DBPool) {
             this.logger.log('Aborting saving. No V4 connection pool. ');
             return;
         }
@@ -43,8 +43,8 @@ export class ClimsoftV5ToV4SyncService {
         }
 
         // If there are any conflicts with version 4 database then areturn
-        if (this.climsoftV4V5SetupService.v4Conflicts.length > 0) {
-            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4V5SetupService.v4Conflicts);
+        if (this.climsoftV4webSetupService.v4Conflicts.length > 0) {
+            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4webSetupService.v4Conflicts);
             return;
         }
 
@@ -65,12 +65,13 @@ export class ClimsoftV5ToV4SyncService {
             return;
         }
 
-        this.logger.log('Saving  changes to V4 database: '+ obsEntities.length);
+        this.logger.log('Saving changes to V4 database: ' + obsEntities.length);
 
         const deletedEntities: ObservationEntity[] = [];
         const insertedOrUpdatedEntities: ObservationEntity[] = [];
 
         for (const entity of obsEntities) {
+            // Separate deleted data from inserted or updated data
             if (entity.deleted) {
                 deletedEntities.push(entity);
             } else {
@@ -80,7 +81,7 @@ export class ClimsoftV5ToV4SyncService {
 
         // Bulk delete when soft delete happens
         if (deletedEntities.length > 0) {
-            if (await this.deleteSoftDeletedV5DataFromV4DB(this.climsoftV4V5SetupService.v4DBPool, deletedEntities)) {
+            if (await this.deleteSoftDeletedV5DataFromV4DB(this.climsoftV4webSetupService.v4DBPool, deletedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
             }
@@ -88,7 +89,7 @@ export class ClimsoftV5ToV4SyncService {
 
         // Bulk insert or update when there are new inserts or updates
         if (insertedOrUpdatedEntities.length > 0) {
-            if (await this.insertOrUpdateV5DataToV4DB(this.climsoftV4V5SetupService.v4DBPool, insertedOrUpdatedEntities)) {
+            if (await this.insertOrUpdateV5DataToV4DB(this.climsoftV4webSetupService.v4DBPool, insertedOrUpdatedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
             }
@@ -132,30 +133,30 @@ export class ClimsoftV5ToV4SyncService {
             const values: (string | number | null | undefined)[][] = [];
             for (const entity of entities) {
 
-                if (!this.climsoftV4V5SetupService.v4StationsForV5Checking.has(entity.stationId)) {
-                    this.climsoftV4V5SetupService.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
+                if (!this.climsoftV4webSetupService.v4StationsForV5Checking.has(entity.stationId)) {
+                    this.climsoftV4webSetupService.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
                     continue;
                 }
 
-                const v4Element = this.climsoftV4V5SetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4webSetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
                 // If element not found, just continue
                 if (!v4Element) {
-                    this.climsoftV4V5SetupService.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
+                    this.climsoftV4webSetupService.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
                     continue;
                 }
 
-                let sourceName: string | undefined = this.climsoftV4V5SetupService.v5Sources.get(entity.sourceId);
+                let sourceName: string | undefined = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
                 // if source name not found then a new user was added. So refetch v5 sources and attempt to find the source name again
                 if (!sourceName) {
-                    await this.climsoftV4V5SetupService.setupV5Sources();
-                    sourceName = this.climsoftV4V5SetupService.v5Sources.get(entity.sourceId);
+                    await this.climsoftV4webSetupService.setupV5Sources();
+                    sourceName = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
                 }
 
-                let userEmail: string | undefined = this.climsoftV4V5SetupService.v5Users.get(entity.entryUserId);
+                let userEmail: string | undefined = this.climsoftV4webSetupService.v5Users.get(entity.entryUserId);
                 // if email not found then a new user was added. So refetch v5 users and attempt to find the email again
                 if (!userEmail) {
-                    await this.climsoftV4V5SetupService.setupV5Users();
-                    userEmail = this.climsoftV4V5SetupService.v5Users.get(entity.entryUserId);
+                    await this.climsoftV4webSetupService.setupV5Users();
+                    userEmail = this.climsoftV4webSetupService.v5Users.get(entity.entryUserId);
                 }
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
@@ -177,7 +178,7 @@ export class ClimsoftV5ToV4SyncService {
 
             }
 
-            if (this.climsoftV4V5SetupService.v4Conflicts.length > 0) {
+            if (this.climsoftV4webSetupService.v4Conflicts.length > 0) {
                 return false;
             }
 
@@ -257,13 +258,13 @@ export class ClimsoftV5ToV4SyncService {
                 }
 
                 // Retrieve the v4 element information
-                const v4Element = this.climsoftV4V5SetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4webSetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
                 if (!v4Element) {
                     // Skip entities that do not have a corresponding v4 element
                     continue;
                 }
 
-                const sourceName: string | undefined = this.climsoftV4V5SetupService.v5Sources.get(entity.sourceId);
+                const sourceName: string | undefined = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
 
                 // Get the value mapping for the entity
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);

@@ -31,12 +31,12 @@ export class ExportObservationsService {
         const exportParams: ExportTemplateParametersDto = this.getTemplateFiltersBasedOnQuery(viewTemplateExportDto.parameters, query);
 
         // Manually construct the SQL query
-        let sqlCondition: string = '';
+        let sqlCondition: string = 'ob.deleted = false';
 
         // DATA FILTER SELECTIONS
         //------------------------------------------------------------------------------------------------
         if (exportParams.stationIds && exportParams.stationIds.length > 0) {
-            sqlCondition = ` AND ob.station_id IN (${exportParams.stationIds.map(id => `'${id}'`).join(',')})`;
+            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportParams.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
         if (exportParams.elementIds && exportParams.elementIds.length > 0) {
@@ -182,8 +182,7 @@ export class ExportObservationsService {
                 INNER JOIN elements el on ob.element_id = el.id
                 INNER JOIN source_templates so on ob.source_id = so.id
                 INNER JOIN users us on ob.entry_user_id = us.id
-                WHERE ob.deleted = false 
-                ${sqlCondition} 
+                WHERE ${sqlCondition} 
                 ORDER BY ob.date_time ASC
             ) TO '${outputPath}' WITH CSV HEADER;
         `;

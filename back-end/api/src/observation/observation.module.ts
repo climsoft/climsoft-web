@@ -11,10 +11,10 @@ import { SourceCheckService } from './services/source-check.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { SettingsModule } from 'src/settings/settings.module'; 
 import { ClimsoftV4Controller } from './controllers/climsoft-v4.controller';
-import { ClimsoftV5ToV4SyncService } from './services/climsoft-v5-to-v4-sync.service';
+import { ClimsoftWebToV4SyncService } from './services/climsoft-web-to-v4-sync.service';
 import { ExportObservationsService } from './services/export-observations.service';
-import { ClimsoftV4V5SyncSetUpService } from './services/climsoft-v4-v5-sync-set-up.service';
-import { ClimsoftV4ToV5SyncService } from './services/climsoft-v4-to-v5-sync.service';
+import { ClimsoftV4WebSyncSetUpService } from './services/climsoft-v4-web-sync-set-up.service';
+import { ClimsoftV4ToWebSyncService } from './services/climsoft-v4-to-web-sync.service';
 
 @Module({
   imports: [
@@ -34,9 +34,9 @@ import { ClimsoftV4ToV5SyncService } from './services/climsoft-v4-to-v5-sync.ser
     ObservationImportService,
     SourceCheckService,
     ExportObservationsService,
-    ClimsoftV4V5SyncSetUpService,
-    ClimsoftV5ToV4SyncService,
-    ClimsoftV4ToV5SyncService,
+    ClimsoftV4WebSyncSetUpService,
+    ClimsoftWebToV4SyncService,
+    ClimsoftV4ToWebSyncService,
   ],
 })
 export class ObservationModule { }

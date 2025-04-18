@@ -42,8 +42,8 @@ export interface V4StationModel {
 }
 
 @Injectable()
-export class ClimsoftV4V5SyncSetUpService {
-    private readonly logger = new Logger(ClimsoftV4V5SyncSetUpService.name);
+export class ClimsoftV4WebSyncSetUpService {
+    private readonly logger = new Logger(ClimsoftV4WebSyncSetUpService.name);
     private firstConnectionAttemptAlreadyTried: boolean = false;
     public v4DBPool: mariadb.Pool | null = null;
     public v4UtcOffset: number = 0;

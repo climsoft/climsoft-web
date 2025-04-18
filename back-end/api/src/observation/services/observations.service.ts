@@ -9,7 +9,7 @@ import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
-import { ClimsoftV5ToV4SyncService } from './climsoft-v5-to-v4-sync.service';
+import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class ObservationsService {
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private dataSource: DataSource,
-        private climsoftV4Service: ClimsoftV5ToV4SyncService,
+        private climsoftV4Service: ClimsoftWebToV4SyncService,
         private usersService: UsersService,
     ) { }
 
@@ -231,7 +231,13 @@ export class ObservationsService {
         return viewLogDto;
     }
 
-    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number): Promise<void> {
+    /**
+     * 
+     * @param createObservationDtos 
+     * @param userId 
+     * @param ignoreV4Saving When true, observations will be indicated as already saved to v4 and they will not be uploaded to version 4 databse
+     */
+    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, ignoreV4Saving: boolean = false): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: ObservationEntity[] = [];
@@ -249,7 +255,7 @@ export class ObservationsService {
                 comment: dto.comment,
                 entryUserId: userId,
                 deleted: false,
-                savedToV4: false,
+                savedToV4: ignoreV4Saving,
             });
 
             obsEntities.push(entity);
@@ -267,8 +273,11 @@ export class ObservationsService {
         }
         console.log("Saving entities took: ", new Date().getTime() - startTime);
 
-        // Initiate saving to version 4 database as well
-        this.climsoftV4Service.saveV5ObservationstoV4DB();
+        if (!ignoreV4Saving) {
+            // Initiate saving to version 4 database as well
+            this.climsoftV4Service.saveV5ObservationstoV4DB();
+        }
+
     }
 
     private async insertOrUpdateObsValues(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]) {

@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ClimsoftV4V5SyncSetUpService } from './climsoft-v4-v5-sync-set-up.service';
+import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
 import { DataSource, FindOptionsWhere } from 'typeorm';
 import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
@@ -7,17 +7,21 @@ import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/sou
 import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
+import { ObservationsService } from './observations.service';
+import { CreateObservationDto } from '../dtos/create-observation.dto';
 
 @Injectable()
-export class ClimsoftV4ToV5SyncService {
-    private readonly logger = new Logger(ClimsoftV4ToV5SyncService.name);
+export class ClimsoftV4ToWebSyncService {
+    private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
     private isImporting: boolean = false;
     private climsoftSource: { id: number, importParameters: ClimsoftV4ImportParametersDto } | undefined;
     private lastImportDate: string;
+    private userId: number;
 
     constructor(
-        private climsoftV4V5SetupService: ClimsoftV4V5SyncSetUpService,
+        private climsoftV4V5SetupService: ClimsoftV4WebSyncSetUpService,
         private sourcesService: SourceTemplatesService,
+        private observationsService: ObservationsService,
         private dataSource: DataSource,
     ) {
     }
@@ -39,7 +43,8 @@ export class ClimsoftV4ToV5SyncService {
         const params: ClimsoftV4ImportParametersDto = existingClimsoftV4Source.parameters as ClimsoftV4ImportParametersDto;
         // Update the from date to reflect the last import date
         // Helps user to restart the import from where it last stopped
-        params.fromEntryDate = this.lastImportDate;
+        if (this.lastImportDate) params.fromEntryDate = this.lastImportDate;
+
         return params;
     }
 
@@ -54,8 +59,9 @@ export class ClimsoftV4ToV5SyncService {
 
     public async startV4Import(importParameters: ClimsoftV4ImportParametersDto, userId: number) {
         this.climsoftSource = { id: 0, importParameters: importParameters };
-        const existingClimsoftV4Source = await this.getClimsoftImportSource();
+        this.userId = userId;
 
+        const existingClimsoftV4Source = await this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
             this.climsoftSource.id = (await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId)).id;
@@ -114,48 +120,6 @@ export class ClimsoftV4ToV5SyncService {
     public async stopV4Import() {
         this.climsoftSource = undefined;
         this.isImporting = false;
-    }
-
-    private async importV4ObservationstoV5DB(): Promise<void> {
-
-        // If importing from v4 to v5 is not allowed. Then just return
-        if (!this.climsoftSource) {
-            return;
-        }
-
-
-        // if version 4 database pool is not set up then return
-        if (!this.climsoftV4V5SetupService.v4DBPool) {
-            this.logger.log('Aborting saving. No V4 connection pool. ');
-            return;
-        }
-
-        // If still importing then just return
-        if (this.isImporting) {
-            this.logger.log('Aborting saving. There is still an ongoing import. ');
-            return;
-        }
-
-        // If there are any conflicts with version 4 database then areturn
-        if (this.climsoftV4V5SetupService.v4Conflicts.length > 0) {
-            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4V5SetupService.v4Conflicts);
-            return;
-        }
-
-        // Set is saving to true to prevent any further saving to v4 requests
-        this.isImporting = true;
-
-        if (!this.lastImportDate) {
-            this.lastImportDate = await this.getLastImportEntryDatetime();
-        }
-
-
-        this.logger.log('Last entry date time: ' + this.lastImportDate);
-
-        //this.isImporting = false;
-
-
-
     }
 
     private async addEntryDateTimeColumnIfNotExists(): Promise<boolean> {
@@ -241,19 +205,127 @@ export class ClimsoftV4ToV5SyncService {
         }
     }
 
-    private async getLastImportEntryDatetime(): Promise<string> {
 
+    private async importV4ObservationstoV5DB(): Promise<void> {
+
+        // If importing from v4 to v5 is not allowed. Then just return
+        if (!this.climsoftSource) {
+            return;
+        }
+
+
+        // if version 4 database pool is not set up then return
+        if (!this.climsoftV4V5SetupService.v4DBPool) {
+            this.logger.log('Aborting saving. No V4 connection pool. ');
+            return;
+        }
+
+        // If still importing then just return
+        if (this.isImporting) {
+            this.logger.log('Aborting saving. There is still an ongoing import. ');
+            return;
+        }
+
+        // If there are any conflicts with version 4 database then areturn
+        if (this.climsoftV4V5SetupService.v4Conflicts.length > 0) {
+            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4V5SetupService.v4Conflicts);
+            return;
+        }
+
+        // Set is saving to true to prevent any further saving to v4 requests
+        this.isImporting = true;
+
+        const importParameters: ClimsoftV4ImportParametersDto = this.climsoftSource.importParameters;
+        if (!this.lastImportDate) {
+            this.lastImportDate = importParameters.fromEntryDate;
+        }
+
+
+        this.logger.log('Last entry date time: ' + this.lastImportDate);
+
+        // Manually construct the SQL query
+        let sqlCondition: string = `entry_date_time >= '${this.lastImportDate}'`;
+
+        sqlCondition = sqlCondition + ` AND describedBy IN (${importParameters.elements.map(item => item.elementId).join(',')})`;
+
+        if (importParameters.stationIds && importParameters.stationIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND recordedFrom IN (${importParameters.stationIds.map(id => `'${id}'`).join(',')})`;
+        }
+
+        if (!importParameters.includeClimsoftWebData) {
+            sqlCondition = sqlCondition + ` AND acquisitiontype <> 7`;
+        }
 
         const sql: string = `
-        SELECT entry_date_time FROM observations WHERE source_id = ${6}  
-        ORDER BY entry_date_time DESC LIMIT 1;
-    `;
-        const results = await this.dataSource.manager.query(sql);
+        SELECT recordedFrom, describedBy, obsDatetime, obsLevel, obsValue, flag, period, entry_date_time 
+        FROM observationfinal 
+        WHERE ${sqlCondition} ORDER BY entry_date_time ASC LIMIT 1000;
+        `;
 
-        // TODO. Format the results
+        const connection = await this.climsoftV4V5SetupService.v4DBPool.getConnection();
+        try {
+            console.log('SQL: ', sql);
+            // Check if the column exists
+            const v4Observations = await connection.query(sql);
+            console.log('Results: ', v4Observations);
 
-        return results;
+            if (v4Observations.length === 0) {
+                this.isImporting = false;
+                this.logger.log('Aborting imorting. No v4 observations found. Will resume in: ');
+                setTimeout(() => {
+                    // TODO
+                }, 10000);
+                // Save the last entry date to database
+                return;
+            }
+
+
+            const obsDtos: CreateObservationDto[] = [];
+
+            for (const v4Observation of v4Observations) {
+                //TODO. Left here. Do lots of checks
+
+                const dto : CreateObservationDto={
+                    stationId: v4Observation.recordedFrom,
+                        elementId: v4Observation.describedBy, 
+                        sourceId: v4Observation.obsDatetime, 
+                        level: v4Observation.obsLevel, 
+                        datetime: v4Observation.obsValue, 
+                        interval: 1, 
+                        value: v4Observation.obsValue,                  
+                        flag: v4Observation.flag , 
+                        comment: null
+                }
+
+            }
+
+
+            // Save the versin 4 observations to web database
+            //await this.observationsService.bulkPut(obsDtos, this.userId, true);
+
+            // Set saving to false before initiating another save operation
+            this.isImporting = false;
+
+            // Asynchronously initiate another save to version 4 operation
+           //this.importV4ObservationstoV5DB();
+
+        } catch (error) {
+            this.logger.error('error when fetching data from observationfinal table', error);
+            this.climsoftV4V5SetupService.v4Conflicts.push('error when fetching data from observationfinal table' + error);
+        } finally {
+            if (connection) await connection.release();
+        }
+
+
+
     }
+
+
+
+
+
+
+
 
 
 }

@@ -109,6 +109,10 @@
                 </table>
               </div>
             </div>
+
+            <div class="mt-2">
+              <app-check-box-input [label]="'Include Climsoft Web Data'" [(value)]="climsoftV4ImportParameters.includeClimsoftWebData" />
+            </div>
           </div>
 
           <div *ngIf="errorMessage" class="text-danger">{{errorMessage}}</div>
@@ -140,12 +144,8 @@
           </div>
 
         </div>
-
-     
-
+    
       </div>
-
-
 
       <div *ngIf="v4Conflicts && v4Conflicts.length>0">
         <hr />
