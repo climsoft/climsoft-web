@@ -133,12 +133,12 @@ export class ClimsoftWebToV4SyncService {
             const values: (string | number | null | undefined)[][] = [];
             for (const entity of entities) {
 
-                if (!this.climsoftV4webSetupService.v4StationsForV5Checking.has(entity.stationId)) {
+                if (!this.climsoftV4webSetupService.v4StationsForWebChecking.has(entity.stationId)) {
                     this.climsoftV4webSetupService.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
                     continue;
                 }
 
-                const v4Element = this.climsoftV4webSetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4webSetupService.v4ElementsForWebMappingAndChecking.get(entity.elementId);
                 // If element not found, just continue
                 if (!v4Element) {
                     this.climsoftV4webSetupService.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
@@ -152,11 +152,11 @@ export class ClimsoftWebToV4SyncService {
                     sourceName = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
                 }
 
-                let userEmail: string | undefined = this.climsoftV4webSetupService.v5Users.get(entity.entryUserId);
+                let userEmail: string | undefined = this.climsoftV4webSetupService.webUsers.get(entity.entryUserId);
                 // if email not found then a new user was added. So refetch v5 users and attempt to find the email again
                 if (!userEmail) {
                     await this.climsoftV4webSetupService.setupV5Users();
-                    userEmail = this.climsoftV4webSetupService.v5Users.get(entity.entryUserId);
+                    userEmail = this.climsoftV4webSetupService.webUsers.get(entity.entryUserId);
                 }
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
@@ -258,7 +258,7 @@ export class ClimsoftWebToV4SyncService {
                 }
 
                 // Retrieve the v4 element information
-                const v4Element = this.climsoftV4webSetupService.v4ElementsForV5MappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4webSetupService.v4ElementsForWebMappingAndChecking.get(entity.elementId);
                 if (!v4Element) {
                     // Skip entities that do not have a corresponding v4 element
                     continue;

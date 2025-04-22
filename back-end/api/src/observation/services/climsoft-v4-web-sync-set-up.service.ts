@@ -47,10 +47,10 @@ export class ClimsoftV4WebSyncSetUpService {
     private firstConnectionAttemptAlreadyTried: boolean = false;
     public v4DBPool: mariadb.Pool | null = null;
     public v4UtcOffset: number = 0;
-    public readonly v4ElementsForV5MappingAndChecking: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
-    public readonly v4StationsForV5Checking: Set<string> = new Set();
+    public readonly v4ElementsForWebMappingAndChecking: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
+    public readonly v4StationsForWebChecking: Set<string> = new Set();
     public readonly v5Sources: Map<number, string> = new Map();
-    public readonly v5Users: Map<number, string> = new Map();
+    public readonly webUsers: Map<number, string> = new Map();
     public readonly v4Conflicts: string[] = [];
 
     constructor(
@@ -134,13 +134,13 @@ export class ClimsoftV4WebSyncSetUpService {
     }
 
     private async setupV4ElementsForV5MappingAndChecking(): Promise<void> {
-        this.v4ElementsForV5MappingAndChecking.clear();
-        (await this.getV4Elements()).forEach((item) => this.v4ElementsForV5MappingAndChecking.set(item.elementId, item));
+        this.v4ElementsForWebMappingAndChecking.clear();
+        (await this.getV4Elements()).forEach((item) => this.v4ElementsForWebMappingAndChecking.set(item.elementId, item));
     }
 
     private async setupV4StationsForV5Checking(): Promise<void> {
-        this.v4StationsForV5Checking.clear();
-        (await this.getV4Stations()).forEach((item) => this.v4StationsForV5Checking.add(item.stationId));
+        this.v4StationsForWebChecking.clear();
+        (await this.getV4Stations()).forEach((item) => this.v4StationsForWebChecking.add(item.stationId));
     }
 
     public async setupV5Sources(): Promise<void> {
@@ -149,8 +149,8 @@ export class ClimsoftV4WebSyncSetUpService {
     }
 
     public async setupV5Users(): Promise<void> {
-        this.v5Users.clear();
-        (await this.usersService.findAll()).forEach(item => this.v5Users.set(item.id, item.email));
+        this.webUsers.clear();
+        (await this.usersService.findAll()).forEach(item => this.webUsers.set(item.id, item.email));
     }
 
 

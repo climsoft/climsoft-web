@@ -285,16 +285,16 @@ export class ClimsoftV4ToWebSyncService {
             for (const v4Observation of v4Observations) {
                 //TODO. Left here. Do lots of checks
 
-                const dto : CreateObservationDto={
+                const dto: CreateObservationDto = {
                     stationId: v4Observation.recordedFrom,
-                        elementId: v4Observation.describedBy, 
-                        sourceId: v4Observation.obsDatetime, 
-                        level: v4Observation.obsLevel, 
-                        datetime: v4Observation.obsValue, 
-                        interval: 1, 
-                        value: v4Observation.obsValue,                  
-                        flag: v4Observation.flag , 
-                        comment: null
+                    elementId: v4Observation.describedBy,
+                    sourceId: v4Observation.obsDatetime,
+                    level: v4Observation.obsLevel,
+                    datetime: v4Observation.obsValue,
+                    interval: 1,
+                    value: v4Observation.obsValue,
+                    flag: v4Observation.flag,
+                    comment: null
                 }
 
             }
@@ -303,11 +303,14 @@ export class ClimsoftV4ToWebSyncService {
             // Save the versin 4 observations to web database
             //await this.observationsService.bulkPut(obsDtos, this.userId, true);
 
+            // Set last import date
+            //this.lastImportDate = obsDtos[obsDtos.length-1].datetime;
+
             // Set saving to false before initiating another save operation
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
-           //this.importV4ObservationstoV5DB();
+            //this.importV4ObservationstoV5DB();
 
         } catch (error) {
             this.logger.error('error when fetching data from observationfinal table', error);
