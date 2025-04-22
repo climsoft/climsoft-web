@@ -22,7 +22,7 @@ export class SourceTemplatesService {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<SourceTemplateEntity>, excludeV4Template: boolean = true): Promise<ViewSourceDto[]> {
+    public async findAll(selectOptions?: FindOptionsWhere<SourceTemplateEntity>): Promise<ViewSourceDto[]> {
         const findOptions: FindManyOptions<SourceTemplateEntity> = {
             order: {
                 id: "ASC"
@@ -36,11 +36,6 @@ export class SourceTemplatesService {
         const sourceEntities = await this.sourceRepo.find(findOptions);
         const dtos: ViewSourceDto[] = [];
         for (const entity of sourceEntities) {
-            // For now don't show climsoft version 4 source.
-            // It's a source that will later be used when we create a migration template that allows its structure
-            if(excludeV4Template && entity.name === 'climsoft_v4'){
-                continue;
-            }
             dtos.push(await this.createViewDto(entity));
         }
         return dtos;

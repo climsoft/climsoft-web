@@ -6,7 +6,7 @@ import { ObservationsService } from 'src/app/data-ingestion/services/observation
 import { ClimsoftV4ImportParametersModel, ElementIntervalModel } from './models/climsoft-v4-import-parameters.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
-@Component({
+@Component({ 
   selector: 'app-climsoft-v4',
   templateUrl: './climsoft-v4.component.html',
   styleUrls: ['./climsoft-v4.component.scss']
@@ -19,6 +19,7 @@ export class ClimsoftV4Component {
   protected v4Conflicts: string[] = [];
   protected elementsToFetch: ElementIntervalModel[] = [];
   protected showImportStarted: boolean = false;
+  protected fromEntryDate!: string; 
   protected errorMessage: string = '';
 
   constructor(
@@ -43,6 +44,7 @@ export class ClimsoftV4Component {
     this.climsoftV4Service.getClimsoftV4ImportParameters().pipe(take(1)).subscribe({
       next: data => {
         this.climsoftV4ImportParameters = data;
+        this.fromEntryDate = this.climsoftV4ImportParameters.fromEntryDate.split('T')[0];
         this.elementsToFetch = [...this.climsoftV4ImportParameters.elements];
         this.elementsToFetch.push({ elementId: 0, interval: 0 });
       },
@@ -53,6 +55,7 @@ export class ClimsoftV4Component {
             fromEntryDate: DateUtils.getDateOnlyAsString(new Date()),
             elements: [],
             includeClimsoftWebData: false,
+            pollingInterval: 70, // 70 minutes
           }
         }
       }
@@ -153,13 +156,20 @@ export class ClimsoftV4Component {
 
   protected onStartImportObservationsClick(): void {
     this.errorMessage = '';
-    if (!this.climsoftV4ImportParameters.fromEntryDate) {
+    if (this.fromEntryDate) {
+      this.climsoftV4ImportParameters.fromEntryDate = `${this.fromEntryDate}T00:00:00Z`;
+    }else{
       this.errorMessage = 'From entry date required';
       return;
     }
 
     if (this.climsoftV4ImportParameters.elements.length === 0) {
       this.errorMessage = 'Elements required';
+      return;
+    }
+
+    if (this.climsoftV4ImportParameters.pollingInterval<= 10) {
+      this.errorMessage = 'Polling interval must be greater than 10 minutes';
       return;
     }
 
@@ -184,8 +194,9 @@ export class ClimsoftV4Component {
           }
         },
         error: err => {
+          console.error('error: ', err)
           this.showImportStarted = false;
-          this.pagesDataService.showToast({ title: 'V4 Import', message: err, type: ToastEventTypeEnum.ERROR });
+          this.pagesDataService.showToast({ title: 'V4 Import', message: err.error.message, type: ToastEventTypeEnum.ERROR });
         }
       }
     );

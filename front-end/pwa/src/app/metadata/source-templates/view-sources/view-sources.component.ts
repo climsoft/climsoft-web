@@ -43,8 +43,10 @@ export class ViewSourcesComponent implements OnDestroy {
     ).subscribe((sources) => {
 
       this.sources = sources.map(item => {
-        return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType) , assignedStations: 0 }
+        return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType), assignedStations: 0 }
       });
+
+      this.sources = this.sources.filter(item => item.name !== 'climsoft_v4');
 
       this.stationFormsService.getStationCountPerForm().pipe(
         take(1),
@@ -66,7 +68,7 @@ export class ViewSourcesComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
- 
+
 
   protected onOptionsClicked(sourceTypeName: 'Add Form Source' | 'Add Import Source' | 'Delete All') {
     let routeName: string = '';

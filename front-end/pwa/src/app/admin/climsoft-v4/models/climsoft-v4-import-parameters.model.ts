@@ -7,6 +7,8 @@ export interface ClimsoftV4ImportParametersModel {
     elements: ElementIntervalModel[];
 
     includeClimsoftWebData: boolean;
+
+    pollingInterval: number; // In minutes
 }
 
 export interface ElementIntervalModel {

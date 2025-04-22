@@ -63,7 +63,7 @@
 
           <div *ngIf="!showImportStarted && !importingFromV4 && climsoftV4ImportParameters" class="mt-2">
             <div>
-              <app-date-input [label]="'From Entry Date'" [(value)]="climsoftV4ImportParameters.fromEntryDate" />
+              <app-date-input [label]="'From Entry Date'" [(value)]="fromEntryDate" />
             </div>
             <div class="mt-2">
               <div>Stations:</div>
@@ -111,7 +111,13 @@
             </div>
 
             <div class="mt-2">
-              <app-check-box-input [label]="'Include Climsoft Web Data'" [(value)]="climsoftV4ImportParameters.includeClimsoftWebData" />
+              <app-check-box-input [label]="'Include Climsoft Web Data'"
+                [(value)]="climsoftV4ImportParameters.includeClimsoftWebData" />
+            </div>
+
+            <div class="mt-2">
+              <app-number-input [label]="'Polling Interval'"
+                [(numValue)]="climsoftV4ImportParameters.pollingInterval" [min]="10"/>
             </div>
           </div>
 
@@ -124,7 +130,7 @@
         </div>
 
         <div *ngIf="showImportStarted || importingFromV4" class="mt-2">
-         
+
           <div class="px-4 w-100">
             <div class="progress">
               <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
@@ -145,7 +151,7 @@
           </div>
 
         </div>
-    
+
       </div>
 
       <div *ngIf="v4Conflicts && v4Conflicts.length>0" class="mb-2">

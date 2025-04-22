@@ -114,8 +114,9 @@ export class ClimsoftV4WebSyncSetUpService {
                 password: AppConfig.v4DbCredentials.password,
                 database: AppConfig.v4DbCredentials.databaseName,
                 port: AppConfig.v4DbCredentials.port,
-            });
-
+                dateStrings: true,
+            }); 
+ 
             // Clear any previous conflicts
             this.resetV4Conflicts();
 

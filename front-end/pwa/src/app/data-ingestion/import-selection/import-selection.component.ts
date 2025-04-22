@@ -12,9 +12,9 @@ import { AppAuthService } from 'src/app/app-auth.service';
   templateUrl: './import-selection.component.html',
   styleUrls: ['./import-selection.component.scss']
 })
-export class ImportSelectionComponent  implements OnDestroy{
+export class ImportSelectionComponent implements OnDestroy {
 
-  protected importSources!: ViewSourceModel[] ;
+  protected importSources!: ViewSourceModel[];
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -29,34 +29,35 @@ export class ImportSelectionComponent  implements OnDestroy{
       takeUntil(this.destroy$)
     ).subscribe((data) => {
       // Important. Remove disabled sources
-      const allImportSources: ViewSourceModel[] = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
+      let allImportSources: ViewSourceModel[] = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT && !item.disabled);
+      allImportSources = allImportSources.filter(item => item.name !== 'climsoft_v4');
       this.setStationsBasedOnPermissions(allImportSources);
     });
   }
 
-   private setStationsBasedOnPermissions(allImportSources: ViewSourceModel[]) {
-      this.appAuthService.user.pipe(
-        take(1),
-      ).subscribe(user => {
-        if (!user) {
-          throw new Error('User not logged in');
-        }
-  
-        if (user.isSystemAdmin) {
-          this.importSources = allImportSources;
-        } else if (user.permissions && user.permissions.entryPermissions && user.permissions.entryPermissions.importPermissions) {
-          if (user.permissions.entryPermissions.importPermissions.importTemplateIds) {
-            const importIdsAllowed: number[] = user.permissions.entryPermissions.importPermissions.importTemplateIds;
-            this.importSources = allImportSources.filter(item => importIdsAllowed.includes(item.id));
-          } else {
-            this.importSources = allImportSources;
-          }
+  private setStationsBasedOnPermissions(allImportSources: ViewSourceModel[]) {
+    this.appAuthService.user.pipe(
+      take(1),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      if (user.isSystemAdmin) {
+        this.importSources = allImportSources;
+      } else if (user.permissions && user.permissions.entryPermissions && user.permissions.entryPermissions.importPermissions) {
+        if (user.permissions.entryPermissions.importPermissions.importTemplateIds) {
+          const importIdsAllowed: number[] = user.permissions.entryPermissions.importPermissions.importTemplateIds;
+          this.importSources = allImportSources.filter(item => importIdsAllowed.includes(item.id));
         } else {
-          throw new Error('Import of data not allowed');
+          this.importSources = allImportSources;
         }
-      });
-    }
-  
+      } else {
+        throw new Error('Import of data not allowed');
+      }
+    });
+  }
+
 
   ngOnDestroy() {
     this.destroy$.next();

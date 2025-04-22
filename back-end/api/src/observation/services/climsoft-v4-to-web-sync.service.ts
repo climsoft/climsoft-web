@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
 import { DataSource, FindOptionsWhere } from 'typeorm';
 import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
@@ -18,8 +18,7 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 export class ClimsoftV4ToWebSyncService {
     private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
     private isImporting: boolean = false;
-    private climsoftSource: { id: number, importParameters: ClimsoftV4ImportParametersDto } | undefined;
-    private lastImportDate: string;
+    private climsoftSource: ViewSourceDto | undefined;
     private userId: number;
 
     constructor(
@@ -34,6 +33,7 @@ export class ClimsoftV4ToWebSyncService {
         return this.isImporting;
     }
 
+
     /**
      * Used for editing existing parameters or promting creation of new parameters by the front end
      * @returns 
@@ -43,32 +43,26 @@ export class ClimsoftV4ToWebSyncService {
         if (!existingClimsoftV4Source) {
             throw new NotFoundException(`not_found`);
         }
-
-        const params: ClimsoftV4ImportParametersDto = existingClimsoftV4Source.parameters as ClimsoftV4ImportParametersDto;
-        // Update the from date to reflect the last import date
-        // Helps user to restart the import from where it last stopped
-        if (this.lastImportDate) params.fromEntryDate = this.lastImportDate;
-
-        return params;
+        return existingClimsoftV4Source.parameters as ClimsoftV4ImportParametersDto;
     }
 
     private async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
         const selectOptions: FindOptionsWhere<SourceTemplateEntity> = {
             name: 'climsoft_v4',
         };
-        await this.sourcesService.findAll(selectOptions, false);
-        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions, false);
+        await this.sourcesService.findAll(selectOptions);
+        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions);
         return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
     }
 
     public async startV4Import(importParameters: ClimsoftV4ImportParametersDto, userId: number) {
-        this.climsoftSource = { id: 0, importParameters: importParameters };
+        this.climsoftSource = undefined;
         this.userId = userId;
 
-        const existingClimsoftV4Source = await this.getClimsoftImportSource();
+        const existingClimsoftV4Source: ViewSourceDto | null = await this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
-            this.climsoftSource.id = (await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId)).id;
+            this.climsoftSource = (await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId));
         } else {
             const newClismoftSource: CreateUpdateSourceDto = {
                 name: 'climsoft_v4',
@@ -83,11 +77,7 @@ export class ClimsoftV4ToWebSyncService {
                 comment: null,
 
             }
-            this.climsoftSource.id = (await this.sourcesService.create(newClismoftSource, userId)).id
-        }
-
-        if (this.climsoftSource.importParameters.fromEntryDate) {
-            this.lastImportDate = this.climsoftSource.importParameters.fromEntryDate;
+            this.climsoftSource = (await this.sourcesService.create(newClismoftSource, userId))
         }
 
         // Always attempt first connection if not tried before
@@ -210,7 +200,7 @@ export class ClimsoftV4ToWebSyncService {
     }
 
     private async importV4ObservationstoV5DB(): Promise<void> {
-        // If importing from v4 to v5 is not allowed. Then just return
+        // If importing from v4 to web is not allowed. Then just return
         if (!AppConfig.v4DbCredentials.v4Import) {
             return;
         }
@@ -241,16 +231,12 @@ export class ClimsoftV4ToWebSyncService {
         // Set is saving to true to prevent any further saving to v4 requests
         this.isImporting = true;
 
-        const importParameters: ClimsoftV4ImportParametersDto = this.climsoftSource.importParameters;
-        if (!this.lastImportDate) {
-            this.lastImportDate = importParameters.fromEntryDate;
-        }
-
-
-        this.logger.log('Last entry date time: ' + this.lastImportDate);
+        const importParameters: ClimsoftV4ImportParametersDto = this.climsoftSource.parameters as ClimsoftV4ImportParametersDto;
 
         // Manually construct the SQL query
-        let sqlCondition: string = `entry_date_time >= '${this.lastImportDate}'`;
+        const lastImportedDataDate: string = importParameters.fromEntryDate.replace('T', ' ').replace('Z', '');
+        this.logger.log('import starting from date time: ' + importParameters.fromEntryDate + ' | OR: '+ lastImportedDataDate);
+        let sqlCondition: string = `entry_date_time > '${lastImportedDataDate}'`;
 
         sqlCondition = sqlCondition + ` AND describedBy IN (${importParameters.elements.map(item => item.elementId).join(',')})`;
 
@@ -273,18 +259,19 @@ export class ClimsoftV4ToWebSyncService {
 
             // Check if the column exists
             const v4Observations = await connection.query(sql);
-            console.log('v4 observations: ', v4Observations);
+            //console.log('v4 observations: ', v4Observations, ' | SQL: ', sql);
 
             if (v4Observations.length === 0) {
-                this.isImporting = false;
-                this.logger.log('Aborting imorting. No v4 observations found. Will resume in: ');
+                this.logger.log('Aborting importing. No v4 observations found. Will resume in: ' + importParameters.pollingInterval + ' minutes');
                 setTimeout(() => {
-                    // TODO
-                }, 10000);
-                // Save the last entry date to database
+                    this.importV4ObservationstoV5DB();
+                }, importParameters.pollingInterval * 60000);// Convert minutes to milliseconds
+                this.isImporting = false;
+                // Save updated from entry with the last entry date to database
+                this.climsoftSource.parameters = importParameters;
+                this.sourcesService.update(this.climsoftSource.id, this.climsoftSource, this.userId)
                 return;
             }
-
 
             const obsDtos: CreateObservationDto[] = [];
 
@@ -341,22 +328,22 @@ export class ClimsoftV4ToWebSyncService {
                 return;
             }
 
-            console.log('web observations: ', obsDtos);
+            this.logger.log('last web observations: ', obsDtos[obsDtos.length - 1]);
 
 
             // Save the versin 4 observations to web database
-            //await this.observationsService.bulkPut(obsDtos, this.userId, true);
+            await this.observationsService.bulkPut(obsDtos, this.userId, true);
 
             // Set last import date
-            this.lastImportDate = DateUtils.getDateOnlyAsString(new Date(obsDtos[obsDtos.length - 1].datetime));
+            importParameters.fromEntryDate = this.convertV4DatetimeToJSDatetime(v4Observations[v4Observations.length - 1].entry_date_time);
+
+            this.logger.log('last import date: ' + importParameters.fromEntryDate);
 
             // Set saving to false before initiating another save operation
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
             this.importV4ObservationstoV5DB();
-
-            console.log('lastImportDate: ',  this.lastImportDate);
 
         } catch (error) {
             this.logger.error('error when fetching data from observationfinal table', error);
@@ -368,7 +355,14 @@ export class ClimsoftV4ToWebSyncService {
 
     private getWebDatetime(v4Datetime: string): string {
         // When getting data from v4, subtract the utc offset  
-        return DateUtils.getDatetimesBasedOnUTCOffset(v4Datetime, this.climsoftV4WebSetupService.v4UtcOffset, 'subtract');
+        // Assumes input is in UTC and formatted as 'YYYY-MM-DD HH:mm:ss'
+        const utcDate = new Date(v4Datetime.replace(' ', 'T') + 'Z');
+        return DateUtils.getDatetimesBasedOnUTCOffset(utcDate.toISOString(), this.climsoftV4WebSetupService.v4UtcOffset, 'subtract');
+    }
+
+    private convertV4DatetimeToJSDatetime(v4Datetime: string): string{
+        const utcDate = new Date(v4Datetime.replace(' ', 'T') + 'Z');
+        return utcDate.toISOString();
     }
 
     private getWebvalue(v4Value: string): number | null {

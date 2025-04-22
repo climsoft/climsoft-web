@@ -296,8 +296,6 @@ export class FormEntryDefinition {
         };
     }
 
-
-
     /**
 * Date time UTC conversion is determined by the form metadata utc setting
 * @param datetimeVars year, month (1 based index), day, hour
@@ -334,7 +332,7 @@ export class FormEntryDefinition {
                 newObs.elementId === dbObservation.elementId &&
                 newObs.sourceId === dbObservation.sourceId &&
                 newObs.level === dbObservation.level &&
-                newObs.datetime === dbObservation.datetime 
+                newObs.datetime === dbObservation.datetime
             ) {
                 return dbObservation;
             }

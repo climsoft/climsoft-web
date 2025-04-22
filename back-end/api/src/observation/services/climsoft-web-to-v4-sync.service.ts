@@ -20,7 +20,6 @@ export class ClimsoftWebToV4SyncService {
     }
 
     public async saveWebObservationstoV4DB(): Promise<void> {
-
         // If saving to v4 is not allowed thhen just return
         if (!AppConfig.v4DbCredentials.v4Save) {
             return;

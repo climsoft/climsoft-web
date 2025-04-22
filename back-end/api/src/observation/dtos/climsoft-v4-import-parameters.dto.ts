@@ -1,9 +1,9 @@
 import { Transform, Type } from "class-transformer";
-import { IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsDateString, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ClimsoftV4ImportParametersDto {
-    @IsString()
+    @IsDateString()
     fromEntryDate: string;
 
     @IsOptional()
@@ -22,7 +22,8 @@ export class ClimsoftV4ImportParametersDto {
     @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
     includeClimsoftWebData: boolean;
 
-    //TODO. Pull timeout
+    @IsInt()
+    pollingInterval: number; // In minutes
 
     isValid(): boolean {
         return true;
