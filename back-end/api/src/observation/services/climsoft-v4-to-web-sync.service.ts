@@ -343,7 +343,7 @@ export class ClimsoftV4ToWebSyncService {
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
-            this.importV4ObservationstoV5DB();
+            this.importV4ObservationstoV5DB(); // TODO. Check on whether you want have this under a set timeout
 
         } catch (error) {
             this.logger.error('error when fetching data from observationfinal table', error);
