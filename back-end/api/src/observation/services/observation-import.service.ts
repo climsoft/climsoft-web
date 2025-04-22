@@ -244,6 +244,8 @@ export class ObservationImportService {
 
         // Convert the value column to double. 
         // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))       
+        // TODO. As 0f 22/04/2025. There seems to still be precision issues with DOUBLE when getting data via nodejs. 
+        // If this still persists try getting the value column as string when getting data via nodejs.
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
 
         return sql;

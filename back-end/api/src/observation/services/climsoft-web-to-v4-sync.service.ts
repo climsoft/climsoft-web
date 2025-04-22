@@ -11,16 +11,15 @@ import { AppConfig } from 'src/app.config';
 @Injectable()
 export class ClimsoftWebToV4SyncService {
     private readonly logger = new Logger(ClimsoftWebToV4SyncService.name);
-    private v4UtcOffset: number = 0;
     private isSaving: boolean = false;
 
     constructor(
-        private climsoftV4webSetupService: ClimsoftV4WebSyncSetUpService,
+        private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
     ) {
     }
 
-    public async saveV5ObservationstoV4DB(): Promise<void> {
+    public async saveWebObservationstoV4DB(): Promise<void> {
 
         // If saving to v4 is not allowed thhen just return
         if (!AppConfig.v4DbCredentials.v4Save) {
@@ -28,10 +27,10 @@ export class ClimsoftWebToV4SyncService {
         }
 
         // Always attempt first connection if not tried before
-        await this.climsoftV4webSetupService.attemptFirstConnectionIfNotTried();
+        await this.climsoftV4WebSetupService.attemptFirstConnectionIfNotTried();
 
         // if version 4 database pool is not set up then return
-        if (!this.climsoftV4webSetupService.v4DBPool) {
+        if (!this.climsoftV4WebSetupService.v4DBPool) {
             this.logger.log('Aborting saving. No V4 connection pool. ');
             return;
         }
@@ -43,8 +42,8 @@ export class ClimsoftWebToV4SyncService {
         }
 
         // If there are any conflicts with version 4 database then areturn
-        if (this.climsoftV4webSetupService.v4Conflicts.length > 0) {
-            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4webSetupService.v4Conflicts);
+        if (this.climsoftV4WebSetupService.v4Conflicts.length > 0) {
+            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4WebSetupService.v4Conflicts);
             return;
         }
 
@@ -81,7 +80,7 @@ export class ClimsoftWebToV4SyncService {
 
         // Bulk delete when soft delete happens
         if (deletedEntities.length > 0) {
-            if (await this.deleteSoftDeletedV5DataFromV4DB(this.climsoftV4webSetupService.v4DBPool, deletedEntities)) {
+            if (await this.deleteSoftDeletedV5DataFromV4DB(this.climsoftV4WebSetupService.v4DBPool, deletedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
             }
@@ -89,7 +88,7 @@ export class ClimsoftWebToV4SyncService {
 
         // Bulk insert or update when there are new inserts or updates
         if (insertedOrUpdatedEntities.length > 0) {
-            if (await this.insertOrUpdateV5DataToV4DB(this.climsoftV4webSetupService.v4DBPool, insertedOrUpdatedEntities)) {
+            if (await this.insertOrUpdateWebDataToV4DB(this.climsoftV4WebSetupService.v4DBPool, insertedOrUpdatedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
             }
@@ -99,10 +98,10 @@ export class ClimsoftWebToV4SyncService {
         this.isSaving = false;
 
         // Asynchronously initiate another save to version 4 operation
-        this.saveV5ObservationstoV4DB();
+        this.saveWebObservationstoV4DB();
     }
 
-    private async insertOrUpdateV5DataToV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
+    private async insertOrUpdateWebDataToV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
         // Get a connection from the pool
         const connection = await v4DBPool.getConnection();
         try {
@@ -133,30 +132,30 @@ export class ClimsoftWebToV4SyncService {
             const values: (string | number | null | undefined)[][] = [];
             for (const entity of entities) {
 
-                if (!this.climsoftV4webSetupService.v4StationsForWebChecking.has(entity.stationId)) {
-                    this.climsoftV4webSetupService.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
+                if (!this.climsoftV4WebSetupService.v4Stations.has(entity.stationId)) {
+                    this.climsoftV4WebSetupService.v4Conflicts.push(`station id ${entity.stationId} not found in v4 database`)
                     continue;
                 }
 
-                const v4Element = this.climsoftV4webSetupService.v4ElementsForWebMappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4WebSetupService.v4Elements.get(entity.elementId);
                 // If element not found, just continue
                 if (!v4Element) {
-                    this.climsoftV4webSetupService.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
+                    this.climsoftV4WebSetupService.v4Conflicts.push(`element id ${entity.elementId} not found in v4 database`)
                     continue;
                 }
 
-                let sourceName: string | undefined = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
+                let sourceName: string | undefined = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
                 // if source name not found then a new user was added. So refetch v5 sources and attempt to find the source name again
                 if (!sourceName) {
-                    await this.climsoftV4webSetupService.setupV5Sources();
-                    sourceName = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
+                    await this.climsoftV4WebSetupService.setupV5Sources();
+                    sourceName = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
                 }
 
-                let userEmail: string | undefined = this.climsoftV4webSetupService.webUsers.get(entity.entryUserId);
+                let userEmail: string | undefined = this.climsoftV4WebSetupService.webUsers.get(entity.entryUserId);
                 // if email not found then a new user was added. So refetch v5 users and attempt to find the email again
                 if (!userEmail) {
-                    await this.climsoftV4webSetupService.setupV5Users();
-                    userEmail = this.climsoftV4webSetupService.webUsers.get(entity.entryUserId);
+                    await this.climsoftV4WebSetupService.setupWebUsers();
+                    userEmail = this.climsoftV4WebSetupService.webUsers.get(entity.entryUserId);
                 }
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
@@ -178,14 +177,14 @@ export class ClimsoftWebToV4SyncService {
 
             }
 
-            if (this.climsoftV4webSetupService.v4Conflicts.length > 0) {
+            if (this.climsoftV4WebSetupService.v4Conflicts.length > 0) {
                 return false;
             }
 
             // Execute the batch upsert 
             const results: mariadb.UpsertResult = await connection.batch(upsertStatement, values);
 
-            console.log('V4 insert update status:', results);
+            this.logger.log('V4 insert update status: ' + results);
 
             // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
             // Once for detecting the conflict (i.e., attempting to insert)
@@ -223,11 +222,9 @@ export class ClimsoftWebToV4SyncService {
     }
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
-        const dateAdjusted = new Date(date);
-        // Subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
-        dateAdjusted.setHours(dateAdjusted.getHours() - this.v4UtcOffset);
-        DateUtils.getDateInSQLFormat
-        return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '')
+        // When saving to version 4 database, add the offset.
+        const strAdjustedDate = DateUtils.getDatetimesBasedOnUTCOffset(date.toISOString(), this.climsoftV4WebSetupService.v4UtcOffset, 'add');
+        return strAdjustedDate.replace('T', ' ').replace('Z', '');
     }
 
     private async deleteSoftDeletedV5DataFromV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
@@ -258,13 +255,13 @@ export class ClimsoftWebToV4SyncService {
                 }
 
                 // Retrieve the v4 element information
-                const v4Element = this.climsoftV4webSetupService.v4ElementsForWebMappingAndChecking.get(entity.elementId);
+                const v4Element = this.climsoftV4WebSetupService.v4Elements.get(entity.elementId);
                 if (!v4Element) {
                     // Skip entities that do not have a corresponding v4 element
                     continue;
                 }
 
-                const sourceName: string | undefined = this.climsoftV4webSetupService.v5Sources.get(entity.sourceId);
+                const sourceName: string | undefined = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
 
                 // Get the value mapping for the entity
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);

@@ -47,10 +47,12 @@ export class ClimsoftV4WebSyncSetUpService {
     private firstConnectionAttemptAlreadyTried: boolean = false;
     public v4DBPool: mariadb.Pool | null = null;
     public v4UtcOffset: number = 0;
-    public readonly v4ElementsForWebMappingAndChecking: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
-    public readonly v4StationsForWebChecking: Set<string> = new Set();
-    public readonly v5Sources: Map<number, string> = new Map();
+    public readonly v4Elements: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
+    public readonly v4Stations: Set<string> = new Set();
+    public readonly webSources: Map<number, string> = new Map();
     public readonly webUsers: Map<number, string> = new Map();
+    public readonly webStations: Set<string> = new Set();
+    public readonly webElements: Set<number> = new Set();
     public readonly v4Conflicts: string[] = [];
 
     constructor(
@@ -121,11 +123,15 @@ export class ClimsoftV4WebSyncSetUpService {
             await this.setupV4ElementsForV5MappingAndChecking();
 
             // set up v4 stations used to check if v4 has elements that are in v5 database
-            await this.setupV4StationsForV5Checking();
+            await this.setupV4StationsChecking();
 
             await this.setupV5Sources();
 
-            await this.setupV5Users();
+            await this.setupWebUsers();
+
+            await this.setupWebStationsChecking();
+
+            await this.setupWebElementsChecking();
 
         } catch (error) {
             this.logger.error('Setting up V4 database connection failed: ', error);
@@ -134,25 +140,34 @@ export class ClimsoftV4WebSyncSetUpService {
     }
 
     private async setupV4ElementsForV5MappingAndChecking(): Promise<void> {
-        this.v4ElementsForWebMappingAndChecking.clear();
-        (await this.getV4Elements()).forEach((item) => this.v4ElementsForWebMappingAndChecking.set(item.elementId, item));
+        this.v4Elements.clear();
+        (await this.getV4Elements()).forEach((item) => this.v4Elements.set(item.elementId, item));
     }
 
-    private async setupV4StationsForV5Checking(): Promise<void> {
-        this.v4StationsForWebChecking.clear();
-        (await this.getV4Stations()).forEach((item) => this.v4StationsForWebChecking.add(item.stationId));
+    private async setupV4StationsChecking(): Promise<void> {
+        this.v4Stations.clear();
+        (await this.getV4Stations()).forEach((item) => this.v4Stations.add(item.stationId));
     }
 
     public async setupV5Sources(): Promise<void> {
-        this.v5Sources.clear();
-        (await this.sourcesService.findAll()).forEach(item => this.v5Sources.set(item.id, item.name));
+        this.webSources.clear();
+        (await this.sourcesService.findAll()).forEach(item => this.webSources.set(item.id, item.name));
     }
 
-    public async setupV5Users(): Promise<void> {
+    public async setupWebUsers(): Promise<void> {
         this.webUsers.clear();
         (await this.usersService.findAll()).forEach(item => this.webUsers.set(item.id, item.email));
     }
 
+    private async setupWebStationsChecking(): Promise<void> {
+        this.webStations.clear();
+        (await this.stationsService.find()).forEach((item) => this.webStations.add(item.id));
+    }
+
+    private async setupWebElementsChecking(): Promise<void> {
+        this.webElements.clear();
+        (await this.elementsService.find()).forEach((item) => this.webElements.add(item.id));
+    }
 
     public async disconnect(): Promise<void> {
         // If there is an active connection then end it

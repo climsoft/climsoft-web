@@ -22,6 +22,8 @@ export class ClimsoftV4ImportParametersDto {
     @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
     includeClimsoftWebData: boolean;
 
+    //TODO. Pull timeout
+
     isValid(): boolean {
         return true;
     }

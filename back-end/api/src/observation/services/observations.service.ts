@@ -275,7 +275,7 @@ export class ObservationsService {
 
         if (!ignoreV4Saving) {
             // Initiate saving to version 4 database as well
-            this.climsoftV4Service.saveV5ObservationstoV4DB();
+            this.climsoftV4Service.saveWebObservationstoV4DB();
         }
 
     }
@@ -345,7 +345,7 @@ export class ObservationsService {
 
         console.log('Soft Deleted Observations: ', updatedResults);
 
-        this.climsoftV4Service.saveV5ObservationstoV4DB();
+        this.climsoftV4Service.saveWebObservationstoV4DB();
 
         // If affected results not supported then just return the dtos length.
         // Note, affected results will always be defined because the API uses postgres.

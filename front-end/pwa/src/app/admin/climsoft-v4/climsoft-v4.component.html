@@ -57,7 +57,7 @@
       </div>
 
       <hr />
-      <div>
+      <div class="mb-2">
         <div class="fw-bold">Data Sync from version 4 State:</div>
         <div>
 
@@ -124,6 +124,7 @@
         </div>
 
         <div *ngIf="showImportStarted || importingFromV4" class="mt-2">
+         
           <div class="px-4 w-100">
             <div class="progress">
               <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%">
@@ -147,7 +148,7 @@
     
       </div>
 
-      <div *ngIf="v4Conflicts && v4Conflicts.length>0">
+      <div *ngIf="v4Conflicts && v4Conflicts.length>0" class="mb-2">
         <hr />
         <div>
           <div class="fw-bold">Conflicts:</div>

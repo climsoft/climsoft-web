@@ -74,7 +74,7 @@ export class ClimsoftV4Controller {
   @Post('save-observations')
   async saveObservations() {
     this.climsoftV4V5SetUpService.resetV4Conflicts();
-    await this.climsoftV5ToV4Service.saveV5ObservationstoV4DB();
+    await this.climsoftV5ToV4Service.saveWebObservationstoV4DB();
     return { message: 'success' };
   }
 

@@ -9,6 +9,10 @@ import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
 import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { AppConfig } from 'src/app.config';
+import { StringUtils } from 'src/shared/utils/string.utils';
+import { FlagEnum } from '../enums/flag.enum';
+import { DateUtils } from 'src/shared/utils/date.utils';
 
 @Injectable()
 export class ClimsoftV4ToWebSyncService {
@@ -19,7 +23,7 @@ export class ClimsoftV4ToWebSyncService {
     private userId: number;
 
     constructor(
-        private climsoftV4V5SetupService: ClimsoftV4WebSyncSetUpService,
+        private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
         private sourcesService: SourceTemplatesService,
         private observationsService: ObservationsService,
         private dataSource: DataSource,
@@ -71,7 +75,7 @@ export class ClimsoftV4ToWebSyncService {
                 description: 'Import from Climsoft version 4 database',
                 sourceType: SourceTypeEnum.IMPORT,
                 parameters: importParameters,
-                utcOffset: this.climsoftV4V5SetupService.v4UtcOffset,
+                utcOffset: this.climsoftV4WebSetupService.v4UtcOffset,
                 allowMissingValue: true,
                 scaleValues: false,
                 sampleImage: '',
@@ -87,9 +91,9 @@ export class ClimsoftV4ToWebSyncService {
         }
 
         // Always attempt first connection if not tried before
-        await this.climsoftV4V5SetupService.attemptFirstConnectionIfNotTried();
+        await this.climsoftV4WebSetupService.attemptFirstConnectionIfNotTried();
 
-        if (!this.climsoftV4V5SetupService.v4DBPool) {
+        if (!this.climsoftV4WebSetupService.v4DBPool) {
             this.logger.log('Aborting starting import. No V4 connection pool. ');
             return;
         }
@@ -103,14 +107,14 @@ export class ClimsoftV4ToWebSyncService {
         // Set up 'entry_date_time' first if not already set up
         if (!(await this.addEntryDateTimeColumnIfNotExists())) {
             // Add the conflict and return
-            this.climsoftV4V5SetupService.v4Conflicts.push('entry_date_time coud not be set up in version 4 database. Aborting import');
+            this.climsoftV4WebSetupService.v4Conflicts.push('entry_date_time coud not be set up in version 4 database. Aborting import');
             return;
         }
 
         // Set acquisition tpe index if not set up
         if (!(await this.addAcquisitionTypeIndexIfNotExists())) {
             // Add the conflict and return
-            this.climsoftV4V5SetupService.v4Conflicts.push('index idx_acquisition_type coud not be set up in version 4 database. Aborting import');
+            this.climsoftV4WebSetupService.v4Conflicts.push('index idx_acquisition_type coud not be set up in version 4 database. Aborting import');
             return;
         }
 
@@ -123,11 +127,11 @@ export class ClimsoftV4ToWebSyncService {
     }
 
     private async addEntryDateTimeColumnIfNotExists(): Promise<boolean> {
-        if (this.climsoftV4V5SetupService.v4DBPool === null) {
+        if (this.climsoftV4WebSetupService.v4DBPool === null) {
             return false;
         }
         this.logger.log('Attempting to add column "entry_date_time" in v4 database');
-        const connection = await this.climsoftV4V5SetupService.v4DBPool.getConnection();
+        const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
             // Check if the column exists
             const result = await connection.query(
@@ -173,11 +177,11 @@ export class ClimsoftV4ToWebSyncService {
     }
 
     private async addAcquisitionTypeIndexIfNotExists(): Promise<boolean> {
-        if (this.climsoftV4V5SetupService.v4DBPool === null) {
+        if (this.climsoftV4WebSetupService.v4DBPool === null) {
             return false;
         }
         this.logger.log('Attempting to add index for column"acquisitionType" in v4 database');
-        const connection = await this.climsoftV4V5SetupService.v4DBPool.getConnection();
+        const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
             // Check if the column exists
             const result = await connection.query(
@@ -205,17 +209,19 @@ export class ClimsoftV4ToWebSyncService {
         }
     }
 
-
     private async importV4ObservationstoV5DB(): Promise<void> {
-
         // If importing from v4 to v5 is not allowed. Then just return
+        if (!AppConfig.v4DbCredentials.v4Import) {
+            return;
+        }
+
         if (!this.climsoftSource) {
             return;
         }
 
 
         // if version 4 database pool is not set up then return
-        if (!this.climsoftV4V5SetupService.v4DBPool) {
+        if (!this.climsoftV4WebSetupService.v4DBPool) {
             this.logger.log('Aborting saving. No V4 connection pool. ');
             return;
         }
@@ -227,8 +233,8 @@ export class ClimsoftV4ToWebSyncService {
         }
 
         // If there are any conflicts with version 4 database then areturn
-        if (this.climsoftV4V5SetupService.v4Conflicts.length > 0) {
-            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4V5SetupService.v4Conflicts);
+        if (this.climsoftV4WebSetupService.v4Conflicts.length > 0) {
+            this.logger.log('Aborting saving. V5 database has conflicts with v4 database: ', this.climsoftV4WebSetupService.v4Conflicts);
             return;
         }
 
@@ -262,12 +268,12 @@ export class ClimsoftV4ToWebSyncService {
         WHERE ${sqlCondition} ORDER BY entry_date_time ASC LIMIT 1000;
         `;
 
-        const connection = await this.climsoftV4V5SetupService.v4DBPool.getConnection();
+        const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
-            console.log('SQL: ', sql);
+
             // Check if the column exists
             const v4Observations = await connection.query(sql);
-            console.log('Results: ', v4Observations);
+            console.log('v4 observations: ', v4Observations);
 
             if (v4Observations.length === 0) {
                 this.isImporting = false;
@@ -283,48 +289,115 @@ export class ClimsoftV4ToWebSyncService {
             const obsDtos: CreateObservationDto[] = [];
 
             for (const v4Observation of v4Observations) {
-                //TODO. Left here. Do lots of checks
+
+                const v4StationId: string = v4Observation.recordedFrom;
+                if (importParameters.stationIds) {
+                    const stationsAllowedToSave = importParameters.stationIds.find(item => item === v4StationId);
+                    if (!stationsAllowedToSave) {
+                        continue;
+                    }
+
+                } else if (!this.climsoftV4WebSetupService.webStations.has(v4StationId)) {
+                    this.climsoftV4WebSetupService.v4Conflicts.push(`station id ${v4Observation.recordedFrom} not found in web database`)
+                    continue;
+                }
+
+                const v4ElementId: number = Number(v4Observation.describedBy);
+                const elementAllowedToSave = importParameters.elements.find(item => item.elementId === v4ElementId);
+                if (!elementAllowedToSave) {
+                    continue;
+                }
+
+                const webElementId: number = elementAllowedToSave.elementId;
+                const webInterval: number = elementAllowedToSave.interval;
+                const webLevel: number = v4Observation.obsLevel !== 'surface' && StringUtils.containsNumbersOnly(v4Observation.obsLevel) ? v4Observation.obsLevel : 0;
+                const webDatetime: string = this.getWebDatetime(v4Observation.obsDatetime);
+                const webValue: number | null = this.getWebvalue(v4Observation.obsValue);
+                const webFlag: FlagEnum | null = this.getWebFlag(v4Observation.flag);
+
+                if (webValue === null && webFlag === null) {
+                    continue; // Web database does not accept this. So likely an error on the version 4 database
+                }
 
                 const dto: CreateObservationDto = {
-                    stationId: v4Observation.recordedFrom,
-                    elementId: v4Observation.describedBy,
-                    sourceId: v4Observation.obsDatetime,
-                    level: v4Observation.obsLevel,
-                    datetime: v4Observation.obsValue,
-                    interval: 1,
-                    value: v4Observation.obsValue,
-                    flag: v4Observation.flag,
+                    stationId: v4StationId,
+                    elementId: webElementId,
+                    sourceId: this.climsoftSource.id,
+                    level: webLevel,
+                    datetime: webDatetime,
+                    interval: webInterval,
+                    value: webValue,
+                    flag: webFlag,
                     comment: null
                 }
 
+                obsDtos.push(dto);
             }
+
+
+            if (this.climsoftV4WebSetupService.v4Conflicts.length > 0) {
+                this.logger.log('Aborting saving to v4. Web database has conflicts with v4 database: ', this.climsoftV4WebSetupService.v4Conflicts);
+                this.isImporting = false;
+                return;
+            }
+
+            console.log('web observations: ', obsDtos);
 
 
             // Save the versin 4 observations to web database
             //await this.observationsService.bulkPut(obsDtos, this.userId, true);
 
             // Set last import date
-            //this.lastImportDate = obsDtos[obsDtos.length-1].datetime;
+            this.lastImportDate = DateUtils.getDateOnlyAsString(new Date(obsDtos[obsDtos.length - 1].datetime));
 
             // Set saving to false before initiating another save operation
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
-            //this.importV4ObservationstoV5DB();
+            this.importV4ObservationstoV5DB();
+
+            console.log('lastImportDate: ',  this.lastImportDate);
 
         } catch (error) {
             this.logger.error('error when fetching data from observationfinal table', error);
-            this.climsoftV4V5SetupService.v4Conflicts.push('error when fetching data from observationfinal table' + error);
+            this.climsoftV4WebSetupService.v4Conflicts.push('error when fetching data from observationfinal table' + error);
         } finally {
             if (connection) await connection.release();
         }
-
-
-
     }
 
+    private getWebDatetime(v4Datetime: string): string {
+        // When getting data from v4, subtract the utc offset  
+        return DateUtils.getDatetimesBasedOnUTCOffset(v4Datetime, this.climsoftV4WebSetupService.v4UtcOffset, 'subtract');
+    }
 
+    private getWebvalue(v4Value: string): number | null {
+        // Version 4 stores values as strings in the database. 
+        // So do the folowing.
 
+        // Check for empty string and nulls first. 
+        if (!v4Value) {
+            return null;
+        }
+
+        // Convert value to a valid number
+        const num = Number(v4Value);
+        return isNaN(num) ? null : num;
+    }
+
+    private getWebFlag(v4Flag: string | null): FlagEnum | null {
+        if (!v4Flag) {
+            return null;
+        }
+
+        const webFlags: FlagEnum[] = Object.values(FlagEnum);
+        for (const webFlag of webFlags) {
+            if (webFlag[0].toLowerCase() === v4Flag[0].toLowerCase()) {
+                return webFlag;
+            }
+        }
+        return null;
+    }
 
 
 
