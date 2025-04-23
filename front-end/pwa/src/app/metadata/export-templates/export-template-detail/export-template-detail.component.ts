@@ -65,8 +65,7 @@ export class ExportTemplateDetailComponent implements OnInit {
   }
 
   protected onIntervalsStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440];
-    console.log('interval option', option, 'params', this.viewExportTemplate.parameters.intervals)
+    this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440]; 
   }
 
   protected onDateStatusSelection(option: string): void {

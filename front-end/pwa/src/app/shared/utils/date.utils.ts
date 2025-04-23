@@ -108,7 +108,7 @@ export class DateUtils {
 
     public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
         if (utcOffset === 0) return strDate;
-        let newDate: Date = new Date(strDate);
+        const newDate: Date = new Date(strDate);
         if (operation === 'subtract') {
             newDate.setHours(newDate.getHours() - utcOffset);
         } else {

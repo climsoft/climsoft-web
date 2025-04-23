@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe,  Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -73,7 +73,7 @@ export class ObservationsController {
     @Req() request: Request,
     @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
     @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
-    return this.exportObservationsService.generateExports(exportTemplateId, viewObsevationQuery,AuthUtil.getLoggedInUser(request).id);
+    return this.exportObservationsService.generateExports(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request).id);
   }
 
   @Get('download-export/:templateid')

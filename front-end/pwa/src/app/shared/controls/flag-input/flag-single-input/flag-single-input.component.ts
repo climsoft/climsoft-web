@@ -23,7 +23,7 @@ export class FlagSingleInputComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //load options once
     if (!this.options) {
-      this.options = Object.values(FlagEnum);;
+      this.options = Object.values(FlagEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
@@ -33,7 +33,7 @@ export class FlagSingleInputComponent implements OnChanges {
 
     // Only react to changes if selectedId actually changes and is not the first change
     if (this.selectedId) {
-      const found = this.options.find(period => period === this.selectedId);
+      const found = this.options.find(item => item === this.selectedId);
       if (found && found !== this.selectedOption) {
         //console.log('setting found: ', found)
         this.selectedOption = found;

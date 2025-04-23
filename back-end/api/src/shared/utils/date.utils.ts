@@ -71,6 +71,28 @@ export class DateUtils {
         return Number(sqlDate.substring(11, 13));
     }
 
+    public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
+        if (utcOffset === 0) return strDate;
+        const newDate: Date = new Date(strDate);
+        if (operation === 'subtract') {
+            newDate.setHours(newDate.getHours() - utcOffset);
+        } else {
+            newDate.setHours(newDate.getHours() + utcOffset);
+        }
+        return newDate.toISOString();
+    }
+
+    /**
+  * returns the date part only as string.
+  * Uses local timezone
+  * @param date 
+  * @returns 
+  */
+    public static getDateOnlyAsString(date: Date): string {
+        // Note, don't use toISO here because the user sees the date in the local timezone
+        return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
+    }
+
 }
 
 

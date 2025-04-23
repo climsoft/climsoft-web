@@ -10,12 +10,13 @@ export class AppConfig {
   }
 
   public static readonly v4DbCredentials = {
-    v4Save: process.env.V4_SAVE ? (process.env.V4_SAVE === 'yes') : false,
-    host: process.env.V4_DB_HOST ? process.env.V4_DB_HOST : 'host.docker.internal', 
+    v4Save: AppConfig.devMode ? true : (process.env.V4_SAVE ? (process.env.V4_SAVE === 'yes') : false),
+    v4Import: AppConfig.devMode ? true : (process.env.V4_IMPORT ? (process.env.V4_IMPORT === 'yes') : false),
+    host: AppConfig.devMode ? 'localhost' : (process.env.V4_DB_HOST ? process.env.V4_DB_HOST : 'host.docker.internal'),
     port: process.env.V4_DB_PORT ? +process.env.V4_DB_PORT : 3306,
     username: process.env.V4_DB_USERNAME ? process.env.V4_DB_USERNAME : 'my_user',
     password: process.env.V4_DB_PASSWORD ? process.env.V4_DB_PASSWORD : 'my_password',
     databaseName: process.env.V4_DB_NAME ? process.env.V4_DB_NAME : 'mariadb_climsoft_db_v4',
-    utcOffset: process.env.V4_DB_UTCOFFSET ? +process.env.V4_DB_UTCOFFSET : 0,  
+    utcOffset: process.env.V4_DB_UTCOFFSET ? +process.env.V4_DB_UTCOFFSET : 0,
   }
 }

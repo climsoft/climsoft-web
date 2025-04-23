@@ -296,8 +296,6 @@ export class FormEntryDefinition {
         };
     }
 
-
-
     /**
 * Date time UTC conversion is determined by the form metadata utc setting
 * @param datetimeVars year, month (1 based index), day, hour
@@ -305,9 +303,6 @@ export class FormEntryDefinition {
 */
     private getObsDatetime(datetimeVars: [number, number, number, number]): string {
         let [year, month, day, hour] = datetimeVars;
-        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-        //hour = hour - this.source.utcOffset;
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 
@@ -337,7 +332,7 @@ export class FormEntryDefinition {
                 newObs.elementId === dbObservation.elementId &&
                 newObs.sourceId === dbObservation.sourceId &&
                 newObs.level === dbObservation.level &&
-                newObs.datetime === dbObservation.datetime //&& newObs.period === dbObservation.period
+                newObs.datetime === dbObservation.datetime
             ) {
                 return dbObservation;
             }
