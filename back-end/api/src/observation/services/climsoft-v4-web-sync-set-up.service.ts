@@ -10,6 +10,12 @@ import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.en
 import { UsersService } from 'src/user/services/users.service';
 import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
 import { AppConfig } from 'src/app.config';
+import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
+import { FindOptionsWhere } from 'typeorm';
+import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/source-template.entity';
+import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
+import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
 
 export interface V4ElementModel {
     elementId: number;
@@ -115,8 +121,8 @@ export class ClimsoftV4WebSyncSetUpService {
                 database: AppConfig.v4DbCredentials.databaseName,
                 port: AppConfig.v4DbCredentials.port,
                 dateStrings: true,
-            }); 
- 
+            });
+
             // Clear any previous conflicts
             this.resetV4Conflicts();
 
@@ -367,6 +373,37 @@ export class ClimsoftV4WebSyncSetUpService {
         await this.stationsService.bulkPut(v5Dtos, userId);
 
         return true;
+    }
+
+    public async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
+        const selectOptions: FindOptionsWhere<SourceTemplateEntity> = {
+            name: 'climsoft_v4',
+        };
+        await this.sourcesService.findAll(selectOptions);
+        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions);
+        return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
+    }
+
+    public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceDto> {
+        const existingClimsoftV4Source: ViewSourceDto | null = await this.getClimsoftImportSource();
+        if (existingClimsoftV4Source) {
+            existingClimsoftV4Source.parameters = importParameters;
+            return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);
+        } else {
+            const newClismoftSource: CreateUpdateSourceDto = {
+                name: 'climsoft_v4',
+                description: 'Import from Climsoft version 4 database',
+                sourceType: SourceTypeEnum.IMPORT,
+                parameters: importParameters,
+                utcOffset: this.v4UtcOffset,
+                allowMissingValue: true,
+                scaleValues: false,
+                sampleImage: '',
+                disabled: false,
+                comment: null,
+            }
+            return await this.sourcesService.create(newClismoftSource, userId);
+        }
     }
 
 }

@@ -1,11 +1,6 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
-import { DataSource, FindOptionsWhere } from 'typeorm';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
-import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
-import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/source-template.entity';
-import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { ClimsoftV4ImportParametersDto, ElementIntervalModel } from '../dtos/climsoft-v4-import-parameters.dto';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
 import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
@@ -23,9 +18,7 @@ export class ClimsoftV4ToWebSyncService {
 
     constructor(
         private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
-        private sourcesService: SourceTemplatesService,
         private observationsService: ObservationsService,
-        private dataSource: DataSource,
     ) {
     }
 
@@ -39,46 +32,18 @@ export class ClimsoftV4ToWebSyncService {
      * @returns 
      */
     public async getV4ImportParameters(): Promise<ClimsoftV4ImportParametersDto> {
-        const existingClimsoftV4Source = await this.getClimsoftImportSource();
+        const existingClimsoftV4Source = await this.climsoftV4WebSetupService.getClimsoftImportSource();
         if (!existingClimsoftV4Source) {
             throw new NotFoundException(`not_found`);
         }
         return existingClimsoftV4Source.parameters as ClimsoftV4ImportParametersDto;
     }
 
-    private async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
-        const selectOptions: FindOptionsWhere<SourceTemplateEntity> = {
-            name: 'climsoft_v4',
-        };
-        await this.sourcesService.findAll(selectOptions);
-        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions);
-        return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
-    }
+
 
     public async startV4Import(importParameters: ClimsoftV4ImportParametersDto, userId: number) {
-        this.climsoftSource = undefined;
+        this.climsoftSource = await this.climsoftV4WebSetupService.saveClimsoftImportParameters(importParameters, userId);
         this.userId = userId;
-
-        const existingClimsoftV4Source: ViewSourceDto | null = await this.getClimsoftImportSource();
-        if (existingClimsoftV4Source) {
-            existingClimsoftV4Source.parameters = importParameters;
-            this.climsoftSource = (await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId));
-        } else {
-            const newClismoftSource: CreateUpdateSourceDto = {
-                name: 'climsoft_v4',
-                description: 'Import from Climsoft version 4 database',
-                sourceType: SourceTypeEnum.IMPORT,
-                parameters: importParameters,
-                utcOffset: this.climsoftV4WebSetupService.v4UtcOffset,
-                allowMissingValue: true,
-                scaleValues: false,
-                sampleImage: '',
-                disabled: false,
-                comment: null,
-
-            }
-            this.climsoftSource = (await this.sourcesService.create(newClismoftSource, userId))
-        }
 
         // Always attempt first connection if not tried before
         await this.climsoftV4WebSetupService.attemptFirstConnectionIfNotTried();
@@ -235,7 +200,7 @@ export class ClimsoftV4ToWebSyncService {
 
         // Manually construct the SQL query
         const lastImportedDataDate: string = importParameters.fromEntryDate.replace('T', ' ').replace('Z', '');
-        this.logger.log('import starting from date time: ' + importParameters.fromEntryDate + ' | OR: '+ lastImportedDataDate);
+        this.logger.log('import starting from date time: ' + importParameters.fromEntryDate + ' | OR: ' + lastImportedDataDate);
         let sqlCondition: string = `entry_date_time > '${lastImportedDataDate}'`;
 
         sqlCondition = sqlCondition + ` AND describedBy IN (${importParameters.elements.map(item => item.elementId).join(',')})`;
@@ -269,14 +234,14 @@ export class ClimsoftV4ToWebSyncService {
                 this.isImporting = false;
                 // Save updated from entry with the last entry date to database
                 this.climsoftSource.parameters = importParameters;
-                this.sourcesService.update(this.climsoftSource.id, this.climsoftSource, this.userId)
+                // Save the import parameters without waiting for it
+                this.climsoftV4WebSetupService.saveClimsoftImportParameters(importParameters, this.userId)
                 return;
             }
 
             const obsDtos: CreateObservationDto[] = [];
 
             for (const v4Observation of v4Observations) {
-
                 const v4StationId: string = v4Observation.recordedFrom;
                 if (importParameters.stationIds) {
                     const stationsAllowedToSave = importParameters.stationIds.find(item => item === v4StationId);
@@ -298,7 +263,7 @@ export class ClimsoftV4ToWebSyncService {
                 const webElementId: number = elementAllowedToSave.elementId;
                 const webInterval: number = elementAllowedToSave.interval;
                 const webLevel: number = v4Observation.obsLevel !== 'surface' && StringUtils.containsNumbersOnly(v4Observation.obsLevel) ? v4Observation.obsLevel : 0;
-                const webDatetime: string = this.getWebDatetime(v4Observation.obsDatetime);
+                const webDatetime: string = this.getWebDatetimeFromV4SQLDatetime(v4Observation.obsDatetime);
                 const webValue: number | null = this.getWebvalue(v4Observation.obsValue);
                 const webFlag: FlagEnum | null = this.getWebFlag(v4Observation.flag);
 
@@ -353,14 +318,14 @@ export class ClimsoftV4ToWebSyncService {
         }
     }
 
-    private getWebDatetime(v4Datetime: string): string {
+    private getWebDatetimeFromV4SQLDatetime(v4SQLDatetime: string): string {
         // When getting data from v4, subtract the utc offset  
         // Assumes input is in UTC and formatted as 'YYYY-MM-DD HH:mm:ss'
-        const utcDate = new Date(v4Datetime.replace(' ', 'T') + 'Z');
+        const utcDate = new Date(v4SQLDatetime.replace(' ', 'T') + 'Z');
         return DateUtils.getDatetimesBasedOnUTCOffset(utcDate.toISOString(), this.climsoftV4WebSetupService.v4UtcOffset, 'subtract');
     }
 
-    private convertV4DatetimeToJSDatetime(v4Datetime: string): string{
+    private convertV4DatetimeToJSDatetime(v4Datetime: string): string {
         const utcDate = new Date(v4Datetime.replace(' ', 'T') + 'Z');
         return utcDate.toISOString();
     }
@@ -392,10 +357,4 @@ export class ClimsoftV4ToWebSyncService {
         }
         return null;
     }
-
-
-
-
-
-
 }

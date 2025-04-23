@@ -265,13 +265,13 @@ export class ClimsoftWebToV4SyncService {
                 // Get the value mapping for the entity
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
 
-                // Populate the parameters for the composite key. These should match the values
-                // that were inserted/updated originally.
+                // Populate the parameters for the composite key. 
+                // These should match the values that were inserted/updated originally.
                 values.push([
                     entity.stationId,            // recordedFrom
                     entity.elementId,            // describedBy
                     v4ValueMap.v4DBDatetime,     // obsDatetime
-                    v4ValueMap.v4Level,      // obsLevel
+                    v4ValueMap.v4Level,          // obsLevel
                     0,                           // qcStatus (as used in the upsert)
                     7,                           // acquisitionType (as used in the upsert)
                     sourceName                   // source name (as used in the upsert)                            
@@ -282,14 +282,14 @@ export class ClimsoftWebToV4SyncService {
             // Each set of parameters will run the DELETE statement.
             const results: mariadb.UpsertResult = await connection.batch(deleteStatement, values);
 
-            console.log('Vv4 Delete status:', results);
+            this.logger.log('V4 Delete status: '+ results);
 
             // Note:
             // If some of the keys do not exist in the database the affectedRows count may be lower
             // than the number of entities. So just return true
             return true;
         } catch (err) {
-            console.error('Error deleting observations from v4 initial table:', err);
+            this.logger.error('Error deleting observations from v4 initial table:', err);
             return false;
         } finally {
             if (connection) connection.release(); // Ensure the connection is returned to the pool
