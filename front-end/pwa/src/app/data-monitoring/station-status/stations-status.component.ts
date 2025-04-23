@@ -1,37 +1,42 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { ObservationsService } from '../../services/observations.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { StationStatusEnum } from 'src/app/metadata/stations/models/station-status.enum';
 import * as L from 'leaflet';
-import { StationDataActivityComponent } from './station-data-monitoring/station-data-activity.component';
+import { StationDataComponent } from './station-status-data/station-status-data.component';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 
 interface StationView extends StationCacheModel {
   reporting: boolean;
 }
 
 @Component({
-  selector: 'app-stations-activity',
-  templateUrl: './stations-activity.component.html',
-  styleUrls: ['./stations-activity.component.scss']
+  selector: 'app-station-status',
+  templateUrl: './station-status.component.html',
+  styleUrls: ['./station-status.component.scss']
 })
-export class StationsActivityComponent implements OnChanges, OnDestroy {
-  @ViewChild('appStationDataActivity') appStationDataMonitoring!: StationDataActivityComponent;
+export class stationStatusComponent implements OnChanges, OnDestroy {
+  @ViewChild('appStationDataActivity') appStationDataMonitoring!: StationDataComponent;
   @Input() searchedStationIds!: string[];
   protected allowedStations: StationView[] = [];
-  protected  stationsToRender!: StationView[];
-  protected numOfStationsReporting: number=0;
-  protected numOfStationsNotReporting: number=0;
-  
+  protected stationsToRender!: StationView[];
+  protected numOfStationsReporting: number = 0;
+  protected numOfStationsNotReporting: number = 0;
+
   protected stationMapLayerGroup!: L.LayerGroup;
+  
+  protected enableQueryButton: boolean = true;
 
   private destroy$ = new Subject<void>();
 
   constructor(
+    private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private stationsCacheService: StationsCacheService,
     private observationsService: ObservationsService,) {
+    this.pagesDataService.setPageHeader('Stations Status'); 
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
@@ -92,7 +97,7 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
   }
 
   private filterOutSearchIds() {
-  
+
     if (this.searchedStationIds && this.searchedStationIds.length) {
       this.stationsToRender = this.allowedStations.filter(item => this.searchedStationIds.includes(item.id));
     } else {
@@ -107,7 +112,7 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
       }
       this.numOfStationsReporting = this.stationsToRender.filter(item => item.reporting).length;
       this.numOfStationsNotReporting = this.stationsToRender.filter(item => !item.reporting).length;
-   
+
       this.setupMap(this.stationsToRender);
     });
 
@@ -120,7 +125,7 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
       "features": stationsToRender.filter(station => (station.location !== null)).map(station => {
         return {
           "type": "Feature",
-          "properties": { 
+          "properties": {
             "station": station
           },
           "geometry": {
@@ -176,7 +181,9 @@ export class StationsActivityComponent implements OnChanges, OnDestroy {
     return marker;
   }
 
- 
-   
+  protected onQueryClick(t: any){
+
+  }
+
 
 }

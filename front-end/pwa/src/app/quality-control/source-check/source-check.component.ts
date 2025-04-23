@@ -1,16 +1,15 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, take, takeUntil } from 'rxjs';
-import { DuplicateModel, SourceCheckService } from '../../services/source-check.service';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { DuplicateModel, SourceCheckService } from '../../data-ingestion/services/source-check.service';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 
 export interface SourceCheckViewModel extends DuplicateModel {
   stationName: string;
@@ -46,8 +45,9 @@ export class SourceCheckComponent implements OnDestroy {
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private generalSettingsService: GeneralSettingsService,
   ) {
+    this.pagesDataService.setPageHeader('Source Check');
     // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
@@ -68,9 +68,6 @@ export class SourceCheckComponent implements OnDestroy {
     this.observationFilter = observationFilter;
     this.queryData();
   }
-
-
-
 
   private queryData(): void {
     this.enableQueryButton = false;

@@ -1,8 +1,6 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
-import { ObservationsService } from '../../../services/observations.service';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core'; 
 import { Subject, take, takeUntil } from 'rxjs';
-import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { Last24HoursObservations } from '../../../models/last-24-hours-observation.model';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service'; 
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
@@ -11,6 +9,8 @@ import { GeneralSettingsService } from 'src/app/admin/general-settings/services/
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { Last24HoursObservations } from 'src/app/data-ingestion/models/last-24-hours-observation.model';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 
 
 interface ObservationView extends Last24HoursObservations {
@@ -22,11 +22,11 @@ interface ObservationView extends Last24HoursObservations {
 }
 
 @Component({
-  selector: 'app-station-data-activity',
-  templateUrl: './station-data-activity.component.html',
-  styleUrls: ['./station-data-activity.component.scss']
+  selector: 'app-station-status-data',
+  templateUrl: './station-status-data.component.html',
+  styleUrls: ['./station-status-data.component.scss']
 })
-export class StationDataActivityComponent implements OnDestroy {
+export class StationDataComponent implements OnDestroy {
 
   @Output()
   public closeClick = new EventEmitter<void>();
@@ -47,7 +47,6 @@ export class StationDataActivityComponent implements OnDestroy {
     private generalSettingsService: GeneralSettingsService,
     private observationsService: ObservationsService,
   ) {
-
 
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),

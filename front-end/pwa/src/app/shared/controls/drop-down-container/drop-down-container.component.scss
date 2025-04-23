@@ -1,8 +1,10 @@
 .custom-drop-down {
+    position: absolute;
+    overflow: auto;
     /* Show dropdown on top of other content */
-    z-index: 10;
+    z-index: 1003; // Use 10003 instead of say 10002 because of leaflet and components on leaflet
     //transform: translate(-50%, 1%);
-
+    min-width: 100%;
 }
 
 .min-w-100 {

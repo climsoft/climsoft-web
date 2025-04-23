@@ -13,6 +13,8 @@ export interface MenuItem {
 export enum MainMenuNameEnum {
     DASHBOARD = 'Dashboard',
     DATA_INGESTION = 'Data Ingestion',
+    DATA_MONITORING = 'Data Monitoring',
+    QUALITY_CONTROL = 'Quality Control',
     DATA_EXTRACTION = 'Data Extraction',
     METADATA = 'Metadata',
     SYSTEM_ADMINISTRATOR = 'System Administrator',
@@ -24,9 +26,14 @@ export enum SubMenuNameEnum {
     SCHEDULED_IMPORT = 'Scheduled Import',
     DATA_CORRECTION = 'Data Correction',
     DELETED_DATA = 'Deleted Data',
-    MISSING_DATA = 'Missing Data',
-    QC_DATA = 'Quality Control',
-    DATA_MONITORING = 'Data Monitoring',
+    //MISSING_DATA = 'Missing Data',
+
+    STATION_STATUS = 'Station Status',
+    DATA_FLOW = 'Data Flow',
+    DATA_EXPLORER = 'Data Explorer',
+
+    SOURCE_CHECK = 'Source Check',
+    QC_DATA = 'Quality Control Tests',
 
     MANUAL_EXPORT = 'Manual Export',
     SCHEDULED_EXPORT = 'Scheduled Export',
@@ -72,19 +79,53 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.DATA_CORRECTION,
                     url: '/data-correction',
-                },
-                {
-                    name: SubMenuNameEnum.DATA_MONITORING,
-                    url: '/data-monitoring',
-                },
-                {
-                    name: SubMenuNameEnum.QC_DATA,
-                    url: '/quality-control',
-                },
+                },  
                 {
                     name: SubMenuNameEnum.DELETED_DATA,
                     url: '/deleted-data',
                 },
+            ]
+        }
+    }
+
+    public static get DATA_MONITORING_MENU_ITEMS(): MenuItem {
+        return {
+            name: MainMenuNameEnum.DATA_MONITORING,
+            url: '/data-monitoring',
+            icon: 'bi bi-file-earmark-text',
+            open: false,
+            children: [
+                {
+                    name: SubMenuNameEnum.STATION_STATUS,
+                    url: '/station-status',
+                },
+                {
+                    name: SubMenuNameEnum.DATA_FLOW,
+                    url: '/data-flow',
+                },
+                {
+                    name: SubMenuNameEnum.DATA_EXPLORER,
+                    url: '/data-explorer',
+                },
+            ]
+        }
+    }
+
+    public static get QUALITY_CONTROL_MENU_ITEMS(): MenuItem {
+        return {
+            name: MainMenuNameEnum.QUALITY_CONTROL,
+            url: '/quality-control',
+            icon: 'bi bi-file-earmark-text',
+            open: false,
+            children: [
+                {
+                    name: SubMenuNameEnum.SOURCE_CHECK,
+                    url: '/source-check',
+                },
+                {
+                    name: SubMenuNameEnum.QC_DATA,
+                    url: '/quality-control-selection',
+                },   
             ]
         }
     }

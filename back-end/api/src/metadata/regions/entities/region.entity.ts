@@ -21,6 +21,9 @@ export class RegionEntity extends AppBaseEntity {
   @Index({ spatial: true })
   boundary: MultiPolygon;
 
+  @Column({ name: "color", type: "varchar", nullable: true })
+  color: string | null;
+
   @Column({ name: "comment", type: "varchar", nullable: true })
   comment: string | null;
 

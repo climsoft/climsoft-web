@@ -1,15 +1,13 @@
-import { Component } from '@angular/core';
+import { Component } from '@angular/core'; 
 import { take } from 'rxjs'; 
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
-import { PagesDataService } from 'src/app/core/services/pages-data.service'; 
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
+import { ObservationDefinition } from '../../data-ingestion/form-entry/defintitions/observation.definition';
+import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util'; 
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { Interval, IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
-import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { ObservationDefinition } from '../../form-entry/defintitions/observation.definition';
-import { ObservationsService } from '../../services/observations.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -19,11 +17,11 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-edit-qc-data',
-  templateUrl: './edit-qc-data.component.html',
-  styleUrls: ['./edit-qc-data.component.scss']
+  selector: 'app-qc-data',
+  templateUrl: './qc-data.component.html',
+  styleUrls: ['./qc-data.component.scss']
 })
-export class EditQCDataComponent {
+export class QCDataComponent {
 
   protected stationId: string | null = null;
   protected sourceId: number | null = null;
@@ -35,7 +33,7 @@ export class EditQCDataComponent {
   protected hour: number | null = null;
   protected useEntryDate: boolean = false;
   protected observationsEntries: ObservationEntry[] = [];
-  private elementsMetadata: CreateViewElementModel[] = [];
+  private elementsMetadata: ElementCacheModel[] = [];
   private sourcessMetadata: ViewSourceModel[] = [];
   private periods: Interval[] = IntervalsUtil.possibleIntervals;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -46,10 +44,10 @@ export class EditQCDataComponent {
   constructor(
     private pagesDataService: PagesDataService,
     private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
-    private observationService: ObservationsService
+    private sourcesService: SourceTemplatesCacheService, 
   ) {
-    this.pagesDataService.setPageHeader('Manage Data');
+
+    this.pagesDataService.setPageHeader('Quality Control Test Selection');
 
     this.elementService.cachedElements.pipe(take(1)).subscribe(data => {
       this.elementsMetadata = data;

@@ -10,24 +10,25 @@
                 </div>
 
                 <div class="col-auto mb-2">
-                    <app-element-selector-single [label]="'Elements'" [(selectedId)]="elementId" />
+                    <app-element-selector-single [label]="'Element'" [displayCancelOption]="true" [(selectedId)]="elementId"   />
                 </div> 
 
                 <div class="col-auto mb-2">
-                    <app-number-input [label]="'Level'" [(numValue)]="level" />
+                   <div class="d-flex align-items-end">
+                    <div>
+                        <app-number-input [label]="'Last (Period)'" [(numValue)]="level" />
+                    </div>
+                    <div class="ms-1">
+                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationPeriodStatus'"
+                        [groupItems]=" [
+                            { label:'Hours', checked: true }, 
+                            { label:'Days', checked: false}]"
+                        (checkedValueChange)="onStatusPeriodChange($event)" />
+                    </div>
+                   </div>
                 </div>
 
-                <div class="col-auto mb-2">
-                    <app-period-single-input [label]="'Interval'" [(selectedId)]="interval" />
-                </div>
-
-                <!-- <div class="col-auto mb-2">
-                    <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds" />
-                </div> -->
-
-                <div class="col-auto mb-2">
-                    <app-date-range-input [label]="'Observation Date'" [(value)]="dateRange"/> 
-                </div> 
+               
 
             </div>
 

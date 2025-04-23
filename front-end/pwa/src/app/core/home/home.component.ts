@@ -127,6 +127,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (user.isSystemAdmin) {
       this.featuresNavItems.push(MenuItemsUtil.DATA_INGESTION_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.DATA_MONITORING_MENU_ITEMS);
+      this.featuresNavItems.push(MenuItemsUtil.QUALITY_CONTROL_MENU_ITEMS);
       this.featuresNavItems.push(MenuItemsUtil.DATA_EXTRACTION_MENU_ITEMS);
       this.featuresNavItems.push(MenuItemsUtil.METADATA_MENU_ITEMS);
       this.featuresNavItems.push(MenuItemsUtil.SYSTEM_ADMIN_MENU_ITEMS);
@@ -143,13 +145,12 @@ export class HomeComponent implements OnInit, OnDestroy {
       item.name !== SubMenuNameEnum.DELETED_DATA
     );
 
-
     // If no data entry permissions then remove data entry sub-modules
     if (!user.permissions.entryPermissions) {
       dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
-        item.name !== SubMenuNameEnum.DATA_ENTRY &&
-        item.name !== SubMenuNameEnum.DATA_CORRECTION &&
-        item.name !== SubMenuNameEnum.MANUAL_IMPORT
+        item.name !== SubMenuNameEnum.DATA_ENTRY
+        && item.name !== SubMenuNameEnum.DATA_CORRECTION
+        && item.name !== SubMenuNameEnum.MANUAL_IMPORT
       );
     } else {
       // If no import permissions then remove manual import sub-modules
@@ -160,25 +161,22 @@ export class HomeComponent implements OnInit, OnDestroy {
       }
     }
 
+    // If no any data input permissions then just remove it
+    if (dataIngestionMenuItems.children.length > 0) this.featuresNavItems.push(dataIngestionMenuItems);
+    //-------------------------------------------
 
-
-    // If no ingestion analysis permissions then remove the sub-module
-    if (!user.permissions.ingestionMonitoringPermissions) {
-      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
-        item.name !== SubMenuNameEnum.DATA_MONITORING &&
-        item.name !== SubMenuNameEnum.MISSING_DATA
-      );
+    //-------------------------------------------
+    // Add monitoring modules if user has monitoring permissions.
+    if (user.permissions.ingestionMonitoringPermissions) {
+      this.featuresNavItems.push(MenuItemsUtil.DATA_MONITORING_MENU_ITEMS);
     }
+    //-------------------------------------------
 
+    //-------------------------------------------
     // If no qc permissions then remove qc sub-module
-    if (!user.permissions.qcPermissions) {
-      dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
-        item.name !== SubMenuNameEnum.QC_DATA
-      );
+    if (user.permissions.qcPermissions) {
+      this.featuresNavItems.push(MenuItemsUtil.QUALITY_CONTROL_MENU_ITEMS);
     }
-
-    this.featuresNavItems.push(dataIngestionMenuItems);
-
     //-------------------------------------------
 
     //-------------------------------------------
@@ -194,9 +192,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Remove admin related metadata
     const metadataMenuItems: MenuItem = MenuItemsUtil.METADATA_MENU_ITEMS;
     metadataMenuItems.children = metadataMenuItems.children.filter(item =>
-      item.name !== SubMenuNameEnum.SOURCE_TEMPLATES &&
-      item.name !== SubMenuNameEnum.EXPORT_TEMPLATES &&
-      item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
+      item.name !== SubMenuNameEnum.SOURCE_TEMPLATES
+      && item.name !== SubMenuNameEnum.EXPORT_TEMPLATES
+      && item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
     );
 
     this.featuresNavItems.push(metadataMenuItems);

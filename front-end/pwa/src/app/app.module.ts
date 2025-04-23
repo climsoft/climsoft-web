@@ -22,6 +22,9 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppAuthInterceptor } from './app-auth.interceptor';
 import { DataExtractionModule } from './data-extraction/data-extraction.module';
 import { DataIngestionModule } from './data-ingestion/data-ingestion.module';
+import { DataMonitoringModule } from './data-monitoring/data-monitoring.module';
+import { ObservationsModule } from './observations/observations.module'; 
+import { QualityControlModule } from './quality-control/quality-control.module';
 
 
 @NgModule({
@@ -40,13 +43,16 @@ import { DataIngestionModule } from './data-ingestion/data-ingestion.module';
     AppRoutingModule,
     SharedModule,
     MetadataModule,
-    DataIngestionModule,
-    DataExtractionModule,
     AdminModule,
+    ObservationsModule,
+    DataIngestionModule,
+    DataMonitoringModule,
+    QualityControlModule,
+    DataExtractionModule,
   ],
   providers: [
     {
-      provide: HTTP_INTERCEPTORS,
+      provide: HTTP_INTERCEPTORS, 
       useClass: AppAuthInterceptor,
       multi: true
     }

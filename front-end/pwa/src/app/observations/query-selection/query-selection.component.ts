@@ -3,14 +3,14 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
-import { DataCorrectionComponent } from '../data-correction/data-correction.component';
-import { SourceCheckComponent } from '../manage-qc-data/source-check/source-check.component';
-import { DataExplorerComponent } from '../data-monitoring/data-explorer/data-explorer.component';
+import { DataCorrectionComponent } from '../../data-ingestion/data-correction/data-correction.component';
+import { SourceCheckComponent } from '../../quality-control/source-check/source-check.component'; 
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
 
 @Component({
   selector: 'app-query-selection',

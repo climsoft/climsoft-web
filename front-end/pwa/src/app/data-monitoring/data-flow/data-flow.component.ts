@@ -9,11 +9,11 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { ObservationsService } from '../../services/observations.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils'; 
 
-import * as echarts from 'echarts';
-import { CreateObservationModel } from '../../models/create-observation.model';
+import * as echarts from 'echarts'; 
+import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 
 interface Observation {
   obsDef: CreateObservationModel;
@@ -49,6 +49,7 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
+    this.pagesDataService.setPageHeader('Data Flow');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),

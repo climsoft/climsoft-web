@@ -11,9 +11,9 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { ObservationsService } from '../../services/observations.service';
-import { ObservationDefinition } from '../../form-entry/defintitions/observation.definition';
+import { DateUtils } from 'src/app/shared/utils/date.utils'; 
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -53,6 +53,8 @@ export class DataExplorerComponent implements OnDestroy {
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
+
+    this.pagesDataService.setPageHeader('Data Explorer');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
