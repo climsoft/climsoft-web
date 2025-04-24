@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
@@ -15,16 +15,12 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
   templateUrl: './data-flow-query-selection.component.html',
   styleUrls: ['./data-flow-query-selection.component.scss']
 })
-export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
-
+export class DataFlowQuerySelectionComponent implements  OnDestroy {
   @Input() public enableQueryButton: boolean = true;
   @Input() public dateRange: DateRange;
-
-
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
 
-  protected stationIds: string[] = [];
-  //protected sourceId: number[] = [];
+  protected stationIds: string[] = []; 
   protected elementId: number = 0;
   protected interval: number = 0;
   protected level: number = 0;
@@ -54,9 +50,6 @@ export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     });
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
   }
 
   ngOnDestroy(): void {
@@ -115,10 +108,6 @@ export class DataFlowQuerySelectionComponent implements OnChanges, OnDestroy {
     }
 
     observationFilter.level = this.level;
-
-    // if (this.sourceIds.length > 0) {
-    //   observationFilter.sourceIds = this.sourceIds;
-    // }
 
 
     if (this.dateRange.fromDate) {

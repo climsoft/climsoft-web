@@ -14,6 +14,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import * as echarts from 'echarts'; 
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 
 interface Observation {
   obsDef: CreateObservationModel;
@@ -70,7 +71,7 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     });
 
     // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
