@@ -10,6 +10,7 @@ import { StationDataComponent } from './station-status/station-status-data/stati
 import { DataFlowQuerySelectionComponent } from './data-flow/data-flow-query-selection/data-flow-query-selection.component';
 import { ObservationsModule } from '../observations/observations.module';
 import { StationStatusQuerySelectionComponent } from './station-status/station-status-query-selection/station-status-query-selection.component';
+import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 
 @NgModule({
 
@@ -26,6 +27,7 @@ import { StationStatusQuerySelectionComponent } from './station-status/station-s
     SharedModule,
     MetadataModule, 
     ObservationsModule,  
+    DataIngestionModule,
   ]
 })
 export class DataMonitoringModule { }

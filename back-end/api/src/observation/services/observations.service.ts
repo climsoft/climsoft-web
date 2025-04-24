@@ -11,6 +11,8 @@ import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.d
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
+import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
+import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -398,24 +400,42 @@ export class ObservationsService {
     }
 
 
-    public async findStationsThatHaveLast24HoursRecords(): Promise<string[]> {
+    public async findStationsObservationStatus(stationStatusQuery: StationStatusQueryDto): Promise<string[]> {
+        const durationType: 'HOURS' | 'DAYS' = stationStatusQuery.durationType === 'hours' ? 'HOURS' : 'DAYS';
+        const duration: number = stationStatusQuery.duration;
+        let extraSQLCondition = '';
+        if (stationStatusQuery.stationIds && stationStatusQuery.stationIds.length > 0) {
+            extraSQLCondition = extraSQLCondition + ` AND station_id IN (${stationStatusQuery.stationIds.map(id => `'${id}'`).join(',')})`;
+        }
+
+        if (stationStatusQuery.elementId !== undefined && stationStatusQuery.elementId > 0) {
+            extraSQLCondition = extraSQLCondition + ` AND element_id = ${stationStatusQuery.elementId}`;
+        }
+
         const results = await this.dataSource.manager.query(
             `
-            SELECT DISTINCT o.station_id 
-            FROM observations o 
-            WHERE o.date_time >= NOW() - INTERVAL '24 HOURS' AND o.deleted = FALSE;
+            SELECT DISTINCT station_id 
+            FROM observations 
+            WHERE date_time >= NOW() - INTERVAL '${duration} ${durationType}' AND deleted = FALSE ${extraSQLCondition};
             `);
 
-        // Return the path to the generated CSV file
         return results.map((item: { station_id: any; }) => item.station_id);
     }
 
-    public async findStationObservationsInLast24Hours(stationId: string): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
+    public async findStationsObservationStatusData(stationId: string, stationStatusQuery: StationStatusDataQueryDto): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
+        const durationType: 'HOURS' | 'DAYS' = stationStatusQuery.durationType === 'hours' ? 'HOURS' : 'DAYS';
+        const duration: number = stationStatusQuery.duration;
+
+        let extraSQLCondition = '';
+        if (stationStatusQuery.elementId !== undefined && stationStatusQuery.elementId > 0) {
+            extraSQLCondition = extraSQLCondition + ` AND o.element_id = ${stationStatusQuery.elementId}`;
+        }
+
         const results = await this.dataSource.manager.query(
             `
             SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
             FROM observations o 
-            WHERE o.deleted = FALSE AND o.station_id = '${stationId}'  AND o.date_time >= NOW() - INTERVAL '24 HOURS' 
+            WHERE o.deleted = FALSE AND o.station_id = '${stationId}' AND o.date_time >= NOW() - INTERVAL '${duration} ${durationType}' ${extraSQLCondition}
             ORDER BY o.element_id, o.date_time;
             `);
 

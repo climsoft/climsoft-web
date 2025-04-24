@@ -39,6 +39,9 @@ import { ObservationsModule } from '../observations/observations.module';
     SharedModule,
     MetadataModule,
     ObservationsModule,
+  ],
+  exports: [
+    ValueFlagInputComponent,
   ]
 })
 export class DataIngestionModule { }

@@ -1,7 +1,7 @@
 <div class="card border-0">
     <app-station-status-query-selection [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
 
-    <div *ngIf="stationsToRender" class="card border-0">
+    <div *ngIf="allowedStations" class="card border-0">
         <div class="card-body px-0">            
     
             <div *ngIf="stationMapLayerGroup">
@@ -10,9 +10,8 @@
     
             <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
                 <div class="card-body">
-                    <div class="d-flex flex-column fw-bold">
-                        <span>Stations reporting status</span>
-                        <span>in the last 24 hours</span>
+                    <div class="d-flex fw-bold">
+                         Stations reporting status  
                     </div>
                     <div>
                         <div class="row">

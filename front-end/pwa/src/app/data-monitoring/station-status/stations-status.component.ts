@@ -6,7 +6,8 @@ import * as L from 'leaflet';
 import { StationDataComponent } from './station-status-data/station-status-data.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { StationStatusQueryModel } from './models/station-status-query.model';
 
 interface StationView extends StationCacheModel {
   reporting: boolean;
@@ -17,17 +18,17 @@ interface StationView extends StationCacheModel {
   templateUrl: './station-status.component.html',
   styleUrls: ['./station-status.component.scss']
 })
-export class stationStatusComponent implements OnChanges, OnDestroy {
+export class stationStatusComponent implements OnDestroy {
   @ViewChild('appStationDataActivity') appStationDataMonitoring!: StationDataComponent;
-  @Input() searchedStationIds!: string[];
-  protected allowedStations: StationView[] = [];
-  protected stationsToRender!: StationView[];
+  protected allowedStations!: StationView[];
+
   protected numOfStationsReporting: number = 0;
   protected numOfStationsNotReporting: number = 0;
 
   protected stationMapLayerGroup!: L.LayerGroup;
-  
+
   protected enableQueryButton: boolean = true;
+  private stationStatusFilter: StationStatusQueryModel = { duration: 3, durationType: 'hours' };
 
   private destroy$ = new Subject<void>();
 
@@ -36,17 +37,20 @@ export class stationStatusComponent implements OnChanges, OnDestroy {
     private appAuthService: AppAuthService,
     private stationsCacheService: StationsCacheService,
     private observationsService: ObservationsService,) {
-    this.pagesDataService.setPageHeader('Stations Status'); 
+    this.pagesDataService.setPageHeader('Stations Status');
 
+    // Get all stations
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.filterOutPermittedStationsStations(stations)
+    ).subscribe(allStations => {
+      // filter out permitted stations
+      this.filterOutPermittedStationsAndLoadMap(allStations);
+
     });
   }
 
-  private filterOutPermittedStationsStations(stations: StationCacheModel[]): void {
-
+  private filterOutPermittedStationsAndLoadMap(stations: StationCacheModel[]): void {
+    // Get user
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
@@ -54,75 +58,78 @@ export class stationStatusComponent implements OnChanges, OnDestroy {
         throw new Error('User not logged in');
       }
 
+      // If user is not admin then filter out the stations
       if (!user.isSystemAdmin) {
         if (!user.permissions) {
           throw new Error('Developer error. Permissions NOT set.');
         }
 
-        // Set stations permitted
+        // Filter out stations permitted
         if (user.permissions.ingestionMonitoringPermissions) {
-          if (user.permissions.ingestionMonitoringPermissions.stationIds) {
-            const stationIds: string[] = user.permissions.ingestionMonitoringPermissions.stationIds;
+          const stationIds: string[] | undefined = user.permissions.ingestionMonitoringPermissions.stationIds;
+          // If stations have been defined then set them
+          if (stationIds) {
             stations = stations.filter(station => stationIds.includes(station.id));
           }
         } else {
-          throw new Error('Data entry not allowed');
+          throw new Error('Data monitoring not allowed');
         }
       }
 
-      this.allowedStations = stations.filter(station => station.status === StationStatusEnum.OPERATIONAL).map(station => {
-        return { ...station, reporting: false }
-      });
-      this.filterOutSearchIds();
+      // Get stations that are operational and  have locations only
+      this.allowedStations = [];
+      for (const station of stations) {
+        if (station.status === StationStatusEnum.OPERATIONAL && station.location) {
+          this.allowedStations.push({ ...station, reporting: false });
+        }
+      }
 
+      // Load the map stations
+      this.loadMapStatus();
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['searchedStationIds'] && this.searchedStationIds) {
-      // let stations : StationCacheModel[];
-      // if(this.searchedStationIds.length>0){
-      //   stations  = this.stations.filter(item => this.searchedStationIds.includes(item.id));
-      // }else{
-      //   stations = this.stations;
-      // }
-      this.filterOutSearchIds();
-    }
-
-  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  private filterOutSearchIds() {
+  protected onQueryClick(stationStatusFilter: StationStatusQueryModel) {
+    this.stationStatusFilter = stationStatusFilter;
+    this.loadMapStatus()
+  }
 
-    if (this.searchedStationIds && this.searchedStationIds.length) {
-      this.stationsToRender = this.allowedStations.filter(item => this.searchedStationIds.includes(item.id));
-    } else {
-      this.stationsToRender = this.allowedStations;
-    }
-
-    this.observationsService.findStationsThatHaveLast24HoursRecords().pipe(
+  private loadMapStatus() {
+    const filteredStations = this.stationStatusFilter.stationIds;
+    const stationsToRender: StationView[] = filteredStations ? this.allowedStations.filter(item => filteredStations.includes(item.id)) : this.allowedStations;
+    this.observationsService.findStationsObservationStatus(this.stationStatusFilter).pipe(
       take(1),
-    ).subscribe(data => {
-      for (const station of this.stationsToRender) {
-        station.reporting = data.includes(station.id);
+    ).subscribe({
+      next: data => {
+        for (const station of stationsToRender) {
+          station.reporting = data.includes(station.id);
+        }
+        this.setupMap(stationsToRender);
+        this.pagesDataService.showToast({ title: 'Station Status', message: 'Reporting Status Updated', type: ToastEventTypeEnum.SUCCESS })
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Station Status', message: err, type: ToastEventTypeEnum.ERROR })
       }
-      this.numOfStationsReporting = this.stationsToRender.filter(item => item.reporting).length;
-      this.numOfStationsNotReporting = this.stationsToRender.filter(item => !item.reporting).length;
-
-      this.setupMap(this.stationsToRender);
     });
 
   }
 
   private setupMap(stationsToRender: StationView[]): void {
+    // Set map status numbers
+    this.numOfStationsReporting = stationsToRender.filter(item => item.reporting).length;
+    this.numOfStationsNotReporting = stationsToRender.filter(item => !item.reporting).length;
+
+    // create stations map layer
     this.stationMapLayerGroup = L.layerGroup();
     const featureCollection: any = {
       "type": "FeatureCollection",
-      "features": stationsToRender.filter(station => (station.location !== null)).map(station => {
+      "features": stationsToRender.map(station => {
         return {
           "type": "Feature",
           "properties": {
@@ -148,7 +155,7 @@ export class stationStatusComponent implements OnChanges, OnDestroy {
     const station: StationView = feature.properties.station;
 
     // Determine reporting class
-    let colorValue = station.reporting ? '#3bd424' : '#F73E25';
+    const colorValue = station.reporting ? '#3bd424' : '#F73E25';
 
     //console.log("latlong", latlng, feature);
     const marker = L.circleMarker(latlng, {
@@ -175,15 +182,12 @@ export class stationStatusComponent implements OnChanges, OnDestroy {
 
     // marker.bindPopup(`${feature.properties.name}`);
     marker.on('click', () => {
-      this.appStationDataMonitoring.showDialog(station);
+      this.appStationDataMonitoring.showDialog(station,
+         {duration: this.stationStatusFilter.duration, durationType: this.stationStatusFilter.durationType, elementId: this.stationStatusFilter.elementId}
+        );
     });
 
     return marker;
   }
-
-  protected onQueryClick(t: any){
-
-  }
-
 
 }

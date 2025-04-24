@@ -11,6 +11,8 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { Last24HoursObservations } from 'src/app/data-ingestion/models/last-24-hours-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { StationStatusQueryModel } from '../models/station-status-query.model';
+import { StationStatusDataQueryModel } from '../models/station-status-data-query.model';
 
 
 interface ObservationView extends Last24HoursObservations {
@@ -75,18 +77,17 @@ export class StationDataComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(selectedStation: StationCacheModel): void {
+  public showDialog(selectedStation: StationCacheModel, stationStatusDataFilter: StationStatusDataQueryModel): void {
     this.station = selectedStation;
     this.title = this.station.id + ' - ' + this.station.name
     this.open = true;
 
-    this.observationsService.findStationObservationsInLast24Hours(selectedStation.id).pipe(
+    this.observationsService.findStationsObservationStatusData(selectedStation.id, stationStatusDataFilter).pipe(
       take(1),
     ).subscribe(data => {
-      console.log('24 hours observations', data);
       this.observations = data.map(observation => {
-        let element = this.elements.find(item => item.id === observation.elementId);
-        let source = this.sources.find(item => item.id === observation.sourceId); 
+        const element = this.elements.find(item => item.id === observation.elementId);
+        const source = this.sources.find(item => item.id === observation.sourceId); 
         let valueFlag: string = '';
 
         if (!element) throw new Error('element not found');

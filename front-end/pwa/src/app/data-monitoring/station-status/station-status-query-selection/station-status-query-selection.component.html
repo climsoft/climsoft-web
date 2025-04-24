@@ -16,14 +16,14 @@
                 <div class="col-auto mb-2">
                    <div class="d-flex align-items-end">
                     <div>
-                        <app-number-input [label]="'Last (Period)'" [(numValue)]="level" />
+                        <app-number-input [label]="'In the Last'" [(numValue)]="duration" />
                     </div>
                     <div class="ms-1">
                         <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationPeriodStatus'"
                         [groupItems]=" [
                             { label:'Hours', checked: true }, 
                             { label:'Days', checked: false}]"
-                        (checkedValueChange)="onStatusPeriodChange($event)" />
+                        (checkedValueChange)="onDurationChange($event)" />
                     </div>
                    </div>
                 </div>
