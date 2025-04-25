@@ -45,7 +45,7 @@
           <td>{{ source.disabled? 'Yes': 'No' }}</td>
           <td>
             <div *ngIf="source.sourceType === 'form' " class="d-flex align-items-center">
-              <button class="btn btn-outline-secondary btn-sm" (click)="onAssignStationsClicked(source)">Assign Stations</button>
+              <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onAssignStationsClicked(source)">Assign Stations</button>
               <div class="ms-2">{{ source.assignedStations }}</div>
             </div>
           </td> 

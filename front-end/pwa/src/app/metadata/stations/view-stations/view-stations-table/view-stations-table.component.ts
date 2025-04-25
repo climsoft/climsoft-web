@@ -18,8 +18,11 @@ export class ViewStationsTableComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
   }
 
-  protected onEditStation(station: StationCacheModel) {
+  protected onStationClicked(station: StationCacheModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
+  }
+
+  protected onEditStationClicked(station: StationCacheModel) {
   }
 
 }

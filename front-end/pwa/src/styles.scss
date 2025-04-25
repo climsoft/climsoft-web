@@ -29,7 +29,7 @@ body {
 
 .app-table-container {
     height: 60vh; // This should be overwritten depending on the component number of controls
-    overflow-y: auto;
+    overflow: auto;
 }
 
 .app-table-container table thead {

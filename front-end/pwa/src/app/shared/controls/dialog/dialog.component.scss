@@ -1,16 +1,14 @@
-/* my-dialog.component.css */
 .dialog-overlay {
-  display: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1500; // 1500 chosen because we want dialogs to have the highest z-index. S
+  z-index: 1500; // 1500 chosen because we want dialogs to have the highest z-index with the exception of the toast
 }
 
 .max-vh-80 {

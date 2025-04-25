@@ -1,8 +1,8 @@
 <div *ngIf="station">
   <div *ngIf="userCanEditStation" class="d-flex justify-content-end">
     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
-      (click)="dlgEdit.openDialog(station.id)">Edit</button>
-    <app-station-characteristics-edit-dialog #dlgEdit />
+      (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
+    <app-station-characteristics-edit-dialog #dlgStationEdit />
   </div>
 
   <app-label-input [label]="'Id'" [value]="station.id" [labelColWidth]="4" />

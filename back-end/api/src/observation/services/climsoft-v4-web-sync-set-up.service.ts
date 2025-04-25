@@ -258,7 +258,6 @@ export class ClimsoftV4WebSyncSetUpService {
                 units: v4Element.units,
                 typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,
-                totalEntryRequired: v4Element.qcTotalRequired === 1 ? true : false,
                 comment: 'pulled from v4 model',
             };
 

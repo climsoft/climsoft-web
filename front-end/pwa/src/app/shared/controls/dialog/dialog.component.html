@@ -8,7 +8,7 @@
             <ng-content></ng-content>
         </div>
 
-        <div class="card-footer  d-flex justify-content-end">
+        <div class="card-footer d-flex justify-content-end"> 
             <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                 {{okButtonLabel}}
             </button>
@@ -19,7 +19,7 @@
             <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2"
                 (click)="onDeleteClick()">
                 {{deleteButtonLabel }}
-            </button>
+            </button>  
         </div>
 
     </div>
