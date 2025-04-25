@@ -137,74 +137,6 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-
-  private generateChart1(observations: Observation[]) {
-    if (observations.length == 0) {
-      this.pagesDataService.showToast({ title: 'Data Flow', message: 'No data', type: ToastEventTypeEnum.INFO });
-      this.chartInstance.setOption({});
-      return;
-    };
-
-    const intervalMinutes = observations[0].obsDef.interval;
-    const intervalMs = intervalMinutes * 60 * 1000;
-
-    const dataMap = new Map<number, number | null>(
-      observations.map(obs => [new Date(obs.obsDef.datetime).getTime(), obs.obsDef.value])
-    );
-
-    const start = new Date(observations[0].obsDef.datetime).getTime();
-    const end = new Date(observations[observations.length - 1].obsDef.datetime).getTime();
-
-    const fullTimeline: [number, number | null][] = [];
-    for (let t = start; t <= end; t += intervalMs) {
-      fullTimeline.push([t, dataMap.has(t) ? dataMap.get(t)! : null]);
-    }
-
-    const chartOption = {
-      tooltip: {
-        trigger: 'axis',
-        formatter: (params: any) => {
-          const [point] = params;
-          //const formattedDatetime = new Date(point.data[0]).toLocaleString();
-          const formattedDatetime = DateUtils.getPresentableDatetime(new Date(point.data[0]).toISOString(), this.utcOffset);
-          return point.data[1] !== null
-            ? `${formattedDatetime}<br/>Value: ${point.data[1]}`
-            : `${formattedDatetime}<br/><i>Missing</i>`;
-        }
-      },
-      xAxis: {
-        type: 'time',
-        name: 'Datetime',
-        nameLocation: 'middle',
-        nameGap: 25
-      },
-      yAxis: {
-        type: 'value',
-        name: 'Value',
-        nameLocation: 'middle',
-        nameGap: 35
-      },
-      series: [{
-        type: 'line',
-        name: 'Raw Data',
-        data: fullTimeline,
-        connectNulls: false,  // important: gaps will be shown
-        showSymbol: false,
-        smooth: false,        // important: no curve smoothing
-        lineStyle: {
-          width: 2
-        }
-      }],
-      grid: {
-        left: '10%',
-        right: '10%',
-        bottom: '15%'
-      }
-    };
-
-    this.chartInstance.setOption(chartOption);
-  }
-
   private generateChart(observations: Observation[]) {
     if (observations.length == 0) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'No data', type: ToastEventTypeEnum.INFO });
@@ -289,8 +221,8 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
       },
       series,
       grid: {
-        left: '10%',
-        right: '10%',
+        left: '5%',
+        right: '8%',
         bottom: '15%'
       }
     };

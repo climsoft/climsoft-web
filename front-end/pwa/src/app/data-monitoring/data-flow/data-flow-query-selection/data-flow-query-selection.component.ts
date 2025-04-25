@@ -17,9 +17,9 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 })
 export class DataFlowQuerySelectionComponent implements  OnDestroy {
   @Input() public enableQueryButton: boolean = true;
-  @Input() public dateRange: DateRange;
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
 
+  protected dateRange: DateRange;
   protected stationIds: string[] = []; 
   protected elementId: number = 0;
   protected interval: number = 0;
@@ -39,7 +39,7 @@ export class DataFlowQuerySelectionComponent implements  OnDestroy {
     // Set default dates to 1 year
     const todayDate = new Date();
     const firstDate: Date = new Date();
-    firstDate.setDate(todayDate.getDate() - 365);
+    firstDate.setDate(todayDate.getDate() - 7);
     this.dateRange = { fromDate: DateUtils.getDateOnlyAsString(firstDate), toDate: DateUtils.getDateOnlyAsString(todayDate) };
 
     this.setStationsAllowed();

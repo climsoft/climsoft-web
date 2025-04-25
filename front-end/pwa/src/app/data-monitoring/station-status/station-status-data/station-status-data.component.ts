@@ -49,13 +49,11 @@ export class StationDataComponent implements OnDestroy {
     private generalSettingsService: GeneralSettingsService,
     private observationsService: ObservationsService,
   ) {
-
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.elements = data;
     });
-
 
     this.sourcesCacheService.cachedSources.pipe(
       takeUntil(this.destroy$),

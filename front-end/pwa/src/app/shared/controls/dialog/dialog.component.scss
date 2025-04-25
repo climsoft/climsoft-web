@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1500;
+  z-index: 1500; // 1500 chosen because we want dialogs to have the highest z-index. S
 }
 
 .max-vh-80 {
