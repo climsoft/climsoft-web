@@ -1,14 +1,7 @@
 <div *ngIf="stations" class="card border-0">
   <div class="card-body px-0">
-
-    <div>
-      <!-- 
-      Note. 2 tables are required as a work around for using <cdk-virtual-scroll-viewport> component.
-      <cdk-virtual-scroll-viewport> completely controls the scrollable area. 
-      If you keep the <thead> inside the second table, the header will scroll away with the data, 
-      which defeats the purpose of a sticky header. 
-      -->
-      <table class="table table-striped table-sm table-hover" style=" position: sticky; top: 0; z-index: 1; margin-bottom: 0px;">
+    <div class="app-table-container" style="height: 80vh;">
+      <table class="table table-striped table-sm table-hover">
         <thead>
           <tr>
             <th style="width: 2%;"></th>
@@ -23,66 +16,25 @@
             <th></th>
           </tr>
         </thead>
+        <tbody class="table-group-divider">
+          <tr class="app-cursor-pointer" *ngFor="let station of stations">
+            <td (click)="onStationClicked(station)"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="onStationClicked(station)">{{ station.id }}</td>
+            <td (click)="onStationClicked(station)">{{ station.name }}</td>
+            <td (click)="onStationClicked(station)">{{ station.location? station.location.latitude: '' }}</td>
+            <td (click)="onStationClicked(station)">{{ station.location? station.location.longitude: '' }}</td>
+            <td (click)="onStationClicked(station)">{{ station.stationObsProcessingMethodName }}</td>
+            <td (click)="onStationClicked(station)">{{ station.stationObsEnvironmentName }}</td>
+            <td (click)="onStationClicked(station)">{{ station.stationObsFocusName }}</td>
+            <td (click)="onStationClicked(station)">{{ station.status }}</td>
+            <td>
+              <button type="button" class="btn btn-outline-secondary btn-sm"
+                (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
+            </td>
+          </tr>
+        </tbody>
       </table>
-    
-      <cdk-virtual-scroll-viewport itemSize="40" class="app-table-container">
-        <table class="table table-striped table-sm table-hover">
-          <tbody class="table-group-divider">
-            <tr *cdkVirtualFor="let station of stations" class="app-cursor-pointer">
-              <td style="width: 2%;" (click)="onStationClicked(station)"><i class="bi bi-arrow-right-short"></i></td>
-              <td (click)="onStationClicked(station)">{{ station.id }}</td>
-              <td (click)="onStationClicked(station)">{{ station.name }}</td>
-              <td (click)="onStationClicked(station)">{{ station.location?.latitude }}</td>
-              <td (click)="onStationClicked(station)">{{ station.location?.longitude }}</td>
-              <td (click)="onStationClicked(station)">{{ station.stationObsProcessingMethodName }}</td>
-              <td (click)="onStationClicked(station)">{{ station.stationObsEnvironmentName }}</td>
-              <td (click)="onStationClicked(station)">{{ station.stationObsFocusName }}</td>
-              <td (click)="onStationClicked(station)">{{ station.status }}</td>
-              <td>
-                <button type="button" class="btn btn-outline-secondary btn-sm"
-                  (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </cdk-virtual-scroll-viewport>
     </div>
     <app-station-characteristics-edit-dialog #dlgStationEdit />
-
-    <!-- <table class="table table-striped table-sm table-hover">
-      <thead>
-        <tr>
-          <th style="width: 2%;"></th>
-          <th>Id</th>
-          <th>Name</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
-          <th>Processing Method</th>
-          <th>Environment</th>
-          <th>Focus</th>
-          <th>Status</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody class="table-group-divider">
-        <tr class="app-cursor-pointer" *ngFor="let station of stations">
-          <td (click)="onStationClicked(station)"><i class="bi bi-arrow-right-short"></i></td>
-          <td (click)="onStationClicked(station)">{{ station.id }}</td>
-          <td (click)="onStationClicked(station)">{{ station.name }}</td>
-          <td (click)="onStationClicked(station)">{{ station.location? station.location.latitude: '' }}</td>
-          <td (click)="onStationClicked(station)">{{ station.location? station.location.longitude: '' }}</td>
-          <td (click)="onStationClicked(station)">{{ station.stationObsProcessingMethodName }}</td>
-          <td (click)="onStationClicked(station)">{{ station.stationObsEnvironmentName }}</td>
-          <td (click)="onStationClicked(station)">{{ station.stationObsFocusName }}</td>
-          <td (click)="onStationClicked(station)">{{ station.status }}</td>
-          <td>
-            <button type="button" class="btn btn-outline-secondary btn-sm"
-              (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
-          </td>
-        </tr>
-      </tbody>
-    </table> -->
- 
-
   </div>
 </div>

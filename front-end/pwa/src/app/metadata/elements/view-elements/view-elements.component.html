@@ -31,11 +31,31 @@
   </div>
 
   <div class="card-body px-0">
-    <app-table-view [clickable]="true" [columnsData]="[ 
-          {id: 'id', name: 'Id'},
-          {id: 'abbreviation', name: 'Abbreviation'}, 
-          {id: 'name', name: 'Name'}
-           ]" [rowsData]="elements" (rowDataClicked)="onEditElement($event)" />
+    <div class="app-table-container" style="height: 80vh;">
+      <table class="table table-striped table-sm table-hover">
+        <thead>
+          <tr>
+            <th style="width: 2%;"></th>
+            <th>Id</th>
+            <th>Abbreviation</th>
+            <th>Name</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr class="app-cursor-pointer" *ngFor="let element of elements">
+            <td (click)="onEditElement(element)"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="onEditElement(element)">{{ element.id }}</td>
+            <td (click)="onEditElement(element)">{{ element.abbreviation }}</td>
+            <td (click)="onEditElement(element)">{{ element.name }}</td>
+            <td>
+              <button type="button" class="btn btn-outline-secondary btn-sm"
+                (click)="dlgElementInput.openDialog(element.id)">Edit</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-
+  <app-element-characteristics-input-dialog #dlgElementInput />
 </div>

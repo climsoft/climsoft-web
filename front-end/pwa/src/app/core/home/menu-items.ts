@@ -92,7 +92,7 @@ export class MenuItemsUtil {
         return {
             name: MainMenuNameEnum.DATA_MONITORING,
             url: '/data-monitoring',
-            icon: 'bi bi-file-earmark-text',
+            icon: 'bi bi-activity',
             open: false,
             children: [
                 {
@@ -115,7 +115,7 @@ export class MenuItemsUtil {
         return {
             name: MainMenuNameEnum.QUALITY_CONTROL,
             url: '/quality-control',
-            icon: 'bi bi-file-earmark-text',
+            icon: 'bi bi-shield-check',
             open: false,
             children: [
                 {
@@ -153,7 +153,7 @@ export class MenuItemsUtil {
         return {
             name: MainMenuNameEnum.METADATA,
             url: '/metadata',
-            icon: 'bi bi-chat-dots',
+            icon: 'bi bi-card-list',
             open: false,
             children: [
                 {
