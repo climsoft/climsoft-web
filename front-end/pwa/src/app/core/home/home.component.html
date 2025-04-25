@@ -1,7 +1,6 @@
 <div class="d-flex vh-100 overflow-hidden">
-  <!-- Menu Content -->
-  <div class="flex-shrink-0 overflow-y-auto border-light shadow-sm"
-    [ngClass]="{'nav-container-open': bOpenSideNav,'nav-container-close': !bOpenSideNav}">
+  <!-- Side Menu Content -->
+  <div *ngIf="bOpenSideNav" class="flex-shrink-0 overflow-y-auto border-light shadow-sm">
 
     <div class="navbar sticky-top shadow-sm bg-light p-0">
       <div class="d-flex flex-row w-100 justify-content-between">
@@ -10,35 +9,36 @@
           <i class="bi bi-list py-1 nav-bar-icon"></i>
         </div>
       </div>
-
     </div>
 
-    <div class="card p-3 rounded-0 border-0">
-      <div *ngIf="featuresNavItems" class="list-group list-group-flush">
-        <!-- menu iems section -->
-        <div class="list-group-item list-group-item-action px-0" *ngFor="let nav of featuresNavItems">
-          <div class="list-group list-group-flush p-0 m-0">
-            <a class="list-group-item list-group-item-action border-0 p-0 d-flex justify-content-between"
-              [routerLink]="nav.children.length === 0? nav.url: null" (click)="nav.open = !nav.open">
-              <span class="cursor-pointer">
-                <i [class]="nav.icon"></i> {{ nav.name}}
-              </span>
-              <app-toggle-chevron *ngIf="nav.children.length > 0" />
-            </a>
+    <div class="card rounded-0 border-0">
+      <div class="card-body p-3">
+        <div *ngIf="featuresNavItems" class="list-group list-group-flush">
+          <!-- menu iems section -->
+          <div class="list-group-item list-group-item-action px-0 cursor-pointer" *ngFor="let nav of featuresNavItems">
+            <div class="list-group list-group-flush p-0 m-0">
+              <a class="list-group-item list-group-item-action border-0 p-0 d-flex justify-content-between fw-bold"
+                [routerLink]="nav.children.length === 0? nav.url: null" (click)="nav.open = !nav.open">
+                <span>
+                  <i [class]="nav.icon"></i> {{ nav.name}}
+                </span>
+                <app-toggle-chevron *ngIf="nav.children.length > 0" [clickable]="false" [open]="nav.open" />
+              </a>
 
-            <!-- sub menus -->
-            <div *ngIf="nav.children.length > 0">
-              <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0 border-0">
-                <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
-                  [routerLink]="nav.url + subNav.url">
-                  <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
-                </a>
+              <!-- sub menus -->
+              <div *ngIf="nav.children.length > 0">
+                <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0 border-0">
+                  <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
+                    [routerLink]="nav.url + subNav.url">
+                    <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
+                  </a>
+                </div>
               </div>
-            </div>
 
+            </div>
           </div>
+          <!-- end -->
         </div>
-        <!-- end -->
       </div>
     </div>
 
@@ -46,7 +46,7 @@
 
   <!-- Main Content -->
   <div class="flex-grow-1 overflow-y-auto">
-    <!-- header content -->
+    <!-- Main header content -->
     <div class="navbar bg-light sticky-top shadow-sm p-0 mb-3">
       <div class="d-flex flex-row justify-content-between w-100">
         <div class="d-inline-flex">
@@ -63,10 +63,11 @@
           <div class="me-3">
             <i class="bi bi-person py-1 nav-bar-icon" (click)="displayUserDropDown = !displayUserDropDown"></i>
             <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
-              <ul class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">Profile {{ user? ' - '+ user.username: '' }}</a>
+              <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action">Profile {{ user? ' - '+ user.username: ''
+                  }}</a>
                 <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">Log out</button>
-              </ul>
+                </div>
             </div>
           </div>
         </div>
@@ -84,7 +85,7 @@
 
     </div>
 
-    <!-- body content -->
+    <!-- Main body content -->
     <div class="container-fluid ">
       <router-outlet></router-outlet>
     </div>

@@ -1,22 +1,24 @@
-<table [class.table-hover]="clickable" class="table table-striped table-sm">
-    <colgroup>
-        <col style="width: 2%;" />
-        <col />
-        <col *ngFor="let col of columnsData" />
-    </colgroup>
-    <thead>
-        <tr>
-            <th *ngIf="clickable"></th>
-            <th *ngIf="showRowNum">#</th>
-            <th *ngFor="let col of columnsData">{{ col.name }}</th>
-        </tr>
-    </thead>
-    <tbody class="table-group-divider">
-        <tr [class.app-cursor-pointer]="clickable" *ngFor="let row of rowsData; let i = index;"
-            (click)="onRowDataClicked(row)">
-            <td *ngIf="clickable"><i class="bi bi-arrow-right-short"></i></td>
-            <td *ngIf="showRowNum">{{ getRowNumber(i) }}</td>
-            <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
-        </tr>
-    </tbody>
-</table>
+<div class="app-table-container" style="height: 80vh;">
+    <table [class.table-hover]="clickable" class="table table-striped table-sm">
+        <colgroup>
+            <col style="width: 2%;" />
+            <col />
+            <col *ngFor="let col of columnsData" />
+        </colgroup>
+        <thead>
+            <tr>
+                <th *ngIf="clickable"></th>
+                <th *ngIf="showRowNum">#</th>
+                <th *ngFor="let col of columnsData">{{ col.name }}</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            <tr [class.app-cursor-pointer]="clickable" *ngFor="let row of rowsData; let i = index;"
+                (click)="onRowDataClicked(row)">
+                <td *ngIf="clickable"><i class="bi bi-arrow-right-short"></i></td>
+                <td *ngIf="showRowNum">{{ getRowNumber(i) }}</td>
+                <td *ngFor="let col of columnsData">{{ getRowDataItem(row, col.id) }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>

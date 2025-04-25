@@ -1,21 +1,11 @@
-.nav-container-open {
-  visibility: visible;
-  width: auto;
-}
-
-.nav-container-close {
-  visibility: hidden;
-  width: 0px;
-}
-
 .nav-bar-title {
   font-size: 24px;
 }
 
 .nav-bar-icon {
-  cursor: pointer;
   //font-size: 2.1875rem;
   font-size: 24px;
+  cursor: pointer;
 }
 
 .nav-avatar {
