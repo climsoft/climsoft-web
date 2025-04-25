@@ -1,0 +1,43 @@
+    <div class="card border-0 p-0">
+        <div class="card-header mb-2 px-1 fw-bold">
+            <app-toggle-chevron #queryContainerToggle [open]="true">Filter</app-toggle-chevron>
+        </div>
+        <div *ngIf="queryContainerToggle.open" class="card-body p-0 mt-2">
+            <div class="row g-2 px-2">
+                <div class="col-auto mb-2">
+                    <app-station-selector-multiple [label]="'Stations'" [(selectedIds)]="stationIds"
+                        [includeOnlyIds]="includeOnlyStationIds" />
+                </div>
+
+                <div class="col-auto mb-2">
+                    <app-element-selector-single [label]="'Element'" [displayCancelOption]="true" [(selectedId)]="elementId"   />
+                </div> 
+
+                <div class="col-auto mb-2">
+                   <div class="d-flex align-items-end">
+                    <div>
+                        <app-number-input [label]="'In the Last'" [(numValue)]="duration" />
+                    </div>
+                    <div class="ms-1">
+                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'stationPeriodStatus'"
+                        [groupItems]=" [
+                            { label:'Hours', checked: true }, 
+                            { label:'Days', checked: false}]"
+                        (checkedValueChange)="onDurationChange($event)" />
+                    </div>
+                   </div>
+                </div>
+
+               
+
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]=" !queryAllowed || !enableQueryButton "
+                    (click)="onQueryClick()">
+                    Query
+                </button>
+            </div>
+        </div>
+    </div>
+ 

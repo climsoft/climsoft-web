@@ -9,6 +9,7 @@ import { CreateObservationDto } from 'src/observation/dtos/create-observation.dt
 import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto';
 import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 import { UserPermissionDto } from '../dtos/user-permission.dto';
+import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
@@ -50,20 +51,21 @@ export class AuthorisedStationsPipe implements PipeTransform {
           routePath === '/observations/upload/:sourceid/:stationid'
         ) {
           return this.handleStationMetadataEdits(value, user.permissions);
-        } else if (routePath === '/station-observations-in-last-24hrs/:stationid') {
-          return this.handleMonitoringString(value, user.permissions); 
+        } else if (routePath === '/stations-observation-status/:stationid') {
+          return this.handleMonitoringString(value, user.permissions);
         }
 
         // TODO. delete these
-        if (this.request.method === 'PATCH') {
-          // Used by stations controller when updating station characteristics
-          return this.handleStationMetadataEdits(value, user.permissions);
-        } else if (this.request.method === 'POST') {
-          // Used by observations controller when importing data
-          return this.handleStationMetadataEdits(value, user.permissions);
-        }
+        // if (this.request.method === 'PATCH') {
+        //   // Used by stations controller when updating station characteristics
+        //   return this.handleStationMetadataEdits(value, user.permissions);
+        // } else if (this.request.method === 'POST') {
+        //   // Used by observations controller when importing data
+        //   return this.handleStationMetadataEdits(value, user.permissions);
+        // }
 
         return value;
+     
       case ViewStationQueryDTO.name:
         // All stations metadata are freely available to any user that has access to Climsoft, so no need to validate here.
         //return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
@@ -73,7 +75,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case CreateObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
-         if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
+        if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
           return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
@@ -82,6 +84,8 @@ export class AuthorisedStationsPipe implements PipeTransform {
         } else {
           throw new BadRequestException('Observations route path not authorised');
         }
+        case StationStatusQueryDto.name:
+          return this.handleMonitoringViewObservationQueryDTO(value as StationStatusQueryDto, user.permissions);
       case ViewObservationLogQueryDto.name:
         // TODO. Validate this based on entry, monitoring and qc permissions
         return value;
@@ -135,7 +139,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
+  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO | StationStatusQueryDto, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
     if (!value) throw new BadRequestException('Query value must be defined');
 
     if (!userPermissions.ingestionMonitoringPermissions) throw new BadRequestException('Not authorised to monitor data');

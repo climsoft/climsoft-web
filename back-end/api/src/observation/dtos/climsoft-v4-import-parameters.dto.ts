@@ -2,6 +2,14 @@ import { Transform, Type } from "class-transformer";
 import { IsDateString, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
+export class ElementIntervalDto {
+    @IsInt()
+    elementId: number;
+
+    @IsInt()
+    interval: number;
+}
+
 export class ClimsoftV4ImportParametersDto {
     @IsDateString()
     fromEntryDate: string;
@@ -11,10 +19,9 @@ export class ClimsoftV4ImportParametersDto {
     @IsString({ each: true })
     stationIds?: string[];
 
-    @IsOptional()
     @ValidateNested({ each: true })
-    @Type(() => ElementIntervalModel)
-    elements: ElementIntervalModel[];
+    @Type(() => ElementIntervalDto)
+    elements: ElementIntervalDto[];
 
     // See issue https://github.com/typestack/class-transformer/issues/550 to know why the manual transformation is needed.
     @IsOptional()
@@ -31,10 +38,3 @@ export class ClimsoftV4ImportParametersDto {
 
 }
 
-export class ElementIntervalModel {
-    @IsInt()
-    elementId: number;
-
-    @IsInt()
-    interval: number;
-}

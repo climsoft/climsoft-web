@@ -3,11 +3,11 @@ export interface ViewObservationQueryModel {
     elementIds?: number[];
     intervals?: number[];
     level?: number;
-    sourceIds?: number[]; 
+    sourceIds?: number[];
     useEntryDate?: boolean;
     fromDate?: string;
-    toDate?: string;  
-    deleted: boolean; // Note, this is not optional.
+    toDate?: string;
+    deleted?: boolean;
     page?: number;
     pageSize?: number;
 }

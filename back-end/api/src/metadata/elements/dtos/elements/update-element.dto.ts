@@ -25,8 +25,4 @@ export class UpdateElementDto {
     @IsOptional()
     @IsString()
     comment: string | null;
-
-    @IsOptional()
-    @IsBoolean()
-    totalEntryRequired: boolean| null; 
 }

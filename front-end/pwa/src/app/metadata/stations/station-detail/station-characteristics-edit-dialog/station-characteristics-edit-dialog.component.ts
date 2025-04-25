@@ -27,10 +27,9 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
   @Output()
   public cancelClick = new EventEmitter<void>();
 
-  protected title: string = "";
+  protected title!: string;
   protected station!: CreateStationModel;
   protected bNew: boolean = false;
-
 
   constructor(
     private stationsCacheService: StationsCacheService,
@@ -130,10 +129,16 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
   }
 
   protected onOkClick(): void {
-
-    if (StringUtils.isNullOrEmpty(this.station.id) || StringUtils.isNullOrEmpty(this.station.name)) {
+    if (!this.station.id) {
+      this.pagesDataService.showToast({ title: this.title, message: 'Station Id Required', type: ToastEventTypeEnum.ERROR });
       return;
     }
+
+    if (!this.station.name) {
+      this.pagesDataService.showToast({ title: this.title, message: 'Station Name Required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
     // TODO. Do more validations
 
     let dateEstablished: string | null = null;

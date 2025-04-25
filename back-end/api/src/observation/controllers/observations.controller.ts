@@ -14,6 +14,8 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
+import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
+import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -58,14 +60,16 @@ export class ObservationsController {
     return this.observationsService.findObservationLog(viewObsevationQuery);
   }
 
-  @Get('stations-with-observations-in-last-24hrs')
-  getStationsThatHaveLast24HoursRecords() { // TODO. Create dto query to make the necessary filter
-    return this.observationsService.findStationsThatHaveLast24HoursRecords();
+  @Get('stations-observation-status')
+  getStationsObservationStatus(@Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusQueryDto) { // TODO. Create dto query to make the necessary filter
+    return this.observationsService.findStationsObservationStatus(stationStatusQuery);
   }
 
-  @Get('station-observations-in-last-24hrs/:stationid')
-  getStationObservationsLast24HoursRecords(@Param('stationid', AuthorisedStationsPipe) stationId: string) {
-    return this.observationsService.findStationObservationsInLast24Hours(stationId);
+  @Get('stations-observation-status/:stationid')
+  getStationObservationsLast24HoursRecords(
+    @Param('stationid', AuthorisedStationsPipe) stationId: string,
+    @Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusDataQueryDto) {
+    return this.observationsService.findStationsObservationStatusData(stationId, stationStatusQuery);
   }
 
   @Get('generate-export/:templateid')

@@ -3,7 +3,6 @@ import { IsDateString, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class ViewObservationQueryDTO {
-
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({ each: true })
@@ -47,7 +46,7 @@ export class ViewObservationQueryDTO {
     @IsOptional()
     @Type(() => String) // Required to stop transformer from converting the value type to boolean
     @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-    deleted: boolean; // Note. These is not an optional property
+    deleted?: boolean;
 
     @IsOptional()
     @IsInt()
@@ -56,5 +55,4 @@ export class ViewObservationQueryDTO {
     @IsOptional()
     @IsInt()
     pageSize?: number;
-
 }

@@ -1,6 +1,6 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, concat, from, Observable, of, throwError } from 'rxjs';
 import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
 import { ViewObservationQueryModel } from '../models/view-observation-query.model';
@@ -14,6 +14,8 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppDatabase } from 'src/app/app-database';
 import { Last24HoursObservations } from '../models/last-24-hours-observation.model';
+import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
+import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -358,15 +360,21 @@ export class ObservationsService {
   }
 
 
-  public findStationsThatHaveLast24HoursRecords(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.endPointUrl}/stations-with-observations-in-last-24hrs`)
+  public findStationsObservationStatus(query: StationStatusQueryModel): Observable<string[]> {
+    return this.http.get<string[]>(
+      `${this.endPointUrl}/stations-observation-status`,
+      { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
+    )
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public findStationObservationsInLast24Hours(stationId: string): Observable<Last24HoursObservations[]> {
-    return this.http.get<Last24HoursObservations[]>(`${this.endPointUrl}/station-observations-in-last-24hrs/${stationId}`)
+  public findStationsObservationStatusData(stationId: string,query:  StationStatusDataQueryModel): Observable<Last24HoursObservations[]> {
+    return this.http.get<Last24HoursObservations[]>(
+      `${this.endPointUrl}/stations-observation-status/${stationId}`,
+      { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
+    )
       .pipe(
         catchError(this.handleError)
       );

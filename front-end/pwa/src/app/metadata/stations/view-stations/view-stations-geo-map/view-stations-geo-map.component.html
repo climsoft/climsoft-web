@@ -2,18 +2,11 @@
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
       <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
-
-
       <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
-        <div class="card-body ">
-   
-          <div *ngIf="numOfStationsWithOutLocations" class="d-flex">
-            <div> Stations without locations</div>
-            <div class="ms-2">{{ numOfStationsWithOutLocations}}</div>
-          </div>
+        <div class="card-body">
           <div>
             <div class="fw-bold">
-              Stations Status:
+              Stations Operational Status:
             </div>
             <div class="row">
               <div class="col-2"><span class="app-station-circle-lg" style="background-color: #3bd424;"></span></div>
@@ -25,15 +18,18 @@
               <div class="col-auto">{{ this.numOfClosedStations }}</div>
               <div class="col-auto">Closed</div>
             </div>
-            <div class="row">
+            <div *ngIf="this.numOfUnknownStations" class="row">
               <div class="col-2"><span class="app-station-circle-lg" style="background-color: #F73E25;"></span></div>
               <div class="col-auto">{{ this.numOfUnknownStations }}</div>
-              <div class="col-auto">Unkown</div>
+              <div class="col-auto">Unknown</div>
             </div>
+          </div>
+          <div *ngIf="numOfStationsWithOutLocations" class="d-flex">
+            <div> Stations without locations</div>
+            <div class="ms-2">{{ numOfStationsWithOutLocations}}</div>
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>

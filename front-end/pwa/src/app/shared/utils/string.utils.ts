@@ -83,23 +83,29 @@ export class StringUtils {
     return wordToDisplay;
   }
 
-  public static getQueryParams<T extends object>(params: T): HttpParams {
+  public static getQueryParams<T extends object>(queryObject: T): HttpParams {
     let httpParams: HttpParams = new HttpParams();
 
     // Dynamically add parameters if they are present
-    Object.keys(params).forEach(key => {
-      const value = params[key as keyof T];
+    Object.keys(queryObject).forEach(key => {
+      const value = queryObject[key as keyof T];
+
       if (value !== undefined && value !== null) {
         if (Array.isArray(value)) {
           // Join array values with comma for query parameters
           httpParams = httpParams.set(key, value.join(','));
-        } else {
-          // Convert non-array values to string
-          // TODO, what about booleans? Investigate what effects string booleans may have on dtos at the back end. 
-          httpParams = httpParams.set(key, value.toString());
+        } else if (typeof value === 'object') {
+          // For objects just stringify. 
+          // Important note, this should technically never be used, developers should consider using POST for this kind of queries
+          httpParams = httpParams.set('last', JSON.stringify(value));
+        } else { 
+            // Convert all other types of values to string 
+            httpParams = httpParams.set(key, value.toString());  
         }
       }
     });
+
+    console.log('')
     return httpParams;
   }
 }

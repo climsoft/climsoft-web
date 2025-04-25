@@ -152,7 +152,6 @@ export class ElementsService {
         entity.typeId = dto.typeId;
         entity.entryScaleFactor = dto.entryScaleFactor ? dto.entryScaleFactor : null;
         entity.comment = dto.comment ? dto.comment : null;
-        entity.totalEntryRequired = dto.totalEntryRequired ? dto.totalEntryRequired : null;
         entity.entryUserId = userId;
     }
 
@@ -183,7 +182,6 @@ export class ElementsService {
             typeId: entity.typeId,
             entryScaleFactor: entity.entryScaleFactor,
             comment: entity.comment,
-            totalEntryRequired: entity.totalEntryRequired,
         }
     }
 

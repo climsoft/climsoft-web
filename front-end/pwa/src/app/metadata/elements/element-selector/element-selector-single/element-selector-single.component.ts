@@ -10,7 +10,8 @@ import { ElementCacheModel, ElementsCacheService } from '../../services/elements
 export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
   @Input() public id!: string;
   @Input() public label!: string;
-  @Input() public errorMessage: string = '';
+  @Input() public displayCancelOption!: boolean
+  @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | null;
   @Output() public selectedIdChange = new EventEmitter<number>();

@@ -118,6 +118,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.allowMissingValue = this.viewSource.allowMissingValue;
     this.requireTotalInput = entryForm.requireTotalInput;
     this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly;
+    this.allowStationSelection = entryForm.allowStationSelection;
   }
 
   public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {

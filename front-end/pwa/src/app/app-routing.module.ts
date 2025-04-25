@@ -27,6 +27,14 @@ const routes: Routes = [
         loadChildren: () => import('./data-ingestion/data-ingestion.module').then((m) => m.DataIngestionModule)
       },
       {
+        path: 'data-monitoring',
+        loadChildren: () => import('./data-monitoring/data-monitoring.module').then((m) => m.DataMonitoringModule)
+      },
+      {
+        path: 'quality-control',
+        loadChildren: () => import('./quality-control/quality-control.module').then((m) => m.QualityControlModule)
+      },
+      {
         path: 'data-extraction',
         loadChildren: () => import('./data-extraction/data-extraction.module').then((m) => m.DataExtractionModule)
       },

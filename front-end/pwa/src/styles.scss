@@ -29,7 +29,7 @@ body {
 
 .app-table-container {
     height: 60vh; // This should be overwritten depending on the component number of controls
-    overflow-y: auto;
+    overflow: auto;
 }
 
 .app-table-container table thead {
@@ -58,7 +58,7 @@ body {
     position: absolute;
     top: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1002; // 1001 instead of 1001 because of leaflet
     margin-top: 30px;
     margin-right: 10px;
 }

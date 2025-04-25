@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 //--------------------------------
  
 //--------- components ------------
@@ -45,6 +46,7 @@ const angularModules = [
   ReactiveFormsModule,
   FormsModule,
   HttpClientModule,
+  ScrollingModule,
 ];
 
 //--------------------------------
@@ -97,7 +99,7 @@ const directives = [
     ...directives, 
   ],
   imports: [
-    ...angularModules,
+    ...angularModules, 
   ],
   providers: [
    
