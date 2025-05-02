@@ -6,28 +6,26 @@ import { DataSource } from 'typeorm';
 @Injectable()
 export class SqlScriptsLoaderService {
 
-    private readonly DEFAULTS_SCRIPTS_DIR_NAME: string = 'default-triggers';
-    private readonly LOG_SCRIPTS_DIR_NAME: string = 'logging-triggers';
-
-
     constructor(
         private dataSource: DataSource,
         private fileIOService: FileIOService,) { }
 
-         /**
+
+    private getScriptsDirectoryPath(): string {
+        return path.dirname(__filename);
+    }
+
+    /**
      * Used by the migrations service
      */
-     public async addEntryDatetimeTriggerToDB() {
+    public async addEntryDatetimeTriggerToDB() {
         try {
             // Get the script directory from absolute path of this service file
-            const scriptsDirPath: string = path.dirname(__filename);
-
-            // Get the observation log absolute file path name. For windows platform, replace the backslashes with forward slashes.
-            const scriptFilePathAndName: string = path.join(scriptsDirPath, this.DEFAULTS_SCRIPTS_DIR_NAME, 'default-entry-date-time.sql').replaceAll("\\", "\/");
-            const sql: string = await this.fileIOService.readFile(`${scriptFilePathAndName}`, 'utf8');
-
-            // TODO. Later add other log triggers
-
+            // For windows platform, replace the backslashes with forward slashes.
+            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/default-triggers/default-entry-date-time.sql`
+            const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
+            //console.log('ENTRY DATE TIME SQL:', sql);
             await this.dataSource.query(sql);
         } catch (error) {
             console.error('Developer error in adding entry date time triggers: ', error);
@@ -40,15 +38,19 @@ export class SqlScriptsLoaderService {
      */
     public async addLogsTriggersToDB() {
         try {
+
             // Get the script directory from absolute path of this service file
-            const scriptsDirPath: string = path.dirname(__filename);
+            // For windows platform, replace the backslashes with forward slashes.
+            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const logScriptsDirPath: string = `${scriptsDirPath}/logging-triggers`
+            const fileNames: string[] = await this.fileIOService.getFileNamesInDirectory(logScriptsDirPath);
 
-            // Get the observation log absolute file path name. For windows platform, replace the backslashes with forward slashes.
-            const obsLogFilePathAndName: string = path.join(scriptsDirPath, this.LOG_SCRIPTS_DIR_NAME, 'observation-log.sql').replaceAll("\\", "\/");
-            const sql: string = await this.fileIOService.readFile(`${obsLogFilePathAndName}`, 'utf8');
+            let sql: string = ''
+            for (const fileName of fileNames) {
+                sql = sql + await this.fileIOService.readFile(`${logScriptsDirPath}/${fileName}`, 'utf8') + '\n\n';
+            }
 
-            // TODO. Later add other log triggers
-
+            //console.log('LOG SQL:', sql);
             await this.dataSource.query(sql);
         } catch (error) {
             console.error('Developer error in adding logs triggers: ', error);
@@ -57,6 +59,7 @@ export class SqlScriptsLoaderService {
 
     }
 
-    
+
+
 
 }

@@ -67,6 +67,7 @@ export class FileIOService {
         try {
             await fs.promises.writeFile(`${filePathName}`, file.buffer);
         } catch (err) {
+            console.error('Could not save file:', err);
             throw new Error("Could not save file: " + err);
         }
     }
@@ -79,6 +80,16 @@ export class FileIOService {
         } catch (err) {
             //throw new Error("Could not delete user file: " + err);
             console.error("Could not delete file: ", filePathName, err)
+        }
+    }
+
+    public async getFileNamesInDirectory(directory: string): Promise<string[]> {
+        try {
+            const files = await fs.promises.readdir(directory.replaceAll("\\", "\/"));
+            return files;
+        } catch (err) {
+            console.error('Error reading directory:', err);
+            throw new Error("Error reading directory: " + err);
         }
     }
 

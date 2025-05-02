@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'; 
+import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from 'src/user/services/users.service';
 import { DatabaseVersionEntity } from './entities/database-version.entity';
 import { Repository } from 'typeorm';
@@ -14,7 +14,7 @@ import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.serv
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = "0.0.1"; // TODO. Should come from a versioning file. Should this start at version 5.0.0 ??
+  private readonly SUPPORTED_DB_VERSION: string = "0.0.1"; // TODO. Should come from a versioning file. 
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -96,7 +96,7 @@ export class MigrationsService {
           email: "admin@climsoft.org",
           phone: null,
           isSystemAdmin: true,
-          permissions: null,  
+          permissions: null,
           groupId: null,
           extraMetadata: null,
           disabled: false,

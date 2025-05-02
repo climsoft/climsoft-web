@@ -25,7 +25,7 @@ import { AppConfig } from './app.config';
       password: AppConfig.dbCredentials.password,
       database: AppConfig.dbCredentials.database,
       autoLoadEntities: true, // models will be loaded automatically
-      synchronize: true,//AppConfig.devMode, // in dev mode synce entities with the database but in production disable
+      synchronize: AppConfig.firstInstall, // for first installs sync entities with the database but for updates, the api will manage the table creations and migrations
       // TODO. Investigate whether we should increase the connection pool size after monitoring the connection pool utilisation.
       //logging: true,
     }),

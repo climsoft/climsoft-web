@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION func_update_observations_log_column()
+CREATE OR REPLACE FUNCTION func_update_observations_log()
 RETURNS TRIGGER AS $$
 BEGIN
         IF (
@@ -21,7 +21,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE TRIGGER trg_update_observations_log_column
+CREATE OR REPLACE TRIGGER trg_update_observations_log
 BEFORE UPDATE ON observations
 FOR EACH row
-EXECUTE FUNCTION func_update_observations_log_column();
+EXECUTE FUNCTION func_update_observations_log();
