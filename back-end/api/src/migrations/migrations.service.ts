@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'; 
+import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from 'src/user/services/users.service';
 import { DatabaseVersionEntity } from './entities/database-version.entity';
 import { Repository } from 'typeorm';
@@ -32,7 +32,7 @@ export class MigrationsService {
     const [lastDBVersion] = await this.dbVersionRepo.find({
       order: { id: 'DESC' },
       take: 1, // Limit to one record
-    }); 
+    });
 
     if (lastDBVersion) {
       if (lastDBVersion.version === this.SUPPORTED_DB_VERSION) {
@@ -96,7 +96,7 @@ export class MigrationsService {
           email: "admin@climsoft.org",
           phone: null,
           isSystemAdmin: true,
-          permissions: null,  
+          permissions: null,
           groupId: null,
           extraMetadata: null,
           disabled: false,
