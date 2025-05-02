@@ -38,6 +38,7 @@ services:
       DB_PASSWORD: "${DB_PASSWORD}"
       FIRST_INSTALL: "${FIRST_INSTALL}"
       V4_SAVE: "${V4_SAVE}"
+      V4_IMPORT: "${V4_IMPORT}"
       V4_DB_HOST: "${V4_DB_HOST}"
       V4_DB_PORT: "${V4_DB_PORT}"
       V4_DB_NAME: "${V4_DB_NAME}"
