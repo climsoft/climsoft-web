@@ -14,7 +14,7 @@ import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.serv
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = "0.0.1"; // TODO. Should come from a versioning file. Should this start at version 5.0.0 ??
+  private readonly SUPPORTED_DB_VERSION: string = "0.0.1"; // TODO. Should come from a versioning file. 
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -32,7 +32,7 @@ export class MigrationsService {
     const [lastDBVersion] = await this.dbVersionRepo.find({
       order: { id: 'DESC' },
       take: 1, // Limit to one record
-    });
+    }); 
 
     if (lastDBVersion) {
       if (lastDBVersion.version === this.SUPPORTED_DB_VERSION) {

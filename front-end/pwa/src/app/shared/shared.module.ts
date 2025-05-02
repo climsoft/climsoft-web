@@ -2,8 +2,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-import { ScrollingModule } from '@angular/cdk/scrolling';
+import { HttpClientModule } from '@angular/common/http'; 
 //--------------------------------
  
 //--------- components ------------
@@ -45,8 +44,7 @@ const angularModules = [
   CommonModule,
   ReactiveFormsModule,
   FormsModule,
-  HttpClientModule,
-  ScrollingModule,
+  HttpClientModule, 
 ];
 
 //--------------------------------

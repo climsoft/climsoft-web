@@ -1,7 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as session from 'express-session';
 import { ValidationPipe } from '@nestjs/common'; 
+import { AppConfig } from './app.config';
+import * as session from 'express-session';
+import * as pgSession from 'connect-pg-simple';
+import { Pool } from 'pg';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -47,19 +50,47 @@ async function bootstrap() {
     },
   }));
 
+  const PgSession = pgSession(session);
+  const pgPool = new Pool({
+    user: AppConfig.dbCredentials.username,
+    host: AppConfig.dbCredentials.host,
+    database: AppConfig.dbCredentials.database,
+    password: AppConfig.dbCredentials.password,
+    port: AppConfig.dbCredentials.port,
+  });
+
   app.use(
     session({
-      name: 'ssid',
-      secret: process.env.DB_PASSWORD ? process.env.DB_PASSWORD : 'climsoft_secret',
+      store: new PgSession({
+        pool: pgPool,
+        tableName: 'user_sessions',
+        createTableIfMissing: true,
+        pruneSessionInterval: 24 * 60 * 60,  // Set to 24 hours. Note this is given in seconds.
+      }),
+      secret: AppConfig.dbCredentials.password,
       resave: false,
       saveUninitialized: false,
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24, // set to 24 hours
-        sameSite: false,
-        secure: false //TODO set to true only when using HTTPS
+        maxAge: 24 * 60 * 60 * 1000,  // Set to 24 hours. Note, this is given in milliseconds
+        secure: false, //TODO set to true only when using HTTPS
       },
     }),
   );
+
+  // Left here for reference. This uses the default MemoryStore that is not designed for production
+  // app.use(
+  //   session({
+  //     name: 'ssid',
+  //     secret: AppConfig.dbCredentials.password,
+  //     resave: false,
+  //     saveUninitialized: false,
+  //     cookie: {
+  //       maxAge: 1000 * 60 * 60 * 24, // set to 24 hours
+  //       sameSite: false,
+  //       secure: false //TODO set to true only when using HTTPS
+  //     },
+  //   }),
+  // );
 
   await app.listen(3000);
 }
