@@ -129,7 +129,7 @@ export class ClimsoftV4WebSyncSetUpService {
             // set up V4 elements used v5 to v4 database for mapping  
             await this.setupV4ElementsForV5MappingAndChecking();
 
-            // set up v4 stations used to check if v4 has elements that are in v5 database
+            // set up v4 stations used to check if v4 has stations that are in v5 database
             await this.setupV4StationsChecking();
 
             await this.setupV5Sources();
@@ -192,7 +192,7 @@ export class ClimsoftV4WebSyncSetUpService {
         this.v4Conflicts.length = 0;
     }
 
-    public async getV4Elements(): Promise<V4ElementModel[]> {
+    private async getV4Elements(): Promise<V4ElementModel[]> {
         if (!this.v4DBPool) {
             return [];
         }
@@ -267,7 +267,8 @@ export class ClimsoftV4WebSyncSetUpService {
         await this.elementsService.bulkPut(v5Dtos, userId);
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of elements or changes in v4 configuration
-        await this.setupV4ElementsForV5MappingAndChecking();
+        this.setupV4ElementsForV5MappingAndChecking();
+        this.setupWebElementsChecking();
 
         // TODO. create and save upper limit and lower limit qc test
 
@@ -287,7 +288,7 @@ export class ClimsoftV4WebSyncSetUpService {
         return Math.pow(10, decimalPlaces);
     }
 
-    public async getV4Stations(): Promise<V4StationModel[]> {
+    private async getV4Stations(): Promise<V4StationModel[]> {
         // if version 4 database pool is not set up then return.
         if (!this.v4DBPool) {
             return [];
@@ -370,6 +371,10 @@ export class ClimsoftV4WebSyncSetUpService {
         }
 
         await this.stationsService.bulkPut(v5Dtos, userId);
+
+        // Important to do this just incase observations were not being saved to v4 database due to lack of stations or changes in v4 configuration
+        this.setupV4StationsChecking();
+        this.setupWebStationsChecking();
 
         return true;
     }

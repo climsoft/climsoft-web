@@ -9,13 +9,14 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils'; 
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
-import * as echarts from 'echarts'; 
+import * as echarts from 'echarts';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataAvailabilityQueryModel } from './models/data-availability-query.model';
+import { DataAvailabilityStatusModel } from 'src/app/data-ingestion/models/data-availability-status.model';
 
 interface Observation {
   obsDef: CreateObservationModel;
@@ -91,50 +92,72 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  protected onQueryClick(observationFilter: DataAvailabilityQueryModel): void {
+  protected onQueryClick(dataAvailabilityFilter: DataAvailabilityQueryModel): void {
 
-    if(1===1){
-      return;
-    }
-  
+
+    //console.log('filter: ', dataAvailabilityFilter);
+
+
 
     this.enableQueryButton = false;
- 
-    this.observationService.findProcessed(observationFilter).pipe(
+
+    this.observationService.findDataAvailabilityStatus(dataAvailabilityFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
 
-        const observationViews: Observation[] = data.map(observation => {
+        console.log('availability: ', data);
 
-          const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
-          if (!stationMetadata) {
-            throw new Error("Developer error: Station not found.");
+        const stationIds: string[] = dataAvailabilityFilter.stationIds;
+        let dateValues: number[];
+
+        switch (dataAvailabilityFilter.durationType) {
+          case 'days_of_month':
+            const [year, month] = dataAvailabilityFilter.durationDaysOfMonth.split('-').map(Number);
+            const daysInMonth = new Date(year, month, 0).getDate(); // day 0 of next month = last day of this month
+            dateValues = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+            //dateValues = DateUtils.getDaysInMonthList(year, month-1).map(item => item.id);
+            break;
+
+          case 'months_of_year':
+            dateValues = Array.from({ length: 12 }, (_, i) => i + 1);;
+            break;
+
+          case 'years':
+            dateValues = dataAvailabilityFilter.durationYears;
+            break;
+          default:
+            throw new Error('Developer error. Duration type not supported');
+        }
+
+
+
+        // [stationIndex, dateValueIndex, value]
+        const chartData: [number, number, number][] = [];
+        let maxValue: number=0
+        for (const item of data) {
+    
+          const stationIndex = stationIds.findIndex(stationId => stationId === item.stationId);
+          if (stationIndex == -1) {
+            continue;
           }
 
-          const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
-          if (!elementMetadata) {
-            throw new Error("Developer error: Element not found.");
+          const dateValueIndex = dateValues.findIndex(dateValue => dateValue === item.dateValue);
+          if (dateValueIndex == -1) {
+            continue;
           }
 
-          const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
-          if (!sourceMetadata) {
-            throw new Error("Developer error: Source not found.");
+          chartData.push([stationIndex, dateValueIndex, item.recordCount]);
+
+          if(item.recordCount> maxValue){
+            maxValue = item.recordCount;
           }
+        }
 
-          const obsView: Observation = {
-            obsDef: observation,
-            stationName: stationMetadata.name,
-            elementAbbrv: elementMetadata.name,
-            sourceName: sourceMetadata.name,
-            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
-          }
-          return obsView;
 
-        });
-
-        this.generateChart(observationViews);
+        const strDateValues: string[] = dateValues.map(item => item.toString());
+        this.generateChart(stationIds, strDateValues, chartData,maxValue);
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Flow', message: err, type: ToastEventTypeEnum.ERROR });
@@ -146,103 +169,60 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  private generateChart(observations: Observation[]) {
-    if (observations.length == 0) {
-      this.pagesDataService.showToast({ title: 'Data Flow', message: 'No data', type: ToastEventTypeEnum.INFO });
-      this.chartInstance.setOption({});
-      return;
-    };
 
-    const intervalMinutes = observations[0].obsDef.interval;
-    const intervalMs = intervalMinutes * 60 * 1000;
-
-    // Step 1: Group observations by station
-    const stationGroups = new Map<string, Observation[]>();
-    for (const obs of observations) {
-      if (!stationGroups.has(obs.obsDef.stationId)) {
-        stationGroups.set(obs.obsDef.stationId, []);
-      }
-      stationGroups.get(obs.obsDef.stationId)!.push(obs);
-    }
-
-    // Step 2: Get global time range
-    const allTimestamps = observations.map(o => new Date(o.obsDef.datetime).getTime());
-    const start = Math.min(...allTimestamps);
-    const end = Math.max(...allTimestamps);
-
-    // Step 3: Create full timeline
-    const timeline: number[] = [];
-    for (let t = start; t <= end; t += intervalMs) {
-      timeline.push(t);
-    }
-
-    // Step 4: Prepare series data for each station
-    const series = Array.from(stationGroups.entries()).map(([stationId, records]) => {
-      const name = `${stationId} - ${records[0].stationName}`;
-
-      const valueMap = new Map<number, number | null>();
-      for (const r of records) {
-        valueMap.set(new Date(r.obsDef.datetime).getTime(), r.obsDef.value);
-      }
-
-      const data: [number, number | null][] = timeline.map(t => [t, valueMap.get(t) ?? null]);
-
-      return {
-        name: name,
-        type: 'line',
-        data: data,
-        connectNulls: false,
-        showSymbol: false,
-        smooth: false,
-        lineStyle: { width: 2 }
-      };
-    });
-
-
-    // Step 5: Set up chart
+  private generateChart(stations: string[], dateValues: string[], data: [number, number, number][], maxValue: number) {
     const chartOptions = {
-      tooltip: {
-        trigger: 'axis',
-        formatter: (params: any) => {
-          const lines = params.map((p: any) => {
-            const value = p.data[1] !== null ? p.data[1] : '<i>Missing</i>';
-            return `${p.marker} ${p.seriesName}: ${value}`;
-          });
-          const formattedDatetime = DateUtils.getPresentableDatetime(new Date(params[0].data[0]).toISOString(), this.utcOffset);
-          return `${formattedDatetime}<br/>${lines.join('<br/>')}`;
-        }
-      },
-      legend: {
-        type: 'scroll',
-        top: 10,
-        //orient: 'vertical',
+      tooltip: { position: 'top' },
+      grid: {
+        height: '60%',
+        top: '10%'
       },
       xAxis: {
-        type: 'time',
-        name: 'Datetime',
-        nameLocation: 'middle',
-        nameGap: 25
+        type: 'category',
+        data: dateValues,
+        splitArea: { show: true }
       },
       yAxis: {
-        type: 'value',
-        name: 'Value',
-        nameLocation: 'middle',
-        nameGap: 35
+        type: 'category',
+        data: stations,
+        splitArea: { show: true }
       },
-      //dataZoom: [], 
-      series: series,
-      grid: {
-        left: '5%',
-        right: '8%',
+      visualMap: {
+        min: 0,
+        max: maxValue,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
         bottom: '15%'
-      }
+      },
+      series: [
+        {
+          name: 'Data Availability',
+          type: 'heatmap',
+          data: data,
+          label: { show: true },
+          emphasis: {
+            itemStyle: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ]
     };
 
     this.chartInstance.setOption(chartOptions);
-
   }
 
-
-
+  private getMaxNumber(numbers: number[]): number {
+    if (numbers.length === 0) throw new Error("Array is empty");
+    let max = numbers[0];
+    for (let i = 1; i < numbers.length; i++) {
+      if (numbers[i] > max) {
+        max = numbers[i];
+      }
+    }
+    return max;
+  }
 
 }

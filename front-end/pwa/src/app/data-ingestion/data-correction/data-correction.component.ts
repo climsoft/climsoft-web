@@ -3,19 +3,14 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { AppAuthService } from 'src/app/app-auth.service';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
@@ -38,7 +33,7 @@ interface ObservationEntry {
 })
 export class DataCorrectionComponent implements OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
- 
+
   protected pageInputDefinition: PagingParameters = new PagingParameters();
 
   protected enableSave: boolean = false;
@@ -53,7 +48,7 @@ export class DataCorrectionComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataSearchService: CachedMetadataSearchService, 
+    private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
@@ -78,7 +73,7 @@ export class DataCorrectionComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter; 
+    this.observationFilter = observationFilter;
     this.queryData();
   }
 
@@ -124,9 +119,12 @@ export class DataCorrectionComponent implements OnDestroy {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
-      
+
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset),
+            obsDef: new ObservationDefinition(observation,
+              elementMetadata, sourceMetadata.allowMissingValue,
+              false, undefined,
+              this.utcOffset, false),
             newStationId: '',
             newElementId: 0,
             delete: false,

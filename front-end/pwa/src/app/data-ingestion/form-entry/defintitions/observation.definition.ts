@@ -60,16 +60,26 @@ export class ObservationDefinition {
     public originalPeriod: number;
 
     private utcOffset: number;
+    private datetimeHasBeenOffset: boolean;// TODO. This is a temporary variable
 
-    constructor(observation: CreateObservationModel, elementMetadata: CreateViewElementModel, allowMissingValues: boolean, scaleValue: boolean, rangeThreshold: RangeThresholdQCTestParamsModel | undefined, utcOffset: number) {
+    constructor(observation: CreateObservationModel,
+        elementMetadata: CreateViewElementModel,
+        allowMissingValues: boolean,
+        scaleValue: boolean,
+        rangeThreshold: RangeThresholdQCTestParamsModel | undefined,
+        // TODO. Refactor these 2 parameters later
+        utcOffset: number, datetimeHasBeenOffset: boolean) {
         this._observation = observation;
         this.elementMetadata = elementMetadata;
         this.allowMissingValues = allowMissingValues;
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
-        this.utcOffset = utcOffset; 
+        this.utcOffset = utcOffset;
+        this.datetimeHasBeenOffset = datetimeHasBeenOffset;
 
         this.originalPeriod = observation.interval;
+
+
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
 
         // validate database values
@@ -328,7 +338,8 @@ export class ObservationDefinition {
             level: this.observation.level,
             // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
             // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-            datetime: DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract'),
+            // Note, this check was added but should be removed once this class is well refactored. Form entry and data correction and explorer use this object differently           
+            datetime: this.datetimeHasBeenOffset ? DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract') : this.observation.datetime,
             interval: this.observation.interval
         };
 
@@ -344,7 +355,7 @@ export class ObservationDefinition {
                 }
 
                 // Convert the entry date time to current local time
-                item.entryDateTime = DateUtils.getDateInSQLFormatFromDate(new Date(item.entryDateTime), true)
+                item.entryDateTime = DateUtils.getPresentableDatetime(item.entryDateTime, this.utcOffset);
                 return item;
             }
             )

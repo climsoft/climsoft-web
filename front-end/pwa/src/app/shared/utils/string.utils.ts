@@ -105,7 +105,6 @@ export class StringUtils {
       }
     });
 
-    console.log('')
     return httpParams;
   }
 }

@@ -85,11 +85,13 @@ export class ClimsoftV4ToWebSyncService {
         if (this.climsoftV4WebSetupService.v4DBPool === null) {
             return false;
         }
-        this.logger.log('Attempting to add column "entry_date_time" in v4 database');
+
         const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
-            // Check if the column exists
-            const result = await connection.query(
+            //------------------------------------------------
+            // Check if the 'entry_date_time' column exists
+            this.logger.log('Attempting to add column "entry_date_time" in v4 database');
+            let result = await connection.query(
                 `SELECT COLUMN_NAME FROM information_schema.COLUMNS 
                  WHERE TABLE_SCHEMA = DATABASE() 
                  AND TABLE_NAME = 'observationfinal' 
@@ -102,16 +104,51 @@ export class ClimsoftV4ToWebSyncService {
                 this.logger.log('Adding column "entry_date_time"...');
                 await connection.query(
                     `ALTER TABLE observationfinal
-                     ADD COLUMN entry_date_time DATETIME NOT NULL DEFAULT NOW();`
+                     ADD COLUMN entry_date_time DATETIME(3) NOT NULL DEFAULT NOW();`
                 );
                 this.logger.log('Column "entry_date_time" added successfully.');
+            }
+            //------------------------------------------------
 
+
+            //------------------------------------------------
+            // Check if the 'entry_date_time' index exists
+            this.logger.log('Attempting to add index for column "entry_date_time" in v4 database');
+            result = await connection.query(
+                `
+                SELECT INDEX_NAME FROM information_schema.STATISTICS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                AND TABLE_NAME = 'observationfinal' 
+                AND INDEX_NAME = 'idx_entry_date_time';`
+            );
+
+            if (result && result.length > 0) {
+                this.logger.log('Index for column "entry_date_time"  already exists: ' + result);
+            } else {
+                this.logger.log('Adding index for column "entry_date_time"...');
                 await connection.query(
                     `CREATE INDEX idx_entry_date_time ON observationfinal(entry_date_time);`
                 );
 
                 this.logger.log('Index for column "entry_date_time" added successfully.');
+            }
+            //------------------------------------------------
 
+            //------------------------------------------------
+            // Check if the 'entry_date_time' trigger exists
+            this.logger.log('Attempting to add trigger for column "entry_date_time" in v4 database');
+            result = await connection.query(
+                `
+                SELECT TRIGGER_NAME FROM information_schema.TRIGGERS 
+                WHERE TRIGGER_SCHEMA = DATABASE() 
+                AND EVENT_OBJECT_TABLE = 'observationfinal' 
+                AND TRIGGER_NAME = 'trg_update_entry_date_time';`
+            );
+
+            if (result && result.length > 0) {
+                this.logger.log('Trigger for column "entry_date_time" already exists: ' + result);
+            } else {
+                this.logger.log('Adding trigger for column "entry_date_time"...');
                 await connection.query(
                     ` 
                     CREATE OR REPLACE TRIGGER trg_update_entry_date_time 
@@ -120,8 +157,9 @@ export class ClimsoftV4ToWebSyncService {
                     `
                 );
 
-                this.logger.log('Before update trigger for column "entry_date_time" added successfully.');
+                this.logger.log('Trigger for column "entry_date_time" added successfully.');
             }
+            //------------------------------------------------
             return true;
         } catch (error) {
             this.logger.error('Error while altering observationfinal table:', error);
@@ -135,10 +173,11 @@ export class ClimsoftV4ToWebSyncService {
         if (this.climsoftV4WebSetupService.v4DBPool === null) {
             return false;
         }
-        this.logger.log('Attempting to add index for column"acquisitionType" in v4 database');
+
         const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
-            // Check if the column exists
+            // Check if 'acquisitionType' index exists
+            this.logger.log('Attempting to add index for column "acquisitionType" in v4 database');
             const result = await connection.query(
                 `SELECT INDEX_NAME FROM information_schema.STATISTICS 
                  WHERE TABLE_SCHEMA = DATABASE() 
@@ -147,7 +186,7 @@ export class ClimsoftV4ToWebSyncService {
             );
 
             if (result && result.length > 0) {
-                this.logger.log('Index for column "acquisitionType"  already exists: ' + result);
+                this.logger.log('Index for column "acquisitionType" already exists: ' + result);
             } else {
                 this.logger.log('Adding index for column "acquisitionType"...');
                 await connection.query(
@@ -200,7 +239,8 @@ export class ClimsoftV4ToWebSyncService {
 
         // Manually construct the SQL query
         const lastImportedDataDate: string = importParameters.fromEntryDate.replace('T', ' ').replace('Z', '');
-        this.logger.log('import starting from date time: ' + importParameters.fromEntryDate + ' | OR: ' + lastImportedDataDate);
+        this.logger.log('import starting from date time: ' + lastImportedDataDate);
+
         let sqlCondition: string = `entry_date_time > '${lastImportedDataDate}'`;
 
         sqlCondition = sqlCondition + ` AND describedBy IN (${importParameters.elements.map(item => item.elementId).join(',')})`;
@@ -217,14 +257,13 @@ export class ClimsoftV4ToWebSyncService {
         SELECT recordedFrom, describedBy, obsDatetime, obsLevel, obsValue, flag, period, entry_date_time 
         FROM observationfinal 
         WHERE ${sqlCondition} ORDER BY entry_date_time ASC LIMIT 1000;
-        `;
+        `; // TODO. Check whether offset is needed. The first time entry_date_time is added, will it be the same for all records?
 
         const connection = await this.climsoftV4WebSetupService.v4DBPool.getConnection();
         try {
 
             // Check if the column exists
             const v4Observations = await connection.query(sql);
-            //console.log('v4 observations: ', v4Observations, ' | SQL: ', sql);
 
             if (v4Observations.length === 0) {
                 this.logger.log('Aborting importing. No v4 observations found. Will resume in: ' + importParameters.pollingInterval + ' minutes');
@@ -243,13 +282,18 @@ export class ClimsoftV4ToWebSyncService {
 
             for (const v4Observation of v4Observations) {
                 const v4StationId: string = v4Observation.recordedFrom;
+
+                // Check for stations to ignore
                 if (importParameters.stationIds) {
                     const stationsAllowedToSave = importParameters.stationIds.find(item => item === v4StationId);
                     if (!stationsAllowedToSave) {
                         continue;
                     }
 
-                } else if (!this.climsoftV4WebSetupService.webStations.has(v4StationId)) {
+                }
+
+                // Check for stations that are in the web database
+                if (!this.climsoftV4WebSetupService.webStations.has(v4StationId)) {
                     this.climsoftV4WebSetupService.v4Conflicts.push(`station id ${v4Observation.recordedFrom} not found in web database`)
                     continue;
                 }
@@ -293,22 +337,22 @@ export class ClimsoftV4ToWebSyncService {
                 return;
             }
 
-            this.logger.log('last web observations: ', obsDtos[obsDtos.length - 1]);
-
-
             // Save the versin 4 observations to web database
+            this.logger.log('attempting to save v4 data into web database');
             await this.observationsService.bulkPut(obsDtos, this.userId, true);
+            this.logger.log('v4 data successfully saved to web database');
 
             // Set last import date
             importParameters.fromEntryDate = this.convertV4DatetimeToJSDatetime(v4Observations[v4Observations.length - 1].entry_date_time);
 
-            this.logger.log('last import date: ' + importParameters.fromEntryDate);
+            this.logger.log('last imported v4 data entry date: ' + importParameters.fromEntryDate);
 
             // Set saving to false before initiating another save operation
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
-            this.importV4ObservationstoV5DB(); // TODO. Check on whether you want have this under a set timeout
+            this.logger.log('Inititating another import process');
+            this.importV4ObservationstoV5DB();
 
         } catch (error) {
             this.logger.error('error when fetching data from observationfinal table', error);

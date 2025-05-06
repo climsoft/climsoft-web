@@ -9,13 +9,13 @@ import { GeneralSettingsService } from 'src/app/admin/general-settings/services/
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
-import { Last24HoursObservations } from 'src/app/data-ingestion/models/last-24-hours-observation.model';
+import { LastStationActivityObservation } from 'src/app/data-ingestion/models/last-station-activity-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { StationStatusQueryModel } from '../models/station-status-query.model';
 import { StationStatusDataQueryModel } from '../models/station-status-data-query.model';
 
 
-interface ObservationView extends Last24HoursObservations {
+interface ObservationView extends LastStationActivityObservation {
   elementAbbrv: string;
   sourceName: string;
   presentableDatetime: string;

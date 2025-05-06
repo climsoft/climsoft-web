@@ -321,7 +321,13 @@ export class FormEntryDefinition {
         let rangeThresholdParams: RangeThresholdQCTestParamsModel | undefined = undefined;
         rangeThresholdParams = this.rangeThresholdQCTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
 
-        return new ObservationDefinition(observation, elementMetadata, this.source.allowMissingValue, true, rangeThresholdParams, this.source.utcOffset);
+        return new ObservationDefinition(
+            observation,
+            elementMetadata,
+            this.source.allowMissingValue,
+            true,
+            rangeThresholdParams,
+            this.source.utcOffset, true);
     }
 
     private findEquivalentDBObservation(newObs: CreateObservationModel, dbObservations: CreateObservationModel[]): CreateObservationModel | null {
