@@ -6,7 +6,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';

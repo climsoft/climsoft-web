@@ -37,6 +37,8 @@ import { MapComponent } from './controls/map/map.component';
 import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
 import { DateRangeInputComponent } from './controls/date-range-input/date-range-input.component';
 import { IntervalSelectorMultipleComponent } from './controls/period-input/interval-selector-multiple/interval-selector-multiple.component';
+import { YearSelectorMultipleComponent } from './controls/year-selector/year-selector-multiple/year-selector-multiple.component';
+import { YearSelectorSingleComponent } from './controls/year-selector/year-selector-single-input/year-selector-single.component';
 
 //--------------------------------
   
@@ -84,6 +86,9 @@ const controlsComponents = [
 
   DateRangeInputComponent,
   IntervalSelectorMultipleComponent,
+
+  YearSelectorMultipleComponent,
+  YearSelectorSingleComponent,
 ];
 
 const directives = [

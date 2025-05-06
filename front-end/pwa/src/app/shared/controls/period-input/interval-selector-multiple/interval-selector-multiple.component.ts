@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { Interval, IntervalsUtil } from '../interval-single-input/Intervals.util';
+import { Interval, IntervalsUtil } from '../Intervals.util';
 
 @Component({
   selector: 'app-interval-selector-multiple',
@@ -23,7 +23,7 @@ export class IntervalSelectorMultipleComponent implements OnChanges {
   public selectedIdsChange = new EventEmitter<number[]>();
 
   protected allIntervals: Interval[];
-  protected intervals!: Interval[];
+  protected intervals: Interval[];
   protected selectedIntervals!: Interval[]; 
 
   constructor() {

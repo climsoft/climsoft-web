@@ -2,20 +2,21 @@
     <app-station-status-query-selection [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
 
     <div *ngIf="allowedStations" class="card border-0">
-        <div class="card-body px-0">            
-    
+        <div class="card-body px-0">
+
             <div *ngIf="stationMapLayerGroup">
                 <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
             </div>
-    
+
             <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
                 <div class="card-body">
                     <div class="d-flex fw-bold">
-                         Stations reporting status  
+                        Stations reporting status
                     </div>
                     <div>
                         <div class="row">
-                            <div class="col-2"><span class="app-station-circle-lg app-station-bg-reporting-color"></span>
+                            <div class="col-2"><span
+                                    class="app-station-circle-lg app-station-bg-reporting-color"></span>
                             </div>
                             <div class="col-auto">
                                 {{ numOfStationsReporting }}
@@ -23,8 +24,9 @@
                             <div class="col-auto">Reporting</div>
                         </div>
                         <div class="row">
-                            <div class="col-2"><span
-                                    class="app-station-circle-lg app-station-bg-not-reporting-color"></span></div>
+                            <div class="col-2">
+                                <span class="app-station-circle-lg app-station-bg-not-reporting-color"></span>
+                            </div>
                             <div class="col-auto">
                                 {{ numOfStationsNotReporting }}
                             </div>
@@ -34,9 +36,9 @@
                 </div>
             </div>
         </div>
-    
+
         <app-station-status-data #appStationDataActivity />
-    
+
     </div>
-    
+
 </div>

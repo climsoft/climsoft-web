@@ -11,15 +11,18 @@ import { DataFlowQuerySelectionComponent } from './data-flow/data-flow-query-sel
 import { ObservationsModule } from '../observations/observations.module';
 import { StationStatusQuerySelectionComponent } from './station-status/station-status-query-selection/station-status-query-selection.component';
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
+import { DataAvailabilityComponent } from './data-availability/data-availability.component';
+import { DataAvailabilityQuerySelectionComponent } from './data-availability/data-availability-query-selection/data-availability-query-selection.component';
 
 @NgModule({
-
   declarations: [
     stationStatusComponent,
     StationStatusQuerySelectionComponent,
     StationDataComponent,
     DataFlowComponent,
     DataFlowQuerySelectionComponent,
+    DataAvailabilityComponent,
+    DataAvailabilityQuerySelectionComponent,
     DataExplorerComponent,
   ],
   imports: [

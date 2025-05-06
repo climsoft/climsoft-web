@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { DataFlowComponent } from './data-flow/data-flow.component';
 import { DataExplorerComponent } from './data-explorer/data-explorer.component';
 import { stationStatusComponent } from './station-status/stations-status.component'; 
+import { DataAvailabilityComponent } from './data-availability/data-availability.component';
 
 const routes: Routes = [
   {
@@ -20,6 +21,10 @@ const routes: Routes = [
       {
         path: 'data-flow',
         component: DataFlowComponent
+      },
+      {
+        path: 'data-availability',
+        component: DataAvailabilityComponent
       },
       {
         path: 'data-explorer',

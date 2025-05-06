@@ -34,10 +34,16 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
+      if(!this.options){
+        this.options = []; // should never be undefined
+      }
       this.filteredOptions = this.options;
     }
 
     if (changes['selectedOptions']) {
+      if(!this.selectedOptions){
+        this.selectedOptions = []; // should never be undefined
+      }
       this.setDisplaySelectedOptions();
     }
   }

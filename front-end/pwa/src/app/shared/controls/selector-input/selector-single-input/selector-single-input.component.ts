@@ -28,7 +28,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   public optionDisplayFn: (option: T) => string = (option => String(option));
 
   @Input()
-  public selectedOption!: T | null;
+  public selectedOption!: T | null| undefined;
 
   @Output()
   public selectedOptionChange = new EventEmitter<T | null>();
@@ -43,10 +43,11 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     // Important check because when an option is selected  'ngOnChanges' gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
+      if(!this.options) this.options = []; // should never be undefined
       this.filteredOptions = this.options;
     }
 
-    if (changes['selectedOption']) {
+    if (changes['selectedOption'] && this.selectedOption) {
       // TODO. Investigate how this can be avoided when `selectedOption` is changed within this control
       this.setSelectedOptionDisplay();
     }

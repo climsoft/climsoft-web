@@ -15,6 +15,7 @@ import * as echarts from 'echarts';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { DataAvailabilityQueryModel } from './models/data-availability-query.model';
 
 interface Observation {
   obsDef: CreateObservationModel;
@@ -26,11 +27,11 @@ interface Observation {
 }
 
 @Component({
-  selector: 'app-data-flow',
-  templateUrl: './data-flow.component.html',
-  styleUrls: ['./data-flow.component.scss']
+  selector: 'app-data-availability',
+  templateUrl: './data-availability.component.html',
+  styleUrls: ['./data-availability.component.scss']
 })
-export class DataFlowComponent implements AfterViewInit, OnDestroy {
+export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
   private stationsMetadata: StationCacheModel[] = [];
   private elementsMetadata: ElementCacheModel[] = [];
   private sourcesMetadata: ViewSourceModel[] = [];
@@ -50,7 +51,7 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
-    this.pagesDataService.setPageHeader('Data Flow');
+    this.pagesDataService.setPageHeader('Data Availability');
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
@@ -90,10 +91,15 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryClick(observationFilter: DataAvailabilityQueryModel): void {
+
+    if(1===1){
+      return;
+    }
+  
+
     this.enableQueryButton = false;
-    observationFilter.page = 1
-    observationFilter.pageSize = 1000;
+ 
     this.observationService.findProcessed(observationFilter).pipe(
       take(1)
     ).subscribe({
