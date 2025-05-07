@@ -82,6 +82,7 @@ export class ElementsSearchDialogComponent {
   }
 
   protected onSearchInput(searchValue: string): void {
+    searchValue = searchValue.toLowerCase();
     // Make the searched items be the first items
     this.elementsSelections.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after

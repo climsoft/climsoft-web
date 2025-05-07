@@ -12,7 +12,7 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 @Injectable()
 export class ClimsoftV4ToWebSyncService {
     private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
-    private isImporting: boolean = false;
+    private isImporting: boolean = false; 
     private climsoftSource: ViewSourceDto | undefined;
     private userId: number;
 
@@ -213,7 +213,6 @@ export class ClimsoftV4ToWebSyncService {
             return;
         }
 
-
         // if version 4 database pool is not set up then return
         if (!this.climsoftV4WebSetupService.v4DBPool) {
             this.logger.log('Aborting saving. No V4 connection pool. ');
@@ -222,7 +221,7 @@ export class ClimsoftV4ToWebSyncService {
 
         // If still importing then just return
         if (this.isImporting) {
-            this.logger.log('Aborting saving. There is still an ongoing import. ');
+            this.logger.log('Aborting saving. There is still an ongoing import.');
             return;
         }
 
@@ -270,7 +269,7 @@ export class ClimsoftV4ToWebSyncService {
                 setTimeout(() => {
                     this.importV4ObservationstoV5DB();
                 }, importParameters.pollingInterval * 60000);// Convert minutes to milliseconds
-                this.isImporting = false;
+                this.isImporting = false; 
                 // Save updated from entry with the last entry date to database
                 this.climsoftSource.parameters = importParameters;
                 // Save the import parameters without waiting for it
@@ -351,7 +350,7 @@ export class ClimsoftV4ToWebSyncService {
             this.isImporting = false;
 
             // Asynchronously initiate another save to version 4 operation
-            this.logger.log('Inititating another import process');
+            this.logger.log(`Inititating another import process with offset of ${1000}`);
             this.importV4ObservationstoV5DB();
 
         } catch (error) {
