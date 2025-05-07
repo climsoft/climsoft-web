@@ -1,4 +1,4 @@
-export interface Last24HoursObservations{
+export interface LastStationActivityObservation{
     elementId: number;
     level: number;
     datetime: string;

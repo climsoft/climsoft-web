@@ -43,7 +43,6 @@ export class ViewStationsTreeMapComponent implements AfterViewInit, OnDestroy {
     private networkAffiliationsService: NetworkAffiliationsCacheService,
     private stationNetworkAffiliationsService: StationNetworkAffiliationsService,
   ) {
-
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(stations => {
@@ -82,6 +81,8 @@ export class ViewStationsTreeMapComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.chartInstance) {
       this.chartInstance.dispose();
     }

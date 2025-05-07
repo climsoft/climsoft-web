@@ -13,8 +13,8 @@ export class YearMonthInputComponent implements OnChanges {
   @Input() public hintMessage!: string;
   @Input() public showNavigationButtons!: boolean;
   @Input() public errorMessage!: string | null;
-  @Input() public value!: string;
-  @Output() public valueChange = new EventEmitter<string | null>();
+  @Input() public value!: string | undefined;
+  @Output() public valueChange = new EventEmitter<string>();
   @Output() public inputClick = new EventEmitter<string | null>();
   @Output() public inputEnterKeyPress = new EventEmitter<string | null>();
   @Output() public inputBlur = new EventEmitter<string | null>();
@@ -27,25 +27,25 @@ export class YearMonthInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.value) {
+    if ( changes['changes'] && this.value) {
       this.setNextButtonDisabledState();
     }
   }
 
   protected onValueChange(value: string): void {
     // Prevent emission of invalid dates
-    this.valueChange.emit(value ? value : null);
+    this.valueChange.emit(value ? value : '');
   }
 
   protected onInputClick(): void {
-    this.inputClick.emit(this.value ? this.value : null);
+    this.inputClick.emit(this.value ? this.value : '');
   }
   protected onEnterKeyPressed() {
-    this.inputEnterKeyPress.emit(this.value ? this.value : null);
+    this.inputEnterKeyPress.emit(this.value ? this.value : '');
   }
 
   protected onInputBlur(): void {
-    this.inputBlur.emit(this.value ? this.value : null);
+    this.inputBlur.emit(this.value ? this.value : '');
   }
 
   protected onPrevious(): void {

@@ -4,18 +4,18 @@ import { StationCacheModel } from 'src/app/metadata/stations/services/stations-c
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
-import { Last24HoursObservations } from 'src/app/data-ingestion/models/last-24-hours-observation.model';
+import { LastStationActivityObservation } from 'src/app/data-ingestion/models/last-station-activity-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { StationStatusQueryModel } from '../models/station-status-query.model';
 import { StationStatusDataQueryModel } from '../models/station-status-data-query.model';
 
 
-interface ObservationView extends Last24HoursObservations {
+interface ObservationView extends LastStationActivityObservation {
   elementAbbrv: string;
   sourceName: string;
   presentableDatetime: string;

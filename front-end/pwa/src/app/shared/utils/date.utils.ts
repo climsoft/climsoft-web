@@ -100,15 +100,16 @@ export class DateUtils {
 
         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
         // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
-        const dateAdjusted = new Date(strDateTimeInJavaScriptIso);
-        dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
+       // const dateAdjusted = new Date(strDateTimeInJavaScriptIso);
+        //dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
 
-        return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
+        //return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
+        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').replace('T', ' ').replace('Z', '');;
     }
 
-    public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
-        if (utcOffset === 0) return strDate;
-        const newDate: Date = new Date(strDate);
+    public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {
+        if (utcOffset === 0) return strDateTimeInJavaScriptIso;
+        const newDate: Date = new Date(strDateTimeInJavaScriptIso);
         if (operation === 'subtract') {
             newDate.setHours(newDate.getHours() - utcOffset);
         } else {

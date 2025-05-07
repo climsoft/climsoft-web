@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnInit } from '@angular/core';
-import { Interval, IntervalsUtil } from './Intervals.util';
+import { Interval, IntervalsUtil } from '../Intervals.util';
 
 // TODO. Make this control to be editable
 @Component({

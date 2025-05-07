@@ -3,7 +3,7 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
@@ -152,7 +152,8 @@ export class DataExplorerComponent implements OnDestroy {
           }
 
           const observationView: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation, elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset),
+            obsDef: new ObservationDefinition(observation,
+               elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,

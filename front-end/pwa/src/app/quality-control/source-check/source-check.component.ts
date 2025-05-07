@@ -2,7 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, take, takeUntil } from 'rxjs';
 import { DuplicateModel, SourceCheckService } from '../../data-ingestion/services/source-check.service';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';

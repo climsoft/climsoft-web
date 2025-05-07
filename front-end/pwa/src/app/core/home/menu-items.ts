@@ -30,6 +30,7 @@ export enum SubMenuNameEnum {
 
     STATION_STATUS = 'Station Status',
     DATA_FLOW = 'Data Flow',
+    DATA_AVAILABILTY = 'Data Availabilty',
     DATA_EXPLORER = 'Data Explorer',
 
     SOURCE_CHECK = 'Source Check',
@@ -102,6 +103,10 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.DATA_FLOW,
                     url: '/data-flow',
+                },
+                {
+                    name: SubMenuNameEnum.DATA_AVAILABILTY,
+                    url: '/data-availability',
                 },
                 {
                     name: SubMenuNameEnum.DATA_EXPLORER,

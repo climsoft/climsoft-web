@@ -13,9 +13,11 @@ import { DeleteObservationModel } from '../models/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppDatabase } from 'src/app/app-database';
-import { Last24HoursObservations } from '../models/last-24-hours-observation.model';
+import { LastStationActivityObservation } from '../models/last-station-activity-observation.model';
 import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
 import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
+import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
+import { DataAvailabilityStatusModel } from '../models/data-availability-status.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -370,10 +372,20 @@ export class ObservationsService {
       );
   }
 
-  public findStationsObservationStatusData(stationId: string,query:  StationStatusDataQueryModel): Observable<Last24HoursObservations[]> {
-    return this.http.get<Last24HoursObservations[]>(
+  public findStationsObservationStatusData(stationId: string, query: StationStatusDataQueryModel): Observable<LastStationActivityObservation[]> {
+    return this.http.get<LastStationActivityObservation[]>(
       `${this.endPointUrl}/stations-observation-status/${stationId}`,
       { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
+    )
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public findDataAvailabilityStatus(query: DataAvailabilityQueryModel): Observable<DataAvailabilityStatusModel[]> {
+    return this.http.get<DataAvailabilityStatusModel[]>(
+      `${this.endPointUrl}/data-availability-status`,
+      { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
     )
       .pipe(
         catchError(this.handleError)

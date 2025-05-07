@@ -92,7 +92,8 @@ export class StationsSearchDialogComponent {
   }
 
   protected onSearchInput(searchValue: string): void {
-    this.searchValue = searchValue
+    searchValue = searchValue.toLowerCase();
+    this.searchValue = searchValue;
     // Make the searched items be the first items
     this.stationsSelections.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after
@@ -163,7 +164,7 @@ export class StationsSearchDialogComponent {
       case 'Id or Name':
         this.searchedIds = this.stationsSelections.filter(item => item.selected).map(item => item.station.id);
         break;
-      case 'Region': 
+      case 'Region':
         break;
       case 'Organisation':
         break;

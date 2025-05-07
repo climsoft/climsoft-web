@@ -3,7 +3,7 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/interval-single-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
@@ -82,9 +82,12 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     this.chartInstance = echarts.init(document.getElementById('dataFlowMonitoringChart')!);
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.chartInstance) {
+      this.chartInstance.dispose();
+    }
   }
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
@@ -179,9 +182,9 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
       const data: [number, number | null][] = timeline.map(t => [t, valueMap.get(t) ?? null]);
 
       return {
-        name,
+        name: name,
         type: 'line',
-        data,
+        data: data,
         connectNulls: false,
         showSymbol: false,
         smooth: false,
@@ -205,7 +208,8 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
       },
       legend: {
         type: 'scroll',
-        top: 10
+        top: 10,
+        //orient: 'vertical',
       },
       xAxis: {
         type: 'time',
@@ -219,7 +223,8 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
         nameLocation: 'middle',
         nameGap: 35
       },
-      series,
+      //dataZoom: [], 
+      series: series,
       grid: {
         left: '5%',
         right: '8%',

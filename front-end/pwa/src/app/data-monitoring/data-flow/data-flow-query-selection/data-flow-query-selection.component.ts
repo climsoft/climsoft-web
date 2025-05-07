@@ -15,12 +15,12 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
   templateUrl: './data-flow-query-selection.component.html',
   styleUrls: ['./data-flow-query-selection.component.scss']
 })
-export class DataFlowQuerySelectionComponent implements  OnDestroy {
+export class DataFlowQuerySelectionComponent implements OnDestroy {
   @Input() public enableQueryButton: boolean = true;
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
 
   protected dateRange: DateRange;
-  protected stationIds: string[] = []; 
+  protected stationIds: string[] = [];
   protected elementId: number = 0;
   protected interval: number = 0;
   protected level: number = 0;
@@ -91,6 +91,9 @@ export class DataFlowQuerySelectionComponent implements  OnDestroy {
 
     if (this.stationIds.length > 0) {
       observationFilter.stationIds = this.stationIds;
+    } else {
+      this.pagesDataService.showToast({ title: 'Data Flow', message: 'Station selection required', type: ToastEventTypeEnum.ERROR });
+      return;
     }
 
     if (this.elementId > 0) {

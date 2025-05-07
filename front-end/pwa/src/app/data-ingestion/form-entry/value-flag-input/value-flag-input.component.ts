@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ObservationDefinition } from '../defintitions/observation.definition';
-import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
-import { NumberUtils } from 'src/app/shared/utils/number.utils';
+import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component'; 
 import { ObservationsService } from '../../services/observations.service';
 
 /**
