@@ -104,7 +104,7 @@ export class ClimsoftV4ToWebSyncService {
                 this.logger.log('Adding column "entry_date_time"...');
                 await connection.query(
                     `ALTER TABLE observationfinal
-                     ADD COLUMN entry_date_time DATETIME(3) NOT NULL DEFAULT NOW();`
+                     ADD COLUMN entry_date_time DATETIME(3) NOT NULL DEFAULT NOW(3);`
                 );
                 this.logger.log('Column "entry_date_time" added successfully.');
             }
@@ -153,7 +153,7 @@ export class ClimsoftV4ToWebSyncService {
                     ` 
                     CREATE OR REPLACE TRIGGER trg_update_entry_date_time 
                     BEFORE UPDATE ON observationfinal 
-                    FOR EACH ROW SET NEW.entry_date_time = NOW();
+                    FOR EACH ROW SET NEW.entry_date_time = NOW(3);
                     `
                 );
 
