@@ -3,16 +3,16 @@ import { ClimsoftWebToV4SyncService } from '../services/climsoft-web-to-v4-sync.
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { ClimsoftV4WebSyncSetUpService } from '../services/climsoft-v4-web-sync-set-up.service';
-import { ClimsoftV4ToWebSyncService } from '../services/climsoft-v4-to-web-sync.service';
+import { ClimsoftV4WebSyncSetUpService } from '../services/climsoft-v4-web-sync-set-up.service'; 
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
+import { ClimsoftV4ToWebSyncServiceNew } from '../services/climsoft-v4-to-web-sync-new.service';
 
 @Controller('climsoft-v4')
 export class ClimsoftV4Controller {
   constructor(
     private climsoftV4V5SetUpService: ClimsoftV4WebSyncSetUpService,
     private climsoftV5ToV4Service: ClimsoftWebToV4SyncService,
-    private climsoftV4ToV5SyncService: ClimsoftV4ToWebSyncService) {
+    private climsoftV4ToV5SyncService: ClimsoftV4ToWebSyncServiceNew) {
   }
 
   @Admin()
