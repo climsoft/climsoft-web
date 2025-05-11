@@ -11,13 +11,14 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils'; 
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
   stationName: string;
+  elementId: number;
   elementAbbrv: string;
   sourceName: string;
   formattedDatetime: string;
@@ -153,8 +154,9 @@ export class DataExplorerComponent implements OnDestroy {
 
           const observationView: ObservationEntry = {
             obsDef: new ObservationDefinition(observation,
-               elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
+              elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
             stationName: stationMetadata.name,
+              elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),

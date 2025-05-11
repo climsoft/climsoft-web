@@ -32,6 +32,10 @@ export class ClimsoftV4ImportParametersDto {
     @IsInt()
     pollingInterval: number; // In minutes
 
+    @IsOptional()
+    @IsString()
+    lastObservationFinalDataId: string;// this is always set by the system
+
     isValid(): boolean {
         return true;
     }

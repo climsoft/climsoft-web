@@ -16,7 +16,7 @@ import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -69,14 +69,14 @@ export class ObservationsController {
   @Get('stations-observation-status/:stationid')
   getStationObservationsLast24HoursRecords(
     @Param('stationid', AuthorisedStationsPipe) stationId: string,
-    @Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusDataQueryDto) {
+    @Query() stationStatusQuery: StationStatusDataQueryDto) { 
     return this.observationsService.findStationsObservationStatusData(stationId, stationStatusQuery);
   }
 
   @Get('data-availability-status')
   getDataAvailabilityStatus(
-    @Query(AuthorisedStationsPipe) query: DataAvailabilityQueryDto) {
-      return this.observationsService.findDataAvailabilityStatus( query);
+    @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
+      return this.observationsService.findDataAvailabilitySummary( query);
   }
 
   @Get('generate-export/:templateid')

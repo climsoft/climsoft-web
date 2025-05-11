@@ -1,31 +1,20 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
-
 import * as echarts from 'echarts';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataAvailabilityQueryModel } from './models/data-availability-query.model';
-import { DataAvailabilityStatusModel } from 'src/app/data-ingestion/models/data-availability-status.model';
+import { StationDataComponent } from '../station-status/station-status-data/station-status-data.component';
 
-interface Observation {
-  obsDef: CreateObservationModel;
-  stationName: string;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
-}
+
 
 @Component({
   selector: 'app-data-availability',
@@ -33,12 +22,9 @@ interface Observation {
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
-  private stationsMetadata: StationCacheModel[] = [];
-  private elementsMetadata: ElementCacheModel[] = [];
-  private sourcesMetadata: ViewSourceModel[] = [];
+  //@ViewChild('appStationDataAvailability') appStationDataMonitoring!: StationDataComponent;
 
-  protected enableQueryButton: boolean = true;
-  private utcOffset: number = 0;
+  protected enableQueryButton: boolean = true; 
 
   private chartInstance!: echarts.ECharts;
 
@@ -46,42 +32,15 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private stationsCacheService: StationsCacheService,
-    private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
-    private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
+    private observationService: ObservationsService, 
   ) {
     this.pagesDataService.setPageHeader('Data Availability');
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stationsMetadata = data;
-    });
-
-    this.elementService.cachedElements.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.elementsMetadata = data;
-    });
-
-    this.sourcesService.cachedSources.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.sourcesMetadata = data;
-    });
-
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-    });
+   
   }
 
   ngAfterViewInit(): void {
-    this.chartInstance = echarts.init(document.getElementById('dataFlowMonitoringChart')!);
+    this.chartInstance = echarts.init(document.getElementById('dataAvailabilityChart')!);
   }
 
   ngOnDestroy(): void {
@@ -94,11 +53,6 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
 
   protected onQueryClick(dataAvailabilityFilter: DataAvailabilityQueryModel): void {
 
-
-    //console.log('filter: ', dataAvailabilityFilter);
-
-
-
     this.enableQueryButton = false;
 
     this.observationService.findDataAvailabilityStatus(dataAvailabilityFilter).pipe(
@@ -106,7 +60,7 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
     ).subscribe({
       next: data => {
 
-        console.log('availability: ', data);
+        console.log('data availabe: ', data);
 
         const stationIds: string[] = dataAvailabilityFilter.stationIds;
         let dateValues: number[];
@@ -133,31 +87,33 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
 
 
 
-        // [stationIndex, dateValueIndex, value]
+        // Follow [x-index, y-index, value] format
+        // [dateValueIndex, stationIndex,  value]
         const chartData: [number, number, number][] = [];
-        let maxValue: number=0
+        let maxValue: number = 0
         for (const item of data) {
-    
-          const stationIndex = stationIds.findIndex(stationId => stationId === item.stationId);
-          if (stationIndex == -1) {
-            continue;
-          }
 
           const dateValueIndex = dateValues.findIndex(dateValue => dateValue === item.dateValue);
-          if (dateValueIndex == -1) {
+          if (dateValueIndex === -1) {
             continue;
           }
 
-          chartData.push([stationIndex, dateValueIndex, item.recordCount]);
+          const stationIndex = stationIds.findIndex(stationId => stationId === item.stationId);
+          if (stationIndex === -1) {
+            continue;
+          }
 
-          if(item.recordCount> maxValue){
+          chartData.push([dateValueIndex, stationIndex, item.recordCount]);
+
+          if (item.recordCount > maxValue) {
             maxValue = item.recordCount;
           }
         }
 
 
+        // Because x-axis echart values are categorical, convert them to string array
         const strDateValues: string[] = dateValues.map(item => item.toString());
-        this.generateChart(stationIds, strDateValues, chartData,maxValue);
+        this.generateChart(strDateValues, stationIds, chartData, maxValue);
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Flow', message: err, type: ToastEventTypeEnum.ERROR });
@@ -170,7 +126,7 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
   }
 
 
-  private generateChart(stations: string[], dateValues: string[], data: [number, number, number][], maxValue: number) {
+  private generateChart(dateValues: string[], stations: string[], data: [number, number, number][], maxValue: number) {
     const chartOptions = {
       tooltip: { position: 'top' },
       grid: {
@@ -212,17 +168,23 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
     };
 
     this.chartInstance.setOption(chartOptions);
-  }
 
-  private getMaxNumber(numbers: number[]): number {
-    if (numbers.length === 0) throw new Error("Array is empty");
-    let max = numbers[0];
-    for (let i = 1; i < numbers.length; i++) {
-      if (numbers[i] > max) {
-        max = numbers[i];
+    // Add click handler
+    this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
+    this.chartInstance.on('click', (params: any) => {
+      if (params.seriesType === 'heatmap') {
+        const dateIndex = params.value[0];    // x-axis index (date)
+        const stationIndex = params.value[1]; // y-axis index (station)
+      
+
+        const stationId = stations[stationIndex];
+        const dateValue = dateValues[dateIndex];
+        const value = params.value[2];
+
+        console.log(`Clicked cell - Station: ${stationId}, Date: ${dateValue}, Value: ${value}`);
+
       }
-    }
-    return max;
+    });
   }
 
 }

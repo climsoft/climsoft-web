@@ -182,9 +182,14 @@ export class stationStatusComponent implements OnDestroy {
 
     // marker.bindPopup(`${feature.properties.name}`);
     marker.on('click', () => {
-      this.appStationDataMonitoring.showDialog(station,
-         {duration: this.stationStatusFilter.duration, durationType: this.stationStatusFilter.durationType, elementId: this.stationStatusFilter.elementId}
-        );
+      this.appStationDataMonitoring.showDialog(
+        station,
+        {
+          duration: this.stationStatusFilter.duration,
+          durationType: this.stationStatusFilter.durationType,
+          elementId: this.stationStatusFilter.elementId
+        }
+      );
     });
 
     return marker;

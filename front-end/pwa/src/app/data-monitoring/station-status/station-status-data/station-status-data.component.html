@@ -16,7 +16,7 @@
                 </thead>
                 <tbody class="table-group-divider">
                     <tr class="app-cursor-pointer" *ngFor="let observation of observations">
-                        <td>{{ observation.elementAbbrv }}</td>
+                        <td>{{ observation.elementId + '-' +observation.elementName }}</td>
                         <td>{{ observation.level }}</td>
                         <td>{{ observation.sourceName }}</td>
                         <td>{{ observation.presentableDatetime }}</td>

@@ -56,6 +56,17 @@ export class FormEntryDefinition {
         this.monthSelectorValue = todayDate.getMonth() + 1;
         this.daySelectorValue = formMetadata.selectors.includes('DAY') ? todayDate.getDate() : null;
         this.hourSelectorValue = formMetadata.selectors.includes('HOUR') ? formMetadata.hours[0] : null;
+        // If one of selectors is hour, then set the current default hour to what what is equal or immediate greater hour
+        if (formMetadata.selectors.includes('HOUR')) { 
+            let currentHour: number = new Date().getHours()
+            for(const allowedDataEntryHour of formMetadata.hours){
+                this.hourSelectorValue = allowedDataEntryHour;
+                if(allowedDataEntryHour >= currentHour){
+                    break;
+                }
+            }
+        }
+
     }
 
     public get allObsDefs(): ObservationDefinition[] {

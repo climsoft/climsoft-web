@@ -2,7 +2,7 @@ import { Transform } from "class-transformer";
 import { IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
-export class DataAvailabilityQueryDto {
+export class DataAvailabilitySummaryQueryDto {
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({ each: true })
     stationIds: string[];

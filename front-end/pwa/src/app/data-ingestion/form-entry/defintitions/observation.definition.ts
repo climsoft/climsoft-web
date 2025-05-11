@@ -60,7 +60,7 @@ export class ObservationDefinition {
     public originalPeriod: number;
 
     private utcOffset: number;
-    private datetimeHasBeenOffset: boolean;// TODO. This is a temporary variable
+    private datetimeHasBeenOffsetForDisplay: boolean;// TODO. This is a temporary variable
 
     constructor(observation: CreateObservationModel,
         elementMetadata: CreateViewElementModel,
@@ -75,7 +75,7 @@ export class ObservationDefinition {
         this.scaleValue = scaleValue;
         this.rangeThreshold = rangeThreshold;
         this.utcOffset = utcOffset;
-        this.datetimeHasBeenOffset = datetimeHasBeenOffset;
+        this.datetimeHasBeenOffsetForDisplay = datetimeHasBeenOffset;
 
         this.originalPeriod = observation.interval;
 
@@ -306,11 +306,15 @@ export class ObservationDefinition {
         }
 
         if (value !== null && flagFound === FlagEnum.MISSING) {
-            return 'Invalid Flag, M is used for missing value ONLY';
+            return 'Invalid Flag, M is used for missing observations ONLY';
+        }
+    
+        if (value !== null && flagFound === FlagEnum.OBSCURED) {
+            return 'Invalid Flag, O or / is used for obscured observations ONLY';
         }
 
-        if (value === null && flagFound !== FlagEnum.MISSING) {
-            return 'Invalid Flag, use M flag for missing value';
+        if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED)  {
+            return 'Invalid Flag, use M flag for missing observation and O flag for obscure observation';
         }
 
         return '';
@@ -318,6 +322,9 @@ export class ObservationDefinition {
 
 
     private findFlag(inputFlag: string): FlagEnum | null {
+         if(inputFlag === '/'){
+            inputFlag = FlagEnum.OBSCURED;
+        }
         return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
     }
 
@@ -339,7 +346,7 @@ export class ObservationDefinition {
             // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
             // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
             // Note, this check was added but should be removed once this class is well refactored. Form entry and data correction and explorer use this object differently           
-            datetime: this.datetimeHasBeenOffset ? DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract') : this.observation.datetime,
+            datetime: this.datetimeHasBeenOffsetForDisplay ? DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract') : this.observation.datetime,
             interval: this.observation.interval
         };
 

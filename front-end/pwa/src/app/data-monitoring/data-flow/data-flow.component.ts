@@ -128,6 +128,7 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
 
         });
 
+        console.log('data flow view: ', observationViews);
         this.generateChart(observationViews);
       },
       error: err => {
