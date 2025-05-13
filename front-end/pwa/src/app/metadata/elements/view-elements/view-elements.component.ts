@@ -18,11 +18,10 @@ export class ViewElementsComponent implements OnDestroy {
   protected elements!: CreateViewElementModel[];
   private searchedIds!: number[];
 
-  private destroy$ = new Subject<void>();
-
   protected optionClicked: optionsType | undefined;
-
   protected dropDownItems: optionsType[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,

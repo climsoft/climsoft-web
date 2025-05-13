@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { FormEntryDefinition } from '../defintitions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintitions/field.definition';
@@ -6,14 +6,14 @@ import { ObservationDefinition } from '../defintitions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-linear-layout',
   templateUrl: './linear-layout.component.html',
   styleUrls: ['./linear-layout.component.scss']
 })
-export class LnearLayoutComponent implements OnChanges {
+export class LnearLayoutComponent implements OnChanges, OnDestroy {
   @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
   @ViewChild('appTotal') totalComponent!: NumberInputComponent;
 
@@ -50,10 +50,15 @@ export class LnearLayoutComponent implements OnChanges {
   protected totalErrorMessage!: string;
 
   /** Used to determine the layout to be used depending on the screen size */
-  protected largeScreen: boolean = true; 
+  protected largeScreen: boolean = true;
+  protected layoutHeight: number = 60;
+
+  private destroy$ = new Subject<void>();
 
   constructor(private viewPortService: ViewportService) {
-    this.viewPortService.viewPortSize.pipe(take(1)).subscribe((viewPortSize) => {
+    this.viewPortService.viewPortSize.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((viewPortSize) => {
       this.largeScreen = viewPortSize === ViewPortSize.LARGE;
     });
   }
@@ -64,10 +69,23 @@ export class LnearLayoutComponent implements OnChanges {
       this.fieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
       this.observationsDefinitions = this.formDefinitions.obsDefsForLinearLayout;
-    } else if (changes["userFormSettings"] && this.fieldDefinitions) {
-      // Setting change could be related to maximum rows so reinitialise the chunks
-      this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
     }
+
+
+    if (changes["userFormSettings"] && this.userFormSettings) {
+      // The height may not exist due to previous releases
+      if (this.userFormSettings.linearLayoutSettings.height) this.layoutHeight = this.userFormSettings.linearLayoutSettings.height;
+      if (this.fieldDefinitions) {
+        // Setting change could be related to maximum rows so reinitialise the chunks
+        this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
+      }
+
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**

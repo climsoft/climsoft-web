@@ -29,7 +29,7 @@ export class ObservationsService {
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
         const obsView: ViewObservationDto[] = [];
-        const obsEntities = await this.findObsEntities(selectObsevationDto);
+        const obsEntities = await this.findProcessedObsEntities(selectObsevationDto);
         for (const obsEntity of obsEntities) {
             const viewObs: ViewObservationDto = {
                 stationId: obsEntity.stationId,
@@ -50,7 +50,7 @@ export class ObservationsService {
     }
 
 
-    private async findObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
+    private async findProcessedObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
         if (!(viewObsevationQueryDto.page && viewObsevationQueryDto.pageSize && viewObsevationQueryDto.pageSize <= 1000)) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
@@ -58,7 +58,11 @@ export class ObservationsService {
 
         const findOptions: FindManyOptions<ObservationEntity> = {
             order: {
+                stationId: "ASC",
+                elementId: "ASC",
+                level: "ASC",
                 datetime: "ASC",
+                interval: "ASC",
             },
             where: this.getProcessedFilter(viewObsevationQueryDto),
             skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
@@ -168,7 +172,7 @@ export class ObservationsService {
     }
 
     public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
-        const entities = await this.findObsEntities(selectObsevationDto);
+        const entities = await this.findProcessedObsEntities(selectObsevationDto);
         const dtos: CreateObservationDto[] = entities.map(data => ({
             stationId: data.stationId,
             elementId: data.elementId,
@@ -511,7 +515,7 @@ export class ObservationsService {
     }
 
     // public async findDataAvailabilityDetail(dataAvailabilityQuery: DataAvailabilityDetailQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-   
+
     //     let extraSQLCondition: string = '';
     //     let groupAndOrderBySQL: string = '';
 
@@ -554,7 +558,7 @@ export class ObservationsService {
     //             break;
     //     }
 
-       
+
     //     const results = await this.dataSource.manager.query(
     //         `
     //         SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 

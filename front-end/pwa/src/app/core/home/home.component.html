@@ -81,15 +81,7 @@
         </div>
       </div>
 
-      <!-- toast container -->
-      <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
-        <!-- <div class="card-header">
-          {{ toast.title }}
-        </div> -->
-        <div class="card-body" [ngClass]="'text-' + toast.type">
-          {{ toast.message }}
-        </div>
-      </div>
+
 
     </div>
 
@@ -100,3 +92,13 @@
 
   </div>
 </div>
+
+      <!-- toast container -->
+      <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
+        <!-- <div class="card-header">
+          {{ toast.title }}
+        </div> -->
+        <div class="card-body" [ngClass]="'text-' + toast.type">
+          {{ toast.message }}
+        </div>
+      </div>

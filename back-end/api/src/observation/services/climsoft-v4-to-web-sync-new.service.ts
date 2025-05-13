@@ -209,7 +209,7 @@ export class ClimsoftV4ToWebSyncServiceNew {
         }
 
         if (!this.climsoftSource) {
-              this.logger.log('Aborting import. No climsoft source. ');
+            this.logger.log('Aborting import. No climsoft source. ');
             return;
         }
 
@@ -293,7 +293,7 @@ export class ClimsoftV4ToWebSyncServiceNew {
 
         // Set saving to false before initiating another save operation
         this.isImporting = false;
-     
+
         if (anyFoundObservationSaved) {
             // If there is any observations saved then
             // immediately asynchronously initiate another save to version 4 operation
@@ -357,7 +357,7 @@ export class ClimsoftV4ToWebSyncServiceNew {
                 const webDatetime: string = this.getWebDatetimeFromV4SQLDatetime(v4Observation.obsDatetime);
                 //---------------------------------------------
                 // TODO. Think about the period
-                const webInterval: number = element.interval; 
+                const webInterval: number = element.interval;
                 //---------------------------------------------
                 const webValue: number | null = this.getWebvalue(v4Observation.obsValue);
                 const webFlag: FlagEnum | null = this.getWebFlag(v4Observation.flag);

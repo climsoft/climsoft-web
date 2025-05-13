@@ -11,7 +11,9 @@
     <div class="d-flex justify-content-between">
       <div class="card-title fw-bold my-1  d-flex align-items-center" style="font-size: 0.875rem;">
         <div>{{source.name}} data entry for</div>
-        <div *ngIf="!formDefinitions.formMetadata.allowStationSelection">{{station.id}} - {{station.name}} </div>
+        <div *ngIf="!formDefinitions.formMetadata.allowStationSelection">
+          {{station.id}} - {{station.name}} 
+        </div>
         <div
           *ngIf="formDefinitions.formMetadata.allowStationSelection && stationsIdsAssignedToForm && stationsIdsAssignedToForm.length>0"
           class="ms-1">

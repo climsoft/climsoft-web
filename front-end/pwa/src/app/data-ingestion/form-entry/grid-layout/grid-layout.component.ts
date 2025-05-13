@@ -59,8 +59,9 @@ export class GridLayoutComponent implements OnChanges {
       this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     }
 
-    if (changes["userFormSettings"] && this.userFormSettings) { 
-    this.layoutHeight = this.userFormSettings.gridLayoutSettings.gridHeight;
+    if (changes["userFormSettings"] && this.userFormSettings) {
+      // The height may not exist due to previous releases
+      if (this.userFormSettings.gridLayoutSettings.height) this.layoutHeight = this.userFormSettings.gridLayoutSettings.height;
     }
 
   }
@@ -204,7 +205,7 @@ export class GridLayoutComponent implements OnChanges {
     })
   }
 
-  public sameInput(valueFlag: string, comment: string| null): void {
+  public sameInput(valueFlag: string, comment: string | null): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
     })
