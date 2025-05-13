@@ -11,8 +11,8 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import * as mariadb from 'mariadb';
 
 @Injectable()
-export class ClimsoftV4ToWebSyncServiceNew {
-    private readonly logger = new Logger(ClimsoftV4ToWebSyncServiceNew.name);
+export class ClimsoftV4ToWebSyncService {
+    private readonly logger = new Logger(ClimsoftV4ToWebSyncService.name);
     private isImporting: boolean = false;
     private climsoftSource: ViewSourceDto | undefined;
     private userId: number;

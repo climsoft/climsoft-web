@@ -14,7 +14,7 @@ import { ClimsoftV4Controller } from './controllers/climsoft-v4.controller';
 import { ClimsoftWebToV4SyncService } from './services/climsoft-web-to-v4-sync.service';
 import { ExportObservationsService } from './services/export-observations.service';
 import { ClimsoftV4WebSyncSetUpService } from './services/climsoft-v4-web-sync-set-up.service'; 
-import { ClimsoftV4ToWebSyncServiceNew } from './services/climsoft-v4-to-web-sync-new.service';
+import { ClimsoftV4ToWebSyncService } from './services/climsoft-v4-to-web-sync.service';
 
 @Module({
   imports: [
@@ -36,7 +36,7 @@ import { ClimsoftV4ToWebSyncServiceNew } from './services/climsoft-v4-to-web-syn
     ExportObservationsService,
     ClimsoftV4WebSyncSetUpService,
     ClimsoftWebToV4SyncService,
-    ClimsoftV4ToWebSyncServiceNew,
+    ClimsoftV4ToWebSyncService,
   ],
 })
 export class ObservationModule { }
