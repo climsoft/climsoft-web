@@ -306,11 +306,15 @@ export class ObservationDefinition {
         }
 
         if (value !== null && flagFound === FlagEnum.MISSING) {
-            return 'Invalid Flag, M is used for missing observations ONLY';
+            return 'Invalid Flag, M is used for missing observations ONLY e.g when no observation was made.';
         }
     
         if (value !== null && flagFound === FlagEnum.OBSCURED) {
-            return 'Invalid Flag, O or / is used for obscured observations ONLY';
+            return 'Invalid Flag, O or / is used for obscured observations ONLY e.g obscured middle and higher level cloud';
+        }
+
+         if (value !== null && flagFound === FlagEnum.VARIABLE) {
+            return 'Invalid Flag, V is used for variable observations ONLY e.g variable wind';
         }
 
         if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED && flagFound !== FlagEnum.VARIABLE)  {

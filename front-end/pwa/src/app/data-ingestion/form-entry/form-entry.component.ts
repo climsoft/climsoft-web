@@ -91,7 +91,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
-
     this.elementsService.cachedElements.pipe(
       takeUntil(this.destroy$),
     ).subscribe(elements => {
@@ -220,6 +219,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
+      // Set firts value flag to have focus ready for rapid data entry
+      if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
+      if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
     });
   }
 

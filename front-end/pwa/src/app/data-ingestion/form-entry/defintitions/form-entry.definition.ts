@@ -118,7 +118,7 @@ export class FormEntryDefinition {
         observationQuery.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(observationQuery.fromDate, this.source.utcOffset, 'subtract');
         observationQuery.toDate = DateUtils.getDatetimesBasedOnUTCOffset(observationQuery.toDate, this.source.utcOffset, 'subtract');
 
-        console.log('query: ', observationQuery)
+        //console.log('query: ', observationQuery)
         return observationQuery;
     }
 

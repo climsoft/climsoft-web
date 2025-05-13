@@ -197,14 +197,23 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
   public clear(): void {
     this.vfComponents.forEach(component => {
       component.clear();
-    })
+    });
   }
 
   public sameInput(valueFlag: string, comment: string | null): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
-    })
+    });
   }
 
+  public setFocusToFirstVF(): void {
+    // For some reason focus is not set on the first value flag control 
+    // when the below code is called immediately after refreshing this layout
+    setTimeout(() => {
+      if (this.vfComponents && this.vfComponents.length > 0) {
+        this.vfComponents.first.focus();
+      }
+    }, 0);
+  }
 
 }

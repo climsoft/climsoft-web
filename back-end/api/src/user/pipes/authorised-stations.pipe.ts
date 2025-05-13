@@ -78,10 +78,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case CreateObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
-        if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
+        if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
+          return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
+        } else if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
-          return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else if (this.request.route.path === '/source-check/count' || this.request.route.path === '/source-check/count') {
           return this.handleSourceViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else {
@@ -136,11 +136,14 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.entryPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to correct station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to correct station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }
+
     return value;
   }
 
@@ -153,8 +156,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.ingestionMonitoringPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to monitor station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to monitor station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }
@@ -183,8 +188,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.qcPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to QC station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to QC station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }

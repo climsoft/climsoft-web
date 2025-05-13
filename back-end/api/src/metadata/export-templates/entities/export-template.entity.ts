@@ -20,7 +20,7 @@ export class ExportTemplateEntity extends AppBaseEntity {
     exportType: ExportTypeEnum;
 
     @Column({ name: "parameters", type: "jsonb" })
-    parameters: ExportTemplateParametersDto; 
+    parameters: ExportTemplateParametersDto;
 
     @Column({ type: "boolean", default: false })
     @Index()

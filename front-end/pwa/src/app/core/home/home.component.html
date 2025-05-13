@@ -65,7 +65,7 @@
             <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
               <div class="list-group">
                 <a *ngIf="user" href="#" class="list-group-item list-group-item-action">
-                  Profile - {{  user.username }}
+                  Profile - {{ user.username }}
                 </a>
                 <button *ngIf="user" type="button" class="list-group-item list-group-item-action"
                   (click)="userPasswordChangeDialog.openDialog(user.id, user.username)">Change
@@ -80,9 +80,6 @@
           </div>
         </div>
       </div>
-
-
-
     </div>
 
     <!-- Main body content -->
@@ -93,12 +90,9 @@
   </div>
 </div>
 
-      <!-- toast container -->
-      <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
-        <!-- <div class="card-header">
-          {{ toast.title }}
-        </div> -->
-        <div class="card-body" [ngClass]="'text-' + toast.type">
-          {{ toast.message }}
-        </div>
-      </div>
+<!-- toast container -->
+<div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
+  <div class="card-body" [ngClass]="'text-' + toast.type">
+    {{ toast.message }}
+  </div>
+</div>

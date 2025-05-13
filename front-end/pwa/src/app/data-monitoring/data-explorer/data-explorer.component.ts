@@ -156,7 +156,7 @@ export class DataExplorerComponent implements OnDestroy {
             obsDef: new ObservationDefinition(observation,
               elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
             stationName: stationMetadata.name,
-              elementId: elementMetadata.id,
+            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),

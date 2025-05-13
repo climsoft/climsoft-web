@@ -82,7 +82,7 @@ export class DataCorrectionComponent implements OnDestroy {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(
+    this.observationService.countCorrectionData(this.observationFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.pageInputDefinition.setTotalRowCount(count);

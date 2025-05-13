@@ -5,7 +5,6 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ViewNetworkAffiliatioModel } from '../models/view-network-affiliation.model';
 import { NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
-import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 
 type optionsType = 'Add' | 'Delete All';
 
