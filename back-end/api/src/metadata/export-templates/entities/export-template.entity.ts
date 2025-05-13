@@ -5,7 +5,6 @@ import { ExportTypeEnum } from "../enums/export-type.enum";
 
 @Entity("export_templates")
 @Check("CHK_export_templates_name_not_empty", `"name" <> ''`)
-@Check("CHK_export_templates_description_not_empty", `"description" <> ''`)
 export class ExportTemplateEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;

@@ -48,7 +48,7 @@
           </div>
 
           <div class="col-sm-auto mb-2" *ngIf="displayHourSelector">
-            <app-hour-single-input [label]="'Hour'+ utcOffset" [includeOnlyIds]="formDefinitions.formMetadata.hours"
+            <app-hour-single-input [label]="'Hour'" [showNavigationButtons]="true"  [includeOnlyIds]="formDefinitions.formMetadata.hours"
               [selectedId]="formDefinitions.hourSelectorValue" (selectedIdChange)="onHourChange($event)" />
           </div>
 

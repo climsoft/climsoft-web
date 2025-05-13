@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { ObservationDefinition } from '../defintitions/observation.definition';
-import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component'; 
+import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 import { ObservationsService } from '../../services/observations.service';
 
 /**
@@ -61,17 +61,20 @@ export class ValueFlagInputComponent implements OnChanges {
 
       this.resetInternals();
 
+      // TODO. 
+      // Disabled on 13/05/2025 due to how forms try to maipulate dates on the forms. 
+      // Especially with utc 0 or not 0
       // If not declared as disabled then disable any future data entry
-      if (!this.disableValueFlagEntry) {
-        // Disable entry of future dates, excluding hour because the observation date times are in UTC.
-        //const obsDate = new Date(this.observationDefinition.observation.datetime);
-        //const nowDate = new Date();
-        //this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
-        
-        //this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
+      // if (!this.disableValueFlagEntry) {
+      //   // Disable entry of future dates, excluding hour because the observation date times are in UTC.
+      //   //const obsDate = new Date(this.observationDefinition.observation.datetime);
+      //   //const nowDate = new Date();
+      //   //this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
 
-        //console.log(this.observationDefinition.observation.datetime, ' obsdate: ', new Date(this.observationDefinition.observation.datetime), ' : now', new Date());
-      }
+      //   //this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
+
+      //   //console.log(this.observationDefinition.observation.datetime, ' obsdate: ', new Date(this.observationDefinition.observation.datetime), ' : now', new Date());
+      // }
     }
 
   }

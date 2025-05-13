@@ -1,8 +1,9 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, MultiPolygon, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, MultiPolygon, PrimaryGeneratedColumn } from "typeorm";
 import { RegionTypeEnum } from "../../regions/enums/region-types.enum";
 
 @Entity("regions")
+@Check("CHK_regions_name_not_empty", `"name" <> ''`)
 export class RegionEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: 'id', type: 'int' })
   id: number;

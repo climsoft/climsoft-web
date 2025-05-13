@@ -6,6 +6,7 @@ import { ObservationDefinition } from '../defintitions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-linear-layout',
@@ -25,9 +26,8 @@ export class LnearLayoutComponent implements OnChanges {
   @Input()
   public refreshLayout!: boolean;
 
-
-
-  @Output() public focusSaveButton = new EventEmitter<void>();
+  @Output()
+  public focusSaveButton = new EventEmitter<void>();
 
   /** Emitted when observation value is changed */
   @Output()
@@ -50,10 +50,10 @@ export class LnearLayoutComponent implements OnChanges {
   protected totalErrorMessage!: string;
 
   /** Used to determine the layout to be used depending on the screen size */
-  protected largeScreen: boolean = true;
+  protected largeScreen: boolean = true; 
 
   constructor(private viewPortService: ViewportService) {
-    this.viewPortService.viewPortSize.subscribe((viewPortSize) => {
+    this.viewPortService.viewPortSize.pipe(take(1)).subscribe((viewPortSize) => {
       this.largeScreen = viewPortSize === ViewPortSize.LARGE;
     });
   }

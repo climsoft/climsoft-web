@@ -33,15 +33,15 @@
                     <td (click)="onEditUserClick(user)">{{user.groupName}}</td>
                     <td (click)="onEditUserClick(user)">{{ user.disabled? 'Yes': 'No' }}</td>
                     <td>
-                        <button class="btn btn-outline-secondary btn-sm"
-                            (click)="passwordChangeDialog.openDialog(user.id, user.email)">Change Password</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                            (click)="adminPasswordChangeDialog.openDialog(user.id, user.email)">Change Password</button>
                     </td>
                 </tr>
             </tbody>
         </table>
        </div>
 
-        <app-password-change #passwordChangeDialog />
+        <app-password-change #adminPasswordChangeDialog />
     </div>
 
 </div>

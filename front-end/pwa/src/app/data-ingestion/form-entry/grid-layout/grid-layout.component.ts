@@ -42,7 +42,7 @@ export class GridLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
-  protected tableHeightStyle: string = '60vh';
+  protected layoutHeight: number = 60;
 
   constructor() { }
 
@@ -60,7 +60,7 @@ export class GridLayoutComponent implements OnChanges {
     }
 
     if (changes["userFormSettings"] && this.userFormSettings) { 
-      this.tableHeightStyle = `${this.userFormSettings.gridLayoutSettings.gridHeight}vh`;
+    this.layoutHeight = this.userFormSettings.gridLayoutSettings.gridHeight;
     }
 
   }

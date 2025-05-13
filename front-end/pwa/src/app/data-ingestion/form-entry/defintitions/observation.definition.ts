@@ -313,8 +313,8 @@ export class ObservationDefinition {
             return 'Invalid Flag, O or / is used for obscured observations ONLY';
         }
 
-        if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED)  {
-            return 'Invalid Flag, use M flag for missing observation and O flag for obscure observation';
+        if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED && flagFound !== FlagEnum.VARIABLE)  {
+            return 'Invalid Flag, use M for missing, O or / for obscure and V for variable observation';
         }
 
         return '';
@@ -325,6 +325,7 @@ export class ObservationDefinition {
          if(inputFlag === '/'){
             inputFlag = FlagEnum.OBSCURED;
         }
+
         return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
     }
 

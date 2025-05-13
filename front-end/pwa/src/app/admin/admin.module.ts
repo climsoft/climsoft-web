@@ -20,7 +20,7 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
   declarations: [
     ViewGeneralSettingsComponent,
     EditGeneralSettingComponent,
-    ClimsoftBoundaryComponent, 
+    ClimsoftBoundaryComponent,
     ClimsoftDisplayTimezoneComponent,
     ClimsoftV4Component,
     ViewUserGroupsComponent,
@@ -30,12 +30,15 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
     EditUserPermissionsComponent,
     UserGroupSelectorSingleComponent,
     PasswordChangeComponent,
-    ViewAuditsComponent, 
+    ViewAuditsComponent,
   ],
   imports: [
     SharedModule,
-    MetadataModule, 
+    MetadataModule,
     AdminRoutingModule
-  ] 
+  ],
+  exports: [
+    PasswordChangeComponent,
+  ],
 })
 export class AdminModule { }
