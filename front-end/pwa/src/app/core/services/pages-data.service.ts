@@ -9,7 +9,7 @@ export enum ToastEventTypeEnum {
 }
 
 export interface ToastEvent {
-  title: string;
+  title?: string; // TODO. deprecate this
   message: string;
   type: ToastEventTypeEnum;
 }

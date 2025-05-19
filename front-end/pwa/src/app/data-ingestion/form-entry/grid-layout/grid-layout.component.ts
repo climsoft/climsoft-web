@@ -42,7 +42,7 @@ export class GridLayoutComponent implements OnChanges {
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
-  protected tableHeightStyle: string = '60vh';
+  protected layoutHeight: number = 60;
 
   constructor() { }
 
@@ -59,8 +59,9 @@ export class GridLayoutComponent implements OnChanges {
       this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     }
 
-    if (changes["userFormSettings"] && this.userFormSettings) { 
-      this.tableHeightStyle = `${this.userFormSettings.gridLayoutSettings.gridHeight}vh`;
+    if (changes["userFormSettings"] && this.userFormSettings) {
+      // The height may not exist due to previous releases
+      if (this.userFormSettings.gridLayoutSettings.height) this.layoutHeight = this.userFormSettings.gridLayoutSettings.height;
     }
 
   }
@@ -204,12 +205,21 @@ export class GridLayoutComponent implements OnChanges {
     })
   }
 
-  public sameInput(valueFlag: string, comment: string| null): void {
+  public sameInput(valueFlag: string, comment: string | null): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
     })
   }
 
+  public setFocusToFirstVF(): void {
+    // For some reason focus is not set on the first value flag control 
+    // when the below code is called immediately after refreshing this layout
+    setTimeout(() => {
+      if (this.vfComponents && this.vfComponents.length > 0) {
+        this.vfComponents.first.focus();
+      }
+    }, 0);
 
+  }
 
 }

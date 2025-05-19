@@ -80,6 +80,7 @@
                                     <tr>
                                         <th></th>
                                         <th>Id</th>
+                                        <th>Abbreviation</th>
                                         <th>Name</th>
                                     </tr>
                                 </thead>
@@ -88,6 +89,7 @@
                                         [class.table-primary]="item.selected" (click)="onElementSelected(item)">
                                         <td><i class="bi bi-cursor"></i></td>
                                         <td>{{ item.element.id }}</td>
+                                        <td>{{ item.element.abbreviation }}</td>
                                         <td>{{ item.element.name }}</td>
                                     </tr>
                                 </tbody>

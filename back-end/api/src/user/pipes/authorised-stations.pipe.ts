@@ -10,7 +10,8 @@ import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dt
 import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 import { UserPermissionDto } from '../dtos/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
-import { DataAvailabilityQueryDto } from 'src/observation/dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
+import { StationStatusDataQueryDto } from 'src/observation/dtos/station-status-data-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
@@ -33,6 +34,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     // Ensure metatype is available
     if (!metadata.metatype) {
+      console.log('meta tyoe not determined: ', metadata.metatype);
       throw new BadRequestException('Could not determine how to authorize stations');
     }
 
@@ -76,10 +78,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case CreateObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       case ViewObservationQueryDTO.name:
-        if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
+        if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
+          return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
+        } else if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/observations' || this.request.route.path === '/observations/count') {
-          return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else if (this.request.route.path === '/source-check/count' || this.request.route.path === '/source-check/count') {
           return this.handleSourceViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else {
@@ -87,8 +89,8 @@ export class AuthorisedStationsPipe implements PipeTransform {
         }
       case StationStatusQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as StationStatusQueryDto, user.permissions);
-      case DataAvailabilityQueryDto.name:
-        return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilityQueryDto, user.permissions);
+      case DataAvailabilitySummaryQueryDto.name:
+        return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilitySummaryQueryDto, user.permissions);
       case ViewObservationLogQueryDto.name:
         // TODO. Validate this based on entry, monitoring and qc permissions
         return value;
@@ -134,15 +136,18 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.entryPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to correct station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to correct station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }
+
     return value;
   }
 
-  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO | StationStatusQueryDto | DataAvailabilityQueryDto, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
+  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO | StationStatusQueryDto | DataAvailabilitySummaryQueryDto, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
     if (!value) throw new BadRequestException('Query value must be defined');
 
     if (!userPermissions.ingestionMonitoringPermissions) throw new BadRequestException('Not authorised to monitor data');
@@ -151,8 +156,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.ingestionMonitoringPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to monitor station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to monitor station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }
@@ -181,8 +188,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
     const authorisedStationIds: string[] = userPermissions.qcPermissions.stationIds;
 
-    if (value.stationIds && !this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
-      throw new BadRequestException('Not authorised to QC station(s)');
+    if (value.stationIds) {
+      if (!this.allAreAuthorisedStations(value.stationIds, authorisedStationIds)) {
+        throw new BadRequestException('Not authorised to QC station(s)');
+      }
     } else {
       value.stationIds = authorisedStationIds;
     }

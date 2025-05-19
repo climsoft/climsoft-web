@@ -13,7 +13,7 @@
             <th>Environment</th>
             <th>Focus</th>
             <th>Status</th>
-            <th></th>
+            <th *ngIf="showEditButton"></th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
@@ -27,7 +27,7 @@
             <td (click)="onStationClicked(station)">{{ station.stationObsEnvironmentName }}</td>
             <td (click)="onStationClicked(station)">{{ station.stationObsFocusName }}</td>
             <td (click)="onStationClicked(station)">{{ station.status }}</td>
-            <td>
+            <td *ngIf="showEditButton">
               <button type="button" class="btn btn-outline-secondary btn-sm"
                 (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
             </td>

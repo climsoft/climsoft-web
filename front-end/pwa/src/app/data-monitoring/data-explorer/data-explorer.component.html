@@ -36,7 +36,7 @@
                             [class.group-row-border]="includeLowerBoundaryLine(i)">
                             <td>{{ getRowNumber(i) }}</td>
                             <td> {{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
-                            <td>{{ obsEntry.elementAbbrv }}</td>
+                            <td>{{ obsEntry.elementId + '-'+ obsEntry.elementAbbrv }}</td>
                             <td>{{ obsEntry.obsDef.observation.level }}</td>
                             <td>{{ obsEntry.formattedDatetime }}</td>
                             <td>{{ obsEntry.intervalName }}</td>

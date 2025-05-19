@@ -19,15 +19,15 @@
 }
 
 .page-toast {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* center the div */
+  z-index: 1600; /* z1600 chosen so than its greater than the dialog */
   width: 350px;
   font-size: .875rem;
-  position: absolute;
-  // top: 10px;
-  // right: 10px;
-  top: 10%;
-  left: 30%;
-  z-index: 1600; // 1600 chosen so than its greater than the dialog
 }
+
 
 .user-drop-down {
   overflow: auto;

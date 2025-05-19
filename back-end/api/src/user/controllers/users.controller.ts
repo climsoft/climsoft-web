@@ -36,9 +36,16 @@ export class UsersController {
         return this.userService.updateUser(userId, createUserDto);
     }
 
-    @Admin()
+  
     @Patch('change-password')
-    public changePassword(@Body() changedPassword: ChangePasswordDto) {
+    public changePassword(
+        @Req() request: Request,
+        @Body() changedPassword: ChangePasswordDto) {
+        const loggedInUser = AuthUtil.getLoggedInUser(request);
+        // If logged in user is not admin, then change password for the user
+        if (!loggedInUser.isSystemAdmin) {
+            changedPassword.userId = loggedInUser.id;
+        }
         return this.userService.changeUserPassword(changedPassword);
     }
 

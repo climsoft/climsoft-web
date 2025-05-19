@@ -13,6 +13,9 @@ BEGIN
             NEW.disabled IS DISTINCT FROM OLD.disabled OR 
             NEW.comment IS DISTINCT FROM OLD.comment
         ) THEN
+        IF(OLD.name = 'climsoft_v4') THEN
+         RETURN NEW;
+        END IF;
             NEW.log := COALESCE(OLD.log, '[]'::JSONB) || jsonb_build_object(
             'name', OLD.name,
             'description', OLD.description,

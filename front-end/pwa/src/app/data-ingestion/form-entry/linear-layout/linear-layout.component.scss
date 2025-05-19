@@ -1,0 +1,5 @@
+.linear-layout-container {
+    height: 60vh; // This should be overwritten depending on the component number of controls
+    overflow-y:auto;
+    overflow-x: hidden; //Important. Hides the unnecessary horizontal scroll bar
+}

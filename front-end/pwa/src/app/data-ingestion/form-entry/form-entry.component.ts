@@ -38,7 +38,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent;
   @ViewChild('saveButton') saveButton!: ElementRef;
 
-
   private elements!: ElementCacheModel[];
   private qcTests!: ViewElementQCTestModel[];
 
@@ -56,7 +55,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   private totalIsValid!: boolean;
 
   protected refreshLayout: boolean = false;
-  
+
   protected changedObsDefs: ObservationDefinition[] = [];
 
   protected openSameInputDialog: boolean = false;
@@ -65,9 +64,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
 
-  protected userFormSettings!: UserFormSettingStruct; 
-  protected userLocationErrorMessage: string ='';
-  
+  protected userFormSettings!: UserFormSettingStruct;
+  protected userLocationErrorMessage: string = '';
+
 
   private destroy$ = new Subject<void>();
 
@@ -91,7 +90,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
-
 
     this.elementsService.cachedElements.pipe(
       takeUntil(this.destroy$),
@@ -160,7 +158,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
               });
             }
 
-            if(this.formDefinitions.formMetadata.allowEntryAtStationOnly){
+            if (this.formDefinitions.formMetadata.allowEntryAtStationOnly) {
               this.onRequestLocation();
             }
 
@@ -208,20 +206,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     return this.formDefinitions.formMetadata.selectors.includes('HOUR');
   }
 
-  protected get utcOffset(): string {
-    const utcOffset: number = this.source.utcOffset;
-    let strUtcDiff: string = "in";
-
-    if (utcOffset > 0) {
-      strUtcDiff = `+${utcOffset}`;
-    } else if (utcOffset < 0) {
-      strUtcDiff = `${utcOffset}`;
-    }
-
-    //return `(${strUtcDiff} UTC)`;
-    return '';
-  }
-
   /**
    * Loads any existing observations from the database
    */
@@ -235,6 +219,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
+      // Set firts value flag to have focus ready for rapid data entry
+      if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
+      if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
     });
   }
 
@@ -378,7 +365,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
   protected onSave(): void {
-    if(this.userLocationErrorMessage){
+    if (this.userLocationErrorMessage) {
       this.pagesDataService.showToast({ title: 'Observations', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -486,6 +473,17 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     let newMonth = currentMonthValue;
     let newDay: number | null = null;
 
+    //If there is a hour selector then sequence hour first before sequencing date 
+    if (this.formDefinitions.hourSelectorValue !== null) {
+      for (const allowedDataEntryHour of this.formDefinitions.formMetadata.hours) {
+        // Set the next allowed hour
+        if (allowedDataEntryHour > this.formDefinitions.hourSelectorValue) {
+          this.formDefinitions.hourSelectorValue = allowedDataEntryHour;
+          return;
+        }
+      }
+    }
+
     if (this.formDefinitions.daySelectorValue) {
       let currentDayValue = this.formDefinitions.daySelectorValue;
 
@@ -578,13 +576,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.userLocationErrorMessage = 'Checking location...';
     this.locationService.getUserLocation().pipe(take(1)).subscribe({
       next: (userLocation) => {
-        if(this.station.location){
-          if(this.isUserWithinStation(this.station.location, userLocation)){
+        if (this.station.location) {
+          if (this.isUserWithinStation(this.station.location, userLocation)) {
             this.userLocationErrorMessage = '';
-          }else{
+          } else {
             this.userLocationErrorMessage = 'Location retrived is not at the station. To submit data entered, you have to be at the station.';
           }
-        }else{
+        } else {
           this.userLocationErrorMessage = 'Update station location. To submit data entered, you have to be at the station.';
         }
       },
@@ -601,7 +599,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   private isUserWithinStation(
     stationLocation: { latitude: number; longitude: number; },
     userLocation: { latitude: number; longitude: number; },
-    thresholdMeters: number = 30
+    thresholdMeters: number = 200 // 200 because of the office distance from the instruments
   ): boolean {
     const stationPoint = turf.point([stationLocation.longitude, stationLocation.latitude]);
     const userPoint = turf.point([userLocation.longitude, userLocation.latitude]);

@@ -46,10 +46,10 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     private generalSettingsService: GeneralSettingsService,
   ) {
 
-    // Set default dates to 1 year
+    // Set default dates to yesterday
     const todayDate = new Date();
     const firstDate: Date = new Date();
-    firstDate.setDate(todayDate.getDate() - 365);
+    firstDate.setDate(todayDate.getDate() - 1);
     this.dateRange = { fromDate: DateUtils.getDateOnlyAsString(firstDate), toDate: DateUtils.getDateOnlyAsString(todayDate) };
 
     // Get the climsoft time zone display setting

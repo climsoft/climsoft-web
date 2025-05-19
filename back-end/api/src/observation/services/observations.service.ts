@@ -13,8 +13,9 @@ import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { DataAvailabilityDetailQueryDto } from '../dtos/data-availability-detail-query.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -28,7 +29,7 @@ export class ObservationsService {
 
     public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
         const obsView: ViewObservationDto[] = [];
-        const obsEntities = await this.findObsEntities(selectObsevationDto);
+        const obsEntities = await this.findProcessedObsEntities(selectObsevationDto);
         for (const obsEntity of obsEntities) {
             const viewObs: ViewObservationDto = {
                 stationId: obsEntity.stationId,
@@ -49,23 +50,19 @@ export class ObservationsService {
     }
 
 
-    private async findObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
+    private async findProcessedObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
         if (!(viewObsevationQueryDto.page && viewObsevationQueryDto.pageSize && viewObsevationQueryDto.pageSize <= 1000)) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
         }
 
         const findOptions: FindManyOptions<ObservationEntity> = {
-            // order: {
-            //     stationId: "ASC",
-            //     elementId: "ASC",
-            //     level: "ASC",
-            //     interval: "ASC",
-            //     datetime: "ASC",
-            //     sourceId: "ASC"
-            // },
             order: {
+                stationId: "ASC",
+                elementId: "ASC",
+                level: "ASC",
                 datetime: "ASC",
+                interval: "ASC",
             },
             where: this.getProcessedFilter(viewObsevationQueryDto),
             skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
@@ -175,7 +172,7 @@ export class ObservationsService {
     }
 
     public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
-        const entities = await this.findObsEntities(selectObsevationDto);
+        const entities = await this.findProcessedObsEntities(selectObsevationDto);
         const dtos: CreateObservationDto[] = entities.map(data => ({
             stationId: data.stationId,
             elementId: data.elementId,
@@ -441,11 +438,12 @@ export class ObservationsService {
             ORDER BY o.element_id, o.date_time;
             `);
 
+
         // Return the path to the generated CSV file
         return results;
     }
 
-    public async findDataAvailabilityStatus(dataAvailabilityQuery: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+    public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let extractSQL: string = '';
         let extraSQLCondition: string = '';
         let groupAndOrderBySQL: string = '';
@@ -509,12 +507,72 @@ export class ObservationsService {
             WHERE deleted = FALSE  ${extraSQLCondition} ${groupAndOrderBySQL};
             `);
 
-            //console.log('results: ', results)
+        //console.log('results: ', results)
 
         return results.map((item: { station_id: string; record_count: number; extracted_date_value: number; }) => {
-            return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value )};
+            return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
         });
     }
+
+    // public async findDataAvailabilityDetail(dataAvailabilityQuery: DataAvailabilityDetailQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+
+    //     let extraSQLCondition: string = '';
+    //     let groupAndOrderBySQL: string = '';
+
+    //     extraSQLCondition = ` AND station_id = ${dataAvailabilityQuery.stationId}`;
+    //     extraSQLCondition = extraSQLCondition + ` AND element_id = ${dataAvailabilityQuery.elementId}`;
+    //     extraSQLCondition = extraSQLCondition + ` AND interval = ${dataAvailabilityQuery.interval}`;
+
+    //     let year: number;
+    //     let month: number;
+    //     let startDate: string;
+    //     let endDate: string;
+
+    //     switch (dataAvailabilityQuery.durationType) {
+    //         case 'days_of_month':
+    //             //Group by Day of Month e.g `SELECT station_id, COUNT(*) AS record_count, EXTRACT(DAY FROM date_time) AS day_of_month FROM observations WHERE element_id = 1001 AND interval = 1440 AND date_time >= DATE '2025-01-01' AND date_time < DATE '2025-02-01' GROUP BY station_id, day_of_month ORDER BY station_id, day_of_month;`
+
+    //             const splitYearMonth: string[] = dataAvailabilityQuery.durationDaysOfMonth.split('-');
+    //             year = Number(splitYearMonth[0]);
+    //             month = Number(splitYearMonth[1]);
+    //             if (month >= 12) {
+    //                 year = year + 1;
+    //                 month = 1;
+    //             } else {
+    //                 month = month + 1;
+    //             }
+    //             startDate = `${dataAvailabilityQuery.durationDayOfMonth}-01`;
+    //             endDate = `${year}-${StringUtils.addLeadingZero(month)}-01`;
+    //             extraSQLCondition = extraSQLCondition + ` AND date_time >= '${dataAvailabilityQuery.durationDayOfMonth}`; 
+    //             break;
+    //         case 'months_of_year': 
+    //             year = dataAvailabilityQuery.durationMonthsOfYear;
+    //             startDate = `${year}-01-01`;
+    //             endDate = `${year + 1}-01-01`; 
+    //             extraSQLCondition = extraSQLCondition + ` AND date_time >= DATE '${startDate}' AND date_time < DATE '${endDate}'`; 
+    //             break;
+    //         case 'years': 
+    //             extraSQLCondition = extraSQLCondition + ` AND EXTRACT(YEAR FROM date_time) IN (${dataAvailabilityQuery.durationYears.join(',')})  `; 
+    //             break;
+    //         default:
+    //             break;
+    //     }
+
+
+    //     const results = await this.dataSource.manager.query(
+    //         `
+    //         SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
+    //         FROM observations o 
+    //         WHERE o.deleted = FALSE AND o.station_id = '${dataAvailabilityQuery.stat}' AND o.date_time >= NOW() - INTERVAL '${duration} ${durationType}' ${extraSQLCondition}
+    //         ORDER BY o.element_id, o.date_time;
+    //         `);
+
+    //     //console.log('results: ', results)
+
+    //     return results.map((item: { station_id: string; record_count: number; extracted_date_value: number; }) => {
+    //         return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
+    //     });
+    // }
 
 
 }

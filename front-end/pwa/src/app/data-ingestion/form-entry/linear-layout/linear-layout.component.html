@@ -1,25 +1,32 @@
-<ng-container
-  *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
+<div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0"
+  class="linear-layout-container p-2"
+  [ngStyle]="{height: layoutHeight + 'vh'}">
   <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
+
   <div *ngIf="largeScreen" class="row g-4">
     <div class="col app-value-flag-container" *ngFor="let chunkArray of fieldDefinitionsChunks; let firstIndex = index">
-      <div class="row mb-2 p-0" *ngFor="let fieldDef of chunkArray;">
-        <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
-          [borderSize]="userFormSettings.fieldsBorderSize" 
-          [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-          [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
-          [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
-          [simulateTabOnEnter]="true" />
+      <div class="row mb-2 " *ngFor="let fieldDef of chunkArray;">
+        <div class="p-1">
+          <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
+            [borderSize]="userFormSettings.fieldsBorderSize"
+            [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
+            [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
+            [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
+            [simulateTabOnEnter]="true" />
+        </div>
       </div>
 
       <!-- If total is required then add the total control as the last row -->
       <div class="app-value-flag-container"
         *ngIf="formDefinitions.formMetadata.requireTotalInput && firstIndex === this.fieldDefinitionsChunks.length - 1"
         class="row mb-2">
-        <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
-          [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
-          (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalEnterKeyPressed()" />
+        <div class="p-1">
+          <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
+            [errorMessage]="totalErrorMessage" (valueChange)="onTotalValueChange($event)"
+            (valueChange)="onTotalValueChange($event)" (inputEnterKeyPress)="onTotalEnterKeyPressed()" />
+        </div>
+
       </div>
 
     </div>
@@ -41,4 +48,4 @@
     </div>
   </div>
 
-</ng-container>
+</div>

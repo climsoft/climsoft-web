@@ -27,18 +27,18 @@ export class DateInputComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.value) {
+    if (changes['value'] && this.value) {
       this.setNextButtonDisabledState();
     }
 
-    if (!this.maxDate) {
+    if (changes['maxDate'] && !this.maxDate) {
       // Always set maximum date to prevent future dates selections by default   
       this.maxDate = this.getDateString(new Date());
     }
   }
 
   protected onValueChange(value: string) {
-    //this.value = value; // TODO. How do we prevent ngOnChanges from being raised
+    this.value = value;
     this.valueChange.emit(value);
   }
 
@@ -64,13 +64,16 @@ export class DateInputComponent implements OnChanges {
   }
 
   protected onNext(): void {
-    const todayDate = new Date();
+    //const todayDate = new Date();
     const newCalculatedDate: Date = this.value ? new Date(this.value) : new Date();
     newCalculatedDate.setDate(newCalculatedDate.getDate() + 1);
 
-    if (newCalculatedDate > todayDate) {
-      return;
-    }
+    // TODO. 
+    // Disabled on 13/05/2025 due to how forms try to maipulate dates on the forms. 
+    // Especially with utc 0 or not 0
+    // if (newCalculatedDate > todayDate) { 
+    //   return;
+    // }
 
     this.value = this.getDateString(newCalculatedDate);
     this.valueChange.emit(this.value);

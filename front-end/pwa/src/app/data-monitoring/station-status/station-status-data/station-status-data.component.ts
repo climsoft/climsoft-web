@@ -1,6 +1,6 @@
-import { Component, EventEmitter, OnDestroy, Output } from '@angular/core'; 
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
-import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service'; 
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
@@ -16,7 +16,8 @@ import { StationStatusDataQueryModel } from '../models/station-status-data-query
 
 
 interface ObservationView extends LastStationActivityObservation {
-  elementAbbrv: string;
+  elementId: number;
+  elementName: string;
   sourceName: string;
   presentableDatetime: string;
   intervalName: string;
@@ -85,11 +86,11 @@ export class StationDataComponent implements OnDestroy {
     ).subscribe(data => {
       this.observations = data.map(observation => {
         const element = this.elements.find(item => item.id === observation.elementId);
-        const source = this.sources.find(item => item.id === observation.sourceId); 
+        const source = this.sources.find(item => item.id === observation.sourceId);
         let valueFlag: string = '';
 
         if (!element) throw new Error('element not found');
-        if (!source) throw new Error('source not found'); 
+        if (!source) throw new Error('source not found');
 
         if (observation.value) {
           valueFlag = `${observation.value} `
@@ -101,7 +102,8 @@ export class StationDataComponent implements OnDestroy {
 
         return {
           ...observation,
-          elementAbbrv: element.abbreviation,
+          elementId: element.id,
+          elementName: element.name,
           sourceName: source.name,
           presentableDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
           intervalName: IntervalsUtil.getIntervalName(observation.interval),

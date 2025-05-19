@@ -1,3 +1,15 @@
-<app-selector-single-input [label]="label" [errorMessage]="errorMessage" [options]="options"
-    [optionDisplayFn]="optionDisplayFunction" [selectedOption]="selectedOption"
-    (selectedOptionChange)="onSelectedOptionChange($event)"/>
+<div class="d-flex">
+    <app-selector-single-input [label]="label" [errorMessage]="errorMessage" [options]="options"
+        [optionDisplayFn]="optionDisplayFunction" [selectedOption]="selectedOption"
+        (selectedOptionChange)="onSelectedOptionChange($event)" />
+
+    <div *ngIf="showNavigationButtons" class="d-flex">
+        <!-- Add marging top of 4 when there is a label so that the buttons can align well with the text input -->
+        <button type="button" class="btn btn-sm btn-outline-secondary" [class.mt-4]="label" (click)="onPrevious()">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" [class.mt-4]="label" (click)="onNext()">
+            <i class="bi bi-chevron-right"></i>
+        </button>
+    </div>
+</div>

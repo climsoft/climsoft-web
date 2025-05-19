@@ -5,5 +5,7 @@ export enum FlagEnum {
     GENERATED = "generated",
     CUMULATIVE = "cumulative",
     TRACE = "trace",
+    OBSCURED = "obscured",
+    VARIABLE = "variable",
 }
 

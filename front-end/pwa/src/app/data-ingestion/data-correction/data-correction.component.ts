@@ -20,6 +20,7 @@ interface ObservationEntry {
   newStationId: string;
   newElementId: number;
   stationName: string;
+  elementId: number;
   elementAbbrv: string;
   sourceName: string;
   formattedDatetime: string;
@@ -81,7 +82,7 @@ export class DataCorrectionComponent implements OnDestroy {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(
+    this.observationService.countCorrectionData(this.observationFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.pageInputDefinition.setTotalRowCount(count);
@@ -129,6 +130,7 @@ export class DataCorrectionComponent implements OnDestroy {
             newElementId: 0,
             delete: false,
             stationName: stationMetadata.name,
+            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),

@@ -64,25 +64,22 @@
             <i class="bi bi-person py-1 nav-bar-icon" (click)="displayUserDropDown = !displayUserDropDown"></i>
             <div *ngIf="displayUserDropDown" class="user-drop-down border border-dark rounded">
               <div class="list-group">
-                <a href="#" class="list-group-item list-group-item-action">Profile {{ user? ' - '+ user.username: ''
-                  }}</a>
-                <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">Log out</button>
-                </div>
+                <a *ngIf="user" href="#" class="list-group-item list-group-item-action">
+                  Profile - {{ user.username }}
+                </a>
+                <button *ngIf="user" type="button" class="list-group-item list-group-item-action"
+                  (click)="userPasswordChangeDialog.openDialog(user.id, user.username)">Change
+                  Password
+                </button>
+                <app-password-change #userPasswordChangeDialog />
+                <button type="button" class="list-group-item list-group-item-action" (click)="logOut()">
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- toast container -->
-      <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
-        <div class="card-header">
-          {{ toast.title }}
-        </div>
-        <div class="card-body" [ngClass]="'text-' + toast.type">
-          {{ toast.message }}
-        </div>
-      </div>
-
     </div>
 
     <!-- Main body content -->
@@ -90,5 +87,12 @@
       <router-outlet></router-outlet>
     </div>
 
+  </div>
+</div>
+
+<!-- toast container -->
+<div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
+  <div class="card-body" [ngClass]="'text-' + toast.type">
+    {{ toast.message }}
   </div>
 </div>

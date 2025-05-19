@@ -1,5 +1,8 @@
-<div class="card border-0">
+<div *ngIf="users"  class="card border-0">
     <div class="card-header d-flex justify-content-end p-0 align-items-center">
+        <div *ngIf="users" class="d-flex mx-2">
+            Count: {{ users.length | number:'1.0-0' }}
+        </div>
         <div class="mb-1">
             <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
                 Search
@@ -11,37 +14,38 @@
     </div>
 
     <div class="card-body px-0">
-       <div  class="app-table-container" style="height: 80vh;">
-        <table class="table table-striped table-sm table-hover" >
-            <thead>
-                <tr>
-                    <th style="width: 2%;"></th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Group</th>
-                    <th>Disabled</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody class="table-group-divider">
-                <tr class="app-cursor-pointer" *ngFor="let user of users">
-                    <td (click)="onEditUserClick(user)"><i class="bi bi-arrow-right-short"></i></td>
-                    <td (click)="onEditUserClick(user)">{{ user.name }}</td>
-                    <td (click)="onEditUserClick(user)">{{ user.email }}</td>
-                    <td (click)="onEditUserClick(user)">{{ user.phone }}</td>
-                    <td (click)="onEditUserClick(user)">{{user.groupName}}</td>
-                    <td (click)="onEditUserClick(user)">{{ user.disabled? 'Yes': 'No' }}</td>
-                    <td>
-                        <button class="btn btn-outline-secondary btn-sm"
-                            (click)="passwordChangeDialog.openDialog(user.id, user.email)">Change Password</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-       </div>
+        <div class="app-table-container" style="height: 80vh;">
+            <table class="table table-striped table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th style="width: 2%;"></th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Group</th>
+                        <th>Disabled</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    <tr class="app-cursor-pointer" *ngFor="let user of users">
+                        <td (click)="onEditUserClick(user)"><i class="bi bi-arrow-right-short"></i></td>
+                        <td (click)="onEditUserClick(user)">{{ user.name }}</td>
+                        <td (click)="onEditUserClick(user)">{{ user.email }}</td>
+                        <td (click)="onEditUserClick(user)">{{ user.phone }}</td>
+                        <td (click)="onEditUserClick(user)">{{user.groupName}}</td>
+                        <td (click)="onEditUserClick(user)">{{ user.disabled? 'Yes': 'No' }}</td>
+                        <td>
+                            <button type="button" class="btn btn-outline-secondary btn-sm"
+                                (click)="adminPasswordChangeDialog.openDialog(user.id, user.email)">Change
+                                Password</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-        <app-password-change #passwordChangeDialog />
+        <app-password-change #adminPasswordChangeDialog />
     </div>
 
 </div>

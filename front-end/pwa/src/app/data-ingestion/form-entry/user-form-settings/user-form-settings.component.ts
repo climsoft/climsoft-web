@@ -8,12 +8,13 @@ export interface UserFormSettingStruct {
   fieldsBorderSize: number;
 
   linearLayoutSettings: {
+    height: number;
     maxRows: number;
   }
 
   gridLayoutSettings: {
-    gridHeight: number;
-    gridNavigation: 'horizontal' | 'vertical';
+    height: number;
+    navigation: 'horizontal' | 'vertical';
   }
 }
 
@@ -22,11 +23,12 @@ export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
   incrementDateSelector: false,
   fieldsBorderSize: 1,
   linearLayoutSettings: {
+    height: 60,
     maxRows: 5
   },
   gridLayoutSettings: {
-    gridHeight: 60,
-    gridNavigation: 'horizontal',
+    height: 60,
+    navigation: 'horizontal',
   }
 }
 
@@ -68,14 +70,14 @@ export class UserFormSettingsComponent {
   }
 
   protected get gridNavigation(): string {
-    return this.userFormSettings.gridLayoutSettings.gridNavigation === 'vertical' ? 'Vertically' : 'Horizontally';
+    return this.userFormSettings.gridLayoutSettings.navigation === 'vertical' ? 'Vertically' : 'Horizontally';
   }
 
   protected onGridEntryNavigationSelection(option: string): void {
     if (option === 'Vertically') {
-      this.userFormSettings.gridLayoutSettings.gridNavigation = 'vertical';
+      this.userFormSettings.gridLayoutSettings.navigation = 'vertical';
     } else {
-      this.userFormSettings.gridLayoutSettings.gridNavigation = 'horizontal';
+      this.userFormSettings.gridLayoutSettings.navigation = 'horizontal';
     }
   }
 

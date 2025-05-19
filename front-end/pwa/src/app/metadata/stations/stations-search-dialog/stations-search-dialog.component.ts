@@ -92,6 +92,8 @@ export class StationsSearchDialogComponent {
   }
 
   protected onSearchInput(searchValue: string): void {
+    // TODO. Test if this set timeout improves performance of the search
+   setTimeout(() => {
     searchValue = searchValue.toLowerCase();
     this.searchValue = searchValue;
     // Make the searched items be the first items
@@ -106,6 +108,7 @@ export class StationsSearchDialogComponent {
       }
       return 1;
     });
+   }, 0);
   }
 
   protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
