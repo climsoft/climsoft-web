@@ -28,7 +28,7 @@ export class SourceTemplateEntity extends AppBaseEntity {
     @Column({ name: "scale_values", type: "boolean" })
     scaleValues: boolean;
 
-    @Column({ name: "sample_image", type: "varchar" })
+    @Column({ name: "sample_image", type: "varchar", nullable: true })
     sampleImage: string;
 
     @Column({ name: "parameters", type: "jsonb" })
