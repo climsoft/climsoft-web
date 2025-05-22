@@ -39,7 +39,8 @@
             <th>Id</th>
             <th>Abbreviation</th>
             <th>Name</th>
-            <th></th>
+            <th>Description</th>
+            <th *ngIf="showEditButton"></th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
@@ -48,7 +49,8 @@
             <td (click)="onEditElement(element)">{{ element.id }}</td>
             <td (click)="onEditElement(element)">{{ element.abbreviation }}</td>
             <td (click)="onEditElement(element)">{{ element.name }}</td>
-            <td>
+            <td (click)="onEditElement(element)">{{ element.description }}</td>
+            <td *ngIf="showEditButton">
               <button type="button" class="btn btn-outline-secondary btn-sm"
                 (click)="dlgElementInput.openDialog(element.id)">Edit</button>
             </td>

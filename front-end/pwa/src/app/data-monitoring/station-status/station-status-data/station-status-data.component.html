@@ -11,17 +11,19 @@
                         <th>Source</th>
                         <th>Date Time</th> 
                         <th>Interval</th> 
-                        <th>Value & Flag</th> 
+                        <th>Value</th> 
+                        <th>Flag</th> 
                     </tr>
                 </thead>
                 <tbody class="table-group-divider">
                     <tr class="app-cursor-pointer" *ngFor="let observation of observations">
-                        <td>{{ observation.elementId + '-' +observation.elementName }}</td>
+                        <td>{{ observation.elementId + ' - ' + observation.elementName }}</td>
                         <td>{{ observation.level }}</td>
                         <td>{{ observation.sourceName }}</td>
                         <td>{{ observation.presentableDatetime }}</td>
                         <td>{{ observation.intervalName }}</td>
-                        <td>{{ observation.valueFlag }}</td> 
+                        <td>{{ observation.valueStr }}</td> 
+                        <td>{{ observation.flagStr }}</td> 
                     </tr>
                 </tbody>
             </table>

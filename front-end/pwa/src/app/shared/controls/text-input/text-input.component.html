@@ -4,6 +4,7 @@
     <div
       [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">
 
+      <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
         class="form-control form-control-sm" [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled"
         [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" 

@@ -11,13 +11,12 @@
 
     <div class="d-flex justify-content-between">
       <div class="card-title fw-bold my-1  d-flex align-items-center" style="font-size: 0.875rem;">
-        <div>{{source.name}} data entry for</div>
+        <div class="me-1">{{source.name + 'data entry for'}}</div>
         <div *ngIf="!formDefinitions.formMetadata.allowStationSelection">
-          {{station.id}} - {{station.name}}
+          {{station.id + ' - ' + station.name }}
         </div>
         <div
-          *ngIf="formDefinitions.formMetadata.allowStationSelection && stationsIdsAssignedToForm && stationsIdsAssignedToForm.length>0"
-          class="ms-1">
+          *ngIf="formDefinitions.formMetadata.allowStationSelection && stationsIdsAssignedToForm && stationsIdsAssignedToForm.length>0">
           <app-station-selector-single [id]="'form_stations_selector'" [selectedId]="station.id"
             [includeOnlyIds]="stationsIdsAssignedToForm" (selectedIdChange)="onStationChange($event)" />
         </div>
