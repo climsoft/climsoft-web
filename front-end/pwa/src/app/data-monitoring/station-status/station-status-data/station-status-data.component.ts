@@ -21,7 +21,8 @@ interface ObservationView extends LastStationActivityObservation {
   sourceName: string;
   presentableDatetime: string;
   intervalName: string;
-  valueFlag: string;
+  valueStr: string;
+  flagStr: string;
 }
 
 @Component({
@@ -87,19 +88,12 @@ export class StationDataComponent implements OnDestroy {
       this.observations = data.map(observation => {
         const element = this.elements.find(item => item.id === observation.elementId);
         const source = this.sources.find(item => item.id === observation.sourceId);
-        let valueFlag: string = '';
 
         if (!element) throw new Error('element not found');
         if (!source) throw new Error('source not found');
 
-        if (observation.value) {
-          valueFlag = `${observation.value} `
-        }
-
-        if (observation.flag) {
-          valueFlag = `${valueFlag}${observation.flag[0].toUpperCase()}`
-        }
-
+        const valueStr: string = observation.value === null ? '' : `${observation.value}`;;
+        const flagStr: string = observation.flag === null ? '' : `${observation.flag[0].toUpperCase()}`;
         return {
           ...observation,
           elementId: element.id,
@@ -107,7 +101,8 @@ export class StationDataComponent implements OnDestroy {
           sourceName: source.name,
           presentableDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
           intervalName: IntervalsUtil.getIntervalName(observation.interval),
-          valueFlag: valueFlag
+          valueStr: valueStr,
+          flagStr: flagStr,
         }
       });
     });

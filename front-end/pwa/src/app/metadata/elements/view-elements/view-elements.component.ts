@@ -20,6 +20,7 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected optionClicked: optionsType | undefined;
   protected dropDownItems: optionsType[] = [];
+  protected showEditButton: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -28,7 +29,7 @@ export class ViewElementsComponent implements OnDestroy {
     private elementsCacheService: ElementsCacheService,
     private appAuthService: AppAuthService,
     private router: Router,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,) {
 
     this.pagesDataService.setPageHeader('Elements');
 
@@ -36,7 +37,15 @@ export class ViewElementsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+      this.dropDownItems = user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
+      // Only show edit button if user is admin
+      // However, other users allowed to edit a station can always click on it.
+      if (user.isSystemAdmin) {
+        this.showEditButton = true;
+      }
     });
 
     this.elementsCacheService.cachedElements.pipe(
