@@ -34,14 +34,14 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if(!this.options){
+      if (!this.options) {
         this.options = []; // should never be undefined
       }
       this.filteredOptions = this.options;
     }
 
     if (changes['selectedOptions']) {
-      if(!this.selectedOptions){
+      if (!this.selectedOptions) {
         this.selectedOptions = []; // should never be undefined
       }
       this.setDisplaySelectedOptions();
@@ -101,5 +101,16 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onAdvancedSearchClick(): void {
     this.displayAdvancedSearchOptionClick.emit();
   }
+
+  // protected onDisplayDropDownClick(): void {
+  //   if (this.selectedOption) {
+  //     // Move the selected option to the top
+  //     const index = this.filteredOptions.indexOf(this.selectedOption);
+  //     if (index > -1) {
+  //       this.filteredOptions.splice(index, 1);        // Remove the element
+  //       this.filteredOptions.unshift(this.selectedOption); // Add it to the beginning
+  //     }
+  //   }
+  //}
 
 }
