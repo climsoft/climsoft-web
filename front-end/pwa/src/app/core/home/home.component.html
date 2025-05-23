@@ -92,7 +92,7 @@
 
 <!-- toast container -->
 <div *ngFor="let toast of toasts" class="card shadow-lg page-toast">
-  <div class="card-body d-flex align-items-center" [ngClass]="'text-' + toast.type">
+  <div class="card-body" [ngClass]="'text-' + toast.type">
     {{ toast.message }}
   </div>
 </div>
