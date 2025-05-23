@@ -2,13 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm'; 
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
-import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto'; 
-import { ViewOrganisationDto } from '../../organisations/dtos/view-organisation.dto';
-import { ViewOrganisationQueryDTO } from '../../organisations/dtos/view-organisation-query.dto';
-import { CreateUpdateOrganisationDto } from '../../organisations/dtos/create-update-organisation.dto'; 
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';  
 import { NetworkAffiliationEntity } from '../entities/network-affiliation.entity';
 import { ViewNetworkAffiliationDto } from '../dtos/view-network-affiliation.dto';
 import { ViewNetworkAffiliationQueryDTO } from '../dtos/view-network-affiliation-query.dto';
+import { CreateUpdateNetworkAffiliationDto } from '../dtos/create-update-network-affiliation.dto';
 
 @Injectable()
 export class NetworkAffiliationsService {
@@ -54,7 +52,7 @@ export class NetworkAffiliationsService {
         });
     }
 
-    public async count(viewRegionQueryDto: ViewOrganisationQueryDTO): Promise<number> {
+    public async count(viewRegionQueryDto: ViewNetworkAffiliationQueryDTO): Promise<number> {
         return this.networkAffiliationsRepo.countBy(this.getFilter(viewRegionQueryDto));
     }
 
@@ -68,7 +66,7 @@ export class NetworkAffiliationsService {
         return whereOptions
     }
 
-    public async add(createDto: CreateUpdateOrganisationDto, userId: number): Promise<ViewOrganisationDto> {
+    public async add(createDto: CreateUpdateNetworkAffiliationDto, userId: number): Promise<ViewNetworkAffiliationDto> {
         let entity: NetworkAffiliationEntity | null = await this.networkAffiliationsRepo.findOneBy({
             name: createDto.name,
         });
@@ -90,7 +88,7 @@ export class NetworkAffiliationsService {
 
     }
 
-    public async update(id: number, updateDto: CreateUpdateOrganisationDto, userId: number): Promise<ViewOrganisationDto> {
+    public async update(id: number, updateDto: CreateUpdateNetworkAffiliationDto, userId: number): Promise<ViewNetworkAffiliationDto> {
         const entity: NetworkAffiliationEntity = await this.findEntity(id);
 
         this.updateEntity(entity, updateDto, userId);
@@ -112,19 +110,21 @@ export class NetworkAffiliationsService {
         return true;
     }
 
-    private updateEntity(entity: NetworkAffiliationEntity, dto: CreateUpdateOrganisationDto, userId: number): void {
+    private updateEntity(entity: NetworkAffiliationEntity, dto: CreateUpdateNetworkAffiliationDto, userId: number): void {
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : null;
+        entity.parentNetworkId = dto.parentNetworkId;
         entity.extraMetadata = dto.extraMetadata? dto.extraMetadata: null ; 
         entity.comment = dto.comment ? dto.comment : null; 
         entity.entryUserId = userId;
     }
 
-    private createViewDto(entity: NetworkAffiliationEntity): ViewOrganisationDto {
+    private createViewDto(entity: NetworkAffiliationEntity): ViewNetworkAffiliationDto {
         return {
             id: entity.id,
             name: entity.name,
             description: entity.description,
+            parentNetworkId: entity.parentNetworkId,
             extraMetadata: entity.extraMetadata,
             comment: entity.comment,
         };

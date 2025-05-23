@@ -35,6 +35,7 @@ export class SourceTemplateEntity extends AppBaseEntity {
     parameters: SourceParametersValidity;
 
     @Column({ name: "order_number", type: "int", nullable: true })
+    @Index()
     orderNumber: number | null;
 
     @Column({ type: "boolean", default: false })

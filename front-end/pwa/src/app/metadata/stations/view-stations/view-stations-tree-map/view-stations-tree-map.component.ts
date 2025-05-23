@@ -2,7 +2,7 @@ import { AfterViewInit, Component, Input, OnChanges, OnDestroy, SimpleChanges } 
 import { booleanPointInPolygon, multiPolygon, point } from '@turf/turf';
 import * as echarts from 'echarts';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewNetworkAffiliatioModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
 import { NetworkAffiliationsCacheService } from 'src/app/metadata/network-affiliations/services/network-affiliations-cache.service';
 import { ViewOrganisationModel } from 'src/app/metadata/organisations/models/view-organisation.model';
 import { OrganisationsCacheService } from 'src/app/metadata/organisations/services/organisations-cache.service';
@@ -29,7 +29,7 @@ export class ViewStationsTreeMapComponent implements AfterViewInit, OnDestroy {
   protected operationalOnly: boolean = true;
   private regions!: ViewRegionModel[];
   private organisations!: ViewOrganisationModel[];
-  private networkAffiliations!: ViewNetworkAffiliatioModel[];
+  private networkAffiliations!: ViewNetworkAffiliationModel[];
   private stationCountPerNetworkAffiliationCount!: StationCountPerNetworkAffiliationCount[];
   private visualiseOption: string = 'Regions';;
   private chartInstance!: echarts.ECharts;

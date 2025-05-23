@@ -195,6 +195,9 @@ export class HomeComponent implements OnInit, OnDestroy {
       item.name !== SubMenuNameEnum.SOURCE_TEMPLATES
       && item.name !== SubMenuNameEnum.EXPORT_TEMPLATES
       && item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
+      && item.name !== SubMenuNameEnum.ORGANISATIONS
+      && item.name !== SubMenuNameEnum.NETWORK_AFFILIATIONS
+      && item.name !== SubMenuNameEnum.REGIONS
     );
 
     this.featuresNavItems.push(metadataMenuItems);

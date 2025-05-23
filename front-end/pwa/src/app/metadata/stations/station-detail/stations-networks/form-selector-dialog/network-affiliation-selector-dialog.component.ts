@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { take } from 'rxjs';
-import { ViewNetworkAffiliatioModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
 import { NetworkAffiliationsCacheService } from 'src/app/metadata/network-affiliations/services/network-affiliations-cache.service';
 
-export interface ItemSelection extends ViewNetworkAffiliatioModel {
+export interface ItemSelection extends ViewNetworkAffiliationModel {
   selected: boolean;
 }
 

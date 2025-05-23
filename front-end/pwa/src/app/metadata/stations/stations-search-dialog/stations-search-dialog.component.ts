@@ -92,23 +92,23 @@ export class StationsSearchDialogComponent {
   }
 
   protected onSearchInput(searchValue: string): void {
-    // TODO. Test if this set timeout improves performance of the search
-   setTimeout(() => {
-    searchValue = searchValue.toLowerCase();
-    this.searchValue = searchValue;
-    // Make the searched items be the first items
-    this.stationsSelections.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.station.id.toLowerCase().includes(searchValue)
-        || a.station.name.toLowerCase().includes(searchValue)
-        || a.station.wmoId.toLowerCase().includes(searchValue)
-        || a.station.wigosId.toLowerCase().includes(searchValue)
-        || a.station.icaoId.toLowerCase().includes(searchValue)) {
-        return -1;
-      }
-      return 1;
-    });
-   }, 0);
+    // Using set timeout to improve UX of the search especially for devices like tablets and phones
+    setTimeout(() => {
+      searchValue = searchValue.toLowerCase();
+      this.searchValue = searchValue;
+      // Make the searched items be the first items
+      this.stationsSelections.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.station.id.toLowerCase().includes(searchValue)
+          || a.station.name.toLowerCase().includes(searchValue)
+          || a.station.wmoId.toLowerCase().includes(searchValue)
+          || a.station.wigosId.toLowerCase().includes(searchValue)
+          || a.station.icaoId.toLowerCase().includes(searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
+    }, 0);
   }
 
   protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
@@ -176,7 +176,6 @@ export class StationsSearchDialogComponent {
       default:
         break;
     }
-
 
     if (this.searchName && this.searchedIds.length > 0) {
       AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });

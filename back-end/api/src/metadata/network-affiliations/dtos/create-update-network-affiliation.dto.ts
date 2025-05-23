@@ -1,6 +1,6 @@
-import {  IsOptional, IsString } from "class-validator"; 
+import { IsInt, IsOptional, IsString } from "class-validator";
 
-export class CreateUpdateNetworkAffiliationDto  {
+export class CreateUpdateNetworkAffiliationDto {
     @IsString()
     name: string;
 
@@ -9,6 +9,11 @@ export class CreateUpdateNetworkAffiliationDto  {
     description: string | null;
 
     @IsOptional()
+    @IsInt()
+    parentNetworkId: number | null;
+
+    @IsOptional()
+    @IsString()
     extraMetadata: string | null;
 
     @IsOptional()

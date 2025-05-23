@@ -18,12 +18,12 @@ export class ElementEntity extends AppBaseEntity {
   @Column({ type: "varchar", name: "description", nullable: true })
   description: string | null;
 
-  @Column({ type: "varchar", name: "units" , nullable: true })
+  @Column({ type: "varchar", name: "units", nullable: true })
   units: string;
 
   //---------------------------
   @Column({ type: "int", name: "type_id" })
-   @Index()
+  @Index()
   typeId: number;
   // ManyToOne relationship with ElementTypeEntity
   @ManyToOne(() => ElementTypeEntity, { onDelete: "RESTRICT" })

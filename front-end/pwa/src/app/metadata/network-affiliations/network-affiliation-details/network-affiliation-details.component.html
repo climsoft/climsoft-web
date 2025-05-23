@@ -14,6 +14,11 @@
     <hr />
 
     <div>
+      <app-network-affiliations-selector-single [label]="'Parent Network'" [displayCancelOption]="true"
+        [(selectedId)]="viewNetworkAffiliations.parentNetworkId" />
+    </div>
+
+    <div>
       <app-text-input [label]="'Comment'" [(value)]="viewNetworkAffiliations.comment" />
     </div>
 
@@ -30,7 +35,7 @@
     <button *ngIf="isSystemAdmin" type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
       Save
     </button>
-    <button  type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
   </div>
 
 </div>

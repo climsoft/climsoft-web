@@ -1,9 +1,7 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
-
 import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component'; 
-
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
@@ -78,6 +76,7 @@ import { StationFocusesSearchComponent } from './stations/stations-search-dialog
 import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
 import { QCStatusSelectorSingleComponent } from './elements/element-detail/qc-status-selector-single/qc-status-selector-single.component';
 import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
+import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
 
 @NgModule({
   declarations: [ 
@@ -173,6 +172,8 @@ import { ExportTypeSelectorSingleComponent } from './export-templates/export-typ
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent, 
+
+    NetworkAffiliationsSelectorSingleComponent,
 
   ],
   imports: [
