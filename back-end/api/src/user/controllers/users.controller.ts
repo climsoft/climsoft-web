@@ -36,7 +36,6 @@ export class UsersController {
         return this.userService.updateUser(userId, createUserDto);
     }
 
-  
     @Patch('change-password')
     public changePassword(
         @Req() request: Request,

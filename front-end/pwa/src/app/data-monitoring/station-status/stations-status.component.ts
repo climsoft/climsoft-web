@@ -19,9 +19,10 @@ interface StationView extends StationCacheModel {
   styleUrls: ['./station-status.component.scss']
 })
 export class stationStatusComponent implements OnDestroy {
-  @ViewChild('appStationDataActivity') appStationDataMonitoring!: StationDataComponent;
-  protected allowedStations!: StationView[];
+  @ViewChild('appStationDataActivity')
+  appStationDataMonitoring!: StationDataComponent;
 
+  protected stationsPermitted!: StationView[];
   protected numOfStationsReporting: number = 0;
   protected numOfStationsNotReporting: number = 0;
 
@@ -76,11 +77,11 @@ export class stationStatusComponent implements OnDestroy {
         }
       }
 
-      // Get stations that are operational and  have locations only
-      this.allowedStations = [];
+      // Get stations that are operational and have locations only
+      this.stationsPermitted = [];
       for (const station of stations) {
         if (station.status === StationStatusEnum.OPERATIONAL && station.location) {
-          this.allowedStations.push({ ...station, reporting: false });
+          this.stationsPermitted.push({ ...station, reporting: false });
         }
       }
 
@@ -101,12 +102,14 @@ export class stationStatusComponent implements OnDestroy {
   }
 
   private loadMapStatus() {
-    const filteredStations = this.stationStatusFilter.stationIds;
-    const stationsToRender: StationView[] = filteredStations ? this.allowedStations.filter(item => filteredStations.includes(item.id)) : this.allowedStations;
+
     this.observationsService.findStationsObservationStatus(this.stationStatusFilter).pipe(
       take(1),
     ).subscribe({
       next: data => {
+        const filteredStations = this.stationStatusFilter.stationIds;
+        const stationsToRender: StationView[] = filteredStations ?
+          this.stationsPermitted.filter(item => filteredStations.includes(item.id)) : this.stationsPermitted;
         for (const station of stationsToRender) {
           station.reporting = data.includes(station.id);
         }

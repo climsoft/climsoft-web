@@ -1,9 +1,13 @@
-import { UserPermissionDto } from "./user-permission.dto"; 
+import { UserPermissionDto } from "./user-permission.dto";
 
 export class LoggedInUserDto {
-    id: number;  
-    username: string; // Used when saving observations to V4 database
+    id: number;
+    name: string;
+    email: string;
+      // TODO. Deprecate this and use email after preview-2 is released, all preview-1 user sessions will have expired
+    username: string; 
+    
     isSystemAdmin: boolean;
-    permissions: UserPermissionDto | null; 
+    permissions: UserPermissionDto | null;
     expiresIn: number; //milliseconds
 }

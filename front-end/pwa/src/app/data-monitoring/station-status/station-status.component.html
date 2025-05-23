@@ -1,7 +1,7 @@
 <div class="card border-0">
     <app-station-status-query-selection [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
 
-    <div *ngIf="allowedStations" class="card border-0">
+    <div *ngIf="stationsPermitted" class="card border-0">
         <div class="card-body px-0">
 
             <div *ngIf="stationMapLayerGroup">
