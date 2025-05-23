@@ -102,15 +102,20 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     this.displayAdvancedSearchOptionClick.emit();
   }
 
-  // protected onDisplayDropDownClick(): void {
-  //   if (this.selectedOption) {
-  //     // Move the selected option to the top
-  //     const index = this.filteredOptions.indexOf(this.selectedOption);
-  //     if (index > -1) {
-  //       this.filteredOptions.splice(index, 1);        // Remove the element
-  //       this.filteredOptions.unshift(this.selectedOption); // Add it to the beginning
-  //     }
-  //   }
-  //}
+  /**
+   * Move selected options to the top
+   */
+  protected onDisplayDropDownClick(): void {
+    // Move the selected options to the top
+
+    // Remove each value from the array if it exists
+    for (let i = this.selectedOptions.length - 1; i >= 0; i--) {
+      const index = this.filteredOptions.indexOf(this.selectedOptions[i]);
+      if (index > -1) {
+        this.filteredOptions.splice(index, 1);             // Remove from current position
+        this.filteredOptions.unshift(this.selectedOptions[i]);           // Insert at the top
+      }
+    }
+  }
 
 }

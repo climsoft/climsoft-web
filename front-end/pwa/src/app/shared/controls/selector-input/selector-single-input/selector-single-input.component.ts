@@ -79,6 +79,9 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     this.setSelectedOptionDisplay();
   }
 
+  /**
+   * Move selected option to the top
+   */
   protected onDisplayDropDownClick(): void {
     if (this.selectedOption) {
       // Move the selected option to the top
