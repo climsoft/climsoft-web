@@ -1,5 +1,5 @@
 <div class="card border-0">
-    <!-- tab header -->
+  <!-- tab header -->
   <div class="card-header d-flex justify-content-between align-items-center px-1 py-0">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
@@ -10,9 +10,10 @@
         <button class="nav-link" [class.active]="activeTab === 'geomap'" (click)="onTabClick('geomap')">Geo Map</button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab === 'treemap'" (click)="onTabClick('treemap')">Tree Map</button>
+        <button class="nav-link" [class.active]="activeTab === 'treemap'" (click)="onTabClick('treemap')">Tree
+          Map</button>
       </li>
-    </ul> 
+    </ul>
     <div class="d-flex align-items-center">
       <div *ngIf="stations" class="d-flex mx-2">
         Count: {{ stations.length | number:'1.0-0' }}
@@ -35,18 +36,17 @@
             (cancelClick)="onOptionsDialogClosed()" />
         </div>
 
-        <!-- TODO. find a way of doing this trhough the drop down in future -->
+        <!-- TODO. find a way of doing this through the drop down in future -->
         <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
 
       </div>
     </div>
   </div>
 
-   <!-- selected tab contents -->
+  <!-- selected tab contents -->
   <div class="card-body p-0">
     <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
     <app-view-stations-geo-map *ngIf="activeTab === 'geomap'" [stations]="stations" />
     <app-view-stations-tree-map *ngIf="activeTab === 'treemap'" />
   </div>
-
 </div>

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Req } from '@nestjs/common';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
@@ -34,14 +34,6 @@ export class StationFormsController {
   }
 
   @Admin()
-  @Delete('forms-assigned-to-station/:id')
-  public async deleteFormsAsignedToStation(
-    @Param('id', AuthorisedStationsPipe) stationId: string) {
-    await this.stationFormsService.deleteFormsAsignedToStation(stationId);
-    return { message: 'success' };
-  }
-
-  @Admin()
   @Put('stations-assigned-to-use-form/:id')
   public putStationsAssignedToUseForm(
     @Req() request: Request,
@@ -50,13 +42,7 @@ export class StationFormsController {
     return this.stationFormsService.putStationsAssignedToUseForm(formId, stationIds, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Admin()
-  @Delete('stations-assigned-to-use-form/:id')
-  public async deleteStationsAssignedToUseForm(
-    @Param('id') formId: number) {
-    await this.stationFormsService.deleteStationsAssignedToUseForm(formId);
-    return { message: 'success' };
-  }
+
 
 
 }

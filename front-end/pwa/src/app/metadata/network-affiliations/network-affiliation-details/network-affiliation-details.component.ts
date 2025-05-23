@@ -5,7 +5,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Subject, take, takeUntil } from 'rxjs';
 import { NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
-import { ViewNetworkAffiliatioModel } from '../models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from '../models/view-network-affiliation.model';
 import { CreateUpdateNetworkAffiliationModel } from '../models/create-update-network-affiliation.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 
@@ -15,7 +15,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
   styleUrls: ['./network-affiliation-details.component.scss']
 })
 export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
-  protected viewNetworkAffiliations!: ViewNetworkAffiliatioModel;
+  protected viewNetworkAffiliations!: ViewNetworkAffiliationModel;
   protected errorMessage!: string;
   protected isSystemAdmin: boolean = false;
 
@@ -47,7 +47,7 @@ export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
       });
     } else {
       this.pagesDataService.setPageHeader('New Network Affiliation');
-      this.viewNetworkAffiliations = { id: 0, name: '', description: '', extraMetadata: null, comment: null };
+      this.viewNetworkAffiliations = { id: 0, name: '', description: '', parentNetworkId: 0, extraMetadata: null, comment: null };
     }
 
   }
@@ -58,7 +58,6 @@ export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
   }
 
   protected onSaveClick(): void {
-    // TODO. do validations
     this.errorMessage = '';
 
     if (!this.viewNetworkAffiliations.name) {
@@ -66,30 +65,32 @@ export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.viewNetworkAffiliations.description) {
+      this.errorMessage = 'Enter description';
+      return;
+    }
+
     const createUser: CreateUpdateNetworkAffiliationModel = {
       name: this.viewNetworkAffiliations.name,
-      description: this.viewNetworkAffiliations.description ? this.viewNetworkAffiliations.description : null,
+      description: this.viewNetworkAffiliations.description,
+      parentNetworkId: this.viewNetworkAffiliations.parentNetworkId ? this.viewNetworkAffiliations.parentNetworkId : null,
       extraMetadata: this.viewNetworkAffiliations.extraMetadata,
       comment: this.viewNetworkAffiliations.comment ? this.viewNetworkAffiliations.comment : null,
     }
 
     if (this.viewNetworkAffiliations.id > 0) {
-      this.networkAffiliationCacheService.update(this.viewNetworkAffiliations.id, createUser).subscribe((data) => {
-        if (data) {
+      this.networkAffiliationCacheService.update(this.viewNetworkAffiliations.id, createUser).pipe(take(1)).subscribe(data => {
           this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
           this.location.back();
-        }
       });
 
     } else {
-      this.networkAffiliationCacheService.create(createUser).subscribe((data) => {
-        if (data) {
+      this.networkAffiliationCacheService.create(createUser).pipe(take(1)).subscribe(data => {
           this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
           this.location.back();
-        }
+      
       });
     }
-
   }
 
   protected onCancelClick(): void {

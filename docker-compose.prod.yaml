@@ -48,7 +48,8 @@ services:
     expose: 
       - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
     depends_on:
-      - climsoft_db
+      climsoft_db:
+        condition: service_healthy # Wait until climsoft_db is healthy as indicate by healthcheck
     volumes:
       - climsoft_exports:/app/exports
     networks:
@@ -73,7 +74,12 @@ services:
     # The executes the default PostGIS/PostgreSQL startup entrypoint, passing postgres as the command to run the Postgres server.
     command: >
       sh -c "chown -R postgres:postgres /var/lib/postgresql/exports 
-      && docker-entrypoint.sh postgres" 
+      && docker-entrypoint.sh postgres"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 volumes:
   climsoft_database:

@@ -1,5 +1,5 @@
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -49,7 +49,7 @@ export class StationsCacheService {
     private checkUpdatesSubscription: Subscription = new Subscription();
     constructor(
         private appConfigService: AppConfigService,
-        private metadataUpdatesService: MetadataUpdatesService,
+        private metadataUpdatesService: MetadataUpdatesService, 
         private http: HttpClient) {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/stations`;
         this.loadStations();
@@ -83,8 +83,8 @@ export class StationsCacheService {
                     stationObsEnvironmentName: obsEnv ? obsEnv.name : '',
                     stationObsFocusId: obsFocus ? obsFocus.id : null,
                     stationObsFocusName: obsFocus ? obsFocus.name : '',
-                    organisationId: organisation? organisation.id: null,
-                    organisationName: organisation? organisation.name: '',
+                    organisationId: organisation ? organisation.id : null,
+                    organisationName: organisation ? organisation.name : '',
                     wmoId: station.wmoId ? station.wmoId : '',
                     wigosId: station.wigosId ? station.wigosId : '',
                     icaoId: station.icaoId ? station.icaoId : '',
@@ -103,7 +103,7 @@ export class StationsCacheService {
         console.log('checking stations updates');
         // Observable to initiate metadata updates sequentially
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.checkUpdatesSubscription = of(null).pipe(
+        this.checkUpdatesSubscription = of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('organisations')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsFocus')),

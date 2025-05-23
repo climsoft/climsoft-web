@@ -3,11 +3,11 @@ import { StationCacheModel, StationsCacheService } from '../../services/stations
 import { Subject, take, takeUntil } from 'rxjs';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
 import { NetworkAffiliationsCacheService } from 'src/app/metadata/network-affiliations/services/network-affiliations-cache.service';
-import { ViewNetworkAffiliatioModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
 import { StationNetworkAffiliationsService } from '../../services/station-network-affiliations.service';
 
 interface SearchModel {
-  networkAffiliation: ViewNetworkAffiliatioModel;
+  networkAffiliation: ViewNetworkAffiliationModel;
   selected: boolean;
 }
 

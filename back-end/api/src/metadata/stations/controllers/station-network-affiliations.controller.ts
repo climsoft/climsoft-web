@@ -1,4 +1,4 @@
-import { Body, Controller, DefaultValuePipe, Delete, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query, Req } from '@nestjs/common';
+import { Body, Controller, DefaultValuePipe, Get, Param, ParseArrayPipe, ParseIntPipe, Put, Query, Req } from '@nestjs/common';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
@@ -36,13 +36,6 @@ export class StationNetworkAffiliationsController {
     return this.stationNetworkAffiliationsService.putNetworksAssignedToStation(stationId, formIds, AuthUtil.getLoggedInUserId(request));
   }
 
-  @Delete('network-affiliations-assigned-to-station/:id')
-  public async deleteNetworksAsignedToStation(
-    @Param('id', AuthorisedStationsPipe) stationId: string) {
-    await this.stationNetworkAffiliationsService.deleteNetworksAsignedToStation(stationId);
-    return { message: 'success' };
-  }
-
   @Admin()
   @Put('stations-assigned-to-network-affiliation/:id')
   public putStationsAssignedToNetwork(
@@ -51,14 +44,5 @@ export class StationNetworkAffiliationsController {
     @Body(new ParseArrayPipe({ items: String })) stationIds: string[]) {
     return this.stationNetworkAffiliationsService.putStationsAssignedToNetwork(networkAffiliationId, stationIds, AuthUtil.getLoggedInUserId(request));
   }
-
-  @Admin()
-  @Delete('stations-assigned-to-network-affiliation/:id')
-  public async deleteStationsAssignedToNetwork(
-    @Param('id') networkAffiliationId: number) {
-    await this.stationNetworkAffiliationsService.deleteStationsAssignedToNetwork(networkAffiliationId);
-    return { message: 'success' };
-  }
-
 
 }

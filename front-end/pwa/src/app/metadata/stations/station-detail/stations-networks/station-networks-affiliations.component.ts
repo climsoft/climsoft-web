@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 import { StationCacheModel } from '../../services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { ViewNetworkAffiliatioModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from 'src/app/metadata/network-affiliations/models/view-network-affiliation.model';
 import { StationNetworkAffiliationsService } from '../../services/station-network-affiliations.service';
 
 @Component({
@@ -17,7 +17,7 @@ export class StationNetworksComponent implements OnChanges {
   @Input()
   public station!: StationCacheModel;
 
-  protected networkAffiliations!: ViewNetworkAffiliatioModel[];
+  protected networkAffiliations!: ViewNetworkAffiliationModel[];
 
   protected userCanEditStation: boolean = false;
 

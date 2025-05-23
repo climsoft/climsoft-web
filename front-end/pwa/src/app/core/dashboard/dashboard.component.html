@@ -1,1 +1,38 @@
-<app-view-stations-geo-map  [stations]="stations" />
+<div *ngIf="user" class="container py-4">
+    <div class="text-center mb-4">
+        <h2>
+            <i class="bi bi-globe2 me-2 text-primary"></i>
+            Climsoft Web — Climate & Hydrology Data Management Platform
+        </h2>
+        <p class="lead">
+            Welcome, <strong>{{ user.name }}</strong><i class="bi bi-hand-thumbs-up-fill text-warning ms-1"></i>
+        </p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <i class="bi bi-bell-fill me-2"></i> Notifications & Alerts
+        </div>
+        <ul class="list-group list-group-flush">
+            <li *ngFor="let note of notifications" class="list-group-item">
+                <i [class]="'bi me-2 ' + note.icon"></i> {{ note.message }}
+            </li>
+        </ul>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            🔗 Quick Links
+        </div>
+        <ul class="list-group list-group-flush">
+            <li *ngFor="let link of quickLinks" class="list-group-item">
+                <i [class]="'bi me-2 ' + link.icon"></i>
+                <a [href]="link.url" class="text-decoration-none">{{ link.label }}</a>
+            </li>
+        </ul>
+    </div>
+
+    <footer class="text-muted text-center mt-5 small">
+        Climsoft Web is a free and open-source modern climate and hydrology data management platform.
+    </footer>
+</div>

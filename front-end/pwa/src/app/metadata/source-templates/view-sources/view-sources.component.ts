@@ -9,7 +9,7 @@ import { StationFormsService } from '../../stations/services/station-forms.servi
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
-interface ViewSource extends ViewSourceModel {
+interface View extends ViewSourceModel {
   // Applicable to form source only
   assignedStations: number;
   sourceTypeName: string;
@@ -23,8 +23,8 @@ interface ViewSource extends ViewSourceModel {
 export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
 
-  protected sources!: ViewSource[];
-  protected selectedSource!: ViewSource;
+  protected sources!: View[];
+  protected selectedSource!: View;
 
   private destroy$ = new Subject<void>();
 
@@ -46,8 +46,10 @@ export class ViewSourcesComponent implements OnDestroy {
         return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType), assignedStations: 0 }
       });
 
+      // Remove version 4 source from display. It's not editable by user
       this.sources = this.sources.filter(item => item.name !== 'climsoft_v4');
 
+      // Get number of stations assigned to use form
       this.stationFormsService.getStationCountPerForm().pipe(
         take(1),
       ).subscribe((stationsCountPerSource) => {
@@ -57,7 +59,6 @@ export class ViewSourcesComponent implements OnDestroy {
             source.assignedStations = count.stationCount
           }
         }
-
       });
     });
 
@@ -67,8 +68,6 @@ export class ViewSourcesComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-
 
   protected onOptionsClicked(sourceTypeName: 'Add Form Source' | 'Add Import Source' | 'Delete All') {
     let routeName: string = '';
@@ -109,10 +108,10 @@ export class ViewSourcesComponent implements OnDestroy {
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
   }
 
-  protected onAssignStationsClicked(selectedSource: ViewSource) {
+  protected onAssignStationsClicked(selectedSource: View) {
     this.selectedSource = selectedSource;
     this.stationFormsService.getStationsAssignedToUseForm(selectedSource.id).pipe(
-      take(1),
+      takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.appStationSearchDialog.showDialog(data);
     });

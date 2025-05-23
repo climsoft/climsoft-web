@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable, catchError, concat, from, map, take, tap, throwError } from 'rxjs';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
-import { ViewNetworkAffiliatioModel } from '../../network-affiliations/models/view-network-affiliation.model';
+import { ViewNetworkAffiliationModel } from '../../network-affiliations/models/view-network-affiliation.model';
 import { StationCountPerNetworkAffiliationCount } from '../models/station-count-per-network-affiliation-count';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
@@ -17,7 +17,7 @@ export class StationNetworkAffiliationsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/station-network-affiliations`;
   }
 
-  public getNetworkAffiliationsAssignedToStation(stationId: string): Observable<ViewNetworkAffiliatioModel[]> {
+  public getNetworkAffiliationsAssignedToStation(stationId: string): Observable<ViewNetworkAffiliationModel[]> {
     // Step 1: Observable for fetching from the local database
     const localData$ = from(AppDatabase.instance.stationNetworks.get(stationId)).pipe(
       map(localData => {
@@ -27,7 +27,7 @@ export class StationNetworkAffiliationsService {
     );
 
     // Step 2: Observable for fetching from the server
-    const serverData$ = this.http.get<ViewNetworkAffiliatioModel[]>(`${this.endPointUrl}/network-affiliations-assigned-to-station/${stationId}`).pipe(
+    const serverData$ = this.http.get<ViewNetworkAffiliationModel[]>(`${this.endPointUrl}/network-affiliations-assigned-to-station/${stationId}`).pipe(
       take(1), // Ensure serverData$ emits once and completes
       tap(serverData => {
         // Save the server data to the local database. This ensures that the local database is in sync with the server database.
@@ -50,12 +50,6 @@ export class StationNetworkAffiliationsService {
       );
   }
 
-  public deleteNetworkAffiliationsAssignedToStation(stationId: string) {
-    return this.http.delete(`${this.endPointUrl}/network-affiliations-assigned-to-station/${stationId}`)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
 
   public getStationCountPerNetworkAffiliation(): Observable<StationCountPerNetworkAffiliationCount[]> {
     return this.http.get<{ networkAffiliationId: number; stationCount: number }[]>(`${this.endPointUrl}/stations-count-per-network-affiliation`)
@@ -72,6 +66,8 @@ export class StationNetworkAffiliationsService {
       );
   }
 
+    
+
   public putStationsAssignedToNetworkAffiliation(networkAffiliationId: number, stationIds: string[]): Observable<string[]> {
     return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`, stationIds)
       .pipe(
@@ -79,12 +75,6 @@ export class StationNetworkAffiliationsService {
       );
   }
 
-  public deleteStationsAssignedToNetworkAffiliation(networkAffiliationId: number) {
-    return this.http.delete(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
 
   // TODO. Push to another class 
   private handleError(error: HttpErrorResponse

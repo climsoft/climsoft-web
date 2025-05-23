@@ -23,7 +23,7 @@ export interface ElementCacheModel {
     subdomainName: string;
     domain: ElementDomainEnum;
     domainName: string;
-    entryScaleFactor: number; 
+    entryScaleFactor: number;
     comment: string;
 }
 
@@ -46,8 +46,8 @@ export class ElementsCacheService {
         const elementTypes: ViewElementTypeModel[] = await this.getElementTypes();
         const elementSubdomains: ViewElementSubdomainModel[] = await this.getElementSubdomains();
         const newCachedElements: ElementCacheModel[] = [];
-
-        await AppDatabase.instance.elements.each(element => {
+        const elementsFromServer: CreateViewElementModel[] = await AppDatabase.instance.elements.toArray();
+        for (const element of elementsFromServer) {
             const elementType = elementTypes.find(item => item.id === element.typeId);
             const elementSubdomain = elementSubdomains.find(item => item.id === elementType?.id);
             const domain = elementSubdomain ? elementSubdomain.domain : ElementDomainEnum.ATMOSPHERE;
@@ -61,15 +61,15 @@ export class ElementsCacheService {
                     units: element.units,
                     typeId: element.typeId,
                     typeName: elementType ? elementType.name : '',
-                                     subdomainId: elementSubdomain ? elementSubdomain.id : 0,
+                    subdomainId: (elementSubdomain ? elementSubdomain.id : 0),
                     subdomainName: elementSubdomain ? elementSubdomain.name : '',
                     domain: domain,
                     domainName: StringUtils.formatEnumForDisplay(domain),
-                    entryScaleFactor: element.entryScaleFactor, 
+                    entryScaleFactor: element.entryScaleFactor,
                     comment: element.comment ? element.comment : '',
                 }
             );
-        });
+        }
 
         this._cachedElements.next(newCachedElements);
     }

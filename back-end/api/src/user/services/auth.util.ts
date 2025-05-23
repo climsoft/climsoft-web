@@ -10,6 +10,9 @@ export class AuthUtil {
         const expiresIn: number = request.session.cookie.maxAge ? request.session.cookie.maxAge : 0
         const loggedInUser: LoggedInUserDto = {
             id: userEntity.id,
+            name: userEntity.name,
+            email: userEntity.email,
+              // TODO. Deprecate this and use email after preview-2 is released, all preview-1 user sessions will have expired
             username: userEntity.email,
             isSystemAdmin: userEntity.isSystemAdmin,
             permissions: userEntity.permissions,

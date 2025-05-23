@@ -49,13 +49,6 @@ export class StationFormsService {
       );
   }
 
-  public deleteFormsAssignedToStation(stationId: string) {
-    return this.http.delete(`${this.endPointUrl}/forms-assigned-to-station/${stationId}`)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
   public getStationCountPerForm(): Observable<{ formId: number; stationCount: number }[]> {
     return this.http.get<{ formId: number; stationCount: number }[]>(`${this.endPointUrl}/stations-count-per-form`)
       .pipe(
@@ -63,8 +56,12 @@ export class StationFormsService {
       );
   }
 
+  /**
+   * This is cached because the forms have the ability to select a station and that functionality has to be offline
+   * @param formId 
+   * @returns 
+   */
   public getStationsAssignedToUseForm(formId: number): Observable<string[]> {
-
       // Step 1: Observable for fetching from the local database
       const localData$ = from(AppDatabase.instance.formStations.get(formId)).pipe(
         map(localData => {
@@ -92,13 +89,6 @@ export class StationFormsService {
 
   public putStationsAssignedToUseForm(formId: number, stationIds: string[]): Observable<string[]> {
     return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`, stationIds)
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  public deleteStationsAssignedToUseForm(formId: number) {
-    return this.http.delete(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`)
       .pipe(
         catchError(this.handleError)
       );

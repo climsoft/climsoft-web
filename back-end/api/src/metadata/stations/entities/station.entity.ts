@@ -42,7 +42,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => StationObservationEnvironmentEntity, {
     nullable: true,
-    onDelete: "RESTRICT",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "observation_environment_id" })
   obsEnvironment: StationObservationEnvironmentEntity | null;
@@ -55,7 +55,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => StationObservationFocusEntity, {
     nullable: true,
-    onDelete: "RESTRICT",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "observation_focus_id" })
   obsFocus: StationObservationFocusEntity | null;
@@ -68,7 +68,7 @@ export class StationEntity extends AppBaseEntity {
 
   @ManyToOne(() => OrganisationEntity, {
     nullable: true,
-    onDelete: "RESTRICT",
+    onDelete: "SET NULL",
   })
   @JoinColumn({ name: "organisation_id" })
   organisation: OrganisationEntity | null;

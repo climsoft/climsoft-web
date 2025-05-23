@@ -25,7 +25,7 @@ export class StationFormsService {
 
         //save new station forms
         const stationFormEntities: StationFormEntity[] = [];
-        for (const formId of formIds) {        
+        for (const formId of formIds) {
             stationFormEntities.push(this.stationFormsRepo.create({
                 stationId: stationId,
                 formId: formId,
@@ -53,7 +53,7 @@ export class StationFormsService {
     public async putStationsAssignedToUseForm(formId: number, stationIds: string[], userId: number): Promise<string[]> {
         // Delete station forms first
         await this.deleteStationsAssignedToUseForm(formId);
-        
+
         // Save new station forms
         const stationFormEntities: StationFormEntity[] = [];
         for (const stationId of stationIds) {

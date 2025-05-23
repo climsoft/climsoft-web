@@ -13,7 +13,7 @@ import { CachedObservationModel } from "./data-ingestion/services/observations.s
 import { UserSettingEnum } from "./app-config.service";
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
 import { ViewOrganisationModel } from "./metadata/organisations/models/view-organisation.model";
-import { ViewNetworkAffiliatioModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
+import { ViewNetworkAffiliationModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -32,7 +32,7 @@ export interface FormStation {
 
 export interface StationNetwork {
     stationId: string;
-    networkAffiliations: ViewNetworkAffiliatioModel[];
+    networkAffiliations: ViewNetworkAffiliationModel[];
 }
 
 export interface UserSetting {
@@ -54,7 +54,7 @@ export class AppDatabase extends Dexie {
     metadataModificationLog!: Table<MetadataModificationLogModel, string>;
 
     organisations!: Table<ViewOrganisationModel, number>;
-    networkAffiliations!: Table<ViewNetworkAffiliatioModel, number>;
+    networkAffiliations!: Table<ViewNetworkAffiliationModel, number>;
     regions!: Table<ViewRegionModel, number>;
     stationObsEnv!: Table<ViewStationObsEnvModel, number>;
     stationObsFocus!: Table<ViewStationObsFocusModel, number>;
