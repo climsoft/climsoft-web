@@ -19,7 +19,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
 
   public transform(value: any, metadata: ArgumentMetadata) {
 
-    console.log('stations meta name: ', metadata.metatype, ' | Path: ', this.request.route.path, ' | value: ', value)
+    //console.log('stations meta name: ', metadata.metatype, ' | Path: ', this.request.route.path, ' | value: ', value)
 
     const user = AuthUtil.getSessionUser(this.request);
 
@@ -100,7 +100,6 @@ export class AuthorisedStationsPipe implements PipeTransform {
         throw new BadRequestException('Could not determine how to authorize stations');
     }
   }
-
 
   private handleStationMetadataEdits(value: string, userPermissions: UserPermissionDto): string {
     if (!userPermissions.stationsMetadataPermissions) throw new BadRequestException('Not authorised to update station');

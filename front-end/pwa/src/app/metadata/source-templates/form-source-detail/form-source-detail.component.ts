@@ -9,6 +9,7 @@ import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 
 // TODO. Try using angular forms?
 
@@ -49,6 +50,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private sourcesCacheService: SourceTemplatesCacheService,
+    private observationService: ObservationsService,
     private location: Location,
     private route: ActivatedRoute) {
   }

@@ -33,7 +33,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   @Output()
   public selectedOptionChange = new EventEmitter<T | null>();
 
-  protected filteredOptions: T[] = this.options;
+  protected filteredOptions: T[] =  [...this.options];
   protected selectedOptionDisplay: string = '';
 
   constructor() {
@@ -44,7 +44,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
       if (!this.options) this.options = []; // should never be undefined
-      this.filteredOptions = this.options;
+      this.filteredOptions = [...this.options];
     }
 
     if (changes['selectedOption'] && this.selectedOption) {
@@ -59,7 +59,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   protected onSearchInput(inputValue: string): void {
     if (!inputValue) {
-      this.filteredOptions = this.options;
+      this.filteredOptions =  [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())

@@ -41,11 +41,8 @@ export class ViewElementsComponent implements OnDestroy {
         throw new Error('User not logged in');
       }
       this.dropDownItems = user.isSystemAdmin ? ['Order By Id', 'Order By Name', 'Add', 'Import', 'Download', 'Delete All'] : ['Order By Id', 'Order By Name', 'Download'];
-      // Only show edit button if user is admin
-      // However, other users allowed to edit a station can always click on it.
-      if (user.isSystemAdmin) {
-        this.showEditButton = true;
-      }
+      // Only show edit button if user is admin 
+       this.showEditButton = user.isSystemAdmin;
     });
 
     this.elementsCacheService.cachedElements.pipe(

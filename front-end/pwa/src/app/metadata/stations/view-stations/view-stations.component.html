@@ -19,7 +19,7 @@
         Count: {{ stations.length | number:'1.0-0' }}
       </div>
       <div *ngIf="activeTab !== 'treemap'" class="me-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />

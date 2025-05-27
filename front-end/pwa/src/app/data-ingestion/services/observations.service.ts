@@ -180,7 +180,7 @@ export class ObservationsService {
    * @returns 
    */
   public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<{ message: string }> { 
-    return this.http.put<{ message: string }>(this.endPointUrl, observations).pipe(
+    return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       tap({
         next: (response: any) => {
           // Server will send {message: 'success'} when there is no error
@@ -267,7 +267,7 @@ export class ObservationsService {
   }
 
   public bulkPutDataFromDataCorrection(observations: CreateObservationModel[]): Observable<{ message: string }> {
-    return this.http.put<{ message: string }>(this.endPointUrl, observations);
+    return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations);
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {

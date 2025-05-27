@@ -8,9 +8,11 @@ import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
 import { MigrationsModule } from './migrations/migrations.module';
 import { AppConfig } from './app.config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
+    EventEmitterModule.forRoot(),
     UserModule,
     MetadataModule,
     ObservationModule,

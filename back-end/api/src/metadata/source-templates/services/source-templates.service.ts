@@ -7,14 +7,14 @@ import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.
 import { SourceTemplateEntity } from '../entities/source-template.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
-
-// TODO refactor this service later
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class SourceTemplatesService {
 
     constructor(
-        @InjectRepository(SourceTemplateEntity) private  sourceRepo: Repository<SourceTemplateEntity>, 
+        @InjectRepository(SourceTemplateEntity) private sourceRepo: Repository<SourceTemplateEntity>,
+        private eventEmitter: EventEmitter2,
     ) { }
 
 
@@ -93,6 +93,8 @@ export class SourceTemplatesService {
 
         await this.sourceRepo.save(entity);
 
+        this.eventEmitter.emit('source.created', { id: entity.id, dto });
+
         return this.createViewDto(entity);
 
     }
@@ -108,13 +110,17 @@ export class SourceTemplatesService {
         source.parameters = dto.parameters;
         source.entryUserId = userId;
 
-        // TODO. Later Implement logging of changes in the database.
-        return this.sourceRepo.save(source);
+        await this.sourceRepo.save(source);
+
+        this.eventEmitter.emit('source.updated', { id, dto });
+
+        return source;
     }
 
     public async delete(id: number): Promise<number> {
         const source = await this.findEntity(id);
         await this.sourceRepo.remove(source);
+        this.eventEmitter.emit('source.deleted', { id });
         return id;
     }
 
@@ -122,6 +128,7 @@ export class SourceTemplatesService {
         const entities: SourceTemplateEntity[] = await this.sourceRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.sourceRepo.remove(entities);
+        this.eventEmitter.emit('source.deleted', {});
         return true;
     }
 

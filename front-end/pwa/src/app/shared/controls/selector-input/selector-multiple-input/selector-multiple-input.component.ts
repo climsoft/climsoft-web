@@ -27,17 +27,15 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   @Output()
   public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
-  protected filteredOptions: T[] = this.options;
+  protected filteredOptions: T[] =  [...this.options];
   protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if (!this.options) {
-        this.options = []; // should never be undefined
-      }
-      this.filteredOptions = this.options;
+      if (!this.options)   this.options = []; // should never be undefined       
+      this.filteredOptions =  [...this.options];
     }
 
     if (changes['selectedOptions']) {
@@ -73,7 +71,7 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onSearchInput(searchValue: string): void {
     // If empty value then just reset the filtered options with all the possible options.
     if (!searchValue) {
-      this.filteredOptions = this.options;
+      this.filteredOptions =  [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(searchValue.toLowerCase())

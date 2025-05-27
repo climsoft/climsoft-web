@@ -18,11 +18,12 @@ export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
   private allStations!: StationCacheModel[];
   protected stations!: StationCacheModel[];
-  private searchedIds!: string[];
-  private destroy$ = new Subject<void>();
+  protected searchedIds!: string[];
 
   protected optionClicked: optionsType | undefined;
   protected dropDownItems: optionsType[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
