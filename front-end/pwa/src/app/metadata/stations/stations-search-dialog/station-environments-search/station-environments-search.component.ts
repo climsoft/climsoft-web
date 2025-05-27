@@ -17,7 +17,7 @@ interface SearchModel {
 export class StationEnvironmentsSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
+  @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected environments: SearchModel[] = [];
@@ -38,45 +38,36 @@ export class StationEnvironmentsSearchComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput(this.searchValue);
+      // Make the searched items be the first items
+      this.environments.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.environment.name.toLowerCase().includes(this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      this.onOptionSelected(this.selectionOption);
-    }
-  }
-
-  private onSearchInput(searchValue: string): void {
-    // Make the searched items be the first items
-    this.environments.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.environment.name.toLowerCase().includes(searchValue)) {
-        return -1;
+      switch (this.selectionOption.value) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
       }
-      return 1;
-    });
-
+    }
   }
 
   protected onSelected(selection: SearchModel): void {
     selection.selected = !selection.selected;
     this.emitSearchedStationIds();
-  }
-
-  private onOptionSelected(option: SelectionOptionTypeEnum): void {
-    switch (option) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESELECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
   }
 
   private selectAll(select: boolean): void {

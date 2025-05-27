@@ -19,7 +19,7 @@ interface SearchModel {
 export class StationProcessingMethodSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
+  @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected stationProcessingMethods: SearchModel[] = [];
@@ -52,7 +52,7 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      switch (this.selectionOption) {
+      switch (this.selectionOption.value) {
         case SelectionOptionTypeEnum.SELECT_ALL:
           this.selectAll(true);
           break;

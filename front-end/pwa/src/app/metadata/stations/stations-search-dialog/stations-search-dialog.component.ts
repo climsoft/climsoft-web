@@ -27,9 +27,13 @@ export class StationsSearchDialogComponent implements OnDestroy {
   protected saveSearch: boolean = false;
   protected searchBy: string = 'Id or Name';
   protected searchValue: string = '';
-  protected selectionOption: SelectionOptionTypeEnum | undefined;
-  protected stations: StationCacheModel[] = [];
+
+  // Note. Angular does not call ngOnChanges() if the input value doesn’t change by reference across detection cycles.
+  // So use object for selection to enforce change detection. This is required for instance when sort selection is clicked several times.
+  protected selectionOption!: { value: SelectionOptionTypeEnum };
+
   protected allStations: StationCacheModel[] = [];
+  protected stations: StationCacheModel[] = [];
   protected searchedIds: string[] = [];
   protected searchedStations: StationCacheModel[] = [];
   protected largeScreen: boolean = true;
@@ -118,27 +122,19 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
-    // reset previous option first before selecting the appropriate option
-    // this is meant to force ngOnChanges for child controls
-    this.selectionOption = undefined;
-
-    // Using timeout as hacky way of forcing anguar to detect changes.
-    // `selectionOption` is not detected by child components when you reset it above and imeddiately set the correct value 
-    setTimeout(() => {
-      switch (options) {
-        case 'Select All':
-          this.selectionOption = SelectionOptionTypeEnum.SELECT_ALL;
-          break;
-        case 'Deselect All':
-          this.selectionOption = SelectionOptionTypeEnum.DESELECT_ALL;
-          break;
-        case 'Sort Selected':
-          this.selectionOption = SelectionOptionTypeEnum.SORT_SELECTED;
-          break;
-        default:
-          break;
-      }
-    }, 0);
+    switch (options) {
+      case 'Select All':
+        this.selectionOption = { value: SelectionOptionTypeEnum.SELECT_ALL };
+        break;
+      case 'Deselect All':
+        this.selectionOption = { value: SelectionOptionTypeEnum.DESELECT_ALL };
+        break;
+      case 'Sort Selected':
+        this.selectionOption = { value: SelectionOptionTypeEnum.SORT_SELECTED };
+        break;
+      default:
+        break;
+    }
 
   }
 

@@ -18,7 +18,7 @@ interface SearchModel {
 export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
+  @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected organisations: SearchModel[] = [];
@@ -53,7 +53,7 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      switch (this.selectionOption) {
+      switch (this.selectionOption.value) {
         case SelectionOptionTypeEnum.SELECT_ALL:
           this.selectAll(true);
           break;
