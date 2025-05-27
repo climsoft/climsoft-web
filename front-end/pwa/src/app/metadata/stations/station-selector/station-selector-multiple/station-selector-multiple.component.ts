@@ -71,18 +71,18 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
 
   /**
    * Called from advanced search dialog
-   * @param searchedIds 
+   * @param newSearchedIds 
    */
-  protected onAdvancedSearchInput(searchedIds: string[]): void {
+  protected onAdvancedSearchInput(newSearchedIds: string[]): void {
     this.selectedIds.length = 0;
-    const selectedStations: StationCacheModel[] = [];
+    const newSelectedStations: StationCacheModel[] = [];
     for (const station of this.stations) {
-      if (searchedIds.includes(station.id)) {
+      if (newSearchedIds.includes(station.id)) {
         this.selectedIds.push(station.id);
-        selectedStations.push(station);
+        newSelectedStations.push(station); 
       }
     }
-    this.selectedStations = selectedStations;
+    this.selectedStations = newSelectedStations;
     this.selectedIdsChange.emit(this.selectedIds);
   }
 }

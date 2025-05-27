@@ -17,18 +17,17 @@ interface SearchModel {
   styleUrls: ['./station-network-affiliations-search.component.scss']
 })
 export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnDestroy {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected networkAffiliations: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private networkAffiliationsCacheService: NetworkAffiliationsCacheService,
-    private stationsCacheService: StationsCacheService,
     private stationNetworkAffiliationsService: StationNetworkAffiliationsService,
   ) {
     // Get all regions 
@@ -40,12 +39,6 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
           networkAffiliation: networkAffiliation, selected: false
         }
       });
-    });
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.stations = stations
     });
   }
 
@@ -74,7 +67,6 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
       return 1;
     });
 
-    //console.log('searched and sorted: ', this.regions)
   }
 
   protected onSelected(selection: SearchModel): void {
@@ -117,11 +109,23 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
 
   private emitSearchedStationIds() {
     const selectedAffiliationIds: number[] = this.networkAffiliations.filter(item => item.selected).map(item => item.networkAffiliation.id);
-    this.stationNetworkAffiliationsService.getStationsAssignedToNetworkAffiliations(selectedAffiliationIds).pipe(
-      take(1),
-    ).subscribe((data) => { 
-      this.searchedIdsChange.emit(data);
-    });
+    if (selectedAffiliationIds.length > 0) {
+      this.stationNetworkAffiliationsService.getStationsAssignedToNetworkAffiliations(selectedAffiliationIds).pipe(
+        take(1),
+      ).subscribe((allStationIds) => {
+        const allowedStationIds: string[] = [];
+        for (const stationId of allStationIds) {
+          const station = this.stations.find(item => item.id === stationId);
+          if (station) {
+            allowedStationIds.push(stationId);
+          }
+        }
+        this.searchedIdsChange.emit(allowedStationIds);
+      });
+    } else {
+      this.searchedIdsChange.emit([]);
+    }
+
   }
 
 }

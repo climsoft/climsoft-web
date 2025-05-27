@@ -14,26 +14,19 @@ interface SearchModel {
   templateUrl: './station-focuses-search.component.html',
   styleUrls: ['./station-focuses-search.component.scss']
 })
-export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
+export class StationFocusesSearchComponent implements OnChanges {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected focuses: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
-  private destroy$ = new Subject<void>();
-
-  constructor( 
+  constructor(
     private stationsCacheService: StationsCacheService
   ) {
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.loadFocus();
-      this.stations = stations
-    });
+    this.loadFocus();
   }
 
   private async loadFocus() {
@@ -41,7 +34,7 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
       return {
         focus: focus, selected: false
       }
-    });;
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -49,15 +42,11 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   private onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
@@ -111,7 +100,7 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
+    //setTimeout(() => {
       const searchedStationIds: string[] = [];
       const selectedFocuses = this.focuses.filter(item => item.selected);
       for (const selectedFocus of selectedFocuses) {
@@ -122,7 +111,7 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
         }
       }
       this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+    //}, 0);
   }
 
 }

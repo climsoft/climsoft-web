@@ -19,18 +19,17 @@ interface SearchModel {
   styleUrls: ['./station-regions-search.component.scss']
 })
 export class StationRegionSearchComponent implements OnChanges, OnDestroy {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected regions: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private regionsService: RegionsCacheService,
-    private stationsCacheService: StationsCacheService
   ) {
     // Get all regions 
     this.regionsService.cachedRegions.pipe(
@@ -42,12 +41,6 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
         }
       });
     });
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.stations = stations
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -55,11 +48,9 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
-
-    //console.log('changes at regions search', changes)
   }
 
   ngOnDestroy(): void {
@@ -69,6 +60,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
 
   private onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
+    searchValue = searchValue.toLowerCase();
     this.regions.sort((a, b) => {
       // If search is found, move it before `b`, otherwise after
       if (a.region.name.toLowerCase().includes(searchValue)
@@ -119,7 +111,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
+    //setTimeout(() => {
       const searchedStationIds: string[] = [];
       const selectedRegions = this.regions.filter(region => region.selected);
       for (const selectedRegion of selectedRegions) {
@@ -133,7 +125,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
       }
 
       this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+   // }, 0);
   }
 
 

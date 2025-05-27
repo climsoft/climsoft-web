@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
-import { Subject, takeUntil } from 'rxjs';
+import { StationCacheModel } from '../../services/stations-cache.service';
+import { Subject } from 'rxjs';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
 import { StationStatusEnum } from '../../models/station-status.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -16,18 +16,15 @@ interface SearchModel {
   templateUrl: './station-status-search.component.html',
   styleUrls: ['./station-status-search.component.scss']
 })
-export class StationStatusSearchComponent implements OnChanges, OnDestroy {
+export class StationStatusSearchComponent implements OnChanges {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected stationStatuses: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
-
-  private destroy$ = new Subject<void>();
 
   constructor(
-    private stationsCacheService: StationsCacheService
   ) {
 
     this.stationStatuses = Object.values(StationStatusEnum).map(item => {
@@ -38,11 +35,7 @@ export class StationStatusSearchComponent implements OnChanges, OnDestroy {
       };
     })
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stations = data;
-    });
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -50,15 +43,12 @@ export class StationStatusSearchComponent implements OnChanges, OnDestroy {
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
+
 
   private onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
@@ -111,7 +101,7 @@ export class StationStatusSearchComponent implements OnChanges, OnDestroy {
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
+    //setTimeout(() => {
       const searchedIds: string[] = []
       const selectedStationStatuses = this.stationStatuses.filter(item => item.selected);
       for (const selectedStatus of selectedStationStatuses) {
@@ -122,7 +112,7 @@ export class StationStatusSearchComponent implements OnChanges, OnDestroy {
         }
       }
       this.searchedIdsChange.emit(searchedIds);
-    }, 0);
+    //}, 0);
   }
 
 

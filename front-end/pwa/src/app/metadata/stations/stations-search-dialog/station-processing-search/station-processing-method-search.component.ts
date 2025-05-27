@@ -16,18 +16,16 @@ interface SearchModel {
   templateUrl: './station-processing-method-search.component.html',
   styleUrls: ['./station-processing-method-search.component.scss']
 })
-export class StationProcessingMethodSearchComponent implements OnChanges, OnDestroy {
+export class StationProcessingMethodSearchComponent implements OnChanges {
+   @Input() public stations!: StationCacheModel[]  ; 
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected stationProcessingMethods: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
+  protected stationProcessingMethods: SearchModel[] = []; 
+ 
 
-  private destroy$ = new Subject<void>();
-
-  constructor(
-    private stationsCacheService: StationsCacheService
+  constructor( 
   ) {
 
     this.stationProcessingMethods = Object.values(StationObsProcessingMethodEnum).map(item => {
@@ -38,11 +36,7 @@ export class StationProcessingMethodSearchComponent implements OnChanges, OnDest
       };
     })
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stations = data;
-    });
+ 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -50,16 +44,12 @@ export class StationProcessingMethodSearchComponent implements OnChanges, OnDest
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
+ 
   private onSearchInput(searchValue: string): void {
     // Make the searched items be the first items
     this.stationProcessingMethods.sort((a, b) => {
@@ -111,7 +101,7 @@ export class StationProcessingMethodSearchComponent implements OnChanges, OnDest
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
+    //setTimeout(() => {
       const searchedIds: string[] = []
       const selectedStationStatuses = this.stationProcessingMethods.filter(item => item.selected);
       for (const selectedStatus of selectedStationStatuses) {
@@ -122,7 +112,7 @@ export class StationProcessingMethodSearchComponent implements OnChanges, OnDest
         }
       }
       this.searchedIdsChange.emit(searchedIds);
-    }, 0);
+    //}, 0);
   }
 
 

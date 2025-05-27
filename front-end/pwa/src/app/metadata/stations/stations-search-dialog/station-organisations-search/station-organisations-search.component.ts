@@ -16,18 +16,17 @@ interface SearchModel {
   styleUrls: ['./station-organisations-search.component.scss']
 })
 export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected organisations: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private organisationsService: OrganisationsCacheService,
-    private stationsCacheService: StationsCacheService
   ) {
     this.organisationsService.cachedOrganisations.pipe(
       takeUntil(this.destroy$),
@@ -39,11 +38,6 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
       });
     });
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.stations = stations
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -51,7 +45,7 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
   }
@@ -112,18 +106,18 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedOrganisations = this.organisations.filter(item => item.selected);
-      for (const selectedorganisation of selectedOrganisations) {
-        for (const station of this.stations) {
-          if (station.organisationId === selectedorganisation.organisation.id) {
-            searchedStationIds.push(station.id);
-          }
+    //setTimeout(() => {
+    const searchedStationIds: string[] = [];
+    const selectedOrganisations = this.organisations.filter(item => item.selected);
+    for (const selectedorganisation of selectedOrganisations) {
+      for (const station of this.stations) {
+        if (station.organisationId === selectedorganisation.organisation.id) {
+          searchedStationIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+    }
+    this.searchedIdsChange.emit(searchedStationIds);
+    //}, 0);
   }
 
 

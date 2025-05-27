@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
 import { Subject, takeUntil } from 'rxjs';
-import { SelectionOptionTypeEnum } from '../stations-search-dialog.component'; 
+import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
 import { ViewStationObsEnvModel } from '../../models/view-station-obs-env.model';
 
 interface SearchModel {
@@ -14,26 +14,18 @@ interface SearchModel {
   templateUrl: './station-environments-search.component.html',
   styleUrls: ['./station-environments-search.component.scss']
 })
-export class StationEnvironmentsSearchComponent implements OnChanges, OnDestroy {
+export class StationEnvironmentsSearchComponent implements OnChanges {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: SelectionOptionTypeEnum;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected environments: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
-  private destroy$ = new Subject<void>();
-
-  constructor( 
+  constructor(
     private stationsCacheService: StationsCacheService
   ) {
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.loadFocus();
-      this.stations = stations
-    });
+    this.loadFocus();
   }
 
   private async loadFocus() {
@@ -41,7 +33,7 @@ export class StationEnvironmentsSearchComponent implements OnChanges, OnDestroy 
       return {
         environment: environment, selected: false
       }
-    });;
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -49,14 +41,9 @@ export class StationEnvironmentsSearchComponent implements OnChanges, OnDestroy 
       this.onSearchInput(this.searchValue);
     }
 
-    if (changes['selectionOption']) {
+    if (changes['selectionOption'] && this.selectionOption) {
       this.onOptionSelected(this.selectionOption);
     }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   private onSearchInput(searchValue: string): void {
@@ -111,18 +98,18 @@ export class StationEnvironmentsSearchComponent implements OnChanges, OnDestroy 
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedEnvironments = this.environments.filter(item => item.selected);
-      for (const selectedEnvironment of selectedEnvironments) {
-        for (const station of this.stations) {
-          if (station.stationObsEnvironmentId === selectedEnvironment.environment.id) {
-            searchedStationIds.push(station.id);
-          }
+    // setTimeout(() => {
+    const searchedStationIds: string[] = [];
+    const selectedEnvironments = this.environments.filter(item => item.selected);
+    for (const selectedEnvironment of selectedEnvironments) {
+      for (const station of this.stations) {
+        if (station.stationObsEnvironmentId === selectedEnvironment.environment.id) {
+          searchedStationIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+    }
+    this.searchedIdsChange.emit(searchedStationIds);
+    //}, 0);
   }
 
 }
