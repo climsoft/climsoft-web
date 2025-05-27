@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core'; 
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -7,7 +7,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { CreateStationModel } from '../models/create-station.model';
 
 type tab = 'table' | 'geomap' | 'treemap';
-type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
+type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Download' | 'Delete All';
 
 @Component({
   selector: 'app-view-stations',
@@ -16,7 +16,7 @@ type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
 })
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
-  private allStations!: StationCacheModel[];  
+  private allStations!: StationCacheModel[];
   protected stations!: StationCacheModel[];
   private searchedIds!: string[];
   private destroy$ = new Subject<void>();
@@ -36,7 +36,7 @@ export class ViewStationsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
+      this.dropDownItems = user && user.isSystemAdmin ? ['Order By Id', 'Order By Name', 'Add', 'Import', 'Download', 'Delete All'] : ['Order By Id', 'Order By Name', 'Download'];
     });
 
     this.stationsCacheService.cachedStations.pipe(
@@ -67,7 +67,11 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onOptionsClick(option: optionsType): void {
     this.optionClicked = option;
-    if (option === 'Delete All') {
+    if (option === 'Order By Id') {
+      this.stations = [...this.stations].sort((a, b) => a.id.localeCompare(b.name));
+    } else if (option === 'Order By Name') {
+      this.stations = [...this.stations].sort((a, b) => a.name.localeCompare(b.name));
+    } else if (option === 'Delete All') {
       this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
           this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
@@ -79,7 +83,6 @@ export class ViewStationsComponent implements OnDestroy {
   protected onOptionsDialogClosed(): void {
     this.optionClicked = undefined;
   }
-
 
   protected onEditStation(station: CreateStationModel) {
     this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });

@@ -21,7 +21,7 @@ interface SearchModel {
 export class StationRegionSearchComponent implements OnChanges, OnDestroy {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected regions: SearchModel[] = [];
@@ -45,11 +45,31 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput(this.searchValue);
+      // Make the searched items be the first items
+      this.regions.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.region.name.toLowerCase().includes(this.searchValue)
+          || a.region.regionType.toLowerCase().includes(this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      this.onOptionSelected(this.selectionOption);
+      switch (this.selectionOption) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -58,39 +78,11 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
-  private onSearchInput(searchValue: string): void {
-    // Make the searched items be the first items
-    searchValue = searchValue.toLowerCase();
-    this.regions.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.region.name.toLowerCase().includes(searchValue)
-        || a.region.regionType.toLowerCase().includes(searchValue)) {
-        return -1;
-      }
-      return 1;
-    });
-  }
-
   protected onSelected(regionSelection: SearchModel): void {
     regionSelection.selected = !regionSelection.selected;
     this.emitSearchedStationIds();
   }
 
-  private onOptionSelected(option: SelectionOptionTypeEnum): void {
-    switch (option) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
-  }
 
   private selectAll(select: boolean): void {
     for (const item of this.regions) {
@@ -112,20 +104,20 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
     //setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedRegions = this.regions.filter(region => region.selected);
-      for (const selectedRegion of selectedRegions) {
-        for (const station of this.stations) {
-          if (station.location) {
-            if (this.isStationInRegion(station.location, selectedRegion.region.boundary)) {
-              searchedStationIds.push(station.id);
-            }
+    const searchedStationIds: string[] = [];
+    const selectedRegions = this.regions.filter(region => region.selected);
+    for (const selectedRegion of selectedRegions) {
+      for (const station of this.stations) {
+        if (station.location) {
+          if (this.isStationInRegion(station.location, selectedRegion.region.boundary)) {
+            searchedStationIds.push(station.id);
           }
         }
       }
+    }
 
-      this.searchedIdsChange.emit(searchedStationIds);
-   // }, 0);
+    this.searchedIdsChange.emit(searchedStationIds);
+    // }, 0);
   }
 
 

@@ -17,15 +17,15 @@ interface SearchModel {
   styleUrls: ['./station-processing-method-search.component.scss']
 })
 export class StationProcessingMethodSearchComponent implements OnChanges {
-   @Input() public stations!: StationCacheModel[]  ; 
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected stationProcessingMethods: SearchModel[] = []; 
- 
+  protected stationProcessingMethods: SearchModel[] = [];
 
-  constructor( 
+
+  constructor(
   ) {
 
     this.stationProcessingMethods = Object.values(StationObsProcessingMethodEnum).map(item => {
@@ -36,50 +36,41 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
       };
     })
 
- 
+
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput(this.searchValue);
+      // Make the searched items be the first items
+      this.stationProcessingMethods.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.formattedStatus.toLowerCase().includes(this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      this.onOptionSelected(this.selectionOption);
-    }
-  }
-
- 
-  private onSearchInput(searchValue: string): void {
-    // Make the searched items be the first items
-    this.stationProcessingMethods.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.formattedStatus.toLowerCase().includes(searchValue)) {
-        return -1;
+      switch (this.selectionOption) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
       }
-      return 1;
-    });
+    }
   }
 
   protected onSelected(selection: SearchModel): void {
     selection.selected = !selection.selected;
     this.emitSearchedStationIds();
-  }
-
-  private onOptionSelected(option: SelectionOptionTypeEnum): void {
-    switch (option) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
   }
 
   private selectAll(select: boolean): void {
@@ -102,16 +93,16 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
     //setTimeout(() => {
-      const searchedIds: string[] = []
-      const selectedStationStatuses = this.stationProcessingMethods.filter(item => item.selected);
-      for (const selectedStatus of selectedStationStatuses) {
-        for (const station of this.stations) {
-          if (station.stationObsProcessingMethod === selectedStatus.processingMethod) {
-            searchedIds.push(station.id);
-          }
+    const searchedIds: string[] = []
+    const selectedStationStatuses = this.stationProcessingMethods.filter(item => item.selected);
+    for (const selectedStatus of selectedStationStatuses) {
+      for (const station of this.stations) {
+        if (station.stationObsProcessingMethod === selectedStatus.processingMethod) {
+          searchedIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedIds);
+    }
+    this.searchedIdsChange.emit(searchedIds);
     //}, 0);
   }
 

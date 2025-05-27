@@ -11,8 +11,9 @@ import * as turf from "@turf/turf";
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements AfterViewInit, OnChanges {
-  @Input()
-  public mapContentLayerGroup!: L.LayerGroup;
+  @Input() public mapHeight: string = '80vh';
+  @Input() public mapContentLayerGroup!: L.LayerGroup;
+
 
   // Generate a random map id to make user it's alway unique
   protected mapContainerId: string = `map_${Math.random().toString()}`;
@@ -41,12 +42,13 @@ export class MapComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.mapContentLayerGroup) {
+    if (changes['mapContentLayerGroup'] && this.mapContentLayerGroup) {
       this.mapOverallContentLayerGroup.clearLayers();
-
       this.boundaryMapLayerGroup.addTo(this.mapOverallContentLayerGroup);
       this.mapContentLayerGroup.addTo(this.mapOverallContentLayerGroup);
     }
+
+
   }
 
   private setupMap(): void {
@@ -54,7 +56,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     // If the map has already been set up, then no need to set it up again
     if (!(this.mapContainerId && this.climsoftBoundary && !this.map)) {
       return;
-    } 
+    }
 
     // create the leaflet map
     this.map = L.map(this.mapContainerId).setView(

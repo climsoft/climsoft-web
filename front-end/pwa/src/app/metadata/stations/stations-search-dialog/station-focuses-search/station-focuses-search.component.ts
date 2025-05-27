@@ -17,7 +17,7 @@ interface SearchModel {
 export class StationFocusesSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected focuses: SearchModel[] = [];
@@ -70,7 +70,7 @@ export class StationFocusesSearchComponent implements OnChanges {
       case SelectionOptionTypeEnum.SELECT_ALL:
         this.selectAll(true);
         break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
+      case SelectionOptionTypeEnum.DESELECT_ALL:
         this.selectAll(false);
         break;
       case SelectionOptionTypeEnum.SORT_SELECTED:
@@ -101,16 +101,16 @@ export class StationFocusesSearchComponent implements OnChanges {
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
     //setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedFocuses = this.focuses.filter(item => item.selected);
-      for (const selectedFocus of selectedFocuses) {
-        for (const station of this.stations) {
-          if (station.stationObsFocusId === selectedFocus.focus.id) {
-            searchedStationIds.push(station.id);
-          }
+    const searchedStationIds: string[] = [];
+    const selectedFocuses = this.focuses.filter(item => item.selected);
+    for (const selectedFocus of selectedFocuses) {
+      for (const station of this.stations) {
+        if (station.stationObsFocusId === selectedFocus.focus.id) {
+          searchedStationIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedStationIds);
+    }
+    this.searchedIdsChange.emit(searchedStationIds);
     //}, 0);
   }
 

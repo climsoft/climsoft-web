@@ -102,7 +102,6 @@ export class stationStatusComponent implements OnDestroy {
   }
 
   private loadMapStatus() {
-
     this.observationsService.findStationsObservationStatus(this.stationStatusFilter).pipe(
       take(1),
     ).subscribe({

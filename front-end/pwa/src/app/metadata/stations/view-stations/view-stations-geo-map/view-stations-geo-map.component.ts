@@ -9,9 +9,9 @@ import { StationStatusEnum } from '../../models/station-status.enum';
   styleUrls: ['./view-stations-geo-map.component.scss']
 })
 export class ViewStationsGeoMapComponent implements OnChanges {
-
-  @Input()
-  public stations!: StationCacheModel[];
+  @Input() public mapHeight: string = '80vh';  
+  @Input() public stations!: StationCacheModel[];
+  @Input() public displayStats: boolean = true;
 
   protected stationMapLayerGroup!: L.LayerGroup;
 
@@ -25,9 +25,6 @@ export class ViewStationsGeoMapComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
-    console.log('view map changes raised');
-
     if (changes['stations'] && this.stations) {
       this.setupMap();
     }
@@ -91,7 +88,6 @@ export class ViewStationsGeoMapComponent implements OnChanges {
     const station: StationCacheModel = feature.properties.station;
 
     let colorValue;
-
     switch (station.status) {
       case StationStatusEnum.OPERATIONAL:
         colorValue = '#3bd424';//'#00FF00';
@@ -102,7 +98,6 @@ export class ViewStationsGeoMapComponent implements OnChanges {
       case StationStatusEnum.UKNOWNN:
         colorValue = '#F73E25';
         break;
-
       default:
         throw new Error(`Developer error: Station status unknown: ${station.id}`);
     }

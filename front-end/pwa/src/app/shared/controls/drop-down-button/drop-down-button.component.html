@@ -4,7 +4,7 @@
     </button>
 
     <div *ngIf="displayDropDown && dropDownItems" class="app-drop-down-button border border-dark rounded"
-        [style.max-height.px]="maxHeight" [class.app-drop-down-button-right-offset]="offSetRight">
+        [style.max-height.px]="maxHeight" [ngClass]="{'app-drop-down-button-right-offset': offSetRight}">
         <div class="list-group rounded-0" *ngFor="let item of dropDownItems">
             <button type="button" class="list-group-item list-group-item-action" (click)="onDropDownItemClick(item)">
                 {{item}}

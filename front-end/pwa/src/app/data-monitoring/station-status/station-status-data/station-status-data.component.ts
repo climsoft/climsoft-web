@@ -11,7 +11,6 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { LastStationActivityObservation } from 'src/app/data-ingestion/models/last-station-activity-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { StationStatusQueryModel } from '../models/station-status-query.model';
 import { StationStatusDataQueryModel } from '../models/station-status-data-query.model';
 
 

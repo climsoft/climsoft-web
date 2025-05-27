@@ -15,7 +15,7 @@ interface StationSearchModel {
 export class StationIDNameSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
   @Input() public searchedIds!: string[];
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
@@ -37,49 +37,43 @@ export class StationIDNameSearchComponent implements OnChanges {
     }
 
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput();
+      // Make the searched items be the first items
+      this.stationsSelections.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.station.id.toLowerCase().includes(this.searchValue)
+          || a.station.name.toLowerCase().includes(this.searchValue)
+          || a.station.wmoId.toLowerCase().includes(this.searchValue)
+          || a.station.wigosId.toLowerCase().includes(this.searchValue)
+          || a.station.icaoId.toLowerCase().includes(this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
-      this.onOptionSelected();
+      switch (this.selectionOption) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
+      }
     }
   }
 
-  private onSearchInput(): void {
-    // Make the searched items be the first items
-    this.stationsSelections.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.station.id.toLowerCase().includes(this.searchValue)
-        || a.station.name.toLowerCase().includes(this.searchValue)
-        || a.station.wmoId.toLowerCase().includes(this.searchValue)
-        || a.station.wigosId.toLowerCase().includes(this.searchValue)
-        || a.station.icaoId.toLowerCase().includes(this.searchValue)) {
-        return -1;
-      }
-      return 1;
-    });
-  }
 
   protected onSelected(stationSelection: StationSearchModel): void {
     stationSelection.selected = !stationSelection.selected;
     this.emitSearchedStationIds();
   }
 
-  private onOptionSelected(): void {
-    switch (this.selectionOption) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
-  }
 
   private selectAll(select: boolean): void {
     for (const item of this.stationsSelections) {

@@ -17,7 +17,7 @@ interface SearchModel {
 export class StationEnvironmentsSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption: SelectionOptionTypeEnum | undefined;
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected environments: SearchModel[] = [];
@@ -68,7 +68,7 @@ export class StationEnvironmentsSearchComponent implements OnChanges {
       case SelectionOptionTypeEnum.SELECT_ALL:
         this.selectAll(true);
         break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
+      case SelectionOptionTypeEnum.DESELECT_ALL:
         this.selectAll(false);
         break;
       case SelectionOptionTypeEnum.SORT_SELECTED:

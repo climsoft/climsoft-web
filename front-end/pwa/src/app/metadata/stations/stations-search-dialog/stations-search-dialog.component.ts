@@ -3,11 +3,12 @@ import { AppDatabase } from 'src/app/app-database';
 import { StationSearchHistoryModel } from '../models/stations-search-history.model';
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { Subject, takeUntil } from 'rxjs';
+import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.service';
 
 export enum SelectionOptionTypeEnum {
   SELECT_ALL = 'Select All',
-  DESLECT_ALL = 'Deselect All',
-  SORT_SELECTED = 'Sort Selected'
+  DESELECT_ALL = 'Deselect All',
+  SORT_SELECTED = 'Sort Selected',
 }
 
 @Component({
@@ -26,14 +27,24 @@ export class StationsSearchDialogComponent implements OnDestroy {
   protected saveSearch: boolean = false;
   protected searchBy: string = 'Id or Name';
   protected searchValue: string = '';
-  protected selectionOption!: SelectionOptionTypeEnum;
+  protected selectionOption: SelectionOptionTypeEnum | undefined;
   protected stations: StationCacheModel[] = [];
   protected allStations: StationCacheModel[] = [];
   protected searchedIds: string[] = [];
+  protected searchedStations: StationCacheModel[] = [];
+  protected largeScreen: boolean = true;
 
   private destroy$ = new Subject<void>();
 
-  constructor(private stationsCacheService: StationsCacheService) {
+  constructor(
+    private viewPortService: ViewportService,
+    private stationsCacheService: StationsCacheService) {
+    this.viewPortService.viewPortSize.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((viewPortSize) => {
+      this.largeScreen = viewPortSize === ViewPortSize.LARGE;
+    });
+
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(stations => {
@@ -51,7 +62,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
   public showDialog(selectedIds?: string[], includeOnlyIds?: string[]): void {
     this.open = true;
     this.stations = includeOnlyIds && includeOnlyIds.length > 0 ? this.allStations.filter(item => includeOnlyIds.includes(item.id)) : this.allStations;
-   
+
     // Set selected ids from a new copy of the array not same reference array
     // This makes sure that controls that call the dialog are not affect by how the dialog internally manipulates searched ids
     this.setSearchedIds(selectedIds ? [...selectedIds] : []);
@@ -99,7 +110,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onSearchInput(searchValue: string): void {
-    // Using set timeout to improve UX of the search especially for devices like tablets and phones
+    // Using set timeout to improve typing UX of the search especially for devices like tablets and phones
     setTimeout(() => {
       this.searchValue = searchValue.toLowerCase();
     }, 0);
@@ -107,19 +118,27 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
-    switch (options) {
-      case 'Select All':
-        this.selectionOption = SelectionOptionTypeEnum.SELECT_ALL;
-        break;
-      case 'Deselect All':
-        this.selectionOption = SelectionOptionTypeEnum.DESLECT_ALL;
-        break;
-      case 'Sort Selected':
-        this.selectionOption = SelectionOptionTypeEnum.SORT_SELECTED;
-        break;
-      default:
-        break;
-    }
+    // reset previous option first before selecting the appropriate option
+    // this is meant to force ngOnChanges for child controls
+    this.selectionOption = undefined;
+
+    // Using timeout as hacky way of forcing anguar to detect changes.
+    // `selectionOption` is not detected by child components when you reset it above and imeddiately set the correct value 
+    setTimeout(() => {
+      switch (options) {
+        case 'Select All':
+          this.selectionOption = SelectionOptionTypeEnum.SELECT_ALL;
+          break;
+        case 'Deselect All':
+          this.selectionOption = SelectionOptionTypeEnum.DESELECT_ALL;
+          break;
+        case 'Sort Selected':
+          this.selectionOption = SelectionOptionTypeEnum.SORT_SELECTED;
+          break;
+        default:
+          break;
+      }
+    }, 0);
 
   }
 
@@ -132,6 +151,15 @@ export class StationsSearchDialogComponent implements OnDestroy {
 
   protected setSearchedIds(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
+
+    // Set searched stations for the map
+    const searchedStations: StationCacheModel[] = [];
+    for (const station of this.stations) {
+      if (this.searchedIds.includes(station.id)) {
+        searchedStations.push(station);
+      }
+    }
+    this.searchedStations = searchedStations;
   }
 
 }
