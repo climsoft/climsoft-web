@@ -6,7 +6,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ElementsCacheService } from '../services/elements-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 
-type optionsType = 'Add' | 'Import' | 'Download' | 'Delete All';
+type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Download' | 'Delete All';
 
 @Component({
   selector: 'app-view-elements',
@@ -40,7 +40,7 @@ export class ViewElementsComponent implements OnDestroy {
       if (!user) {
         throw new Error('User not logged in');
       }
-      this.dropDownItems = user.isSystemAdmin ? ['Add', 'Import', 'Download', 'Delete All'] : ['Download'];
+      this.dropDownItems = user.isSystemAdmin ? ['Order By Id', 'Order By Name', 'Add', 'Import', 'Download', 'Delete All'] : ['Order By Id', 'Order By Name', 'Download'];
       // Only show edit button if user is admin
       // However, other users allowed to edit a station can always click on it.
       if (user.isSystemAdmin) {
@@ -73,12 +73,22 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onOptionsClicked(option: optionsType): void {
     this.optionClicked = option;
-    if (option === 'Delete All') {
-      this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+     switch (option) {
+      case 'Order By Id':
+        this.elements = [...this.elements].sort((a, b) => a.id - b.id);
+        break;
+      case 'Order By Name':
+        this.elements = [...this.elements].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'Delete All':
+       this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
           this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
         }
       });
+        break;
+      default:
+        break;
     }
   }
 

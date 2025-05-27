@@ -67,16 +67,22 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onOptionsClick(option: optionsType): void {
     this.optionClicked = option;
-    if (option === 'Order By Id') {
-      this.stations = [...this.stations].sort((a, b) => a.id.localeCompare(b.name));
-    } else if (option === 'Order By Name') {
-      this.stations = [...this.stations].sort((a, b) => a.name.localeCompare(b.name));
-    } else if (option === 'Delete All') {
-      this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
-        if (data) {
-          this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
-        }
-      });
+    switch (option) {
+      case 'Order By Id':
+        this.stations = [...this.stations].sort((a, b) => a.id.localeCompare(b.id));
+        break;
+      case 'Order By Name':
+        this.stations = [...this.stations].sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case 'Delete All':
+        this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+          if (data) {
+            this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
+          }
+        });
+        break;
+      default:
+        break;
     }
   }
 
