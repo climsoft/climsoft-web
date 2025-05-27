@@ -17,6 +17,7 @@ import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
+import { FormDataEntryCheckService } from '../services/form-data-entry-check.service';
 
 @Controller('observations')
 export class ObservationsController {
@@ -24,6 +25,7 @@ export class ObservationsController {
     private observationsService: ObservationsService,
     private observationUpload: ObservationImportService,
     private exportObservationsService: ExportObservationsService,
+    private formDataEntryCheckService: FormDataEntryCheckService,
   ) { }
 
   @Get()
@@ -69,14 +71,14 @@ export class ObservationsController {
   @Get('stations-observation-status/:stationid')
   getStationObservationsLast24HoursRecords(
     @Param('stationid', AuthorisedStationsPipe) stationId: string,
-    @Query() stationStatusQuery: StationStatusDataQueryDto) { 
+    @Query() stationStatusQuery: StationStatusDataQueryDto) {
     return this.observationsService.findStationsObservationStatusData(stationId, stationStatusQuery);
   }
 
   @Get('data-availability-status')
   getDataAvailabilityStatus(
     @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
-      return this.observationsService.findDataAvailabilitySummary( query);
+    return this.observationsService.findDataAvailabilitySummary(query);
   }
 
   @Get('generate-export/:templateid')
@@ -98,12 +100,20 @@ export class ObservationsController {
     return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
   }
 
-  @Put()
+  @Put('data-entry')
   async bulkPut(
     @Req() request: Request,
-    @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
+    @Body(new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
+    // Get logged in user
     const user = AuthUtil.getLoggedInUser(request);
+
+    // Validate form data. If any invalid bad request will be thrown
+    await this.formDataEntryCheckService.checkData(observationDtos, user);
+
+    // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id);
+
+    // Return success if all operations are successful
     return { message: "success" };
   }
 

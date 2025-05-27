@@ -14,26 +14,19 @@ interface SearchModel {
   templateUrl: './station-focuses-search.component.html',
   styleUrls: ['./station-focuses-search.component.scss']
 })
-export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
+export class StationFocusesSearchComponent implements OnChanges {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected focuses: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
-  private destroy$ = new Subject<void>();
-
-  constructor( 
+  constructor(
     private stationsCacheService: StationsCacheService
   ) {
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.loadFocus();
-      this.stations = stations
-    });
+    this.loadFocus();
   }
 
   private async loadFocus() {
@@ -41,55 +34,41 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
       return {
         focus: focus, selected: false
       }
-    });;
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput(this.searchValue);
+      // Make the searched items be the first items
+      this.focuses.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.focus.name.toLowerCase().includes( this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
-    if (changes['selectionOption']) {
-      this.onOptionSelected(this.selectionOption);
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  private onSearchInput(searchValue: string): void {
-    // Make the searched items be the first items
-    this.focuses.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.focus.name.toLowerCase().includes(searchValue)) {
-        return -1;
+    if (changes['selectionOption'] && this.selectionOption) {
+      switch (this.selectionOption.value) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
       }
-      return 1;
-    });
-
+    }
   }
 
   protected onSelected(selection: SearchModel): void {
     selection.selected = !selection.selected;
     this.emitSearchedStationIds();
-  }
-
-  private onOptionSelected(option: SelectionOptionTypeEnum): void {
-    switch (option) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
   }
 
   private selectAll(select: boolean): void {
@@ -111,18 +90,18 @@ export class StationFocusesSearchComponent implements OnChanges, OnDestroy {
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedFocuses = this.focuses.filter(item => item.selected);
-      for (const selectedFocus of selectedFocuses) {
-        for (const station of this.stations) {
-          if (station.stationObsFocusId === selectedFocus.focus.id) {
-            searchedStationIds.push(station.id);
-          }
+    //setTimeout(() => {
+    const searchedStationIds: string[] = [];
+    const selectedFocuses = this.focuses.filter(item => item.selected);
+    for (const selectedFocus of selectedFocuses) {
+      for (const station of this.stations) {
+        if (station.stationObsFocusId === selectedFocus.focus.id) {
+          searchedStationIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+    }
+    this.searchedIdsChange.emit(searchedStationIds);
+    //}, 0);
   }
 
 }

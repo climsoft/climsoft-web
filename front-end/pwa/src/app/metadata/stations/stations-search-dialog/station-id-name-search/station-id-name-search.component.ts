@@ -1,47 +1,50 @@
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { StationCacheModel } from '../../services/stations-cache.service';
-import { Subject } from 'rxjs';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
-import { StationStatusEnum } from '../../models/station-status.enum';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
-interface SearchModel {
-  status: StationStatusEnum;
+interface StationSearchModel {
+  station: StationCacheModel;
   selected: boolean;
-  formattedStatus: string;
 }
 
 @Component({
-  selector: 'app-station-status-search',
-  templateUrl: './station-status-search.component.html',
-  styleUrls: ['./station-status-search.component.scss']
+  selector: 'app-station-id-name-search',
+  templateUrl: './station-id-name-search.component.html',
+  styleUrls: ['./station-id-name-search.component.scss']
 })
-export class StationStatusSearchComponent implements OnChanges {
+export class StationIDNameSearchComponent implements OnChanges {
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
+  @Input() public searchedIds!: string[];
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected stationStatuses: SearchModel[] = [];
+  protected stationsSelections!: StationSearchModel[];
 
-  constructor( ) {
-    this.stationStatuses = Object.values(StationStatusEnum).map(item => {
-      return {
-        status: item,
-        selected: false,
-        formattedStatus: StringUtils.formatEnumForDisplay(item)
-      };
-    })
-
-
+  constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['stations']) {
+      this.stationsSelections = this.stations.map(item => {
+        return { station: item, selected: false };
+      });
+    }
+    if (changes['searchedIds'] && this.searchedIds && this.stations) {
+      for (const selection of this.stationsSelections) {
+        selection.selected = this.searchedIds.includes(selection.station.id);
+      }
+    }
+
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.stationStatuses.sort((a, b) => {
+      this.stationsSelections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
-        if (a.formattedStatus.toLowerCase().includes(this.searchValue)) {
+        if (a.station.id.toLowerCase().includes(this.searchValue)
+          || a.station.name.toLowerCase().includes(this.searchValue)
+          || a.station.wmoId.toLowerCase().includes(this.searchValue)
+          || a.station.wigosId.toLowerCase().includes(this.searchValue)
+          || a.station.icaoId.toLowerCase().includes(this.searchValue)) {
           return -1;
         }
         return 1;
@@ -65,15 +68,15 @@ export class StationStatusSearchComponent implements OnChanges {
     }
   }
 
-  protected onSelected(selection: SearchModel): void {
-    selection.selected = !selection.selected;
+
+  protected onSelected(stationSelection: StationSearchModel): void {
+    stationSelection.selected = !stationSelection.selected;
     this.emitSearchedStationIds();
   }
 
 
-
   private selectAll(select: boolean): void {
-    for (const item of this.stationStatuses) {
+    for (const item of this.stationsSelections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
@@ -81,7 +84,7 @@ export class StationStatusSearchComponent implements OnChanges {
 
   private sortBySelected(): void {
     // Sort the array so that items with `selected: true` come first
-    this.stationStatuses.sort((a, b) => {
+    this.stationsSelections.sort((a, b) => {
       if (a.selected === b.selected) {
         return 0; // If both are the same (either true or false), leave their order unchanged
       }
@@ -90,21 +93,12 @@ export class StationStatusSearchComponent implements OnChanges {
   }
 
   private emitSearchedStationIds() {
-    // TODO. a hack around due to event after view errors: Investigate later.
-    //setTimeout(() => {
-    const searchedIds: string[] = []
-    const selectedStationStatuses = this.stationStatuses.filter(item => item.selected);
-    for (const selectedStatus of selectedStationStatuses) {
-      for (const station of this.stations) {
-        if (station.status === selectedStatus.status) {
-          searchedIds.push(station.id);
-        }
-      }
+    this.searchedIds.length = 0;
+    for (const station of this.stationsSelections) {
+      if (station.selected) this.searchedIds.push(station.station.id)
     }
-    this.searchedIdsChange.emit(searchedIds);
-    //}, 0);
+    this.searchedIdsChange.emit(this.searchedIds);
   }
-
 
 
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity, ViewObservationLogDto } from '../entities/observation.entity';
@@ -19,6 +19,7 @@ import { DataAvailabilityDetailQueryDto } from '../dtos/data-availability-detail
 
 @Injectable()
 export class ObservationsService {
+    private readonly logger = new Logger(ClimsoftWebToV4SyncService.name);
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
@@ -264,7 +265,7 @@ export class ObservationsService {
         }
 
 
-        console.log("DTO transformation took: ", new Date().getTime() - startTime);
+        this.logger.log(`DTO transformation took: ${(new Date().getTime() - startTime)} milliseconds`);
 
         startTime = new Date().getTime();
 
@@ -273,7 +274,7 @@ export class ObservationsService {
             const batch = obsEntities.slice(i, i + batchSize);
             await this.insertOrUpdateObsValues(this.observationRepo, batch);
         }
-        console.log("Saving entities took: ", new Date().getTime() - startTime);
+        this.logger.log(`Saving entities took: ${(new Date().getTime() - startTime)} milliseconds`);
 
         if (!ignoreV4Saving) {
             // Initiate saving to version 4 database as well

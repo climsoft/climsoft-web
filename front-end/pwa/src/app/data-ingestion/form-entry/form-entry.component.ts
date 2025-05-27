@@ -67,7 +67,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected userFormSettings!: UserFormSettingStruct;
   protected userLocationErrorMessage: string = '';
 
-
   private destroy$ = new Subject<void>();
 
   constructor
@@ -82,7 +81,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private route: ActivatedRoute,
       private location: Location,) {
     this.pagesDataService.setPageHeader('Data Entry');
-
     //Set user form settings
     this.loadUserSettings();
   }
@@ -214,8 +212,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.totalIsValid = false;
     this.refreshLayout = false;
     this.changedObsDefs = [];
-    this.observationService.findEntryFormData(this.formDefinitions.createObservationQuery()).pipe(
-      take(1),
+
+    const entryFormObsQuery = this.formDefinitions.createObservationQuery();
+    this.observationService.findEntryFormData(entryFormObsQuery).pipe(
+      take(1)
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
@@ -223,6 +223,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
       if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
     });
+
   }
 
   protected onStationChange(stationId: string) {
@@ -380,30 +381,51 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
       observation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(observation.datetime, this.source.utcOffset, 'subtract');
     }
+    const obsMessage: string = 'observation' + (savableObservations.length === 1 ? '' : 's');
+
     // Send to server for saving
-    this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(take(1)).subscribe((response) => {
-      let type: ToastEventTypeEnum;
-      if (response.includes('error')) {
-        type = ToastEventTypeEnum.ERROR;
-      } else if (response.includes('local')) {
-        type = ToastEventTypeEnum.WARNING;
-      } else if (response.includes('success')) {
-        type = ToastEventTypeEnum.SUCCESS;
-      } else {
-        type = ToastEventTypeEnum.INFO;
-      }
+    this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(
+      take(1)
+    ).subscribe({
+      next: response => {
+        if (response.message === 'success') {
+          this.pagesDataService.showToast({
+            title: 'Data Entry',
+            message: `${savableObservations.length} ${obsMessage} saved successfully`,
+            type: ToastEventTypeEnum.SUCCESS
+          });
 
-      this.pagesDataService.showToast({ title: 'Observations', message: response, type: type });
+          // Then sequence to next date if sequencing is on
+          if (this.userFormSettings.incrementDateSelector) {
+            this.sequenceToNextDate();
+          }
 
-      if (type !== ToastEventTypeEnum.ERROR) {
-        if (this.userFormSettings.incrementDateSelector) {
-          this.sequenceToNextDate();
+          // Reload the data from server
+          this.loadObservations();
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Data Entry',
+            message: `Something wrong happened. ${obsMessage} NOT saved.`,
+            type: ToastEventTypeEnum.ERROR
+          });
+        };
+      },
+      error: err => {
+        // If there is network error then save observations as unsynchronised and no need to send data to server
+        if (err.status === 0) {
+          this.pagesDataService.showToast({
+            title: 'Data Entry',
+            message: `${savableObservations.length} ${obsMessage} saved locally`,
+            type: ToastEventTypeEnum.WARNING
+          });
         }
-        this.loadObservations();
       }
-    });
+    }
+    );
 
   }
+
+
 
   /**
    * Determine the ability to save based on whether there are changes and all observation changes are valid

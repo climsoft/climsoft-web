@@ -120,6 +120,4 @@ export class MetadataUpdatesController {
     return this.sourcesService.checkUpdates(updatesQueryDto);
   }
 
-
-
 }

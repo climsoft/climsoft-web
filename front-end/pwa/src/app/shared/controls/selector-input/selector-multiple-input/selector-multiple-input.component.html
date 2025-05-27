@@ -1,7 +1,7 @@
 <!-- show drop down when there is a click event or when the user is typing on the input. Note user may navigate using tab or enter keys -->
 <app-text-input [id]="id" [label]="label" [placeholder]="placeholder" [readonly]="true" [displayDropDownOption]="true"
     [displayCancelOption]="true" [errorMessage]="errorMessage" [value]="displaySelectedOptions"
-    (displayCancelOptionClick)="onCancelOptionClick()">
+    (displayCancelOptionClick)="onCancelOptionClick()" (displayDropDownOptionClick)="onDisplayDropDownClick()">
     <div *ngIf="filteredOptions" class="card">
         <div class="card-body p-0">
             <div class="p-1">

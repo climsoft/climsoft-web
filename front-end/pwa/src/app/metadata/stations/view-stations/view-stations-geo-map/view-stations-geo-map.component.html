@@ -1,8 +1,8 @@
 <div *ngIf="stationsWithLocations" class="card border-0">
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
-      <app-map [mapContentLayerGroup]="stationMapLayerGroup" />
-      <div class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
+      <app-map [mapHeight]="mapHeight"  [mapContentLayerGroup]="stationMapLayerGroup" />
+      <div *ngIf="displayStats" class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
         <div class="card-body">
           <div>
             <div class="fw-bold">

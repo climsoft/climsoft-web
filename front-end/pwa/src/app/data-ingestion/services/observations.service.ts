@@ -30,10 +30,9 @@ export interface CachedObservationModel extends CreateObservationModel {
 export class ObservationsService {
   private endPointUrl: string;
   private isSyncing: boolean = false;
-  private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0);
-
+  private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0); 
   constructor(
-    private appConfigService: AppConfigService,
+    private appConfigService: AppConfigService, 
     private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
@@ -92,7 +91,6 @@ export class ObservationsService {
       );
   }
 
-  // TODO. There should be a limit requirement for performance reasons
   public countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
@@ -100,64 +98,30 @@ export class ObservationsService {
       );
   }
 
-
-  // TODO. Not used
-  // This implementation was meant to check the local database first then the server.
-  // It proved to be a bit risky because of potential stale values.
-  private findEntryFormData1(entryFormObsQuery: EntryFormObservationQueryModel) {
-    // Step 1: Observable for fetching from the local database
-    const localData$ = from(this.getCachedEntryFormObservations(entryFormObsQuery));
-
-    // Step 2: Observable for fetching from the server
-    const serverData$ = this.http.get<CreateObservationModel[]>(
-      `${this.endPointUrl}/raw`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) }).pipe(
-        take(1),  // Ensure serverData$ emits once and completes
-        tap(serverData => {
-          if (serverData.length > 0) {
-            // Save the server data to the local database
-            this.saveDataToLocalDatabase(serverData, 'true');
-          }
-        }),
-        switchMap(serverData => {
-          // If there is server data then just return it as it is.
-          // If no server data then this could mean it has either been deleted on the server or not synced from the user local database
-          // So check if data exists in the user's local database and if it was already synced then delete it and return empty array. 
-          // TODO.
-
-          return from(this.getCachedEntryFormObservations(entryFormObsQuery));
-        }),
-        catchError(this.handleError)
-      );
-
-    // Step 3: Emit both cached and server data
-    return concat(
-      localData$, // Emit cached data first
-      serverData$ // Then emit server data next
-    );
-  }
-
-  // This implementation checks the server first then the local database. It is simpler but takes time to show contents on the entry forms
+  /**
+   * This implementation checks the server first then the local database. 
+   * It takes time to fetch data when user is offline
+   * @param entryFormObsQuery 
+   * @returns 
+   */
   public findEntryFormData(entryFormObsQuery: EntryFormObservationQueryModel): Observable<CreateObservationModel[]> {
     return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/form-data`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) })
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {
-            // Note, even though the 2 operations below are asynchronous they will execute sequentially.
-
-            // If there is server data then update the local database with the new data asynchronously
-            this.saveDataToLocalDatabase(observations, 'true');
-
-            // Then refetch from the local database because there might be unsynced observations that should be displayed as well
-            return from(this.fetchObservationsLocally(entryFormObsQuery));
+            return of(observations);
           } else {
-            // If no server data then this could mean it has either been deleted on the server or not synced from the user local database.
-            // So operate on the response accordingly.
-            return from(this.deleteSyncedDataAndGetUnsyncedData(entryFormObsQuery));
+            // If no server data then this could mean it has either;
+            // 1. Never been saved to the server
+            // 2. Been deleted on the server 
+            // 3. or not synced to the server from the user device
+            // So fetch locally
+            return from(this.fetchObservationsLocally(entryFormObsQuery));
           }
         }),
         catchError(err => {
           if (err.status === 0) {
-            // For network errors. Attempt fetching data locally
+            // For network errors. Always attempt fetching data locally
             console.warn('Network error detected. Fetching data locally.');
             return from(this.fetchObservationsLocally(entryFormObsQuery));
           } else {
@@ -168,50 +132,17 @@ export class ObservationsService {
         })
       );
   }
-  /**
-   * Deletes synced data and gets unsynced data based on the query passed.
-   * @param entryFormObsQuery 
-   * @returns 
-   */
-  private async deleteSyncedDataAndGetUnsyncedData(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CreateObservationModel[]> {
-    // If no server data then this could mean it has either been deleted on the server or not synced from the user local database.
-    // So check if data exists in the user local database and if it was already synced then delete it. 
-    // If it was not synced then it means the server does not have it therefore return it.
-
-    const localObsData = await this.getCachedEntryFormObservations(entryFormObsQuery);
-    const syncedObsDataKeys: [string, number, number, number, string, number][] = []; // [stationId+elementId+sourceId+level+datetime+period]
-    const unsyncedObsData: CachedObservationModel[] = [];
-
-    for (const obsData of localObsData) {
-      if (obsData.synced === 'true') {
-        syncedObsDataKeys.push([entryFormObsQuery.stationId, obsData.elementId, entryFormObsQuery.sourceId, entryFormObsQuery.level, obsData.datetime, obsData.interval]);
-      } else {
-        unsyncedObsData.push(obsData);
-      }
-    }
-
-    await AppDatabase.instance.observations.bulkDelete(syncedObsDataKeys);
-
-    return this.convertToCreateObservationModels(unsyncedObsData);
-  }
-
 
   private async fetchObservationsLocally(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CreateObservationModel[]> {
-    const cachedData: CachedObservationModel[] = await this.getCachedEntryFormObservations(entryFormObsQuery);
-    return this.convertToCreateObservationModels(cachedData);
-  }
-
-  private async getCachedEntryFormObservations(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CachedObservationModel[]> {
     // Use Compound index [stationId+sourceId+level+elementId+datetime]
     const filters: [string, number, number, number, string][] = [];
-
     const toDate = new Date(entryFormObsQuery.toDate);
     const datetimes: string[] = []
     for (let dt = new Date(entryFormObsQuery.fromDate); dt <= toDate; dt.setHours(dt.getHours() + 1)) {
       datetimes.push(dt.toISOString());
     }
 
-    //console.log('date times: ',datetimes);
+    //console.log('date times: ', datetimes);
 
     for (const elementId of entryFormObsQuery.elementIds) {
       for (const datetime of datetimes) {
@@ -226,7 +157,7 @@ export class ObservationsService {
       .where('[stationId+sourceId+level+elementId+datetime]')
       .anyOf(filters).toArray();
 
-    return cachedObservations;
+    return this.convertToCreateObservationModels(cachedObservations);
   }
 
   private convertToCreateObservationModels(cachedObservations: CachedObservationModel[]): CreateObservationModel[] {
@@ -248,32 +179,23 @@ export class ObservationsService {
    * @param observations 
    * @returns 
    */
-  public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<string> {
-    const obsMessage: string = 'observation' + (observations.length === 1 ? '' : 's');
-    return this.http.put(this.endPointUrl, observations).pipe(
+  public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<{ message: string }> { 
+    return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       tap({
-        next: value => {
-          // Server will send {message: success} when there is no error
-          //console.log('server value: ', value, 'saving synced data locally');
-          // Save observations as synchronised and attempt to synchronise with server as well.
-          this.saveDataToLocalDatabase(observations, 'true');
+        next: (response: any) => {
+          // Server will send {message: 'success'} when there is no error
+          // Start synicing in unsynced data asynchronously
+          if (response.message === 'success') this.syncObservations();
         },
         error: err => {
+          // If there is network error then save observations as unsynchronised and no need to send data to server
           if (err.status === 0) {
             console.warn('saving unsynced data locally');
-            // If network error occurred save observations as unsynchronised and no need to send data to server
             this.saveDataToLocalDatabase(observations, 'false');
           }
         }
       }),
-      map(value => {
-        return `${observations.length} ${obsMessage} saved successfully`;
-      }),
-      catchError(err => {
-        return err.status === 0 ? of(`${observations.length} ${obsMessage} saved locally`) : of(`${observations.length} ${obsMessage} NOT saved. Error: ${err.message}`);
-      })
     );
-
   }
 
   /**
@@ -295,8 +217,12 @@ export class ObservationsService {
     // Get total number of unsynced observations
     const totalUnsynced: number = await this.countUnsyncedObservationsAndRaiseNotification();
 
+    console.log('totalUnsynced: ', totalUnsynced);
+
     // If there are no unsynced observations then set syncing flag to false and return
     if (totalUnsynced === 0) {
+      // Clear all cached values once everything has been successfully synced
+      await AppDatabase.instance.observations.clear();
       this.isSyncing = false;
       return;
     }
@@ -338,6 +264,10 @@ export class ObservationsService {
 
   public get unsyncedObservations() {
     return this._unsyncedObservations.asObservable();
+  }
+
+  public bulkPutDataFromDataCorrection(observations: CreateObservationModel[]): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations);
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {

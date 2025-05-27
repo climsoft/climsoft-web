@@ -77,6 +77,7 @@ import { StationEnvironmentsSearchComponent } from './stations/stations-search-d
 import { QCStatusSelectorSingleComponent } from './elements/element-detail/qc-status-selector-single/qc-status-selector-single.component';
 import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
+import { StationIDNameSearchComponent } from './stations/stations-search-dialog/station-id-name-search/station-id-name-search.component';
 
 @NgModule({
   declarations: [ 
@@ -114,6 +115,7 @@ import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliatio
     StationNetworksComponent, 
 
     StationsSearchDialogComponent,
+    StationIDNameSearchComponent,
     StationRegionsSearchComponent, 
     StationOrganisationsSearchComponent,
     StationNetworkAffiliationsSearchComponent,
@@ -192,14 +194,13 @@ import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliatio
     StationStatusSingleInputComponent,
     ViewStationsTableComponent,
     ViewStationsGeoMapComponent,
-    StationsSearchDialogComponent, 
+
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
     ViewStationsGeoMapComponent,
     ViewStationsTreeMapComponent,
 
-    StationsSearchDialogComponent,
-    StationRegionsSearchComponent,
+    StationsSearchDialogComponent, 
 
     FormSelectorDialogComponent,
 

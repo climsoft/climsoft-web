@@ -27,21 +27,19 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   @Output()
   public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
-  protected filteredOptions: T[] = this.options;
+  protected filteredOptions: T[] =  [...this.options];
   protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if(!this.options){
-        this.options = []; // should never be undefined
-      }
-      this.filteredOptions = this.options;
+      if (!this.options)   this.options = []; // should never be undefined       
+      this.filteredOptions =  [...this.options];
     }
 
     if (changes['selectedOptions']) {
-      if(!this.selectedOptions){
+      if (!this.selectedOptions) {
         this.selectedOptions = []; // should never be undefined
       }
       this.setDisplaySelectedOptions();
@@ -73,7 +71,7 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onSearchInput(searchValue: string): void {
     // If empty value then just reset the filtered options with all the possible options.
     if (!searchValue) {
-      this.filteredOptions = this.options;
+      this.filteredOptions =  [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(searchValue.toLowerCase())
@@ -100,6 +98,22 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
 
   protected onAdvancedSearchClick(): void {
     this.displayAdvancedSearchOptionClick.emit();
+  }
+
+  /**
+   * Move selected options to the top
+   */
+  protected onDisplayDropDownClick(): void {
+    // Move the selected options to the top
+
+    // Remove each value from the array if it exists
+    for (let i = this.selectedOptions.length - 1; i >= 0; i--) {
+      const index = this.filteredOptions.indexOf(this.selectedOptions[i]);
+      if (index > -1) {
+        this.filteredOptions.splice(index, 1);             // Remove from current position
+        this.filteredOptions.unshift(this.selectedOptions[i]);           // Insert at the top
+      }
+    }
   }
 
 }

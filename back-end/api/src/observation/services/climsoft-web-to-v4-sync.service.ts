@@ -183,7 +183,7 @@ export class ClimsoftWebToV4SyncService {
             // Execute the batch upsert 
             const results: mariadb.UpsertResult = await connection.batch(upsertStatement, values);
 
-            this.logger.log('V4 insert update status: ' + results);
+            this.logger.log('V4 afftected rows: ' + results.affectedRows);
 
             // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
             // Once for detecting the conflict (i.e., attempting to insert)

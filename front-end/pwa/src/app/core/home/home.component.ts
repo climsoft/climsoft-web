@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { PagesDataService, ToastEvent } from '../services/pages-data.service';
+import { NetworkStatusTypeEnum, PagesDataService, ToastEvent } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
@@ -20,6 +20,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected unsyncedObservations: string = '';
   protected displayUserDropDown: boolean = false;
   protected user!: LoggedInUserModel;
+  protected appIsOffline: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -65,6 +66,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(toast => {
       this.showToast(toast);
+    });
+
+    // Subscribe to the network status
+    this.appPagesDataService.netWorkStatus.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(networkStatus => {
+      this.appIsOffline = networkStatus === NetworkStatusTypeEnum.OFFLINE;
+      // TODO. Remove all online required features
     });
 
     // Subscribe to sync operations
@@ -114,7 +123,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private setAllowedNavigationLinks(user: LoggedInUserModel): void {
-
     this.featuresNavItems = [
       {
         name: MainMenuNameEnum.DASHBOARD,

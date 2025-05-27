@@ -28,12 +28,12 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   public optionDisplayFn: (option: T) => string = (option => String(option));
 
   @Input()
-  public selectedOption!: T | null| undefined;
+  public selectedOption!: T | null | undefined;
 
   @Output()
   public selectedOptionChange = new EventEmitter<T | null>();
 
-  protected filteredOptions: T[] = this.options;
+  protected filteredOptions: T[] =  [...this.options];
   protected selectedOptionDisplay: string = '';
 
   constructor() {
@@ -43,8 +43,8 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     // Important check because when an option is selected  'ngOnChanges' gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if(!this.options) this.options = []; // should never be undefined
-      this.filteredOptions = this.options;
+      if (!this.options) this.options = []; // should never be undefined
+      this.filteredOptions = [...this.options];
     }
 
     if (changes['selectedOption'] && this.selectedOption) {
@@ -59,7 +59,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   protected onSearchInput(inputValue: string): void {
     if (!inputValue) {
-      this.filteredOptions = this.options;
+      this.filteredOptions =  [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())
@@ -77,6 +77,20 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     this.selectedOption = null;
     this.selectedOptionChange.emit(null);
     this.setSelectedOptionDisplay();
+  }
+
+  /**
+   * Move selected option to the top
+   */
+  protected onDisplayDropDownClick(): void {
+    if (this.selectedOption) {
+      // Move the selected option to the top
+      const index = this.filteredOptions.indexOf(this.selectedOption);
+      if (index > -1) {
+        this.filteredOptions.splice(index, 1);        // Remove the element
+        this.filteredOptions.unshift(this.selectedOption); // Add it to the beginning
+      }
+    }
   }
 
 }

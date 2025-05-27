@@ -16,18 +16,17 @@ interface SearchModel {
   styleUrls: ['./station-organisations-search.component.scss']
 })
 export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy {
+  @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
-  @Input() public selectionOption!: SelectionOptionTypeEnum;
+  @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
   protected organisations: SearchModel[] = [];
-  protected stations: StationCacheModel[] = [];
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private organisationsService: OrganisationsCacheService,
-    private stationsCacheService: StationsCacheService
   ) {
     this.organisationsService.cachedOrganisations.pipe(
       takeUntil(this.destroy$),
@@ -39,20 +38,34 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
       });
     });
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.stations = stations
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
-      this.onSearchInput(this.searchValue);
+      // Make the searched items be the first items
+      this.organisations.sort((a, b) => {
+        // If search is found, move it before `b`, otherwise after
+        if (a.organisation.name.toLowerCase().includes(this.searchValue)) {
+          return -1;
+        }
+        return 1;
+      });
     }
 
-    if (changes['selectionOption']) {
-      this.onOptionSelected(this.selectionOption);
+    if (changes['selectionOption'] && this.selectionOption) {
+      switch (this.selectionOption.value) {
+        case SelectionOptionTypeEnum.SELECT_ALL:
+          this.selectAll(true);
+          break;
+        case SelectionOptionTypeEnum.DESELECT_ALL:
+          this.selectAll(false);
+          break;
+        case SelectionOptionTypeEnum.SORT_SELECTED:
+          this.sortBySelected();
+          break;
+        default:
+          break;
+      }
     }
   }
 
@@ -61,37 +74,12 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
     this.destroy$.complete();
   }
 
-  private onSearchInput(searchValue: string): void {
-    // Make the searched items be the first items
-    this.organisations.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.organisation.name.toLowerCase().includes(searchValue)) {
-        return -1;
-      }
-      return 1;
-    });
-  }
 
   protected onSelected(selection: SearchModel): void {
     selection.selected = !selection.selected;
     this.emitSearchedStationIds();
   }
 
-  private onOptionSelected(option: SelectionOptionTypeEnum): void {
-    switch (option) {
-      case SelectionOptionTypeEnum.SELECT_ALL:
-        this.selectAll(true);
-        break;
-      case SelectionOptionTypeEnum.DESLECT_ALL:
-        this.selectAll(false);
-        break;
-      case SelectionOptionTypeEnum.SORT_SELECTED:
-        this.sortBySelected();
-        break;
-      default:
-        break;
-    }
-  }
 
   private selectAll(select: boolean): void {
     for (const item of this.organisations) {
@@ -112,18 +100,18 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
-    setTimeout(() => {
-      const searchedStationIds: string[] = [];
-      const selectedOrganisations = this.organisations.filter(item => item.selected);
-      for (const selectedorganisation of selectedOrganisations) {
-        for (const station of this.stations) {
-          if (station.organisationId === selectedorganisation.organisation.id) {
-            searchedStationIds.push(station.id);
-          }
+    //setTimeout(() => {
+    const searchedStationIds: string[] = [];
+    const selectedOrganisations = this.organisations.filter(item => item.selected);
+    for (const selectedorganisation of selectedOrganisations) {
+      for (const station of this.stations) {
+        if (station.organisationId === selectedorganisation.organisation.id) {
+          searchedStationIds.push(station.id);
         }
       }
-      this.searchedIdsChange.emit(searchedStationIds);
-    }, 0);
+    }
+    this.searchedIdsChange.emit(searchedStationIds);
+    //}, 0);
   }
 
 

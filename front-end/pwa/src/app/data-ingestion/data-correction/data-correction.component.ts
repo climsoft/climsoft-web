@@ -177,7 +177,6 @@ export class DataCorrectionComponent implements OnDestroy {
     return this.allBoundariesIndices.includes(index);
   }
 
-
   protected onOptionsSelected(optionSlected: 'Delete All'): void {
     switch (optionSlected) {
       case 'Delete All':
@@ -233,18 +232,20 @@ export class DataCorrectionComponent implements OnDestroy {
     this.enableSave = false;
     // Send to server for saving
     this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe({
-      next: data => {
-        if (data) {
+      next: response => {
+        const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
+        if (response.message === 'success') {
           this.pagesDataService.showToast({
-            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} saved`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
           });
 
           this.queryData();
         } else {
           this.pagesDataService.showToast({
-            title: 'Observations', message: `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'} NOT saved`, type: ToastEventTypeEnum.ERROR
+            title: 'Data Correction', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
           });
         }
+
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });

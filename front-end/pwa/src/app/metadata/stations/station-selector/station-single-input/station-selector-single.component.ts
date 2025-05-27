@@ -32,7 +32,7 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
     ).subscribe(data => {
       this.allStations = data;
       this.setStationsToInclude();
-      this.filterBasedOnSelectedId();
+      this.setSelected();
     });
   }
 
@@ -42,7 +42,7 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
       this.setStationsToInclude();
     }
     if (changes['selectedId']) {
-      this.filterBasedOnSelectedId();
+      this.setSelected();
     }
   }
 
@@ -56,9 +56,11 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
     this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
   }
 
-  private filterBasedOnSelectedId(): void {
-    const foundElement = this.stations.find(data => data.id === this.selectedId);
-    this.selectedStation = foundElement ? foundElement : null;
+  private setSelected(): void {
+    if (this.selectedId) {
+      const found = this.stations.find(data => data.id === this.selectedId);
+      this.selectedStation = found ? found : null;
+    }
   }
 
   protected optionDisplayFunction(option: StationCacheModel): string {
@@ -69,5 +71,5 @@ export class StationSelectorSingleComponent implements OnChanges, OnDestroy {
     this.selectedId = selectedOption ? selectedOption.id : '';
     this.selectedIdChange.emit(this.selectedId);
   }
-
+  
 }

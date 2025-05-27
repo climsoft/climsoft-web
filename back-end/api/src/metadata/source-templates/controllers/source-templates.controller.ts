@@ -55,5 +55,4 @@ export class SourceTemplatesController {
         return this.sourcesService.delete(id);
     }
 
-
 }
