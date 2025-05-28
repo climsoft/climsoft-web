@@ -418,6 +418,12 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             message: `${savableObservations.length} ${obsMessage} saved locally`,
             type: ToastEventTypeEnum.WARNING
           });
+        }else{
+          this.pagesDataService.showToast({
+            title: 'Data Entry',
+            message: `Something wrong happened. ${err}`,
+            type: ToastEventTypeEnum.ERROR
+          });
         }
       }
     }
