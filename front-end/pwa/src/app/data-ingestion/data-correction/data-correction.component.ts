@@ -13,6 +13,7 @@ import { GeneralSettingsService } from 'src/app/admin/general-settings/services/
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -231,7 +232,7 @@ export class DataCorrectionComponent implements OnDestroy {
 
     this.enableSave = false;
     // Send to server for saving
-    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe({
+    this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
       next: response => {
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         if (response.message === 'success') {
@@ -248,7 +249,30 @@ export class DataCorrectionComponent implements OnDestroy {
 
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
+
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 0) {
+            // If there is network error then save observations as unsynchronised and no need to send data to server
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
+            });
+          } else if (err.status === 400) {
+            // If there is a bad request error then show the server message
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+            });
+          } else {
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            });
+          }
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
+          });
+        }
       },
       complete: () => {
         this.enableSave = true;

@@ -9,40 +9,50 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 // TODO. Later convert this service to a guard??
 
+interface EntryFormValidation {
+    form: CreateEntryFormDTO;
+    utcAdjustedHours: number[];
+}
+
 @Injectable()
 export class FormDataEntryCheckService {
     private readonly logger = new Logger(FormDataEntryCheckService.name);
-    private formSources: Map<number, CreateEntryFormDTO> = new Map();
+    private formParameters: Map<number, EntryFormValidation> = new Map();
 
     constructor(
-        private sourceService: SourceTemplatesService,) { 
-        this.reSetSources();
+        private sourceService: SourceTemplatesService,) {
+        this.resetFormParameters();
     }
 
     @OnEvent('source.created')
     handleSourceCreated(payload: { id: number; dto: any }) {
         console.log(`Source created: ID ${payload.id}`);
         // maybe invalidate cache, trigger sync, etc.
-        this.reSetSources();
+        this.resetFormParameters();
     }
 
     @OnEvent('source.updated')
     handleSourceUpdated(payload: { id: number; dto: any }) {
         console.log(`Source updated: ID ${payload.id}`);
-        this.reSetSources();
+        this.resetFormParameters();
     }
 
     @OnEvent('source.deleted')
     handleSourceDeleted(payload: { id: number }) {
         console.log(`Source deleted: ID ${payload.id}`);
-        this.reSetSources();
+        this.resetFormParameters();
     }
 
-    private async reSetSources() {
-        this.formSources.clear();
+    private async resetFormParameters() {
+        this.formParameters.clear();
         const sourceTemplates: ViewSourceDto[] = await this.sourceService.findSourcesByType(SourceTypeEnum.FORM);
         for (const source of sourceTemplates) {
-            this.formSources.set(source.id, source.parameters as CreateEntryFormDTO)
+            const form = source.parameters as CreateEntryFormDTO; 
+            // Adjust the form hours based on utcOffset setting
+            // Important wrap negaitive adjusted hours to positive before wrapping the hoour to 24 hour range
+            const utcAdjustedHours: number[] = source.utcOffset === 0 ?
+                form.hours : form.hours.map(hour => ((hour - source.utcOffset) + 24) % 24); 
+            this.formParameters.set(source.id, { form: form, utcAdjustedHours: utcAdjustedHours })
         }
     }
 
@@ -56,25 +66,24 @@ export class FormDataEntryCheckService {
                 if (!user.permissions) throw new BadRequestException('Permissions not found');
                 if (!user.permissions.entryPermissions) throw new BadRequestException('Entry permissions not found');
                 if (user.permissions.entryPermissions.stationIds && user.permissions.entryPermissions.stationIds.length > 0) {
-                    if (!user.permissions.entryPermissions.stationIds.includes(dto.stationId)) throw new BadRequestException('Station not allowed');
+                    if (!user.permissions.entryPermissions.stationIds.includes(dto.stationId)) throw new BadRequestException('Not allowed to enter data for station');
                 }
             }
 
-            const formTemplate = this.formSources.get(dto.sourceId);
+            const formTemplate = this.formParameters.get(dto.sourceId);
 
             if (!formTemplate) throw new BadRequestException('Form not found');
 
             // check element
-            if (!formTemplate.elementIds.includes(dto.elementId)) throw new BadRequestException('Interval not allowed');
+            if (!formTemplate.form.elementIds.includes(dto.elementId)) throw new BadRequestException('Element not allowed');
 
             // Check if hour is allowed for the form
-            if (!formTemplate.hours.includes(parseInt(dto.datetime.substring(11, 13), 10))) throw new BadRequestException('Hour not allowed');
+            if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) throw new BadRequestException('Hour not allowed');
 
             // Check for interval is allowed for the form
-            if (!formTemplate.allowIntervalEditing) {
-                if (formTemplate.interval !== dto.interval) throw new BadRequestException('Interval not allowed');
+            if (!formTemplate.form.allowIntervalEditing) {
+                if (formTemplate.form.interval !== dto.interval) throw new BadRequestException('Interval not allowed');
             }
-
 
         }
 

@@ -7,8 +7,9 @@ export class DataAvailabilitySummaryQueryDto {
     @IsString({ each: true })
     stationIds: string[];
 
-    @IsInt()
-    elementId: number;
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @IsInt({ each: true })
+    elementIds: number[];
 
     @IsInt()
     interval: number;

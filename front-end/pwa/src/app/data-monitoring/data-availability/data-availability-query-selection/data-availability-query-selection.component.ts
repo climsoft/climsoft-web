@@ -29,7 +29,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
 
     this.dataAvailabilityFilter = {
       stationIds: [],
-      elementId: 0,
+      elementIds: [],
       interval: 0,
       durationType: 'days_of_month',
       durationDaysOfMonth: todayDate.toISOString().slice(0, 7),
@@ -96,15 +96,15 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       return;
     }
 
-    if (this.dataAvailabilityFilter.elementId <= 0) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Element selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
+    // if (this.dataAvailabilityFilter.elementIds.length <= 0) {
+    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Element selection required', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
 
-    if (this.dataAvailabilityFilter.interval <= 0) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
+    // if (this.dataAvailabilityFilter.interval <= 0) {
+    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
 
     if (!this.dataAvailabilityFilter.durationType) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'Duration Type selection required', type: ToastEventTypeEnum.ERROR });
