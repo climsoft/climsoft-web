@@ -33,7 +33,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected sourceIds: number[] = [];
   protected elementIds: number[] = [];
   protected intervals: number[] = [];
-  protected level: number | null = null;
+  protected level: number | null = 0;
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];

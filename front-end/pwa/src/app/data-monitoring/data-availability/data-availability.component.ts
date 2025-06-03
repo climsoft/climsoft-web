@@ -135,7 +135,6 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
 
 
         const strStationValues: string[] = stationFetched.map(item => `${item.id} - ${item.name}`);
-        console.log(strStationValues)
         this.generateChart(strDateValues, strStationValues, chartData, maxValue, dateToolTipPrefix);
       },
       error: err => {
@@ -245,7 +244,7 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
         const stationIndex = params.value[1]; // y-axis index (station)
 
 
-        const stationId = stations[stationIndex];
+        const stationId = stations[stationIndex].split(' ');
         const dateValue = dateValues[dateIndex];
         const value = params.value[2];
 
@@ -253,6 +252,10 @@ export class DataAvailabilityComponent implements AfterViewInit, OnDestroy {
 
       }
     });
+  }
+
+  private showVariables(stationId: string, dateValue: number) {
+
   }
 
 }

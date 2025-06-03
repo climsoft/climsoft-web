@@ -45,7 +45,7 @@ export class ObservationsService {
       );
   }
 
-  // TODO. There should be a limit requirement for performance reasons
+  // There should always be a limit requirement for performance reasons
   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
     return this.http.get<number>(
       `${this.endPointUrl}/count`,

@@ -19,14 +19,14 @@ export class DataAvailabilitySummaryQueryDto {
 
     @IsOptional()
     @IsString()
-    durationDaysOfMonth: string;
+    durationDaysOfMonth: string; // 2025-01
 
     @IsOptional()
     @IsInt()
-    durationMonthsOfYear: number;
+    durationMonthsOfYear: number; // 2025
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
-    durationYears: number[];
+    durationYears: number[]; // [2025,2024,2023]
 }

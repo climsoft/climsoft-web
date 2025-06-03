@@ -6,6 +6,7 @@ import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.
 import { CreateEntryFormDTO } from 'src/metadata/source-templates/dtos/create-entry-form.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
+import { DateUtils } from 'src/shared/utils/date.utils';
 
 // TODO. Later convert this service to a guard??
 
@@ -48,10 +49,11 @@ export class FormDataEntryCheckService {
         const sourceTemplates: ViewSourceDto[] = await this.sourceService.findSourcesByType(SourceTypeEnum.FORM);
         for (const source of sourceTemplates) {
             const form = source.parameters as CreateEntryFormDTO; 
-            // Adjust the form hours based on utcOffset setting
-            // Important wrap negaitive adjusted hours to positive before wrapping the hoour to 24 hour range
+            // If the form utc setting is not 0, then use the utc setting to adjust the hours to utc.
+            // data sent from the form is converted to utc based on the form utc setting, so the hours on the form could be in say localtime
+          
             const utcAdjustedHours: number[] = source.utcOffset === 0 ?
-                form.hours : form.hours.map(hour => ((hour - source.utcOffset) + 24) % 24); 
+                form.hours : form.hours.map(hour => (DateUtils.getHourBasedOnUTCOffset(hour, source.utcOffset, 'subtract'))); 
             this.formParameters.set(source.id, { form: form, utcAdjustedHours: utcAdjustedHours })
         }
     }

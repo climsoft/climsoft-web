@@ -1,27 +1,21 @@
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsDateString, IsInt,  IsString } from "class-validator";
+import { StringUtils } from "src/shared/utils/string.utils";
 
-export class DataAvailabilityDetailQueryDto { 
+export class DataAvailabilityDetailQueryDto {
     @IsString()
     stationId: string;
 
-    @IsInt()
-    elementId: number;
+    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @IsInt({ each: true })
+    elementIds: number[];
 
     @IsInt()
     interval: number;
 
-    @IsString()
-    durationType: 'days_of_month' | 'months_of_year' | 'years';
+    @IsDateString()
+    fromDate: string;
 
-    @IsOptional()
-    @IsString()
-    durationDayOfMonth: string;
-
-    @IsOptional()
-    @IsInt()
-    durationMonthsOfYear: number;
-
-    @IsOptional()
-    @IsInt()
-    durationYears: number;
+    @IsDateString()
+    toDate: string; // 2025-01-01 
 }
