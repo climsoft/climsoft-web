@@ -27,6 +27,7 @@ export class DataAvailabilityComponent implements OnDestroy {
   private stations: StationCacheModel[] = [];
   private chartInstance!: echarts.ECharts;
   private stationRendered!: StationCacheModel[];
+  private dateValues!: number[];
   private utcOffset: number = 0;
   private user!: LoggedInUserModel;
 
@@ -88,17 +89,17 @@ export class DataAvailabilityComponent implements OnDestroy {
             this.stations.filter(station => this.dataAvailabilityFilter.stationIds.includes(station.id)) : this.stations;
 
         const strStationValues: string[] = this.stationRendered.map(item => `${item.id} - ${item.name}`);// Used by heatmap chart to show labels in the y-axis
-        let dateValues: number[];
+        this.dateValues = [];
         let strDateValues: string[]; // Used by heatmap chart to show labels in the x-axis
         let dateToolTipPrefix: string; // Used by heat map chart tooltip for x-axis prefix
         switch (this.dataAvailabilityFilter.durationType) {
           case 'days_of_month':
             const [year, month] = this.dataAvailabilityFilter.durationDaysOfMonth.split('-').map(Number);
             const daysInMonth = new Date(year, month, 0).getDate(); // day 0 of next month = last day of this month
-            dateValues = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+            this.dateValues = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
             // Populate strDateValues with "1-Wed", "2-Thu", etc.
-            strDateValues = dateValues.map(day => {
+            strDateValues = this.dateValues.map(day => {
               const date = new Date(year, month - 1, day); // month is 0-based
               const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g., "Mon", "Tue"
               return `${day}\n${weekday}`;
@@ -107,10 +108,10 @@ export class DataAvailabilityComponent implements OnDestroy {
             dateToolTipPrefix = 'Day';
             break;
           case 'months_of_year':
-            dateValues = Array.from({ length: 12 }, (_, i) => i + 1);
+            this.dateValues = Array.from({ length: 12 }, (_, i) => i + 1);
 
             // Populate strDateValues with "1-Jan", "2-Feb", etc.
-            strDateValues = dateValues.map(month => {
+            strDateValues = this.dateValues.map(month => {
               const date = new Date(2025, month - 1); // use any year, just to get month name
               const monthName = date.toLocaleDateString('en-US', { month: 'short' });
               return `${month}\n${monthName}`;
@@ -119,8 +120,8 @@ export class DataAvailabilityComponent implements OnDestroy {
             dateToolTipPrefix = 'Month';
             break;
           case 'years':
-            dateValues = this.dataAvailabilityFilter.durationYears;
-            strDateValues = dateValues.map(item => item.toString());
+            this.dateValues = this.dataAvailabilityFilter.durationYears;
+            strDateValues = this.dateValues.map(item => item.toString());
             dateToolTipPrefix = 'Year';
             break;
           default:
@@ -134,7 +135,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         let maxValue: number = 0
         for (const recordCountData of data) {
 
-          const dateValueIndex = dateValues.findIndex(dateValue => dateValue === recordCountData.dateValue);
+          const dateValueIndex = this.dateValues.findIndex(dateValue => dateValue === recordCountData.dateValue);
           if (dateValueIndex === -1) {
             continue;
           }
@@ -260,7 +261,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         const stationIndex = params.value[1]; // y-axis index (station)
         //const value = params.value[2]; // value
         const stationId: string = this.stationRendered[stationIndex].id; // stations[stationIndex].split(' ')[0];
-        const dateComponent: number = Number(dateValues[dateIndex]);
+        const dateComponent: number = Number(this.dateValues[dateIndex]);
         console.log(`Clicked cell - Station: ${stationId}, Date: ${dateComponent}`);
         this.showVariables(stationId, dateComponent);
       }
@@ -322,7 +323,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         // If user has correction permissions then just open data correction      
         componentPath = 'data-ingestion/data-correction';
       } else if (this.user.permissions.ingestionMonitoringPermissions) {
-          // If user has monitorig permissions then just open data explorer 
+        // If user has monitorig permissions then just open data explorer 
         componentPath = '/data-monitoring/data-explorer';
       }
     }
