@@ -34,6 +34,8 @@ export class ElementsCacheService {
     private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<ElementCacheModel[]> = new BehaviorSubject<ElementCacheModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkingForUpdates: boolean = false;
+
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -83,17 +85,28 @@ export class ElementsCacheService {
     }
 
     public checkForUpdates(): void {
+        // If still checking for updates just return
+        if (this.checkingForUpdates) return;
+
         console.log('checking elements updates');
-        // Observable to initiate metadata updates sequentially
+
+        this.checkingForUpdates = true;
         this.checkUpdatesSubscription.unsubscribe();
+        // Observable to initiate metadata updates sequentially
         this.checkUpdatesSubscription = of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('elementTypes')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('elementSubdomains')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('elements')),
-        ).subscribe(res => {
-            console.log('elements-cache response', res);
-            if (res) {
-                this.loadElements();
+        ).subscribe({
+            next: res => {
+                console.log('elements-cache response', res);
+                this.checkingForUpdates = false;
+                if (res) {
+                    this.loadElements();
+                }
+            },
+            error: err => {
+                this.checkingForUpdates = false;
             }
         });
     }

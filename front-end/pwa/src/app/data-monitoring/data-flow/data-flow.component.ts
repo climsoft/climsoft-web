@@ -9,9 +9,9 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils'; 
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
-import * as echarts from 'echarts'; 
+import * as echarts from 'echarts';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
@@ -142,9 +142,12 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
   }
 
   private generateChart(observations: Observation[]) {
+    if (this.chartInstance) {
+      this.chartInstance.dispose();
+    }
+
     if (observations.length == 0) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'No data', type: ToastEventTypeEnum.INFO });
-      this.chartInstance.setOption({});
       return;
     };
 

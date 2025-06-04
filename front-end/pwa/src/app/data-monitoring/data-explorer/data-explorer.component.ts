@@ -1,19 +1,18 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
+import { ActivatedRoute } from '@angular/router';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -30,56 +29,68 @@ interface ObservationEntry {
   templateUrl: './data-explorer.component.html',
   styleUrls: ['./data-explorer.component.scss']
 })
-export class DataExplorerComponent implements OnDestroy {
-  protected observationsEntries: ObservationEntry[] = [];
-  private stationsMetadata: StationCacheModel[] = [];
-  private elementsMetadata: ElementCacheModel[] = [];
-  private sourcesMetadata: ViewSourceModel[] = [];
+export class DataExplorerComponent implements OnInit, OnDestroy {
+  protected observationsEntries!: ObservationEntry[];
+  protected queryFilter!: ViewObservationQueryModel;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-
   protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
-  private utcOffset: number = 0;
-
-  private observationFilter!: ViewObservationQueryModel
+  private utcOffset!: number;
+  private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private stationsCacheService: StationsCacheService,
-    private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private route: ActivatedRoute,
   ) {
 
     this.pagesDataService.setPageHeader('Data Explorer');
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stationsMetadata = data;
-    });
+    // Set default dates to yesterday
+    const toDate: Date = new Date();
+    const fromDate: Date = new Date();
+    fromDate.setDate(toDate.getDate() - 1);
+    this.queryFilter = { deleted: false, fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) }
 
-    this.elementService.cachedElements.pipe(
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
-      this.elementsMetadata = data;
-    });
-
-    this.sourcesService.cachedSources.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.sourcesMetadata = data;
+      this.allMetadataLoaded = data;
+      this.queryData();
     });
 
     // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+      this.queryData();
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const stationIds: string[] = params.getAll('stationIds');
+      const elementIds: string[] = params.getAll('elementIds');
+      const intervals: string[] = params.getAll('intervals');
+      const level: string | null = params.get('level');
+      const fromDate: string | null = params.get('fromDate');
+      const toDate: string | null = params.get('toDate');
+
+      if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
+      if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
+      if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
+      if (level) this.queryFilter.level = parseInt(level, 10);
+      if (fromDate) this.queryFilter.fromDate = fromDate;
+      if (toDate) this.queryFilter.toDate = toDate;
+
+      this.queryData();
+
     });
   }
 
@@ -94,15 +105,21 @@ export class DataExplorerComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter;
+    this.queryFilter = observationFilter;
     this.queryData();
   }
 
   protected queryData(): void {
+    if (!(this.allMetadataLoaded && this.utcOffset !== undefined)) {
+      return;
+    }
+
+    console.log('querying data...');
+
     this.enableQueryButton = false;
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
-    this.observationService.count(this.observationFilter).pipe(take(1)).subscribe(
+    this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.pageInputDefinition.setTotalRowCount(count);
@@ -111,13 +128,12 @@ export class DataExplorerComponent implements OnDestroy {
           } else {
             this.pagesDataService.showToast({ title: 'Data Exploration', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
+          this.enableQueryButton = true;
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Exploration', message: err, type: ToastEventTypeEnum.ERROR });
-        },
-        complete: () => {
           this.enableQueryButton = true;
-        }
+        },
       });
   }
 
@@ -127,34 +143,27 @@ export class DataExplorerComponent implements OnDestroy {
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
-    this.observationFilter.page = this.pageInputDefinition.page;
-    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findProcessed(this.observationFilter).pipe(
+    this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
 
         const observationsEntries: ObservationEntry[] = data.map(observation => {
-
-          const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
-          if (!stationMetadata) {
-            throw new Error("Developer error: Station not found.");
-          }
-
-          const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
-          if (!elementMetadata) {
-            throw new Error("Developer error: Element not found.");
-          }
-
-          const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
-          if (!sourceMetadata) {
-            throw new Error("Developer error: Source not found.");
-          }
+          const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
+          const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
+          const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const observationView: ObservationEntry = {
             obsDef: new ObservationDefinition(observation,
-              elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
+              elementMetadata,
+              sourceMetadata.allowMissingValue,
+              false,
+              undefined,
+              this.utcOffset,
+              false),
             stationName: stationMetadata.name,
             elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,

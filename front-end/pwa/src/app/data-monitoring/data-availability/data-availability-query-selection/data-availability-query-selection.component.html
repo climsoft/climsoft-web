@@ -10,12 +10,13 @@
             </div>
 
             <div class="col-auto mb-2">
-                <app-element-selector-multiple [label]="'Elements'" [(selectedIds)]="dataAvailabilityFilter.elementIds" />
+                <app-element-selector-multiple [label]="'Elements'"
+                    [(selectedIds)]="dataAvailabilityFilter.elementIds" />
             </div>
 
-            <!-- <div class="col-auto mb-2">
-                    <app-number-input [label]="'Level'" [(numValue)]="level" />
-                </div> -->
+            <div class="col-auto mb-2">
+                <app-number-input [label]="'Level'" [(value)]="level" />
+            </div>
 
             <div class="col-auto mb-2">
                 <app-period-single-input [label]="'Interval'" [(selectedId)]="dataAvailabilityFilter.interval" />
@@ -36,6 +37,10 @@
                     [id]="'availabilityDurationByYears'" [(selectedIds)]="dataAvailabilityFilter.durationYears" />
 
             </div>
+
+             <div class="col-auto mb-2">
+                <app-check-box-input [label]="'Exclude Missing Values'"  [value]="dataAvailabilityFilter.excludeMissingValues" />
+             </div>
 
         </div>
 

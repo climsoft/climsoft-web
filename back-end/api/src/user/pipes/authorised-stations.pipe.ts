@@ -10,8 +10,7 @@ import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dt
 import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 import { UserPermissionDto } from '../dtos/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
-import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
-import { StationStatusDataQueryDto } from 'src/observation/dtos/station-status-data-query.dto';
+import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto'; 
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {

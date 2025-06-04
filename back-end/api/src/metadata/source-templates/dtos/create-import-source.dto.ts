@@ -5,10 +5,7 @@ export class CreateImportSourceDTO implements SourceParametersValidity {
     dataStructureType: DataStructureTypeEnum;
     dataStructureParameters: DataStructureValidity;
 
-    /**
-   * Determines whether to scale the values. 
-   * To be used when data being imported is not scaled
-   */
+    //TODO. Delete this and use the one that is in CreateUpdateSourceDto 
     scaleValues: boolean;
 
     /**
@@ -17,7 +14,7 @@ export class CreateImportSourceDTO implements SourceParametersValidity {
      */
     sourceMissingValueFlags: string;
 
-    isValid(): boolean { 
+    isValid(): boolean {
         return this.dataStructureParameters.isValid();
     }
 }

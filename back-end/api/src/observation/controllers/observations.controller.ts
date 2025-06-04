@@ -17,7 +17,7 @@ import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
-import { FormDataEntryCheckService } from '../services/form-data-entry-check.service';
+import { DataEntryCheckService } from '../services/form-data-entry-check.service';
 
 @Controller('observations')
 export class ObservationsController {
@@ -25,7 +25,7 @@ export class ObservationsController {
     private observationsService: ObservationsService,
     private observationUpload: ObservationImportService,
     private exportObservationsService: ExportObservationsService,
-    private formDataEntryCheckService: FormDataEntryCheckService,
+    private dataEntryCheckService: DataEntryCheckService,
   ) { }
 
   @Get()
@@ -108,7 +108,7 @@ export class ObservationsController {
     const user = AuthUtil.getLoggedInUser(request);
 
     // Validate form data. If any invalid bad request will be thrown
-    await this.formDataEntryCheckService.checkData(observationDtos, user);
+    await this.dataEntryCheckService.checkData(observationDtos, user);
 
     // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id);

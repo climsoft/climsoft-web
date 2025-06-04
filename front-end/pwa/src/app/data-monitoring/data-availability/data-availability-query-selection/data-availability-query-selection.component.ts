@@ -15,6 +15,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
   @Output() public queryClick = new EventEmitter<DataAvailabilityQueryModel>()
 
   protected dataAvailabilityFilter: DataAvailabilityQueryModel;
+  protected level: number | null = 0;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
 
@@ -31,6 +32,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       stationIds: [],
       elementIds: [],
       interval: 0,
+      excludeMissingValues: false,
       durationType: 'days_of_month',
       durationDaysOfMonth: todayDate.toISOString().slice(0, 7),
       durationMonthsOfYear: todayDate.getFullYear(),
@@ -126,6 +128,9 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       return;
     }
 
+      if (this.level !== null) {
+      this.dataAvailabilityFilter.level = this.level;
+    }
 
 
 

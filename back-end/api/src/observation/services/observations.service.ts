@@ -14,8 +14,6 @@ import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
-import { StringUtils } from 'src/shared/utils/string.utils';
-import { DataAvailabilityDetailQueryDto } from '../dtos/data-availability-detail-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
@@ -449,7 +447,7 @@ export class ObservationsService {
         return results;
     }
 
-    
+
 
     public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let extractSQL: string = '';
@@ -464,8 +462,16 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
         }
 
+         if (dataAvailabilityQuery.level !== undefined) {
+            extraSQLCondition = extraSQLCondition + ` level = ${dataAvailabilityQuery.level} AND `;
+        }
+
         if (dataAvailabilityQuery.interval) {
             extraSQLCondition = extraSQLCondition + ` interval = ${dataAvailabilityQuery.interval} AND `;
+        }
+
+        if (dataAvailabilityQuery.excludeMissingValues) {
+            extraSQLCondition = extraSQLCondition + ` value IS NOT NULL AND `;
         }
 
         let year: number;
@@ -478,6 +484,7 @@ export class ObservationsService {
 
         switch (dataAvailabilityQuery.durationType) {
             case 'days_of_month':
+                if (!dataAvailabilityQuery.durationDaysOfMonth) throw new BadRequestException('Duration not povided');
                 const splitYearMonth: string[] = dataAvailabilityQuery.durationDaysOfMonth.split('-');
                 year = Number(splitYearMonth[0]);
                 month = Number(splitYearMonth[1]);
@@ -506,12 +513,14 @@ export class ObservationsService {
                 // groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
                 break;
             case 'months_of_year':
+                if (!dataAvailabilityQuery.durationMonthsOfYear) throw new BadRequestException('Duration not povided');
+                year = dataAvailabilityQuery.durationMonthsOfYear;
                 startDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationMonthsOfYear}-01-01T00:00:00Z`, utcOffset, 'subtract'
+                    `${year}-01-01T00:00:00Z`, utcOffset, 'subtract'
                 ).replace('T', ' ').replace('Z', '');
 
                 endDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationMonthsOfYear}-12-31T23:59:00Z`, utcOffset, 'subtract'
+                    `${year}-12-31T23:59:00Z`, utcOffset, 'subtract'
                 ).replace('T', ' ').replace('Z', '');
 
                 extractSQL = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
@@ -519,9 +528,11 @@ export class ObservationsService {
                 groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
                 break;
             case 'years':
+                if (!dataAvailabilityQuery.durationYears) throw new BadRequestException('Duration not povided');
+                const years: number[] = dataAvailabilityQuery.durationYears;
                 extractSQL = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 extraSQLCondition = extraSQLCondition + ` 
-                  EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) IN (${dataAvailabilityQuery.durationYears.join(',')}) AND `;
+                  EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) IN (${years.join(',')}) AND `;
                 groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
                 break;
             default:
@@ -543,129 +554,6 @@ export class ObservationsService {
             return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
         });
     }
-
-    public async findDataAvailabilityDetail(dataAvailabilityQuery: DataAvailabilityDetailQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-
-        let extraSQLCondition: string = '';
-
-        extraSQLCondition = ` AND station_id = '${dataAvailabilityQuery.stationId}'`;
-
-        if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
-            extraSQLCondition = extraSQLCondition + ` AND element_id IN (${dataAvailabilityQuery.elementIds.join(',')})`;
-        }
-
-        if (dataAvailabilityQuery.interval) {
-            extraSQLCondition = extraSQLCondition + ` AND interval = ${dataAvailabilityQuery.interval}`;
-        }
-
-        let year: number;
-        let month: number;
-        let startDate: string;
-        let endDate: string;
-
-        const displaTimeZone: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
-        const strTimeZone: string = `'UTC+${displaTimeZone}'`;
-
-        extraSQLCondition = extraSQLCondition + ` 
-                AND (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone}) >= TIMESTAMP '${dataAvailabilityQuery.fromDate}' 
-                AND (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone}) < TIMESTAMP '${dataAvailabilityQuery.toDate}'`;
-
-        // console.log('sql: ', `
-        //     SELECT station_id, COUNT(*) AS record_count, ${extractSQL} FROM observations 
-        //     WHERE deleted = FALSE  ${extraSQLCondition} ${groupAndOrderBySQL};
-        //     `)
-
-        const results = await this.dataSource.manager.query(
-            `
-            SELECT o.element_id AS "elementId", 
-            o."level" AS "level", 
-            (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone}) AS "datetime", 
-            o."interval" AS "interval",
-            o.source_id AS "sourceId", 
-            o.value AS "value", o.flag AS "flag" 
-            FROM observations o 
-            FROM observations 
-            WHERE deleted = FALSE  ${extraSQLCondition} ORDER BY o.element_id, o.date_time;
-            `);
-
-        //console.log('results: ', results)
-
-        return results.map((item: { elementId: number; level: number; datetime: string; interval: number, sourceId: number, value: number | null, flag: string | null }) => {
-            return {
-                elementId: item.elementId,
-                level: item.level,
-                datetime: item.datetime,
-                interval: item.interval,
-                sourceId: item.sourceId,
-                value: item.value,
-                flag: item.flag
-            };
-        });
-    }
-
-
-    //OLD
-
-
-    // public async findDataAvailabilityDetail1(dataAvailabilityQuery: DataAvailabilityDetailQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-
-    //     let extraSQLCondition: string = '';
-    //     let groupAndOrderBySQL: string = '';
-
-    //     extraSQLCondition = ` AND station_id = ${dataAvailabilityQuery.stationId}`;
-    //     extraSQLCondition = extraSQLCondition + ` AND element_id = ${dataAvailabilityQuery.elementId}`;
-    //     extraSQLCondition = extraSQLCondition + ` AND interval = ${dataAvailabilityQuery.interval}`;
-
-    //     let year: number;
-    //     let month: number;
-    //     let startDate: string;
-    //     let endDate: string;
-
-    //     switch (dataAvailabilityQuery.durationType) {
-    //         case 'days_of_month':
-    //             //Group by Day of Month e.g `SELECT station_id, COUNT(*) AS record_count, EXTRACT(DAY FROM date_time) AS day_of_month FROM observations WHERE element_id = 1001 AND interval = 1440 AND date_time >= DATE '2025-01-01' AND date_time < DATE '2025-02-01' GROUP BY station_id, day_of_month ORDER BY station_id, day_of_month;`
-
-    //             const splitYearMonth: string[] = dataAvailabilityQuery.durationDaysOfMonth.split('-');
-    //             year = Number(splitYearMonth[0]);
-    //             month = Number(splitYearMonth[1]);
-    //             if (month >= 12) {
-    //                 year = year + 1;
-    //                 month = 1;
-    //             } else {
-    //                 month = month + 1;
-    //             }
-    //             startDate = `${dataAvailabilityQuery.durationDayOfMonth}-01`;
-    //             endDate = `${year}-${StringUtils.addLeadingZero(month)}-01`;
-    //             extraSQLCondition = extraSQLCondition + ` AND date_time >= '${dataAvailabilityQuery.durationDayOfMonth}`;
-    //             break;
-    //         case 'months_of_year':
-    //             year = dataAvailabilityQuery.durationMonthsOfYear;
-    //             startDate = `${year}-01-01`;
-    //             endDate = `${year + 1}-01-01`;
-    //             extraSQLCondition = extraSQLCondition + ` AND date_time >= DATE '${startDate}' AND date_time < DATE '${endDate}'`;
-    //             break;
-    //         case 'years':
-    //             extraSQLCondition = extraSQLCondition + ` AND EXTRACT(YEAR FROM date_time) IN (${dataAvailabilityQuery.durationYears.join(',')})  `;
-    //             break;
-    //         default:
-    //             break;
-    //     }
-
-
-    //     const results = await this.dataSource.manager.query(
-    //         `
-    //         SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
-    //         FROM observations o 
-    //         WHERE o.deleted = FALSE AND o.station_id = '${dataAvailabilityQuery.stat}' AND o.date_time >= NOW() - INTERVAL '${duration} ${durationType}' ${extraSQLCondition}
-    //         ORDER BY o.element_id, o.date_time;
-    //         `);
-
-    //     //console.log('results: ', results)
-
-    //     return results.map((item: { station_id: string; record_count: number; extracted_date_value: number; }) => {
-    //         return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
-    //     });
-    // }
 
 
 }
