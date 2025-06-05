@@ -46,7 +46,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
 
-  private queryFilter!: ViewObservationQueryModel;
+  protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
@@ -97,7 +97,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       if (level) this.queryFilter.level = parseInt(level, 10);
       if (fromDate) this.queryFilter.fromDate = fromDate;
       if (toDate) this.queryFilter.toDate = toDate;
-
+      
       this.queryData();
 
     });

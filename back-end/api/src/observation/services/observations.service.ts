@@ -18,6 +18,7 @@ import { GeneralSettingsService } from 'src/settings/services/general-settings.s
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
+import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -403,7 +404,7 @@ export class ObservationsService {
         return succesfulChanges;
     }
 
-    public async findStationsObservationStatus(stationStatusQuery: StationStatusQueryDto): Promise<string[]> {
+    public async findStationsStatus(stationStatusQuery: StationStatusQueryDto): Promise<string[]> {
         const durationType: 'HOURS' | 'DAYS' = stationStatusQuery.durationType === 'hours' ? 'HOURS' : 'DAYS';
         const duration: number = stationStatusQuery.duration;
         let extraSQLCondition: string = '';
@@ -425,7 +426,7 @@ export class ObservationsService {
         return results.map((item: { station_id: any; }) => item.station_id);
     }
 
-    public async findStationsObservationStatusData(stationId: string, stationStatusQuery: StationStatusDataQueryDto): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
+    public async findStationsStatusData(stationId: string, stationStatusQuery: StationStatusDataQueryDto): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
         const durationType: 'HOURS' | 'DAYS' = stationStatusQuery.durationType === 'hours' ? 'HOURS' : 'DAYS';
         const duration: number = stationStatusQuery.duration;
 
@@ -447,8 +448,6 @@ export class ObservationsService {
         return results;
     }
 
-
-
     public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let extractSQL: string = '';
         let extraSQLCondition: string = '';
@@ -462,7 +461,7 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
         }
 
-         if (dataAvailabilityQuery.level !== undefined) {
+        if (dataAvailabilityQuery.level !== undefined) {
             extraSQLCondition = extraSQLCondition + ` level = ${dataAvailabilityQuery.level} AND `;
         }
 
@@ -555,5 +554,49 @@ export class ObservationsService {
         });
     }
 
+    public async findDataFlow(queryDto: DataFlowQueryDto): Promise<ViewObservationDto[]> {
+        //TODO. Later find a way of doing this at the DTO level
+        if (queryDto.fromDate && queryDto.toDate) {
+            if (this.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
+                throw new BadRequestException('Date range exceeds 10 years');
+            }
+        } else {
+            throw new BadRequestException('Date range required');
+        }
+
+        const obsEntities = await this.observationRepo.findBy({
+            stationId: queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds),
+            elementId: queryDto.elementId,
+            level: queryDto.level,
+            interval: queryDto.interval,
+            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
+            deleted: false,
+        });
+
+        const obsView: ViewObservationDto[] = [];
+        for (const obsEntity of obsEntities) {
+            const viewObs: ViewObservationDto = {
+                stationId: obsEntity.stationId,
+                elementId: obsEntity.elementId,
+                sourceId: obsEntity.sourceId,
+                level: obsEntity.level,
+                interval: obsEntity.interval,
+                datetime: obsEntity.datetime.toISOString(),
+                value: obsEntity.value,
+                flag: obsEntity.flag,
+                comment: obsEntity.comment,
+                entryDatetime: obsEntity.entryDateTime.toISOString()
+            };
+            obsView.push(viewObs);
+        }
+
+        return obsView;
+    }
+
+    private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
+        const tenYearsLater = new Date(fromDate);
+        tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
+        return toDate > tenYearsLater;
+    }
 
 }

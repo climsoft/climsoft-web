@@ -1,8 +1,8 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { BehaviorSubject, concat, from, Observable, of, throwError } from 'rxjs';
-import { catchError, map, switchMap, take, tap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, from, Observable, of, throwError } from 'rxjs';
+import { catchError, switchMap, take, tap } from 'rxjs/operators';
 import { ViewObservationQueryModel } from '../models/view-observation-query.model';
 import { ViewObservationModel } from '../models/view-observation.model';
 import { CreateObservationModel } from '../models/create-observation.model';
@@ -17,7 +17,8 @@ import { LastStationActivityObservation } from '../models/last-station-activity-
 import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
 import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
 import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
-import { DataAvailabilityStatusModel } from '../models/data-availability-status.model';
+import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary.model';
+import { DataFlowQueryModel } from '../models/data-flow-query.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -30,9 +31,9 @@ export interface CachedObservationModel extends CreateObservationModel {
 export class ObservationsService {
   private endPointUrl: string;
   private isSyncing: boolean = false;
-  private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0); 
+  private readonly _unsyncedObservations: BehaviorSubject<number> = new BehaviorSubject<number>(0);
   constructor(
-    private appConfigService: AppConfigService, 
+    private appConfigService: AppConfigService,
     private http: HttpClient) {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
@@ -179,7 +180,7 @@ export class ObservationsService {
    * @param observations 
    * @returns 
    */
-  public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<{ message: string }> { 
+  public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       tap({
         next: (response: any) => {
@@ -312,10 +313,20 @@ export class ObservationsService {
       );
   }
 
-  public findDataAvailabilityStatus(query: DataAvailabilityQueryModel): Observable<DataAvailabilityStatusModel[]> {
-    return this.http.get<DataAvailabilityStatusModel[]>(
-      `${this.endPointUrl}/data-availability-status`,
+  public findDataAvailabilitySummary(query: DataAvailabilityQueryModel): Observable<DataAvailabilitySummaryQueryModel[]> {
+    return this.http.get<DataAvailabilitySummaryQueryModel[]>(
+      `${this.endPointUrl}/data-availability-summary`,
       { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
+    )
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  public findDataFlow(query: DataFlowQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(
+      `${this.endPointUrl}/data-flow`,
+      { params: StringUtils.getQueryParams<DataFlowQueryModel>(query) }
     )
       .pipe(
         catchError(this.handleError)

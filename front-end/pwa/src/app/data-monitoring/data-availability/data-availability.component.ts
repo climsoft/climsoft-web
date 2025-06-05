@@ -80,7 +80,7 @@ export class DataAvailabilityComponent implements OnDestroy {
     this.enableQueryButton = false;
     this.dataAvailabilityFilter = newDataAvailabilityFilter;
 
-    this.observationService.findDataAvailabilityStatus(this.dataAvailabilityFilter).pipe(
+    this.observationService.findDataAvailabilitySummary(this.dataAvailabilityFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
@@ -185,7 +185,7 @@ export class DataAvailabilityComponent implements OnDestroy {
       },
       grid: {
         height: '80%',
-        top: 4,
+        top: 50,
         left: 200,
         right: 70
       },
@@ -208,24 +208,33 @@ export class DataAvailabilityComponent implements OnDestroy {
         }
       },
       dataZoom: [
+          {
+          type: 'slider',
+          xAxisIndex: 0,
+          orient: 'horizontal',
+          bottom: 15,     // Push it below visualMap if needed
+          height: 30,
+          left: 200,     // Align with the grid.left so it doesn't overlap Y labels
+          right: 50,     // Match grid.right to avoid overlap with Y zoom
+        },
+        {
+          type: 'inside',
+          xAxisIndex: 0
+        },
         {
           type: 'slider',
           yAxisIndex: 0,       // Targets Y-axis
           orient: 'vertical',  // Makes it vertical (important!)
           right: 10,            // Places it to the right of the chart
-          top: 4,             // Distance from top 
+          top: 50,             // Distance from top 
           width: 30,           // Width of the zoom bar 
           height: '80%'
         },
+        ,
         {
-          type: 'slider',
-          xAxisIndex: 0,
-          orient: 'horizontal',
-          bottom: 60,     // Push it below visualMap if needed
-          height: 30,
-          left: 200,     // Align with the grid.left so it doesn't overlap Y labels
-          right: 50,     // Match grid.right to avoid overlap with Y zoom
-        }
+          type: 'inside',
+          yAxisIndex: 0
+        }      
       ],
       visualMap: {
         min: 0,
@@ -233,7 +242,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         calculable: true,
         orient: 'horizontal',
         left: 'center',
-        bottom: 0
+        top: 0,
       },
       series: [
         {

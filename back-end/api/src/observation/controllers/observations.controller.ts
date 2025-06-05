@@ -18,6 +18,7 @@ import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
 import { DataEntryCheckService } from '../services/form-data-entry-check.service';
+import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -65,20 +66,26 @@ export class ObservationsController {
 
   @Get('stations-observation-status')
   getStationsObservationStatus(@Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusQueryDto) { // TODO. Create dto query to make the necessary filter
-    return this.observationsService.findStationsObservationStatus(stationStatusQuery);
+    return this.observationsService.findStationsStatus(stationStatusQuery);
   }
 
   @Get('stations-observation-status/:stationid')
   getStationObservationsLast24HoursRecords(
     @Param('stationid', AuthorisedStationsPipe) stationId: string,
     @Query() stationStatusQuery: StationStatusDataQueryDto) {
-    return this.observationsService.findStationsObservationStatusData(stationId, stationStatusQuery);
+    return this.observationsService.findStationsStatusData(stationId, stationStatusQuery);
   }
 
-  @Get('data-availability-status')
-  getDataAvailabilityStatus(
+  @Get('data-availability-summary')
+  getDataAvailabilitySummary(
     @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
     return this.observationsService.findDataAvailabilitySummary(query);
+  }
+
+  @Get('data-flow')
+  getDataFlow(
+    @Query(AuthorisedStationsPipe) query: DataFlowQueryDto) {
+    return this.observationsService.findDataFlow(query);
   }
 
   @Get('generate-export/:templateid')
