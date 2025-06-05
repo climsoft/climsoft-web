@@ -47,9 +47,11 @@ export class StationsCacheService {
     private endPointUrl: string;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkingForUpdates: boolean = false;
+
     constructor(
         private appConfigService: AppConfigService,
-        private metadataUpdatesService: MetadataUpdatesService, 
+        private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/stations`;
         this.loadStations();
@@ -61,7 +63,7 @@ export class StationsCacheService {
         const organisations: ViewOrganisationModel[] = await AppDatabase.instance.organisations.toArray();
         const newCachedStations: StationCacheModel[] = [];
 
-        console.log('fetching stations from local db and putting into memory');
+        //console.log('fetching stations from local db and putting into memory');
 
         const localDBStations: CreateStationModel[] = await AppDatabase.instance.stations.toArray();
         for (const station of localDBStations) {
@@ -95,25 +97,37 @@ export class StationsCacheService {
                     comment: station.comment ? station.comment : '',
                 });
         }
-        console.log('stations in memory updated');
         this._cachedStations.next(newCachedStations);
     }
 
+
     public checkForUpdates(): void {
+        // If still checking for updates just return
+        if (this.checkingForUpdates) return;
+
         console.log('checking stations updates');
         // Observable to initiate metadata updates sequentially
+        this.checkingForUpdates = true;
         this.checkUpdatesSubscription.unsubscribe();
         this.checkUpdatesSubscription = of(null).pipe(
             concatMap(() => this.metadataUpdatesService.checkUpdates('organisations')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsEnv')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stationObsFocus')),
             concatMap(() => this.metadataUpdatesService.checkUpdates('stations')),
-        ).subscribe(res => {
-            console.log('stations-cache response', res);
-            if (res) {
-                this.loadStations();
+        ).subscribe({
+            next: res => {
+                console.log('stations-cache response', res);
+                this.checkingForUpdates = false;
+                if (res) {
+                    this.loadStations();
+                }
+            }            ,
+            error: err => {
+                this.checkingForUpdates = false;
             }
-        });
+        }
+
+        );
     }
 
     public get cachedStations(): Observable<StationCacheModel[]> {

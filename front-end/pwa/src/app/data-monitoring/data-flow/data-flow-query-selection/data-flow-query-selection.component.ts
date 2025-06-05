@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'; 
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
@@ -9,6 +8,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
+import { DataFlowQueryModel } from 'src/app/data-ingestion/models/data-flow-query.model';
 
 @Component({
   selector: 'app-data-flow-query-selection',
@@ -17,7 +17,7 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 })
 export class DataFlowQuerySelectionComponent implements OnDestroy {
   @Input() public enableQueryButton: boolean = true;
-  @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
+  @Output() public queryClick = new EventEmitter<DataFlowQueryModel>()
 
   protected dateRange: DateRange;
   protected stationIds: string[] = [];
@@ -85,67 +85,76 @@ export class DataFlowQuerySelectionComponent implements OnDestroy {
   }
 
   protected onQueryClick(): void {
-    const observationFilter: ViewObservationQueryModel = { deleted: false };;
+
 
     // Get the data based on the selection filter
 
-    if (this.stationIds.length > 0) {
-      observationFilter.stationIds = this.stationIds;
-    } else {
+    if (this.stationIds.length < 1) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'Station selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    if (this.elementId > 0) {
-      observationFilter.elementIds = [this.elementId];
-    } else {
+    if (this.elementId < 1) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'Element selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    if (this.interval > 0) {
-      observationFilter.intervals = [this.interval];
-    } else {
+    if (this.interval < 1) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    observationFilter.level = this.level;
+    if (this.level === undefined) {
+      this.pagesDataService.showToast({ title: 'Data Flow', message: 'Level selection required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
 
-
-    if (this.dateRange.fromDate) {
-      observationFilter.fromDate = `${this.dateRange.fromDate}T00:00:00Z`;
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
-    } else {
+    if (!this.dateRange.fromDate) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'From date selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    if (this.dateRange.toDate) {
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
-    } else {
+    if (!this.dateRange.toDate) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'To date selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     // Check maximum of 1 year
 
-    if (this.isMoreThanOneCalendarYear(new Date(this.dateRange.fromDate), new Date(this.dateRange.toDate))) {
-      this.pagesDataService.showToast({ title: 'Data Flow', message: 'Date range exceeds 1 year', type: ToastEventTypeEnum.ERROR });
+    // if (this.isMoreThanOneCalendarYear(new Date(this.dateRange.fromDate), new Date(this.dateRange.toDate))) {
+    //   this.pagesDataService.showToast({ title: 'Data Flow', message: 'Date range exceeds 1 year', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
+
+    if (this.isMoreThanTenCalendarYears(new Date(this.dateRange.fromDate), new Date(this.dateRange.toDate))) {
+      this.pagesDataService.showToast({ title: 'Data Flow', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    this.queryClick.emit(observationFilter);
+    const query: DataFlowQueryModel = {
+      stationIds: this.stationIds,
+      elementId: this.elementId,
+      level: this.level,
+      interval: this.interval,
+      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+      fromDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract'),
+      toDate: DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract'),
+    };
+
+    this.queryClick.emit(query);
   }
 
   private isMoreThanOneCalendarYear(fromDate: Date, toDate: Date): boolean {
     const oneYearLater = new Date(fromDate);
     oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
     return toDate > oneYearLater;
+  }
+
+  private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
+    const tenYearsLater = new Date(fromDate);
+    tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
+    return toDate > tenYearsLater;
   }
 
 

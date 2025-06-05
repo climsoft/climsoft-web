@@ -71,9 +71,9 @@ export class DateUtils {
         return Number(sqlDate.substring(11, 13));
     }
 
-    public static getDatetimesBasedOnUTCOffset(strDate: string, utcOffset: number, operation: 'subtract' | 'add'): string {
-        if (utcOffset === 0) return strDate;
-        const newDate: Date = new Date(strDate);
+    public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {
+        if (utcOffset === 0) return strDateTimeInJavaScriptIso;
+        const newDate: Date = new Date(strDateTimeInJavaScriptIso);
         if (operation === 'subtract') {
             newDate.setHours(newDate.getHours() - utcOffset);
         } else {
@@ -81,6 +81,18 @@ export class DateUtils {
         }
         return newDate.toISOString();
     }
+
+    public static getHourBasedOnUTCOffset(hour: number, utcOffset: number, operation: 'subtract' | 'add'): number {
+        if (utcOffset === 0) return hour;
+
+        // Important wrap negative adjusted hours to positive before wrapping the hoour to 24 hour range
+        if (operation === 'subtract') {
+            return ((hour - utcOffset) + 24) % 24;
+        } else {
+            return ((hour + utcOffset) + 24) % 24;
+        }
+    }
+
 
     /**
   * returns the date part only as string.
@@ -92,6 +104,8 @@ export class DateUtils {
         // Note, don't use toISO here because the user sees the date in the local timezone
         return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
     }
+
+
 
 }
 

@@ -15,6 +15,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
   @Output() public queryClick = new EventEmitter<DataAvailabilityQueryModel>()
 
   protected dataAvailabilityFilter: DataAvailabilityQueryModel;
+  protected level: number | null = 0;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
 
@@ -29,8 +30,9 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
 
     this.dataAvailabilityFilter = {
       stationIds: [],
-      elementId: 0,
+      elementIds: [],
       interval: 0,
+      excludeMissingValues: false,
       durationType: 'days_of_month',
       durationDaysOfMonth: todayDate.toISOString().slice(0, 7),
       durationMonthsOfYear: todayDate.getFullYear(),
@@ -96,15 +98,15 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       return;
     }
 
-    if (this.dataAvailabilityFilter.elementId <= 0) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Element selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
+    // if (this.dataAvailabilityFilter.elementIds.length <= 0) {
+    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Element selection required', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
 
-    if (this.dataAvailabilityFilter.interval <= 0) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
+    // if (this.dataAvailabilityFilter.interval <= 0) {
+    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Interval selection required', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
 
     if (!this.dataAvailabilityFilter.durationType) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'Duration Type selection required', type: ToastEventTypeEnum.ERROR });
@@ -126,6 +128,9 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       return;
     }
 
+      if (this.level !== null) {
+      this.dataAvailabilityFilter.level = this.level;
+    }
 
 
 

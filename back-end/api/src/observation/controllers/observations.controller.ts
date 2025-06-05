@@ -17,7 +17,8 @@ import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
-import { FormDataEntryCheckService } from '../services/form-data-entry-check.service';
+import { DataEntryCheckService } from '../services/form-data-entry-check.service';
+import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -25,7 +26,7 @@ export class ObservationsController {
     private observationsService: ObservationsService,
     private observationUpload: ObservationImportService,
     private exportObservationsService: ExportObservationsService,
-    private formDataEntryCheckService: FormDataEntryCheckService,
+    private dataEntryCheckService: DataEntryCheckService,
   ) { }
 
   @Get()
@@ -65,20 +66,26 @@ export class ObservationsController {
 
   @Get('stations-observation-status')
   getStationsObservationStatus(@Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusQueryDto) { // TODO. Create dto query to make the necessary filter
-    return this.observationsService.findStationsObservationStatus(stationStatusQuery);
+    return this.observationsService.findStationsStatus(stationStatusQuery);
   }
 
   @Get('stations-observation-status/:stationid')
   getStationObservationsLast24HoursRecords(
     @Param('stationid', AuthorisedStationsPipe) stationId: string,
     @Query() stationStatusQuery: StationStatusDataQueryDto) {
-    return this.observationsService.findStationsObservationStatusData(stationId, stationStatusQuery);
+    return this.observationsService.findStationsStatusData(stationId, stationStatusQuery);
   }
 
-  @Get('data-availability-status')
-  getDataAvailabilityStatus(
+  @Get('data-availability-summary')
+  getDataAvailabilitySummary(
     @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
     return this.observationsService.findDataAvailabilitySummary(query);
+  }
+
+  @Get('data-flow')
+  getDataFlow(
+    @Query(AuthorisedStationsPipe) query: DataFlowQueryDto) {
+    return this.observationsService.findDataFlow(query);
   }
 
   @Get('generate-export/:templateid')
@@ -108,7 +115,7 @@ export class ObservationsController {
     const user = AuthUtil.getLoggedInUser(request);
 
     // Validate form data. If any invalid bad request will be thrown
-    await this.formDataEntryCheckService.checkData(observationDtos, user);
+    await this.dataEntryCheckService.checkData(observationDtos, user);
 
     // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id);

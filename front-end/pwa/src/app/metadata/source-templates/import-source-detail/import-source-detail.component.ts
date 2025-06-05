@@ -5,7 +5,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ActivatedRoute } from '@angular/router';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
-import { take } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { CreateUpdateSourceModel } from 'src/app/metadata/source-templates/models/create-update-source.model';
 import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-templates/models/create-import-source.model';
@@ -21,6 +21,8 @@ export class ImportSourceDetailComponent implements OnInit {
   protected viewSource!: ViewSourceModel;
   protected errorMessage: string = '';
 
+  private destroy$ = new Subject<void>();
+
   constructor(
     private pagesDataService: PagesDataService,
     private importSourcesService: SourceTemplatesCacheService,
@@ -30,14 +32,16 @@ export class ImportSourceDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
+    console.log('source id', sourceId)
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
       this.pagesDataService.setPageHeader('Edit Import Template');
 
       // Todo. handle errors where the source is not found for the given id
       this.importSourcesService.findOne(+sourceId).pipe(
-        take(1)
+        takeUntil(this.destroy$),
       ).subscribe((data) => {
+        console.log('source id', sourceId, 'data', data);
         if (data) {
           this.viewSource = data;
         }
@@ -90,6 +94,11 @@ export class ImportSourceDetailComponent implements OnInit {
       };
 
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected get importSource(): CreateImportSourceModel {

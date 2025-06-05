@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -13,6 +13,9 @@ import { GeneralSettingsService } from 'src/app/admin/general-settings/services/
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { HttpErrorResponse } from '@angular/common/http';
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { ActivatedRoute } from '@angular/router';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -32,7 +35,7 @@ interface ObservationEntry {
   templateUrl: './data-correction.component.html',
   styleUrls: ['./data-correction.component.scss']
 })
-export class DataCorrectionComponent implements OnDestroy {
+export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -43,7 +46,8 @@ export class DataCorrectionComponent implements OnDestroy {
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
 
-  private observationFilter!: ViewObservationQueryModel
+  protected queryFilter!: ViewObservationQueryModel;
+  private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -52,14 +56,50 @@ export class DataCorrectionComponent implements OnDestroy {
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
+    private route: ActivatedRoute,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+    // Set default dates to yesterday
+    const toDate: Date = new Date();
+    const fromDate: Date = new Date();
+    fromDate.setDate(toDate.getDate() - 1);
+    this.queryFilter = { deleted: false, fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) }
+
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((data) => {
+    ).subscribe(data => {
+      this.allMetadataLoaded = data;
+      this.queryData();
+    });
+
+    // Get the climsoft time zone display setting
+    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
       this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+      this.queryData();
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const stationIds: string[] = params.getAll('stationIds');
+      const elementIds: string[] = params.getAll('elementIds');
+      const intervals: string[] = params.getAll('intervals');
+      const level: string | null = params.get('level');
+      const fromDate: string | null = params.get('fromDate');
+      const toDate: string | null = params.get('toDate');
+
+      if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
+      if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
+      if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
+      if (level) this.queryFilter.level = parseInt(level, 10);
+      if (fromDate) this.queryFilter.fromDate = fromDate;
+      if (toDate) this.queryFilter.toDate = toDate;
+      
+      this.queryData();
+
     });
   }
 
@@ -74,15 +114,22 @@ export class DataCorrectionComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter;
+    this.queryFilter = observationFilter;
     this.queryData();
   }
 
   private queryData(): void {
+    if (!(this.allMetadataLoaded && this.utcOffset !== undefined)) {
+      return;
+    }
+
+    console.log('querying data...');
+    console.log('metadata: ', this.allMetadataLoaded)
+
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.countCorrectionData(this.observationFilter).pipe(take(1)).subscribe(
+    this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.pageInputDefinition.setTotalRowCount(count);
@@ -92,16 +139,14 @@ export class DataCorrectionComponent implements OnDestroy {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
             this.enableSave = false;
           }
+          this.enableQueryButton = true;
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
-        },
-        complete: () => {
           this.enableQueryButton = true;
-        }
+        },
       });
   }
-
 
   protected loadData(): void {
     this.enableQueryButton = false;
@@ -109,10 +154,10 @@ export class DataCorrectionComponent implements OnDestroy {
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
-    this.observationFilter.page = this.pageInputDefinition.page;
-    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.observationFilter).pipe(
+    this.observationService.findCorrectionData(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
@@ -123,9 +168,12 @@ export class DataCorrectionComponent implements OnDestroy {
 
           const entry: ObservationEntry = {
             obsDef: new ObservationDefinition(observation,
-              elementMetadata, sourceMetadata.allowMissingValue,
-              false, undefined,
-              this.utcOffset, false),
+              elementMetadata,
+              sourceMetadata.allowMissingValue,
+              false,
+              undefined,
+              this.utcOffset,
+              false),
             newStationId: '',
             newElementId: 0,
             delete: false,
@@ -142,15 +190,13 @@ export class DataCorrectionComponent implements OnDestroy {
 
         this.setRowBoundaryLineSettings(observationsEntries);
         this.observationsEntries = observationsEntries;
-
+        this.enableQueryButton = true;
+        this.enableSave = true;
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
         this.enableQueryButton = true;
-        this.enableSave = true;
-      }
+      },
 
     });
   }
@@ -231,7 +277,7 @@ export class DataCorrectionComponent implements OnDestroy {
 
     this.enableSave = false;
     // Send to server for saving
-    this.observationService.bulkPutDataFromEntryForm(changedObs).subscribe({
+    this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
       next: response => {
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         if (response.message === 'success') {
@@ -248,7 +294,30 @@ export class DataCorrectionComponent implements OnDestroy {
 
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
+
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 0) {
+            // If there is network error then save observations as unsynchronised and no need to send data to server
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
+            });
+          } else if (err.status === 400) {
+            // If there is a bad request error then show the server message
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+            });
+          } else {
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            });
+          }
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
+          });
+        }
       },
       complete: () => {
         this.enableSave = true;

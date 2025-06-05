@@ -1,28 +1,23 @@
-import { AfterViewInit, Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { Subject, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { interval, Subject, take, takeUntil } from 'rxjs';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DateUtils } from 'src/app/shared/utils/date.utils'; 
-
-import * as echarts from 'echarts'; 
-import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { DataFlowQueryModel } from 'src/app/data-ingestion/models/data-flow-query.model';
 
-interface Observation {
-  obsDef: CreateObservationModel;
+interface DataFlowView {
+  stationId: string
   stationName: string;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
+  value: number | null;
+  flag: string | null;
+  datetime: string;
+  //formattedDatetime: string; 
 }
 
 @Component({
@@ -30,23 +25,17 @@ interface Observation {
   templateUrl: './data-flow.component.html',
   styleUrls: ['./data-flow.component.scss']
 })
-export class DataFlowComponent implements AfterViewInit, OnDestroy {
-  private stationsMetadata: StationCacheModel[] = [];
-  private elementsMetadata: ElementCacheModel[] = [];
-  private sourcesMetadata: ViewSourceModel[] = [];
-
+export class DataFlowComponent implements OnDestroy {
+  private query!: DataFlowQueryModel;
+  private stationsMetadata!: StationCacheModel[];
   protected enableQueryButton: boolean = true;
   private utcOffset: number = 0;
-
   private chartInstance!: echarts.ECharts;
-
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private stationsCacheService: StationsCacheService,
-    private elementService: ElementsCacheService,
-    private sourcesService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
   ) {
@@ -58,18 +47,6 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
       this.stationsMetadata = data;
     });
 
-    this.elementService.cachedElements.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.elementsMetadata = data;
-    });
-
-    this.sourcesService.cachedSources.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.sourcesMetadata = data;
-    });
-
     // Get the climsoft time zone display setting
     this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
@@ -78,9 +55,7 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
-    this.chartInstance = echarts.init(document.getElementById('dataFlowMonitoringChart')!);
-  }
+
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -90,86 +65,83 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryClick(query: DataFlowQueryModel): void {
+    this.query = query;
     this.enableQueryButton = false;
-    observationFilter.page = 1
-    observationFilter.pageSize = 1000;
-    this.observationService.findProcessed(observationFilter).pipe(
+    this.observationService.findDataFlow(query).pipe(
       take(1)
     ).subscribe({
       next: data => {
-
-        const observationViews: Observation[] = data.map(observation => {
+        this.enableQueryButton = true;
+        const stationIds: string[] = [];
+        const observationViews: DataFlowView[] = data.map(observation => {
 
           const stationMetadata = this.stationsMetadata.find(item => item.id === observation.stationId);
           if (!stationMetadata) {
             throw new Error("Developer error: Station not found.");
           }
 
-          const elementMetadata = this.elementsMetadata.find(item => item.id === observation.elementId);
-          if (!elementMetadata) {
-            throw new Error("Developer error: Element not found.");
-          }
 
-          const sourceMetadata = this.sourcesMetadata.find(item => item.id === observation.sourceId);
-          if (!sourceMetadata) {
-            throw new Error("Developer error: Source not found.");
-          }
+          if (!stationIds.includes(observation.stationId)) stationIds.push(observation.stationId)
 
-          const obsView: Observation = {
-            obsDef: observation,
+          const obsView: DataFlowView = {
+            stationId: observation.stationId,
             stationName: stationMetadata.name,
-            elementAbbrv: elementMetadata.name,
-            sourceName: sourceMetadata.name,
-            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+            value: observation.value,
+            flag: observation.flag,
+            datetime: observation.datetime,// TODO adjust to display time
           }
           return obsView;
 
         });
 
-        console.log('data flow view: ', observationViews);
+        //console.log('station ids: ', stationIds);
+
         this.generateChart(observationViews);
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Flow', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
       },
-      complete: () => {
-        this.enableQueryButton = true;
-      }
     });
   }
 
-  private generateChart(observations: Observation[]) {
-    if (observations.length == 0) {
+  private generateChart(dataFlowData: DataFlowView[]): void {
+    if (this.chartInstance) {
+      this.chartInstance.dispose();
+    }
+
+    this.chartInstance = echarts.init(document.getElementById('dataFlowMonitoringChart'));
+
+    if (dataFlowData.length == 0) {
       this.pagesDataService.showToast({ title: 'Data Flow', message: 'No data', type: ToastEventTypeEnum.INFO });
-      this.chartInstance.setOption({});
       return;
     };
 
-    const intervalMinutes = observations[0].obsDef.interval;
-    const intervalMs = intervalMinutes * 60 * 1000;
-
     // Step 1: Group observations by station
-    const stationGroups = new Map<string, Observation[]>();
-    for (const obs of observations) {
-      if (!stationGroups.has(obs.obsDef.stationId)) {
-        stationGroups.set(obs.obsDef.stationId, []);
+    const stationGroups = new Map<string, DataFlowView[]>();
+    for (const obs of dataFlowData) {
+      const group: DataFlowView[] | undefined = stationGroups.get(obs.stationId);
+      if (group) {
+        group.push(obs);
+      } else {
+        stationGroups.set(obs.stationId, [obs]);
       }
-      stationGroups.get(obs.obsDef.stationId)!.push(obs);
     }
 
     // Step 2: Get global time range
-    const allTimestamps = observations.map(o => new Date(o.obsDef.datetime).getTime());
-    const start = Math.min(...allTimestamps);
-    const end = Math.max(...allTimestamps);
+    const allTimestamps: number[] = dataFlowData.map(o => new Date(o.datetime).getTime());
+    const start: number = Math.min(...allTimestamps);
+    const end: number = Math.max(...allTimestamps);
+    // Interval is always in minutes, so convert to milliseconds
+    const intervalMilliseconds: number = this.query.interval * 60 * 1000;
 
     // Step 3: Create full timeline
     const timeline: number[] = [];
-    for (let t = start; t <= end; t += intervalMs) {
+    for (let t = start; t <= end; t += intervalMilliseconds) {
       timeline.push(t);
     }
+
 
     // Step 4: Prepare series data for each station
     const series = Array.from(stationGroups.entries()).map(([stationId, records]) => {
@@ -177,17 +149,19 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
 
       const valueMap = new Map<number, number | null>();
       for (const r of records) {
-        valueMap.set(new Date(r.obsDef.datetime).getTime(), r.obsDef.value);
+        valueMap.set(new Date(r.datetime).getTime(), r.value);
       }
 
       const data: [number, number | null][] = timeline.map(t => [t, valueMap.get(t) ?? null]);
+      const showSymbols = data.length < 200;  // show symbols for small datasets
 
       return {
         name: name,
         type: 'line',
         data: data,
         connectNulls: false,
-        showSymbol: false,
+        showSymbol: showSymbols,
+        symbolSize: 8,
         smooth: false,
         lineStyle: { width: 2 }
       };
@@ -203,15 +177,16 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
             const value = p.data[1] !== null ? p.data[1] : '<i>Missing</i>';
             return `${p.marker} ${p.seriesName}: ${value}`;
           });
-          const formattedDatetime = DateUtils.getPresentableDatetime(new Date(params[0].data[0]).toISOString(), this.utcOffset);
+          const formattedDatetime = new Date(params[0].data[0]).toISOString().replace('T', ' ').replace('Z', '');
           return `${formattedDatetime}<br/>${lines.join('<br/>')}`;
         }
       },
-      legend: {
-        type: 'scroll',
-        top: 10,
-        //orient: 'vertical',
+      grid: {
+        left: 300,
+        right: 70,
+        bottom: 100
       },
+
       xAxis: {
         type: 'time',
         name: 'Datetime',
@@ -224,16 +199,79 @@ export class DataFlowComponent implements AfterViewInit, OnDestroy {
         nameLocation: 'middle',
         nameGap: 35
       },
-      //dataZoom: [], 
-      series: series,
-      grid: {
-        left: '5%',
-        right: '8%',
-        bottom: '15%'
+      legend: {
+        type: 'scroll',
+        top: 50,
+        orient: 'vertical',
+        left: 10,
+        bottom: 50,
+        formatter: (name: string) => {
+          const maxLineLength = 27; // characters per line
+          const lines = [];
+
+          for (let i = 0; i < name.length; i += maxLineLength) {
+            lines.push(name.substring(i, i + maxLineLength));
+          }
+
+          return lines.join('\n'); // insert line breaks
+        },
+        textStyle: {
+          width: 250, // restrict the width (optional, visual aid)
+          overflow: 'break',
+        }
       }
+      ,
+      dataZoom: [
+        {
+          type: 'slider',
+          show: true,
+          xAxisIndex: 0,
+          bottom: 15,
+          height: 30
+        },
+        {
+          type: 'inside',
+          xAxisIndex: 0
+        },
+        {
+          type: 'slider',
+          yAxisIndex: 0,
+          right: 10,
+          width: 30
+        },
+        {
+          type: 'inside',
+          yAxisIndex: 0
+        }
+      ]
+      ,
+      series: series,
+
     };
 
     this.chartInstance.setOption(chartOptions);
+
+    this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
+    this.chartInstance.on('click', (params: any) => {
+      if (params.componentType === 'series') {
+        const clickedTimestamp = new Date(params.data[0]).toISOString();
+        const clickedValue = params.data[1];
+        const stationSeries = params.seriesName;
+
+        //console.log('Clicked Point: ', { stationSeries, clickedTimestamp, clickedValue  });
+
+        // Example: Show a toast or navigate, filter etc.
+        this.pagesDataService.showToast({
+          title: 'Chart Click',
+          message: `Station: ${stationSeries}\nDatetime: ${clickedTimestamp}\nValue: ${clickedValue}`,
+          type: ToastEventTypeEnum.INFO
+        });
+      }
+
+      console.log(`Clicked params: `, params);
+
+    });
+
 
   }
 

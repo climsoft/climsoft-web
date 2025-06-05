@@ -27,6 +27,7 @@ import { UserSettingEnum } from 'src/app/app-config.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-form-entry',
@@ -411,14 +412,31 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         };
       },
       error: err => {
-        // If there is network error then save observations as unsynchronised and no need to send data to server
-        if (err.status === 0) {
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
+        
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 0) {
+            // If there is network error then save observations as unsynchronised and no need to send data to server
+            this.pagesDataService.showToast({
+              title: 'Data Entry', message: `${savableObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
+            });
+          } else if (err.status === 400) {
+            // If there is a bad request error then show the server message
+            this.pagesDataService.showToast({
+              title: 'Data Entry', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+            });
+          } else {
+            this.pagesDataService.showToast({
+              title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            });
+          }
+        } else {
           this.pagesDataService.showToast({
-            title: 'Data Entry',
-            message: `${savableObservations.length} ${obsMessage} saved locally`,
-            type: ToastEventTypeEnum.WARNING
+            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
           });
         }
+
       }
     }
     );
@@ -489,7 +507,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   private sequenceToNextDate(): void {
     const currentYearValue: number = this.formDefinitions.yearSelectorValue;
     const currentMonthValue: number = this.formDefinitions.monthSelectorValue; // 1-indexed (January = 1)
-    const today = new Date();
+    const today: Date = new Date();
 
     let newYear = currentYearValue;
     let newMonth = currentMonthValue;
@@ -504,6 +522,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           return;
         }
       }
+      // If there was no next hour then set the first hour before moving to the next date
+       this.formDefinitions.hourSelectorValue = this.formDefinitions.formMetadata.hours[0];
     }
 
     if (this.formDefinitions.daySelectorValue) {

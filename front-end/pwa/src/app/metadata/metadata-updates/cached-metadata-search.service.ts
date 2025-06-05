@@ -1,4 +1,4 @@
-import { catchError, map, Observable, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { ElementCacheModel, ElementsCacheService } from "../elements/services/elements-cache.service";
 import { SourceTemplatesCacheService } from "../source-templates/services/source-templates-cache.service";
@@ -13,7 +13,8 @@ export class CachedMetadataSearchService {
     private stationsMetadata: StationCacheModel[] = [];
     private elementsMetadata: ElementCacheModel[] = [];
     private sourcesMetadata: ViewSourceModel[] = [];
-    
+    private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+
     constructor(
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
@@ -21,15 +22,31 @@ export class CachedMetadataSearchService {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
             this.stationsMetadata = data;
+            this.setMetadataLoaded();
         });
 
         this.elementsCacheService.cachedElements.subscribe(data => {
             this.elementsMetadata = data;
+            this.setMetadataLoaded();
         });
 
         this.sourcesCacheService.cachedSources.subscribe(data => {
             this.sourcesMetadata = data;
+            this.setMetadataLoaded();
         });
+    }
+
+    private setMetadataLoaded(): void {
+        if (this.stationsMetadata && this.stationsMetadata.length > 0
+            && this.elementsMetadata && this.elementsMetadata.length > 0
+            && this.sourcesMetadata && this.sourcesMetadata.length > 0) {
+                //console.log('stations in service', this.stationsMetadata)
+            this._allMetadataLoaded.next(true);
+        }
+    }
+
+    public get allMetadataLoaded(): Observable<boolean> {
+        return this._allMetadataLoaded.asObservable();
     }
 
     public getStation(stationId: string): StationCacheModel {

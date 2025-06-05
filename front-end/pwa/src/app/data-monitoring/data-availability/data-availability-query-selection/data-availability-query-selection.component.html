@@ -10,12 +10,13 @@
             </div>
 
             <div class="col-auto mb-2">
-                <app-element-selector-single [label]="'Element'" [(selectedId)]="dataAvailabilityFilter.elementId" />
+                <app-element-selector-multiple [label]="'Elements'"
+                    [(selectedIds)]="dataAvailabilityFilter.elementIds" />
             </div>
 
-            <!-- <div class="col-auto mb-2">
-                    <app-number-input [label]="'Level'" [(numValue)]="level" />
-                </div> -->
+            <div class="col-auto mb-2">
+                <app-number-input [label]="'Level'" [(value)]="level" />
+            </div>
 
             <div class="col-auto mb-2">
                 <app-period-single-input [label]="'Interval'" [(selectedId)]="dataAvailabilityFilter.interval" />
@@ -34,7 +35,11 @@
                     [id]="'availabilityDurationByMonth'" [(selectedId)]="dataAvailabilityFilter.durationMonthsOfYear" />
                 <app-year-selector-multiple *ngIf="dataAvailabilityFilter.durationType === 'years'"
                     [id]="'availabilityDurationByYears'" [(selectedIds)]="dataAvailabilityFilter.durationYears" />
+            </div>
 
+            <div class="col-auto mb-2 d-flex align-items-end">
+                <app-check-box-input [label]="'Exclude Missing Values'"
+                    [(value)]="dataAvailabilityFilter.excludeMissingValues" />
             </div>
 
         </div>

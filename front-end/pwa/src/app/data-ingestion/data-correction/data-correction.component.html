@@ -1,7 +1,7 @@
 <div class="card border-0">
 
     <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
-        [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
+        [enableQueryButton]="enableQueryButton" [query]="queryFilter"  (queryClick)="onQueryClick($event)" />
 
     <div class="card border-0 p-0 mt-2">
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">

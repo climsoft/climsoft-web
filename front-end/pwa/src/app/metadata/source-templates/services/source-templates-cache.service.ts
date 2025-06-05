@@ -14,6 +14,8 @@ export class SourceTemplatesCacheService {
     private endPointUrl: string;
     private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkingForUpdates: boolean = false;
+
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -27,12 +29,22 @@ export class SourceTemplatesCacheService {
     }
 
     private checkForUpdates(): void {
+        // If still checking for updates just return
+        if (this.checkingForUpdates) return;
+
         console.log('checking sources updates');
+        this.checkingForUpdates = true;
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('sourceTemplates').subscribe(res => {
-            console.log('source-cache response', res);
-            if (res) {
-                this.loadSources();
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('sourceTemplates').subscribe({
+            next: res => {
+                console.log('source-cache response', res);
+                this.checkingForUpdates = false;
+                if (res) {
+                    this.loadSources();
+                }
+            },
+            error: err => {
+                this.checkingForUpdates = false;
             }
         });
     }
