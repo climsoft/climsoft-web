@@ -117,7 +117,7 @@ export class DataEntryCheckService {
             // Check for future dates           
             if (new Date(dto.datetime) > todayDate) {
                 // TODO. Follow up on when invalid dates are being bypassed at the front end. 
-                console.log('obs datetime', dto.datetime, 'todayDate: ', todayDate.toISOString());
+                console.log('obs datetime: ', dto.datetime, 'todayDate: ', todayDate.toISOString());
                 throw new BadRequestException('Future dates not allowed');
             }
 
