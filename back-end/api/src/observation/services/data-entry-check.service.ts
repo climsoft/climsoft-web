@@ -71,7 +71,7 @@ export class DataEntryCheckService {
                     sourceType: SourceTypeEnum.IMPORT,
                     settings: source.parameters as CreateImportSourceDTO
                 });
-            }else{
+            } else {
                 throw new Error('Developer error: Source type not recognised')
             }
 
@@ -82,6 +82,7 @@ export class DataEntryCheckService {
         const startTime = new Date().getTime();
         this.logger.log(`checking ${observationDtos.length} observations from user: ${user.id} - ${user.email}`);
         // Validate all observations entered
+        const todayDate: Date = new Date();
         for (const dto of observationDtos) {
             // If user is not system admin then check for data entry permissions
             if (!user.isSystemAdmin) {
@@ -113,11 +114,16 @@ export class DataEntryCheckService {
                 // TODO. Use source params to validate the inut. Use full when doing data correction
             }
 
+            // Check for future dates           
+            if (new Date(dto.datetime) > todayDate) {
+                // TODO. Follow up on when invalid dates are being bypassed at the front end. 
+                console.log('obs datetime: ', dto.datetime, 'todayDate: ', todayDate.toISOString());
+                throw new BadRequestException('Future dates not allowed');
+            }
 
         }
 
         this.logger.log(`observations checks took: ${new Date().getTime() - startTime} milliseconds`);
-
     }
 
 }

@@ -15,7 +15,7 @@ import { ClimsoftWebToV4SyncService } from './services/climsoft-web-to-v4-sync.s
 import { ExportObservationsService } from './services/export-observations.service';
 import { ClimsoftV4WebSyncSetUpService } from './services/climsoft-v4-web-sync-set-up.service'; 
 import { ClimsoftV4ToWebSyncService } from './services/climsoft-v4-to-web-sync.service';
-import { DataEntryCheckService } from './services/form-data-entry-check.service';
+import { DataEntryCheckService } from './services/data-entry-check.service';
 
 @Module({
   imports: [

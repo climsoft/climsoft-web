@@ -276,6 +276,185 @@ export class DataFlowComponent implements OnDestroy {
   }
 
 
+  private generateChartHeatmap(dataFlowData: DataFlowView[]): void {
+    if (this.chartInstance) {
+      this.chartInstance.dispose();
+    }
+
+    this.chartInstance = echarts.init(document.getElementById('dataFlowMonitoringChart'));
+
+    if (dataFlowData.length === 0) {
+      this.pagesDataService.showToast({
+        title: 'Data Flow',
+        message: 'No data',
+        type: ToastEventTypeEnum.INFO
+      });
+      return;
+    }
+
+    // Step 1: Group observations by station
+    const stationGroups = new Map<string, DataFlowView[]>();
+    for (const obs of dataFlowData) {
+      if (!stationGroups.has(obs.stationId)) {
+        stationGroups.set(obs.stationId, []);
+      }
+      stationGroups.get(obs.stationId)?.push(obs);
+    }
+
+    // Step 2: Get global time range
+    const allTimestamps = dataFlowData.map(o => new Date(o.datetime).getTime());
+    const start = Math.min(...allTimestamps);
+    const end = Math.max(...allTimestamps);
+    const intervalMilliseconds = this.query.interval * 60 * 1000;
+
+    // Step 3: Create full timeline
+    const timeline: number[] = [];
+    for (let t = start; t <= end; t += intervalMilliseconds) {
+      timeline.push(t);
+    }
+    const timeLabels = timeline.map(t =>
+      new Date(t).toISOString().slice(0, 16).replace('T', ' ')
+    );
+
+    // Step 4: Prepare station labels
+    const stationIdToLabel = new Map<string, string>();
+    for (const [stationId, records] of stationGroups.entries()) {
+      const stationName = records[0].stationName;
+      stationIdToLabel.set(stationId, `${stationId} - ${stationName}`);
+    }
+    const stationIds = Array.from(stationGroups.keys());
+    const stationLabels = stationIds.map(id => stationIdToLabel.get(id)!);
+
+    // Step 5: Build heatmap data [xIndex, yIndex, value]
+    const heatmapData: [number, number, number | null][] = [];
+
+    stationIds.forEach((stationId, yIndex) => {
+      const records = stationGroups.get(stationId)!;
+      const valueMap = new Map<number, number | null>();
+      records.forEach(r => valueMap.set(new Date(r.datetime).getTime(), r.value));
+
+      timeline.forEach((t, xIndex) => {
+        const value = valueMap.get(t) ?? null;
+        heatmapData.push([xIndex, yIndex, value]);
+      });
+    });
+
+    // Step 6: Create heatmap chart
+    const chartOptions = {
+      tooltip: {
+        position: 'top',
+        formatter: (params: any) => {
+          const time = timeLabels[params.data[0]];
+          const station = stationLabels[params.data[1]];
+          const value = params.data[2] !== null ? params.data[2] : '<i>Missing</i>';
+          return `${station}<br/>${time}: ${value}`;
+        }
+      },
+      grid: {
+        left: 300,
+        right: 50,
+        bottom: 100,
+        top: 60
+      },
+      xAxis: {
+        type: 'category',
+        data: timeLabels,
+        name: 'Datetime',
+        nameLocation: 'middle',
+        nameGap: 25,
+        axisLabel: {
+          rotate: 45,
+          fontSize: 10
+        }
+      },
+      yAxis: {
+        type: 'category',
+        data: stationLabels,
+        name: 'Station',
+        nameLocation: 'middle',
+        nameGap: 50,
+        axisLabel: {
+          fontSize: 10,
+          formatter: (name: string) => {
+            const maxLength = 30;
+            const lines = [];
+            for (let i = 0; i < name.length; i += maxLength) {
+              lines.push(name.substring(i, i + maxLength));
+            }
+            return lines.join('\n');
+          }
+        }
+      },
+      visualMap: {
+        min: 0,
+        max: 100,
+        calculable: true,
+        orient: 'horizontal',
+        left: 'center',
+        bottom: 20,
+        // inRange: {
+        //   color: ['#e0f3f8', '#abd9e9', '#74add1', '#4575b4', '#313695']
+        // },
+        // outOfRange: {
+        //   color: ['#cccccc']  // for missing/null
+        // }
+      },
+      series: [
+        {
+          name: 'Observations',
+          type: 'heatmap',
+          data: heatmapData,
+          label: {
+            show: false
+          },
+          emphasis: {
+            itemStyle: {
+              borderColor: '#333',
+              borderWidth: 1
+            }
+          }
+        }
+      ],
+      dataZoom: [
+        {
+          type: 'slider',
+          xAxisIndex: 0,
+          height: 30,
+          bottom: 40
+        },
+        {
+          type: 'inside',
+          xAxisIndex: 0
+        },
+        {
+          type: 'slider',
+          yAxisIndex: 0,
+          width: 12,
+          right: 10
+        },
+        {
+          type: 'inside',
+          yAxisIndex: 0
+        }
+      ],
+
+    };
+
+    this.chartInstance.setOption(chartOptions);
+
+    this.chartInstance.off('click');
+    this.chartInstance.on('click', (params: any) => {
+      const time = timeLabels[params.data[0]];
+      const station = stationLabels[params.data[1]];
+      const value = params.data[2] !== null ? params.data[2] : 'Missing';
+
+      this.pagesDataService.showToast({
+        title: 'Data Point',
+        message: `Station: ${station}\nDatetime: ${time}\nValue: ${value}`,
+        type: ToastEventTypeEnum.INFO
+      });
+    });
+  }
 
 
 }

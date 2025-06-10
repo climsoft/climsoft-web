@@ -100,18 +100,18 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.STATION_STATUS,
                     url: '/station-status',
                 },
-                {
-                    name: SubMenuNameEnum.DATA_FLOW,
-                    url: '/data-flow',
-                },
-                {
+                 {
                     name: SubMenuNameEnum.DATA_AVAILABILTY,
                     url: '/data-availability',
                 },
-                {
+                 {
                     name: SubMenuNameEnum.DATA_EXPLORER,
                     url: '/data-explorer',
                 },
+                {
+                    name: SubMenuNameEnum.DATA_FLOW,
+                    url: '/data-flow',
+                },     
             ]
         }
     }

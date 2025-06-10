@@ -17,7 +17,7 @@ import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
-import { DataEntryCheckService } from '../services/form-data-entry-check.service';
+import { DataEntryCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 
 @Controller('observations')
