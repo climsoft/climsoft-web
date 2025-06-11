@@ -31,7 +31,7 @@ export class SourceCheckComponent implements OnDestroy {
   protected observationsEntries: SourceCheckViewModel[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-  private observationFilter!: ViewObservationQueryModel;
+  private queryFilter!: ViewObservationQueryModel;
   protected enableQueryButton: boolean = true;
   protected sumOfDuplicates: number = 0;
   protected includeOnlyStationIds: string[] = [];
@@ -65,7 +65,7 @@ export class SourceCheckComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter;
+    this.queryFilter = observationFilter;
     this.queryData();
   }
 
@@ -73,7 +73,7 @@ export class SourceCheckComponent implements OnDestroy {
     this.enableQueryButton = false;
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0)
-    this.sourceCheckService.count(this.observationFilter).pipe(
+    this.sourceCheckService.count(this.queryFilter).pipe(
       take(1))
       .subscribe({
         next: count => {
@@ -81,7 +81,7 @@ export class SourceCheckComponent implements OnDestroy {
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
-            this.sourceCheckService.sum(this.observationFilter).pipe(take(1)).subscribe(sum => {
+            this.sourceCheckService.sum(this.queryFilter).pipe(take(1)).subscribe(sum => {
               this.sumOfDuplicates = sum;
             });
           } else {
@@ -89,11 +89,9 @@ export class SourceCheckComponent implements OnDestroy {
           }
         },
         error: err => {
+          this.enableQueryButton = true;
           this.pagesDataService.showToast({ title: 'Source Check', message: err, type: ToastEventTypeEnum.ERROR });
         },
-        complete: () => {
-          this.enableQueryButton = true;
-        }
       });
 
   }
@@ -102,13 +100,14 @@ export class SourceCheckComponent implements OnDestroy {
     this.enableQueryButton = false;
     this.sumOfDuplicates = 0;
     this.observationsEntries = [];
-    this.observationFilter.page = this.pageInputDefinition.page;
-    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
-    this.sourceCheckService.find(this.observationFilter).pipe(
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.sourceCheckService.find(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
-        this.observationsEntries = data.map(duplicate => { 
+        this.enableQueryButton = true;
+        this.observationsEntries = data.map(duplicate => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(duplicate.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(duplicate.elementId);
 
@@ -124,11 +123,9 @@ export class SourceCheckComponent implements OnDestroy {
         });
       },
       error: err => {
+        this.enableQueryButton = true;
         this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
       },
-      complete: () => {
-        this.enableQueryButton = true;
-      }
     });
   }
 

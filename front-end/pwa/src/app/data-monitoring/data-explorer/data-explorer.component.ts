@@ -51,12 +51,6 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
 
     this.pagesDataService.setPageHeader('Data Explorer');
 
-    // Set default dates to yesterday
-    const toDate: Date = new Date();
-    const fromDate: Date = new Date();
-    fromDate.setDate(toDate.getDate() - 1);
-    this.queryFilter = { deleted: false, fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) }
-
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
@@ -110,7 +104,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
   }
 
   protected queryData(): void {
-    if (!(this.allMetadataLoaded && this.utcOffset !== undefined)) {
+    if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
       return;
     }
 

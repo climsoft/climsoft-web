@@ -24,6 +24,8 @@ export class DateInputComponent implements OnChanges {
   protected disableNextButton: boolean = false;
 
   constructor() {
+     // Always set maximum date to prevent future dates selections by default   
+    this.maxDate = this.getDateString(new Date());
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -31,10 +33,10 @@ export class DateInputComponent implements OnChanges {
       this.setNextButtonDisabledState();
     }
 
-    if (changes['maxDate'] && !this.maxDate) {
+    //if (changes['maxDate'] && !this.maxDate) {
       // Always set maximum date to prevent future dates selections by default   
-      this.maxDate = this.getDateString(new Date());
-    }
+      //this.maxDate = this.getDateString(new Date());
+    //}
   }
 
   protected onValueChange(value: string) {

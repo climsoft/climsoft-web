@@ -60,12 +60,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
 
-    // Set default dates to yesterday
-    const toDate: Date = new Date();
-    const fromDate: Date = new Date();
-    fromDate.setDate(toDate.getDate() - 1);
-    this.queryFilter = { deleted: false, fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) }
-
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
@@ -119,12 +113,11 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   private queryData(): void {
-    if (!(this.allMetadataLoaded && this.utcOffset !== undefined)) {
+    if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
       return;
     }
 
-    console.log('querying data...');
-    console.log('metadata: ', this.allMetadataLoaded)
+    console.log('querying data...'); 
 
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);

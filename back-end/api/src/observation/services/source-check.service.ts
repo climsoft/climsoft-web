@@ -29,7 +29,7 @@ export class SourceCheckService {
             station_id, element_id, level, interval, date_time
           HAVING 
             COUNT(DISTINCT source_id) > 1
-          ORDER BY station_id, element_id, level, interval, date_time DESC
+          ORDER BY station_id, element_id, level, interval, date_time 
           LIMIT ${selectObsevationDto.pageSize} 
           OFFSET ${(selectObsevationDto.page - 1) * selectObsevationDto.pageSize};
         `;
@@ -99,12 +99,12 @@ export class SourceCheckService {
             where = `${where} AND element_id = ${selectObsevationDto.elementIds[0]}`;
         }
 
-        if (selectObsevationDto.intervals) {
-            where = `${where} AND interval = ${selectObsevationDto.intervals}`;
+        if (selectObsevationDto.level !== undefined) {
+            where = `${where} AND level = ${selectObsevationDto.level}`;
         }
 
-        if (selectObsevationDto.level !== undefined) {
-            where = `${where} AND elevation = ${selectObsevationDto.level}`;
+        if (selectObsevationDto.intervals) {
+            where = `${where} AND interval = ${selectObsevationDto.intervals}`;
         }
 
         const dateOperator: string | null = this.getProcessedObsDateFilter(selectObsevationDto);
