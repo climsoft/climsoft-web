@@ -10,6 +10,9 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { Router } from '@angular/router';
+import { AppAuthService } from 'src/app/app-auth.service';
+import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 
 export interface SourceCheckViewModel extends DuplicateModel {
   stationName: string;
@@ -28,24 +31,37 @@ export class SourceCheckComponent implements OnDestroy {
   protected totalRecords: number = 0;
 
 
-  protected observationsEntries: SourceCheckViewModel[] = [];
+  protected duplicateEntries: SourceCheckViewModel[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private queryFilter!: ViewObservationQueryModel;
   protected enableQueryButton: boolean = true;
-  protected sumOfDuplicates: number = 0;
   protected includeOnlyStationIds: string[] = [];
   private utcOffset: number = 0;
+  private user!: LoggedInUserModel;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
     private sourceCheckService: SourceCheckService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private generalSettingsService: GeneralSettingsService,
+    private router: Router,
   ) {
     this.pagesDataService.setPageHeader('Source Check');
+
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      this.user = user;
+    });
+
     // Get the climsoft time zone display setting
     this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
@@ -71,7 +87,7 @@ export class SourceCheckComponent implements OnDestroy {
 
   private queryData(): void {
     this.enableQueryButton = false;
-    this.observationsEntries = [];
+    this.duplicateEntries = [];
     this.pageInputDefinition.setTotalRowCount(0)
     this.sourceCheckService.count(this.queryFilter).pipe(
       take(1))
@@ -81,9 +97,6 @@ export class SourceCheckComponent implements OnDestroy {
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
-            this.sourceCheckService.sum(this.queryFilter).pipe(take(1)).subscribe(sum => {
-              this.sumOfDuplicates = sum;
-            });
           } else {
             this.pagesDataService.showToast({ title: 'Source Check', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
@@ -98,8 +111,7 @@ export class SourceCheckComponent implements OnDestroy {
 
   protected loadData(): void {
     this.enableQueryButton = false;
-    this.sumOfDuplicates = 0;
-    this.observationsEntries = [];
+    this.duplicateEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
     this.sourceCheckService.find(this.queryFilter).pipe(
@@ -107,7 +119,7 @@ export class SourceCheckComponent implements OnDestroy {
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
-        this.observationsEntries = data.map(duplicate => {
+        this.duplicateEntries = data.map(duplicate => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(duplicate.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(duplicate.elementId);
 
@@ -127,6 +139,40 @@ export class SourceCheckComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
       },
     });
+  }
+
+  protected onEditDuplicate(duplicateEntry: SourceCheckViewModel): void {
+    const viewFilter: ViewObservationQueryModel = {
+      stationIds: [duplicateEntry.stationId],
+      elementIds: [duplicateEntry.elementId],
+      level: duplicateEntry.level,
+      intervals: [duplicateEntry.interval],
+      fromDate: duplicateEntry.datetime,
+      toDate: duplicateEntry.datetime,
+    };
+
+    let componentPath: string = '';
+    if (this.user.isSystemAdmin) {
+      // For admins just open data correction
+      componentPath = 'data-ingestion/data-correction';
+    } else if (this.user.permissions) {
+      if (this.user.permissions.entryPermissions) {
+        // If user has correction permissions then just open data correction      
+        componentPath = 'data-ingestion/data-correction';
+      } else if (this.user.permissions.ingestionMonitoringPermissions) {
+        // If user has monitorig permissions then just open data explorer 
+        componentPath = '/data-monitoring/data-explorer';
+      }
+    }
+
+    if (componentPath) {
+      const serialisedUrl = this.router.serializeUrl(
+        this.router.createUrlTree([componentPath], { queryParams: viewFilter })
+      );
+
+      window.open(serialisedUrl, '_blank');
+    }
+
   }
 
 

@@ -94,32 +94,32 @@ export class ObservationsService {
         });
     }
 
-    private getProcessedFilter(selectObsevationDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
+    private getProcessedFilter(queryDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
         const whereOptions: FindOptionsWhere<ObservationEntity> = {};
 
-        if (selectObsevationDto.stationIds) {
-            whereOptions.stationId = selectObsevationDto.stationIds.length === 1 ? selectObsevationDto.stationIds[0] : In(selectObsevationDto.stationIds);
+        if (queryDto.stationIds) {
+            whereOptions.stationId = queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds);
         }
 
-        if (selectObsevationDto.elementIds) {
-            whereOptions.elementId = selectObsevationDto.elementIds.length === 1 ? selectObsevationDto.elementIds[0] : In(selectObsevationDto.elementIds);
+        if (queryDto.elementIds) {
+            whereOptions.elementId = queryDto.elementIds.length === 1 ? queryDto.elementIds[0] : In(queryDto.elementIds);
         }
 
-        if (selectObsevationDto.level !== undefined) {
-            whereOptions.level = selectObsevationDto.level;
+        if (queryDto.level !== undefined) {
+            whereOptions.level = queryDto.level;
         }
 
-        if (selectObsevationDto.intervals) {
-            whereOptions.interval = selectObsevationDto.intervals.length === 1 ? selectObsevationDto.intervals[0] : In(selectObsevationDto.intervals);
+        if (queryDto.intervals) {
+            whereOptions.interval = queryDto.intervals.length === 1 ? queryDto.intervals[0] : In(queryDto.intervals);
         }
 
-        if (selectObsevationDto.sourceIds) {
-            whereOptions.sourceId = selectObsevationDto.sourceIds.length === 1 ? selectObsevationDto.sourceIds[0] : In(selectObsevationDto.sourceIds);
+        if (queryDto.sourceIds) {
+            whereOptions.sourceId = queryDto.sourceIds.length === 1 ? queryDto.sourceIds[0] : In(queryDto.sourceIds);
         }
 
-        this.setProcessedObsDateFilter(selectObsevationDto, whereOptions);
+        this.setProcessedObsDateFilter(queryDto, whereOptions);
 
-        whereOptions.deleted = selectObsevationDto.deleted;
+        whereOptions.deleted = queryDto.deleted;
 
         return whereOptions;
     }
@@ -454,23 +454,23 @@ export class ObservationsService {
         let groupAndOrderBySQL: string = '';
 
         if (dataAvailabilityQuery.stationIds && dataAvailabilityQuery.stationIds.length > 0) {
-            extraSQLCondition = extraSQLCondition + ` station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')}) AND `;
+            extraSQLCondition = `${extraSQLCondition} station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')}) AND `;
         }
 
         if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
-            extraSQLCondition = extraSQLCondition + ` element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
+            extraSQLCondition = `${extraSQLCondition} element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
         }
 
         if (dataAvailabilityQuery.level !== undefined) {
-            extraSQLCondition = extraSQLCondition + ` level = ${dataAvailabilityQuery.level} AND `;
+            extraSQLCondition = `${extraSQLCondition} level = ${dataAvailabilityQuery.level} AND `;
         }
 
         if (dataAvailabilityQuery.interval) {
-            extraSQLCondition = extraSQLCondition + ` interval = ${dataAvailabilityQuery.interval} AND `;
+            extraSQLCondition = `${extraSQLCondition} interval = ${dataAvailabilityQuery.interval} AND `;
         }
 
         if (dataAvailabilityQuery.excludeMissingValues) {
-            extraSQLCondition = extraSQLCondition + ` value IS NOT NULL AND `;
+            extraSQLCondition = `${extraSQLCondition} value IS NOT NULL AND `;
         }
 
         let year: number;
@@ -523,14 +523,14 @@ export class ObservationsService {
                 ).replace('T', ' ').replace('Z', '');
 
                 extractSQL = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = extraSQLCondition + ` date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
+                extraSQLCondition = `${extraSQLCondition} date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
                 groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
                 break;
             case 'years':
                 if (!dataAvailabilityQuery.durationYears) throw new BadRequestException('Duration not povided');
                 const years: number[] = dataAvailabilityQuery.durationYears;
                 extractSQL = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = extraSQLCondition + ` 
+                extraSQLCondition = `${extraSQLCondition}  
                   EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) IN (${years.join(',')}) AND `;
                 groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
                 break;

@@ -17,9 +17,6 @@ export class SourceCheckController {
     return this.sourceCheckService.countObservationsWithDuplicates(viewObsevationQuery);
   }
 
-  @Get('sum')
-  sum(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.sourceCheckService.sumOfObservationsWithDuplicates(viewObsevationQuery);
-  }
+
 
 }

@@ -12,21 +12,18 @@
             <div class="card border-0 p-0 mt-2">
                 <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
                     <div class="fw-bold ms-1">Showing Entries</div>
-                    <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
+                    <div *ngIf="pageInputDefinition.totalRowCount">
                         <app-page-input [pageInputDefinition]="pageInputDefinition"
                             (pageInputDefinitionChange)="loadData()" />
-                        <div *ngIf="sumOfDuplicates" class="d-flex align-items-center">
-                            <div class="vr mx-2"></div>
-                            <div class="me-2">Total Duplicates: {{sumOfDuplicates | number:'1.0-0' }}</div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="card-body p-0 mt-2">
-                    <div class="entry-table-container">
-                        <table class="table table-striped table-sm manage-data-table">
+                <div class="card-body px-0 ">
+                    <div class="app-table-container" style="height: 80vh;">
+                        <table class="table table-striped table-sm table-hover">
                             <thead>
                                 <tr>
+                                    <th style="width: 2%;"></th>
                                     <th>#</th>
                                     <th>Station</th>
                                     <th>Element</th>
@@ -37,19 +34,21 @@
                                 </tr>
                             </thead>
                             <tbody class="table-group-divider overflow-y-scroll">
-
-                                <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
+                                <tr *ngFor="let dupEntry of duplicateEntries; let i = index;"
+                                    (click)="onEditDuplicate(dupEntry)" class="app-cursor-pointer">
+                                    <td><i class="bi bi-arrow-right-short"></i></td>
                                     <td>{{i + 1}}</td>
-                                    <td> {{ obsEntry.stationName }}</td>
-                                    <td>{{ obsEntry.elementAbbrv}}</td>
-                                    <td>{{ obsEntry.level }}</td>
-                                    <td>{{ obsEntry.formattedDatetime}}</td>
-                                    <td>{{ obsEntry.intervalName}}</td>
-                                    <td>{{ obsEntry.duplicates}}</td>
+                                    <td>{{ dupEntry.stationName }}</td>
+                                    <td>{{ dupEntry.elementAbbrv}}</td>
+                                    <td>{{ dupEntry.level }}</td>
+                                    <td>{{ dupEntry.formattedDatetime}}</td>
+                                    <td>{{ dupEntry.intervalName}}</td>
+                                    <td>{{ dupEntry.duplicates}}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+
                 </div>
 
 

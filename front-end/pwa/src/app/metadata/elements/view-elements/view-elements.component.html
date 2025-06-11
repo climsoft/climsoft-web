@@ -44,7 +44,7 @@
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let element of elements">
+          <tr *ngFor="let element of elements" class="app-cursor-pointer">
             <td (click)="onEditElement(element)"><i class="bi bi-arrow-right-short"></i></td>
             <td (click)="onEditElement(element)">{{ element.id }}</td>
             <td (click)="onEditElement(element)">{{ element.abbreviation }}</td>

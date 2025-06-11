@@ -18,12 +18,14 @@ body {
     // background-color: #f5f7fb
 }
 
-.app-cursor-pointer {
-    cursor: pointer;
-}
+
 
 // TODO. Deprecate in favour of app-cursor-pointer
 .cursor-pointer {
+    cursor: pointer;
+}
+
+.app-cursor-pointer {
     cursor: pointer;
 }
 

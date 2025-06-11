@@ -72,7 +72,7 @@ export class ClimsoftV4ToWebSyncService {
             return;
         }
 
-        this.importV4ObservationstoV5DB();
+        this.importV4ObservationstoWebDB();
     }
 
     public async stopV4Import() {
@@ -202,7 +202,7 @@ export class ClimsoftV4ToWebSyncService {
         }
     }
 
-    private async importV4ObservationstoV5DB(): Promise<void> {
+    private async importV4ObservationstoWebDB(): Promise<void> {
         // If importing from v4 to web is not allowed. Then just return
         if (!AppConfig.v4DbCredentials.v4Import) {
             return;
@@ -235,7 +235,7 @@ export class ClimsoftV4ToWebSyncService {
         this.isImporting = true;
 
         // Get v4 last entry date time as a snapshot of the v4 database
-        const v4LastEntryDatetime: string = await this.getV4LastEntryDatetome();
+        const v4LastEntryDatetime: string = await this.getV4LastEntryDatetime();
         if (!v4LastEntryDatetime) {
             this.climsoftV4WebSetupService.v4Conflicts.push('V4 last entry date time not found');
             this.logger.log('Aborting import. V4 last entry date time not found');
@@ -298,17 +298,17 @@ export class ClimsoftV4ToWebSyncService {
             // If there is any observations saved then
             // immediately asynchronously initiate another save to version 4 operation
             this.logger.log(`Initiating another import process`);
-            this.importV4ObservationstoV5DB();
+            this.importV4ObservationstoWebDB();
         } else {
             // If no observations were found and saved. Resume the import after the set interval
             this.logger.log('Import done. Will resume in: ' + importParameters.pollingInterval + ' minutes');
             setTimeout(() => {
-                this.importV4ObservationstoV5DB();
+                this.importV4ObservationstoWebDB();
             }, importParameters.pollingInterval * 60000);// Convert minutes to milliseconds
         }
     }
 
-    private async getV4LastEntryDatetome(): Promise<string> {
+    private async getV4LastEntryDatetime(): Promise<string> {
         // if version 4 database pool is not set up then return
         if (!this.climsoftV4WebSetupService.v4DBPool) {
             this.logger.log('Aborting saving. No V4 connection pool. ');

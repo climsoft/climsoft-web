@@ -38,7 +38,7 @@ export class ViewObservationQueryDTO {
     fromDate?: string;
 
     @IsOptional()
-    @IsString()
+    @IsDateString()
     toDate?: string;
 
     // Added  @IsOptional because Query parameters are strings and NestJS whitelist doesn't work with string booleans well.
