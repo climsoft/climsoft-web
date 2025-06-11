@@ -4,6 +4,8 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { AppConfigService } from 'src/app/app-config.service';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 export interface DuplicateModel {
   stationId: string;
@@ -19,46 +21,30 @@ export interface DuplicateModel {
 })
 export class SourceCheckService {
 
-  private endPointUrl: string = "http://localhost:3000/source-check";
+  private endPointUrl: string;
 
-  constructor(private http: HttpClient) { }
-
-  private getQueryParams<T extends object>(params: T): HttpParams {
-    let httpParams: HttpParams = new HttpParams();
-
-    // Dynamically add parameters if they are present
-    Object.keys(params).forEach(key => {
-      const value = params[key as keyof T];
-      if (value !== undefined && value !== null) {
-        if (Array.isArray(value)) {
-          // Join array values with comma for query parameters
-          httpParams = httpParams.set(key, value.join(','));
-        } else {
-          // Convert non-array values to string
-          // TODO, what about booleans? Investigate what effects string booleans mya have on dtos at the back end. 
-          httpParams = httpParams.set(key, value.toString());
-        }
-      }
-    });
-    return httpParams;
+  constructor(
+    private appConfigService: AppConfigService,
+    private http: HttpClient) {
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/source-check`;
   }
 
   public find(viewObsQuery: ViewObservationQueryModel): Observable<DuplicateModel[]> {
-    return this.http.get<DuplicateModel[]>(`${this.endPointUrl}`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<DuplicateModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
   public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
   public sum(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/sum`, { params: this.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+    return this.http.get<number>(`${this.endPointUrl}/sum`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
