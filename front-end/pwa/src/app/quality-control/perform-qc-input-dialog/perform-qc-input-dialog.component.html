@@ -1,0 +1,12 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Ok'" (okClick)="onOkClick()"
+  (cancelClick)="onCancelClick()">
+
+  <div>
+    <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
+      [displaySourceSelector]="false" [displayQueryButton]="false" [query]="queryFilter" />
+  </div>
+  <div>
+    add the radio buttons
+  </div>
+
+</app-dialog>

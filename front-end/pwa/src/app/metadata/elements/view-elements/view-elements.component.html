@@ -16,8 +16,6 @@
           (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClicked($event)"
           [offSetRight]="true" />
         <div *ngIf="optionClicked">
-          <app-element-characteristics-input-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
-            (cancelClick)="onOptionsDialogClosed()" />
 
           <app-import-elements-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
             (cancelClick)="onOptionsDialogClosed()" />
@@ -52,12 +50,13 @@
             <td (click)="onEditElement(element)">{{ element.description }}</td>
             <td *ngIf="showEditButton">
               <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="dlgElementInput.openDialog(element.id)">Edit</button>
+                (click)="dlgElementCharacteristicsDialog.openDialog(element.id)">Edit</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <app-element-characteristics-input-dialog #dlgElementInput />
+  <app-element-characteristics-input-dialog #dlgElementCharacteristicsDialog (ok)="onOptionsDialogClosed()"
+    (cancelClick)="onOptionsDialogClosed()" />
 </div>

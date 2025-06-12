@@ -18,7 +18,7 @@ BEGIN
         FROM quality_control_tests 
         WHERE element_id = observation_record.element_id
 			AND disabled = FALSE
-			AND observation_period = observation_record.period
+			AND observation_period = observation_record.interval
     LOOP
         BEGIN
             -- Determine which QC test to perform based on the qc_test_type

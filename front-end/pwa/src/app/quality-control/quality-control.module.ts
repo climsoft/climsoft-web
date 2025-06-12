@@ -5,13 +5,17 @@ import { MetadataModule } from '../metadata/metadata.module';
 import { QualityControlRoutingModule } from './quality-control-routing.module';
 import { ObservationsModule } from '../observations/observations.module';
 import { SourceCheckComponent } from './source-check/source-check.component';
-import { QCDataComponent } from './qc-data/qc-data.component';
+import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component';
+import { ElementQCSelectionComponent } from './element-qc-selection/element-qc-selection.component';
+import { PerformQCInputDialogComponent } from './perform-qc-input-dialog/perform-qc-input-dialog.component';
 
 @NgModule({
 
   declarations: [
     SourceCheckComponent,
-    QCDataComponent, 
+    ElementQCSelectionComponent,
+    PerformQCInputDialogComponent,
+    ScheduledQCTestComponent, 
   ],
   imports: [
     QualityControlRoutingModule,

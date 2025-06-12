@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';   
 import { SourceCheckComponent } from './source-check/source-check.component';
-import { QCDataComponent } from './qc-data/qc-data.component';
+import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component';
+import { ElementQCSelectionComponent } from './element-qc-selection/element-qc-selection.component';
 
 const routes: Routes = [
   {
@@ -17,8 +18,12 @@ const routes: Routes = [
         component: SourceCheckComponent
       },
       {
-        path: 'quality-control-selection',
-        component: QCDataComponent
+        path: 'element-qc-selection',
+        component: ElementQCSelectionComponent
+      }, 
+       {
+        path: 'scheduled-qc-selection',
+        component: ScheduledQCTestComponent
       }, 
     ]
   }

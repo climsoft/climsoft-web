@@ -14,7 +14,7 @@ export class ToggleChevronComponent {
   public clickable: boolean = true;
 
   @Output() 
-  public opened = new EventEmitter<boolean>();
+  public openChange = new EventEmitter<boolean>();
 
   constructor() {
   }
@@ -22,7 +22,7 @@ export class ToggleChevronComponent {
   protected onClick(): void {
     if(this.clickable){
       this.open = !this.open;
-      this.opened.emit(this.open);
+      this.openChange.emit(this.open);
     }    
   }
 

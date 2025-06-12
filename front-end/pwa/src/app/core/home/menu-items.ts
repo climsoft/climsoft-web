@@ -34,7 +34,8 @@ export enum SubMenuNameEnum {
     DATA_EXPLORER = 'Data Explorer',
 
     SOURCE_CHECK = 'Source Check',
-    QC_DATA = 'Quality Control Tests',
+    QC_TEST = 'QC Tests',
+    SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
 
     MANUAL_EXPORT = 'Manual Export',
     SCHEDULED_EXPORT = 'Scheduled Export',
@@ -128,9 +129,13 @@ export class MenuItemsUtil {
                     url: '/source-check',
                 },
                 {
-                    name: SubMenuNameEnum.QC_DATA,
-                    url: '/quality-control-selection',
-                },   
+                    name: SubMenuNameEnum.QC_TEST,
+                    url: '/element-qc-selection',
+                },
+                 {
+                    name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
+                    url: '/scheduled-qc-selection',
+                },    
             ]
         }
     }

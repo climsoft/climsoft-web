@@ -11,6 +11,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
+import { PerformQCInputDialogComponent } from 'src/app/quality-control/perform-qc-input-dialog/perform-qc-input-dialog.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -25,8 +26,10 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public displayLevelSelector: boolean = true;
   @Input() public displayIntervalSelector: boolean = true;
   @Input() public displayEntryDateSelector: boolean = true;
+  @Input() public displayQueryButton: boolean = true;
   @Input() public query!: ViewObservationQueryModel;
-  @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>()
+  @Output() public queryChanged = new EventEmitter<ViewObservationQueryModel>();
+  @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>();
 
   protected stationIds: string[] = [];
   protected sourceIds: number[] = [];
@@ -38,6 +41,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected includeOnlyStationIds: string[] = [];
   private utcOffset: number = 0;
   protected dateRange: DateRange;
+  protected displayFilterControls: boolean = true;
 
   private destroy$ = new Subject<void>();
 
@@ -60,7 +64,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     });
 
     this.onQueryClick();
-    }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['parentComponentName'] && this.parentComponentName) {
@@ -121,13 +125,13 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
           }
           break;
         case SourceCheckComponent.name:
+        case PerformQCInputDialogComponent.name:
           if (permissions.qcPermissions) {
             this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
           } else {
             this.queryAllowed = false;
           }
           break;
-
         default:
           this.queryAllowed = false;
           throw new Error('Developer error. Component name not supported in query selection.');
@@ -138,9 +142,10 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';
+    this.onValueChanged();
   }
 
-  protected onQueryClick(): void {
+  protected onValueChanged() {
     this.query = { deleted: this.includeDeletedData };;
 
     // Get the data based on the selection filter
@@ -184,8 +189,11 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       this.query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
     }
 
-    this.queryClick.emit(this.query);
+    this.queryChanged.emit(this.query);
+  }
 
+  protected onQueryClick(): void {
+    this.queryClick.emit(this.query);
   }
 
 

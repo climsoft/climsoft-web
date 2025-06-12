@@ -1,10 +1,11 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { ElementCharacteristicsInputDialogComponent } from '../element-characteristics-input-dialog/element-characteristics-input-dialog.component';
 
 type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Download' | 'Delete All';
 
@@ -14,6 +15,8 @@ type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Downloa
   styleUrls: ['./view-elements.component.scss']
 })
 export class ViewElementsComponent implements OnDestroy {
+   @ViewChild('dlgElementCharacteristicsDialog') dlgElementCharacteristicsDialog!: ElementCharacteristicsInputDialogComponent;
+
   private allElements!: CreateViewElementModel[];
   protected elements!: CreateViewElementModel[];
   private searchedIds!: number[];
@@ -71,6 +74,9 @@ export class ViewElementsComponent implements OnDestroy {
   protected onOptionsClicked(option: optionsType): void {
     this.optionClicked = option;
      switch (option) {
+      case 'Add':
+        this.dlgElementCharacteristicsDialog.openDialog();
+        break;
       case 'Order By Id':
         this.elements = [...this.elements].sort((a, b) => a.id - b.id);
         break;

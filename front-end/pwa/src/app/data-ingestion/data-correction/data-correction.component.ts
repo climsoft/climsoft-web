@@ -77,7 +77,9 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => { 
+    this.route.queryParamMap.subscribe(params => {
+      if (params.keys.length === 0) return;
+
       const stationIds: string[] = params.getAll('stationIds');
       const elementIds: string[] = params.getAll('elementIds');
       const intervals: string[] = params.getAll('intervals');
@@ -85,14 +87,14 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       const fromDate: string | null = params.get('fromDate');
       const toDate: string | null = params.get('toDate');
 
-      this.queryFilter = {deleted: false};
+      this.queryFilter = { deleted: false };
       if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
       if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
       if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
       if (level) this.queryFilter.level = parseInt(level, 10);
       if (fromDate) this.queryFilter.fromDate = fromDate;
       if (toDate) this.queryFilter.toDate = toDate;
-      
+
       this.queryData();
 
     });
@@ -118,7 +120,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    console.log('querying data...'); 
+    console.log('querying data...');
 
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);

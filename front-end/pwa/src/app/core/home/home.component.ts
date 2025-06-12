@@ -181,9 +181,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     //-------------------------------------------
 
     //-------------------------------------------
-    // If no qc permissions then remove qc sub-module
+    // If there is qc permissions then remove scheduled qc because it's for admin only.
     if (user.permissions.qcPermissions) {
-      this.featuresNavItems.push(MenuItemsUtil.QUALITY_CONTROL_MENU_ITEMS);
+      const qcMenuItems: MenuItem = MenuItemsUtil.QUALITY_CONTROL_MENU_ITEMS;
+      qcMenuItems.children = qcMenuItems.children.filter(item => item.name !== SubMenuNameEnum.SCHEDULED_QC_TESTS);
+      this.featuresNavItems.push(qcMenuItems);
     }
     //-------------------------------------------
 

@@ -3,14 +3,15 @@ import { Observable, take } from 'rxjs';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ElementsCacheService } from '../services/elements-cache.service';
+import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 
 @Component({
-  selector: 'app-element-characteristics-input-dialog',
-  templateUrl: './element-characteristics-input-dialog.component.html',
-  styleUrls: ['./element-characteristics-input-dialog.component.scss']
+  selector: 'app-perform-qc-input-dialog',
+  templateUrl: './perform-qc-input-dialog.component.html',
+  styleUrls: ['./perform-qc-input-dialog.component.scss']
 })
-export class ElementCharacteristicsInputDialogComponent {
+export class PerformQCInputDialogComponent {
 
   @Output()
   public ok = new EventEmitter<void>();
@@ -23,9 +24,16 @@ export class ElementCharacteristicsInputDialogComponent {
   protected bNew: boolean = false;
   protected element!: CreateViewElementModel;
 
+  protected queryFilter!: ViewObservationQueryModel;
+
   constructor(
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService) { }
+
+  protected get componentName(): string {
+    return PerformQCInputDialogComponent.name;
+  }
+
 
   public openDialog(elementId?: number): void {
     this.open = true;
