@@ -5,6 +5,7 @@ import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { PerformQCParameters } from '../perform-qc-parameters.model';
 
 type optionsType = 'Order By Id' | 'Order By Name';
 
@@ -22,8 +23,6 @@ export class ElementQCSelectionComponent implements OnDestroy {
   private allElementQCSelection!: ElementQCSelection[];
   protected elementQCSelections!: ElementQCSelection[];
 
-
-  protected optionClicked: optionsType | undefined;
   protected dropDownItems: optionsType[] = [];
   protected showPerformQCButton: boolean = false;
 
@@ -72,7 +71,6 @@ export class ElementQCSelectionComponent implements OnDestroy {
   }
 
   protected onOptionsClicked(option: optionsType): void {
-    this.optionClicked = option;
     switch (option) {
       case 'Order By Id':
         this.elementQCSelections = [...this.elementQCSelections].sort((a, b) => a.element.id - b.element.id);
@@ -85,16 +83,12 @@ export class ElementQCSelectionComponent implements OnDestroy {
     }
   }
 
-  protected onOptionsDialogClosed(): void {
-    this.optionClicked = undefined;
-  }
-
   protected onCheckElementQC(elementQCSelection: ElementQCSelection): void {
-    this.router.navigate(['element-detail', elementQCSelection.element.id], { relativeTo: this.route.parent });
+    this.router.navigate(['element-qc-data-checks', elementQCSelection.element.id], { relativeTo: this.route.parent });
   }
 
-  protected onPerformQC(): void {
-
+  protected onPerformQC(qcParameters: PerformQCParameters): void {
+    // TODO
   }
 
 }

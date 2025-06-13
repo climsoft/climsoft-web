@@ -29,10 +29,6 @@ export class ElementCharacteristicsInputDialogComponent {
 
   public openDialog(elementId?: number): void {
     this.open = true;
-    this.setupDialog(elementId);
-  }
-
-  private setupDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
       this.bNew = false;
@@ -77,9 +73,18 @@ export class ElementCharacteristicsInputDialogComponent {
 
   protected onOkClick(): void {
     // TODO. Do more validations
-    if (!this.element.abbreviation) return;
-    if (!this.element.name) return;
-    if (!this.element.typeId) return;
+    if (!this.element.abbreviation) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element abbreviation required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+    if (!this.element.name) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element name required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+    if (!this.element.typeId) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element type required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
 
     const updatedElement: UpdateElementModel = {
       name: this.element.name,

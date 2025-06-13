@@ -39,15 +39,17 @@
             <td (click)="onCheckElementQC(elementQcSelection)">{{ elementQcSelection.element.abbreviation }}</td>
             <td (click)="onCheckElementQC(elementQcSelection)">{{ elementQcSelection.element.name }}</td>
             <td (click)="onCheckElementQC(elementQcSelection)">{{ elementQcSelection.element.description }}</td>
-            <td></td>
+            <td (click)="onCheckElementQC(elementQcSelection)">{{ elementQcSelection.qcFails }}</td>
             <td *ngIf="showPerformQCButton">
               <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="dlgPerformQCInput.openDialog(elementQcSelection.element.id)">Perform QC</button>
+                (click)="dlgPerformQCInput.openDialog(elementQcSelection.element.id, elementQcSelection.element.name)">
+                Perform QC
+              </button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <app-perform-qc-input-dialog #dlgPerformQCInput (ok)="onPerformQC()" />
+  <app-perform-qc-input-dialog #dlgPerformQCInput (ok)="onPerformQC($event)" />
 </div>

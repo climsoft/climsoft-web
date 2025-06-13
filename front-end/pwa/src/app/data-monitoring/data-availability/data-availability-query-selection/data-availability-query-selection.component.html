@@ -3,52 +3,55 @@
         <app-toggle-chevron #queryContainerToggle [open]="true">Filter</app-toggle-chevron>
     </div>
     <div *ngIf="queryContainerToggle.open" class="card-body p-0 mt-2">
-        <div class="row g-2 px-2">
-            <div class="col-auto mb-2">
-                <app-station-selector-multiple [label]="'Stations'" [(selectedIds)]="dataAvailabilityFilter.stationIds"
-                    [includeOnlyIds]="includeOnlyStationIds" />
-            </div>
+        <div class="d-flex justify-content-between align-items-end">
+            <div class="row g-2 px-2">
+                <div class="col-auto mb-2">
+                    <app-station-selector-multiple [label]="'Stations'"
+                        [(selectedIds)]="dataAvailabilityFilter.stationIds" [includeOnlyIds]="includeOnlyStationIds" />
+                </div>
 
-            <div class="col-auto mb-2">
-                <app-element-selector-multiple [label]="'Elements'"
-                    [(selectedIds)]="dataAvailabilityFilter.elementIds" />
-            </div>
+                <div class="col-auto mb-2">
+                    <app-element-selector-multiple [label]="'Elements'"
+                        [(selectedIds)]="dataAvailabilityFilter.elementIds" />
+                </div>
 
-            <div class="col-auto mb-2">
-                <app-number-input [label]="'Level'" [(value)]="level" />
-            </div>
+                <div class="col-auto mb-2">
+                    <app-number-input [label]="'Level'" [(value)]="level" />
+                </div>
 
-            <div class="col-auto mb-2">
-                <app-period-single-input [label]="'Interval'" [(selectedId)]="dataAvailabilityFilter.interval" />
-            </div>
+                <div class="col-auto mb-2">
+                    <app-period-single-input [label]="'Interval'" [(selectedId)]="dataAvailabilityFilter.interval" />
+                </div>
 
-            <div class="col-auto mb-2">
-                <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'availabilityDuration'"
-                    [groupItems]=" [
+                <div class="col-auto mb-2">
+                    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'availabilityDuration'"
+                        [groupItems]=" [
                         { label:'Days of Month', checked: true },  
                         { label:'Months of Year', checked: false},
                         { label:'Years', checked: false}
                         ]" (checkedValueChange)="onDurationChange($event)" />
-                <app-year-month-input *ngIf="dataAvailabilityFilter.durationType === 'days_of_month'"
-                    [id]="'availabilityDurationByDay'" [(value)]="dataAvailabilityFilter.durationDaysOfMonth" />
-                <app-year-selector-single *ngIf="dataAvailabilityFilter.durationType === 'months_of_year'"
-                    [id]="'availabilityDurationByMonth'" [(selectedId)]="dataAvailabilityFilter.durationMonthsOfYear" />
-                <app-year-selector-multiple *ngIf="dataAvailabilityFilter.durationType === 'years'"
-                    [id]="'availabilityDurationByYears'" [(selectedIds)]="dataAvailabilityFilter.durationYears" />
+                    <app-year-month-input *ngIf="dataAvailabilityFilter.durationType === 'days_of_month'"
+                        [id]="'availabilityDurationByDay'" [(value)]="dataAvailabilityFilter.durationDaysOfMonth" />
+                    <app-year-selector-single *ngIf="dataAvailabilityFilter.durationType === 'months_of_year'"
+                        [id]="'availabilityDurationByMonth'"
+                        [(selectedId)]="dataAvailabilityFilter.durationMonthsOfYear" />
+                    <app-year-selector-multiple *ngIf="dataAvailabilityFilter.durationType === 'years'"
+                        [id]="'availabilityDurationByYears'" [(selectedIds)]="dataAvailabilityFilter.durationYears" />
+                </div>
+
+                <div class="col-auto mb-2 d-flex align-items-end">
+                    <app-check-box-input [label]="'Exclude Missing Values'"
+                        [(value)]="dataAvailabilityFilter.excludeMissingValues" />
+                </div>
+
             </div>
 
-            <div class="col-auto mb-2 d-flex align-items-end">
-                <app-check-box-input [label]="'Exclude Missing Values'"
-                    [(value)]="dataAvailabilityFilter.excludeMissingValues" />
+            <div>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                    [disabled]=" !queryAllowed || !enableQueryButton " (click)="onQueryClick()">
+                    Query
+                </button>
             </div>
-
-        </div>
-
-        <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-secondary btn-sm"
-                [disabled]=" !queryAllowed || !enableQueryButton " (click)="onQueryClick()">
-                Query
-            </button>
         </div>
     </div>
 </div>

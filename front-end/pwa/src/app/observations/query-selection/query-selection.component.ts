@@ -12,6 +12,7 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
 import { PerformQCInputDialogComponent } from 'src/app/quality-control/perform-qc-input-dialog/perform-qc-input-dialog.component';
+import { QCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/qc-data-checks.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -22,9 +23,12 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public parentComponentName!: string;
   @Input() public enableQueryButton: boolean = true;
   @Input() public includeDeletedData: boolean = false;
+  @Input() public displayStationSelector: boolean = true;
+  @Input() public displayElementSelector: boolean = true;
   @Input() public displaySourceSelector: boolean = true;
   @Input() public displayLevelSelector: boolean = true;
   @Input() public displayIntervalSelector: boolean = true;
+  @Input() public displayObservationDateSelector: boolean = true;
   @Input() public displayEntryDateSelector: boolean = true;
   @Input() public displayQueryButton: boolean = true;
   @Input() public query!: ViewObservationQueryModel;
@@ -126,6 +130,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
           break;
         case SourceCheckComponent.name:
         case PerformQCInputDialogComponent.name:
+        case QCDataChecksComponent.name:
           if (permissions.qcPermissions) {
             this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
           } else {

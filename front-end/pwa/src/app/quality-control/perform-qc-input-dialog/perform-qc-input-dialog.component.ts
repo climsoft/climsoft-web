@@ -1,10 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { Observable, take } from 'rxjs';
-import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
+import { PerformQCParameters } from '../perform-qc-parameters.model';
+import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 
 @Component({
   selector: 'app-perform-qc-input-dialog',
@@ -14,116 +12,82 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 export class PerformQCInputDialogComponent {
 
   @Output()
-  public ok = new EventEmitter<void>();
+  public ok = new EventEmitter<PerformQCParameters>();
 
   @Output()
   public cancelClick = new EventEmitter<void>();
 
-  protected open!: boolean;
+  protected open: boolean = false;
   protected title: string = '';
-  protected bNew: boolean = false;
-  protected element!: CreateViewElementModel;
+  protected observationFilter!: ViewObservationQueryModel;
+  protected qcParameters!: PerformQCParameters;
 
-  protected queryFilter!: ViewObservationQueryModel;
-
-  constructor(
-    private elementsCacheService: ElementsCacheService,
-    private pagesDataService: PagesDataService) { }
+  constructor(private pagesDataService: PagesDataService,) { }
 
   protected get componentName(): string {
     return PerformQCInputDialogComponent.name;
   }
 
-
-  public openDialog(elementId?: number): void {
+  public openDialog(elementId: number, elementName: string): void {
     this.open = true;
-    this.setupDialog(elementId);
-  }
-
-  private setupDialog(elementId?: number): void {
-    if (elementId) {
-      this.title = "Edit Element";
-      this.bNew = false;
-      this.elementsCacheService.findOne(elementId).pipe(
-        take(1)
-      ).subscribe((data) => {
-        if (data) {
-          this.element = {
-            id: data.id,
-            abbreviation: data.abbreviation,
-            name: data.name,
-            description: data.description,
-            units: data.units,
-            typeId: data.typeId,
-            entryScaleFactor: data.entryScaleFactor,
-            comment: data.comment ? data.comment : null
-          };
-        }
-
-      });
+    this.title = `${elementId} - ${elementName}: Perform QC tests for`;
+    if (this.qcParameters) {
+      this.qcParameters.elementId = elementId;
     } else {
-      this.title = "New Element";
-      this.bNew = true;
-      this.element = {
-        id: 0,
-        abbreviation: '',
-        name: '',
-        description: '',
-        units: '',
-        typeId: 0,
-        entryScaleFactor: 1,
-        comment: null,
-      };
+      this.qcParameters = { elementId: elementId, observationFilter: { deleted: false }, qcStatus: QCStatusEnum.NONE }
     }
   }
 
-  protected onTypeChange(typeId: number | null): void {
-    if (typeId) {
-      this.element.typeId = typeId;
+  protected onRecordsSelectionChange(option: string): void {
+    switch (option) {
+      case 'All Records':
+        this.qcParameters.qcStatus = undefined;
+        break;
+      case 'Records with no QC tests':
+        this.qcParameters.qcStatus = QCStatusEnum.NONE;
+        break;
+      case 'Records that failed QC tests':
+        this.qcParameters.qcStatus = QCStatusEnum.FAILED;
+        break;
+      case 'Records that passed QC tests':
+        this.qcParameters.qcStatus = QCStatusEnum.PASSED;
+        break;
+      default:
+        break;
     }
   }
 
   protected onOkClick(): void {
-    // TODO. Do more validations
-    if (!this.element.abbreviation) return;
-    if (!this.element.name) return;
-    if (!this.element.typeId) return;
+    if (!this.qcParameters.elementId) return;
 
-    const updatedElement: UpdateElementModel = {
-      name: this.element.name,
-      abbreviation: this.element.abbreviation,
-      description: this.element.description,
-      units: this.element.units,
-      typeId: this.element.typeId,
-      entryScaleFactor: this.element.entryScaleFactor,
-      comment: this.element.comment
+    if (this.qcParameters.observationFilter.stationIds === undefined ||
+      this.qcParameters.observationFilter.stationIds.length === 0) {
+      this.pagesDataService.showToast({ title: "Perform QC", message: 'Station required', type: ToastEventTypeEnum.ERROR });
+      return;
     }
 
-    let saveSubscription: Observable<CreateViewElementModel>;
-    if (this.bNew) {
-      saveSubscription = this.elementsCacheService.add({ ...updatedElement, id: this.element.id });
-    } else {
-      saveSubscription = this.elementsCacheService.update(this.element.id, updatedElement);
+    if (this.qcParameters.observationFilter.level === undefined) {
+       this.pagesDataService.showToast({ title: "Perform QC", message: 'Level required', type: ToastEventTypeEnum.ERROR });
+      return;
     }
 
-    saveSubscription.pipe(
-      take(1)
-    ).subscribe((data) => {
-      let message: string;
-      let messageType: ToastEventTypeEnum;
-      if (data) {
-        message = this.bNew ? `${data.name} created` : `${data.name} updated`;
-        messageType = ToastEventTypeEnum.SUCCESS;
-      } else {
-        message = "Error in saving element";
-        messageType = ToastEventTypeEnum.ERROR
-      }
-      this.pagesDataService.showToast({ title: "Element Characteristics", message: message, type: messageType });
-      this.ok.emit();
-    });
+    if (this.qcParameters.observationFilter.intervals === undefined ||
+      this.qcParameters.observationFilter.intervals.length === 0) {
+       this.pagesDataService.showToast({ title: "Perform QC", message: 'Interval required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+    if (!this.qcParameters.observationFilter.fromDate ||
+      !this.qcParameters.observationFilter.toDate) {
+       this.pagesDataService.showToast({ title: "Perform QC", message: 'Dates required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+    this.ok.emit(this.qcParameters);
   }
 
   protected onCancelClick(): void {
     this.cancelClick.emit();
   }
+
 }
