@@ -33,8 +33,8 @@ export enum SubMenuNameEnum {
     DATA_AVAILABILTY = 'Data Availabilty',
     DATA_EXPLORER = 'Data Explorer',
 
-    SOURCE_CHECK = 'Source Check',
-    QC_TEST = 'QC Tests',
+    SOURCE_CHECKS = 'Source Checks',
+    QC_DATA_CHECKS = 'QC Data Checks',
     SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
 
     MANUAL_EXPORT = 'Manual Export',
@@ -81,7 +81,7 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.DATA_CORRECTION,
                     url: '/data-correction',
-                },  
+                },
                 {
                     name: SubMenuNameEnum.DELETED_DATA,
                     url: '/deleted-data',
@@ -101,18 +101,18 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.STATION_STATUS,
                     url: '/station-status',
                 },
-                 {
+                {
                     name: SubMenuNameEnum.DATA_AVAILABILTY,
                     url: '/data-availability',
                 },
-                 {
+                {
                     name: SubMenuNameEnum.DATA_EXPLORER,
                     url: '/data-explorer',
                 },
                 {
                     name: SubMenuNameEnum.DATA_FLOW,
                     url: '/data-flow',
-                },     
+                },
             ]
         }
     }
@@ -125,17 +125,17 @@ export class MenuItemsUtil {
             open: false,
             children: [
                 {
-                    name: SubMenuNameEnum.SOURCE_CHECK,
-                    url: '/source-check',
+                    name: SubMenuNameEnum.SOURCE_CHECKS,
+                    url: '/source-checks',
                 },
                 {
-                    name: SubMenuNameEnum.QC_TEST,
-                    url: '/element-qc-selection',
+                    name: SubMenuNameEnum.QC_DATA_CHECKS,
+                    url: '/qc-data-checks',
                 },
-                 {
+                {
                     name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
                     url: '/scheduled-qc-selection',
-                },    
+                },
             ]
         }
     }
@@ -169,7 +169,7 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.ELEMENTS,
                     url: '/view-elements',
-                },                
+                },
                 {
                     name: SubMenuNameEnum.ORGANISATIONS,
                     url: '/view-organisations',

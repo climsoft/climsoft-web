@@ -3,7 +3,6 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
-import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
@@ -15,9 +14,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
-import { DataCorrectionComponent } from 'src/app/data-ingestion/data-correction/data-correction.component';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { QCQueryModel } from '../qc-query.model';
+import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -49,9 +49,9 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   private utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
+  protected qcParameters!: QCQueryModel;
   private allMetadataLoaded: boolean = false;
-
-  protected element!: ElementCacheModel;
+ 
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -81,18 +81,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const elementId = this.route.snapshot.params["id"];
-    this.elementsCacheService.findOne(+elementId).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      if (data) {
-        this.element = data;
-        this.queryFilter = { deleted: false };
-        this.queryData();
-      }
-    });
-
-
+  
   }
 
   ngOnDestroy() {
@@ -104,11 +93,15 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     return QCDataChecksComponent.name;
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryQCClick(performQcParams: QCQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = observationFilter;
-    this.queryData();
+    //this.queryFilter = observationFilter;
+    //this.queryData();
   }
+
+   protected onPerformQCClick(performQcParams: QCQueryModel): void {
+
+   }
 
   private queryData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
@@ -214,7 +207,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   protected onSave(): void {
-   
+
     //this.updatedObservations();
   }
 
@@ -294,7 +287,8 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     });
   }
 
- 
+
+
 
   protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);

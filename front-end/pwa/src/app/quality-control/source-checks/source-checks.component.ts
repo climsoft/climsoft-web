@@ -22,11 +22,11 @@ export interface SourceCheckViewModel extends DuplicateModel {
 }
 
 @Component({
-  selector: 'app-source-check',
-  templateUrl: './source-check.component.html',
-  styleUrls: ['./source-check.component.scss']
+  selector: 'app-source-checks',
+  templateUrl: './source-checks.component.html',
+  styleUrls: ['./source-checks.component.scss']
 })
-export class SourceCheckComponent implements OnDestroy {
+export class SourceChecksComponent implements OnDestroy {
 
   protected totalRecords: number = 0;
 
@@ -50,7 +50,7 @@ export class SourceCheckComponent implements OnDestroy {
     private generalSettingsService: GeneralSettingsService,
     private router: Router,
   ) {
-    this.pagesDataService.setPageHeader('Source Check');
+    this.pagesDataService.setPageHeader('Source Checks');
 
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
@@ -76,7 +76,7 @@ export class SourceCheckComponent implements OnDestroy {
   }
 
   protected get componentName(): string {
-    return SourceCheckComponent.name;
+    return SourceChecksComponent.name;
   }
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {

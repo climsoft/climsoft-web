@@ -17,7 +17,7 @@ import { ElementCacheModel } from '../../services/elements-cache.service';
 interface ViewQCTest extends ViewElementQCTestModel {
   formattedQCTestTypeName: string,
   formattedParameters: string;
-  formattedObsPeriod: string;
+  formattedObsInterval: string;
 }
 
 @Component({
@@ -43,7 +43,7 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
     ).subscribe(user => {
       this.userIsSystemAdmin = user && user.isSystemAdmin ? true : false;
     });
-   }
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.element) {
@@ -87,7 +87,7 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
             break;
           case QCTestTypeEnum.RELATIONAL_COMPARISON:
             const relationalParams = item.parameters as RelationalQCTestParamsModel;
-            formattedParameters = `{ Reference Element : ${relationalParams.referenceElementId} } { Condition : ${relationalParams.condition} }`;
+            formattedParameters = `{ Condition : ${relationalParams.condition} } { Reference Element : ${relationalParams.referenceElementId} }`;
             break;
           case QCTestTypeEnum.DIURNAL:
             break;
@@ -100,15 +100,17 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
         }
 
 
-        const obsPeriodName = IntervalsUtil.findInterval(item.observationInterval)?.name.toLowerCase();
-        const formattedObsPeriod = obsPeriodName ? obsPeriodName : item.observationInterval.toString()
+        const obsIntervalName: string | undefined = IntervalsUtil.findInterval(item.observationInterval)?.name.toLowerCase();
+        const formattedObsInterval: string = obsIntervalName ? obsIntervalName : item.observationInterval.toString();
 
-        return {
+        const viewQCTest: ViewQCTest = {
           ...item,
           formattedQCTestTypeName: StringUtils.formatEnumForDisplay(item.qcTestType),
-          formattedObsPeriod: formattedObsPeriod,
+          formattedObsInterval: formattedObsInterval,
           formattedParameters: formattedParameters
-        };
+        }
+
+        return viewQCTest;
       });
     });
   }

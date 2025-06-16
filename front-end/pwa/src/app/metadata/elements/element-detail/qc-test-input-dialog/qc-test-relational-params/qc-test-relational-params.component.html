@@ -1,8 +1,9 @@
 <div>
     <div class="mt-2">
-        <app-element-selector-single [label]="'Reference Element'" [(selectedId)]="relationalQCTestParameters.referenceElementId" />
+        <app-qc-test-condition-input [label]="'Condition'" [(selectedId)]="relationalQCTestParameters.condition" />
     </div>
     <div class="mt-2">
-         <app-qc-test-condition-input [label]="'Condition'" [(selectedId)]="relationalQCTestParameters.condition" />
+        <app-element-selector-single [label]="'Reference Element'"
+            [(selectedId)]="relationalQCTestParameters.referenceElementId" />
     </div>
 </div>

@@ -1,5 +1,5 @@
-<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0" [closeOnOkClick]="false"
-    (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
+<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
+    [closeOnOkClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
     <div *ngIf="updateQcTest">
         <div>
@@ -15,8 +15,7 @@
         <hr />
 
         <div>
-            <app-qc-test-type-input [label]="'QC Test Type'" [selectedId]="updateQcTest.qcTestType"
-                (selectedIdChange)="onQCTestTypeSelected($event)" />
+            <app-number-input [label]="'Observation Level'" [(numValue)]="updateQcTest.observationLevel" />
         </div>
 
         <hr />
@@ -28,9 +27,16 @@
 
         <hr />
 
+        <div>
+            <app-qc-test-type-input [label]="'QC Test Type'" [selectedId]="updateQcTest.qcTestType"
+                (selectedIdChange)="onQCTestTypeSelected($event)" />
+        </div>
+
+        <hr />
+
         <div class="card">
             <div class="card-header">Parameters</div>
-            <div class="card-body">               
+            <div class="card-body">
                 <div *ngIf="!displayNotYetSupported">
                     <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
                         [rangeThresholdQCTestParameters]="rangeThresholdParam" />
@@ -66,7 +72,7 @@
 
         <div *ngIf="errorMessage">
             <hr />
-            <div class="text-danger" >
+            <div class="text-danger">
                 {{errorMessage}}
             </div>
         </div>

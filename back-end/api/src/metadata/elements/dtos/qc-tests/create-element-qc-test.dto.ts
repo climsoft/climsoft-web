@@ -4,19 +4,22 @@ import { QCTestTypeEnum } from '../../entities/qc-test-type.enum';
 export class CreateElementQCTestDto {
     @IsString()
     name: string;
-    
+
     @IsOptional()
     @IsString()
     description: string | null;
-
-    @IsEnum(QCTestTypeEnum, { message: 'quality control test type must be a valid QualityControlTestTypeEnum value' })
-    qcTestType: QCTestTypeEnum;
 
     @IsInt()
     elementId: number;
 
     @IsInt()
+    observationLevel: number;
+
+    @IsInt()
     observationInterval: number;
+
+    @IsEnum(QCTestTypeEnum, { message: 'quality control test type must be a valid QualityControlTestTypeEnum value' })
+    qcTestType: QCTestTypeEnum;
 
     @IsOptional() // TODO. Temporary until we implement validate nested
     parameters: QCTestParametersValidity;
@@ -29,6 +32,6 @@ export class CreateElementQCTestDto {
     comment: string | null;
 }
 
-export interface QCTestParametersValidity{
+export interface QCTestParametersValidity {
     isValid(): boolean;
-  }
+}

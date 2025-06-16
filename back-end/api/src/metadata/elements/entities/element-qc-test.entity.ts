@@ -10,15 +10,11 @@ export class ElementQCTestEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
-  @Column({  name: "name" , type: "varchar", unique: true })
+  @Column({ name: "name", type: "varchar", unique: true })
   name: string;
 
   @Column({ type: "varchar", nullable: true })
   description: string | null;
-
-  @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum })
-  @Index()
-  qcTestType: QCTestTypeEnum;
 
   //-----------------------
   @Column({ type: "int", name: "element_id" })
@@ -31,14 +27,25 @@ export class ElementQCTestEntity extends AppBaseEntity {
   element: ElementEntity;
   //-----------------------
 
+  // TODO. 16/06/2025. Remove nullable after qc tests are upgraded in MSD and Demo installations.
+  // observation level should never be null.
+  @Column({ name: "observation_level", type: "int", nullable: true})
+  @Index()
+  observationLevel: number;
+
   @Column({ name: "observation_interval", type: "int" })
   @Index()
   observationInterval: number;
+
+  @Column({ name: "qc_test_type", type: "enum", enum: QCTestTypeEnum })
+  @Index()
+  qcTestType: QCTestTypeEnum;
 
   @Column({ name: "parameters", type: "jsonb" })
   parameters: QCTestParametersValidity;
 
   @Column({ name: "disabled", type: "boolean", default: false })
+  @Index()
   disabled: boolean;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
@@ -49,9 +56,10 @@ export class ElementQCTestEntity extends AppBaseEntity {
 }
 
 export interface QualityControlLogVo extends BaseLogVo {
-  qcTypeId: string;
   elementId: number;
-  period: number | null;
+  level: number;
+  interval: number;
+  qcTypeId: string;
   formulaValues: string;
   comment: string | null;
 }

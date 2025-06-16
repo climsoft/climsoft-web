@@ -31,11 +31,11 @@ export class QCTestInputDialogComponent {
   protected errorMessage: string = '';
 
   constructor(
-    private qcTestsService: ElementsQCTestsService, 
+    private qcTestsService: ElementsQCTestsService,
     private pagesDataService: PagesDataService) { }
 
-  public openDialog(element: ElementCacheModel, updateQcTestModel?: ViewElementQCTestModel): void { 
-    this.open = true; 
+  public openDialog(element: ElementCacheModel, updateQcTestModel?: ViewElementQCTestModel): void {
+    this.open = true;
     this.title = updateQcTestModel ? "Edit QC Test for " : "New QC Test for ";
     this.title = this.title + element.name;
 
@@ -52,9 +52,10 @@ export class QCTestInputDialogComponent {
         id: 0,
         name: '',
         description: '',
-        qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
         elementId: element.id,
+        observationLevel: 0,
         observationInterval: 1440,
+        qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
         parameters: rangeThreshold,
         disabled: false,
         comment: null
@@ -110,7 +111,7 @@ export class QCTestInputDialogComponent {
     return this.updateQcTest.parameters as ContextualQCTestParamsModel;
   }
 
-  protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum ): void {
+  protected onQCTestTypeSelected(qcTestType: QCTestTypeEnum): void {
     if (qcTestType === null) {
       return;
     }
@@ -135,7 +136,7 @@ export class QCTestInputDialogComponent {
         this.updateQcTest.parameters = spike;
         break;
       case QCTestTypeEnum.RELATIONAL_COMPARISON:
-        const relational: RelationalQCTestParamsModel = { referenceElementId: 1, condition: QCTestParamConditionEnum.GREAT_THAN, isValid: () => true };
+        const relational: RelationalQCTestParamsModel = { condition: QCTestParamConditionEnum.GREAT_THAN, referenceElementId: 1,  isValid: () => true };
         this.updateQcTest.parameters = relational;
         break;
       case QCTestTypeEnum.DIURNAL:
@@ -163,7 +164,7 @@ export class QCTestInputDialogComponent {
   protected onOkClick(): void {
     // TODO. Do validations
     this.errorMessage = '';
-    if(!this.updateQcTest.name){
+    if (!this.updateQcTest.name) {
       this.errorMessage = 'Enter name of QC test';
       return;
     }
@@ -171,13 +172,16 @@ export class QCTestInputDialogComponent {
     const createQCTest: CreateElementQCTestModel = {
       name: this.updateQcTest.name,
       description: this.updateQcTest.description,
-      qcTestType: this.updateQcTest.qcTestType,
       elementId: this.updateQcTest.elementId,
+      observationLevel: this.updateQcTest.observationLevel,
       observationInterval: this.updateQcTest.observationInterval,
+      qcTestType: this.updateQcTest.qcTestType,
       parameters: this.updateQcTest.parameters,
       disabled: this.updateQcTest.disabled,
       comment: this.updateQcTest.comment
     }
+
+    console.log('test created: ', createQCTest)
 
     let saveSubscription: Observable<ViewElementQCTestModel>;
     if (this.updateQcTest.id > 0) {
@@ -192,7 +196,7 @@ export class QCTestInputDialogComponent {
       next: data => {
         this.open = false;
         this.pagesDataService.showToast({ title: "QC Tests", message: this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
-        this.ok.emit();      
+        this.ok.emit();
       },
       error: err => {
         this.open = false;

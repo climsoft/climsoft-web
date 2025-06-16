@@ -4,15 +4,14 @@ import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { DataCorrectionComponent } from '../../data-ingestion/data-correction/data-correction.component';
-import { SourceCheckComponent } from '../../quality-control/source-check/source-check.component';
+import { SourceChecksComponent } from '../../quality-control/source-checks/source-checks.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
-import { PerformQCInputDialogComponent } from 'src/app/quality-control/perform-qc-input-dialog/perform-qc-input-dialog.component';
-import { QCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/qc-data-checks.component';
+import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
 
 @Component({
   selector: 'app-query-selection',
@@ -32,8 +31,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public displayEntryDateSelector: boolean = true;
   @Input() public displayQueryButton: boolean = true;
   @Input() public query!: ViewObservationQueryModel;
-  @Output() public queryChanged = new EventEmitter<ViewObservationQueryModel>();
+  @Output() public queryChange = new EventEmitter<ViewObservationQueryModel>();
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>();
+  @Output() public queryAllowedChange = new EventEmitter<boolean>();
 
   protected stationIds: string[] = [];
   protected sourceIds: number[] = [];
@@ -98,6 +98,8 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (!user) {
+        this.queryAllowed = false;
+        this.queryAllowedChange.emit(this.queryAllowed);
         throw new Error('User not logged in');
       }
 
@@ -108,11 +110,12 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
       if (!user.permissions) {
         this.queryAllowed = false;
+        this.queryAllowedChange.emit(this.queryAllowed);
         throw new Error('Developer error. Permissions NOT set.');
       }
 
+      this.queryAllowed = true;
       const permissions: UserPermissionModel = user.permissions;
-
       switch (this.parentComponentName) {
         case DataCorrectionComponent.name:
           if (permissions.entryPermissions) {
@@ -128,9 +131,8 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
             this.queryAllowed = false;
           }
           break;
-        case SourceCheckComponent.name:
-        case PerformQCInputDialogComponent.name:
-        case QCDataChecksComponent.name:
+        case SourceChecksComponent.name:
+        case QueryQCDataChecksComponent.name:
           if (permissions.qcPermissions) {
             this.includeOnlyStationIds = permissions.qcPermissions.stationIds ? permissions.qcPermissions.stationIds : [];
           } else {
@@ -139,8 +141,11 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
           break;
         default:
           this.queryAllowed = false;
-          throw new Error('Developer error. Component name not supported in query selection.');
+          console.error('Developer error. Component name not supported in query selection.');
+          break;
       }
+
+      this.queryAllowedChange.emit(this.queryAllowed);
 
     });
   }
@@ -194,7 +199,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       this.query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
     }
 
-    this.queryChanged.emit(this.query);
+    this.queryChange.emit(this.query);
   }
 
   protected onQueryClick(): void {
