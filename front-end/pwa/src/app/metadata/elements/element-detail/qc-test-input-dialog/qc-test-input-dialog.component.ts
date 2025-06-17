@@ -119,7 +119,7 @@ export class QCTestInputDialogComponent {
         this.updateQcTest.parameters = flatLine;
         break;
       case QCTestTypeEnum.SPIKE:
-        const spike: SpikeQCTestParamsModel = { consecutiveRecords: 2, spikeThreshold: 0, isValid: () => true };
+        const spike: SpikeQCTestParamsModel = { spikeThreshold: 0, isValid: () => true };
         this.updateQcTest.parameters = spike;
         break;
       case QCTestTypeEnum.RELATIONAL_COMPARISON:

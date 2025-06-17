@@ -78,7 +78,7 @@ export class QCTestsComponent implements OnChanges, OnDestroy {
             break;
           case QCTestTypeEnum.SPIKE:
             const spikeParams = item.parameters as SpikeQCTestParamsModel;
-            formattedParameters = `{ Consecutive records : ${spikeParams.consecutiveRecords} } { Spike threshold : ${spikeParams.spikeThreshold} }`;
+            formattedParameters = `{ Spike threshold : ${spikeParams.spikeThreshold} }`;
             break;
           case QCTestTypeEnum.RELATIONAL_COMPARISON:
             const relationalParams = item.parameters as RelationalQCTestParamsModel;
