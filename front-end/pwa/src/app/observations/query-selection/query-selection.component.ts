@@ -103,6 +103,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
         throw new Error('User not logged in');
       }
 
+      this.queryAllowed = true;
       if (user.isSystemAdmin) {
         this.includeOnlyStationIds = [];
         return;
@@ -114,7 +115,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
         throw new Error('Developer error. Permissions NOT set.');
       }
 
-      this.queryAllowed = true;
+
       const permissions: UserPermissionModel = user.permissions;
       switch (this.parentComponentName) {
         case DataCorrectionComponent.name:

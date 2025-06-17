@@ -6,7 +6,6 @@ import { FlatLineQCTestParamsModel } from 'src/app/core/models/elements/qc-tests
 import { QCTestParamConditionEnum } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/qc-test-param-condition.enum';
 import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model';
 import { RelationalQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-params.model';
-import { RepeatedValueQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/repeated-value-qc-test-params.model';
 import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
@@ -71,14 +70,6 @@ export class QCTestInputDialogComponent {
     return this.updateQcTest.parameters as RangeThresholdQCTestParamsModel;
   }
 
-  protected get isRepeatedValue(): boolean {
-    return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.REPEATED_VALUE;
-  }
-
-  protected get rangerepeatedValueParam(): RepeatedValueQCTestParamsModel {
-    return this.updateQcTest.parameters as RepeatedValueQCTestParamsModel;
-  }
-
   protected get isSpike(): boolean {
     return this.updateQcTest && this.updateQcTest.qcTestType === QCTestTypeEnum.SPIKE;
   }
@@ -123,12 +114,8 @@ export class QCTestInputDialogComponent {
         const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
         this.updateQcTest.parameters = rangeThreshold;
         break;
-      case QCTestTypeEnum.REPEATED_VALUE:
-        const repeatedValue: RepeatedValueQCTestParamsModel = { consecutiveRecords: 2, isValid: () => true };
-        this.updateQcTest.parameters = repeatedValue;
-        break;
       case QCTestTypeEnum.FLAT_LINE:
-        const flatLine: FlatLineQCTestParamsModel = { consecutiveRecords: 2, rangeThreshold: 0.5, isValid: () => true };
+        const flatLine: FlatLineQCTestParamsModel = { consecutiveRecords: 2, flatLineThreshold: 0, isValid: () => true };
         this.updateQcTest.parameters = flatLine;
         break;
       case QCTestTypeEnum.SPIKE:
@@ -136,7 +123,7 @@ export class QCTestInputDialogComponent {
         this.updateQcTest.parameters = spike;
         break;
       case QCTestTypeEnum.RELATIONAL_COMPARISON:
-        const relational: RelationalQCTestParamsModel = { condition: QCTestParamConditionEnum.GREAT_THAN, referenceElementId: 1,  isValid: () => true };
+        const relational: RelationalQCTestParamsModel = { condition: QCTestParamConditionEnum.GREAT_THAN, referenceElementId: 1, isValid: () => true };
         this.updateQcTest.parameters = relational;
         break;
       case QCTestTypeEnum.DIURNAL:
@@ -180,8 +167,6 @@ export class QCTestInputDialogComponent {
       disabled: this.updateQcTest.disabled,
       comment: this.updateQcTest.comment
     }
-
-    console.log('test created: ', createQCTest)
 
     let saveSubscription: Observable<ViewElementQCTestModel>;
     if (this.updateQcTest.id > 0) {

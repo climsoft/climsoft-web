@@ -41,9 +41,6 @@
                     <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
                         [rangeThresholdQCTestParameters]="rangeThresholdParam" />
 
-                    <app-qc-test-repeated-value-params *ngIf="isRepeatedValue"
-                        [repeatedValueQCTestParameters]="rangerepeatedValueParam" />
-
                     <app-qc-test-flat-line-params *ngIf="isFlatLine" [flatLineQCTestParameters]="flatLineParam" />
 
                     <app-qc-test-spike-params *ngIf="isSpike" [spikeQCTestParameters]="spikeParam" />
@@ -55,17 +52,21 @@
                         [contextualQCTestParameters]="contextualConsistentyParam" />
                 </div>
 
-                <div *ngIf="displayNotYetSupported" class="fw-bold text-info">QC Test will be supported in the next
-                    version release</div>
+                <div *ngIf="displayNotYetSupported" class="fw-bold text-info">
+                    QC Test will be supported in the next version release
+                </div>
             </div>
 
         </div>
 
         <hr />
+
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="updateQcTest.disabled" />
         </div>
+
         <hr />
+
         <div>
             <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />
         </div>

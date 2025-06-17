@@ -31,8 +31,7 @@ import { ElementCharacteristicsComponent } from './elements/element-detail/eleme
 import { QCTestsComponent } from './elements/element-detail/qc-tests/qc-tests.component';
 import { QCTestInputDialogComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-input-dialog.component';
 import { QCTestTypeInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-type-input/qc-test-type-input.component';
-import { QCTestRangeThresholdParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
-import { QCTestRepeatedValueParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-range-repeated-value-params/qc-test-repeated-value-params.component';
+import { QCTestRangeThresholdParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component'; 
 import { QCTestFlatLineParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
 import { QCTestSpikeParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-spike-params/qc-test-spike-params.component';
 import { QCTestRelationalParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
@@ -145,8 +144,7 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
     QCTestsComponent,
     QCTestInputDialogComponent,
     QCTestTypeInputComponent,
-    QCTestRangeThresholdParamsComponent,
-    QCTestRepeatedValueParamsComponent,
+    QCTestRangeThresholdParamsComponent, 
     QCTestFlatLineParamsComponent,
     QCTestSpikeParamsComponent,
     QCTestRelationalParamsComponent,

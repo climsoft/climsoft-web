@@ -1,11 +1,11 @@
-import { IsDecimal } from 'class-validator';
+import { IsNumber } from 'class-validator';
 import { QCTestParametersValidity } from '../create-element-qc-test.dto';
 
 export class RangeThresholdQCTestParamsDto implements QCTestParametersValidity {
-    @IsDecimal()
+    @IsNumber()
     lowerLimit: number;
 
-    @IsDecimal()
+    @IsNumber()
     upperLimit: number;
 
     isValid(): boolean {

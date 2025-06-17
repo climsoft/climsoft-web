@@ -192,7 +192,7 @@ BEGIN
         END LOOP;
 
         -- If all previous values match or are greater the current value, return the QC fail log
-        IF match_count >= consecutive_records THEN 
+        IF match_count >= (consecutive_records - 1) THEN 
         	qc_test_log := jsonb_build_object( 'qc_test_id', qc_test.id,  'qc_status', 'failed' );
 		ELSE
 			qc_test_log := jsonb_build_object( 'qc_test_id', qc_test.id,  'qc_status', 'passed' );

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { concat, EMPTY, from, Observable, throwError } from 'rxjs';
+import { concat, from, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { CreateElementQCTestModel } from '../../../core/models/elements/qc-tests/create-element-qc-test.model';
 import { ViewElementQCTestModel } from '../../../core/models/elements/qc-tests/view-element-qc-test.model';

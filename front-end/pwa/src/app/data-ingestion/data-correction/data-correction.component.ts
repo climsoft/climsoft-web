@@ -128,14 +128,14 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
+           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
             this.enableSave = false;
-          }
-          this.enableQueryButton = true;
+          }         
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
@@ -157,6 +157,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
+          this.enableQueryButton = true;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -185,8 +186,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         });
 
         this.setRowBoundaryLineSettings(observationsEntries);
-        this.observationsEntries = observationsEntries;
-        this.enableQueryButton = true;
+        this.observationsEntries = observationsEntries;      
         this.enableSave = true;
       },
       error: err => {

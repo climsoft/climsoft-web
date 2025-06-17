@@ -10,4 +10,8 @@ export class QCTestFlatLineParamsComponent {
 @Input()
 public flatLineQCTestParameters!:  FlatLineQCTestParamsModel; 
 
+  public onExcludeRangeSelection(excludeRange: boolean): void {
+    this.flatLineQCTestParameters.excludeRange = excludeRange ? { lowerThreshold: 0, upperThreshold: 0 } : undefined;
+  }
+
 }

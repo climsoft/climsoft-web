@@ -84,10 +84,11 @@ export class ElementsQCTestsService {
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
             name: dto.name,
-            description: dto.description,
-            qcTestType: dto.qcTestType,
+            description: dto.description,            
             elementId: dto.elementId,
+            observationLevel :dto.observationLevel,
             observationInterval: dto.observationInterval,
+            qcTestType: dto.qcTestType,
             parameters: dto.parameters,
             disabled: dto.disabled,
             comment: dto.comment,

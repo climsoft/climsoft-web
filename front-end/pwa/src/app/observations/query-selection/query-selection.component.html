@@ -12,7 +12,7 @@
 
                 <div *ngIf="displayElementSelector" class="col-auto mb-2">
                     <app-element-selector-multiple [label]="'Elements'" [(selectedIds)]="elementIds"
-                        (selectedIds)="onValueChanged()" />
+                        (selectedIdsChange)="onValueChanged()" />
                 </div>
 
                 <div *ngIf="displayLevelSelector" class="col-auto mb-2">
