@@ -43,14 +43,6 @@ export class SourceCheckService {
       );
   }
 
-  public sum(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/sum`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-
   private handleError(error: HttpErrorResponse) {
 
     //console.log('auth error', error)

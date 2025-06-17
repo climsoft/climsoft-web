@@ -47,7 +47,7 @@ import { QualityControlModule } from './quality-control/quality-control.module';
     ObservationsModule,
     DataIngestionModule,
     DataMonitoringModule,
-    QualityControlModule,
+    QualityControlModule, 
     DataExtractionModule,
   ],
   providers: [

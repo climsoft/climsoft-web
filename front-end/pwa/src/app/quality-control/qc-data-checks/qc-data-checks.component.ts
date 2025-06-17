@@ -1,12 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
-import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
-import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
-import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
@@ -16,6 +13,11 @@ import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/c
 import { HttpErrorResponse } from '@angular/common/http';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ActivatedRoute } from '@angular/router';
+import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
+import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
+import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
+import { QCQueryModel } from '../qc-query.model';
+import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -31,11 +33,11 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-data-correction',
-  templateUrl: './data-correction.component.html',
-  styleUrls: ['./data-correction.component.scss']
+  selector: 'app-qc-data-checks',
+  templateUrl: './qc-data-checks.component.html',
+  styleUrls: ['./qc-data-checks.component.scss']
 })
-export class DataCorrectionComponent implements OnInit, OnDestroy {
+export class QCDataChecksComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -47,18 +49,20 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   private utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
+  protected qcParameters!: QCQueryModel;
   private allMetadataLoaded: boolean = false;
-
+ 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private elementsCacheService: ElementsCacheService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
     private generalSettingsService: GeneralSettingsService,
     private route: ActivatedRoute,
   ) {
-    this.pagesDataService.setPageHeader('Data Correction');
+    this.pagesDataService.setPageHeader('QC Data Checks');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
@@ -77,27 +81,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe(params => {
-      if (params.keys.length === 0) return;
-
-      const stationIds: string[] = params.getAll('stationIds');
-      const elementIds: string[] = params.getAll('elementIds');
-      const intervals: string[] = params.getAll('intervals');
-      const level: string | null = params.get('level');
-      const fromDate: string | null = params.get('fromDate');
-      const toDate: string | null = params.get('toDate');
-
-      this.queryFilter = { deleted: false };
-      if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
-      if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
-      if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
-      if (level) this.queryFilter.level = parseInt(level, 10);
-      if (fromDate) this.queryFilter.fromDate = fromDate;
-      if (toDate) this.queryFilter.toDate = toDate;
-
-      this.queryData();
-
-    });
+  
   }
 
   ngOnDestroy() {
@@ -106,14 +90,18 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   protected get componentName(): string {
-    return DataCorrectionComponent.name;
+    return QCDataChecksComponent.name;
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryQCClick(performQcParams: QCQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = observationFilter;
-    this.queryData();
+    //this.queryFilter = observationFilter;
+    //this.queryData();
   }
+
+   protected onPerformQCClick(performQcParams: QCQueryModel): void {
+
+   }
 
   private queryData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
@@ -128,14 +116,14 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
-           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
             this.enableSave = false;
-          }         
+          }
+          this.enableQueryButton = true;
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
@@ -157,7 +145,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-          this.enableQueryButton = true;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -185,8 +172,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
         });
 
-        this.setRowBoundaryLineSettings(observationsEntries);
-        this.observationsEntries = observationsEntries;      
+        this.observationsEntries = observationsEntries;
+        this.enableQueryButton = true;
         this.enableSave = true;
       },
       error: err => {
@@ -197,27 +184,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected setRowBoundaryLineSettings(observationsEntries: ObservationEntry[]): void {
-    const obsIdentifierMap = new Map<string, number>();
-
-    for (let i = 0; i < observationsEntries.length; i++) {
-      const obs = observationsEntries[i].obsDef.observation;
-      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
-      // Update the map with the latest index for each unique identifier
-      obsIdentifierMap.set(obsIdentifier, i);
-    }
-
-    // set all last occurrence indices as boundaries
-    this.allBoundariesIndices = Array.from(obsIdentifierMap.values());
-    // If length indices array is the same as entries, then no need to show boundaries
-    if (observationsEntries.length === this.allBoundariesIndices.length) {
-      this.allBoundariesIndices = [];
-    }
-  }
-
-  protected includeLowerBoundaryLine(index: number): boolean {
-    return this.allBoundariesIndices.includes(index);
-  }
 
   protected onOptionsSelected(optionSlected: 'Delete All'): void {
     switch (optionSlected) {
@@ -241,8 +207,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   protected onSave(): void {
-    this.deleteObservations();
-    this.updatedObservations();
+
+    //this.updatedObservations();
   }
 
   private updatedObservations(): void {
@@ -321,53 +287,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  private deleteObservations(): void {
-    // Create required observation dtos 
-    const deletedObs: DeleteObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete) {
-        const obsModel = obsEntry.obsDef.observation;
-        deletedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval
-        })
-      }
-    }
 
 
-    if (deletedObs.length === 0) {
-      return;
-    }
-
-    this.enableSave = false;
-    // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe({
-      next: data => {
-        this.enableSave = true;
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-      },
-      error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
-        this.enableSave = true;
-      }
-    });
-  }
 
   protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);

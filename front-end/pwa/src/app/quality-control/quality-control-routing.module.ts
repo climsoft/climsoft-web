@@ -1,25 +1,30 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';   
-import { SourceCheckComponent } from './source-check/source-check.component';
-import { QCDataComponent } from './qc-data/qc-data.component';
+import { RouterModule, Routes } from '@angular/router';
+import { SourceChecksComponent } from './source-checks/source-checks.component';
+import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component';
+import { QCDataChecksComponent } from './qc-data-checks/qc-data-checks.component';
 
 const routes: Routes = [
   {
-    path: '', 
+    path: '',
     children: [
       {
         path: '',
-        redirectTo: 'source-check',
+        redirectTo: 'source-checks',
         pathMatch: 'full',
       },
       {
-        path: 'source-check',
-        component: SourceCheckComponent
+        path: 'source-checks',
+        component: SourceChecksComponent
+      }, 
+      {
+        path: 'qc-data-checks',
+        component: QCDataChecksComponent
       },
       {
-        path: 'quality-control-selection',
-        component: QCDataComponent
-      }, 
+        path: 'scheduled-qc-selection',
+        component: ScheduledQCTestComponent
+      },
     ]
   }
 

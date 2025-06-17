@@ -1,12 +1,13 @@
-import { IsDecimal, IsInt } from "class-validator";
+import { IsInt, IsNumber, Min } from "class-validator";
 import { QCTestParametersValidity } from "../create-element-qc-test.dto";
 
 
 export class SpikeQCTestParamsDto implements QCTestParametersValidity {
-    @IsInt() // TODO. validate minimum of 2 only because "consecutive" implies at least two or more events or periods
+    @IsInt()
+    @Min(2, { message: 'consecutiveRecords must be at least 2' })
     consecutiveRecords: number;
 
-    @IsDecimal()
+    @IsNumber()
     spikeThreshold: number;
 
     isValid(): boolean {

@@ -321,8 +321,6 @@ export class DataAvailabilityComponent implements OnDestroy {
       viewFilter.level = this.dataAvailabilityFilter.level
     }
 
-    //this.router.navigate(['/data-explorer'], { queryParams: { term: 'rainfall', year: 2024 } });
-
     let componentPath: string = '';
     if (this.user.isSystemAdmin) {
       // For admins just open data correction

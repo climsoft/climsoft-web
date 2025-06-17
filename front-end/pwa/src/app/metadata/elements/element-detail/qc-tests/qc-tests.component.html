@@ -11,18 +11,21 @@
                 <tr>
                     <th style="width: 2%;"></th>
                     <th>Name</th>
+                    <th>Level</th>
+                    <th>Interval</th>
                     <th>Type</th>
-                    <th>Period</th>
                     <th>Parameters</th>
                     <th>Disabled</th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
-                <tr class="cursor-pointer" *ngFor="let row of qcTests" (click)="userIsSystemAdmin? dlgQcEdit.openDialog(element, row): ''">
+                <tr class="cursor-pointer" *ngFor="let row of qcTests"
+                    (click)="userIsSystemAdmin? dlgQcEdit.openDialog(element, row): ''">
                     <td><i class="bi bi-arrow-right-short"></i></td>
                     <td>{{row.name}}</td>
+                    <td>{{row.observationLevel}}</td>
+                    <td>{{row.formattedObsInterval}}</td>
                     <td>{{row.formattedQCTestTypeName}}</td>
-                    <td>{{row.formattedObsPeriod}}</td>
                     <td>{{row.formattedParameters}}</td>
                     <td>{{row.disabled}}</td>
                 </tr>

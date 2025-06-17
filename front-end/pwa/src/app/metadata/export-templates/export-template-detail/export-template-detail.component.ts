@@ -106,7 +106,7 @@ export class ExportTemplateDetailComponent implements OnInit {
   }
 
   protected onQcStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.ALL_QC_TESTS_PASSED_OR_ACCEPTED;
+    this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
   }
 
   protected onUnstackData(value: boolean) {

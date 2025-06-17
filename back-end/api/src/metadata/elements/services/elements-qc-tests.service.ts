@@ -84,10 +84,11 @@ export class ElementsQCTestsService {
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
             name: dto.name,
-            description: dto.description,
-            qcTestType: dto.qcTestType,
+            description: dto.description,            
             elementId: dto.elementId,
+            observationLevel :dto.observationLevel,
             observationInterval: dto.observationInterval,
+            qcTestType: dto.qcTestType,
             parameters: dto.parameters,
             disabled: dto.disabled,
             comment: dto.comment,
@@ -103,15 +104,14 @@ export class ElementsQCTestsService {
     public async update(id: number, dto: CreateElementQCTestDto) {
         const qctest = await this.findEntity(id);
         qctest.name = dto.name;
-        qctest.description = dto.description? dto.description: null;
-        qctest.qcTestType = dto.qcTestType;
+        qctest.description = dto.description ? dto.description : null;
         qctest.elementId = dto.elementId;
+        qctest.observationLevel = dto.observationLevel;
         qctest.observationInterval = dto.observationInterval;
+        qctest.qcTestType = dto.qcTestType;
         qctest.parameters = dto.parameters;
         qctest.disabled = dto.disabled;
         qctest.comment = dto.comment;
-
-        // TODO. Later Implement logging of changes in the database.
         return this.qcTestsRepo.save(qctest);
     }
 
@@ -126,9 +126,10 @@ export class ElementsQCTestsService {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            qcTestType: entity.qcTestType,
             elementId: entity.elementId,
+            observationLevel: entity.observationLevel,
             observationInterval: entity.observationInterval,
+            qcTestType: entity.qcTestType,
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment

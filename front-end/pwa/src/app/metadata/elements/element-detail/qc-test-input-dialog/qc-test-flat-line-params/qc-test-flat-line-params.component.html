@@ -1,8 +1,23 @@
 <div>
     <div class="mt-2">
-        <app-number-input [label]="'Consecutive records'" [(numValue)]="flatLineQCTestParameters.consecutiveRecords" />
+        <app-number-input [label]="'Consecutive records'" [min]="2" [(numValue)]="flatLineQCTestParameters.consecutiveRecords" />
     </div>
     <div class="mt-2">
-        <app-number-input [label]="'Range threshold (+ or -)'" [(numValue)]="flatLineQCTestParameters.rangeThreshold" />
+        <app-number-input [label]="'Flat threshold (+ or -)'" [(numValue)]="flatLineQCTestParameters.flatLineThreshold" />
     </div>
+        <div class="mt-2">
+        <app-check-box-input [label]="'Exclude Range'"
+            [value]="flatLineQCTestParameters.excludeRange !== undefined"
+            (valueChange)="onExcludeRangeSelection($event)" />
+        <div *ngIf="flatLineQCTestParameters.excludeRange" class="ms-2">
+            <div class="mt-2">
+                <app-number-input [label]="'Lower threshold'"
+                    [(numValue)]="flatLineQCTestParameters.excludeRange.lowerThreshold" />
+            </div>
+            <div class="mt-2">
+                <app-number-input [label]="'Upper threshold'"
+                    [(numValue)]="flatLineQCTestParameters.excludeRange.upperThreshold" />
+            </div>
+        </div>
+    </div> 
 </div>

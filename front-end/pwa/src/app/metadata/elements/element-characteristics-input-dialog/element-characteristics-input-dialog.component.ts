@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { UpdateElementModel } from 'src/app/metadata/elements/models/update-element.model';
 import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
@@ -10,12 +10,7 @@ import { ElementsCacheService } from '../services/elements-cache.service';
   templateUrl: './element-characteristics-input-dialog.component.html',
   styleUrls: ['./element-characteristics-input-dialog.component.scss']
 })
-export class ElementCharacteristicsInputDialogComponent implements OnChanges {
-  @Input()
-  public open!: boolean;
-
-  @Input()
-  public editElementd!: number;
+export class ElementCharacteristicsInputDialogComponent {
 
   @Output()
   public ok = new EventEmitter<void>();
@@ -23,6 +18,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
   @Output()
   public cancelClick = new EventEmitter<void>();
 
+  protected open!: boolean;
   protected title: string = '';
   protected bNew: boolean = false;
   protected element!: CreateViewElementModel;
@@ -31,18 +27,8 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService) { }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.open) {
-      this.setupDialog(this.editElementd);
-    }
-  }
-
   public openDialog(elementId?: number): void {
     this.open = true;
-    this.setupDialog(elementId);
-  }
-
-  private setupDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
       this.bNew = false;
@@ -56,7 +42,7 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
             name: data.name,
             description: data.description,
             units: data.units,
-            typeId: data.typeId, 
+            typeId: data.typeId,
             entryScaleFactor: data.entryScaleFactor,
             comment: data.comment ? data.comment : null
           };
@@ -72,8 +58,8 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
         name: '',
         description: '',
         units: '',
-        typeId: 0, 
-        entryScaleFactor: 0,
+        typeId: 0,
+        entryScaleFactor: 1,
         comment: null,
       };
     }
@@ -86,14 +72,26 @@ export class ElementCharacteristicsInputDialogComponent implements OnChanges {
   }
 
   protected onOkClick(): void {
-    // TODO. Do validations
+    // TODO. Do more validations
+    if (!this.element.abbreviation) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element abbreviation required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+    if (!this.element.name) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element name required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+    if (!this.element.typeId) {
+      this.pagesDataService.showToast({ title: "Element Characteristics", message: 'Element type required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
 
     const updatedElement: UpdateElementModel = {
       name: this.element.name,
       abbreviation: this.element.abbreviation,
       description: this.element.description,
       units: this.element.units,
-      typeId: this.element.typeId, 
+      typeId: this.element.typeId,
       entryScaleFactor: this.element.entryScaleFactor,
       comment: this.element.comment
     }

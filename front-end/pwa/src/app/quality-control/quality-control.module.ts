@@ -1,24 +1,29 @@
 
-import { NgModule } from '@angular/core'; 
+import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
-import { MetadataModule } from '../metadata/metadata.module'; 
+import { MetadataModule } from '../metadata/metadata.module';
 import { QualityControlRoutingModule } from './quality-control-routing.module';
 import { ObservationsModule } from '../observations/observations.module';
-import { SourceCheckComponent } from './source-check/source-check.component';
-import { QCDataComponent } from './qc-data/qc-data.component';
+import { SourceChecksComponent } from './source-checks/source-checks.component';
+import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component'; 
+import { QCDataChecksComponent } from './qc-data-checks/qc-data-checks.component';
+import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
+import { QueryQCDataChecksComponent } from './qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
 
 @NgModule({
 
   declarations: [
-    SourceCheckComponent,
-    QCDataComponent, 
+    SourceChecksComponent,  
+    QCDataChecksComponent,
+    QueryQCDataChecksComponent,
+    ScheduledQCTestComponent,
   ],
   imports: [
     QualityControlRoutingModule,
     SharedModule,
-    MetadataModule, 
-    ObservationsModule,  
+    MetadataModule,
+    ObservationsModule,
+    DataIngestionModule,
   ]
-}) 
-export class QualityControlModule {  }
- 
+})
+export class QualityControlModule { }

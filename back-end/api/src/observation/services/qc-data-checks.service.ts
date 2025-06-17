@@ -5,7 +5,7 @@ import { ObservationEntity } from '../entities/observation.entity';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 
 @Injectable()
-export class SourceCheckService {
+export class QCDataChecksService {
 
     constructor(
         @InjectRepository(ObservationEntity) private readonly observationRepo: Repository<ObservationEntity>) { }
