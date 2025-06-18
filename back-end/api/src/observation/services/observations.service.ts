@@ -32,9 +32,9 @@ export class ObservationsService {
         private generalSettingsService: GeneralSettingsService,
     ) { }
 
-    public async findProcessed(selectObsevationDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
+    public async findProcessed(querDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
         const obsView: ViewObservationDto[] = [];
-        const obsEntities = await this.findProcessedObsEntities(selectObsevationDto);
+        const obsEntities = await this.findProcessedObsEntities(querDto);
         for (const obsEntity of obsEntities) {
             const viewObs: ViewObservationDto = {
                 stationId: obsEntity.stationId,
@@ -46,6 +46,11 @@ export class ObservationsService {
                 value: obsEntity.value,
                 flag: obsEntity.flag,
                 comment: obsEntity.comment,
+                qcStatus: obsEntity.qcStatus,
+                qcTestLog: obsEntity.qcTestLog ? {
+                    qcTestId: obsEntity.qcTestLog.qc_test_id,
+                    qcStatus: obsEntity.qcTestLog.qc_status
+                } : null,
                 entryDatetime: obsEntity.entryDateTime.toISOString()
             };
             obsView.push(viewObs);
@@ -55,9 +60,10 @@ export class ObservationsService {
     }
 
 
-    private async findProcessedObsEntities(viewObsevationQueryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
+    public async findProcessedObsEntities(queryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
-        if (!(viewObsevationQueryDto.page && viewObsevationQueryDto.pageSize && viewObsevationQueryDto.pageSize <= 1000)) {
+        // TODO. Move this check else where so that this function can be universally applicable
+        if (!(queryDto.page && queryDto.pageSize && queryDto.pageSize <= 1000)) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
         }
 
@@ -69,9 +75,9 @@ export class ObservationsService {
                 datetime: "ASC",
                 interval: "ASC",
             },
-            where: this.getProcessedFilter(viewObsevationQueryDto),
-            skip: (viewObsevationQueryDto.page - 1) * viewObsevationQueryDto.pageSize,
-            take: viewObsevationQueryDto.pageSize
+            where: this.getProcessedFilter(queryDto),
+            skip: (queryDto.page - 1) * queryDto.pageSize,
+            take: queryDto.pageSize
         };
 
         return this.observationRepo.find(findOptions);
@@ -118,6 +124,10 @@ export class ObservationsService {
         }
 
         this.setProcessedObsDateFilter(queryDto, whereOptions);
+
+        if (queryDto.qcStatus) {
+            whereOptions.qcStatus = queryDto.qcStatus;
+        }
 
         whereOptions.deleted = queryDto.deleted;
 
@@ -176,6 +186,7 @@ export class ObservationsService {
         return dtos;
     }
 
+    // TODO merge this with find processed observations method
     public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
         const entities = await this.findProcessedObsEntities(selectObsevationDto);
         const dtos: CreateObservationDto[] = entities.map(data => ({
@@ -555,15 +566,17 @@ export class ObservationsService {
     }
 
     public async findDataFlow(queryDto: DataFlowQueryDto): Promise<ViewObservationDto[]> {
+        // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {
-            if (this.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
+            if (DateUtils.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
                 throw new BadRequestException('Date range exceeds 10 years');
             }
         } else {
             throw new BadRequestException('Date range required');
         }
 
+        // TODO merge this with find processed observations method
         const obsEntities = await this.observationRepo.findBy({
             stationId: queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds),
             elementId: queryDto.elementId,
@@ -585,6 +598,8 @@ export class ObservationsService {
                 value: obsEntity.value,
                 flag: obsEntity.flag,
                 comment: obsEntity.comment,
+                qcStatus: obsEntity.qcStatus,
+                qcTestLog: null,
                 entryDatetime: obsEntity.entryDateTime.toISOString()
             };
             obsView.push(viewObs);
@@ -593,10 +608,5 @@ export class ObservationsService {
         return obsView;
     }
 
-    private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
-        const tenYearsLater = new Date(fromDate);
-        tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
-        return toDate > tenYearsLater;
-    }
 
 }

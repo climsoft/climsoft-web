@@ -66,7 +66,7 @@ export class ObservationEntity extends AppBaseEntity {
   qcStatus: QCStatusEnum;
 
   @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
-  qcTestLog: QCTestLogVo | null; // TODO Index the test logs
+  qcTestLog: QCTestLogVo | null;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
   comment: string | null;
@@ -84,7 +84,10 @@ export class ObservationEntity extends AppBaseEntity {
   savedToV4: boolean; // True when value has been uploaded to v4 database
 }
 
-//when changing qc, we will use the qc log
+/**
+ * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
+ * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
+ */
 export interface UpdateObservationValuesLogVo extends BaseLogVo {
   value: number | null;
   flag: FlagEnum | null;
@@ -92,17 +95,24 @@ export interface UpdateObservationValuesLogVo extends BaseLogVo {
   deleted: boolean;
 }
 
+/**
+ * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
+ * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
+ */
 export class ViewObservationLogDto {
   value: number | null;
   flag: FlagEnum | null;
   comment: string | null;
   deleted: boolean;
   entryUserEmail: string;
-  entryDateTime: string;
+  entryDateTime: string;// TODO. Deprecated
 }
 
+/**
+ * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
+ * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
+ */
 export interface QCTestLogVo {
-  qc_id: number;
-  enforcedBy?: number;
-  enforcedDate?: Date;
+  qc_test_id: number;
+  qc_status: QCStatusEnum; 
 }

@@ -109,9 +109,9 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     return DataCorrectionComponent.name;
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = observationFilter;
+    this.queryFilter = queryFilter;
     this.queryData();
   }
 
@@ -128,14 +128,14 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
-           this.enableQueryButton = true;
+          this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
             this.enableSave = false;
-          }         
+          }
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
@@ -157,7 +157,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-          this.enableQueryButton = true;
+        this.enableQueryButton = true;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -186,7 +186,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         });
 
         this.setRowBoundaryLineSettings(observationsEntries);
-        this.observationsEntries = observationsEntries;      
+        this.observationsEntries = observationsEntries;
         this.enableSave = true;
       },
       error: err => {

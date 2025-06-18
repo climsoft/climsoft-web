@@ -2,14 +2,14 @@
 
     <div class="card-body p-0">
         <div>
-            <app-query-qc-data-checks [enableQueryButton]="enableQueryButton"
+            <app-query-qc-data-checks [enableQueryButton]="enableQueryButton" [enablePerformQCButton] = "enablePerformQCButton"
                 (queryQCClick)="onQueryQCClick($event)" (performQCClick)="onPerformQCClick($event)" />
         </div>
         <div class="card border-0 p-0 mt-2">
             <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
                 <div class="fw-bold ms-1">Showing Entries</div>
                 <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                    <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']"
+                    <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Confirm All']"
                         (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
                     <div class="vr mx-2"></div>
                     <app-page-input [pageInputDefinition]="pageInputDefinition"
@@ -35,11 +35,10 @@
                                 <th>Source</th>
                                 <th>Value & Flag</th>
                                 <th>QC Tests Failed</th>
-                                <th>Enforce</th>
+                                <th>Confirm as Correct</th>
                             </tr>
                         </thead>
                         <tbody>
-
                             <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
                                 <td>{{ getRowNumber(i) }}</td>
                                 <td> {{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
@@ -52,15 +51,14 @@
                                     <div class="px-2 app-value-flag-container">
                                         <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
                                             [observationDefinition]="obsEntry.obsDef"
-                                            [disableValueFlagEntry]="obsEntry.delete" (valueChange)="onUserInput()" />
+                                            [disableValueFlagEntry]="true" (valueChange)="onUserInput()" />
                                     </div>
                                 </td>
                                 <td>TODO</td>
                                 <td>
-                                    <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
+                                    <app-check-box-input [id]="i + '_confirm'" [(value)]="obsEntry.confirmAsCorrect"
                                         (valueChange)="onUserInput()" />
                                 </td>
-
                             </tr>
                         </tbody>
                     </table>

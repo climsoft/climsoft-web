@@ -6,41 +6,37 @@ import { catchError } from 'rxjs/operators';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { AppConfigService } from 'src/app/app-config.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-
-export interface DuplicateModel {
-  stationId: string;
-  elementId: number;
-  level: number;
-  datetime: string
-  interval: number;
-  duplicates: number;
-}
+import { SourceCheckDuplicateModel } from '../models/source-check-duplicate.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class SourceCheckService {
+export class QualityControlService {
 
   private endPointUrl: string;
 
   constructor(
     private appConfigService: AppConfigService,
     private http: HttpClient) {
-    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/source-check`;
+    this.endPointUrl = `${this.appConfigService.apiBaseUrl}/quality-control`;
   }
 
-  public find(viewObsQuery: ViewObservationQueryModel): Observable<DuplicateModel[]> {
-    return this.http.get<DuplicateModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+  public findDuplicates(viewObsQuery: ViewObservationQueryModel): Observable<SourceCheckDuplicateModel[]> {
+    return this.http.get<SourceCheckDuplicateModel[]>(`${this.endPointUrl}/duplicates`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
   }
 
-  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+  public countDuplicates(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count-duplicates`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
+  }
+
+  public performQC(qcSelection: ViewObservationQueryModel): Observable<{ message: string, qcFails: number }> {
+    return this.http.post<{ message: string , qcFails: number}>(`${this.endPointUrl}/perform-qc`, qcSelection);
   }
 
   private handleError(error: HttpErrorResponse) {

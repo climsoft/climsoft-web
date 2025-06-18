@@ -31,6 +31,7 @@ export class DateRangeInputComponent implements OnChanges {
 
 
   ngOnChanges(changes: SimpleChanges): void {
+  
   }
 
   protected onFromDateChange(value: string | null) {

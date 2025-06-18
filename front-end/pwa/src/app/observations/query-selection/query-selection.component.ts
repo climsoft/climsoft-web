@@ -156,7 +156,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     this.onValueChanged();
   }
 
-  protected onValueChanged() {
+  private setQuery(): void {
     this.query = { deleted: this.includeDeletedData };;
 
     // Get the data based on the selection filter
@@ -199,13 +199,19 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
       this.query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
     }
+  }
 
+  protected onValueChanged(): void {
+    this.setQuery();
     this.queryChange.emit(this.query);
   }
 
   protected onQueryClick(): void {
+    this.setQuery();
     this.queryClick.emit(this.query);
   }
+
+
 
 
 

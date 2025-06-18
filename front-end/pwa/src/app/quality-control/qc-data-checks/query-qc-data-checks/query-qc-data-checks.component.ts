@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model'; 
-import { QCQueryModel } from '../../qc-query.model';
+import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 
 @Component({
   selector: 'app-query-qc-data-checks',
@@ -11,16 +11,15 @@ import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 export class QueryQCDataChecksComponent implements OnChanges {
 
   @Input() public enableQueryButton: boolean = true;
-  @Output() public queryQCClick = new EventEmitter<QCQueryModel>();
-   @Output() public performQCClick = new EventEmitter<QCQueryModel>();
+   @Input() public enablePerformQCButton: boolean = true;
+  @Output() public queryQCClick = new EventEmitter<ViewObservationQueryModel>();
+  @Output() public performQCClick = new EventEmitter<ViewObservationQueryModel>();
 
   protected displayFilterControls: boolean = true;
-  protected queryAllowed: boolean = true;
-  protected query: ViewObservationQueryModel = { deleted: false };
+  protected queryAllowed: boolean = true; 
   protected qcStatus: QCStatusEnum | undefined;
 
-
-  constructor() {
+  constructor(private pagesDataService: PagesDataService,) { 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -29,10 +28,6 @@ export class QueryQCDataChecksComponent implements OnChanges {
 
   protected get componentName(): string {
     return QueryQCDataChecksComponent.name;
-  }
-
-  protected onQueryChange(query: ViewObservationQueryModel): void {
-    this.query = query;
   }
 
   protected onRecordsSelectionChange(option: string): void {
@@ -54,15 +49,20 @@ export class QueryQCDataChecksComponent implements OnChanges {
     }
   }
 
-  protected onQueryClick(): void {
-    const qcParameters: QCQueryModel = { ...this.query, qcStatus: this.qcStatus };
-    this.queryQCClick.emit(qcParameters);
+  protected onQueryClick(query: ViewObservationQueryModel): void {
+    this.queryQCClick.emit({ ...query, qcStatus: QCStatusEnum.FAILED });
   }
 
-    protected onPerformQCClick(): void {
- const qcParameters: QCQueryModel = { ...this.query, qcStatus: this.qcStatus };
-    this.performQCClick.emit(qcParameters);
+  protected onPerformQCClick(query: ViewObservationQueryModel): void {
+    if (!query || !query.fromDate || !query.toDate) {
+      this.pagesDataService.showToast({ title: 'QC Data Checks', message: `Date selections required`, type: ToastEventTypeEnum.ERROR });
+      return;
     }
+
+    // TODO. Limit the date selection to 10 years at most
+
+    this.performQCClick.emit({ ...query, qcStatus: this.qcStatus });
+  }
 
 
 }

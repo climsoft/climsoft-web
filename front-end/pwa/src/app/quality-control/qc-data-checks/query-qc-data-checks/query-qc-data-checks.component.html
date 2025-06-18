@@ -5,11 +5,11 @@
     <div *ngIf="displayFilterControls" class="card-body p-0">
         <div>
             <div>
-                <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
-                    [displayQueryButton]="false" [query]="query" (queryChange)="onQueryChange($event)" />
+                <app-query-selection #querySelection [parentComponentName]="componentName" [includeDeletedData]="false"
+                    [displayQueryButton]="false" />
                 <div class="d-flex justify-content-end mt-2">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
-                        [disabled]="!queryAllowed || !enableQueryButton " (click)="onQueryClick()">
+                        [disabled]="!queryAllowed || !enableQueryButton " (click)="onQueryClick(querySelection.query)">
                         Query
                     </button>
                 </div>
@@ -27,9 +27,9 @@
                         ]" (checkedValueChange)="onRecordsSelectionChange($event)" />
                 </div>
                 <div class="d-flex justify-content-end mt-2">
-
                     <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
-                        [disabled]="!queryAllowed || !enableQueryButton " (click)="onPerformQCClick()">
+                        [disabled]="!queryAllowed || !enablePerformQCButton "
+                        (click)="onPerformQCClick(querySelection.query)">
                         Perform QC
                     </button>
                 </div>

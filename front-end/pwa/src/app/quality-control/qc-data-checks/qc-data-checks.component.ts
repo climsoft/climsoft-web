@@ -15,17 +15,12 @@ import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.
 import { ActivatedRoute } from '@angular/router';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { QCQueryModel } from '../qc-query.model';
-import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { QualityControlService } from 'src/app/data-ingestion/services/quality-control.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
-  delete: boolean;
-  newStationId: string;
-  newElementId: number;
+  confirmAsCorrect: boolean;
   stationName: string;
-  elementId: number;
   elementAbbrv: string;
   sourceName: string;
   formattedDatetime: string;
@@ -39,26 +34,24 @@ interface ObservationEntry {
 })
 export class QCDataChecksComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
-
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-
   protected enableSave: boolean = false;
   protected enableQueryButton: boolean = true;
+  protected enablePerformQCButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
-  protected qcParameters!: QCQueryModel;
   private allMetadataLoaded: boolean = false;
- 
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementsCacheService: ElementsCacheService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
+    private qualityControlService: QualityControlService,
     private generalSettingsService: GeneralSettingsService,
     private route: ActivatedRoute,
   ) {
@@ -81,7 +74,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-  
+
   }
 
   ngOnDestroy() {
@@ -93,15 +86,37 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     return QCDataChecksComponent.name;
   }
 
-  protected onQueryQCClick(performQcParams: QCQueryModel): void {
+  protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    //this.queryFilter = observationFilter;
-    //this.queryData();
+    this.queryFilter = queryFilter;
+    this.queryData();
   }
 
-   protected onPerformQCClick(performQcParams: QCQueryModel): void {
+  protected onPerformQCClick(qcSelection: ViewObservationQueryModel): void {
+     this.enablePerformQCButton = false;
+    this.qualityControlService.performQC(qcSelection).pipe(take(1)).subscribe({
+      next: data => {
+        this.enablePerformQCButton = true;
+        console.log('qc results: ', data);
 
-   }
+        if (data.qcFails > 0) {
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: `${data.qcFails} observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
+        } else {
+          // Note. The message here is deliberate because it could be there are observations that have failed qc but the new perform may have skipped
+          // them because of the selection criteria
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: `No observation failed qc tests`, type: ToastEventTypeEnum.SUCCESS });
+        }
+      }, error: err => {
+        this.enablePerformQCButton = true;
+        if (err instanceof HttpErrorResponse) {
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: err.error.message, type: ToastEventTypeEnum.ERROR });
+        } else {
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+        }
+
+      }
+    });
+  }
 
   private queryData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
@@ -113,21 +128,22 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
+    this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
+          this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
-            this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
             this.enableSave = false;
+            this.pagesDataService.showToast({ title: 'QC Data Checks', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
-          this.enableQueryButton = true;
+
         },
         error: err => {
-          this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
           this.enableQueryButton = true;
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: err, type: ToastEventTypeEnum.ERROR });
         },
       });
   }
@@ -141,7 +157,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.queryFilter).pipe(
+    this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
@@ -158,11 +174,8 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
               undefined,
               this.utcOffset,
               false),
-            newStationId: '',
-            newElementId: 0,
-            delete: false,
+            confirmAsCorrect: false,
             stationName: stationMetadata.name,
-            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
@@ -185,10 +198,10 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
 
-  protected onOptionsSelected(optionSlected: 'Delete All'): void {
+  protected onOptionsSelected(optionSlected: 'Confirm All'): void {
     switch (optionSlected) {
-      case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true });
+      case 'Confirm All':
+        this.observationsEntries.forEach(item => { item.confirmAsCorrect = true });
         break;
       default:
         throw new Error("Developer error. Option not supported");
@@ -200,7 +213,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   protected onUserInput() {
     this.numOfChanges = 0;
     for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete || obsEntry.newElementId || obsEntry.newStationId || obsEntry.obsDef.observationChanged) {
+      if (obsEntry.confirmAsCorrect) {
         this.numOfChanges++;
       }
     }
@@ -216,7 +229,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
       // Get observation entries that have not been deleted nor tehir station or or element id changed.
-      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
+      if (!obsEntry.confirmAsCorrect) {
         const obsModel = obsEntry.obsDef.observation;
         changedObs.push({
           stationId: obsModel.stationId,
