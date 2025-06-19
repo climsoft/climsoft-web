@@ -1,7 +1,8 @@
---- qc record function
+--- qc record function. Returns true when all qc tests passed or no qc was done
 CREATE OR REPLACE FUNCTION func_execute_qc_tests(
-    observation_record RECORD
-) RETURNS VOID AS $$
+    observation_record RECORD,
+    user_id INT4
+) RETURNS BOOL AS $$
 DECLARE
     qc_test RECORD;
     qc_test_log JSONB;
@@ -10,7 +11,7 @@ DECLARE
 BEGIN
     -- Skip QC if value is NULL
     IF observation_record.value IS NULL THEN
-        RETURN;
+        RETURN TRUE; -- Return false when no update of the qc status
     END IF;
 
     -- Loop through all relevant QC tests
@@ -51,19 +52,21 @@ BEGIN
 
     -- Exit early if no QC logs were generated (no relevant tests)
     IF all_qc_tests_log = '[]'::JSONB THEN
-        RETURN;
+        RETURN TRUE; -- Return false when no update of the qc status
     END IF;
 
     -- Update the observation record
     UPDATE observations
     SET qc_status = final_qc_status,
-        qc_test_log = all_qc_tests_log
+        qc_test_log = all_qc_tests_log,
+		entry_user_id = user_id
     WHERE station_id = observation_record.station_id
       AND element_id = observation_record.element_id
       AND level = observation_record.level
       AND interval = observation_record.interval
       AND source_id = observation_record.source_id
       AND date_time = observation_record.date_time;
+RETURN final_qc_status = 'passed'; -- Return true after successful update of the qc status
 END;
 $$ LANGUAGE plpgsql;
 
