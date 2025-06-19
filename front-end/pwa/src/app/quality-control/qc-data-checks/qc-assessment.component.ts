@@ -28,11 +28,11 @@ interface ObservationEntry {
 }
 
 @Component({
-  selector: 'app-qc-data-checks',
-  templateUrl: './qc-data-checks.component.html',
-  styleUrls: ['./qc-data-checks.component.scss']
+  selector: 'app-qc-assessment',
+  templateUrl: './qc-assessment.component.html',
+  styleUrls: ['./qc-assessment.component.scss']
 })
-export class QCDataChecksComponent implements OnInit, OnDestroy {
+export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   protected enableSave: boolean = false;
@@ -55,7 +55,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     private generalSettingsService: GeneralSettingsService,
     private route: ActivatedRoute,
   ) {
-    this.pagesDataService.setPageHeader('QC Data Checks');
+    this.pagesDataService.setPageHeader('QC Assessment');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
@@ -83,7 +83,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   protected get componentName(): string {
-    return QCDataChecksComponent.name;
+    return QCAssessmentComponent.name;
   }
 
   protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {

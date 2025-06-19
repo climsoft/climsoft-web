@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';  
+import { RouterModule, Routes } from '@angular/router';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
@@ -15,6 +15,7 @@ import { ViewOrganisationsComponent } from './organisations/view-organisations/v
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
+import { ViewQCTestParametersComponent } from './qc-test-parameters/view-qc-test-parameters/view-qc-test-parameters.component';
 
 const routes: Routes = [
   {
@@ -30,7 +31,7 @@ const routes: Routes = [
       },
       {
         path: 'view-elements',
-        component: ViewElementsComponent, 
+        component: ViewElementsComponent,
       },
       {
         path: 'element-detail/:id',
@@ -38,8 +39,8 @@ const routes: Routes = [
       },
       {
         path: 'view-sources',
-        component: ViewSourcesComponent, 
-      }, 
+        component: ViewSourcesComponent,
+      },
       {
         path: 'form-source-detail/:id',
         component: FormSourceDetailComponent
@@ -51,7 +52,7 @@ const routes: Routes = [
       {
         path: 'view-network-affiliations',
         component: ViewNetworkAffiliationsComponent
-      }, 
+      },
       {
         path: 'network-affiliation-details/:id',
         component: NetworkAffiliationDetailsComponent
@@ -59,7 +60,7 @@ const routes: Routes = [
       {
         path: 'view-organisations',
         component: ViewOrganisationsComponent
-      }, 
+      },
       {
         path: 'organisation-details/:id',
         component: OrganisationDetailsComponent
@@ -67,17 +68,19 @@ const routes: Routes = [
       {
         path: 'view-regions',
         component: ViewRegionsComponent
-      }, 
-
+      },
       {
         path: 'view-stations',
-        component: ViewStationsComponent, 
+        component: ViewStationsComponent,
       },
       {
         path: 'station-detail/:id',
         component: StationDetailComponent
       },
- 
+      {
+        path: 'view-qc-test-parameters',
+        component: ViewQCTestParametersComponent
+      },
       {
         path: 'view-exports',
         component: ViewExportTemplatesComponent
@@ -85,16 +88,16 @@ const routes: Routes = [
       {
         path: 'export-detail/:id',
         component: ExportTemplateDetailComponent
-      }, 
+      },
       {
         path: 'view-connectors',
         component: ViewConnectorsComponent
-      }, 
+      },
 
-     
+
     ]
   }
- 
+
 ];
 
 @NgModule({

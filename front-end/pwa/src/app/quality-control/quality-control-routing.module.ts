@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { SourceChecksComponent } from './source-checks/source-checks.component';
 import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component';
-import { QCDataChecksComponent } from './qc-data-checks/qc-data-checks.component';
+import { QCAssessmentComponent } from './qc-data-checks/qc-assessment.component';
 
 const routes: Routes = [
   {
@@ -18,8 +18,8 @@ const routes: Routes = [
         component: SourceChecksComponent
       }, 
       {
-        path: 'qc-data-checks',
-        component: QCDataChecksComponent
+        path: 'qc-assessment',
+        component: QCAssessmentComponent
       },
       {
         path: 'scheduled-qc-selection',

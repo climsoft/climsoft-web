@@ -18,7 +18,7 @@ export class ElementsQCTestsController {
             return this.qcTestsService.findBy(findQCQuery);
         } else {
             // TODO. Should we support getting all qcs. or is it  only usefull when downloading.
-            return this.qcTestsService.findAll();
+            return this.qcTestsService.find();
         }
 
     }

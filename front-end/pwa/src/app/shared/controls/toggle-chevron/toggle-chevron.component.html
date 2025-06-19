@@ -1,4 +1,4 @@
-<div class="d-inline-flex flex-row" [class.cursor-pointer]="clickable" (click)="onClick();"> 
+<div class="d-inline-flex flex-row w-100" [class.cursor-pointer]="clickable" (click)="onClick();"> 
   <i class="bi" [ngClass]="{ 'bi-chevron-up':this.open, 'bi-chevron-down':!this.open }"></i>
   <ng-content></ng-content>
 </div>

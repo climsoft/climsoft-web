@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Equal, FindManyOptions, FindOptionsWhere, In, Repository } from 'typeorm';
+import { Equal, FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ElementQCTestEntity } from '../entities/element-qc-test.entity';
 import { ViewElementQCTestDto } from '../dtos/qc-tests/view-element-qc-test.dto';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { CreateElementQCTestDto } from '../dtos/qc-tests/create-element-qc-test.dto';
 import { FindQCTestQueryDto } from '../dtos/qc-tests/find-qc-test-query.dto';
+import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 
 // TODO refactor this service later
 
@@ -33,10 +35,10 @@ export class ElementsQCTestsService {
             selectOptions.elementId = In(findQCQuery.elementIds)
         }
 
-        return this.findAll(selectOptions);
+        return this.find(selectOptions);
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<ElementQCTestEntity>): Promise<ViewElementQCTestDto[]> {
+    public async find(selectOptions?: FindOptionsWhere<ElementQCTestEntity>): Promise<ViewElementQCTestDto[]> {
         const findOptions: FindManyOptions<ElementQCTestEntity> = {
             order: {
                 id: "ASC"
@@ -59,14 +61,14 @@ export class ElementsQCTestsService {
         const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
             qcTestType: qcTestType
         };
-        return this.findAll(findOptionsWhere);
+        return this.find(findOptionsWhere);
     }
 
     public async findQCTestByElement(elementId: number): Promise<ViewElementQCTestDto[]> {
         const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
             elementId: elementId
         };
-        return this.findAll(findOptionsWhere);
+        return this.find(findOptionsWhere);
     }
 
     private async findEntity(id: number): Promise<ElementQCTestEntity> {
@@ -135,5 +137,34 @@ export class ElementsQCTestsService {
             comment: entity.comment
         };
     }
+
+      public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+            let changesDetected: boolean = false;
+    
+            const serverCount = await this.qcTestsRepo.count();
+    
+            if (serverCount !== updatesQueryDto.lastModifiedCount) {
+                // If number of records in server are not the same as those in the client then changes detected
+                changesDetected = true;
+            } else {
+                const whereOptions: FindOptionsWhere<ElementQCTestEntity> = {};
+    
+                if (updatesQueryDto.lastModifiedDate) {
+                    whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+                }
+    
+                // If there was any changed record then changes detected
+                changesDetected = (await this.qcTestsRepo.count({ where: whereOptions })) > 0
+            }
+    
+            if (changesDetected) {
+                // If any changes detected then return all records 
+                const allRecords = await this.find();
+                return { metadataChanged: true, metadataRecords: allRecords }
+            } else {
+                // If no changes detected then indicate no metadata changed
+                return { metadataChanged: false }
+            }
+        }
 
 }

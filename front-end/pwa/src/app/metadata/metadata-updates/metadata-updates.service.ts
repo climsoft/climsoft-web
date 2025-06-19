@@ -77,7 +77,7 @@ export class MetadataUpdatesService {
             case 'organisations':
                 return 'organisations';
             case 'networkAffiliations':
-               return 'network-affiliations';
+                return 'network-affiliations';
             case 'stations':
                 return 'stations';
             case 'stationObsEnv':
@@ -90,6 +90,8 @@ export class MetadataUpdatesService {
                 return 'element-types';
             case 'elements':
                 return 'elements';
+            case 'elementsQcTests':
+                return 'elements-qc-tests';
             case 'sourceTemplates':
                 return 'sources';
             default:
