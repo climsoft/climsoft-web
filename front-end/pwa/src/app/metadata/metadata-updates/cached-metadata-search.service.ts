@@ -10,9 +10,9 @@ import { StationCacheModel, StationsCacheService } from "../stations/services/st
     providedIn: 'root'
 })
 export class CachedMetadataSearchService {
-    private stationsMetadata: StationCacheModel[] = [];
-    private elementsMetadata: ElementCacheModel[] = [];
-    private sourcesMetadata: ViewSourceModel[] = [];
+    private _stationsMetadata: StationCacheModel[] = [];
+    private _elementsMetadata: ElementCacheModel[] = [];
+    private _sourcesMetadata: ViewSourceModel[] = [];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     constructor(
@@ -21,26 +21,26 @@ export class CachedMetadataSearchService {
         private sourcesCacheService: SourceTemplatesCacheService,) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
-            this.stationsMetadata = data;
+            this._stationsMetadata = data;
             this.setMetadataLoaded();
         });
 
         this.elementsCacheService.cachedElements.subscribe(data => {
-            this.elementsMetadata = data;
+            this._elementsMetadata = data;
             this.setMetadataLoaded();
         });
 
         this.sourcesCacheService.cachedSources.subscribe(data => {
-            this.sourcesMetadata = data;
+            this._sourcesMetadata = data;
             this.setMetadataLoaded();
         });
     }
 
     private setMetadataLoaded(): void {
-        if (this.stationsMetadata && this.stationsMetadata.length > 0
-            && this.elementsMetadata && this.elementsMetadata.length > 0
-            && this.sourcesMetadata && this.sourcesMetadata.length > 0) {
-                //console.log('stations in service', this.stationsMetadata)
+        if (this._stationsMetadata && this._stationsMetadata.length > 0
+            && this._elementsMetadata && this._elementsMetadata.length > 0
+            && this._sourcesMetadata && this._sourcesMetadata.length > 0) {
+            //console.log('stations in service', this.stationsMetadata)
             this._allMetadataLoaded.next(true);
         }
     }
@@ -50,7 +50,7 @@ export class CachedMetadataSearchService {
     }
 
     public getStation(stationId: string): StationCacheModel {
-        const metadata = this.stationsMetadata.find(item => item.id === stationId);
+        const metadata = this._stationsMetadata.find(item => item.id === stationId);
         if (!metadata) {
             throw new Error("Developer error: Station not found.");
         }
@@ -58,7 +58,7 @@ export class CachedMetadataSearchService {
     }
 
     public getElement(elementId: number): ElementCacheModel {
-        const metadata = this.elementsMetadata.find(item => item.id === elementId);
+        const metadata = this._elementsMetadata.find(item => item.id === elementId);
         if (!metadata) {
             throw new Error("Developer error: Element not found.");
         }
@@ -66,7 +66,7 @@ export class CachedMetadataSearchService {
     }
 
     public getSource(sourceId: number): ViewSourceModel {
-        const metadata = this.sourcesMetadata.find(item => item.id === sourceId);
+        const metadata = this._sourcesMetadata.find(item => item.id === sourceId);
         if (!metadata) {
             throw new Error("Developer error: Source not found.");
         }

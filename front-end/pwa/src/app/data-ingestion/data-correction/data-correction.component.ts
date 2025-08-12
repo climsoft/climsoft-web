@@ -37,6 +37,7 @@ interface ObservationEntry {
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
+  protected observations!: CreateObservationModel[] ;
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
 
@@ -44,7 +45,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
-  private utcOffset: number = 0;
+  protected utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
@@ -158,6 +159,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
+        this.observations = data;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -219,8 +221,13 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     return this.allBoundariesIndices.includes(index);
   }
 
-  protected onOptionsSelected(optionSlected: 'Delete All'): void {
+  protected pivot: boolean = false;
+
+  protected onOptionsSelected(optionSlected: 'Pivot/Unpivot' | 'Delete All'): void {
     switch (optionSlected) {
+      case 'Pivot/Unpivot':
+        this.pivot = !this.pivot;
+         break;
       case 'Delete All':
         this.observationsEntries.forEach(item => { item.delete = true });
         break;
@@ -243,82 +250,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected onSave(): void {
     this.deleteObservations();
     this.updatedObservations();
-  }
-
-  private updatedObservations(): void {
-    // Create required observation dtos 
-    const changedObs: CreateObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      // Get observation entries that have not been deleted nor tehir station or or element id changed.
-      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
-        const obsModel = obsEntry.obsDef.observation;
-        changedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval,
-          value: obsModel.value,
-          flag: obsModel.flag,
-          comment: obsModel.comment
-        })
-      }
-    }
-
-
-    if (changedObs.length === 0) {
-      return;
-    }
-
-    this.enableSave = false;
-    // Send to server for saving
-    this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
-      next: response => {
-        const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
-        if (response.message === 'success') {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-
-      },
-      error: err => {
-        // Important to log the error for tracing purposes
-        console.log('error logged: ', err);
-
-        if (err instanceof HttpErrorResponse) {
-          if (err.status === 0) {
-            // If there is network error then save observations as unsynchronised and no need to send data to server
-            this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
-            });
-          } else if (err.status === 400) {
-            // If there is a bad request error then show the server message
-            this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
-            });
-          } else {
-            this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
-            });
-          }
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-      },
-      complete: () => {
-        this.enableSave = true;
-      }
-    });
   }
 
   private deleteObservations(): void {
@@ -366,6 +297,81 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       complete: () => {
         this.enableSave = true;
       }
+    });
+  }
+
+  private updatedObservations(): void {
+    // Create required observation dtos 
+    const changedObs: CreateObservationModel[] = [];
+    for (const obsEntry of this.observationsEntries) {
+      // Get observation entries that have not been deleted nor tehir station or or element id changed.
+      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
+        const obsModel = obsEntry.obsDef.observation;
+        changedObs.push({
+          stationId: obsModel.stationId,
+          elementId: obsModel.elementId,
+          sourceId: obsModel.sourceId,
+          level: obsModel.level,
+          datetime: obsModel.datetime,
+          interval: obsModel.interval,
+          value: obsModel.value,
+          flag: obsModel.flag,
+          comment: obsModel.comment
+        })
+      }
+    }
+
+
+    if (changedObs.length === 0) {
+      return;
+    }
+
+    this.enableSave = false;
+    // Send to server for saving
+    this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
+      next: response => {
+        this.enableSave = true;
+        const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
+        if (response.message === 'success') {
+          this.pagesDataService.showToast({
+            title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
+          });
+
+          this.loadData();
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Data Correction', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
+          });
+        }
+
+      },
+      error: err => {
+        this.enableSave = true;
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
+
+        if (err instanceof HttpErrorResponse) {
+          if (err.status === 0) {
+            // If there is network error then save observations as unsynchronised and no need to send data to server
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
+            });
+          } else if (err.status === 400) {
+            // If there is a bad request error then show the server message
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+            });
+          } else {
+            this.pagesDataService.showToast({
+              title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            });
+          }
+        } else {
+          this.pagesDataService.showToast({
+            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
+          });
+        }
+      },
     });
   }
 

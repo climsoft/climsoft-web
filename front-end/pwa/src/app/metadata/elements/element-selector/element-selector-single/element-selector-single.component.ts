@@ -50,7 +50,7 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
   }
 
   protected optionDisplayFunction(option: ElementCacheModel): string {
-    return `${option.id} - ${option.name}`;
+    return `${option.id} - ${option.abbreviation} - ${option.name}`;
   }
 
   protected onSelectedOptionChange(selectedOption: ElementCacheModel | null) {

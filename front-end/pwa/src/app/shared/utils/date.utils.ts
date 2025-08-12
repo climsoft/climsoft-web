@@ -95,7 +95,8 @@ export class DateUtils {
 
     public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number): string {
         if (utcOffset === 0) {
-            return strDateTimeInJavaScriptIso.replace('T', ' ').replace('Z', '');
+            return strDateTimeInJavaScriptIso.replace('T', ' ').
+            replace('Z', '').replace(':00', '').replace('.000', '');
         }
 
         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
@@ -104,7 +105,8 @@ export class DateUtils {
         //dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
 
         //return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
-        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').replace('T', ' ').replace('Z', '');;
+        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').
+        replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
     }
 
     public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {

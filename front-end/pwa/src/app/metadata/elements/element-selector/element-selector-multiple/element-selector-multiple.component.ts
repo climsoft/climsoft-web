@@ -75,7 +75,7 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   protected optionDisplayFunction(option: ElementCacheModel): string {
-    return `${option.id} - ${option.name}`;
+    return `${option.id} - ${option.abbreviation} - ${option.name}`;
   }
 
   /**

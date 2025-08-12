@@ -7,7 +7,7 @@
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
             <div class="fw-bold ms-1">Showing Entries</div>
             <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Delete All']"
+                <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Pivot/Unpivot','Delete All']"
                     (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
@@ -19,7 +19,16 @@
         </div>
 
         <div class="card-body p-0 mt-2">
-            <div class="app-table-container">
+            <div *ngIf="pivot">
+                <app-data-correction-pivot [observations]="observations" [utcOffset]="utcOffset"
+                [stationIds]="this.queryFilter.stationIds" 
+                [level]="this.queryFilter.level"
+                [intervals]="this.queryFilter.intervals" 
+                [sourceIds]="this.queryFilter.sourceIds"
+                (valueChange)="onUserInput()"
+                />
+            </div>
+            <div *ngIf="!pivot" class="app-table-container">
                 <table class="table table-striped table-sm">
                     <thead>
                         <tr>

@@ -17,6 +17,7 @@ import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';  
 import { ObservationsModule } from '../observations/observations.module';
+import { DataCorrectionPivotComponent } from './data-correction/data-correction-pivot/data-correction-pivot.component';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { ObservationsModule } from '../observations/observations.module';
     AssignSameInputComponent, 
     ImportSelectionComponent,
     DataCorrectionComponent, 
+    DataCorrectionPivotComponent, 
     MissingDataComponent,
     DeletedDataComponent,
     AutoImportSelectionComponent,  
