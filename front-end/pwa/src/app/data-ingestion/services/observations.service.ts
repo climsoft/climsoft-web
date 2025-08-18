@@ -19,6 +19,7 @@ import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-sta
 import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
 import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary.model';
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
+import { QCStatusEnum } from '../models/qc-status.enum';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -84,8 +85,8 @@ export class ObservationsService {
     return `${this.endPointUrl}/download-export/${exportTemplateId}`;
   }
 
-  public findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+  public findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
         catchError(this.handleError)
       );
@@ -104,8 +105,8 @@ export class ObservationsService {
    * @param entryFormObsQuery 
    * @returns 
    */
-  public findEntryFormData(entryFormObsQuery: EntryFormObservationQueryModel): Observable<CreateObservationModel[]> {
-    return this.http.get<CreateObservationModel[]>(`${this.endPointUrl}/form-data`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) })
+  public findEntryFormData(entryFormObsQuery: EntryFormObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/form-data`, { params: StringUtils.getQueryParams<EntryFormObservationQueryModel>(entryFormObsQuery) })
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {
@@ -133,7 +134,7 @@ export class ObservationsService {
       );
   }
 
-  private async fetchObservationsLocally(entryFormObsQuery: EntryFormObservationQueryModel): Promise<CreateObservationModel[]> {
+  private async fetchObservationsLocally(entryFormObsQuery: EntryFormObservationQueryModel): Promise<ViewObservationModel[]> {
     // Use Compound index [stationId+sourceId+level+elementId+datetime]
     const filters: [string, number, number, number, string][] = [];
     const toDate = new Date(entryFormObsQuery.toDate);
@@ -157,10 +158,10 @@ export class ObservationsService {
       .where('[stationId+sourceId+level+elementId+datetime]')
       .anyOf(filters).toArray();
 
-    return this.convertToCreateObservationModels(cachedObservations);
+    return this.convertToViewObservationModels(cachedObservations);
   }
 
-  private convertToCreateObservationModels(cachedObservations: CachedObservationModel[]): CreateObservationModel[] {
+  private convertToViewObservationModels(cachedObservations: CachedObservationModel[]): ViewObservationModel[] {
     return cachedObservations.map((cachedObservation) => ({
       stationId: cachedObservation.stationId,
       elementId: cachedObservation.elementId,
@@ -171,6 +172,10 @@ export class ObservationsService {
       value: cachedObservation.value,
       flag: cachedObservation.flag,
       comment: cachedObservation.comment,
+      qcStatus: QCStatusEnum.NONE,
+      qcTestLog: null,
+      log: null,
+      entryDatetime: '',
     }));
   }
 
@@ -231,7 +236,7 @@ export class ObservationsService {
     this.isSyncing = true;
     const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations
       .where('synced').equals('false').limit(1000).toArray();
-    const observations: CreateObservationModel[] = this.convertToCreateObservationModels(cachedObservations);
+    const observations: CreateObservationModel[] = this.convertToViewObservationModels(cachedObservations);
     this.http.put(this.endPointUrl, observations).pipe(
       take(1),
       catchError(err => {
@@ -270,7 +275,7 @@ export class ObservationsService {
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations);
   }
 
-   public bulkPutDataFromQCAssessment(observations: CreateObservationModel[]): Observable<{ message: string }> {
+  public bulkPutDataFromQCAssessment(observations: CreateObservationModel[]): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry-qc`, observations);
   }
 

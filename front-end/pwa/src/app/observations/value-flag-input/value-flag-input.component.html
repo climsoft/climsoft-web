@@ -51,10 +51,10 @@
                 </div>
 
                 <div *ngIf="activeTab === 'history'">
-                    <div *ngIf="observationDefinition.observationLog.length<=1" class="p-4">
+                    <div *ngIf="observationDefinition.observationLog.length <= 1" class="p-4">
                         No History
                     </div>
-                    <div *ngIf="observationDefinition.observationLog.length>1">
+                    <div *ngIf="observationDefinition.observationLog.length > 1">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -85,7 +85,7 @@
                     </div>
                 </div>
 
-                  <div *ngIf="activeTab === 'qctests'">
+                <div *ngIf="activeTab === 'qctests'">
                     <div *ngIf="observationDefinition.observationLog.length<=1" class="p-4">
                         No QC tests done.
                     </div>
@@ -93,14 +93,14 @@
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
-                                    <th>Name</th> 
-                                    <th>QC Status</th> 
+                                    <th>Name</th>
+                                    <th>QC Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr *ngFor="let row of observationDefinition.observationLog ">
-                                    <td>{{ row.value }}</td> 
-                                    <td>{{ row.qcStatus }}</td> 
+                                    <td>{{ row.value }}</td>
+                                    <td>{{ row.qcStatus }}</td>
                                 </tr>
                             </tbody>
                         </table>

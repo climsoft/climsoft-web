@@ -44,7 +44,6 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private route: ActivatedRoute,
   ) {
@@ -54,17 +53,12 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
       this.allMetadataLoaded = data;
       this.queryData();
     });
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-      this.queryData();
-    });
+
   }
 
   ngOnInit(): void {
@@ -154,13 +148,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const observationView: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation,
-              elementMetadata,
-              sourceMetadata.allowMissingValue,
-              false,
-              undefined,
-              this.utcOffset,
-              false),
+            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
             stationName: stationMetadata.name,
             elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,

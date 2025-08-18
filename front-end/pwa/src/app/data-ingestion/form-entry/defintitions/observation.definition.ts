@@ -1,7 +1,5 @@
 import { take } from "rxjs";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
-import { CreateViewElementModel } from "src/app/metadata/elements/models/create-view-element.model";
-import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model";
 import { FlagEnum } from "src/app/data-ingestion/models/flag.enum";
 import { ViewObservationLogQueryModel } from "src/app/data-ingestion/models/view-observation-log-query.model";
 import { ViewObservationLogModel } from "src/app/data-ingestion/models/view-observation-log.model";
@@ -9,13 +7,15 @@ import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationsService } from "../../services/observations.service";
+import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
+import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-type.enum";
+import { ViewObservationModel } from "../../models/view-observation.model";
 
 /**
  * Holds the definitions used by the value flag component for data display and entry validations
  */
 export class ObservationDefinition {
-    private elementMetadata: CreateViewElementModel;
-    private _observation: CreateObservationModel;
+    private _observation: ViewObservationModel;
 
     /**
      * holds original value, flag, period and comment  values
@@ -23,11 +23,6 @@ export class ObservationDefinition {
     private _databaseValues: string = '';
 
     private _existsInDatabase: boolean = false;
-
-    /**
-     * Determines whether to invalidate missing value input
-     */
-    private allowMissingValues: boolean;
 
     /**
      * Determines whether the value input will be scaled or not (using the element entry factor).
@@ -47,39 +42,24 @@ export class ObservationDefinition {
     private _validationErrorMessage: string = "";
 
     /**
-   * Holds the validation warning message when value flag is invalid. 
-   */
+     * Holds the validation warning message when value flag is invalid.
+     */
     private _validationWarningMessage: string = "";
 
-    /**
-     * Determines whether to enforce range threshold checks or not.
-     */
-    private rangeThreshold: RangeThresholdQCTestParamsModel | undefined;
-
     public valueFlagInput!: string;
-    public originalPeriod: number;
+    public originalInterval: number;
+ 
 
-    private utcOffset: number;
-    private datetimeHasBeenOffsetForDisplay: boolean;// TODO. This is a temporary variable
+    private cachedMetadataSearchService: CachedMetadataSearchService;
 
-    constructor(observation: CreateObservationModel,
-        elementMetadata: CreateViewElementModel,
-        allowMissingValues: boolean,
-        scaleValue: boolean,
-        rangeThreshold: RangeThresholdQCTestParamsModel | undefined,
-        // TODO. Refactor these 2 parameters later
-        utcOffset: number, datetimeHasBeenOffset: boolean) {
+    constructor(
+          newCachedMetadataSearchService: CachedMetadataSearchService,
+        observation: ViewObservationModel,      
+        scaleValue: boolean,) {
         this._observation = observation;
-        this.elementMetadata = elementMetadata;
-        this.allowMissingValues = allowMissingValues;
-        this.scaleValue = scaleValue;
-        this.rangeThreshold = rangeThreshold;
-        this.utcOffset = utcOffset;
-        this.datetimeHasBeenOffsetForDisplay = datetimeHasBeenOffset;
-
-        this.originalPeriod = observation.interval;
-
-
+        this.cachedMetadataSearchService = newCachedMetadataSearchService; 
+        this.scaleValue = scaleValue;  
+        this.originalInterval = observation.interval; // TODO. Deprecate editing of interval
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
 
         // validate database values
@@ -87,7 +67,7 @@ export class ObservationDefinition {
 
         this._existsInDatabase = observation.value !== null || observation.flag !== null;
         // set original database values for future comparison
-        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.period}${this.comment}`;
+        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}`;
 
     }
 
@@ -113,7 +93,7 @@ export class ObservationDefinition {
         return this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);;
     }
 
-    public get observation(): CreateObservationModel {
+    public get observation(): ViewObservationModel {
         return this._observation;
     }
 
@@ -135,14 +115,15 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        return `${this.getvalueFlagForDisplay()}${this.period}${this.comment}` !== this._databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}` !== this._databaseValues;
     }
 
     public get comment(): string | null {
         return this.observation.comment;
     }
 
-    public get period(): number {
+    // TODO. Deprecate editing of interval
+    public get interval(): number {
         return this.observation.interval;
     }
 
@@ -154,8 +135,12 @@ export class ObservationDefinition {
         this.observation.comment = StringUtils.isNullOrEmpty(comment) ? null : comment;
     }
 
-    public updatePeriodInput(period: number): void {
-        this.observation.interval = period;
+    /**
+     * TODO. Deprecate editing of interval.
+     * @param interval 
+     */
+    public updateIntervalInput(interval: number): void {
+        this.observation.interval = interval;
     }
 
     /**
@@ -224,13 +209,14 @@ export class ObservationDefinition {
             return value;
         }
 
-        const element = this.elementMetadata;
+        const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
         return element.entryScaleFactor ? value / element.entryScaleFactor : value;
     }
 
     public getUnScaledValue(value: number | null): number | null {
         // To remove rounding errors use number utils round off
-        return value && this.elementMetadata.entryScaleFactor ? NumberUtils.roundOff(value * this.elementMetadata.entryScaleFactor, 4) : value;
+        const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
+        return value && element.entryScaleFactor ? NumberUtils.roundOff(value * element.entryScaleFactor, 4) : value;
     }
 
 
@@ -266,20 +252,26 @@ export class ObservationDefinition {
      */
     private checkValueLimitsValidity(value: number): string {
         // If no range thresholds given, then return empty, no need for validations
-        if (!this.rangeThreshold) {
+        const rangeThresholds = this.cachedMetadataSearchService.getQCTestsFor(
+            this.observation.elementId, this.observation.level, this.observation.interval)
+            .filter(item => item.qcTestType === QCTestTypeEnum.RANGE_THRESHOLD);// 
+
+        if (rangeThresholds.length === 0) {
             return '';
         }
 
-        const element = this.elementMetadata;
+        const rangeThreshold = rangeThresholds[0].parameters as RangeThresholdQCTestParamsModel;
+
+        const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);;
         // Get the scale factor to use. An element may not have a scale factor
         const scaleFactor: number = element.entryScaleFactor ? element.entryScaleFactor : 1;
 
-        if (value < this.rangeThreshold.lowerThreshold) {
-            return `Value less than lower limit ${this.rangeThreshold.lowerThreshold * scaleFactor}`;
+        if (value < rangeThreshold.lowerThreshold) {
+            return `Value less than lower limit ${rangeThreshold.lowerThreshold * scaleFactor}`;
         }
 
-        if (value > this.rangeThreshold.upperThreshold) {
-            return `Value higher than upper limit ${this.rangeThreshold.upperThreshold * scaleFactor}`;
+        if (value > rangeThreshold.upperThreshold) {
+            return `Value higher than upper limit ${rangeThreshold.upperThreshold * scaleFactor}`;
         }
 
         return '';
@@ -301,23 +293,23 @@ export class ObservationDefinition {
             return 'Invalid Flag';
         }
 
-        if (!this.allowMissingValues && flagFound === FlagEnum.MISSING) {
+        if (!this.cachedMetadataSearchService.getSource(this.observation.sourceId).allowMissingValue && flagFound === FlagEnum.MISSING) {
             return 'Missing value not allowed';
         }
 
         if (value !== null && flagFound === FlagEnum.MISSING) {
             return 'Invalid Flag, M is used for missing observations ONLY e.g when no observation was made.';
         }
-    
+
         if (value !== null && flagFound === FlagEnum.OBSCURED) {
             return 'Invalid Flag, O or / is used for obscured observations ONLY e.g obscured middle and higher level cloud';
         }
 
-         if (value !== null && flagFound === FlagEnum.VARIABLE) {
+        if (value !== null && flagFound === FlagEnum.VARIABLE) {
             return 'Invalid Flag, V is used for variable observations ONLY e.g variable wind';
         }
 
-        if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED && flagFound !== FlagEnum.VARIABLE)  {
+        if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED && flagFound !== FlagEnum.VARIABLE) {
             return 'Invalid Flag, use M for missing, O or / for obscure and V for variable observation';
         }
 
@@ -326,52 +318,36 @@ export class ObservationDefinition {
 
 
     private findFlag(inputFlag: string): FlagEnum | null {
-         if(inputFlag === '/'){
+        if (inputFlag === '/') {
             inputFlag = FlagEnum.OBSCURED;
         }
 
         return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
     }
 
-    public loadObservationLog(observationService: ObservationsService): void {
-        // Note the function is called twice, when drop down is opened and when it's closed
-        // So this obsLog truthy check prevents unnecessary reloading
+    public loadObservationLog( ): void {
+       
 
-        if (this._observationLog && this._observationLog.length > 0) {
-            // No need to reload the log
-            return;
-        }
-
-        // Create an observation log query dto.
-        const query: ViewObservationLogQueryModel = {
-            stationId: this.observation.stationId,
-            elementId: this.observation.elementId,
-            sourceId: this.observation.sourceId,
-            level: this.observation.level,
-            // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-            // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-            // Note, this check was added but should be removed once this class is well refactored. Form entry and data correction and explorer use this object differently           
-            datetime: this.datetimeHasBeenOffsetForDisplay ? DateUtils.getDatetimesBasedOnUTCOffset(this.observation.datetime, this.utcOffset, 'subtract') : this.observation.datetime,
-            interval: this.observation.interval
-        };
-
-        observationService.findObsLog(query).pipe(
-            take(1)
-        ).subscribe(data => {
-            // Transform the log data accordingly
-            this._observationLog = data.map(item => {
-                // Display the values in scaled form 
-                if (this.scaleValue && item.value && this.elementMetadata.entryScaleFactor) {
-                    // To remove rounding errors number utils round off
-                    item.value = this.getUnScaledValue(item.value);
-                }
-
-                // Convert the entry date time to current local time
-                item.entryDateTime = DateUtils.getPresentableDatetime(item.entryDateTime, this.utcOffset);
-                return item;
+        const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
+        const utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+        // Transform the log data accordingly
+        this._observationLog = this.observation.log ? this.observation.log.map(item => {
+            // Display the values in scaled form 
+            if (this.scaleValue && item.value && element.entryScaleFactor) {
+                // To remove rounding errors number utils round off
+                item.value = this.getUnScaledValue(item.value);
             }
-            )
-        });
+
+            // Convert the entry date time to current local time
+            item.entryDateTime = DateUtils.getPresentableDatetime(item.entryDateTime, utcOffset);
+            return item;
+        }
+        ) : [];
+
+           console.log('log: ', this.observation.log );
+          console.log('new log: ', this. _observationLog );
+
+
     }
 
 }

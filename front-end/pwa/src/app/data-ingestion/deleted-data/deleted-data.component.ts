@@ -48,21 +48,22 @@ export class DeletedDataComponent implements OnDestroy {
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
-
+  private allMetadataLoaded: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
   ) {
     this.pagesDataService.setPageHeader('Deleted Data');
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(2).pipe(
+
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    ).subscribe(data => {
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.allMetadataLoaded = data;
+      this.queryData();
     });
 
   }
@@ -127,8 +128,7 @@ export class DeletedDataComponent implements OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation, 
-              elementMetadata, sourceMetadata.allowMissingValue, false, undefined, this.utcOffset, false),
+            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
             restore: false,
             hardDelete: false,
             stationName: stationMetadata.name,

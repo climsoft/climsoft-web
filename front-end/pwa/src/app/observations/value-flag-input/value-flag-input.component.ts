@@ -90,7 +90,7 @@ export class ValueFlagInputComponent implements OnChanges {
     }
     this.observationDefinition.updateValueFlagFromUserInput('');
     this.observationDefinition.updateCommentInput('');
-    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.observationDefinition.updateIntervalInput(this.observationDefinition.originalInterval);
     this.resetInternals();
     this.userInputVF.emit(this.observationDefinition);
   }
@@ -101,14 +101,14 @@ export class ValueFlagInputComponent implements OnChanges {
     }
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
     this.observationDefinition.updateCommentInput(comment);
-    this.observationDefinition.updatePeriodInput(this.observationDefinition.originalPeriod);
+    this.observationDefinition.updateIntervalInput(this.observationDefinition.originalInterval);
     this.resetInternals();
     this.userInputVF.emit(this.observationDefinition);
   }
 
   private resetInternals(): void {
     // Get period in days for data that has a period of a day or greater
-    this.interval = this.observationDefinition.period;
+    this.interval = this.observationDefinition.interval;
 
     // Get the comment from database
     this.comment = this.observationDefinition.comment;
@@ -148,7 +148,7 @@ export class ValueFlagInputComponent implements OnChanges {
   protected onTabChange(selectedTab: 'new' | 'history'| 'qctests'): void {
     this.activeTab = selectedTab;
     if (selectedTab === 'history') {
-      this.observationDefinition.loadObservationLog(this.observationService);
+      this.observationDefinition.loadObservationLog( );
     }
   }
 
@@ -156,8 +156,8 @@ export class ValueFlagInputComponent implements OnChanges {
     let bValueChanged: boolean = false;
 
     if (!this.allowIntervalEditing) {
-      if (this.interval > this.observationDefinition.period) {
-        this.observationDefinition.updatePeriodInput(this.interval);
+      if (this.interval > this.observationDefinition.interval) {
+        this.observationDefinition.updateIntervalInput(this.interval);
         this.observationDefinition.updateValueFlagFromUserInput(
           this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`
         )
