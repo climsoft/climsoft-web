@@ -9,6 +9,7 @@ import { StringUtils } from 'src/shared/utils/string.utils';
 import { FlagEnum } from '../enums/flag.enum';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import * as mariadb from 'mariadb';
+import { QCStatusEnum } from '../enums/qc-status.enum';
 
 @Injectable()
 export class ClimsoftV4ToWebSyncService {
@@ -383,7 +384,7 @@ export class ClimsoftV4ToWebSyncService {
 
             // Save the version 4 observations to web database 
             this.logger.log('Saving v4 observations ' + v4Observations.length + ' for station ' + stationId + ' and element ' + element.elementId);
-            await this.observationsService.bulkPut(obsDtos, this.userId, true);
+            await this.observationsService.bulkPut(obsDtos, this.userId, QCStatusEnum.NONE, true);
 
             return true;
         } catch (error) {

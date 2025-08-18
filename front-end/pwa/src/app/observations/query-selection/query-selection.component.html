@@ -1,5 +1,5 @@
 <div class="card border-0 p-0">
-    <div *ngIf="displayQueryButton" class="card-header mb-2 px-1 fw-bold">
+    <div *ngIf="displayFilterHeader" class="card-header mb-2 px-1 fw-bold">
         <app-toggle-chevron [(open)]="displayFilterControls">Filter</app-toggle-chevron>
     </div>
     <div *ngIf="displayFilterControls" class="card-body p-0 mt-2">
@@ -44,9 +44,9 @@
                     </div>
 
                 </div>
-            </div>
+            </div> 
 
-            <div *ngIf="displayQueryButton">
+            <div >
                 <button type="button" class="btn btn-outline-secondary btn-sm"
                     [disabled]=" !queryAllowed || !enableQueryButton " (click)="onQueryClick()">
                     Query

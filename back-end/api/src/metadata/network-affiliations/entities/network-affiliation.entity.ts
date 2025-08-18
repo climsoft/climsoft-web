@@ -26,6 +26,9 @@ export class NetworkAffiliationEntity extends AppBaseEntity {
   parentNetwork: NetworkAffiliationEntity | null;
   //---------------
 
+  @Column({ name: "color", type: "varchar", nullable: true })
+  color: string | null;
+
   @Column({ name: "order_number", type: "int", nullable: true })
   @Index()
   orderNumber: number | null;

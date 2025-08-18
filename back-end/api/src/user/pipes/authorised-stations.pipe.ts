@@ -82,8 +82,8 @@ export class AuthorisedStationsPipe implements PipeTransform {
           return this.handleMonitoringViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions)
         } else if (this.request.route.path === '/observations/correction-data' || this.request.route.path === '/observations/count-correction-data') {
           return this.handleCorrectionViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
-        } else if (this.request.route.path === '/source-check/count' || this.request.route.path === '/source-check/count') {
-          return this.handleSourceViewObservationQueryDTO(value as ViewObservationQueryDTO, user.permissions);
+        } else if (this.request.route.path === '/qc-check/count' || this.request.route.path === '/qc-check/count' || this.request.route.path === '/qc-check/perform-qc') {
+          return this.handleQualityControlQueryDTO(value as ViewObservationQueryDTO, user.permissions);
         } else {
           throw new BadRequestException('Observations route path not authorised');
         }
@@ -180,7 +180,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     }
   }
 
-  private handleSourceViewObservationQueryDTO(value: ViewObservationQueryDTO, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
+  private handleQualityControlQueryDTO(value: ViewObservationQueryDTO, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
     if (!value) throw new BadRequestException('Query value must be defined');
 
     if (!userPermissions.qcPermissions) throw new BadRequestException('Not authorised to QC');

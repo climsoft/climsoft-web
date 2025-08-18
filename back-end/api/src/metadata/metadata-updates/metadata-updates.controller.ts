@@ -9,9 +9,10 @@ import { SourceTemplatesService } from '../source-templates/services/source-temp
 import { ElementsService } from '../elements/services/elements.service';
 import { RegionsService } from '../regions/services/regions.service';
 import { ElementTypesService } from '../elements/services/element-types.service';
-import { ElementSubdomainsService } from '../elements/services/element-subdomains.service'; 
+import { ElementSubdomainsService } from '../elements/services/element-subdomains.service';
 import { OrganisationsService } from '../organisations/services/organisations.service';
 import { NetworkAffiliationsService } from '../network-affiliations/services/network-affiliations.service';
+import { ElementsQCTestsService } from '../elements/services/elements-qc-tests.service';
 
 @Controller('metadata-updates')
 export class MetadataUpdatesController {
@@ -26,7 +27,7 @@ export class MetadataUpdatesController {
     private elementSubdomainsService: ElementSubdomainsService,
     private elementTypesService: ElementTypesService,
     private elementsService: ElementsService,
-
+    private elementsQCTestsService: ElementsQCTestsService,
   ) { }
 
   @Get('organisations')
@@ -92,7 +93,7 @@ export class MetadataUpdatesController {
       throw new BadRequestException('User permissions not defined');
     }
 
-   // return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
+    // return this.stationsService.checkUpdates(updatesQueryDto, authorisedStationIds);
     return this.stationsService.checkUpdates(updatesQueryDto);
   }
 
@@ -112,6 +113,12 @@ export class MetadataUpdatesController {
   async elementUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.elementsService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('elements-qc-tests')
+  async elementsQCTestsUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.elementsQCTestsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('sources')

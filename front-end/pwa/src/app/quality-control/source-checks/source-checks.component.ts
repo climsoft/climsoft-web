@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, take, takeUntil } from 'rxjs';
-import { DuplicateModel, SourceCheckService } from '../../data-ingestion/services/source-check.service';
+import { QualityControlService } from '../../data-ingestion/services/quality-control.service';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -13,8 +13,9 @@ import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.
 import { Router } from '@angular/router';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
+import { SourceCheckDuplicateModel } from 'src/app/data-ingestion/models/source-check-duplicate.model';
 
-export interface SourceCheckViewModel extends DuplicateModel {
+export interface SourceCheckViewModel extends SourceCheckDuplicateModel {
   stationName: string;
   elementAbbrv: string;
   formattedDatetime: string;
@@ -29,8 +30,6 @@ export interface SourceCheckViewModel extends DuplicateModel {
 export class SourceChecksComponent implements OnDestroy {
 
   protected totalRecords: number = 0;
-
-
   protected duplicateEntries: SourceCheckViewModel[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -45,7 +44,7 @@ export class SourceChecksComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private sourceCheckService: SourceCheckService,
+    private qualityControlService: QualityControlService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private generalSettingsService: GeneralSettingsService,
     private router: Router,
@@ -79,9 +78,9 @@ export class SourceChecksComponent implements OnDestroy {
     return SourceChecksComponent.name;
   }
 
-  protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
+  protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = observationFilter;
+    this.queryFilter = queryFilter;
     this.queryData();
   }
 
@@ -89,7 +88,7 @@ export class SourceChecksComponent implements OnDestroy {
     this.enableQueryButton = false;
     this.duplicateEntries = [];
     this.pageInputDefinition.setTotalRowCount(0)
-    this.sourceCheckService.count(this.queryFilter).pipe(
+    this.qualityControlService.countDuplicates(this.queryFilter).pipe(
       take(1))
       .subscribe({
         next: count => {
@@ -114,7 +113,7 @@ export class SourceChecksComponent implements OnDestroy {
     this.duplicateEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
-    this.sourceCheckService.find(this.queryFilter).pipe(
+    this.qualityControlService.findDuplicates(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {

@@ -6,7 +6,7 @@ import { QualityControlRoutingModule } from './quality-control-routing.module';
 import { ObservationsModule } from '../observations/observations.module';
 import { SourceChecksComponent } from './source-checks/source-checks.component';
 import { ScheduledQCTestComponent } from './scheduled-qc-test/scheduled-qc-test.component'; 
-import { QCDataChecksComponent } from './qc-data-checks/qc-data-checks.component';
+import { QCAssessmentComponent } from './qc-data-checks/qc-assessment.component';
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { QueryQCDataChecksComponent } from './qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
 
@@ -14,7 +14,7 @@ import { QueryQCDataChecksComponent } from './qc-data-checks/query-qc-data-check
 
   declarations: [
     SourceChecksComponent,  
-    QCDataChecksComponent,
+    QCAssessmentComponent,
     QueryQCDataChecksComponent,
     ScheduledQCTestComponent,
   ],

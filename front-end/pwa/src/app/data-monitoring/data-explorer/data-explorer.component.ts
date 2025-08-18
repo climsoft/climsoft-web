@@ -119,13 +119,13 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
     this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
+          this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
             this.pagesDataService.showToast({ title: 'Data Exploration', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
-          this.enableQueryButton = true;
         },
         error: err => {
           this.pagesDataService.showToast({ title: 'Data Exploration', message: err, type: ToastEventTypeEnum.ERROR });

@@ -1,7 +1,12 @@
 <app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
     [closeOnOkClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
-    <div *ngIf="updateQcTest">
+    <div *ngIf="open && updateQcTest">
+        <div>
+            <app-element-selector-single [label]="'Element'" [(selectedId)]="updateQcTest.elementId" />
+        </div>
+        <hr />
+
         <div>
             <app-text-input [label]="'Name'" [(value)]="updateQcTest.name" />
         </div>
@@ -69,13 +74,6 @@
 
         <div>
             <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />
-        </div>
-
-        <div *ngIf="errorMessage">
-            <hr />
-            <div class="text-danger">
-                {{errorMessage}}
-            </div>
         </div>
 
     </div>

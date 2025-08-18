@@ -8,7 +8,6 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
-import { ElementsQCTestsService } from 'src/app/metadata/elements/services/elements-qc-tests.service';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
 import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
@@ -28,6 +27,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ElementsQCTestsCacheService } from 'src/app/metadata/elements/services/elements-qc-tests-cache.service';
 
 @Component({
   selector: 'app-form-entry',
@@ -77,7 +77,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private elementsService: ElementsCacheService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
-      private qcTestsService: ElementsQCTestsService,
+      private qcTestsService: ElementsQCTestsCacheService,
       private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
@@ -117,20 +117,16 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           }
           this.source = source;
 
-          const sourceParams = this.source.parameters as CreateEntryFormModel;
-          const findQCTestQuery: FindQCTestQueryModel = {
-            elementIds: sourceParams.elementIds,
-            qcTestTypes: [QCTestTypeEnum.RANGE_THRESHOLD],
-            observationInterval: sourceParams.interval,
-          };
-
-          this.qcTestsService.find(findQCTestQuery).pipe(
+          this.qcTestsService.cachedElementsQcTests.pipe(
             takeUntil(this.destroy$),
           ).subscribe(qcTests => {
-
-            // Note, as of 09/01/2025, when user is online this will be raised twice due to the qc test service that finds the qc twice, locally and from server
-
-            this.qcTests = qcTests.filter(item => !item.disabled);
+            
+            const sourceParams = this.source.parameters as CreateEntryFormModel;
+            this.qcTests = qcTests.filter(item => (
+              item.qcTestType === QCTestTypeEnum.RANGE_THRESHOLD &&
+              item.observationInterval === sourceParams.interval &&
+              sourceParams.elementIds.includes(item.elementId)
+            ));
 
             this.formDefinitions = new FormEntryDefinition(
               this.station,
@@ -414,7 +410,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       error: err => {
         // Important to log the error for tracing purposes
         console.log('error logged: ', err);
-        
+
         if (err instanceof HttpErrorResponse) {
           if (err.status === 0) {
             // If there is network error then save observations as unsynchronised and no need to send data to server
@@ -523,7 +519,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         }
       }
       // If there was no next hour then set the first hour before moving to the next date
-       this.formDefinitions.hourSelectorValue = this.formDefinitions.formMetadata.hours[0];
+      this.formDefinitions.hourSelectorValue = this.formDefinitions.formMetadata.hours[0];
     }
 
     if (this.formDefinitions.daySelectorValue) {

@@ -1,6 +1,7 @@
 import { Transform, Type } from "class-transformer";
-import { IsDateString, IsInt, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
+import { QCStatusEnum } from "../enums/qc-status.enum";
 
 export class ViewObservationQueryDTO {
     @IsOptional()
@@ -40,6 +41,10 @@ export class ViewObservationQueryDTO {
     @IsOptional()
     @IsDateString()
     toDate?: string;
+
+    @IsOptional()
+    @IsEnum(QCStatusEnum, { message: 'Qc status must be a valid QCStatusEnum value or undefined' })
+    qcStatus?: QCStatusEnum;
 
     // Added  @IsOptional because Query parameters are strings and NestJS whitelist doesn't work with string booleans well.
     // See issue https://github.com/typestack/class-transformer/issues/550 to know why the manual transformation is needed.

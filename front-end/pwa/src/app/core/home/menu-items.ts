@@ -34,18 +34,18 @@ export enum SubMenuNameEnum {
     DATA_EXPLORER = 'Data Explorer',
 
     SOURCE_CHECKS = 'Source Checks',
-    QC_DATA_CHECKS = 'QC Data Checks',
+    QC_ASSESSMENT = 'QC Assessment',
     SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
 
     MANUAL_EXPORT = 'Manual Export',
     SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
-    REGIONS = 'Regions',
+    QC_TEST_PARAMETERS = 'QC Test Parameters',    
     ORGANISATIONS = 'Organisations',
     NETWORK_AFFILIATIONS = 'Network Affiliations',
+    REGIONS = 'Regions',
     STATIONS = 'Stations',
-
     SOURCE_TEMPLATES = 'Source Templates',
     EXPORT_TEMPLATES = 'Export Templates',
     INTEGRATION_CONNECTORS = 'Integration Connectors',
@@ -129,8 +129,8 @@ export class MenuItemsUtil {
                     url: '/source-checks',
                 },
                 {
-                    name: SubMenuNameEnum.QC_DATA_CHECKS,
-                    url: '/qc-data-checks',
+                    name: SubMenuNameEnum.QC_ASSESSMENT,
+                    url: '/qc-assessment',
                 },
                 {
                     name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
@@ -185,6 +185,10 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.STATIONS,
                     url: '/view-stations',
+                },
+                 {
+                    name: SubMenuNameEnum.QC_TEST_PARAMETERS,
+                    url: '/view-qc-test-parameters',
                 },
                 {
                     name: SubMenuNameEnum.SOURCE_TEMPLATES,

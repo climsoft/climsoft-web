@@ -15,54 +15,52 @@ import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.
 import { ActivatedRoute } from '@angular/router';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
-import { QCQueryModel } from '../qc-query.model';
+import { QualityControlService } from 'src/app/data-ingestion/services/quality-control.service';
+import { ElementQCTestCacheModel } from 'src/app/metadata/elements/services/elements-qc-tests-cache.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
+  confirmAsCorrect: boolean;
   delete: boolean;
-  newStationId: string;
-  newElementId: number;
   stationName: string;
-  elementId: number;
   elementAbbrv: string;
   sourceName: string;
   formattedDatetime: string;
   intervalName: string;
+  qcTestLog: ElementQCTestCacheModel[];
 }
 
 @Component({
-  selector: 'app-qc-data-checks',
-  templateUrl: './qc-data-checks.component.html',
-  styleUrls: ['./qc-data-checks.component.scss']
+  selector: 'app-qc-assessment',
+  templateUrl: './qc-assessment.component.html',
+  styleUrls: ['./qc-assessment.component.scss']
 })
-export class QCDataChecksComponent implements OnInit, OnDestroy {
+export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
-
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-
-  protected enableSave: boolean = false;
+  protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
+  protected enablePerformQCButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
-  protected qcParameters!: QCQueryModel;
   private allMetadataLoaded: boolean = false;
- 
+  protected useUnstackedViewer: boolean = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementsCacheService: ElementsCacheService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
+    private qualityControlService: QualityControlService,
     private generalSettingsService: GeneralSettingsService,
-    private route: ActivatedRoute,
   ) {
-    this.pagesDataService.setPageHeader('QC Data Checks');
+    this.pagesDataService.setPageHeader('QC Assessment');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
@@ -81,7 +79,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-  
+
   }
 
   ngOnDestroy() {
@@ -90,18 +88,60 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
   protected get componentName(): string {
-    return QCDataChecksComponent.name;
+    return QCAssessmentComponent.name;
   }
 
-  protected onQueryQCClick(performQcParams: QCQueryModel): void {
+  protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    //this.queryFilter = observationFilter;
-    //this.queryData();
+    this.queryFilter = queryFilter;
+    this.queryData();
   }
 
-   protected onPerformQCClick(performQcParams: QCQueryModel): void {
+  protected onPerformQCClick(qcSelection: ViewObservationQueryModel): void {
+     if (!qcSelection.fromDate) {
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'From date selection required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
 
-   }
+    if (!qcSelection.toDate) {
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'To date selection required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+     if (this.isMoreThanTenCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate))) {
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+    this.enablePerformQCButton = false;
+    this.qualityControlService.performQC(qcSelection).pipe(take(1)).subscribe({
+      next: data => {
+        this.enablePerformQCButton = true; 
+
+        if (data.qcFails > 0) {
+          this.pagesDataService.showToast({ title: 'QC Assessment', message: `${data.qcFails} observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
+        } else {
+          // Note. The message here is deliberate because it could be there are observations that have failed qc but the new perform may have skipped
+          // them because of the selection criteria
+          this.pagesDataService.showToast({ title: 'QC Assessment', message: `No observation failed qc tests`, type: ToastEventTypeEnum.SUCCESS });
+        }
+      }, error: err => {
+        this.enablePerformQCButton = true;
+        if (err instanceof HttpErrorResponse) {
+          this.pagesDataService.showToast({ title: 'QC Assessment', message: err.error.message, type: ToastEventTypeEnum.ERROR });
+        } else {
+          this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+        }
+
+      }
+    });
+  }
+
+   private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
+    const tenYearsLater = new Date(fromDate);
+    tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
+    return toDate > tenYearsLater;
+  }
 
   private queryData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
@@ -113,35 +153,36 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
+    this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
+          this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           if (count > 0) {
             this.loadData();
           } else {
-            this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
-            this.enableSave = false;
+            this.enableSaveButton = false;
+            this.pagesDataService.showToast({ title: 'QC Data Checks', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
-          this.enableQueryButton = true;
+
         },
         error: err => {
-          this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
           this.enableQueryButton = true;
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: err, type: ToastEventTypeEnum.ERROR });
         },
       });
   }
 
   protected loadData(): void {
     this.enableQueryButton = false;
-    this.enableSave = false;
+    this.enableSaveButton = false;
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.queryFilter).pipe(
+    this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
@@ -149,6 +190,10 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
+          const qcTestLogMetadata = observation.qcTestLog ?
+            observation.qcTestLog.filter(qcLogItem => qcLogItem.qcStatus == QCStatusEnum.FAILED).map(qcLogItem => {
+              return this.cachedMetadataSearchService.getElementQCTest(qcLogItem.qcTestId);
+            }) : [];
 
           const entry: ObservationEntry = {
             obsDef: new ObservationDefinition(observation,
@@ -158,15 +203,14 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
               undefined,
               this.utcOffset,
               false),
-            newStationId: '',
-            newElementId: 0,
+            confirmAsCorrect: false,
             delete: false,
             stationName: stationMetadata.name,
-            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+            intervalName: IntervalsUtil.getIntervalName(observation.interval),
+            qcTestLog: qcTestLogMetadata,
           }
           return entry;
 
@@ -174,7 +218,7 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
 
         this.observationsEntries = observationsEntries;
         this.enableQueryButton = true;
-        this.enableSave = true;
+        this.enableSaveButton = true;
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
@@ -185,38 +229,92 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
   }
 
 
-  protected onOptionsSelected(optionSlected: 'Delete All'): void {
+  protected onOptionsSelected(optionSlected: 'Stack/Unstack' | 'Confirm All' | 'Delete All'): void {
     switch (optionSlected) {
+      case 'Stack/Unstack':
+        this.useUnstackedViewer = !this.useUnstackedViewer;
+        break;
+      case 'Confirm All':
+        this.observationsEntries.forEach(item => { item.confirmAsCorrect = true; });
+        this.onUserInput();
+        break;
       case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true });
+        this.observationsEntries.forEach(item => { item.delete = true; });
+        this.onUserInput();
         break;
       default:
         throw new Error("Developer error. Option not supported");
     }
-
-    this.onUserInput();
   }
 
   protected onUserInput() {
     this.numOfChanges = 0;
     for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete || obsEntry.newElementId || obsEntry.newStationId || obsEntry.obsDef.observationChanged) {
+      if (obsEntry.confirmAsCorrect || obsEntry.delete || obsEntry.obsDef.observationChanged) {
         this.numOfChanges++;
       }
     }
   }
 
   protected onSave(): void {
+    this.deleteObservations();
+    this.updatedObservations();
+  }
 
-    //this.updatedObservations();
+  private deleteObservations(): void {
+    // Create required observation dtos 
+    const deletedObs: DeleteObservationModel[] = [];
+    for (const obsEntry of this.observationsEntries) {
+      if (obsEntry.delete) {
+        const obsModel = obsEntry.obsDef.observation;
+        deletedObs.push({
+          stationId: obsModel.stationId,
+          elementId: obsModel.elementId,
+          sourceId: obsModel.sourceId,
+          level: obsModel.level,
+          datetime: obsModel.datetime,
+          interval: obsModel.interval
+        })
+      }
+    }
+
+
+    if (deletedObs.length === 0) {
+      return;
+    }
+
+    this.enableSaveButton = false;
+    // Send to server for saving
+    this.observationService.softDelete(deletedObs).subscribe({
+      next: data => {
+        this.enableSaveButton = true;
+        if (data) {
+          this.pagesDataService.showToast({
+            title: 'QC Assessment', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
+          });
+
+          this.queryData();
+        } else {
+          this.pagesDataService.showToast({
+            title: 'QC Assessment', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
+          });
+        }
+      },
+      error: err => {
+        this.enableSaveButton = true;
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
+        this.pagesDataService.showToast({ title: 'QC Assessment', message: err, type: ToastEventTypeEnum.ERROR });
+      },
+    });
   }
 
   private updatedObservations(): void {
     // Create required observation dtos 
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
-      // Get observation entries that have not been deleted nor tehir station or or element id changed.
-      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
+      // Get observation entries that have not been deleted  or whose value has been changed or confirmed as correct
+      if (!obsEntry.delete && (obsEntry.confirmAsCorrect || obsEntry.obsDef.observationChanged)) {
         const obsModel = obsEntry.obsDef.observation;
         changedObs.push({
           stationId: obsModel.stationId,
@@ -237,25 +335,26 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.enableSave = false;
+    this.enableSaveButton = false;
     // Send to server for saving
-    this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
+    this.observationService.bulkPutDataFromQCAssessment(changedObs).subscribe({
       next: response => {
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         if (response.message === 'success') {
           this.pagesDataService.showToast({
-            title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
+            title: 'QC Assessment', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
           });
 
           this.queryData();
         } else {
           this.pagesDataService.showToast({
-            title: 'Data Correction', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
+            title: 'QC Assessment', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
           });
         }
 
       },
       error: err => {
+        this.enableSaveButton = true;
         // Important to log the error for tracing purposes
         console.log('error logged: ', err);
 
@@ -263,32 +362,27 @@ export class QCDataChecksComponent implements OnInit, OnDestroy {
           if (err.status === 0) {
             // If there is network error then save observations as unsynchronised and no need to send data to server
             this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
+              title: 'QC Assessment', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
             });
           } else if (err.status === 400) {
             // If there is a bad request error then show the server message
             this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+              title: 'QC Assessment', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
             });
           } else {
             this.pagesDataService.showToast({
-              title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
+              title: 'QC Assessment', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
             });
           }
         } else {
           this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            title: 'QC Assessment', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
           });
         }
+
       },
-      complete: () => {
-        this.enableSave = true;
-      }
     });
   }
-
-
-
 
   protected getRowNumber(currentRowIndex: number): number {
     return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);

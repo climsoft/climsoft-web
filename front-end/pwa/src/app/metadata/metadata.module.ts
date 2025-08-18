@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module';
-import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component'; 
+import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
@@ -28,15 +28,15 @@ import { ImportSourceMissingFlagDetailComponent } from './source-templates/impor
 import { ImportSourceFlagDetailComponent } from './source-templates/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
 import { ElementCharacteristicsComponent } from './elements/element-detail/element-characteristics/element-characteristics.component';
-import { QCTestsComponent } from './elements/element-detail/qc-tests/qc-tests.component';
-import { QCTestInputDialogComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-input-dialog.component';
-import { QCTestTypeInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-type-input/qc-test-type-input.component';
-import { QCTestRangeThresholdParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component'; 
-import { QCTestFlatLineParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
-import { QCTestSpikeParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-spike-params/qc-test-spike-params.component';
-import { QCTestRelationalParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
-import { QCTestContextualParamsComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
-import { QCTestConditionInputComponent } from './elements/element-detail/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
+import { ElementQCTestsComponent } from './elements/element-detail/element-qc-tests/element-qc-tests.component';
+import { QCTestParameterInputDialogComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-parameter-input-dialog.component';
+import { QCTestTypeInputComponent } from './qc-test-parameters/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-input.component';
+import { QCTestRangeThresholdParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
+import { QCTestFlatLineParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
+import { QCTestSpikeParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-spike-params/qc-test-spike-params.component';
+import { QCTestRelationalParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
+import { QCTestContextualParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
+import { QCTestConditionInputComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
@@ -73,13 +73,14 @@ import { StationStatusSearchComponent } from './stations/stations-search-dialog/
 import { StationProcessingMethodSearchComponent } from './stations/stations-search-dialog/station-processing-search/station-processing-method-search.component';
 import { StationFocusesSearchComponent } from './stations/stations-search-dialog/station-focuses-search/station-focuses-search.component';
 import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
-import { QCStatusSelectorSingleComponent } from './elements/element-detail/qc-status-selector-single/qc-status-selector-single.component';
+import { QCStatusSelectorSingleComponent } from './qc-test-parameters/qc-status-selector-single/qc-status-selector-single.component';
 import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
 import { StationIDNameSearchComponent } from './stations/stations-search-dialog/station-id-name-search/station-id-name-search.component';
+import { ViewQCTestParametersComponent } from './qc-test-parameters/view-qc-test-parameters/view-qc-test-parameters.component';
 
 @NgModule({
-  declarations: [ 
+  declarations: [
     FormSelectorDialogComponent,
 
     ViewNetworkAffiliationsComponent,
@@ -110,23 +111,23 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
     ViewStationsTableComponent,
     ViewStationsGeoMapComponent,
     ViewStationsTreeMapComponent,
-     
-    StationNetworksComponent, 
+
+    StationNetworksComponent,
 
     StationsSearchDialogComponent,
     StationIDNameSearchComponent,
-    StationRegionsSearchComponent, 
+    StationRegionsSearchComponent,
     StationOrganisationsSearchComponent,
     StationNetworkAffiliationsSearchComponent,
     StationStatusSearchComponent,
     StationProcessingMethodSearchComponent,
     StationFocusesSearchComponent,
     StationEnvironmentsSearchComponent,
- 
+
     ElementDetailComponent,
     ViewElementsComponent,
     StationCharacteristicsComponent,
-    StationFormsComponent,
+    StationFormsComponent, 
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -135,33 +136,33 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
     ImportSourceLevelDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceFlagDetailComponent,
+
     ElementCharacteristicsInputDialogComponent,
     ElementCharacteristicsComponent,
     ImportElementsDialogComponent,
-
     ElementTypeSingleInputComponent,
-
-    QCTestsComponent,
-    QCTestInputDialogComponent,
-    QCTestTypeInputComponent,
-    QCTestRangeThresholdParamsComponent, 
-    QCTestFlatLineParamsComponent,
-    QCTestSpikeParamsComponent,
-    QCTestRelationalParamsComponent,
-    QCTestContextualParamsComponent,
-    QCTestConditionInputComponent,
-    ImportRegionsDialogComponent,
-
-
     ElementsSearchDialogComponent,
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
+
+    ImportRegionsDialogComponent,
 
     StationSelectorMultipleComponent,
     StationSelectorSingleComponent,
 
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
+
+    ViewQCTestParametersComponent,
+    ElementQCTestsComponent,
+    QCTestParameterInputDialogComponent,
+    QCTestTypeInputComponent,
+    QCTestRangeThresholdParamsComponent,
+    QCTestFlatLineParamsComponent,
+    QCTestSpikeParamsComponent,
+    QCTestRelationalParamsComponent,
+    QCTestContextualParamsComponent,
+    QCTestConditionInputComponent,
 
     ViewExportTemplatesComponent,
     ExportTemplateDetailComponent,
@@ -171,16 +172,16 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
     ViewConnectorsComponent,
 
     QCStatusSelectorSingleComponent,
-    ExportTypeSelectorSingleComponent, 
+    ExportTypeSelectorSingleComponent,
 
     NetworkAffiliationsSelectorSingleComponent,
-
+ 
   ],
   imports: [
     MetadataRoutingModule,
     SharedModule,
   ],
-  exports: [ 
+  exports: [
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
     ElementsSearchDialogComponent,
@@ -198,7 +199,7 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
     ViewStationsGeoMapComponent,
     ViewStationsTreeMapComponent,
 
-    StationsSearchDialogComponent, 
+    StationsSearchDialogComponent,
 
     FormSelectorDialogComponent,
 
@@ -210,7 +211,7 @@ import { StationIDNameSearchComponent } from './stations/stations-search-dialog/
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,
-  
+
   ]
 })
 export class MetadataModule { } 

@@ -105,6 +105,11 @@ export class DateUtils {
         return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
     }
 
+    public static isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
+        const tenYearsLater = new Date(fromDate);
+        tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
+        return toDate > tenYearsLater;
+    }
 
 
 }

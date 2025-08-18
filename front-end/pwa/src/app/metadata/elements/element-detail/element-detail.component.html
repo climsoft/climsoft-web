@@ -22,10 +22,10 @@
     <!-- QC -->
     <div class="card border-0">
       <div class="card-header px-2 fw-bold">
-        <app-toggle-chevron #qcTestsToggle>Quality Control Tests</app-toggle-chevron>
+        <app-toggle-chevron #qcTestsToggle>QC Test Parameters</app-toggle-chevron>
       </div>
       <div class="card-body px-2" *ngIf="qcTestsToggle.open">
-        <app-qc-tests [element]="element" />
+        <app-element-qc-tests [element]="element" />
       </div>
     </div>
 

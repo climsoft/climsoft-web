@@ -4,43 +4,51 @@ import { ElementCacheModel, ElementsCacheService } from "../elements/services/el
 import { SourceTemplatesCacheService } from "../source-templates/services/source-templates-cache.service";
 import { ViewSourceModel } from "../source-templates/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
+import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from "../elements/services/elements-qc-tests-cache.service";
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class CachedMetadataSearchService {
-    private stationsMetadata: StationCacheModel[] = [];
-    private elementsMetadata: ElementCacheModel[] = [];
-    private sourcesMetadata: ViewSourceModel[] = [];
+    private _stationsMetadata: StationCacheModel[] = [];
+    private _elementsMetadata: ElementCacheModel[] = [];
+    private _sourcesMetadata: ViewSourceModel[] = [];
+    private _elementQcTestsMetadata: ElementQCTestCacheModel[] = [];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
     constructor(
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
-        private sourcesCacheService: SourceTemplatesCacheService,) {
+        private sourcesCacheService: SourceTemplatesCacheService,
+        private elementsQCTestsCacheService: ElementsQCTestsCacheService,) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
-            this.stationsMetadata = data;
+            this._stationsMetadata = data;
             this.setMetadataLoaded();
         });
 
         this.elementsCacheService.cachedElements.subscribe(data => {
-            this.elementsMetadata = data;
+            this._elementsMetadata = data;
             this.setMetadataLoaded();
         });
 
         this.sourcesCacheService.cachedSources.subscribe(data => {
-            this.sourcesMetadata = data;
+            this._sourcesMetadata = data;
+            this.setMetadataLoaded();
+        });
+
+        this.elementsQCTestsCacheService.cachedElementsQcTests.subscribe(data => {
+            this._elementQcTestsMetadata = data;
             this.setMetadataLoaded();
         });
     }
 
     private setMetadataLoaded(): void {
-        if (this.stationsMetadata && this.stationsMetadata.length > 0
-            && this.elementsMetadata && this.elementsMetadata.length > 0
-            && this.sourcesMetadata && this.sourcesMetadata.length > 0) {
-                //console.log('stations in service', this.stationsMetadata)
+        if (this._stationsMetadata && this._stationsMetadata.length > 0
+            && this._elementsMetadata && this._elementsMetadata.length > 0
+            && this._sourcesMetadata && this._sourcesMetadata.length > 0
+            && this._elementQcTestsMetadata && this._elementQcTestsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
     }
@@ -50,25 +58,33 @@ export class CachedMetadataSearchService {
     }
 
     public getStation(stationId: string): StationCacheModel {
-        const metadata = this.stationsMetadata.find(item => item.id === stationId);
+        const metadata = this._stationsMetadata.find(item => item.id === stationId);
         if (!metadata) {
-            throw new Error("Developer error: Station not found.");
+            throw new Error(`Developer error: Station not found. ${stationId}`);
         }
         return metadata;
     }
 
     public getElement(elementId: number): ElementCacheModel {
-        const metadata = this.elementsMetadata.find(item => item.id === elementId);
+        const metadata = this._elementsMetadata.find(item => item.id === elementId);
         if (!metadata) {
-            throw new Error("Developer error: Element not found.");
+            throw new Error(`Developer error: Element not found. ${elementId}`);
         }
         return metadata;
     }
 
     public getSource(sourceId: number): ViewSourceModel {
-        const metadata = this.sourcesMetadata.find(item => item.id === sourceId);
+        const metadata = this._sourcesMetadata.find(item => item.id === sourceId);
         if (!metadata) {
-            throw new Error("Developer error: Source not found.");
+            throw new Error(`Developer error: Source not found. ${sourceId}`);
+        }
+        return metadata;
+    }
+
+    public getElementQCTest(qcTestId: number): ElementQCTestCacheModel {
+        const metadata = this._elementQcTestsMetadata.find(item => item.id === qcTestId);
+        if (!metadata) {
+            throw new Error(`Developer error: Element QC test not found. ${qcTestId}`);
         }
         return metadata;
     }

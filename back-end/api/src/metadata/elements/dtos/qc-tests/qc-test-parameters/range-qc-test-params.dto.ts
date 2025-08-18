@@ -3,10 +3,10 @@ import { QCTestParametersValidity } from '../create-element-qc-test.dto';
 
 export class RangeThresholdQCTestParamsDto implements QCTestParametersValidity {
     @IsNumber()
-    lowerLimit: number;
+    lowerThreshold: number;
 
     @IsNumber()
-    upperLimit: number;
+    upperThreshold: number;
 
     isValid(): boolean {
         //TODO
