@@ -2,6 +2,8 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewC
 import { ObservationDefinition } from '../../data-ingestion/form-entry/defintitions/observation.definition';
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 import { ObservationsService } from '../../data-ingestion/services/observations.service';
+import { ViewObservationLogModel } from 'src/app/data-ingestion/models/view-observation-log.model';
+import { ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.model';
 
 /**
  * Component for data entry of observations
@@ -42,20 +44,22 @@ export class ValueFlagInputComponent implements OnChanges {
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 
-  @Output() 
+  @Output()
   public enterKeyPress = new EventEmitter<void>();
 
   protected showChanges: boolean = false;
 
   protected displayExtraInfoDialog: boolean = false;
 
-  protected activeTab: 'new' | 'history'| 'qctests' = 'new';
+  protected activeTab: 'new' | 'history' | 'qctests' = 'new';
 
   // These variables are needed because they are set in a dialog 
   protected interval!: number;
   protected comment!: string | null;
+  protected viewObservationLog!: ViewObservationLogModel[];
+  protected viewQCTestLog!: ViewQCTestLog[];
 
-  constructor(private observationService: ObservationsService) { }
+  constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.observationDefinition) {
@@ -121,7 +125,7 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onInputEntry(valueFlagInput: string): void {
     // Validate input format validity. If there is a response then entry is invalid
-    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput); 
+    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
     this.userInputVF.emit(this.observationDefinition);
   }
 
@@ -145,11 +149,19 @@ export class ValueFlagInputComponent implements OnChanges {
     this.displayExtraInfoDialog = true;
   }
 
-  protected onTabChange(selectedTab: 'new' | 'history'| 'qctests'): void {
+  protected onTabChange(selectedTab: 'new' | 'history' | 'qctests'): void {
     this.activeTab = selectedTab;
-    if (selectedTab === 'history') {
-      this.observationDefinition.loadObservationLog( );
+    switch (this.activeTab) {
+      case 'history':
+        this.viewObservationLog = this.observationDefinition.getObservationLog();
+        break;
+      case 'qctests':
+        this.viewQCTestLog = this.observationDefinition.getQCTestLog();
+        break;
+      default:
+        break;
     }
+
   }
 
   protected onExtraInfoOkClicked(): void {

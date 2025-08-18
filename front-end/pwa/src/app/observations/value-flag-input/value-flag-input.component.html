@@ -51,10 +51,10 @@
                 </div>
 
                 <div *ngIf="activeTab === 'history'">
-                    <div *ngIf="observationDefinition.observationLog.length <= 1" class="p-4">
+                    <div *ngIf="viewObservationLog.length <= 1" class="p-4">
                         No History
                     </div>
-                    <div *ngIf="observationDefinition.observationLog.length > 1">
+                    <div *ngIf="viewObservationLog.length > 1">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -68,7 +68,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let row of observationDefinition.observationLog ">
+                                <tr *ngFor="let row of viewObservationLog">
                                     <td>{{ row.value }}</td>
                                     <td>{{row.flag}}</td>
                                     <td>{{ row.qcStatus }}</td>
@@ -86,10 +86,10 @@
                 </div>
 
                 <div *ngIf="activeTab === 'qctests'">
-                    <div *ngIf="observationDefinition.observationLog.length<=1" class="p-4">
+                    <div *ngIf="viewQCTestLog.length === 0" class="p-4">
                         No QC tests done.
                     </div>
-                    <div *ngIf="observationDefinition.observation.comment">
+                    <div *ngIf="viewQCTestLog.length > 0">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -98,8 +98,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr *ngFor="let row of observationDefinition.observationLog ">
-                                    <td>{{ row.value }}</td>
+                                <tr *ngFor="let row of viewQCTestLog">
+                                    <td>{{ row.name }}</td>
                                     <td>{{ row.qcStatus }}</td>
                                 </tr>
                             </tbody>

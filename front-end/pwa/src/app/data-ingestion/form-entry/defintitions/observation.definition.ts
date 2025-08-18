@@ -1,15 +1,13 @@
-import { take } from "rxjs";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
 import { FlagEnum } from "src/app/data-ingestion/models/flag.enum";
-import { ViewObservationLogQueryModel } from "src/app/data-ingestion/models/view-observation-log-query.model";
 import { ViewObservationLogModel } from "src/app/data-ingestion/models/view-observation-log.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ObservationsService } from "../../services/observations.service";
 import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
 import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-type.enum";
-import { ViewObservationModel } from "../../models/view-observation.model";
+import { ViewObservationModel, ViewQCTestLog } from "../../models/view-observation.model";
+import { QCStatusEnum } from "../../models/qc-status.enum";
 
 /**
  * Holds the definitions used by the value flag component for data display and entry validations
@@ -30,11 +28,7 @@ export class ObservationDefinition {
      */
     private scaleValue: boolean;
 
-    /**
-     * Holds the observation log used of the linked observation model.
-     * Used by the log components
-     */
-    private _observationLog: ViewObservationLogModel[] = [];
+
 
     /**
      * Holds the validation error message when value flag is invalid. 
@@ -48,17 +42,17 @@ export class ObservationDefinition {
 
     public valueFlagInput!: string;
     public originalInterval: number;
- 
+
 
     private cachedMetadataSearchService: CachedMetadataSearchService;
 
     constructor(
-          newCachedMetadataSearchService: CachedMetadataSearchService,
-        observation: ViewObservationModel,      
+        newCachedMetadataSearchService: CachedMetadataSearchService,
+        observation: ViewObservationModel,
         scaleValue: boolean,) {
         this._observation = observation;
-        this.cachedMetadataSearchService = newCachedMetadataSearchService; 
-        this.scaleValue = scaleValue;  
+        this.cachedMetadataSearchService = newCachedMetadataSearchService;
+        this.scaleValue = scaleValue;
         this.originalInterval = observation.interval; // TODO. Deprecate editing of interval
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
 
@@ -97,9 +91,7 @@ export class ObservationDefinition {
         return this._observation;
     }
 
-    public get observationLog(): ViewObservationLogModel[] {
-        return this._observationLog;
-    }
+
 
     public get validationErrorMessage(): string {
         return this._validationErrorMessage;
@@ -325,29 +317,41 @@ export class ObservationDefinition {
         return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
     }
 
-    public loadObservationLog( ): void {
-       
-
+    public getObservationLog(): ViewObservationLogModel[] {
         const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
         const utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
         // Transform the log data accordingly
-        this._observationLog = this.observation.log ? this.observation.log.map(item => {
+        const viewObservationLog: ViewObservationLogModel[] = this.observation.log ? this.observation.log.map(item => {
+            const viewLog = {...item};
             // Display the values in scaled form 
-            if (this.scaleValue && item.value && element.entryScaleFactor) {
+            if (this.scaleValue && viewLog.value && element.entryScaleFactor) {
                 // To remove rounding errors number utils round off
-                item.value = this.getUnScaledValue(item.value);
+                viewLog.value = this.getUnScaledValue(viewLog.value);
             }
 
             // Convert the entry date time to current local time
-            item.entryDateTime = DateUtils.getPresentableDatetime(item.entryDateTime, utcOffset);
+            viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, utcOffset);
             return item;
         }
         ) : [];
 
-           console.log('log: ', this.observation.log );
-          console.log('new log: ', this. _observationLog );
+        return viewObservationLog;
 
+    }
 
+    public getQCTestLog(): ViewQCTestLog[] {
+        if (!this.observation.qcTestLog) {
+            return [];
+        }
+
+        const viewQCLog: ViewQCTestLog[] = [];
+
+        for (const obsQcTestLog of this.observation.qcTestLog) {
+            const qcTestMetadata = this.cachedMetadataSearchService.getQCTest(obsQcTestLog.qcTestId);
+            viewQCLog.push({ id: obsQcTestLog.qcTestId, name: qcTestMetadata.name, qcStatus: obsQcTestLog.qcStatus })
+        }
+
+        return viewQCLog;
     }
 
 }

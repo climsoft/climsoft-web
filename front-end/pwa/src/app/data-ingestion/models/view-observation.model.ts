@@ -11,3 +11,9 @@ export interface ViewObservationModel extends CreateObservationModel {
     log: ViewObservationLogModel[] | null;
     entryDatetime: string;
 }
+
+export interface ViewQCTestLog {
+    id: number;
+    name: string,
+    qcStatus: QCStatusEnum
+}
