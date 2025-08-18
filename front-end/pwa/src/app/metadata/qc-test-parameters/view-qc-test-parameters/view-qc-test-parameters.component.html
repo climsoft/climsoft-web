@@ -5,11 +5,13 @@
       <div class="d-flex mx-2">
         Count: {{ elementQCTestParams.length | number:'1.0-0' }}
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="appSearchAssignedStations.openDialog()">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+        (click)="appSearchAssignedStations.openDialog()">
         Search
       </button>
       <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add', 'Order By Name', 'Order By Element','Delete All']"
+        <app-drop-down-button [buttonText]="'Options'"
+          [dropDownItems]="['Add', 'Order By Name', 'Order By Element Id', 'Order By Element Name','Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
     </div>

@@ -1,14 +1,12 @@
+
+import { QCTestLogVo } from "../entities/observation.entity";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 import { CreateObservationDto } from "./create-observation.dto";
-
-export interface QCTestLogDto {
-    qcTestId: number;
-    qcStatus: QCStatusEnum;
-}
+import { ViewObservationLogDto } from "./view-observation-log.dto"; 
 
 export class ViewObservationDto extends CreateObservationDto {
     qcStatus: QCStatusEnum;
-    qcTestLog: QCTestLogDto | null;
-    entryDatetime: string;
-    // TODO add entryLogDto 
+    qcTestLog: QCTestLogVo[] | null;
+    log: ViewObservationLogDto[] | null;
+    entryDatetime: string; 
 }

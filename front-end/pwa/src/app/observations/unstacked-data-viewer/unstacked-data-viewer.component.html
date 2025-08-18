@@ -1,0 +1,40 @@
+<div *ngIf="groupedEntries  && elementColumns" class="app-table-container">
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Station</th>
+                <th>Level</th>
+                <th>Date Time</th>
+                <th>Interval</th>
+                <th *ngFor="let elementAbbrv of elementColumns">{{ elementAbbrv }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let groupedEntryKV of groupedEntries | keyvalue; let firstIndex = index;">
+                <td>{{ firstIndex + 1 }}</td>
+                <td>
+                    {{ groupedEntryKV.value[0].obsDef.observation.stationId + '-' + groupedEntryKV.value[0].stationName
+                    }}
+                </td>
+                <td>
+                    {{ groupedEntryKV.value[0].obsDef.observation.level }}
+                </td>
+                <td>
+                    {{ groupedEntryKV.value[0].formattedDatetime }}
+                </td>
+                <td>
+                    {{ groupedEntryKV.value[0].intervalName }}
+                </td>
+                <td *ngFor="let elementAbbrv of elementColumns ; let secondIndex = index;">
+                    <div *ngIf="getObservation(elementAbbrv, groupedEntryKV.value) as ev"
+                        class="app-value-flag-container">
+                        <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
+                            [displayExtraInfoOption]="true" [observationDefinition]="ev.obsDef"
+                            [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput()" />
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

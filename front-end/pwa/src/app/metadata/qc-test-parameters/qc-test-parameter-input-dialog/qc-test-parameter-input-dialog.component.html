@@ -1,8 +1,7 @@
 <app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
     [closeOnOkClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
-    <div *ngIf="updateQcTest">
-
+    <div *ngIf="open && updateQcTest">
         <div>
             <app-element-selector-single [label]="'Element'" [(selectedId)]="updateQcTest.elementId" />
         </div>
@@ -29,7 +28,7 @@
         <div>
             <app-period-single-input [label]="'Observation Interval'"
                 [(selectedId)]="updateQcTest.observationInterval" />
-        </div> 
+        </div>
 
         <hr />
 

@@ -5,8 +5,7 @@ import { StationFormSelectionComponent } from './station-form-selection/station-
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { UserFormSettingsComponent } from './form-entry/user-form-settings/user-form-settings.component';
 import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
-import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component';
-import { ValueFlagInputComponent } from './form-entry/value-flag-input/value-flag-input.component';
+import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component'; 
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
@@ -16,8 +15,7 @@ import { AutoImportSelectionComponent } from './auto-import-selection/auto-impor
 import { DataIngestionRoutingModule } from './data-ingestion-routing.module';
 import { SharedModule } from '../shared/shared.module';
 import { MetadataModule } from '../metadata/metadata.module';  
-import { ObservationsModule } from '../observations/observations.module';
-import { DataCorrectionPivotComponent } from './data-correction/data-correction-pivot/data-correction-pivot.component';
+import { ObservationsModule } from '../observations/observations.module'; 
 
 @NgModule({
   declarations: [
@@ -26,12 +24,10 @@ import { DataCorrectionPivotComponent } from './data-correction/data-correction-
     FormEntryComponent,
     UserFormSettingsComponent,
     GridLayoutComponent,
-    LnearLayoutComponent,
-    ValueFlagInputComponent,
+    LnearLayoutComponent, 
     AssignSameInputComponent, 
     ImportSelectionComponent,
-    DataCorrectionComponent, 
-    DataCorrectionPivotComponent, 
+    DataCorrectionComponent,   
     MissingDataComponent,
     DeletedDataComponent,
     AutoImportSelectionComponent,  
@@ -43,7 +39,6 @@ import { DataCorrectionPivotComponent } from './data-correction/data-correction-
     ObservationsModule,
   ],
   exports: [
-    ValueFlagInputComponent,
   ]
 })
 export class DataIngestionModule { }

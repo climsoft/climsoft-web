@@ -29,7 +29,7 @@ export class ElementQCTestEntity extends AppBaseEntity {
 
   // TODO. 16/06/2025. Remove nullable after qc tests are upgraded in MSD and Demo installations.
   // observation level should never be null.
-  @Column({ name: "observation_level", type: "int", nullable: true})
+  @Column({ name: "observation_level", type: "int", nullable: true })
   @Index()
   observationLevel: number;
 
@@ -60,6 +60,6 @@ export interface QualityControlLogVo extends BaseLogVo {
   level: number;
   interval: number;
   qcTypeId: string;
-  formulaValues: string;
+  parameters: string;
   comment: string | null;
 }

@@ -15,9 +15,8 @@ export class QueryQCDataChecksComponent implements OnChanges {
   @Output() public queryQCClick = new EventEmitter<ViewObservationQueryModel>();
   @Output() public performQCClick = new EventEmitter<ViewObservationQueryModel>();
 
-  protected displayFilterControls: boolean = true;
-  protected queryAllowed: boolean = true; 
-  protected qcStatus: QCStatusEnum | undefined;
+  protected displayFilterControls: boolean = true; 
+  protected qcStatus: QCStatusEnum | undefined = QCStatusEnum.NONE;
 
   constructor(private pagesDataService: PagesDataService,) { 
   }

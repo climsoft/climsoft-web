@@ -40,7 +40,7 @@ BEGIN
 
             IF qc_test_log IS NOT NULL THEN
                 all_qc_tests_log := all_qc_tests_log || qc_test_log;
-                IF (qc_test_log->>'qc_status')::observations_qc_status_enum = 'failed' THEN
+                IF (qc_test_log->>'qcStatus')::observations_qc_status_enum = 'failed' THEN
                     final_qc_status := 'failed';
                 END IF;
             END IF;
@@ -87,9 +87,9 @@ BEGIN
 
     -- Perform the range check and create the qc test log
     IF observation_record.value < lower_threshold OR observation_record.value > upper_threshold THEN
-        qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'failed');
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
 	ELSE
-		 qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'passed');
+		 qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;
     RETURN qc_test_log;
 END;
@@ -117,7 +117,7 @@ BEGIN
 		lower_threshold := (exclude_range->>'lowerThreshold')::FLOAT8;
 		upper_threshold := (exclude_range->>'upperThreshold')::FLOAT8;
 		IF observation_record.value >= lower_threshold AND observation_record.value <= upper_threshold THEN
-        	return jsonb_build_object('qc_test_id', qc_test.id,  'qc_status', 'passed');
+        	return jsonb_build_object('qcTestId', qc_test.id,  'qcStatus', 'passed');
 		END IF;
 	END IF;
 
@@ -138,12 +138,12 @@ BEGIN
 
         -- If match found then it's a fail
         IF match_count >= (consecutive_records - 1) THEN 
-        	qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'failed');
+        	qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
 		ELSE
-        	qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'passed');
+        	qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
         END IF;
 	ELSE
-			qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'passed');
+			qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;
     RETURN qc_test_log;
 END;
@@ -202,9 +202,9 @@ BEGIN
 
      -- Check if the third previous value exists and the absolute difference exceeds the threshold
     IF last_value IS NOT NULL AND ABS(observation_record.value - last_value) >= spike_threshold THEN 
-        qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'failed');
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
 	ELSE
-		qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'passed');
+		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;
     RETURN qc_test_log;
 END;
@@ -237,9 +237,9 @@ BEGIN
 
 			-- Evaluate the condition and create the qc test log
 			IF func_passes_relational_comparison_condition(observation_record.value, reference_value, qc_test_condition) THEN 
-				qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'passed');
+				qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
 			ELSE
-				qc_test_log := jsonb_build_object('qc_test_id', qc_test.id, 'qc_status', 'failed');
+				qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
 			END IF; 
 	RETURN qc_test_log;
 END;

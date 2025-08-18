@@ -16,19 +16,9 @@ import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/c
 import { HttpErrorResponse } from '@angular/common/http';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ActivatedRoute } from '@angular/router';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
-interface ObservationEntry {
-  obsDef: ObservationDefinition;
-  delete: boolean;
-  newStationId: string;
-  newElementId: number;
-  stationName: string;
-  elementId: number;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
-}
+
 
 @Component({
   selector: 'app-data-correction',
@@ -37,18 +27,18 @@ interface ObservationEntry {
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
-  protected observations!: CreateObservationModel[] ;
+  protected observations!: CreateObservationModel[];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
 
-  protected enableSave: boolean = false;
+  protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected numOfChanges: number = 0;
-  protected allBoundariesIndices: number[] = [];
+  protected numOfChanges: number = 0; 
   protected utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
+  protected useUnstackedViewer: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -135,7 +125,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
             this.loadData();
           } else {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
-            this.enableSave = false;
+            this.enableSaveButton = false;
           }
         },
         error: err => {
@@ -147,9 +137,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   protected loadData(): void {
     this.enableQueryButton = false;
-    this.enableSave = false;
-    this.numOfChanges = 0;
-    this.allBoundariesIndices = [];
+    this.enableSaveButton = false;
+    this.numOfChanges = 0; 
     this.observationsEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
@@ -173,11 +162,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
               undefined,
               this.utcOffset,
               false),
-            newStationId: '',
-            newElementId: 0,
             delete: false,
             stationName: stationMetadata.name,
-            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
@@ -186,62 +172,35 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           return entry;
 
         });
-
-        this.setRowBoundaryLineSettings(observationsEntries);
+ 
         this.observationsEntries = observationsEntries;
-        this.enableSave = true;
+        this.enableSaveButton = true;
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
       },
-
     });
   }
 
-  protected setRowBoundaryLineSettings(observationsEntries: ObservationEntry[]): void {
-    const obsIdentifierMap = new Map<string, number>();
-
-    for (let i = 0; i < observationsEntries.length; i++) {
-      const obs = observationsEntries[i].obsDef.observation;
-      const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
-      // Update the map with the latest index for each unique identifier
-      obsIdentifierMap.set(obsIdentifier, i);
-    }
-
-    // set all last occurrence indices as boundaries
-    this.allBoundariesIndices = Array.from(obsIdentifierMap.values());
-    // If length indices array is the same as entries, then no need to show boundaries
-    if (observationsEntries.length === this.allBoundariesIndices.length) {
-      this.allBoundariesIndices = [];
-    }
-  }
-
-  protected includeLowerBoundaryLine(index: number): boolean {
-    return this.allBoundariesIndices.includes(index);
-  }
-
-  protected pivot: boolean = false;
-
-  protected onOptionsSelected(optionSlected: 'Pivot/Unpivot' | 'Delete All'): void {
-    switch (optionSlected) {
-      case 'Pivot/Unpivot':
-        this.pivot = !this.pivot;
-         break;
+  protected onOptionsSelected(optionSelected: 'Stack/Unstack' | 'Delete All'): void {
+    switch (optionSelected) {
+      case 'Stack/Unstack':
+        this.useUnstackedViewer = !this.useUnstackedViewer;
+        break;
       case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true });
+        this.observationsEntries.forEach(item => { item.delete = true; });
+        this.onUserInput();
         break;
       default:
         throw new Error("Developer error. Option not supported");
     }
-
-    this.onUserInput();
   }
 
   protected onUserInput() {
     this.numOfChanges = 0;
     for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete || obsEntry.newElementId || obsEntry.newStationId || obsEntry.obsDef.observationChanged) {
+      if (obsEntry.delete || obsEntry.obsDef.observationChanged) {
         this.numOfChanges++;
       }
     }
@@ -269,34 +228,33 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       }
     }
 
-
     if (deletedObs.length === 0) {
       return;
     }
 
-    this.enableSave = false;
+    this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.softDelete(deletedObs).subscribe({
       next: data => {
-        this.enableSave = true;
+        this.enableSaveButton = true;
         if (data) {
           this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
+            title: 'Data Correction', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
           });
 
           this.queryData();
         } else {
           this.pagesDataService.showToast({
-            title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
+            title: 'Data Correction', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
           });
         }
       },
       error: err => {
+        this.enableSaveButton = true;
+        // Important to log the error for tracing purposes
+        console.log('error logged: ', err);
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
       },
-      complete: () => {
-        this.enableSave = true;
-      }
     });
   }
 
@@ -304,8 +262,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     // Create required observation dtos 
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
-      // Get observation entries that have not been deleted nor tehir station or or element id changed.
-      if (!obsEntry.delete && !obsEntry.newStationId && !obsEntry.newElementId && obsEntry.obsDef.observationChanged) {
+      // Get observation entries that have not been deleted or whose value has been changed
+      if (!obsEntry.delete && obsEntry.obsDef.observationChanged) {
         const obsModel = obsEntry.obsDef.observation;
         changedObs.push({
           stationId: obsModel.stationId,
@@ -326,11 +284,11 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.enableSave = false;
+    this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
       next: response => {
-        this.enableSave = true;
+        this.enableSaveButton = true;
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         if (response.message === 'success') {
           this.pagesDataService.showToast({
@@ -346,7 +304,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
       },
       error: err => {
-        this.enableSave = true;
+        this.enableSaveButton = true;
         // Important to log the error for tracing purposes
         console.log('error logged: ', err);
 
@@ -375,7 +333,4 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected getRowNumber(currentRowIndex: number): number {
-    return NumberUtils.getRowNumber(this.pageInputDefinition.page, this.pageInputDefinition.pageSize, currentRowIndex);
-  }
 }

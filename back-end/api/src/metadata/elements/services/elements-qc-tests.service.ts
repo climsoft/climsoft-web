@@ -16,29 +16,57 @@ export class ElementsQCTestsService {
 
     constructor(@InjectRepository(ElementQCTestEntity) private readonly qcTestsRepo: Repository<ElementQCTestEntity>) { }
 
+    public async find(findQCQuery?: FindQCTestQueryDto): Promise<ViewElementQCTestDto[]> {
+        const selectOptions: FindOptionsWhere<ElementQCTestEntity> = {};
+
+        if (findQCQuery) {
+            if (findQCQuery.observationInterval) {
+                selectOptions.observationInterval = Equal(findQCQuery.observationInterval)
+            }
+
+            if (findQCQuery.qcTestTypes) {
+                selectOptions.qcTestType = In(findQCQuery.qcTestTypes)
+            }
+
+            if (findQCQuery.elementIds) {
+                selectOptions.elementId = In(findQCQuery.elementIds)
+            }
+        }
+        return this.findInternal(selectOptions);
+    }
+
     public async findById(id: number): Promise<ViewElementQCTestDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findBy(findQCQuery: FindQCTestQueryDto): Promise<ViewElementQCTestDto[]> {
-        const selectOptions: FindOptionsWhere<ElementQCTestEntity> = {};
 
-        if (findQCQuery.observationInterval) {
-            selectOptions.observationInterval = Equal(findQCQuery.observationInterval)
-        }
 
-        if (findQCQuery.qcTestTypes) {
-            selectOptions.qcTestType = In(findQCQuery.qcTestTypes)
-        }
-
-        if (findQCQuery.elementIds) {
-            selectOptions.elementId = In(findQCQuery.elementIds)
-        }
-
-        return this.find(selectOptions);
+    public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<ViewElementQCTestDto[]> {
+        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
+            qcTestType: qcTestType
+        };
+        return this.findInternal(findOptionsWhere);
     }
 
-    public async find(selectOptions?: FindOptionsWhere<ElementQCTestEntity>): Promise<ViewElementQCTestDto[]> {
+    public async findQCTestByElement(elementId: number): Promise<ViewElementQCTestDto[]> {
+        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
+            elementId: elementId
+        };
+        return this.findInternal(findOptionsWhere);
+    }
+
+    private async findEntity(id: number): Promise<ElementQCTestEntity> {
+        const entity = await this.qcTestsRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            throw new NotFoundException(`QC Test #${id} not found`);
+        }
+        return entity;
+    }
+
+    private async findInternal(selectOptions?: FindOptionsWhere<ElementQCTestEntity>): Promise<ViewElementQCTestDto[]> {
         const findOptions: FindManyOptions<ElementQCTestEntity> = {
             order: {
                 id: "ASC"
@@ -57,38 +85,13 @@ export class ElementsQCTestsService {
         return dtos;
     }
 
-    public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<ViewElementQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
-            qcTestType: qcTestType
-        };
-        return this.find(findOptionsWhere);
-    }
-
-    public async findQCTestByElement(elementId: number): Promise<ViewElementQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<ElementQCTestEntity> = {
-            elementId: elementId
-        };
-        return this.find(findOptionsWhere);
-    }
-
-    private async findEntity(id: number): Promise<ElementQCTestEntity> {
-        const entity = await this.qcTestsRepo.findOneBy({
-            id: id,
-        });
-
-        if (!entity) {
-            throw new NotFoundException(`QC Test #${id} not found`);
-        }
-        return entity;
-    }
-
     public async create(dto: CreateElementQCTestDto, userId: number): Promise<ViewElementQCTestDto> {
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
             name: dto.name,
-            description: dto.description,            
+            description: dto.description,
             elementId: dto.elementId,
-            observationLevel :dto.observationLevel,
+            observationLevel: dto.observationLevel,
             observationInterval: dto.observationInterval,
             qcTestType: dto.qcTestType,
             parameters: dto.parameters,
@@ -138,33 +141,33 @@ export class ElementsQCTestsService {
         };
     }
 
-      public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-            let changesDetected: boolean = false;
-    
-            const serverCount = await this.qcTestsRepo.count();
-    
-            if (serverCount !== updatesQueryDto.lastModifiedCount) {
-                // If number of records in server are not the same as those in the client then changes detected
-                changesDetected = true;
-            } else {
-                const whereOptions: FindOptionsWhere<ElementQCTestEntity> = {};
-    
-                if (updatesQueryDto.lastModifiedDate) {
-                    whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-                }
-    
-                // If there was any changed record then changes detected
-                changesDetected = (await this.qcTestsRepo.count({ where: whereOptions })) > 0
+    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+        let changesDetected: boolean = false;
+
+        const serverCount = await this.qcTestsRepo.count();
+
+        if (serverCount !== updatesQueryDto.lastModifiedCount) {
+            // If number of records in server are not the same as those in the client then changes detected
+            changesDetected = true;
+        } else {
+            const whereOptions: FindOptionsWhere<ElementQCTestEntity> = {};
+
+            if (updatesQueryDto.lastModifiedDate) {
+                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
             }
-    
-            if (changesDetected) {
-                // If any changes detected then return all records 
-                const allRecords = await this.find();
-                return { metadataChanged: true, metadataRecords: allRecords }
-            } else {
-                // If no changes detected then indicate no metadata changed
-                return { metadataChanged: false }
-            }
+
+            // If there was any changed record then changes detected
+            changesDetected = (await this.qcTestsRepo.count({ where: whereOptions })) > 0
         }
+
+        if (changesDetected) {
+            // If any changes detected then return all records 
+            const allRecords = await this.findInternal();
+            return { metadataChanged: true, metadataRecords: allRecords }
+        } else {
+            // If no changes detected then indicate no metadata changed
+            return { metadataChanged: false }
+        }
+    }
 
 }

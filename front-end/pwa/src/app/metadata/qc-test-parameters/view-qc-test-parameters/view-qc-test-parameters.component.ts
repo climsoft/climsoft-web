@@ -58,16 +58,19 @@ export class ViewQCTestParametersComponent implements OnDestroy {
     });
   }
 
-  protected onOptionsClicked(option: 'Add' | 'Order By Name' | 'Order By Element' | 'Delete All') {
+  protected onOptionsClicked(option: 'Add' | 'Order By Name' | 'Order By Element Id' | 'Order By Element Name' | 'Delete All') {
     switch (option) {
       case 'Add':
         this.appQCEditDialog.openDialog();
         break;
       case 'Order By Name':
         this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'Order By Element':
+        break; 
+      case 'Order By Element Id':
         this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementId - b.elementId);
+        break;
+      case 'Order By Element Name':
+        this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementName.localeCompare(b.elementName));
         break;
       case 'Delete All':
         this.elementsQCTestsCacheService.deleteAll().pipe(

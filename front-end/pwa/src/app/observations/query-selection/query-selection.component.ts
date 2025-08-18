@@ -29,7 +29,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public displayIntervalSelector: boolean = true;
   @Input() public displayObservationDateSelector: boolean = true;
   @Input() public displayEntryDateSelector: boolean = true;
-  @Input() public displayQueryButton: boolean = true;
+  @Input() public displayFilterHeader: boolean = true;
   @Input() public query!: ViewObservationQueryModel;
   @Output() public queryChange = new EventEmitter<ViewObservationQueryModel>();
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>();

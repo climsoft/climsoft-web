@@ -22,7 +22,6 @@ export class CreateElementQCTestDto {
     @IsOptional()
     @IsString()
     description: string | null;
-
     @IsInt()
     elementId: number;
 

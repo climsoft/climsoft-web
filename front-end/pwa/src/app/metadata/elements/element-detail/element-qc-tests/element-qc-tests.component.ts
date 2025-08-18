@@ -1,15 +1,9 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { ElementCacheModel } from '../../services/elements-cache.service';
 import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from '../../services/elements-qc-tests-cache.service';
 
-interface ViewQCTest extends ViewElementQCTestModel {
-  formattedQCTestTypeName: string,
-  formattedParameters: string;
-  formattedObsInterval: string;
-}
 
 @Component({
   selector: 'app-element-qc-tests',
@@ -52,7 +46,5 @@ export class ElementQCTestsComponent implements OnChanges, OnDestroy {
       this.qcTests = data ;
     });
   }
-
- 
 
 }

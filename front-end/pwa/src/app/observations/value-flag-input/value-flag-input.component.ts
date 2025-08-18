@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { ObservationDefinition } from '../defintitions/observation.definition';
+import { ObservationDefinition } from '../../data-ingestion/form-entry/defintitions/observation.definition';
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
-import { ObservationsService } from '../../services/observations.service';
+import { ObservationsService } from '../../data-ingestion/services/observations.service';
 
 /**
  * Component for data entry of observations
@@ -42,13 +42,14 @@ export class ValueFlagInputComponent implements OnChanges {
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 
-  @Output() public enterKeyPress = new EventEmitter<void>();
+  @Output() 
+  public enterKeyPress = new EventEmitter<void>();
 
   protected showChanges: boolean = false;
 
   protected displayExtraInfoDialog: boolean = false;
 
-  protected activeTab: 'new' | 'history' = 'new';
+  protected activeTab: 'new' | 'history'| 'qctests' = 'new';
 
   // These variables are needed because they are set in a dialog 
   protected interval!: number;
@@ -120,7 +121,7 @@ export class ValueFlagInputComponent implements OnChanges {
    */
   protected onInputEntry(valueFlagInput: string): void {
     // Validate input format validity. If there is a response then entry is invalid
-    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
+    this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput); 
     this.userInputVF.emit(this.observationDefinition);
   }
 
@@ -144,7 +145,7 @@ export class ValueFlagInputComponent implements OnChanges {
     this.displayExtraInfoDialog = true;
   }
 
-  protected onTabChange(selectedTab: 'new' | 'history'): void {
+  protected onTabChange(selectedTab: 'new' | 'history'| 'qctests'): void {
     this.activeTab = selectedTab;
     if (selectedTab === 'history') {
       this.observationDefinition.loadObservationLog(this.observationService);

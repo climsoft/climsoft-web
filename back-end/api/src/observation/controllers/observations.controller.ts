@@ -19,6 +19,7 @@ import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
 import { DataEntryCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
+import { QCStatusEnum } from '../enums/qc-status.enum';
 
 @Controller('observations')
 export class ObservationsController {
@@ -49,9 +50,11 @@ export class ObservationsController {
     return this.observationsService.findFormData(createObsevationQuery);
   }
 
+  // TODO. deprecate this handle
   @Get('correction-data')
   getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.findCorrectionData(viewObsevationQuery);
+    //return this.observationsService.findCorrectionData(viewObsevationQuery);
+    return this.observationsService.findProcessed(viewObsevationQuery);
   }
 
   @Get('count-correction-data')
@@ -119,6 +122,23 @@ export class ObservationsController {
 
     // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id);
+
+    // Return success if all operations are successful
+    return { message: "success" };
+  }
+
+  @Put('data-entry-qc')
+  async bulkPutQCData(
+    @Req() request: Request,
+    @Body(new ParseArrayPipe({ items: CreateObservationDto })) observationDtos: CreateObservationDto[]) {
+    // Get logged in user
+    const user = AuthUtil.getLoggedInUser(request);
+
+    // Validate form data. If any invalid bad request will be thrown
+    await this.dataEntryCheckService.checkData(observationDtos, user);
+
+    // Save the data
+    await this.observationsService.bulkPut(observationDtos, user.id, QCStatusEnum.PASSED);
 
     // Return success if all operations are successful
     return { message: "success" };

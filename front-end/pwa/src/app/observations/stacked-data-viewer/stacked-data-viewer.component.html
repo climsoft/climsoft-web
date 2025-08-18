@@ -1,0 +1,41 @@
+<div *ngIf="observationsEntries" class="app-table-container">
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Station</th>
+                <th>Element</th>
+                <th>Level</th>
+                <th>Date Time</th>
+                <th>Interval</th>
+                <th>Source</th>
+                <th>Value & Flag</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
+                [class.group-row-border]="includeLowerBoundaryLine(i)">
+                <td>{{ getRowNumber(i) }}</td>
+                <td>{{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
+                <td>{{ obsEntry.obsDef.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
+                <td>{{ obsEntry.obsDef.observation.level }}</td>
+                <td>{{ obsEntry.formattedDatetime }}</td>
+                <td>{{ obsEntry.intervalName }}</td>
+                <td>{{ obsEntry.sourceName }}</td>
+                <td>
+                    <div class="app-value-flag-container">
+                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
+                            [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="obsEntry.delete"
+                            (userInputVF)="onUserInput()" />
+                    </div>
+                </td>
+                <td>
+                    <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
+                        [disabled]="obsEntry.obsDef.observationChanged" (valueChange)="onUserInput()" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

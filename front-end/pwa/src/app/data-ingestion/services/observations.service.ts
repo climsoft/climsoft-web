@@ -38,7 +38,6 @@ export class ObservationsService {
     this.endPointUrl = `${this.appConfigService.apiBaseUrl}/observations`;
   }
 
-
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
@@ -269,6 +268,10 @@ export class ObservationsService {
 
   public bulkPutDataFromDataCorrection(observations: CreateObservationModel[]): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations);
+  }
+
+   public bulkPutDataFromQCAssessment(observations: CreateObservationModel[]): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry-qc`, observations);
   }
 
   public restore(observations: DeleteObservationModel[]): Observable<number> {

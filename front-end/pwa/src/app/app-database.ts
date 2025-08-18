@@ -100,9 +100,10 @@ export class AppDatabase extends Dexie {
             stationNetworks: `stationId`,
             stationForms: `stationId`,
             formStations: `formId`,
-            // TODO. when upgrading to a new version. include observationLevel 
-            // and change the [elementId+qcTestType+observationInterval] compound key to include observationLevel
-            // Note observationLevel was added on 18/06/2023 after preview-1 was released
+            // TODO. 
+            // When upgrading to a new version, 
+            // include `name` and `observationLevel` and change the `[elementId+qcTestType+observationInterval]` compound key to include `observationLevel` 
+            // Note, `name` and `observationLevel` was added on 18/06/2023 after preview-1 was released
             elementsQcTests: `id, elementId, qcTestType, observationInterval, [elementId+qcTestType+observationInterval]`,
 
             // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 

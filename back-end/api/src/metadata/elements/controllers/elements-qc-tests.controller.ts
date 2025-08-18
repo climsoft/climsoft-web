@@ -10,17 +10,12 @@ import { FindQCTestQueryDto } from '../dtos/qc-tests/find-qc-test-query.dto';
 @Controller('elements-qc-tests')
 export class ElementsQCTestsController {
 
-    constructor(private readonly qcTestsService: ElementsQCTestsService) { }
+    constructor(private readonly qcTestsService: ElementsQCTestsService) {
+    }
 
     @Get()
-    public find(@Query() findQCQuery: FindQCTestQueryDto) {
-        if (findQCQuery) {
-            return this.qcTestsService.findBy(findQCQuery);
-        } else {
-            // TODO. Should we support getting all qcs. or is it  only usefull when downloading.
-            return this.qcTestsService.find();
-        }
-
+    public find(@Query() findQCQuery: FindQCTestQueryDto) { 
+        return this.qcTestsService.find(findQCQuery);
     }
 
     @Get(':id')

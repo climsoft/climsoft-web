@@ -66,7 +66,7 @@ export class ObservationEntity extends AppBaseEntity {
   qcStatus: QCStatusEnum;
 
   @Column({ name: "qc_test_log", type: "jsonb", nullable: true })
-  qcTestLog: QCTestLogVo | null;
+  qcTestLog: QCTestLogVo[] | null;
 
   @Column({ name: "comment", type: "varchar", nullable: true })
   comment: string | null;
@@ -76,7 +76,7 @@ export class ObservationEntity extends AppBaseEntity {
   deleted: boolean;
 
   @Column({ name: "log", type: "jsonb", nullable: true })
-  log: UpdateObservationValuesLogVo[] | null;
+  log: ObservationLogVo[] | null;
 
   // After full migration to v5 model, this column will no longer be needed.
   @Column({ name: "saved_to_v4", type: "boolean", default: false })
@@ -84,35 +84,16 @@ export class ObservationEntity extends AppBaseEntity {
   savedToV4: boolean; // True when value has been uploaded to v4 database
 }
 
-/**
- * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
- * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
- */
-export interface UpdateObservationValuesLogVo extends BaseLogVo {
+
+export interface ObservationLogVo extends BaseLogVo {
   value: number | null;
   flag: FlagEnum | null;
+  qcStatus: QCStatusEnum;
   comment: string | null;
   deleted: boolean;
 }
 
-/**
- * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
- * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
- */
-export class ViewObservationLogDto {
-  value: number | null;
-  flag: FlagEnum | null;
-  comment: string | null;
-  deleted: boolean;
-  entryUserEmail: string;
-  entryDateTime: string;// TODO. Deprecated
-}
-
-/**
- * Note. The class uses snake case instead of camel case because snake case is preferable in SQL and at postgres level for storing and querying.
- * Most PostgreSQL GIN index-based filters (e.g. jsonb_path_ops) are simpler when using consistent lowercase/snake_case key names.
- */
 export interface QCTestLogVo {
-  qc_test_id: number;
-  qc_status: QCStatusEnum; 
+  qcTestId: number;
+  qcStatus: QCStatusEnum;
 }

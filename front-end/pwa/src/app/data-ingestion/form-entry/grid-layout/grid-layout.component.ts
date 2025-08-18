@@ -3,7 +3,7 @@ import { FormEntryDefinition } from '../defintitions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintitions/field.definition';
 import { ObservationDefinition } from '../defintitions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
-import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
+import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 
 @Component({

@@ -1,14 +1,13 @@
 import { CreateObservationModel } from "./create-observation.model";
 import { QCStatusEnum } from "./qc-status.enum";
-
-export interface QCTestLogDto {
-    qcTestId: number;
-    qcStatus: QCStatusEnum;
-}
+import { ViewObservationLogModel } from "./view-observation-log.model";
 
 export interface ViewObservationModel extends CreateObservationModel {
     qcStatus: QCStatusEnum;
-    qcTestLog: QCTestLogDto | null;
+    qcTestLog: {
+        qcTestId: number;
+        qcStatus: QCStatusEnum;
+    }[] | null;
+    log: ViewObservationLogModel[] | null;
     entryDatetime: string;
-    // TODO add entryLogDto 
 }

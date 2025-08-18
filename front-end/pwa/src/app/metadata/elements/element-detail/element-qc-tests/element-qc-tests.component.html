@@ -9,7 +9,6 @@
             <thead>
                 <tr>
                     <th style="width: 2%;"></th>
-                    <th>Name</th>
                     <th>Level</th>
                     <th>Interval</th>
                     <th>Type</th>
@@ -19,9 +18,8 @@
             </thead>
             <tbody class="table-group-divider">
                 <tr class="cursor-pointer" *ngFor="let row of qcTests"
-                    (click)="userIsSystemAdmin? dlgQcEdit.openDialog( row.id): ''">
+                    (click)="userIsSystemAdmin? dlgQcEdit.openDialog(row.id): ''">
                     <td><i class="bi bi-arrow-right-short"></i></td>
-                    <td>{{row.name}}</td>
                     <td>{{row.observationLevel}}</td>
                     <td>{{row.observationIntervalName}}</td>
                     <td>{{row.qcTestTypeName}}</td>

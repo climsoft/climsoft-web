@@ -31,12 +31,11 @@ export class QCTestParameterInputDialogComponent {
     private qcTestscacheService: ElementsQCTestsCacheService,
     private pagesDataService: PagesDataService) { }
 
-
-  public openDialog( elementQCTestId?: number): void {
+  public openDialog(elementQCTestId?: number): void {
     this.open = true;
-    this.title = elementQCTestId ? 'Edit QC Test' : 'New QC Test'; 
+    this.title = elementQCTestId ? 'Edit QC Test' : 'New QC Test';
 
-    if (elementQCTestId) { 
+    if (elementQCTestId) {
       this.qcTestscacheService.findOne(elementQCTestId).pipe(
         take(1)
       ).subscribe((data) => {
@@ -55,6 +54,7 @@ export class QCTestParameterInputDialogComponent {
         };
       });
     } else {
+
       const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
       this.updateQcTest = {
         id: 0,
@@ -155,11 +155,10 @@ export class QCTestParameterInputDialogComponent {
   }
 
   protected onOkClick(): void {
-     if (!this.updateQcTest.elementId) {
+    if (!this.updateQcTest.elementId) {
       this.pagesDataService.showToast({ title: "QC Tests", message: 'Element required', type: ToastEventTypeEnum.ERROR });
       return;
     }
-
     if (!this.updateQcTest.name) {
       this.pagesDataService.showToast({ title: "QC Tests", message: 'QC test name required', type: ToastEventTypeEnum.ERROR });
       return;
@@ -175,7 +174,7 @@ export class QCTestParameterInputDialogComponent {
       parameters: this.updateQcTest.parameters,
       disabled: this.updateQcTest.disabled,
       comment: this.updateQcTest.comment,
-    }
+    };
 
     let saveSubscription: Observable<ViewElementQCTestModel>;
     if (this.updateQcTest.id > 0) {

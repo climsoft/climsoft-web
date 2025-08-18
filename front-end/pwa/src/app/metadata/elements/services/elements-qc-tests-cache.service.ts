@@ -1,13 +1,8 @@
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, Subscription, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
-import { CreateViewElementModel } from "../models/create-view-element.model";
-import { UpdateElementModel } from "../models/update-element.model";
-import { ElementDomainEnum } from "../models/element-domain.enum";
-import { ViewElementTypeModel } from "../models/view-element-type.model";
-import { ViewElementSubdomainModel } from "../models/view-element-subdomain.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
