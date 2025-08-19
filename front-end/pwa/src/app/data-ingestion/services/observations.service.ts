@@ -143,8 +143,6 @@ export class ObservationsService {
       datetimes.push(dt.toISOString());
     }
 
-    //console.log('date times: ', datetimes);
-
     for (const elementId of entryFormObsQuery.elementIds) {
       for (const datetime of datetimes) {
         const filter: [string, number, number, number, string] = [
@@ -237,22 +235,24 @@ export class ObservationsService {
     const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations
       .where('synced').equals('false').limit(1000).toArray();
     const observations: CreateObservationModel[] = this.convertToViewObservationModels(cachedObservations);
-    this.http.put(this.endPointUrl, observations).pipe(
+    this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       take(1),
       catchError(err => {
         this.isSyncing = false;
         // TODO. Notify network errors
         return this.handleError(err);
       }),
-    ).subscribe(value => {
+    ).subscribe(response => {
       // Server will send {message: success} when there is no error
-      console.log('server response after sync: ', value, 'saving synced data locally');
+      console.log('server response after sync: ', response, 'saving synced data locally');
       // set syncing flag to false to keep syncing    
       this.isSyncing = false;
-      // save observations as synchronised 
-      this.saveDataToLocalDatabase(observations, 'true');
-      // Then synchronise remaining observations
-      this.syncObservations();
+      if (response.message === 'success') {
+        // save observations as synchronised 
+        this.saveDataToLocalDatabase(observations, 'true');
+        // Then synchronise remaining observations
+        this.syncObservations();
+      }
     });
 
   }

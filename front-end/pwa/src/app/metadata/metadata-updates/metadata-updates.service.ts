@@ -93,7 +93,9 @@ export class MetadataUpdatesService {
             case 'elementsQcTests':
                 return 'elements-qc-tests';
             case 'sourceTemplates':
-                return 'sources';
+                return 'source-templates';
+            case 'generalSettings':
+                return 'general-settings';
             default:
                 throw new Error('Developer error: metadata name not recognised');
         }

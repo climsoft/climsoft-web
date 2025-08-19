@@ -57,23 +57,17 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
-    private qualityControlService: QualityControlService,
-    private generalSettingsService: GeneralSettingsService,
+    private qualityControlService: QualityControlService, 
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.allMetadataLoaded = data;
-      this.queryData();
-    });
-
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    ).subscribe(allMetadataLoaded => {
+      this.allMetadataLoaded = allMetadataLoaded;
+      if (allMetadataLoaded) {
+        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      }
       this.queryData();
     });
   }

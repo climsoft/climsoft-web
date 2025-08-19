@@ -46,7 +46,8 @@ import { RegionEntity } from './regions/entities/region.entity';
 import { NetworkAffiliationsController } from './network-affiliations/controllers/network-affiliation.controller';
 import { NetworkAffiliationsService } from './network-affiliations/services/network-affiliations.service';
 import { StationNetworkAffiliationsController } from './stations/controllers/station-network-affiliations.controller';
-import { StationNetworkAffiliationsService } from './stations/services/station-network-affiliations.service'; 
+import { StationNetworkAffiliationsService } from './stations/services/station-network-affiliations.service';
+import { SettingsModule } from 'src/settings/settings.module';
 
 @Module({
     imports: [
@@ -74,6 +75,7 @@ import { StationNetworkAffiliationsService } from './stations/services/station-n
         ]),
         SharedModule,
         UserModule,
+        SettingsModule,// used by metadata updates
     ],
     controllers: [
         ElementsController,

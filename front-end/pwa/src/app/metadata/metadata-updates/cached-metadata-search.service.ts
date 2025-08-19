@@ -8,6 +8,7 @@ import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from "../element
 import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
+import { CreateViewGeneralSettingModel } from "src/app/admin/general-settings/models/create-view-general-setting.model";
 
 
 @Injectable({
@@ -18,15 +19,16 @@ export class CachedMetadataSearchService {
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
     private _elementQcTestsMetadata!: ElementQCTestCacheModel[];
-    private _utcOffset!: number;
+    private _generalSettingsMetadata!: CreateViewGeneralSettingModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private checkingForUpdates: boolean = false;
 
     constructor(
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourceTemplatesCacheService,
         private elementsQCTestsCacheService: ElementsQCTestsCacheService,
-        private generalSettingsService: GeneralSettingsService,
+        private generalSettingsCacheService: GeneralSettingsService,
     ) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
@@ -49,11 +51,12 @@ export class CachedMetadataSearchService {
             this.setMetadataLoaded();
         });
 
-        // Get the climsoft time zone display setting
-        this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).subscribe(data => {
-            this._utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => {
+            this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
+
+
     }
 
     private setMetadataLoaded(): void {
@@ -61,12 +64,27 @@ export class CachedMetadataSearchService {
             && this._elementsMetadata && this._elementsMetadata.length > 0
             && this._sourcesMetadata && this._sourcesMetadata.length > 0
             && this._elementQcTestsMetadata && this._elementQcTestsMetadata.length > 0
-            && this._utcOffset !== undefined) {
+            && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
     }
 
     public get allMetadataLoaded(): Observable<boolean> {
+        if (!this.checkingForUpdates) {
+            this.stationsCacheService.checkForUpdates();
+            this.elementsCacheService.checkForUpdates();
+            this.sourcesCacheService.checkForUpdates();
+            this.elementsQCTestsCacheService.checkForUpdates();
+            this.generalSettingsCacheService.checkForUpdates();
+
+            // Disable the checking of all metadata for 5 seconds.
+            // this reduces the number of round trips to the server
+            this.checkingForUpdates = true;
+            setTimeout(() => {
+                this.checkingForUpdates = false;
+                console.warn('checking of metadata updates reset');
+            }, 5000);
+        }
         return this._allMetadataLoaded.asObservable();
     }
 
@@ -132,15 +150,19 @@ export class CachedMetadataSearchService {
         return qcTests;
     }
 
+    public getGeneralSetting(settingId: SettingIdEnum): CreateViewGeneralSettingModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. General setting not usable.`);
+        }
+
+        const metadata = this._generalSettingsMetadata.find(item => item.id === settingId);
+        if (!metadata) {
+            throw new Error(`Developer error: General setting not found. ${settingId}`);
+        }
+        return metadata;
+    }
 
     public getUTCOffSet(): number {
-        if (!this._allMetadataLoaded.value) {
-            throw new Error(`Developer error: Metadata not full loaded. UTC offset not usable.`);
-        }
-
-        if (!this._utcOffset) {
-            throw new Error(`Developer error: UTC offset not yet defined.`);
-        }
-        return this._utcOffset;
+        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;;
     }
 }

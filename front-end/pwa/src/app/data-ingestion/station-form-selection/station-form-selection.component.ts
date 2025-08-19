@@ -9,6 +9,7 @@ import { StationCacheModel, StationsCacheService } from 'src/app/metadata/statio
 import { AppAuthService } from 'src/app/app-auth.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { ObservationsService } from '../services/observations.service';
 
 interface StationView {
   station: StationCacheModel;
@@ -33,9 +34,11 @@ export class StationFormSelectionComponent implements OnDestroy {
     private stationsCacheService: StationsCacheService,
     private stationFormsService: StationFormsService,
     private sourceCacheService: SourceTemplatesCacheService,
+    private observationService: ObservationsService,
     private appAuthService: AppAuthService,
     private router: Router,
     private route: ActivatedRoute) {
+      
     this.pagesDataService.setPageHeader('Select Station');
 
     this.sourceCacheService.cachedSources.pipe(
@@ -55,9 +58,11 @@ export class StationFormSelectionComponent implements OnDestroy {
       ).map(data => { return { station: data } });
       this.setStationsBasedOnPermissions(allManualStations);
     });
+
+    this.observationService.syncObservations();
   }
 
-  
+
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core'; 
+import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
@@ -48,7 +48,7 @@ export class DataFlowQuerySelectionComponent implements OnDestroy {
     this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     });
   }
 

@@ -8,28 +8,20 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
-import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
-import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
-import { FindQCTestQueryModel } from 'src/app/metadata/elements/models/find-qc-test-query.model';
 import { ObservationDefinition } from './defintitions/observation.definition';
 import { LnearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 import { ObservationsService } from '../services/observations.service';
-import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
-import { CreateEntryFormModel } from 'src/app/metadata/source-templates/models/create-entry-form.model';
 import { AppDatabase } from 'src/app/app-database';
 import { UserSettingEnum } from 'src/app/app-config.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ElementsQCTestsCacheService } from 'src/app/metadata/elements/services/elements-qc-tests-cache.service';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { FlagEnum } from '../models/flag.enum';
 
 @Component({
   selector: 'app-form-entry',
@@ -66,24 +58,25 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   protected userFormSettings!: UserFormSettingStruct;
   protected userLocationErrorMessage: string = '';
-  private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor
     (private pagesDataService: PagesDataService,
-      private sourcesService: SourceTemplatesCacheService,
-      private stationsService: StationsCacheService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
       private cachedMetadataSearchService: CachedMetadataSearchService,
       private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
-    this.pagesDataService.setPageHeader('Data Entry');
-    //Set user form settings
-    this.loadUserSettings();
 
+    this.pagesDataService.setPageHeader('Data Entry');
+
+    // Important note. 
+    // Set user form settings then attempt to sync the observations. 
+    // The 2 methods are both asynchronouse and the user settings is needed first
+    this.loadUserSettings();
+    this.observationService.syncObservations();
   }
 
   ngOnInit(): void {
@@ -182,18 +175,11 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
       if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
     });
-
   }
 
   protected onStationChange(stationId: string) {
-    this.stationsService.findOne(stationId).pipe(
-      take(1),
-    ).subscribe(station => {
-      if (station) {
-        this.formDefinitions.station = station;
-        this.loadObservations();
-      }
-    });
+    this.formDefinitions.station = this.cachedMetadataSearchService.getStation(stationId);
+    this.loadObservations();
   }
 
   /**

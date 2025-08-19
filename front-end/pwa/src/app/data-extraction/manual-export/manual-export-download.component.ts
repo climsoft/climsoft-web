@@ -50,7 +50,7 @@ export class ManualExportDownloadComponent implements OnInit {
     this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     });
   }
 
@@ -153,11 +153,11 @@ export class ManualExportDownloadComponent implements OnInit {
         this.downloadLink = this.observationService.getDownloadExportLink(data);
         this.hideDownloadButton = false;
       },
-      error: err =>{
+      error: err => {
         this.pagesDataService.showToast({ title: `Error in Generating Export`, message: err, type: ToastEventTypeEnum.ERROR });
         this.hidePreparingExport = false;
       }
-    } );
+    });
   }
 
   protected onDownloadStarted(): void {

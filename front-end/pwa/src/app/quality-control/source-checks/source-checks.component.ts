@@ -62,10 +62,13 @@ export class SourceChecksComponent implements OnDestroy {
     });
 
     // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    ).subscribe(allMetadataLoaded => {
+      if (allMetadataLoaded) {
+        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      }
+
     });
   }
 

@@ -57,7 +57,7 @@ export class ObservationDefinition {
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
 
         // validate database values
-        this.validateOriginalValue();
+        //this.validateOriginalValue(); // TODO. Deprecate this. no need to validate database values because QC has been implemented
 
         this._existsInDatabase = observation.value !== null || observation.flag !== null;
         // set original database values for future comparison

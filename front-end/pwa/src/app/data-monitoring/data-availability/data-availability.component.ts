@@ -63,7 +63,7 @@ export class DataAvailabilityComponent implements OnDestroy {
     this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     });
   }
 
@@ -84,6 +84,7 @@ export class DataAvailabilityComponent implements OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
+        console.log('al data', data)
         this.stationRendered =
           this.dataAvailabilityFilter.stationIds.length > 0 ?
             this.stations.filter(station => this.dataAvailabilityFilter.stationIds.includes(station.id)) : this.stations;
@@ -208,7 +209,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         }
       },
       dataZoom: [
-          {
+        {
           type: 'slider',
           xAxisIndex: 0,
           orient: 'horizontal',
@@ -234,7 +235,7 @@ export class DataAvailabilityComponent implements OnDestroy {
         {
           type: 'inside',
           yAxisIndex: 0
-        }      
+        }
       ],
       visualMap: {
         min: 0,

@@ -12,6 +12,7 @@ import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/mod
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
 import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 @Component({
   selector: 'app-query-selection',
@@ -51,7 +52,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   constructor(
     private appAuthService: AppAuthService,
-    private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataSearchService: CachedMetadataSearchService, 
   ) {
 
     // Set default dates to yesterday
@@ -60,14 +61,16 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     fromDate.setDate(toDate.getDate() - 1);
     this.dateRange = { fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) };
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
+   
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    ).subscribe(allMetadataLoaded => {
+      if (allMetadataLoaded) {
+        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      }
     });
 
-    this.onQueryClick();
+    //this.onQueryClick();
   }
 
   ngOnChanges(changes: SimpleChanges): void {

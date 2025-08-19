@@ -533,7 +533,8 @@ export class ObservationsService {
                 year = Number(splitYearMonth[0]);
                 month = Number(splitYearMonth[1]);
 
-                const lastEndDateDay: number = DateUtils.getLastDayOfMonth(year, month);
+                // Note month is 1 based here. So month 1 will refer to march once inside Date object because date objects month index are 0 based
+                const lastEndDateDay: number = new Date(year, month, 0).getDate();
                 startDate = DateUtils.getDatetimesBasedOnUTCOffset(
                     `${dataAvailabilityQuery.durationDaysOfMonth}-01T00:00:00Z`, utcOffset, 'subtract'
                 ).replace('T', ' ').replace('Z', '');
