@@ -7,7 +7,6 @@ import { StringUtils } from "src/app/shared/utils/string.utils";
 import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
 import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-type.enum";
 import { ViewObservationModel, ViewQCTestLog } from "../../models/view-observation.model";
-import { QCStatusEnum } from "../../models/qc-status.enum";
 
 /**
  * Holds the definitions used by the value flag component for data display and entry validations
@@ -179,13 +178,23 @@ export class ObservationDefinition {
         // Set the value and flag to the observation model 
         this.observation.value = value;
         this.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
-        this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
+        //this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
     }
 
     private constructValueFlagForDisplayStr(value: number | null, flag: FlagEnum | null): string {
         const unScaledValue: number | null = this.scaleValue ? this.getUnScaledValue(value) : value;
-        const valueStr = unScaledValue === null ? '' : unScaledValue.toString();
+        let valueStr = unScaledValue === null ? '' : unScaledValue.toString();
         const flagStr = flag === null ? '' : flag[0].toUpperCase();
+
+        // If scaling is on and entry scale factor is >=10 then just add zero.
+        // TODO this could be implemented later to factor when the scale is like 100
+        if (this.scaleValue) {
+            const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
+            if (element.entryScaleFactor >= 10 && valueStr.length === 1) {
+                valueStr = `0${valueStr}`;
+            }
+        }
+
         return valueStr + flagStr;
     }
 
@@ -322,7 +331,7 @@ export class ObservationDefinition {
         const utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
         // Transform the log data accordingly
         const viewObservationLog: ViewObservationLogModel[] = this.observation.log ? this.observation.log.map(item => {
-            const viewLog = {...item};
+            const viewLog = { ...item };
             // Display the values in scaled form 
             if (this.scaleValue && viewLog.value && element.entryScaleFactor) {
                 // To remove rounding errors number utils round off
