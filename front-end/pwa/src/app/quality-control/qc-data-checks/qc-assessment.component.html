@@ -41,6 +41,7 @@
                                     <th>Interval</th>
                                     <th>Source</th>
                                     <th>Value & Flag</th>
+                                    <th>Comment</th>
                                     <th>QC Tests Failed</th>
                                     <th>Confirm as Correct</th>
                                     <th>Delete</th>
@@ -63,6 +64,7 @@
                                                 (userInputVF)="onUserInput()" />
                                         </div>
                                     </td>
+                                    <td>{{ obsEntry.obsDef.comment }}</td>
                                     <td>
                                         <div>
                                             <div *ngFor="let qcTestLogItem of obsEntry.qcTestLog"

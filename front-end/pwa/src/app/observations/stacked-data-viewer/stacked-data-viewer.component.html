@@ -10,11 +10,11 @@
                 <th>Interval</th>
                 <th>Source</th>
                 <th>Value & Flag</th>
+                <th>Comment</th>
                 <th>Delete</th>
             </tr>
         </thead>
         <tbody>
-
             <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
                 [class.group-row-border]="includeLowerBoundaryLine(i)">
                 <td>{{ getRowNumber(i) }}</td>
@@ -31,6 +31,7 @@
                             (userInputVF)="onUserInput()" />
                     </div>
                 </td>
+                <td>{{ obsEntry.obsDef.comment }}</td>
                 <td>
                     <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
                         [disabled]="obsEntry.obsDef.observationChanged" (valueChange)="onUserInput()" />
