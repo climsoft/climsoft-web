@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ElementCacheModel } from '../../services/elements-cache.service';
-import { QCTestCacheModel, QCTestsCacheService } from '../../services/qc-tests-cache.service';
+import { QCTestCacheModel, QCTestsCacheService } from '../../../qc-tests/services/qc-tests-cache.service';
 
 
 @Component({

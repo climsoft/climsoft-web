@@ -8,7 +8,7 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
+import { ViewQCTestModel } from "./metadata/qc-tests/models/view-qc-test.model";
 import { CachedObservationModel } from "./data-ingestion/services/observations.service";
 import { UserSettingEnum } from "./app-config.service";
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";

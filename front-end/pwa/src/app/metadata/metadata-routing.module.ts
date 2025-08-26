@@ -15,7 +15,7 @@ import { ViewOrganisationsComponent } from './organisations/view-organisations/v
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
-import { ViewQCTestParametersComponent } from './qc-test-parameters/view-qc-test-parameters/view-qc-test-parameters.component';
+import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
 
 const routes: Routes = [
   {
@@ -79,7 +79,7 @@ const routes: Routes = [
       },
       {
         path: 'view-qc-tests',
-        component: ViewQCTestParametersComponent
+        component: ViewQCTestsComponent
       },
       {
         path: 'view-exports',

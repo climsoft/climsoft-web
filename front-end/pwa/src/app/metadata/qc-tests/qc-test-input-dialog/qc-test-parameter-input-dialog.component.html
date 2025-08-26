@@ -1,0 +1,81 @@
+<app-dialog [(open)]="open" [title]="title" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
+    [closeOnOkClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
+
+    <div *ngIf="open && updateQcTest">
+        <div>
+            <app-element-selector-single [label]="'Element'" [(selectedId)]="updateQcTest.elementId" />
+        </div>
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="updateQcTest.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="updateQcTest.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-number-input [label]="'Observation Level'" [(numValue)]="updateQcTest.observationLevel" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-period-single-input [label]="'Observation Interval'"
+                [(selectedId)]="updateQcTest.observationInterval" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-qc-test-type-single-selector [label]="'QC Test Type'" [selectedId]="updateQcTest.qcTestType"
+                (selectedIdChange)="onQCTestTypeSelected($event)" />
+        </div>
+
+        <hr />
+
+        <div class="card">
+            <div class="card-header">Parameters</div>
+            <div class="card-body">
+                <div *ngIf="!displayNotYetSupported">
+                    <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
+                        [rangeThresholdQCTestParameters]="rangeThresholdParam" />
+
+                    <app-qc-test-flat-line-params *ngIf="isFlatLine" [flatLineQCTestParameters]="flatLineParam" />
+
+                    <app-qc-test-spike-params *ngIf="isSpike" [spikeQCTestParameters]="spikeParam" />
+
+                    <app-qc-test-relational-params *ngIf="isRelationalComparison"
+                        [relationalQCTestParameters]="relationalComparisonParam" />
+
+                    <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
+                        [contextualQCTestParameters]="contextualConsistentyParam" />
+                </div>
+
+                <div *ngIf="displayNotYetSupported" class="fw-bold text-info">
+                    QC Test will be supported in the next version release
+                </div>
+            </div>
+
+        </div>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Disable'" [(value)]="updateQcTest.disabled" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />
+        </div>
+
+    </div>
+
+</app-dialog>

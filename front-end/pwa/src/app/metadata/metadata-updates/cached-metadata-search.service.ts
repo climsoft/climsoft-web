@@ -4,7 +4,7 @@ import { ElementCacheModel, ElementsCacheService } from "../elements/services/el
 import { SourceTemplatesCacheService } from "../source-templates/services/source-templates-cache.service";
 import { ViewSourceModel } from "../source-templates/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
-import { QCTestCacheModel, QCTestsCacheService } from "../elements/services/qc-tests-cache.service";
+import { QCTestCacheModel, QCTestsCacheService } from "../qc-tests/services/qc-tests-cache.service";
 import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";

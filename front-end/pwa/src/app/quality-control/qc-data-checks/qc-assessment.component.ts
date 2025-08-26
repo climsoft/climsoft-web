@@ -12,7 +12,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { QualityControlService } from 'src/app/data-ingestion/services/quality-control.service';
-import { QCTestCacheModel } from 'src/app/metadata/elements/services/qc-tests-cache.service';
+import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 
