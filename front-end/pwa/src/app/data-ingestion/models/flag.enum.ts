@@ -6,6 +6,6 @@ export enum FlagEnum {
     CUMULATIVE = "cumulative", 
     TRACE = "trace", 
     OBSCURED ="obscured",
-    VARIABLE = "variable",
+    VARIABLE = "variable", 
 }
 

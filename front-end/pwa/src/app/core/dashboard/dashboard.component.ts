@@ -41,7 +41,7 @@ export class DashboardComponent implements OnDestroy {
     // { icon: 'bi-check-circle-fill text-success', message: 'All systems are operational' },
     { icon: 'bi-exclamation-circle', message: '0 observations failed QC checks today' },
     // { icon: 'bi-exclamation-triangle-fill text-danger', message: 'Station KE005 has not reported in 3 hours' },
-    { icon: 'bi-wrench-adjustable-circle ', message: 'A new Climsoft Web update (preview-2-beta) is available' },
+    { icon: 'bi-wrench-adjustable-circle ', message: 'A new Climsoft Web update (preview-3-beta) is available' },
     // { icon: 'bi-cloud-arrow-down-fill text-primary', message: 'Last data import: 2025-05-22 18:15 UTC' }
   ];
 

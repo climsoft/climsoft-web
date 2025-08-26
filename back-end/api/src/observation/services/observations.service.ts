@@ -20,6 +20,7 @@ import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
+import { ViewUserDto } from 'src/user/dtos/view-user.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -33,9 +34,30 @@ export class ObservationsService {
         private generalSettingsService: GeneralSettingsService,
     ) { }
 
-    public async findProcessed(querDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
+      public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
+        const entities: ObservationEntity[] = await this.observationRepo.findBy({
+            stationId: queryDto.stationId,
+            elementId: In(queryDto.elementIds),
+            sourceId: queryDto.sourceId,
+            level: queryDto.level,
+            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
+            // Note, interval is commented out because of cumulative data in entry forms
+            // Once its agreed to deprecate changing of interval at form level. Then merge findFormData and findProcessed functions.
+            //interval: queryDto.interval, 
+            deleted: false
+        });
+
+        return this.createViewObsDtos(entities);
+    }
+
+    public async findProcessed(queryDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
+        return this.createViewObsDtos(await this.findProcessedObsEntities(queryDto));
+    }
+
+    private async createViewObsDtos(obsEntities: ObservationEntity[]) : Promise<ViewObservationDto[]> {
+        // TODO. Find a way of using cached users
+        const users: ViewUserDto[] = await this.usersService.findAll();
         const obsView: ViewObservationDto[] = [];
-        const obsEntities = await this.findProcessedObsEntities(querDto);
         for (const obsEntity of obsEntities) {
             const viewObs: ViewObservationDto = {
                 stationId: obsEntity.stationId,
@@ -49,20 +71,16 @@ export class ObservationsService {
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: obsEntity.qcTestLog,
-                log: await this.createViewLog(obsEntity),
+                log: await this.createViewLog(obsEntity, users),
                 entryDatetime: obsEntity.entryDateTime.toISOString(),
             };
             obsView.push(viewObs);
         }
-
         return obsView;
     }
 
 
-    private async createViewLog(entity: ObservationEntity): Promise<ViewObservationLogDto[]> {
-        // TODO. Find a way of using cached users
-        const users = await this.usersService.findAll();
-
+    private async createViewLog(entity: ObservationEntity, users: ViewUserDto[]): Promise<ViewObservationLogDto[]> {
         const viewLogDto: ViewObservationLogDto[] = [];
         if (entity.log) {
             for (const logItem of entity.log) {
@@ -96,8 +114,6 @@ export class ObservationsService {
 
         return viewLogDto;
     }
-
-
 
 
     public async findProcessedObsEntities(queryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
@@ -199,32 +215,7 @@ export class ObservationsService {
 
     }
 
-    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
-        const entities: ObservationEntity[] = await this.observationRepo.findBy({
-            stationId: queryDto.stationId,
-            elementId: In(queryDto.elementIds),
-            sourceId: queryDto.sourceId,
-            level: queryDto.level,
-            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
-            //interval: queryDto.interval, // Note, interval is commented out because of cumulative data in entry forms
-            deleted: false
-        });
-
-        const dtos: CreateObservationDto[] = entities.map(data => ({
-            stationId: data.stationId,
-            elementId: data.elementId,
-            sourceId: data.sourceId,
-            level: data.level,
-            datetime: data.datetime.toISOString(),
-            interval: data.interval,
-            value: data.value,
-            flag: data.flag,
-            comment: data.comment,
-        })
-        );
-
-        return dtos;
-    }
+  
 
     // TODO merge this with find processed observations method
     // public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
@@ -298,7 +289,7 @@ export class ObservationsService {
      * @param userId 
      * @param ignoreV4Saving When true, observations will be indicated as already saved to v4 and they will not be uploaded to version 4 databse
      */
-    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number,qcStatus = QCStatusEnum.NONE, ignoreV4Saving: boolean = false): Promise<void> {
+    public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, qcStatus = QCStatusEnum.NONE, ignoreV4Saving: boolean = false): Promise<void> {
         let startTime = new Date().getTime();
 
         const obsEntities: ObservationEntity[] = [];
@@ -542,7 +533,8 @@ export class ObservationsService {
                 year = Number(splitYearMonth[0]);
                 month = Number(splitYearMonth[1]);
 
-                const lastEndDateDay: number = DateUtils.getLastDayOfMonth(year, month);
+                // Note month is 1 based here. So month 1 will refer to march once inside Date object because date objects month index are 0 based
+                const lastEndDateDay: number = new Date(year, month, 0).getDate();
                 startDate = DateUtils.getDatetimesBasedOnUTCOffset(
                     `${dataAvailabilityQuery.durationDaysOfMonth}-01T00:00:00Z`, utcOffset, 'subtract'
                 ).replace('T', ' ').replace('Z', '');

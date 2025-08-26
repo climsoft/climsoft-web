@@ -4,8 +4,7 @@ import { GeneralSettingEntity } from './entities/general-setting.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserModule } from 'src/user/user.module';
 import { GeneralSettingController } from './controllers/general-settings.controller';
-import { GeneralSettingsService } from './services/general-settings.service'; 
-import { MetadataModule } from 'src/metadata/metadata.module';
+import { GeneralSettingsService } from './services/general-settings.service';  
 
 @Module({
     imports: [
@@ -13,8 +12,7 @@ import { MetadataModule } from 'src/metadata/metadata.module';
             GeneralSettingEntity, 
         ]),
         SharedModule,
-        UserModule,
-        MetadataModule,
+        UserModule, 
     ],
     controllers: [
         GeneralSettingController,

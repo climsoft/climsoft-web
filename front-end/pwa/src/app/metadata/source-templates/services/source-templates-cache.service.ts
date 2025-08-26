@@ -1,4 +1,4 @@
-import { BehaviorSubject, catchError, map, Observable, Subscription, take, tap, throwError } from "rxjs";
+import { BehaviorSubject, catchError, map, Observable, Subscription, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
@@ -28,7 +28,7 @@ export class SourceTemplatesCacheService {
         this._cachedSources.next(await AppDatabase.instance.sourceTemplates.toArray());
     }
 
-    private checkForUpdates(): void {
+    public checkForUpdates(): void {
         // If still checking for updates just return
         if (this.checkingForUpdates) return;
 

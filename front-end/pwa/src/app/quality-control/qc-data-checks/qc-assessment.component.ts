@@ -57,23 +57,17 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
-    private qualityControlService: QualityControlService,
-    private generalSettingsService: GeneralSettingsService,
+    private qualityControlService: QualityControlService, 
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.allMetadataLoaded = data;
-      this.queryData();
-    });
-
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
+    ).subscribe(allMetadataLoaded => {
+      this.allMetadataLoaded = allMetadataLoaded;
+      if (allMetadataLoaded) {
+        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      }
       this.queryData();
     });
   }
@@ -98,7 +92,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   }
 
   protected onPerformQCClick(qcSelection: ViewObservationQueryModel): void {
-     if (!qcSelection.fromDate) {
+    if (!qcSelection.fromDate) {
       this.pagesDataService.showToast({ title: 'QC Assessment', message: 'From date selection required', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -108,7 +102,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       return;
     }
 
-     if (this.isMoreThanTenCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate))) {
+    if (this.isMoreThanTenCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate))) {
       this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -116,7 +110,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     this.enablePerformQCButton = false;
     this.qualityControlService.performQC(qcSelection).pipe(take(1)).subscribe({
       next: data => {
-        this.enablePerformQCButton = true; 
+        this.enablePerformQCButton = true;
 
         if (data.qcFails > 0) {
           this.pagesDataService.showToast({ title: 'QC Assessment', message: `${data.qcFails} observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
@@ -137,7 +131,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     });
   }
 
-   private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
+  private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
     const tenYearsLater = new Date(fromDate);
     tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
     return toDate > tenYearsLater;
@@ -192,17 +186,11 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
           const qcTestLogMetadata = observation.qcTestLog ?
             observation.qcTestLog.filter(qcLogItem => qcLogItem.qcStatus == QCStatusEnum.FAILED).map(qcLogItem => {
-              return this.cachedMetadataSearchService.getElementQCTest(qcLogItem.qcTestId);
+              return this.cachedMetadataSearchService.getQCTest(qcLogItem.qcTestId);
             }) : [];
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation,
-              elementMetadata,
-              sourceMetadata.allowMissingValue,
-              false,
-              undefined,
-              this.utcOffset,
-              false),
+            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
             confirmAsCorrect: false,
             delete: false,
             stationName: stationMetadata.name,

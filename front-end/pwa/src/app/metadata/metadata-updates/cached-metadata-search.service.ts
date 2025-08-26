@@ -5,23 +5,31 @@ import { SourceTemplatesCacheService } from "../source-templates/services/source
 import { ViewSourceModel } from "../source-templates/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
 import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from "../elements/services/elements-qc-tests-cache.service";
+import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
+import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
+import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
+import { CreateViewGeneralSettingModel } from "src/app/admin/general-settings/models/create-view-general-setting.model";
 
 
 @Injectable({
     providedIn: 'root'
 })
 export class CachedMetadataSearchService {
-    private _stationsMetadata: StationCacheModel[] = [];
-    private _elementsMetadata: ElementCacheModel[] = [];
-    private _sourcesMetadata: ViewSourceModel[] = [];
-    private _elementQcTestsMetadata: ElementQCTestCacheModel[] = [];
+    private _stationsMetadata!: StationCacheModel[];
+    private _elementsMetadata!: ElementCacheModel[];
+    private _sourcesMetadata!: ViewSourceModel[];
+    private _elementQcTestsMetadata!: ElementQCTestCacheModel[];
+    private _generalSettingsMetadata!: CreateViewGeneralSettingModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+    private checkingForUpdates: boolean = false;
 
     constructor(
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourceTemplatesCacheService,
-        private elementsQCTestsCacheService: ElementsQCTestsCacheService,) {
+        private elementsQCTestsCacheService: ElementsQCTestsCacheService,
+        private generalSettingsCacheService: GeneralSettingsService,
+    ) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
             this._stationsMetadata = data;
@@ -42,22 +50,48 @@ export class CachedMetadataSearchService {
             this._elementQcTestsMetadata = data;
             this.setMetadataLoaded();
         });
+
+        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => {
+            this._generalSettingsMetadata = data;
+            this.setMetadataLoaded();
+        });
+
+
     }
 
     private setMetadataLoaded(): void {
         if (this._stationsMetadata && this._stationsMetadata.length > 0
             && this._elementsMetadata && this._elementsMetadata.length > 0
             && this._sourcesMetadata && this._sourcesMetadata.length > 0
-            && this._elementQcTestsMetadata && this._elementQcTestsMetadata.length > 0) {
+            && this._elementQcTestsMetadata && this._elementQcTestsMetadata.length > 0
+            && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
     }
 
     public get allMetadataLoaded(): Observable<boolean> {
+        if (!this.checkingForUpdates) {
+            this.stationsCacheService.checkForUpdates();
+            this.elementsCacheService.checkForUpdates();
+            this.sourcesCacheService.checkForUpdates();
+            this.elementsQCTestsCacheService.checkForUpdates();
+            this.generalSettingsCacheService.checkForUpdates();
+
+            // Disable the checking of all metadata for 5 seconds.
+            // this reduces the number of round trips to the server
+            this.checkingForUpdates = true;
+            setTimeout(() => {
+                this.checkingForUpdates = false;
+                console.warn('checking of metadata updates reset');
+            }, 5000);
+        }
         return this._allMetadataLoaded.asObservable();
     }
 
     public getStation(stationId: string): StationCacheModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. Stations not usable.`);
+        }
         const metadata = this._stationsMetadata.find(item => item.id === stationId);
         if (!metadata) {
             throw new Error(`Developer error: Station not found. ${stationId}`);
@@ -66,6 +100,10 @@ export class CachedMetadataSearchService {
     }
 
     public getElement(elementId: number): ElementCacheModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. Elements not usable.`);
+        }
+
         const metadata = this._elementsMetadata.find(item => item.id === elementId);
         if (!metadata) {
             throw new Error(`Developer error: Element not found. ${elementId}`);
@@ -74,6 +112,10 @@ export class CachedMetadataSearchService {
     }
 
     public getSource(sourceId: number): ViewSourceModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. Sources not usable.`);
+        }
+
         const metadata = this._sourcesMetadata.find(item => item.id === sourceId);
         if (!metadata) {
             throw new Error(`Developer error: Source not found. ${sourceId}`);
@@ -81,11 +123,46 @@ export class CachedMetadataSearchService {
         return metadata;
     }
 
-    public getElementQCTest(qcTestId: number): ElementQCTestCacheModel {
+    public getQCTest(qcTestId: number): ElementQCTestCacheModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
+        }
+
         const metadata = this._elementQcTestsMetadata.find(item => item.id === qcTestId);
         if (!metadata) {
-            throw new Error(`Developer error: Element QC test not found. ${qcTestId}`);
+            throw new Error(`Developer error: QC test not found. ${qcTestId}`);
         }
         return metadata;
+    }
+
+    public getQCTestsFor(elementId: number, level: number, interval: number): ElementQCTestCacheModel[] {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
+        }
+
+        const qcTests: ElementQCTestCacheModel[] = []
+
+        for (const qcTest of this._elementQcTestsMetadata) {
+            if (qcTest.elementId === elementId && qcTest.observationLevel === level && qcTest.observationInterval === interval) {
+                qcTests.push(qcTest);
+            }
+        }
+        return qcTests;
+    }
+
+    public getGeneralSetting(settingId: SettingIdEnum): CreateViewGeneralSettingModel {
+        if (!this._allMetadataLoaded.value) {
+            throw new Error(`Developer error: Metadata not full loaded. General setting not usable.`);
+        }
+
+        const metadata = this._generalSettingsMetadata.find(item => item.id === settingId);
+        if (!metadata) {
+            throw new Error(`Developer error: General setting not found. ${settingId}`);
+        }
+        return metadata;
+    }
+
+    public getUTCOffSet(): number {
+        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;;
     }
 }

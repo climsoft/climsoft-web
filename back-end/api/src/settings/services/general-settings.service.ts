@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { FindManyOptions, FindOptionsWhere, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateViewGeneralSettingDto } from '../dtos/create-view-general-setting.dto';
 import { GeneralSettingEntity } from '../entities/general-setting.entity';
 import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';
+import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
+import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 
 @Injectable()
 export class GeneralSettingsService {
@@ -99,5 +101,34 @@ export class GeneralSettingsService {
             parameters: entity.parameters
         };
     }
+
+      public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
+            let changesDetected: boolean = false;
+    
+            const serverCount = await this.generalSettingRepo.count();
+    
+            if (serverCount !== updatesQueryDto.lastModifiedCount) {
+                // If number of records in server are not the same as those in the client then changes detected
+                changesDetected = true;
+            } else {
+                const whereOptions: FindOptionsWhere<GeneralSettingEntity> = {};
+    
+                if (updatesQueryDto.lastModifiedDate) {
+                    whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
+                }
+    
+                // If there was any changed record then changes detected
+                changesDetected = (await this.generalSettingRepo.count({ where: whereOptions })) > 0
+            }
+    
+            if (changesDetected) {
+                // If any changes detected then return all records 
+                const allRecords = await this.findAll();
+                return { metadataChanged: true, metadataRecords: allRecords }
+            } else {
+                // If no changes detected then indicate no metadata changed
+                return { metadataChanged: false }
+            }
+        }
 
 }

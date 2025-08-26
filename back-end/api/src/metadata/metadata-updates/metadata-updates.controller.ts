@@ -13,6 +13,9 @@ import { ElementSubdomainsService } from '../elements/services/element-subdomain
 import { OrganisationsService } from '../organisations/services/organisations.service';
 import { NetworkAffiliationsService } from '../network-affiliations/services/network-affiliations.service';
 import { ElementsQCTestsService } from '../elements/services/elements-qc-tests.service';
+import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+
+// TODO. Move this controller to a module responsible for handling cached data
 
 @Controller('metadata-updates')
 export class MetadataUpdatesController {
@@ -23,11 +26,12 @@ export class MetadataUpdatesController {
     private stationsService: StationsService,
     private stationObsEnvservice: StationObsEnvService,
     private stationObsFocuseservice: StationObsFocusesService,
-    private sourcesService: SourceTemplatesService,
+    private sourceTemplatesService: SourceTemplatesService,
     private elementSubdomainsService: ElementSubdomainsService,
     private elementTypesService: ElementTypesService,
     private elementsService: ElementsService,
     private elementsQCTestsService: ElementsQCTestsService,
+    private generalSettingsService: GeneralSettingsService,
   ) { }
 
   @Get('organisations')
@@ -121,10 +125,16 @@ export class MetadataUpdatesController {
     return this.elementsQCTestsService.checkUpdates(updatesQueryDto);
   }
 
-  @Get('sources')
-  async sourcesUpdates(
+  @Get('source-templates')
+  async sourceTemplatesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    return this.sourcesService.checkUpdates(updatesQueryDto);
+    return this.sourceTemplatesService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('general-settings')
+  async generalSettingsUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.generalSettingsService.checkUpdates(updatesQueryDto);
   }
 
 }

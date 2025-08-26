@@ -1,18 +1,20 @@
 import { Location } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';  
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { CreateViewGeneralSettingModel } from '../models/create-view-general-setting.model';
 import { GeneralSettingsService } from '../services/general-settings.service';
 import { UpdateGeneralSettingModel } from '../models/update-general-setting.model';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-edit-general-setting',
   templateUrl: './edit-general-setting.component.html',
   styleUrls: ['./edit-general-setting.component.scss']
 })
-export class EditGeneralSettingComponent implements OnInit {
+export class EditGeneralSettingComponent implements OnInit, OnDestroy {
   protected setting!: CreateViewGeneralSettingModel;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -21,14 +23,21 @@ export class EditGeneralSettingComponent implements OnInit {
     private location: Location,
   ) {
     this.pagesDataService.setPageHeader('Edit General Setting');
-  } 
+  }
 
   ngOnInit() {
     const generalSettingId = this.route.snapshot.params['id'];
-    this.generalSettingsService.findOne(+generalSettingId).subscribe((data) => {
-      this.setting = data;
+    this.generalSettingsService.findOne(+generalSettingId).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((data) => {
+      if (data) this.setting = data;
     });
 
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   protected onSaveClick(): void {

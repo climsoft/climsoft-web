@@ -33,7 +33,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected numOfChanges: number = 0; 
+  protected numOfChanges: number = 0;
   protected utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
@@ -46,7 +46,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
     private route: ActivatedRoute,
   ) {
     this.pagesDataService.setPageHeader('Data Correction');
@@ -54,17 +53,12 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
+      // Get the climsoft time zone display setting
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
       this.allMetadataLoaded = data;
       this.queryData();
     });
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-      this.queryData();
-    });
   }
 
   ngOnInit(): void {
@@ -138,7 +132,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected loadData(): void {
     this.enableQueryButton = false;
     this.enableSaveButton = false;
-    this.numOfChanges = 0; 
+    this.numOfChanges = 0;
     this.observationsEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
@@ -155,13 +149,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(observation,
-              elementMetadata,
-              sourceMetadata.allowMissingValue,
-              false,
-              undefined,
-              this.utcOffset,
-              false),
+            obsDef: new ObservationDefinition( this.cachedMetadataSearchService, observation, false),
             delete: false,
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
@@ -172,7 +160,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           return entry;
 
         });
- 
+
         this.observationsEntries = observationsEntries;
         this.enableSaveButton = true;
       },

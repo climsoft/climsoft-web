@@ -115,7 +115,7 @@ export class ExportObservationsService {
         // DATA PROCESSING SELECTIONS
         //------------------------------------------------------------------------------------------------
 
-        const displayUtcOffset: number = ( ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters) as ClimsoftDisplayTimeZoneDto).utcOffset ; 
+        const displayUtcOffset: number = (((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters) as ClimsoftDisplayTimeZoneDto).utcOffset;
         if (exportParams.convertDatetimeToDisplayTimeZone) {
             if (exportParams.splitObservationDatetime) {
                 columnSelections.push(`EXTRACT(YEAR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS year`);
@@ -193,14 +193,13 @@ export class ExportObservationsService {
         // TODO. Find away of tracking the export process at the database level
         const results = await this.dataSource.manager.query(sql);
 
-        console.log('Postgres copying done: ', outputPath, ' Results: ', results);
+        //console.log('Postgres copying done: ', outputPath, ' Results: ', results);
 
         // Return the path to the generated CSV file
         return viewTemplateExportDto.id;
     }
 
     private getTemplateFiltersBasedOnQuery(exportParams: ExportTemplateParametersDto, query: ViewObservationQueryDTO): ExportTemplateParametersDto {
-
         if (exportParams.stationIds && exportParams.stationIds.length > 0) {
             if (query.stationIds) {
                 exportParams.stationIds = exportParams.stationIds.filter(item => query.stationIds?.includes(item));
@@ -225,20 +224,18 @@ export class ExportObservationsService {
             exportParams.intervals = query.intervals;
         }
 
-
-
         if (exportParams.observationDate) {
             if (exportParams.observationDate.within) {
                 if (query.fromDate) {
                     if (new Date(query.fromDate) < new Date(exportParams.observationDate.within.fromDate)) {
-                        throw new BadRequestException('from date can not be less that what is allowed by the template');
+                        throw new BadRequestException('from date can not be less than that what is allowed by the template');
                     }
                     exportParams.observationDate.within.fromDate = query.fromDate;
                 }
 
                 if (query.toDate) {
                     if (new Date(query.toDate) > new Date(exportParams.observationDate.within.toDate)) {
-                        throw new BadRequestException('to date can not be greater that what is allowed by the template');
+                        throw new BadRequestException('to date can not be greater than that what is allowed by the template');
                     }
                     exportParams.observationDate.within.toDate = query.toDate;
                 }
@@ -251,6 +248,14 @@ export class ExportObservationsService {
                     }
                     exportParams.observationDate.fromDate = query.fromDate;
                 }
+            }
+        } else {
+            if (query.fromDate && query.toDate) {
+                exportParams.observationDate = { within: { fromDate: query.fromDate, toDate: query.toDate } };
+            } else if (query.fromDate) {
+                exportParams.observationDate = { fromDate: query.fromDate };
+            } else if (query.toDate) {
+                throw new BadRequestException('to date only is not allowed by the template');
             }
         }
 
@@ -267,7 +272,7 @@ export class ExportObservationsService {
 
         let outputPath: string = AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/app/exports';
         outputPath = `${outputPath}/${userId}_${exportTemplateId}.csv`;
-        console.log('Downloading from: ', outputPath);
+        //console.log('Downloading from: ', outputPath);
 
         // TODO log the export
 

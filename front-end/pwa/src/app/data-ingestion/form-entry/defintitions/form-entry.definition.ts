@@ -10,6 +10,9 @@ import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
+import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
+import { ViewObservationModel } from "../../models/view-observation.model";
+import { QCStatusEnum } from "../../models/qc-status.enum";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
@@ -38,30 +41,33 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationDefinition[] = [];
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
+ 
 
-    private rangeThresholdQCTests: ViewElementQCTestModel[];
-    private elements: ElementCacheModel[];
+    private cachedMetadataSearchService: CachedMetadataSearchService;
 
-    constructor(station: StationCacheModel, source: ViewSourceModel, formMetadata: CreateEntryFormModel, elements: ElementCacheModel[], rangeThresholdQCTests: ViewElementQCTestModel[]) {
+    constructor(
+        station: StationCacheModel, 
+        source: ViewSourceModel,      
+        newCachedMetadataSearchService: CachedMetadataSearchService) {
+
         this.station = station;
-        this.source = source;
-        this.elements = elements;
-        this.formMetadata = formMetadata;
-        this.rangeThresholdQCTests = rangeThresholdQCTests;
+        this.source = source; 
+        this.formMetadata = source.parameters as CreateEntryFormModel;
+        this.cachedMetadataSearchService = newCachedMetadataSearchService;
 
         // Set the selectors values based on defined selectors in the form metadata
-        this.elementSelectorValue = formMetadata.selectors.includes('ELEMENT') ? formMetadata.elementIds[0] : null;
+        this.elementSelectorValue = this.formMetadata.selectors.includes('ELEMENT') ? this.formMetadata.elementIds[0] : null;
         const todayDate: Date = new Date();
         this.yearSelectorValue = todayDate.getFullYear();
         this.monthSelectorValue = todayDate.getMonth() + 1;
-        this.daySelectorValue = formMetadata.selectors.includes('DAY') ? todayDate.getDate() : null;
+        this.daySelectorValue = this.formMetadata.selectors.includes('DAY') ? todayDate.getDate() : null;
 
         // Set hour selector value
         // If one of selectors is hour, then set the current default hour to what what is equal or immediate greater hour
         this.hourSelectorValue = null;
-        if (formMetadata.selectors.includes('HOUR')) {
+        if (this.formMetadata.selectors.includes('HOUR')) {
             let currentHour: number = new Date().getHours()
-            for (const allowedDataEntryHour of formMetadata.hours) {
+            for (const allowedDataEntryHour of this.formMetadata.hours) {
                 this.hourSelectorValue = allowedDataEntryHour;
                 if (allowedDataEntryHour >= currentHour) {
                     break;
@@ -101,7 +107,7 @@ export class FormEntryDefinition {
 
         const year: number = this.yearSelectorValue;
         const month: number = this.monthSelectorValue;
-        const hours: number[] = this.hourSelectorValue === null ? this.formMetadata.hours : [this.hourSelectorValue];
+        //const hours: number[] = this.hourSelectorValue === null ? this.formMetadata.hours : [this.hourSelectorValue];
 
         // If day value is defined then just define a single data time else define all date times for the entire month
         if (this.daySelectorValue) {
@@ -124,7 +130,7 @@ export class FormEntryDefinition {
 
 
 
-    public createEntryObsDefs(dbObservations: CreateObservationModel[]): void {
+    public createEntryObsDefs(dbObservations: ViewObservationModel[]): void {
         for (const dbObservation of dbObservations) {
             // Add because it needs to be displayed based on display utc offset
             dbObservation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(dbObservation.datetime, this.source.utcOffset, 'add');
@@ -151,13 +157,13 @@ export class FormEntryDefinition {
      * @param dbObservations 
      * @returns the observations that will be used by the value flag controls in a linear layout
      */
-    private getEntryObsForLinearLayout(dbObservations: CreateObservationModel[]): ObservationDefinition[] {
+    private getEntryObsForLinearLayout(dbObservations: ViewObservationModel[]): ObservationDefinition[] {
         const obsDefinitions: ObservationDefinition[] = [];
         const entryField: FieldType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
 
         for (const fieldDef of entryfieldDefs) {
-            let newObs: CreateObservationModel = this.createEmptyObservation();
+            let newObs: ViewObservationModel = this.createEmptyObservation();
             if (this.elementSelectorValue) {
                 newObs.elementId = this.elementSelectorValue;
             } else if (entryField === 'ELEMENT') {
@@ -184,7 +190,7 @@ export class FormEntryDefinition {
 
             //Find the equivalent observation from the database. 
             //If it exists use it to create the observation definition
-            const dbObs: CreateObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
+            const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
             obsDefinitions.push(this.createNewObsDefinition(dbObs ? dbObs : newObs));
         }
 
@@ -195,7 +201,7 @@ export class FormEntryDefinition {
      * Used by grid layout.
      * @returns observations that will be used by the value flag controls in a grid layout.
      */
-    private getEntryObsForGridLayout(dbObservations: CreateObservationModel[]): ObservationDefinition[][] {
+    private getEntryObsForGridLayout(dbObservations: ViewObservationModel[]): ObservationDefinition[][] {
 
         if (this.formMetadata.fields.length < 2 || !this.formMetadata.fields[1]) {
             throw new Error("Developer error: number of entry fields not supported.");
@@ -214,7 +220,7 @@ export class FormEntryDefinition {
             const subArrEntryObservations: ObservationDefinition[] = [];
 
             for (const colFieldDef of colEntryfieldDefs) {
-                const newObs: CreateObservationModel = this.createEmptyObservation();
+                const newObs: ViewObservationModel = this.createEmptyObservation();
                 // Set element
                 if (this.elementSelectorValue) {
                     newObs.elementId = this.elementSelectorValue;
@@ -248,7 +254,7 @@ export class FormEntryDefinition {
 
                 //Find the equivalent observation from the database. 
                 //If it exists use it to create the observation definition
-                const dbObs: CreateObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
+                const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
                 subArrEntryObservations.push(this.createNewObsDefinition(dbObs ? dbObs : newObs));
             }
 
@@ -270,7 +276,7 @@ export class FormEntryDefinition {
                 entryFieldDefs = [];
                 //create field definitions for the selected elements only
                 for (const elementId of this.formMetadata.elementIds) {
-                    const element = this.elements.find(item => item.id === elementId);
+                    const element = this.cachedMetadataSearchService.getElement(elementId);
                     if (element) {
                         entryFieldDefs.push({ id: element.id, name: element.abbreviation });
                     }
@@ -295,7 +301,7 @@ export class FormEntryDefinition {
         return entryFieldDefs;
     }
 
-    private createEmptyObservation(): CreateObservationModel {
+    private createEmptyObservation(): ViewObservationModel {
         return {
             stationId: this.station.id,
             sourceId: this.source.id,
@@ -306,6 +312,10 @@ export class FormEntryDefinition {
             flag: null,
             interval: this.formMetadata.interval,
             comment: null,
+            qcStatus: QCStatusEnum.NONE,
+            qcTestLog: null,
+            log: null,
+            entryDatetime: '',
         };
     }
 
@@ -324,26 +334,11 @@ export class FormEntryDefinition {
      * @param observation 
      * @returns 
      */
-    private createNewObsDefinition(observation: CreateObservationModel): ObservationDefinition {
-        const elementMetadata = this.elements.find(item => item.id === observation.elementId);
-        if (!elementMetadata) {
-            //TODO. Through developer error.
-            throw new Error('Developer error: Element metadata NOT found');
-        }
-
-        let rangeThresholdParams: RangeThresholdQCTestParamsModel | undefined = undefined;
-        rangeThresholdParams = this.rangeThresholdQCTests.find(item => (item.elementId === elementMetadata.id))?.parameters as RangeThresholdQCTestParamsModel
-
-        return new ObservationDefinition(
-            observation,
-            elementMetadata,
-            this.source.allowMissingValue,
-            true,
-            rangeThresholdParams,
-            this.source.utcOffset, true);
+    private createNewObsDefinition(observation: ViewObservationModel): ObservationDefinition {
+        return new ObservationDefinition( this.cachedMetadataSearchService,  observation, true);
     }
 
-    private findEquivalentDBObservation(newObs: CreateObservationModel, dbObservations: CreateObservationModel[]): CreateObservationModel | null {
+    private findEquivalentDBObservation(newObs: ViewObservationModel, dbObservations: ViewObservationModel[]): ViewObservationModel | null {
         for (const dbObservation of dbObservations) {
             // Look for the observation element id and date time.
             if (
