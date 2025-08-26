@@ -79,7 +79,6 @@ export class ObservationsService {
         return obsView;
     }
 
-
     private async createViewLog(entity: ObservationEntity, users: ViewUserDto[]): Promise<ViewObservationLogDto[]> {
         const viewLogDto: ViewObservationLogDto[] = [];
         if (entity.log) {
@@ -114,7 +113,6 @@ export class ObservationsService {
 
         return viewLogDto;
     }
-
 
     public async findProcessedObsEntities(queryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
@@ -643,6 +641,5 @@ export class ObservationsService {
 
         return obsView;
     }
-
 
 }

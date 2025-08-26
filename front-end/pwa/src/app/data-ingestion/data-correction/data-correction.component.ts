@@ -110,7 +110,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.countCorrectionData(this.queryFilter).pipe(take(1)).subscribe(
+    this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.enableQueryButton = true;
@@ -137,7 +137,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.queryFilter.page = this.pageInputDefinition.page;
     this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
-    this.observationService.findCorrectionData(this.queryFilter).pipe(
+    this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {

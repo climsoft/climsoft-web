@@ -29,14 +29,14 @@ import { ImportSourceFlagDetailComponent } from './source-templates/import-sourc
 import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
 import { ElementCharacteristicsComponent } from './elements/element-detail/element-characteristics/element-characteristics.component';
 import { ElementQCTestsComponent } from './elements/element-detail/element-qc-tests/element-qc-tests.component';
-import { QCTestParameterInputDialogComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-parameter-input-dialog.component';
-import { QCTestTypeInputComponent } from './qc-test-parameters/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-input.component';
-import { QCTestRangeThresholdParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
-import { QCTestFlatLineParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
-import { QCTestSpikeParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-spike-params/qc-test-spike-params.component';
-import { QCTestRelationalParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
-import { QCTestContextualParamsComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
-import { QCTestConditionInputComponent } from './qc-test-parameters/qc-test-parameter-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
+import { QCTestParameterInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-test-parameter-input-dialog.component';
+import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
+import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
+import { QCTestFlatLineParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
+import { QCTestSpikeParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-spike-params/qc-test-spike-params.component';
+import { QCTestRelationalParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-relational-params/qc-test-relational-params.component';
+import { QCTestContextualParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-contextual-params/qc-test-contextual-params.component';
+import { QCTestConditionInputComponent } from './qc-tests/qc-test-input-dialog/qc-test-condition-input/qc-test-condition-input.component';
 import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
@@ -73,11 +73,11 @@ import { StationStatusSearchComponent } from './stations/stations-search-dialog/
 import { StationProcessingMethodSearchComponent } from './stations/stations-search-dialog/station-processing-search/station-processing-method-search.component';
 import { StationFocusesSearchComponent } from './stations/stations-search-dialog/station-focuses-search/station-focuses-search.component';
 import { StationEnvironmentsSearchComponent } from './stations/stations-search-dialog/station-environments-search/station-environments-search.component';
-import { QCStatusSelectorSingleComponent } from './qc-test-parameters/qc-status-selector-single/qc-status-selector-single.component';
+import { QCStatusSelectorSingleComponent } from './qc-tests/qc-status-selector-single/qc-status-selector-single.component';
 import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
 import { StationIDNameSearchComponent } from './stations/stations-search-dialog/station-id-name-search/station-id-name-search.component';
-import { ViewQCTestParametersComponent } from './qc-test-parameters/view-qc-test-parameters/view-qc-test-parameters.component';
+import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
 
 @NgModule({
   declarations: [
@@ -153,10 +153,10 @@ import { ViewQCTestParametersComponent } from './qc-test-parameters/view-qc-test
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
-    ViewQCTestParametersComponent,
+    ViewQCTestsComponent,
     ElementQCTestsComponent,
     QCTestParameterInputDialogComponent,
-    QCTestTypeInputComponent,
+    QCTestTypeSingleSelectorComponent,
     QCTestRangeThresholdParamsComponent,
     QCTestFlatLineParamsComponent,
     QCTestSpikeParamsComponent,

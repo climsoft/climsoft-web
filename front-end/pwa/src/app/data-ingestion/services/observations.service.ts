@@ -56,7 +56,21 @@ export class ObservationsService {
       );
   }
 
-  public findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
+  private findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
+    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  private countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
+  private findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
     return this.http.get<ViewObservationLogModel[]>(
       `${this.endPointUrl}/log`,
       { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
@@ -83,20 +97,6 @@ export class ObservationsService {
 
   public getDownloadExportLink(exportTemplateId: number): string {
     return `${this.endPointUrl}/download-export/${exportTemplateId}`;
-  }
-
-  public findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(this.handleError)
-      );
-  }
-
-  public countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(this.handleError)
-      );
   }
 
   /**

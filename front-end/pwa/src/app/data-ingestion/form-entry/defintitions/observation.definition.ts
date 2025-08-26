@@ -1,11 +1,11 @@
-import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
+import { RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model";
 import { FlagEnum } from "src/app/data-ingestion/models/flag.enum";
 import { ViewObservationLogModel } from "src/app/data-ingestion/models/view-observation-log.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
-import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-type.enum";
+import { QCTestTypeEnum } from "src/app/metadata/qc-tests/models/qc-test-type.enum";
 import { ViewObservationModel, ViewQCTestLog } from "../../models/view-observation.model";
 
 /**

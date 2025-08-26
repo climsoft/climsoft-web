@@ -5,8 +5,8 @@ import { CreateObservationModel } from "src/app/data-ingestion/models/create-obs
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
-import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
-import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
+import { ViewQCTestModel } from "src/app/metadata/qc-tests/models/view-qc-test.model";
+import { RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
