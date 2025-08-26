@@ -12,7 +12,7 @@ import { ElementTypesService } from '../elements/services/element-types.service'
 import { ElementSubdomainsService } from '../elements/services/element-subdomains.service';
 import { OrganisationsService } from '../organisations/services/organisations.service';
 import { NetworkAffiliationsService } from '../network-affiliations/services/network-affiliations.service';
-import { ElementsQCTestsService } from '../elements/services/elements-qc-tests.service';
+import { QCTestsService } from '../qc-tests/services/qc-tests.service';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 
 // TODO. Move this controller to a module responsible for handling cached data
@@ -30,7 +30,7 @@ export class MetadataUpdatesController {
     private elementSubdomainsService: ElementSubdomainsService,
     private elementTypesService: ElementTypesService,
     private elementsService: ElementsService,
-    private elementsQCTestsService: ElementsQCTestsService,
+    private qcTestsService: QCTestsService,
     private generalSettingsService: GeneralSettingsService,
   ) { }
 
@@ -119,10 +119,10 @@ export class MetadataUpdatesController {
     return this.elementsService.checkUpdates(updatesQueryDto);
   }
 
-  @Get('elements-qc-tests')
-  async elementsQCTestsUpdates(
+  @Get('qc-tests')
+  async qcTestsUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
-    return this.elementsQCTestsService.checkUpdates(updatesQueryDto);
+    return this.qcTestsService.checkUpdates(updatesQueryDto);
   }
 
   @Get('source-templates')

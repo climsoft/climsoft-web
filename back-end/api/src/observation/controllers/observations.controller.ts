@@ -51,16 +51,16 @@ export class ObservationsController {
   }
 
   // TODO. deprecate this handle
-  @Get('correction-data')
-  getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+  //@Get('correction-data')
+  //getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
     //return this.observationsService.findCorrectionData(viewObsevationQuery);
-    return this.observationsService.findProcessed(viewObsevationQuery);
-  }
+    //return this.observationsService.findProcessed(viewObsevationQuery);
+  //}
 
-  @Get('count-correction-data')
-  countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationsService.count(viewObsevationQuery);
-  }
+  //@Get('count-correction-data')
+  //countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
+  //  return this.observationsService.count(viewObsevationQuery);
+  //}
 
   @Get('log')
   getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {

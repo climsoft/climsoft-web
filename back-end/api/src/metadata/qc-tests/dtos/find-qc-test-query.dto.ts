@@ -1,5 +1,5 @@
 import { IsEnum, IsInt, IsOptional } from 'class-validator';
-import { QCTestTypeEnum } from '../../entities/qc-test-type.enum';
+import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { Transform } from 'class-transformer';
 import { StringUtils } from 'src/shared/utils/string.utils';
 

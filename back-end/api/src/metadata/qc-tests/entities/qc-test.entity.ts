@@ -1,12 +1,12 @@
+import { ElementEntity } from "src/metadata/elements/entities/element.entity";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { ElementEntity } from "./element.entity";
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm"; 
 import { QCTestTypeEnum } from "./qc-test-type.enum";
-import { QCTestParametersValidity } from "../dtos/qc-tests/create-element-qc-test.dto";
+import { QCTestParametersValidity } from "../dtos/create-qc-test.dto";
 
-@Entity("elements_qc_tests")
-@Check("CHK_elements_qc_test_name_not_empty", `"name" <> ''`)
-export class ElementQCTestEntity extends AppBaseEntity {
+@Entity("qc_tests")
+@Check("CHK_qc_tests_name_not_empty", `"name" <> ''`)
+export class QCTestEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
@@ -27,9 +27,7 @@ export class ElementQCTestEntity extends AppBaseEntity {
   element: ElementEntity;
   //-----------------------
 
-  // TODO. 16/06/2025. Remove nullable after qc tests are upgraded in MSD and Demo installations.
-  // observation level should never be null.
-  @Column({ name: "observation_level", type: "int", nullable: true })
+  @Column({ name: "observation_level", type: "int"})
   @Index()
   observationLevel: number;
 

@@ -8,9 +8,9 @@ import { RangeThresholdQCTestParamsModel } from 'src/app/core/models/elements/qc
 import { RelationalQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/relational-qc-test-params.model';
 import { SpikeQCTestParamsModel } from 'src/app/core/models/elements/qc-tests/qc-test-parameters/spike-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/core/models/elements/qc-tests/qc-test-type.enum';
-import { ViewElementQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
+import { ViewQCTestModel } from 'src/app/core/models/elements/qc-tests/view-element-qc-test.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ElementsQCTestsCacheService } from '../../elements/services/elements-qc-tests-cache.service';
+import { QCTestsCacheService } from '../../elements/services/qc-tests-cache.service';
 
 @Component({
   selector: 'app-qc-test-input-parameter-dialog',
@@ -25,10 +25,10 @@ export class QCTestParameterInputDialogComponent {
 
   protected open: boolean = false;
   protected title: string = '';
-  protected updateQcTest!: ViewElementQCTestModel;
+  protected updateQcTest!: ViewQCTestModel;
 
   constructor(
-    private qcTestscacheService: ElementsQCTestsCacheService,
+    private qcTestscacheService: QCTestsCacheService,
     private pagesDataService: PagesDataService) { }
 
   public openDialog(elementQCTestId?: number): void {
@@ -39,7 +39,7 @@ export class QCTestParameterInputDialogComponent {
       this.qcTestscacheService.findOne(elementQCTestId).pipe(
         take(1)
       ).subscribe((data) => {
-        if (!data) return;
+        if (!data) throw new Error('QC test not found');
         this.updateQcTest = {
           id: data.id,
           name: data.name,
@@ -52,9 +52,9 @@ export class QCTestParameterInputDialogComponent {
           disabled: data.disabled,
           comment: data.comment
         };
+        this.displayNotYetSupported = false;
       });
     } else {
-
       const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
       this.updateQcTest = {
         id: 0,
@@ -68,6 +68,7 @@ export class QCTestParameterInputDialogComponent {
         disabled: false,
         comment: null
       };
+      this.displayNotYetSupported = false;
     }
   }
 
@@ -176,7 +177,7 @@ export class QCTestParameterInputDialogComponent {
       comment: this.updateQcTest.comment,
     };
 
-    let saveSubscription: Observable<ViewElementQCTestModel>;
+    let saveSubscription: Observable<ViewQCTestModel>;
     if (this.updateQcTest.id > 0) {
       saveSubscription = this.qcTestscacheService.update(this.updateQcTest.id, createQCTest);
     } else {

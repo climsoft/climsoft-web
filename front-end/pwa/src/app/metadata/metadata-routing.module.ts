@@ -78,7 +78,7 @@ const routes: Routes = [
         component: StationDetailComponent
       },
       {
-        path: 'view-qc-test-parameters',
+        path: 'view-qc-tests',
         component: ViewQCTestParametersComponent
       },
       {

@@ -4,7 +4,7 @@ import { ElementCacheModel, ElementsCacheService } from "../elements/services/el
 import { SourceTemplatesCacheService } from "../source-templates/services/source-templates-cache.service";
 import { ViewSourceModel } from "../source-templates/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
-import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from "../elements/services/elements-qc-tests-cache.service";
+import { QCTestCacheModel, QCTestsCacheService } from "../elements/services/qc-tests-cache.service";
 import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
@@ -18,7 +18,7 @@ export class CachedMetadataSearchService {
     private _stationsMetadata!: StationCacheModel[];
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
-    private _elementQcTestsMetadata!: ElementQCTestCacheModel[];
+    private _elementQcTestsMetadata!: QCTestCacheModel[];
     private _generalSettingsMetadata!: CreateViewGeneralSettingModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private checkingForUpdates: boolean = false;
@@ -27,7 +27,7 @@ export class CachedMetadataSearchService {
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourceTemplatesCacheService,
-        private elementsQCTestsCacheService: ElementsQCTestsCacheService,
+        private elementsQCTestsCacheService: QCTestsCacheService,
         private generalSettingsCacheService: GeneralSettingsService,
     ) {
 
@@ -123,7 +123,7 @@ export class CachedMetadataSearchService {
         return metadata;
     }
 
-    public getQCTest(qcTestId: number): ElementQCTestCacheModel {
+    public getQCTest(qcTestId: number): QCTestCacheModel {
         if (!this._allMetadataLoaded.value) {
             throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
         }
@@ -135,12 +135,12 @@ export class CachedMetadataSearchService {
         return metadata;
     }
 
-    public getQCTestsFor(elementId: number, level: number, interval: number): ElementQCTestCacheModel[] {
+    public getQCTestsFor(elementId: number, level: number, interval: number): QCTestCacheModel[] {
         if (!this._allMetadataLoaded.value) {
             throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
         }
 
-        const qcTests: ElementQCTestCacheModel[] = []
+        const qcTests: QCTestCacheModel[] = []
 
         for (const qcTest of this._elementQcTestsMetadata) {
             if (qcTest.elementId === elementId && qcTest.observationLevel === level && qcTest.observationInterval === interval) {

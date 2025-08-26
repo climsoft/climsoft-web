@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ElementCacheModel } from '../../services/elements-cache.service';
-import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from '../../services/elements-qc-tests-cache.service';
+import { QCTestCacheModel, QCTestsCacheService } from '../../services/qc-tests-cache.service';
 
 
 @Component({
@@ -14,12 +14,12 @@ export class ElementQCTestsComponent implements OnChanges, OnDestroy {
   @Input()
   public element!: ElementCacheModel;
 
-  protected qcTests!: ElementQCTestCacheModel[];
+  protected qcTests!: QCTestCacheModel[];
   protected userIsSystemAdmin: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
-    private elementQcTestsCacheService: ElementsQCTestsCacheService,
+    private elementQcTestsCacheService: QCTestsCacheService,
     private appAuthService: AppAuthService,) {
     this.appAuthService.user.pipe(
       take(1),

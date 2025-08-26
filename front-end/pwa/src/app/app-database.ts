@@ -8,7 +8,7 @@ import { CreateViewElementModel } from "./metadata/elements/models/create-view-e
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
-import { ViewElementQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
+import { ViewQCTestModel } from "./core/models/elements/qc-tests/view-element-qc-test.model";
 import { CachedObservationModel } from "./data-ingestion/services/observations.service";
 import { UserSettingEnum } from "./app-config.service";
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
@@ -71,7 +71,7 @@ export class AppDatabase extends Dexie {
     stationForms!: Table<StationForm, string>;
     formStations!: Table<FormStation, number>;
     stationNetworks!: Table<StationNetwork, string>;
-    elementsQcTests!: Table<ViewElementQCTestModel, number>;
+    qcTests!: Table<ViewQCTestModel, number>;
     // stationId, elementId, sourceId, level, datetime, interval  as compund key
     observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
 
@@ -103,11 +103,7 @@ export class AppDatabase extends Dexie {
             stationNetworks: `stationId`,
             stationForms: `stationId`,
             formStations: `formId`,
-            // TODO. 
-            // When upgrading to a new version, 
-            // include `name` and `observationLevel` and change the `[elementId+qcTestType+observationInterval]` compound key to include `observationLevel` 
-            // Note, `name` and `observationLevel` was added on 18/06/2023 after preview-1 was released
-            elementsQcTests: `id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]`,
+            qcTests: `id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]`,
 
             // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 
             // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.

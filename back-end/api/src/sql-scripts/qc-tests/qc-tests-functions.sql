@@ -1,4 +1,4 @@
---- qc record function. Returns true when all qc tests passed or no qc was done
+--- qc record function. Returns true when one qc tests fails and false when none fails or no qc was was done
 CREATE OR REPLACE FUNCTION func_execute_qc_tests(
     observation_record RECORD,
     user_id INT4
@@ -17,7 +17,7 @@ BEGIN
     -- Loop through all relevant QC tests
     FOR qc_test IN
         SELECT *
-        FROM elements_qc_tests
+        FROM qc_tests
         WHERE element_id = observation_record.element_id
           AND observation_level = observation_record.level
           AND observation_interval = observation_record.interval
@@ -34,6 +34,8 @@ BEGIN
                     qc_test_log := func_perform_spike_test(observation_record, qc_test);
                 WHEN 'relational_comparison' THEN
                     qc_test_log := func_perform_relational_comparison_test(observation_record, qc_test);
+                WHEN 'contextual_consistency' THEN
+                    qc_test_log := func_perform_contextual_consistency_test(observation_record, qc_test);
 				ELSE 
 					RAISE EXCEPTION 'Unsupported QC test type: %', qc_test.qc_test_type;
             END CASE;
@@ -50,9 +52,10 @@ BEGIN
         END;
     END LOOP;
 
-    -- Exit early if no QC logs were generated (no relevant tests)
+    -- If no QC logs were generated (no relevant tests) then set qc status to none and reset the qc log
     IF all_qc_tests_log = '[]'::JSONB THEN
-        RETURN TRUE; -- Return false when no update of the qc status
+		final_qc_status := 'none';
+		all_qc_tests_log := NULL;
     END IF;
 
     -- Update the observation record
@@ -66,7 +69,7 @@ BEGIN
       AND interval = observation_record.interval
       AND source_id = observation_record.source_id
       AND date_time = observation_record.date_time;
-RETURN final_qc_status = 'passed'; -- Return true after successful update of the qc status
+RETURN final_qc_status = 'failed'; -- Return true after successful update of the qc status
 END;
 $$ LANGUAGE plpgsql;
 
@@ -166,7 +169,6 @@ BEGIN
           AND element_id = observation_record.element_id
           AND level = observation_record.level
           AND interval = observation_record.interval
-          AND source_id = observation_record.source_id
           AND date_time < observation_record.date_time
         ORDER BY date_time DESC
         LIMIT (consecutive_records - 1) -- minus 1 because current observation record is excluded by the `date_time < observation_record.date_time` filter
@@ -194,8 +196,7 @@ BEGIN
     WHERE station_id = observation_record.station_id
       AND element_id = observation_record.element_id
       AND level = observation_record.level
-      AND interval = observation_record.interval 
-	  AND source_id = observation_record.source_id
+      AND interval = observation_record.interval
       AND date_time < observation_record.date_time
     ORDER BY date_time DESC
     LIMIT 1; -- Note date_time < observation_record.date_time already skips current record
@@ -217,54 +218,116 @@ CREATE OR REPLACE FUNCTION func_perform_relational_comparison_test(
 ) RETURNS JSONB AS $$
 DECLARE
     reference_value FLOAT8;
-	qc_test_reference_id INT4;
-	qc_test_condition VARCHAR;
+	reference_id INT4;
+	reference_condition VARCHAR;
     qc_test_log JSONB;  
 BEGIN
 	-- Decode the JSON parameters to extract reference_id and condition
-	qc_test_reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
-	qc_test_condition := (qc_test.parameters->>'condition')::VARCHAR;
+	reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
+	reference_condition := (qc_test.parameters->>'condition')::VARCHAR;
 
+	-- Get the reference element's value at the same context (station/level/interval/date_time). Note source id is intentionally excluded.
 	SELECT value INTO reference_value
 			FROM observations
 			WHERE station_id = observation_record.station_id
-				AND element_id = qc_test_reference_id
+				AND element_id = reference_id
 				AND level = observation_record.level
 				AND interval = observation_record.interval
-				AND source_id = observation_record.source_id
 				AND date_time = observation_record.date_time				
 			LIMIT 1;
 
-			-- Evaluate the condition and create the qc test log
-			IF func_passes_relational_comparison_condition(observation_record.value, reference_value, qc_test_condition) THEN 
-				qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
-			ELSE
-				qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
-			END IF; 
+    -- If either value is NULL, treat as PASS (do not flag)
+    IF observation_record.value IS NULL OR reference_value IS NULL THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
+        RETURN qc_test_log;
+    END IF;
+
+	-- Evaluate the condition and create the qc test log
+	IF func_eval_condition(observation_record.value, reference_condition, reference_value) THEN 
+		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+	ELSE
+		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');	
+	END IF;
+
 	RETURN qc_test_log;
 END;
 $$ LANGUAGE plpgsql;
 
--- perform relational comparison check
-CREATE OR REPLACE FUNCTION func_passes_relational_comparison_condition(
-    primary_value FLOAT8,
-    reference_value FLOAT8,
-    qc_test_condition VARCHAR
-) RETURNS BOOL AS $$
+--- Contextual consistency test ---
+CREATE OR REPLACE FUNCTION func_perform_contextual_consistency_test(
+    observation_record RECORD,
+    qc_test RECORD
+) RETURNS JSONB AS $$
+DECLARE
+	reference_id INT4;
+	primary_check JSONB;
+	primary_condition VARCHAR;
+	primary_threshold FLOAT8;
+	reference_check JSONB;
+	reference_condition VARCHAR;
+	reference_threshold FLOAT8;
+    reference_value FLOAT8;
+    primary_matches BOOL;
+    reference_matches BOOL;
+    qc_test_log JSONB;  
 BEGIN
-    -- Return TRUE if reference_value or primary_value is NULL, implying that null values pass the tests
-    IF primary_value IS NULL OR reference_value IS NULL THEN
-        RETURN TRUE;
+	-- Decode the JSON parameters to extract reference_id and condition
+	reference_id := (qc_test.parameters->>'referenceElementId')::INT4;
+
+	primary_check := (qc_test.parameters->>'primaryCheck')::JSONB;
+	primary_condition := (primary_check->>'condition')::VARCHAR;
+	primary_threshold := (primary_check->>'value')::FLOAT8;
+
+	reference_check := (qc_test.parameters->>'referenceCheck')::JSONB;
+	reference_condition := (reference_check->>'condition')::VARCHAR;
+	reference_threshold := (reference_check->>'value')::FLOAT8;
+
+	-- Get the reference element's value at the same context (station/level/interval/date_time). Note source id is intentionally excluded.
+	SELECT value INTO reference_value
+			FROM observations
+			WHERE station_id = observation_record.station_id
+				AND element_id = reference_id
+				AND level = observation_record.level
+				AND interval = observation_record.interval 
+				AND date_time = observation_record.date_time				
+			LIMIT 1;
+
+    -- As with relational comparison: if either value is NULL, treat as PASS (do not flag)
+    IF observation_record.value IS NULL OR reference_value IS NULL THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
+        RETURN qc_test_log;
     END IF;
 
-    -- Evaluate the condition based on the specified relational operator
-    RETURN CASE qc_test_condition
-        WHEN '>' THEN primary_value > reference_value
-        WHEN '<' THEN primary_value < reference_value
-        WHEN '=' THEN primary_value = reference_value
-        WHEN '>=' THEN primary_value >= reference_value
-        WHEN '<=' THEN primary_value <= reference_value
-        ELSE FALSE  -- Return FALSE for any undefined conditions
+    -- Evaluate each side against its threshold using the same helper 
+    primary_matches := func_eval_condition(observation_record.value, primary_condition, primary_threshold);
+    reference_matches := func_eval_condition(reference_value, reference_condition, reference_threshold);
+
+    -- Contextual rule: if BOTH conditions are satisfied, the observation fails
+    IF primary_matches AND reference_matches THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+    ELSE
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
+    END IF;
+
+    RETURN qc_test_log;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Perform comparison check (left op right)
+CREATE OR REPLACE FUNCTION func_eval_condition(
+    left_value FLOAT8,
+    condition VARCHAR,
+    right_value FLOAT8
+) RETURNS BOOL AS $$
+BEGIN
+    CASE condition
+        WHEN '>'  THEN RETURN left_value >  right_value;
+        WHEN '<'  THEN RETURN left_value <  right_value;
+        WHEN '='  THEN RETURN left_value =  right_value;
+        WHEN '>=' THEN RETURN left_value >= right_value;
+        WHEN '<=' THEN RETURN left_value <= right_value;
+        ELSE
+            RAISE EXCEPTION 'Unknown condition in func_eval_condition: %', condition;
     END CASE;
 END;
 $$ LANGUAGE plpgsql;

@@ -90,8 +90,8 @@ export class MetadataUpdatesService {
                 return 'element-types';
             case 'elements':
                 return 'elements';
-            case 'elementsQcTests':
-                return 'elements-qc-tests';
+            case 'qcTests':
+                return 'qc-tests';
             case 'sourceTemplates':
                 return 'source-templates';
             case 'generalSettings':

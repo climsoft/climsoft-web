@@ -7,9 +7,6 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { Router } from '@angular/router';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
@@ -45,8 +42,7 @@ export class SourceChecksComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private qualityControlService: QualityControlService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
-    private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataSearchService: CachedMetadataSearchService, 
     private router: Router,
   ) {
     this.pagesDataService.setPageHeader('Source Checks');

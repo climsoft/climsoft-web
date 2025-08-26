@@ -1,11 +1,11 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ElementQCTestCacheModel, ElementsQCTestsCacheService } from '../../elements/services/elements-qc-tests-cache.service';
+import { QCTestCacheModel, QCTestsCacheService } from '../../elements/services/qc-tests-cache.service';
 import { ElementCacheModel, ElementsCacheService } from '../../elements/services/elements-cache.service';
 import { QCTestParameterInputDialogComponent } from '../qc-test-parameter-input-dialog/qc-test-parameter-input-dialog.component';
 
-interface ElementQCTestView extends ElementQCTestCacheModel {
+interface ElementQCTestView extends QCTestCacheModel {
   elementName: string;
 }
 
@@ -24,10 +24,10 @@ export class ViewQCTestParametersComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementsQCTestsCacheService: ElementsQCTestsCacheService,
+    private elementsQCTestsCacheService: QCTestsCacheService,
     private elementsCacheService: ElementsCacheService) {
 
-    this.pagesDataService.setPageHeader('QC Test Parameters');
+    this.pagesDataService.setPageHeader('QC Tests');
 
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),

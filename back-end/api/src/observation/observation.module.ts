@@ -7,7 +7,7 @@ import { ObservationImportService } from './services/observation-import.service'
 import { MetadataModule } from 'src/metadata/metadata.module';
 import { UserModule } from 'src/user/user.module';
 import { QualityControlController } from './controllers/quality-control.controller';
-import { QualityControlService } from './services/quality-control.service';
+import { QCTestsService } from './services/qc-tests.service';
 import { SharedModule } from 'src/shared/shared.module';
 import { SettingsModule } from 'src/settings/settings.module';
 import { ClimsoftV4Controller } from './controllers/climsoft-v4.controller';
@@ -34,7 +34,7 @@ import { DataEntryCheckService } from './services/data-entry-check.service';
     ObservationsService,
     ObservationImportService,
     DataEntryCheckService,
-    QualityControlService, 
+    QCTestsService, 
     ExportObservationsService,
     ClimsoftV4WebSyncSetUpService,
     ClimsoftWebToV4SyncService,

@@ -5,7 +5,7 @@ import { AppDatabase } from "src/app/app-database";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { AppConfigService } from "src/app/app-config.service";
-import { ViewElementQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
+import { ViewQCTestModel } from "src/app/core/models/elements/qc-tests/view-element-qc-test.model";
 import { CreateElementQCTestModel, QCTestParametersValidity } from "src/app/core/models/elements/qc-tests/create-element-qc-test.model";
 import { QCTestTypeEnum } from "src/app/core/models/elements/qc-tests/qc-test-type.enum";
 import { RangeThresholdQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/range-qc-test-params.model";
@@ -15,7 +15,7 @@ import { RelationalQCTestParamsModel } from "src/app/core/models/elements/qc-tes
 import { ContextualQCTestParamsModel } from "src/app/core/models/elements/qc-tests/qc-test-parameters/contextual-qc-test-params.model";
 import { IntervalsUtil } from "src/app/shared/controls/period-input/Intervals.util";
 
-export interface ElementQCTestCacheModel {
+export interface QCTestCacheModel {
     id: number;
     name: string;
     description: string | null;
@@ -36,9 +36,9 @@ export interface ElementQCTestCacheModel {
 @Injectable({
     providedIn: 'root'
 })
-export class ElementsQCTestsCacheService {
+export class QCTestsCacheService {
     private endPointUrl: string;
-    private readonly _cachedElements: BehaviorSubject<ElementQCTestCacheModel[]> = new BehaviorSubject<ElementQCTestCacheModel[]>([]);
+    private readonly _cachedElements: BehaviorSubject<QCTestCacheModel[]> = new BehaviorSubject<QCTestCacheModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();
     private checkingForUpdates: boolean = false;
 
@@ -46,13 +46,13 @@ export class ElementsQCTestsCacheService {
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/elements-qc-tests`;
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/qc-tests`;
         this.loadElementsQcTests();
     }
 
     private async loadElementsQcTests() {
-        const newCachedElementsQcTests: ElementQCTestCacheModel[] = [];
-        const elementsQcTestsFromServer: ViewElementQCTestModel[] = await AppDatabase.instance.elementsQcTests.toArray();
+        const newCachedElementsQcTests: QCTestCacheModel[] = [];
+        const elementsQcTestsFromServer: ViewQCTestModel[] = await AppDatabase.instance.qcTests.toArray();
         for (const elementQCTest of elementsQcTestsFromServer) {
             let formattedParameters: string = '';
             switch (elementQCTest.qcTestType) {
@@ -82,7 +82,7 @@ export class ElementsQCTestsCacheService {
                     break;
                 case QCTestTypeEnum.CONTEXTUAL_CONSISTENCY:
                     const contextualParams = elementQCTest.parameters as ContextualQCTestParamsModel;
-                    formattedParameters = `{ Reference Element : ${contextualParams.referenceElementId} } { Reference check : {condition: ${contextualParams.referenceCheck.condition} value: ${contextualParams.referenceCheck.value} }  }  { Reference check : {condition: ${contextualParams.primaryCheck.condition} value: ${contextualParams.primaryCheck.value} }  } `;
+                    formattedParameters = `{ Primary check : {condition: ${contextualParams.primaryCheck.condition} value: ${contextualParams.primaryCheck.value} }  }  { Reference Element : ${contextualParams.referenceElementId} } { Reference check : {condition: ${contextualParams.referenceCheck.condition} value: ${contextualParams.referenceCheck.value} }  }`;
                     break;
                 case QCTestTypeEnum.REMOTE_SENSING_CONSISTENCY:
                     // TODO
@@ -126,14 +126,14 @@ export class ElementsQCTestsCacheService {
         // If still checking for updates just return
         if (this.checkingForUpdates) return;
 
-        console.log('checking elements qc tests updates');
+        console.log('checking qc tests updates');
 
         this.checkingForUpdates = true;
         this.checkUpdatesSubscription.unsubscribe();
         // Observable to initiate metadata updates sequentially
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('elementsQcTests').subscribe({
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('qcTests').subscribe({
             next: res => {
-                console.log('elements-qc-tests-cache response', res);
+                console.log('qc-tests-cache response', res);
                 this.checkingForUpdates = false;
                 if (res) {
                     this.loadElementsQcTests();
@@ -145,12 +145,12 @@ export class ElementsQCTestsCacheService {
         });
     }
 
-    public get cachedElementsQcTests(): Observable<ElementQCTestCacheModel[]> {
+    public get cachedElementsQcTests(): Observable<QCTestCacheModel[]> {
         this.checkForUpdates();
         return this._cachedElements.asObservable();
     }
 
-    public findOne(id: number): Observable<ElementQCTestCacheModel | undefined> {
+    public findOne(id: number): Observable<QCTestCacheModel | undefined> {
         return this.cachedElementsQcTests.pipe(
             map(response => {
                 return response.find(item => item.id === id);
@@ -158,7 +158,7 @@ export class ElementsQCTestsCacheService {
         );
     }
 
-    public findByElement(elementId: number): Observable<ElementQCTestCacheModel[]> {
+    public findByElement(elementId: number): Observable<QCTestCacheModel[]> {
         return this.cachedElementsQcTests.pipe(
             map(response => {
                 return response.filter(item => item.elementId === elementId);
@@ -166,8 +166,8 @@ export class ElementsQCTestsCacheService {
         );
       }
 
-    public add(createDto: CreateElementQCTestModel): Observable<ViewElementQCTestModel> {
-        return this.http.post<ViewElementQCTestModel>(`${this.endPointUrl}`, createDto)
+    public add(createDto: CreateElementQCTestModel): Observable<ViewQCTestModel> {
+        return this.http.post<ViewQCTestModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();
@@ -176,8 +176,8 @@ export class ElementsQCTestsCacheService {
             );
     }
 
-    public update(id: number, updateDto: CreateElementQCTestModel): Observable<ViewElementQCTestModel> {
-        return this.http.patch<ViewElementQCTestModel>(`${this.endPointUrl}/${id}`, updateDto)
+    public update(id: number, updateDto: CreateElementQCTestModel): Observable<ViewQCTestModel> {
+        return this.http.patch<ViewQCTestModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
                     this.checkForUpdates();

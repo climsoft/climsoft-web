@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
-import { QualityControlService } from '../services/quality-control.service';
+import { QCTestsService } from '../services/qc-tests.service';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 
 @Controller('quality-control')
 export class QualityControlController {
-  constructor(private readonly sourceCheckService: QualityControlService) { }
+  constructor(private readonly sourceCheckService: QCTestsService) { }
 
   @Get('duplicates')
   findObservationsWithDuplicates(@Query(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {

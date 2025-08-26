@@ -6,7 +6,7 @@ import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
 
 @Injectable()
-export class QualityControlService {
+export class QCTestsService {
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
@@ -85,10 +85,11 @@ export class QualityControlService {
         }
 
         const query = `
-        SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) IS FALSE) ) AS qc_fails  
+        SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) IS TRUE) ) AS qc_fails  
         FROM (SELECT * FROM observations WHERE ${whereExpression}) AS observation_record;
         `;
-        console.log('qc query: ', query, ' | query dto: ', queryDto)
+       
+        //console.log('qc query: ', query, ' | query dto: ', queryDto)
 
         // As of 14/06/2025 it was noticed that when this is called multiple times a deadlock occurs at the nodejs level.
         // postgres seems to lock the table as well. So it is important to narrow the selection as much as possible.

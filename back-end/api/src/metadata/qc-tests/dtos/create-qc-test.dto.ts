@@ -1,5 +1,5 @@
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { QCTestTypeEnum } from '../../entities/qc-test-type.enum';
+import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { Type } from 'class-transformer';
 import { FlatLineQCTestParametersDto } from './qc-test-parameters/flat-line-qc-test-params.dto';
 import { RangeThresholdQCTestParamsDto } from './qc-test-parameters/range-qc-test-params.dto';
@@ -15,13 +15,14 @@ export interface QCTestParametersValidity {
     isValid(): boolean;
 }
 
-export class CreateElementQCTestDto {
+export class CreateQCTestDto {
     @IsString()
     name: string;
 
     @IsOptional()
     @IsString()
     description: string | null;
+
     @IsInt()
     elementId: number;
 

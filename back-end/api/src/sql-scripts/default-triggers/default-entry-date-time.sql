@@ -14,7 +14,7 @@ DECLARE
         'element_subdomains',
         'element_types',
         'elements',        
-        'elements_qc_tests',
+        'qc_tests',
         'general_settings',
         'network_affiliations',
         'observations',
@@ -40,4 +40,4 @@ BEGIN
         ', table_name, table_name);
     END LOOP;
 END;
-$$;
+$$ LANGUAGE plpgsql;

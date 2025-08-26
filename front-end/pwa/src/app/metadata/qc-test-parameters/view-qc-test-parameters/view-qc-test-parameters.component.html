@@ -39,7 +39,7 @@
           (click)="dlgQcEdit.openDialog(qcTestParam.id)">
           <td><i class="bi bi-arrow-right-short"></i></td>
           <td>{{ qcTestParam.name }}</td>
-          <td>{{ qcTestParam.elementName }}</td>
+          <td>{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
           <td>{{ qcTestParam.observationLevel }}</td>
           <td>{{ qcTestParam.observationIntervalName }}</td>
           <td>{{ qcTestParam.qcTestTypeName }}</td>

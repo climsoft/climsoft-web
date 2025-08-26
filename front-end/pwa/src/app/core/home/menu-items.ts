@@ -41,7 +41,7 @@ export enum SubMenuNameEnum {
     SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
-    QC_TEST_PARAMETERS = 'QC Test Parameters',    
+    QC_TESTS = 'QC Tests',    
     ORGANISATIONS = 'Organisations',
     NETWORK_AFFILIATIONS = 'Network Affiliations',
     REGIONS = 'Regions',
@@ -187,8 +187,8 @@ export class MenuItemsUtil {
                     url: '/view-stations',
                 },
                  {
-                    name: SubMenuNameEnum.QC_TEST_PARAMETERS,
-                    url: '/view-qc-test-parameters',
+                    name: SubMenuNameEnum.QC_TESTS,
+                    url: '/view-qc-tests',
                 },
                 {
                     name: SubMenuNameEnum.SOURCE_TEMPLATES,

@@ -1,5 +1,5 @@
-import { CreateElementQCTestModel as CreateElementQCTestModel } from "./create-element-qc-test.model";
+import { CreateElementQCTestModel as CreateQCTestModel } from "./create-element-qc-test.model";
 
-export interface ViewElementQCTestModel extends CreateElementQCTestModel {
+export interface ViewQCTestModel extends CreateQCTestModel {
     id: number;
 }

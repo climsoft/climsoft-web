@@ -6,7 +6,7 @@ import {
     Min, 
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { QCTestParametersValidity } from '../create-element-qc-test.dto';
+import { QCTestParametersValidity } from '../create-qc-test.dto';
 
 class ExcludeRangeDto {   
     @IsNumber()

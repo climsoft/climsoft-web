@@ -1,6 +1,6 @@
 import { IsEnum, IsInt } from 'class-validator';
 import { QCTestParamConditionEnum } from './qc-test-param-condition.enum';
-import { QCTestParametersValidity } from '../create-element-qc-test.dto';
+import { QCTestParametersValidity } from '../create-qc-test.dto';
 
 export class RelationalQCTestParamsDto implements QCTestParametersValidity{
     @IsInt()
