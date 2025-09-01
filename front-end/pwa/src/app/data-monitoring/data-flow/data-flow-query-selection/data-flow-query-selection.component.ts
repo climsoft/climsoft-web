@@ -85,8 +85,6 @@ export class DataFlowQuerySelectionComponent implements OnDestroy {
   }
 
   protected onQueryClick(): void {
-
-
     // Get the data based on the selection filter
 
     if (this.stationIds.length < 1) {

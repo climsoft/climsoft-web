@@ -120,34 +120,6 @@ export class AppDatabase extends Dexie {
             qcTests: 'id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]',
             elementsQcTests: null, // delete the old store
         });
-
-        // this.version(1).stores({
-        //     metadataModificationLog: 'metadataName',
-        //     organisations: `id, name`,
-        //     networkAffiliations: `id, name`,
-        //     regions: `id, name, regionType`,
-        //     stations: `id, name, stationObsProcessingMethod, stationObsEnvironmentId, stationObsFocusId, organisationId, wmoId, wigosId, icaoId, status, dateEstablished, dateClosed`,
-        //     stationObsEnv: `id, name`,
-        //     stationObsFocus: `id, name`,
-        //     elementSubdomains: `id, name`,
-        //     elementTypes: `id, name, subdomainId`,
-        //     elements: `id, name, abbreviation, typeId`,
-        //     sourceTemplates: `id, name, sourceType`,
-        //     generalSettings: `id, name`,
-
-        //     stationNetworks: `stationId`,
-        //     stationForms: `stationId`,
-        //     formStations: `formId`,
-        //     qcTests: `id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]`,
-
-        //     // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 
-        //     // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.
-        //     observations: `[stationId+elementId+sourceId+level+datetime+interval], stationId, elementId, sourceId, level, datetime, interval, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
-
-        //     userSettings: `name`,
-        //     stationsSearchHistory: `name`,
-        //     elementsSearchHistory: `name`,
-        // });
     }
 
     private static _instance: AppDatabase | null = null;

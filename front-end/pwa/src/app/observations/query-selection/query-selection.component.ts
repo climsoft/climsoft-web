@@ -6,10 +6,7 @@ import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.
 import { DataCorrectionComponent } from '../../data-ingestion/data-correction/data-correction.component';
 import { SourceChecksComponent } from '../../quality-control/source-checks/source-checks.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
 import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
@@ -52,7 +49,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   constructor(
     private appAuthService: AppAuthService,
-    private cachedMetadataSearchService: CachedMetadataSearchService, 
+    private cachedMetadataSearchService: CachedMetadataSearchService,
   ) {
 
     // Set default dates to yesterday
@@ -61,16 +58,15 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     fromDate.setDate(toDate.getDate() - 1);
     this.dateRange = { fromDate: DateUtils.getDateOnlyAsString(fromDate), toDate: DateUtils.getDateOnlyAsString(toDate) };
 
-   
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
-      if (allMetadataLoaded) {
-        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      }
+      if(!allMetadataLoaded) return;
+      console.log('allMetadataLoaded: ', allMetadataLoaded)
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
     });
 
-    //this.onQueryClick();
+   
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -79,15 +75,21 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     }
 
     if (changes['query'] && this.query) {
+      console.log('query changed before: ', this.query);
+      console.log('dateRange changed before: ', this.dateRange);
+
       if (this.query.stationIds) this.stationIds = this.query.stationIds;
       if (this.query.elementIds) this.elementIds = this.query.elementIds;
       if (this.query.level) this.level = this.query.level;
       if (this.query.intervals) this.intervals = this.query.intervals;
       if (this.query.sourceIds) this.sourceIds = this.query.sourceIds;
       if (this.query.useEntryDate) this.useEntryDate = this.query.useEntryDate;
-      if (this.query.fromDate) this.dateRange.fromDate = DateUtils.getDateOnlyAsString(new Date(this.query.fromDate));
-      if (this.query.toDate) this.dateRange.toDate = DateUtils.getDateOnlyAsString(new Date(this.query.toDate));
+      if (this.query.fromDate) this.dateRange.fromDate = this.query.fromDate.split('T')[0];
+      if (this.query.toDate) this.dateRange.toDate = this.query.toDate.split('T')[0];
       if (this.query.deleted) this.includeDeletedData = this.query.deleted;
+
+      console.log('query changed after: ', this.query);
+      console.log('dateRange changed after: ', this.dateRange);
     }
   }
 
@@ -160,48 +162,30 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   }
 
   private setQuery(): void {
-    this.query = { deleted: this.includeDeletedData };;
-
+     console.log('query: ', this.query);
+     if(!this.query) this.query = {deleted: this.includeDeletedData}
     // Get the data based on the selection filter
-
-    if (this.stationIds.length > 0) {
-      this.query.stationIds = this.stationIds;
-    }
-
-    if (this.elementIds.length > 0) {
-      this.query.elementIds = this.elementIds;
-    }
-
-    if (this.intervals.length > 0) {
-      this.query.intervals = this.intervals;
-    }
-
-    if (this.level !== null) {
-      this.query.level = this.level;
-    }
-
-    if (this.sourceIds.length > 0) {
-      this.query.sourceIds = this.sourceIds;
-    }
+    this.query.deleted = this.includeDeletedData;
+    this.query.stationIds = this.stationIds.length > 0 ? this.stationIds : undefined;
+    this.query.elementIds = this.elementIds.length > 0 ? this.elementIds : undefined;
+    this.query.intervals = this.intervals.length > 0 ? this.intervals : undefined;
+    this.query.level = this.level !== null ? this.level : undefined;
+    this.query.sourceIds = this.sourceIds.length > 0 ? this.sourceIds : undefined;
 
     // TODO. Investigate. If this is set to false, the dto sets it true for some reasons
     // So only setting to true (making it to defined) when its to be set to true.
     // When this.useEntryDate is false then don't define it, to avoid the bug defined above.
-    if (this.useEntryDate) {
-      this.query.useEntryDate = true;
-    }
+    this.query.useEntryDate = this.useEntryDate ? true : undefined;
 
-    if (this.dateRange.fromDate) {
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      this.query.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
-    }
+      this.query.fromDate = this.dateRange.fromDate? DateUtils.getDatetimesBasedOnUTCOffset(
+        `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract'): undefined;
 
-    if (this.dateRange.toDate) {
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+    // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      this.query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
-    }
+      this.query.toDate = this.dateRange.toDate? DateUtils.getDatetimesBasedOnUTCOffset(
+        `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract'): undefined;
   }
 
   protected onValueChanged(): void {

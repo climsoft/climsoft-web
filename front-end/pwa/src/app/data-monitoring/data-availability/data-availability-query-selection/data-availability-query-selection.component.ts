@@ -128,11 +128,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       return;
     }
 
-      if (this.level !== null) {
-      this.dataAvailabilityFilter.level = this.level;
-    }
-
-
+    this.dataAvailabilityFilter.level = this.level !== null ? this.level : undefined;
 
     this.queryClick.emit(this.dataAvailabilityFilter);
   }

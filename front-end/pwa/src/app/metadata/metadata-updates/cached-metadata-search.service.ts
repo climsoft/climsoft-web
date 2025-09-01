@@ -64,7 +64,7 @@ export class CachedMetadataSearchService {
             && this._elementsMetadata
             && this._sourcesMetadata
             && this._qcTestsMetadata
-            && this._generalSettingsMetadata) {
+            && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
     }
