@@ -14,7 +14,7 @@ import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.serv
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = "0.0.1"; // TODO. Should come from a versioning file. 
+  private readonly SUPPORTED_DB_VERSION: string = "0.0.2"; // TODO. Should come from a versioning file. 
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -83,8 +83,9 @@ export class MigrationsService {
   }
 
   private async seedTriggers() {
-    this.sqlScriptsService.addEntryDatetimeTriggerToDB();
-    this.sqlScriptsService.addLogsTriggersToDB();
+    await this.sqlScriptsService.addEntryDatetimeTriggerToDB();
+    await this.sqlScriptsService.addLogsTriggersToDB();
+    await this.sqlScriptsService.addQCTestsFunctionsToDB();
   }
 
   private async seedFirstUser() {
@@ -104,18 +105,39 @@ export class MigrationsService {
         }
       );
 
-      await this.userService.changeUserPassword({ userId: newUser.id, password: "climsoft@admin!2" })
+      await this.userService.changeUserPassword({ userId: newUser.id, password: "climsoft@admin!2" });
+      this.logger.log(`User ${newUser.name} added`);
     }
   }
 
   public async seedMetadata() {
+    let count: number;
     // Elements metadata
-    await this.elementSubdomainsService.bulkPut(MetadataDefaults.ELEMENT_SUBDOMAINS, 1);
-    await this.elementTypesService.bulkPut(MetadataDefaults.ELEMENT_TYPES, 1);
+    count = await this.elementSubdomainsService.count();
+    if (count === 0) {
+      await this.elementSubdomainsService.bulkPut(MetadataDefaults.ELEMENT_SUBDOMAINS, 1);
+      this.logger.log('element subdomains added');
+    }
+
+    count = await this.elementTypesService.count();
+    if (count === 0) {
+      await this.elementTypesService.bulkPut(MetadataDefaults.ELEMENT_TYPES, 1);
+      this.logger.log('element types added');
+    }
 
     // Stations metadata 
-    await this.stationObsEnvService.bulkPut(MetadataDefaults.STATION_ENVIRONMENTS, 1);
-    await this.stationObsFocusesService.bulkPut(MetadataDefaults.STATION_FOCUS, 1);
+    count = await this.stationObsEnvService.count();
+    if (count === 0) {
+      await this.stationObsEnvService.bulkPut(MetadataDefaults.STATION_ENVIRONMENTS, 1);
+      this.logger.log('station observations environments added');
+    }
+
+    count = await this.stationObsFocusesService.count();
+    if (count === 0) {
+      await this.stationObsFocusesService.bulkPut(MetadataDefaults.STATION_FOCUS, 1);
+      this.logger.log('station observations focuses added');
+    }
+
   }
 
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, ViewChild } from '@angular/core';
 import { StringUtils } from '../../utils/string.utils';
 import { TextInputComponent } from '../text-input/text-input.component';
 
@@ -9,7 +9,7 @@ import { TextInputComponent } from '../text-input/text-input.component';
   styleUrls: ['./number-input.component.scss']
 })
 export class NumberInputComponent implements OnChanges {
-   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
+  @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
   @Input() public id!: string | number;
   @Input() public label!: string;
   @Input() public disabled!: boolean;
@@ -20,7 +20,7 @@ export class NumberInputComponent implements OnChanges {
   @Input() public min!: number;
   @Input() public value!: number | null;
   @Input() public numValue!: number;
-  @Input() public simulateTabOnEnter: boolean = true ;
+  @Input() public simulateTabOnEnter: boolean = true;
   @Output() public valueChange = new EventEmitter<number | null>();
   @Output() public numValueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
@@ -40,6 +40,10 @@ export class NumberInputComponent implements OnChanges {
 
   public focus(): void {
     this.textInputComponent.focus();
+  }
+
+  public clear(): void {
+    this.onValueChange('');
   }
 
   protected onValueChange(value: string) {

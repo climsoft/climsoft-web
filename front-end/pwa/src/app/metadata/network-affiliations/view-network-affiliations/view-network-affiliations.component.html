@@ -20,35 +20,38 @@
   </div>
 
   <div class="card-body px-0">
-    <table class="table table-striped table-sm table-hover">
-      <colgroup>
-        <col style="width: 2%;" /> 
-      </colgroup>
-      <thead>
-        <tr>
-          <th></th>
-          <th>Name</th> 
-          <th>Description</th> 
-          <th>Parent Network</th> 
-          <th></th>
-        </tr>
-      </thead>
-      <tbody class="table-group-divider">
-        <tr class="app-cursor-pointer" *ngFor="let network of networkAffiliations" >
-          <td (click)="onEditNetworkAffiliation(network)"><i class="bi bi-arrow-right-short"></i></td>
-          <td (click)="onEditNetworkAffiliation(network)">{{ network.name }}</td> 
-          <td (click)="onEditNetworkAffiliation(network)" >{{ network.description }}</td> 
-          <td (click)="onEditNetworkAffiliation(network)" >{{ network.parentNetworkName }}</td> 
-          <td>
-            <div class="d-flex align-items-center">
-              <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="onAssignStationsClicked(network)">Assign Stations</button>
-              <div class="ms-2">{{ network.assignedStations }}</div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
+    <div class="app-table-container" style="height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Parent Network</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="app-cursor-pointer" *ngFor="let network of networkAffiliations">
+            <td (click)="onEditNetworkAffiliation(network)"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="onEditNetworkAffiliation(network)">{{ network.name }}</td>
+            <td (click)="onEditNetworkAffiliation(network)">{{ network.description }}</td>
+            <td (click)="onEditNetworkAffiliation(network)">{{ network.parentNetworkName }}</td>
+            <td>
+              <div class="d-flex align-items-center">
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                  (click)="onAssignStationsClicked(network)">Assign Stations</button>
+                <div class="ms-2">{{ network.assignedStations }}</div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <app-stations-search-dialog #appSearchAssignedStations
+      (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
   </div>
 </div>

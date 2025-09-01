@@ -10,8 +10,6 @@ import { ObservationDefinition } from '../form-entry/defintitions/observation.de
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -42,13 +40,12 @@ export class DeletedDataComponent implements OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-  private observationFilter!: ViewObservationQueryModel;
+  private queryFilter!: ViewObservationQueryModel;
   protected enableSave: boolean = false;
   protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
   private utcOffset: number = 0;
-  private allMetadataLoaded: boolean = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -61,8 +58,9 @@ export class DeletedDataComponent implements OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
+      console.log('cached: ', data)
+      if (!data) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.allMetadataLoaded = data;
       this.queryData();
     });
 
@@ -79,15 +77,18 @@ export class DeletedDataComponent implements OnDestroy {
 
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.observationFilter = observationFilter;
+    this.queryFilter = observationFilter;
     this.queryData();
   }
 
   private queryData(): void {
+    if (!(this.queryFilter && this.utcOffset !== undefined)) {
+      return;
+    }
     this.observationsEntries = [];
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.count(this.observationFilter).pipe(
+    this.observationService.count(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: count => {
@@ -115,10 +116,10 @@ export class DeletedDataComponent implements OnDestroy {
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
-    this.observationFilter.deleted = true;
-    this.observationFilter.page = this.pageInputDefinition.page;
-    this.observationFilter.pageSize = this.pageInputDefinition.pageSize;
-    this.observationService.findProcessed(this.observationFilter).pipe(
+    this.queryFilter.deleted = true;
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+    this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {

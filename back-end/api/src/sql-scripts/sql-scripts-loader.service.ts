@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import * as path from 'node:path';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class SqlScriptsLoaderService {
+    private readonly logger = new Logger(SqlScriptsLoaderService.name);
 
     constructor(
         private dataSource: DataSource,
@@ -27,8 +28,9 @@ export class SqlScriptsLoaderService {
             const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
             //console.log('ENTRY DATE TIME SQL:', sql);
             await this.dataSource.query(sql);
+            this.logger.log('default entry date time triggers added');
         } catch (error) {
-            console.error('Developer error in adding entry date time triggers: ', error);
+            this.logger.error(`Developer error in adding entry date time triggers: ${error}`);
             throw new Error(error);
         }
     }
@@ -52,11 +54,30 @@ export class SqlScriptsLoaderService {
 
             //console.log('LOG SQL:', sql);
             await this.dataSource.query(sql);
+            this.logger.log('Logging triggers added');
         } catch (error) {
-            console.error('Developer error in adding logs triggers: ', error);
+            this.logger.error(`Developer error in adding logs triggers: ${error}`);
             throw new Error(error);
         }
+    }
 
+    /**
+     * Used by the migrations service
+     */
+    public async addQCTestsFunctionsToDB() {
+        try {
+            // Get the script directory from absolute path of this service file
+            // For windows platform, replace the backslashes with forward slashes.
+            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/qc-tests/qc-tests-functions.sql`
+            const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
+            //console.log('ENTRY DATE TIME SQL:', sql);
+            await this.dataSource.query(sql);
+            this.logger.log('qc tests functions added');
+        } catch (error) {
+            this.logger.error(`Developer error in adding qc tests functions: ${error}`);
+            throw new Error(error);
+        }
     }
 
 
