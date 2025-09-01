@@ -107,13 +107,14 @@ export class GridLayoutComponent implements OnChanges {
     }
 
     // Get their total as the expected
-    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(colObservations);
+    const expectedTotal: number | null = FormEntryDefinition.getTotalValuesOfObs(colObservations);
 
     // Clear previous error message of the column total
     this.totalErrorMessage[colIndex] = '';
 
+    // If all values are missing and total value input is empty then don't set error message
     // If expected total is not equal to the input total then set error message
-    if (expectedTotal !== value) {
+    if (!(expectedTotal === null && value === 0) && expectedTotal !== value) {
       this.totalErrorMessage[colIndex] = expectedTotal !== null ? `Expected total is ${expectedTotal}` : `No total expected`;
     }
 
@@ -202,7 +203,13 @@ export class GridLayoutComponent implements OnChanges {
   public clear(): void {
     this.vfComponents.forEach(component => {
       component.clear();
-    })
+    });
+
+    if (this.formDefinitions.formMetadata.requireTotalInput) {
+      this.totalComponents.forEach(component => {
+        component.clear();
+      });
+    }
   }
 
   public sameInput(valueFlag: string, comment: string | null): void {

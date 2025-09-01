@@ -1,59 +1,57 @@
 <ng-container
     *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
-        <div class="app-table-container" [ngStyle]="{height: layoutHeight + 'vh'}">
-            <table class="table table-hover">
-                <thead>
-                    <tr class="table-label">
-                        <th>
-                            {{rowHeaderName}}
-                        </th>
+    <div class="app-table-container" [ngStyle]="{height: layoutHeight + 'vh'}">
+        <table class="table table-hover">
+            <thead>
+                <tr class="table-label">
+                    <th class="table-row-header">
+                        {{rowHeaderName}}
+                    </th>
 
-                        <th *ngFor="let colDef of colFieldDefinitions">
-                            {{colDef.name}}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- row for col name and values -->
-                    <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
-                        <!-- cell for name -->
-                        <td class="p-0 m-0 text-center align-middle table-label fw-bold">
-                            <div class="d-flex ms-3">{{rowDef.name}}</div>
-                        </td>
+                    <th *ngFor="let colDef of colFieldDefinitions">
+                        {{colDef.name}}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- row for col name and values -->
+                <tr *ngFor="let rowDef of rowFieldDefinitions; let rowIndex=index;">
+                    <!-- cell for name -->
+                    <td class="p-0 m-0 text-center align-middle table-label fw-bold table-row-header">
+                        <div class="d-flex ms-3">{{rowDef.name}}</div>
+                    </td>
 
-                        <!-- cell for values -->
-                        <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                            <div class="app-value-flag-container">
-                                <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
-                                    [borderSize]="userFormSettings.fieldsBorderSize"
-                                    [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
-                                    [observationDefinition]="getObservationDef(rowIndex,colIndex)"
-                                    [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-                                    (userInputVF)="onUserInputVF($event,colIndex)"
-                                    [simulateTabOnEnter]="false"
-                                    (enterKeyPress)="onVFEnterKeyPressed(rowIndex,colIndex)" />
-                            </div>
-                        </td>
+                    <!-- cell for values -->
+                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+                        <div class="app-value-flag-container">
+                            <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
+                                [borderSize]="userFormSettings.fieldsBorderSize"
+                                [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
+                                [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                                [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
+                                (userInputVF)="onUserInputVF($event,colIndex)" [simulateTabOnEnter]="false"
+                                (enterKeyPress)="onVFEnterKeyPressed(rowIndex, colIndex)" />
+                        </div>
+                    </td>
 
-                    </tr>
+                </tr>
 
-                    <!-- row for totals columns -->
-                    <tr *ngIf="formDefinitions.formMetadata.requireTotalInput">
-                        <td class="p-0 m-0 text-center align-middle table-label fw-bold">
-                            <div class="d-flex ms-3">Total</div>
-                        </td>
-                        <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
-                            <div class="app-value-flag-container">
-                                <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
-                                    [borderSize]="userFormSettings.fieldsBorderSize"
-                                    [errorMessage]="totalErrorMessage[colIndex]"
-                                    (valueChange)="onTotalValueChange(colIndex,$event)"
-                                    [simulateTabOnEnter]="false"
-                                    (inputEnterKeyPress)="onTotalEnterKeyPressed(colIndex)" />
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                <!-- row for totals columns -->
+                <tr *ngIf="formDefinitions.formMetadata.requireTotalInput">
+                    <td class="p-0 m-0 text-center align-middle table-label fw-bold">
+                        <div class="d-flex ms-3">Total</div>
+                    </td>
+                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+                        <div class="app-value-flag-container">
+                            <app-number-input *ngIf="totalErrorMessage" [id]="colDef.id +'-total'"
+                                [borderSize]="userFormSettings.fieldsBorderSize"
+                                [errorMessage]="totalErrorMessage[colIndex]"
+                                (valueChange)="onTotalValueChange(colIndex, $event)" [simulateTabOnEnter]="false"
+                                (inputEnterKeyPress)="onTotalEnterKeyPressed(colIndex)" />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </ng-container>

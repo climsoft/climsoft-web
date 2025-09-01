@@ -11,7 +11,7 @@
     </div>
 
     <div class="card-body px-0">
-        <table class="table table-striped table-sm table-hover">
+        <table class="table table-hover table-sm">
             <thead>
                 <tr>
                     <th style="width: 2%;"></th>
@@ -19,7 +19,7 @@
                     <th>Description</th>
                 </tr>
             </thead>
-            <tbody class="table-group-divider">
+            <tbody>
                 <tr class="app-cursor-pointer" *ngFor="let userGroup of userGroups"
                     (click)="onEditUserGroupClick(userGroup)">
                     <td><i class="bi bi-arrow-right-short"></i></td>

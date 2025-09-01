@@ -19,12 +19,10 @@
     </div>
   </div>
 
-  <div *ngIf="organisations" class="card-body p-0">
+  <div *ngIf="organisations" class="card-body px-0">
     <app-table-view [clickable]="true"
       [columnsData]="[ {id: 'name', name: 'Name'} ,  {id: 'description', name: 'Description'} ]"
-      [rowsData]="organisations"  (rowDataClicked)="onEditOrganisation($event)"/>
-
-
+      [rowsData]="organisations" (rowDataClicked)="onEditOrganisation($event)" />
   </div>
 
 </div>

@@ -74,7 +74,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
     // Important note. 
     // Set user form settings then attempt to sync the observations. 
-    // The 2 methods are both asynchronouse and the user settings is needed first
+    // The 2 methods are both asynchronous and the user settings is needed first
     this.loadUserSettings();
     this.observationService.syncObservations();
   }
