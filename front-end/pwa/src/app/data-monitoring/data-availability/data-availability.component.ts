@@ -9,11 +9,9 @@ import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-ob
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Router } from '@angular/router';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 
 @Component({
@@ -38,7 +36,7 @@ export class DataAvailabilityComponent implements OnDestroy {
     private appAuthService: AppAuthService,
     private observationService: ObservationsService,
     private stationsCacheService: StationsCacheService,
-    private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataSearchService: CachedMetadataSearchService,
     private router: Router,
   ) {
     this.pagesDataService.setPageHeader('Data Availability');
@@ -53,18 +51,20 @@ export class DataAvailabilityComponent implements OnDestroy {
       this.user = user;
     });
 
+    // Get the climsoft time zone display setting
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((allMetadataLoaded) => {
+      if (!allMetadataLoaded) return;
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+    });
+
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(stations => {
       this.stations = stations;
     });
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-    });
   }
 
   ngOnDestroy(): void {
@@ -84,7 +84,7 @@ export class DataAvailabilityComponent implements OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-        console.log('al data', data)
+        //console.log('al data', data)
         this.stationRendered =
           this.dataAvailabilityFilter.stationIds.length > 0 ?
             this.stations.filter(station => this.dataAvailabilityFilter.stationIds.includes(station.id)) : this.stations;

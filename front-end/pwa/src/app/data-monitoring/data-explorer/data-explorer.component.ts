@@ -52,9 +52,10 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
+    ).subscribe(allMetadataLoaded => {
+       if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.allMetadataLoaded = data;
+      this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });
 

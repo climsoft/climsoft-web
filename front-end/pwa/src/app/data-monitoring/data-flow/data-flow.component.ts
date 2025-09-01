@@ -10,6 +10,7 @@ import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataFlowQueryModel } from 'src/app/data-ingestion/models/data-flow-query.model';
+import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 interface DataFlowView {
   stationId: string
@@ -37,9 +38,17 @@ export class DataFlowComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private stationsCacheService: StationsCacheService,
     private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataSearchService: CachedMetadataSearchService,
   ) {
     this.pagesDataService.setPageHeader('Data Flow');
+
+    // Get the climsoft time zone display setting
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((allMetadataLoaded) => {
+      if (!allMetadataLoaded) return;
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+    });
 
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
@@ -47,14 +56,8 @@ export class DataFlowComponent implements OnDestroy {
       this.stationsMetadata = data;
     });
 
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-    });
-  }
 
+  }
 
 
   ngOnDestroy(): void {
