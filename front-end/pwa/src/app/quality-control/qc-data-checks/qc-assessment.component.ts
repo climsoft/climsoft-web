@@ -53,17 +53,16 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private observationService: ObservationsService,
-    private qualityControlService: QualityControlService, 
+    private qualityControlService: QualityControlService,
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      if (allMetadataLoaded) {
-        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      }
+      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
       this.queryData();
     });
   }

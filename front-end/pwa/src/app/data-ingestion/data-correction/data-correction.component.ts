@@ -52,10 +52,11 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
+    ).subscribe(allMetadataLoaded => {
+      if(!allMetadataLoaded) return;
       // Get the climsoft time zone display setting
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.allMetadataLoaded = data;
+      this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });
 

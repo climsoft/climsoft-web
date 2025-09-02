@@ -183,11 +183,15 @@ export class ObservationsService {
    * @returns 
    */
   public bulkPutDataFromEntryForm(observations: CreateObservationModel[]): Observable<{ message: string }> {
+
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       tap({
         next: (response: any) => {
           // Server will send {message: 'success'} when there is no error
-          // Start synicing in unsynced data asynchronously
+          // Start syncing in unsynced data asynchronously
+          // Note, the form will not display data that is being synced until it gets saved in the server
+          // Users should be aware that they will have to wait for the syncing to finish. 
+          // So navigating away from the form then back will display the data
           if (response.message === 'success') this.syncObservations();
         },
         error: err => {
@@ -220,7 +224,7 @@ export class ObservationsService {
     // Get total number of unsynced observations
     const totalUnsynced: number = await this.countUnsyncedObservationsAndRaiseNotification();
 
-    console.log('totalUnsynced: ', totalUnsynced);
+    //console.log('totalUnsynced: ', totalUnsynced);
 
     // If there are no unsynced observations then set syncing flag to false and return
     if (totalUnsynced === 0) {

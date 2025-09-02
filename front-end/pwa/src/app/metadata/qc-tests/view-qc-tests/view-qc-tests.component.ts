@@ -37,7 +37,7 @@ export class ViewQCTestsComponent implements OnDestroy {
     });
 
     // Get all sources 
-    this.elementsQCTestsCacheService.cachedElementsQcTests.pipe(
+    this.elementsQCTestsCacheService.cachedQCTests.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.elementQCTestParams = data.map(item => { return { ...item, elementName: '' } });

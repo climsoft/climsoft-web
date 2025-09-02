@@ -18,7 +18,7 @@ export class CachedMetadataSearchService {
     private _stationsMetadata!: StationCacheModel[];
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
-    private _elementQcTestsMetadata!: QCTestCacheModel[];
+    private _qcTestsMetadata!: QCTestCacheModel[];
     private _generalSettingsMetadata!: CreateViewGeneralSettingModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private checkingForUpdates: boolean = false;
@@ -27,7 +27,7 @@ export class CachedMetadataSearchService {
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourceTemplatesCacheService,
-        private elementsQCTestsCacheService: QCTestsCacheService,
+        private qcTestsCacheService: QCTestsCacheService,
         private generalSettingsCacheService: GeneralSettingsService,
     ) {
 
@@ -46,8 +46,8 @@ export class CachedMetadataSearchService {
             this.setMetadataLoaded();
         });
 
-        this.elementsQCTestsCacheService.cachedElementsQcTests.subscribe(data => {
-            this._elementQcTestsMetadata = data;
+        this.qcTestsCacheService.cachedQCTests.subscribe(data => {
+            this._qcTestsMetadata = data;
             this.setMetadataLoaded();
         });
 
@@ -60,10 +60,10 @@ export class CachedMetadataSearchService {
     }
 
     private setMetadataLoaded(): void {
-        if (this._stationsMetadata && this._stationsMetadata.length > 0
-            && this._elementsMetadata && this._elementsMetadata.length > 0
-            && this._sourcesMetadata && this._sourcesMetadata.length > 0
-            && this._elementQcTestsMetadata && this._elementQcTestsMetadata.length > 0
+        if (this._stationsMetadata
+            && this._elementsMetadata
+            && this._sourcesMetadata
+            && this._qcTestsMetadata
             && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
@@ -74,7 +74,7 @@ export class CachedMetadataSearchService {
             this.stationsCacheService.checkForUpdates();
             this.elementsCacheService.checkForUpdates();
             this.sourcesCacheService.checkForUpdates();
-            this.elementsQCTestsCacheService.checkForUpdates();
+            this.qcTestsCacheService.checkForUpdates();
             this.generalSettingsCacheService.checkForUpdates();
 
             // Disable the checking of all metadata for 5 seconds.
@@ -128,13 +128,14 @@ export class CachedMetadataSearchService {
             throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
         }
 
-        const metadata = this._elementQcTestsMetadata.find(item => item.id === qcTestId);
+        const metadata = this._qcTestsMetadata.find(item => item.id === qcTestId);
         if (!metadata) {
             throw new Error(`Developer error: QC test not found. ${qcTestId}`);
         }
         return metadata;
     }
 
+    // TODO. Deprecate this
     public getQCTestsFor(elementId: number, level: number, interval: number): QCTestCacheModel[] {
         if (!this._allMetadataLoaded.value) {
             throw new Error(`Developer error: Metadata not full loaded. QC tests not usable.`);
@@ -142,7 +143,7 @@ export class CachedMetadataSearchService {
 
         const qcTests: QCTestCacheModel[] = []
 
-        for (const qcTest of this._elementQcTestsMetadata) {
+        for (const qcTest of this._qcTestsMetadata) {
             if (qcTest.elementId === elementId && qcTest.observationLevel === level && qcTest.observationInterval === interval) {
                 qcTests.push(qcTest);
             }

@@ -105,8 +105,9 @@ export class DateUtils {
         //dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
 
         //return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
-        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').
-        replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
+        return DateUtils.getDatetimesBasedOnUTCOffset(
+            strDateTimeInJavaScriptIso, utcOffset, 'add'
+        ). replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
     }
 
     public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {

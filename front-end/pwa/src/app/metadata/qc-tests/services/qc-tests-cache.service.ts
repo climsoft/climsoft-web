@@ -144,13 +144,13 @@ export class QCTestsCacheService {
         });
     }
 
-    public get cachedElementsQcTests(): Observable<QCTestCacheModel[]> {
+    public get cachedQCTests(): Observable<QCTestCacheModel[]> {
         this.checkForUpdates();
         return this._cachedElements.asObservable();
     }
 
     public findOne(id: number): Observable<QCTestCacheModel | undefined> {
-        return this.cachedElementsQcTests.pipe(
+        return this.cachedQCTests.pipe(
             map(response => {
                 return response.find(item => item.id === id);
             })
@@ -158,7 +158,7 @@ export class QCTestsCacheService {
     }
 
     public findByElement(elementId: number): Observable<QCTestCacheModel[]> {
-        return this.cachedElementsQcTests.pipe(
+        return this.cachedQCTests.pipe(
             map(response => {
                 return response.filter(item => item.elementId === elementId);
             })
