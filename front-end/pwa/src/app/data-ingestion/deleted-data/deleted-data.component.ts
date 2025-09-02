@@ -58,7 +58,7 @@ export class DeletedDataComponent implements OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(data => {
-      console.log('cached: ', data)
+      //console.log('cached: ', data)
       if (!data) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
       this.queryData();

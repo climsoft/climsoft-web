@@ -104,7 +104,7 @@ export class ClimsoftV4WebSyncSetUpService {
             }
 
             // If not in dev mode and saving to or importing from version 4 is disabled then just return
-            if (!AppConfig.v4DbCredentials.v4Save || !AppConfig.v4DbCredentials.v4Import) {
+            if (!AppConfig.v4DbCredentials.v4Save && !AppConfig.v4DbCredentials.v4Import) {
                 this.logger.log('Saving to or importing from v4 database disabled.');
                 return;
             }
