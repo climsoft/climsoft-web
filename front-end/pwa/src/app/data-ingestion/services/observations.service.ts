@@ -20,6 +20,7 @@ import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availab
 import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary.model';
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
 import { QCStatusEnum } from '../models/qc-status.enum';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -42,7 +43,7 @@ export class ObservationsService {
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -52,21 +53,21 @@ export class ObservationsService {
       `${this.endPointUrl}/count`,
       { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   private findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   private countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -75,14 +76,14 @@ export class ObservationsService {
       `${this.endPointUrl}/log`,
       { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public countObsNotSavedToV4(): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-v4-unsaved-observations`)
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -91,7 +92,7 @@ export class ObservationsService {
       `${this.endPointUrl}/generate-export/${exportTemplateId}`,
       { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -121,13 +122,13 @@ export class ObservationsService {
           }
         }),
         catchError(err => {
-          if (err.status === 0) {
+          if (err.status === 0 || err.status === 504) {
             // For network errors. Always attempt fetching data locally
             console.warn('Network error detected. Fetching data locally.');
             return from(this.fetchObservationsLocally(entryFormObsQuery));
           } else {
             // For other errors handle them normally 
-            return this.handleError(err);
+            return AppAuthInterceptor.handleError(err);
           }
 
         })
@@ -196,7 +197,7 @@ export class ObservationsService {
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          if (err.status === 0) {
+          if (err.status === 0 || err.status === 504) {
             console.warn('saving unsynced data locally');
             this.saveDataToLocalDatabase(observations, 'false');
           }
@@ -244,7 +245,7 @@ export class ObservationsService {
       catchError(err => {
         this.isSyncing = false;
         // TODO. Notify network errors
-        return this.handleError(err);
+        return AppAuthInterceptor.handleError(err);
       }),
     ).subscribe(response => {
       // Server will send {message: success} when there is no error
@@ -286,21 +287,21 @@ export class ObservationsService {
   public restore(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.patch<number>(`${this.endPointUrl}/restore`, observations)
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public softDelete(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.delete<number>(`${this.endPointUrl}/hard`, { body: observations })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -311,7 +312,7 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -321,7 +322,7 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -331,7 +332,7 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -341,25 +342,11 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<DataFlowQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
-  private handleError(error: HttpErrorResponse) {
 
-    //console.log('auth error', error)
-
-    if (error.status === 0) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error);
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong.
-      console.error(`Backend returned code ${error.status}, body was: `, error.error);
-    }
-    // Return an observable with a user-facing error message.
-    return throwError(() => new Error('Something bad happened. please try again later.'));
-  }
 
 
 }

@@ -55,8 +55,6 @@ export class CachedMetadataSearchService {
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
-
-
     }
 
     private setMetadataLoaded(): void {

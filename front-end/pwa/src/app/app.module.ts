@@ -1,5 +1,5 @@
 //------------modules------------------------------
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -25,6 +25,7 @@ import { DataIngestionModule } from './data-ingestion/data-ingestion.module';
 import { DataMonitoringModule } from './data-monitoring/data-monitoring.module';
 import { ObservationsModule } from './observations/observations.module'; 
 import { QualityControlModule } from './quality-control/quality-control.module';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 
 @NgModule({
@@ -48,7 +49,12 @@ import { QualityControlModule } from './quality-control/quality-control.module';
     DataIngestionModule,
     DataMonitoringModule,
     QualityControlModule, 
-    DataExtractionModule,
+    DataExtractionModule, ServiceWorkerModule.register('ngsw-worker.js', {
+  enabled: !isDevMode(),
+  // Register the ServiceWorker as soon as the application is stable
+  // or after 30 seconds (whichever comes first).
+  registrationStrategy: 'registerWhenStable:30000'
+}),
   ],
   providers: [
     {
