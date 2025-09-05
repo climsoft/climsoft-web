@@ -340,12 +340,13 @@ export class ObservationDefinition {
 
             // Convert the entry date time to current local time
             viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, utcOffset);
-            return item;
+            return viewLog;
         }
         ) : [];
 
-        return viewObservationLog;
+       
 
+        return viewObservationLog;
     }
 
     public getQCTestLog(): ViewQCTestLog[] {

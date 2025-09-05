@@ -71,7 +71,7 @@ export class ObservationsService {
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: obsEntity.qcTestLog,
-                log: await this.createViewLog(obsEntity, users),
+                log: this.createViewLog(obsEntity, users),
                 entryDatetime: obsEntity.entryDateTime.toISOString(),
             };
             obsView.push(viewObs);
@@ -79,7 +79,7 @@ export class ObservationsService {
         return obsView;
     }
 
-    private async createViewLog(entity: ObservationEntity, users: ViewUserDto[]): Promise<ViewObservationLogDto[]> {
+    private createViewLog(entity: ObservationEntity, users: ViewUserDto[]): ViewObservationLogDto[] {
         const viewLogDto: ViewObservationLogDto[] = [];
         if (entity.log) {
             for (const logItem of entity.log) {
@@ -110,7 +110,6 @@ export class ObservationsService {
         }
 
         viewLogDto.push(currentValuesAsLogObj);
-
         return viewLogDto;
     }
 
