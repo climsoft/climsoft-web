@@ -52,8 +52,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
     ).subscribe(stations => {
-      this.allStations = stations;
-      console.log('all stations loaded')
+      this.allStations = stations; 
     });
   }
 

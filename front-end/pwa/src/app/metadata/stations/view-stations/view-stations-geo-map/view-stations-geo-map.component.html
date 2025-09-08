@@ -1,7 +1,7 @@
 <div *ngIf="stationsWithLocations" class="card border-0">
   <div class="card-body px-0">
     <div *ngIf="stationMapLayerGroup">
-      <app-map [mapHeight]="mapHeight"  [mapContentLayerGroup]="stationMapLayerGroup" />
+      <app-map [mapHeight]="mapHeight" [contentLayersGroup]="stationMapLayerGroup" />
       <div *ngIf="displayStats" class="card border-0 app-station-monitoring-stats app-station-bg-info-color ">
         <div class="card-body">
           <div>
