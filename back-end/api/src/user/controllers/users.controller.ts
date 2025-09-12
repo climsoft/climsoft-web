@@ -27,13 +27,13 @@ export class UsersController {
     @Admin()
     @Post('create')
     public create(@Body() createUserDto: CreateUserDto) {
-        return this.userService.createUser(createUserDto);
+        return this.userService.create(createUserDto);
     }
 
     @Admin()
     @Patch('update/:id')
     update(@Param('id') userId: number, @Body() createUserDto: CreateUserDto) {
-        return this.userService.updateUser(userId, createUserDto);
+        return this.userService.update(userId, createUserDto);
     }
 
     @Patch('change-password')

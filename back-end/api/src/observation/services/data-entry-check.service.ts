@@ -33,8 +33,7 @@ export class DataEntryCheckService {
 
     @OnEvent('source.created')
     handleSourceCreated(payload: { id: number; dto: any }) {
-        console.log(`Source created: ID ${payload.id}`);
-        // maybe invalidate cache, trigger sync, etc.
+        console.log(`Source created: ID ${payload.id}`); 
         this.resetFormParameters();
     }
 
@@ -74,7 +73,6 @@ export class DataEntryCheckService {
             } else {
                 throw new Error('Developer error: Source type not recognised')
             }
-
         }
     }
 
@@ -95,32 +93,49 @@ export class DataEntryCheckService {
 
             const source = this.sourceParameters.get(dto.sourceId);
 
-            if (!source) throw new BadRequestException('Source template not found');
+            if (!source) {
+                this.logger.error(`Source template not found. Dto:  ${dto} | User: ${user}`)
+                throw new BadRequestException('Source template not found');
+            }
 
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const formTemplate: FormParams = source.settings as FormParams;
                 // check element
-                if (!formTemplate.form.elementIds.includes(dto.elementId)) throw new BadRequestException('Element not allowed');
+                if (!formTemplate.form.elementIds.includes(dto.elementId)) {
+                    this.logger.error(`Element not allowed. Dto:  ${dto} | User: ${user}`);
+                    throw new BadRequestException('Element not allowed');
+                }
 
                 // Check if hour is allowed for the form
-                if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) throw new BadRequestException('Hour not allowed');
+                if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) {
+                    this.logger.error(`Hour not allowed. Dto:  ${dto} | User: ${user}`);
+                    throw new BadRequestException('Hour not allowed');
+                }
 
                 // Check for interval is allowed for the form
                 if (!formTemplate.form.allowIntervalEditing) {
-                    if (formTemplate.form.interval !== dto.interval) throw new BadRequestException('Interval not allowed');
+                    if (formTemplate.form.interval !== dto.interval) {
+                        this.logger.error(`Interval not allowed. Dto:  ${dto} | User: ${user}`);
+                        throw new BadRequestException('Interval not allowed');
+                    }
                 }
 
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
-                // TODO. Use source params to validate the inut. Use full when doing data correction
+                // TODO. Use source params to validate the input. Use full when doing data correction
+                // TODO. Should import validation use DuckDB database engine?
             }
 
             // Check for future dates           
             if (new Date(dto.datetime) > todayDate) {
                 // TODO. Follow up on when invalid dates are being bypassed at the front end. 
-                this.logger.log(`obs datetime: ${dto.datetime} todayDate: ${todayDate.toISOString()}`);
+                this.logger.error(`Future dates not allowed. Dto ${dto} | User: ${user} | TodayDate: ${todayDate.toISOString()}`);
                 throw new BadRequestException('Future dates not allowed');
             }
 
+            if (dto.value === null && dto.flag === null) {
+                this.logger.error(`Both value and flag are missing. Dto:  ${dto} | User: ${user}`);
+                throw new BadRequestException('Both value and flag are missing');
+            }
         }
 
         this.logger.log(`observations checks took: ${new Date().getTime() - startTime} milliseconds`);

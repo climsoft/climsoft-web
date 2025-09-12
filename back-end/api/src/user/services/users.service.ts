@@ -7,10 +7,13 @@ import { ViewUserDto } from '../dtos/view-user.dto';
 import { LogInCredentialsDto } from '../dtos/login-credentials.dto';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import * as bcrypt from 'bcrypt';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(UserEntity) private userRepo: Repository<UserEntity>) { }
+    constructor(
+        @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+        private eventEmitter: EventEmitter2,) { }
 
     public async count(): Promise<number> {
         return this.userRepo.count()
@@ -24,7 +27,7 @@ export class UsersService {
                 }
             }
         );
-        return userEntities.map(entity => this.getUserDto(entity));
+        return userEntities.map(entity => this.createViewDto(entity));
     }
 
     public async findOne(userId: number): Promise<ViewUserDto> {
@@ -34,27 +37,34 @@ export class UsersService {
             throw new BadRequestException('no such user');
         }
 
-        return this.getUserDto(userEntity);
+        return this.createViewDto(userEntity);
     }
 
-    public async createUser(createUserDto: CreateUserDto): Promise<ViewUserDto> {
-        let userEntity = await this.userRepo.findOneBy({
+    public async create(createUserDto: CreateUserDto): Promise<ViewUserDto> {
+        let entity = await this.userRepo.findOneBy({
             email: createUserDto.email,
         });
 
-        if (userEntity) {
+        if (entity) {
             throw new BadRequestException('email exists');
         }
 
-        userEntity = this.userRepo.create();
+        entity = this.userRepo.create();
 
-        this.updateUserEntity(userEntity, createUserDto);
+        this.updateEntityWithDtoInfo(entity, createUserDto);
 
         // TODO. In future email password to  user
-        userEntity.hashedPassword = await this.hashPassword(this.generateRandomPassword());
+        entity.hashedPassword = await this.hashPassword(this.generateRandomPassword());
+
+        await this.userRepo.save(entity)
+
+        const viewDto: ViewUserDto = this.createViewDto(entity)
+
+        this.eventEmitter.emit('user.created', { id: entity.id, viewDto });
 
         // TODO. Send a email with password
-        return this.getUserDto(await this.userRepo.save(userEntity));
+
+        return viewDto;
     }
 
     /**
@@ -67,19 +77,25 @@ export class UsersService {
         return Array.from({ length }, () => charset[Math.floor(Math.random() * charset.length)]).join('');
     }
 
-    public async updateUser(id: number, createUserDto: CreateUserDto): Promise<ViewUserDto> {
-        const userEntity = await this.userRepo.findOneBy({
+    public async update(id: number, createUserDto: CreateUserDto): Promise<ViewUserDto> {
+        const entity = await this.userRepo.findOneBy({
             id: id,
         });
 
-        if (!userEntity) {
+        if (!entity) {
             throw new NotFoundException('no user found');
         }
 
         // TODO. Check if email and phone number already used in database 
-        this.updateUserEntity(userEntity, createUserDto);
+        this.updateEntityWithDtoInfo(entity, createUserDto);
 
-        return this.getUserDto(await this.userRepo.save(userEntity));
+        await this.userRepo.save(entity)
+
+        const viewDto: ViewUserDto = this.createViewDto(entity);
+
+        this.eventEmitter.emit('user.updated', { id, viewDto });
+
+        return viewDto;
     }
 
     public async changeUserPassword(changedPassword: ChangePasswordDto): Promise<ViewUserDto> {
@@ -92,7 +108,7 @@ export class UsersService {
         }
 
         userEntity.hashedPassword = await this.hashPassword(changedPassword.password);
-        return this.getUserDto(await this.userRepo.save(userEntity));
+        return this.createViewDto(await this.userRepo.save(userEntity));
     }
 
     public async findUserByCredentials(loginCredentials: LogInCredentialsDto): Promise<ViewUserDto> {
@@ -110,10 +126,10 @@ export class UsersService {
             throw new NotFoundException('disabled');
         }
 
-        return this.getUserDto(userEntity);
+        return this.createViewDto(userEntity);
     }
 
-    private updateUserEntity(entity: UserEntity, dto: CreateUserDto): void {
+    private updateEntityWithDtoInfo(entity: UserEntity, dto: CreateUserDto): void {
         entity.name = dto.name;
         entity.email = dto.email;
         entity.phone = dto.phone;
@@ -125,7 +141,7 @@ export class UsersService {
         entity.comment = dto.comment;
     }
 
-    private getUserDto(entity: UserEntity): ViewUserDto {
+    private createViewDto(entity: UserEntity): ViewUserDto {
         return {
             id: entity.id,
             name: entity.name,
@@ -140,11 +156,8 @@ export class UsersService {
         }
     }
 
-
     private async hashPassword(password: string): Promise<string> {
         const saltRounds = 10; // You can adjust the salt rounds based on your security requirements
         return await bcrypt.hash(password, saltRounds);
     }
-
-
 }

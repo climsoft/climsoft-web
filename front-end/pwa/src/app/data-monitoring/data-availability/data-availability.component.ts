@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { DataAvailabilityQueryModel } from './models/data-availability-query.model';
@@ -22,7 +22,7 @@ import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/c
 export class DataAvailabilityComponent implements OnDestroy {
   protected enableQueryButton: boolean = true;
   private dataAvailabilityFilter!: DataAvailabilityQueryModel;
-  private stations: StationCacheModel[] = [];
+  private stations!: StationCacheModel[];
   private chartInstance!: echarts.ECharts;
   private stationRendered!: StationCacheModel[];
   private dateValues!: number[];
@@ -34,8 +34,7 @@ export class DataAvailabilityComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private observationService: ObservationsService,
-    private stationsCacheService: StationsCacheService,
+    private observationService: ObservationsService, 
     private cachedMetadataSearchService: CachedMetadataSearchService,
     private router: Router,
   ) {
@@ -57,12 +56,7 @@ export class DataAvailabilityComponent implements OnDestroy {
     ).subscribe((allMetadataLoaded) => {
       if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-    });
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.stations = stations;
+      this.stations = this.cachedMetadataSearchService.stationsMetadata;
     });
 
   }
@@ -76,7 +70,6 @@ export class DataAvailabilityComponent implements OnDestroy {
   }
 
   protected onQueryClick(newDataAvailabilityFilter: DataAvailabilityQueryModel): void {
-
     this.enableQueryButton = false;
     this.dataAvailabilityFilter = newDataAvailabilityFilter;
 
@@ -193,12 +186,14 @@ export class DataAvailabilityComponent implements OnDestroy {
       xAxis: {
         type: 'category',
         data: dateValues,
-        splitArea: { show: true }
+        splitArea: { show: true },
+        triggerEvent: true, // Enable event triggering for xAxis labels
       },
       yAxis: {
         type: 'category',
         data: stations,
         splitArea: { show: true },
+        triggerEvent: true, // Enable event triggering for yAxis labels
         axisLabel: {
           show: true,
           formatter: (value: string) => {
@@ -206,7 +201,7 @@ export class DataAvailabilityComponent implements OnDestroy {
             return value.length > 27 ? value.slice(0, 24) + '…' : value;
           },
           overflow: 'truncate', // could also try 'break', 'none', or 'breakAll'
-        }
+        },    
       },
       dataZoom: [
         {
@@ -266,7 +261,9 @@ export class DataAvailabilityComponent implements OnDestroy {
     // Add click handler
     this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
     this.chartInstance.on('click', (params: any) => {
-      if (params.seriesType === 'heatmap') {
+      //console.log('click happened', params);
+
+      if (params.componentType === 'series') {
         const dateIndex = params.value[0];    // x-axis index (date)
         const stationIndex = params.value[1]; // y-axis index (station)
         //const value = params.value[2]; // value
@@ -274,8 +271,17 @@ export class DataAvailabilityComponent implements OnDestroy {
         const dateComponent: number = Number(this.dateValues[dateIndex]);
         console.log(`Clicked cell - Station: ${stationId}, Date: ${dateComponent}`);
         this.showVariables(stationId, dateComponent);
+      }else if (params.componentType === 'xAxis' ) {
+        console.log('Clicked xAxis label:', params.value);
+        // Add your custom logic here, e.g., open a new page, filter data
+        // window.open('https://example.com/day/' + params.value);
+      } else if (params.componentType === 'yAxis' ) {
+        console.log('Clicked yAxis label:', params.value);
+        // Add your custom logic here
       }
     });
+
+
   }
 
   private showVariables(stationId: string, dateComponent: number) {

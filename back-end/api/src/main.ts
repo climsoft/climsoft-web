@@ -1,10 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common'; 
+import { ValidationPipe } from '@nestjs/common';
 import { AppConfig } from './app.config';
 import * as session from 'express-session';
 import * as pgSession from 'connect-pg-simple';
 import { Pool } from 'pg';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,11 +24,11 @@ async function bootstrap() {
     // origin:  process.env.WEB_APP_BASE_URLs ? process.env.WEB_APP_BASE_URLs : 'http://localhost:4200' , 
     origin: (origin, callback) => {
       //console.log(`Client Origin - ${origin}`); 
-      
+
       // TODO. In future implement CORs security feature to enable users to determine origin setting based on their security requirements.
       callback(null, true); // Allow the request
-  
-   
+
+
       // TODO Code below is meant to enfors allowed origins
       // Allow requests with no `Origin` (e.g., from desktop and mobile apps)
       // Only allows requests from trusted web app origins. This is needed because web browsers require it
@@ -77,21 +78,11 @@ async function bootstrap() {
     }),
   );
 
-  // Left here for reference. This uses the default MemoryStore that is not designed for production
-  // app.use(
-  //   session({
-  //     name: 'ssid',
-  //     secret: AppConfig.dbCredentials.password,
-  //     resave: false,
-  //     saveUninitialized: false,
-  //     cookie: {
-  //       maxAge: 1000 * 60 * 60 * 24, // set to 24 hours
-  //       sameSite: false,
-  //       secure: false //TODO set to true only when using HTTPS
-  //     },
-  //   }),
-  // );
+  // Increase the allowed payload request from the default 100kb to 1MB
+  app.use(express.json({ limit: '1mb' }));
+  app.use(express.urlencoded({ limit: '1mb', extended: true }));
 
+  // Set the port to listen for connections
   await app.listen(3000);
 }
 

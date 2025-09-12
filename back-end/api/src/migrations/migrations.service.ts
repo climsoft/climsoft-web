@@ -89,7 +89,7 @@ export class MigrationsService {
   private async seedFirstUser() {
     const count = await this.userService.count();
     if (count === 0) {
-      const newUser = await this.userService.createUser(
+      const newUser = await this.userService.create(
         {
           name: "admin",
           email: "admin@climsoft.org",

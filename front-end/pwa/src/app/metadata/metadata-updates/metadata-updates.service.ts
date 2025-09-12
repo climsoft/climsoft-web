@@ -1,6 +1,6 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { catchError, concatMap, from, Observable, of, throwError } from "rxjs";
+import { catchError, concatMap, from, Observable, of } from "rxjs";
 import { Injectable } from "@angular/core";
 import { AppDatabase } from "src/app/app-database";
 import { MetadataUpdatesQueryModel } from "./metadata-updates-query.model";

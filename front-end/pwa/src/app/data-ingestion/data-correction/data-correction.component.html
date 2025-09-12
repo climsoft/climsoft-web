@@ -1,7 +1,7 @@
 <div class="card border-0">
 
-    <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
-        [enableQueryButton]="enableQueryButton" [query]="queryFilter" (queryClick)="onQueryClick($event)" />
+    <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
+        [query]="queryFilter" (queryClick)="onQueryClick($event)" />
 
     <div class="card border-0 p-0 mt-2">
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
@@ -25,7 +25,7 @@
             <div *ngIf="!useUnstackedViewer">
                 <app-stacked-data-viewer [pageInputDefinition]="pageInputDefinition"
                     [observationsEntries]="observationsEntries" (valueChange)="onUserInput()" />
-            </div> 
+            </div>
         </div>
 
         <div class="card-footer bg-transparent d-flex justify-content-end px-0">

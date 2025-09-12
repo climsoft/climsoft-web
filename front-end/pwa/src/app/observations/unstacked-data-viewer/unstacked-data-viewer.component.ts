@@ -22,7 +22,7 @@ export class UnstackedDataViewerComponent implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.observationsEntries) {
+    if (changes['observationsEntries'] && this.observationsEntries) {
       this.loadData();
     }
   }
@@ -33,8 +33,7 @@ export class UnstackedDataViewerComponent implements OnChanges {
     const newElementColumns: string[] = [];
 
     for (const obs of this.observationsEntries) {
-      // Note the observation identifier intentionally does not include the source. Which means duplicates will be overriden
-      const obsIdentifier = `${obs.obsDef.observation.stationId}-${obs.obsDef.observation.level}-${obs.obsDef.observation.datetime}-${obs.obsDef.observation.interval}`;
+      const obsIdentifier = `${obs.obsDef.observation.stationId}-${obs.obsDef.observation.level}-${obs.obsDef.observation.datetime}-${obs.obsDef.observation.interval}-${obs.obsDef.observation.sourceId}`;
 
       // If observation group already exist then just push the new observation into the group
       // If it does not exist create a new group

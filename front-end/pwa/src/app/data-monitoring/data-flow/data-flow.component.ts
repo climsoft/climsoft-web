@@ -1,14 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { interval, Subject, take, takeUntil } from 'rxjs';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { Subject, take, takeUntil } from 'rxjs';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { DataFlowQueryModel } from 'src/app/data-ingestion/models/data-flow-query.model';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
@@ -18,7 +14,7 @@ interface DataFlowView {
   value: number | null;
   flag: string | null;
   datetime: string;
-  //formattedDatetime: string; 
+  formattedDatetime: string; 
 }
 
 @Component({
@@ -36,7 +32,6 @@ export class DataFlowComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private stationsCacheService: StationsCacheService,
     private observationService: ObservationsService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
   ) {
@@ -48,14 +43,8 @@ export class DataFlowComponent implements OnDestroy {
     ).subscribe((allMetadataLoaded) => {
       if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.stationsMetadata =  this.cachedMetadataSearchService.stationsMetadata;
     });
-
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.stationsMetadata = data;
-    });
-
 
   }
 
@@ -92,7 +81,8 @@ export class DataFlowComponent implements OnDestroy {
             stationName: stationMetadata.name,
             value: observation.value,
             flag: observation.flag,
-            datetime: observation.datetime,// TODO adjust to display time
+            datetime: DateUtils.getDatetimesBasedOnUTCOffset( observation.datetime, this.utcOffset, 'add'),
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
           }
           return obsView;
 
@@ -133,7 +123,7 @@ export class DataFlowComponent implements OnDestroy {
     }
 
     // Step 2: Get global time range
-    const allTimestamps: number[] = dataFlowData.map(o => new Date(o.datetime).getTime());
+    const allTimestamps: number[] = dataFlowData.map(o => new Date(o.datetime).getTime()); // TODO. check what happens for records that are before 1970
     const start: number = Math.min(...allTimestamps);
     const end: number = Math.max(...allTimestamps);
     // Interval is always in minutes, so convert to milliseconds
