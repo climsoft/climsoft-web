@@ -158,7 +158,6 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   protected onDateToUseSelection(selection: string): void {
     this.useEntryDate = selection === 'Entry Date';
-    //this.onValueChanged();
   }
 
   protected onQueryClick(): void {

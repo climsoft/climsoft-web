@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -12,7 +12,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-
+import { DataAvailabilityOptionsDialogComponent } from './data-availability-options-dialog/data-availability-options-dialog.component';
 
 @Component({
   selector: 'app-data-availability',
@@ -20,6 +20,8 @@ import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/c
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements OnDestroy {
+    //@ViewChild('appDataAvailabilityOptionsDialog') dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
+
   protected enableQueryButton: boolean = true;
   private dataAvailabilityFilter!: DataAvailabilityQueryModel;
   private stations!: StationCacheModel[];
@@ -28,6 +30,7 @@ export class DataAvailabilityComponent implements OnDestroy {
   private dateValues!: number[];
   private utcOffset: number = 0;
   private user!: LoggedInUserModel;
+  protected openDialog: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -269,18 +272,24 @@ export class DataAvailabilityComponent implements OnDestroy {
         //const value = params.value[2]; // value
         const stationId: string = this.stationRendered[stationIndex].id; // stations[stationIndex].split(' ')[0];
         const dateComponent: number = Number(this.dateValues[dateIndex]);
-        console.log(`Clicked cell - Station: ${stationId}, Date: ${dateComponent}`);
+        //console.log(`Clicked cell - Station: ${stationId}, Date: ${dateComponent}`);
         this.showVariables(stationId, dateComponent);
       }else if (params.componentType === 'xAxis' ) {
-        console.log('Clicked xAxis label:', params.value);
+        //console.log('Clicked xAxis label:', params.value);
         // Add your custom logic here, e.g., open a new page, filter data
         // window.open('https://example.com/day/' + params.value);
       } else if (params.componentType === 'yAxis' ) {
-        console.log('Clicked yAxis label:', params.value);
+        //console.log('Clicked yAxis label:', params.value);
         // Add your custom logic here
       }
+      // TODO. Left here
+      //this.openDialog = true;
     });
 
+
+  }
+
+  protected onOptionClicked(option: 'view_data'|'drill_down'): void{
 
   }
 
