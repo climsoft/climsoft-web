@@ -1,12 +1,12 @@
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { BehaviorSubject, catchError, concatMap, map, Observable, of, Subscription, tap, throwError } from "rxjs";
+import { BehaviorSubject, concatMap, map, Observable, of, Subscription, tap } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
 import { ViewStationObsEnvModel } from "src/app/metadata/stations/models/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "src/app/metadata/stations/models/view-station-obs-focus.model";
 import { StationObsProcessingMethodEnum } from "src/app/metadata/stations/models/station-obs-processing-method.enum";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { UpdateStationModel } from "src/app/metadata/stations/models/update-station.model";
 import { StationStatusEnum } from "src/app/metadata/stations/models/station-status.enum";
 import { AppConfigService } from "src/app/app-config.service";
@@ -157,7 +157,6 @@ export class StationsCacheService {
                 tap(() => {
                     this.checkForUpdates();
                 }),
-                catchError(this.handleError)
             );
     }
 
@@ -167,7 +166,6 @@ export class StationsCacheService {
                 tap(() => {
                     this.checkForUpdates();
                 }),
-                catchError(this.handleError)
             );
     }
 
@@ -177,7 +175,6 @@ export class StationsCacheService {
                 tap(() => {
                     this.checkForUpdates();
                 }),
-                catchError(this.handleError)
             );
     }
 
@@ -187,29 +184,11 @@ export class StationsCacheService {
                 tap(() => {
                     this.checkForUpdates();
                 }),
-                catchError(this.handleError)
             );
     }
 
     public get downloadLink(): string {
         return `${this.endPointUrl}/download`;
     }
-
-    private handleError(error: HttpErrorResponse) {
-
-        //console.log('auth error', error)
-
-        if (error.status === 0) {
-            // A client-side or network error occurred. Handle it accordingly.
-            console.error('An error occurred:', error.error);
-        } else {
-            // The backend returned an unsuccessful response code.
-            // The response body may contain clues as to what went wrong.
-            console.error(`Backend returned code ${error.status}, body was: `, error.error);
-        }
-        // Return an observable with a user-facing error message.
-        return throwError(() => new Error('Something bad happened. please try again later.'));
-    }
-
 
 }

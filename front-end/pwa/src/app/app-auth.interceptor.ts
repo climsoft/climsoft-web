@@ -54,9 +54,9 @@ export class AppAuthInterceptor implements HttpInterceptor {
   }
 
   public static handleError(err: HttpErrorResponse) {
-    if (err.status === 0 || err.status === 504) {
+    if (AppAuthInterceptor.isKnownNetworkError(err)) {
       // A client-side or network error occurred. Handle it accordingly.
-      console.log('An error occurred, likely network error:', err);
+      console.log('A known network error was detected');
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong.
@@ -64,6 +64,14 @@ export class AppAuthInterceptor implements HttpInterceptor {
     }
     // Return an observable with a user-facing error message.
     return throwError(() => new Error('Something bad happened. please try again later.'));
+  }
+
+  public static isKnownNetworkError(err: HttpErrorResponse): boolean {
+    // Error 0 means there was no server response.
+    // Error 504 is returned by angular service worker when there is no connection to the server
+    // Error 502 indicates a communication problem between two servers on the internet, in this case cloudflare server and on-premise server hosting climsoft. 
+    // Error 530 is returned by cloudflare when the server is no connection to the server that has the cloudflare tunnel service
+    return err.status === 0 || err.status === 504 || err.status === 502 || err.status === 530;
   }
 
 }

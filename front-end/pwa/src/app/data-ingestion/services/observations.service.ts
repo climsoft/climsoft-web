@@ -122,7 +122,7 @@ export class ObservationsService {
           }
         }),
         catchError(err => {
-          if (err.status === 0 || err.status === 504) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             // For network errors. Always attempt fetching data locally
             console.warn('Network error detected. Fetching data locally.');
             return from(this.fetchObservationsLocally(entryFormObsQuery));
@@ -197,7 +197,7 @@ export class ObservationsService {
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          if (err.status === 0 || err.status === 504) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             console.warn('saving unsynced data locally');
             this.saveDataToLocalDatabase(observations, 'false');
           }
@@ -244,6 +244,12 @@ export class ObservationsService {
       take(1),
       catchError(err => {
         this.isSyncing = false;
+        // TODO. Left here.
+        
+        // This should check for not found hour and simply delete only the observations without the hour
+        // from the local database. So the server error of hour not allowed should also 
+        // Include the hour that was found to have problems.
+
         // TODO. Notify network errors
         return AppAuthInterceptor.handleError(err);
       }),

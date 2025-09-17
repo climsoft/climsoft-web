@@ -22,6 +22,7 @@ import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 @Component({
   selector: 'app-form-entry',
@@ -354,7 +355,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       error: err => {
         // Important to log the error for tracing purposes
         console.log('error logged: ', err);
-        if (err.status === 0 || err.status === 504) {
+        if (AppAuthInterceptor.isKnownNetworkError(err)) {
           // If there is network error then save observations as unsynchronised and no need to send data to server
           this.pagesDataService.showToast({
             title: 'Data Entry', message: `${savableObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
