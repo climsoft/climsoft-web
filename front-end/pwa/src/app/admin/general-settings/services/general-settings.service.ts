@@ -57,8 +57,8 @@ export class GeneralSettingsService {
 
   public findOne(id: SettingIdEnum): Observable<CreateViewGeneralSettingModel | undefined> {
     return this.cachedGeneralSettings.pipe(
-      map(response => {
-        return response.find(item => item.id === id);
+      map(settings => {
+        return settings.find(item => item.id === id);
       })
     );
   }

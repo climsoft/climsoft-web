@@ -55,15 +55,13 @@ export class CachedMetadataSearchService {
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
-
-
     }
 
     private setMetadataLoaded(): void {
-        if (this._stationsMetadata
-            && this._elementsMetadata
-            && this._sourcesMetadata
-            && this._qcTestsMetadata
+        if (this._stationsMetadata  && this._stationsMetadata.length > 0
+            && this._elementsMetadata  && this._elementsMetadata.length > 0
+            && this._sourcesMetadata && this._sourcesMetadata.length > 0
+            && this._qcTestsMetadata && this._qcTestsMetadata.length > 0
             && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
@@ -86,6 +84,31 @@ export class CachedMetadataSearchService {
             }, 5000);
         }
         return this._allMetadataLoaded.asObservable();
+    }
+
+    public get stationsMetadata(): StationCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Stations metadata not yet loaded.');
+        return this._stationsMetadata;
+    }
+
+    public get elementsMetadata(): ElementCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Elements metadata not yet loaded.');
+        return this._elementsMetadata;
+    }
+
+    public get sourcesMetadata(): ViewSourceModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Sources metadata not yet loaded.');
+        return this._sourcesMetadata;
+    }
+
+    public get qcTestsMetadata(): QCTestCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. QC tests metadata not yet loaded.');
+        return this._qcTestsMetadata;
+    }
+
+    public get generalSettingsMetadata(): CreateViewGeneralSettingModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. General setings metadata not yet loaded.');
+        return this._generalSettingsMetadata;
     }
 
     public getStation(stationId: string): StationCacheModel {

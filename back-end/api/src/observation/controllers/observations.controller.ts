@@ -8,7 +8,6 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
-import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
@@ -48,23 +47,6 @@ export class ObservationsController {
   @Get('form-data')
   getFormData(@Query(AuthorisedStationsPipe) createObsevationQuery: EntryFormObservationQueryDto) {
     return this.observationsService.findFormData(createObsevationQuery);
-  }
-
-  // TODO. deprecate this handle
-  //@Get('correction-data')
-  //getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    //return this.observationsService.findCorrectionData(viewObsevationQuery);
-    //return this.observationsService.findProcessed(viewObsevationQuery);
-  //}
-
-  //@Get('count-correction-data')
-  //countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-  //  return this.observationsService.count(viewObsevationQuery);
-  //}
-
-  @Get('log')
-  getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
-    return this.observationsService.findObservationLog(viewObsevationQuery);
   }
 
   @Get('stations-observation-status')

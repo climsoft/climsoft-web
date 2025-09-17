@@ -50,11 +50,8 @@
                     </div>
                 </div>
 
-                <div *ngIf="activeTab === 'history'">
-                    <div *ngIf="viewObservationLog.length <= 1" class="p-4">
-                        No History
-                    </div>
-                    <div *ngIf="viewObservationLog.length > 1">
+                <div *ngIf="activeTab === 'history'"> 
+                    <div *ngIf="viewObservationLog">
                         <table class="table table-striped table-hover">
                             <thead>
                                 <tr>
@@ -63,7 +60,8 @@
                                     <th>QC Status</th>
                                     <th>Comment</th>
                                     <th>Deleted</th>
-                                    <th>User Email</th>
+                                    <th>Entry User Name</th>
+                                    <th>Entry User Email</th>
                                     <th>Entry Time</th>
                                 </tr>
                             </thead>
@@ -77,6 +75,7 @@
                                         <app-check-box-input [id]="row.entryDateTime" [disabled]="true"
                                             [value]="row.deleted" />
                                     </td>
+                                     <td>{{row.entryUserName}}</td>
                                     <td>{{row.entryUserEmail}}</td>
                                     <td>{{ row.entryDateTime }}</td>
                                 </tr>

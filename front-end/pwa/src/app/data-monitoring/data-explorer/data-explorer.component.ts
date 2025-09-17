@@ -5,13 +5,10 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ActivatedRoute } from '@angular/router';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
 
 interface ObservationEntry {

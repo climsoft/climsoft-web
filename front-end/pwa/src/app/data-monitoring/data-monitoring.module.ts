@@ -13,6 +13,7 @@ import { StationStatusQuerySelectionComponent } from './station-status/station-s
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { DataAvailabilityComponent } from './data-availability/data-availability.component';
 import { DataAvailabilityQuerySelectionComponent } from './data-availability/data-availability-query-selection/data-availability-query-selection.component';
+import { DataAvailabilityOptionsDialogComponent } from './data-availability/data-availability-options-dialog/data-availability-options-dialog.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { DataAvailabilityQuerySelectionComponent } from './data-availability/dat
     DataFlowQuerySelectionComponent,
     DataAvailabilityComponent,
     DataAvailabilityQuerySelectionComponent,
+    DataAvailabilityOptionsDialogComponent,
     DataExplorerComponent,
   ],
   imports: [

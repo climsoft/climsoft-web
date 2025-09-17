@@ -7,6 +7,7 @@
                 <th>Level</th>
                 <th>Date Time</th>
                 <th>Interval</th>
+                <th>Source</th>
                 <th *ngFor="let elementAbbrv of elementColumns">{{ elementAbbrv }}</th>
             </tr>
         </thead>
@@ -14,8 +15,7 @@
             <tr *ngFor="let groupedEntryKV of groupedEntries | keyvalue; let firstIndex = index;">
                 <td>{{ firstIndex + 1 }}</td>
                 <td>
-                    {{ groupedEntryKV.value[0].obsDef.observation.stationId + '-' + groupedEntryKV.value[0].stationName
-                    }}
+                    {{ groupedEntryKV.value[0].obsDef.observation.stationId + '-' + groupedEntryKV.value[0].stationName }}
                 </td>
                 <td>
                     {{ groupedEntryKV.value[0].obsDef.observation.level }}
@@ -25,6 +25,9 @@
                 </td>
                 <td>
                     {{ groupedEntryKV.value[0].intervalName }}
+                </td>
+                <td>
+                    {{ groupedEntryKV.value[0].sourceName }}
                 </td>
                 <td *ngFor="let elementAbbrv of elementColumns ; let secondIndex = index;">
                     <div *ngIf="getObservation(elementAbbrv, groupedEntryKV.value) as ev"

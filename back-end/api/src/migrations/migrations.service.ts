@@ -77,9 +77,7 @@ export class MigrationsService {
     await this.seedTriggers();
     await this.seedFirstUser();
     await this.seedMetadata();
-
-    // Default general settings
-    await this.generalSettingsService.bulkPut(GeneralSettingsDefaults.GENERAL_SETTINGS, 1);
+    await this.seedGeneralSettings();
   }
 
   private async seedTriggers() {
@@ -91,7 +89,7 @@ export class MigrationsService {
   private async seedFirstUser() {
     const count = await this.userService.count();
     if (count === 0) {
-      const newUser = await this.userService.createUser(
+      const newUser = await this.userService.create(
         {
           name: "admin",
           email: "admin@climsoft.org",
@@ -110,7 +108,7 @@ export class MigrationsService {
     }
   }
 
-  public async seedMetadata() {
+  private async seedMetadata() {
     let count: number;
     // Elements metadata
     count = await this.elementSubdomainsService.count();
@@ -140,6 +138,13 @@ export class MigrationsService {
 
   }
 
-
+  private async seedGeneralSettings() {
+    // Default general settings
+    const count: number = await this.generalSettingsService.count();
+    if (count === 0) {
+      await this.generalSettingsService.bulkPut(GeneralSettingsDefaults.GENERAL_SETTINGS, 1);
+      this.logger.log('general settings added');
+    }
+  }
 
 }

@@ -78,6 +78,7 @@ export class DeletedDataComponent implements OnDestroy {
   protected onQueryClick(observationFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
     this.queryFilter = observationFilter;
+    this.queryFilter.deleted = true;
     this.queryData();
   }
 

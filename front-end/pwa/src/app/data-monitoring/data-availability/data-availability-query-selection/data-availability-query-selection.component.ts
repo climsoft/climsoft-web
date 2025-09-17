@@ -85,9 +85,8 @@ export class DataAvailabilityQuerySelectionComponent implements OnDestroy {
       case 'Years':
         this.dataAvailabilityFilter.durationType = 'years';
         break;
-      default:
-        // TODO. developer error
-        break;
+      default: 
+        throw new Error('Developer error. Duration option not supported.');
     }
   }
 
