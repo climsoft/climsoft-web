@@ -56,14 +56,17 @@ export class AppAuthInterceptor implements HttpInterceptor {
   public static handleError(err: HttpErrorResponse) {
     if (AppAuthInterceptor.isKnownNetworkError(err)) {
       // A client-side or network error occurred. Handle it accordingly.
-      console.log('A known network error was detected');
+      console.log(`Network error ${err.status} was detected`);
+      // Return an observable with a user-facing error message.
+      return throwError(() => new Error(`Network error ${err.status} was detected`));
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong.
       console.log(`Backend returned code ${err.status}, body was: `, err.error);
+      // Return an observable with a user-facing error message.
+      return throwError(() => new Error('Something bad happened. Please try again later'));
     }
-    // Return an observable with a user-facing error message.
-    return throwError(() => new Error('Something bad happened. please try again later.'));
+
   }
 
   public static isKnownNetworkError(err: HttpErrorResponse): boolean {

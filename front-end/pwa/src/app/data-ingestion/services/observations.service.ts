@@ -206,15 +206,6 @@ export class ObservationsService {
     );
   }
 
-  /**
-   * Saves observations to the local database and counts the number of unsynced observations
-   * @param observations 
-   * @param synced 
-   */
-  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
-    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
-    this.countUnsyncedObservationsAndRaiseNotification();
-  }
 
   public async syncObservations() {
     // If sync process is still on going then just return
@@ -244,14 +235,24 @@ export class ObservationsService {
       take(1),
       catchError(err => {
         this.isSyncing = false;
-        // TODO. Left here.
-        
-        // This should check for not found hour and simply delete only the observations without the hour
-        // from the local database. So the server error of hour not allowed should also 
-        // Include the hour that was found to have problems.
 
-        // TODO. Notify network errors
-        return AppAuthInterceptor.handleError(err);
+        // If its a bad request with a returned dto
+        if (err.status === 400 && err.error.dto) {
+          console.log('data checking message: ', err.error.message, 'deleting dto: ', err.error.dto);
+          const obsWithError: CreateObservationModel = err.error.dto;
+          AppDatabase.instance.observations.delete([
+            obsWithError.stationId,
+            obsWithError.elementId,
+            obsWithError.sourceId,
+            obsWithError.level,
+            obsWithError.datetime,
+            obsWithError.interval]);
+          // Attempt to resync the rest of the observations
+          this.syncObservations();
+          return throwError(() => new Error('A locally saved data could not be saved by the server'));
+        } else {
+          return AppAuthInterceptor.handleError(err);
+        }
       }),
     ).subscribe(response => {
       // Server will send {message: success} when there is no error
@@ -266,6 +267,16 @@ export class ObservationsService {
       }
     });
 
+  }
+
+  /**
+ * Saves observations to the local database and counts the number of unsynced observations
+ * @param observations 
+ * @param synced 
+ */
+  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
+    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
+    this.countUnsyncedObservationsAndRaiseNotification();
   }
 
   private async countUnsyncedObservationsAndRaiseNotification(): Promise<number> {
