@@ -4,6 +4,7 @@ import { Observable, catchError, concat, from, map, take, tap, throwError } from
 import { ViewSourceModel } from '../../source-templates/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -97,9 +98,9 @@ export class StationFormsService {
   // TODO. Push to another class 
   private handleError(error: HttpErrorResponse
   ) {
-    if (error.status === 0) {
+    if (AppAuthInterceptor.isKnownNetworkError(error)) {
       // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error);
+       console.log('A known network error was detected');
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong.

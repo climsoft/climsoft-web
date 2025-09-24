@@ -122,7 +122,7 @@ export class ObservationsService {
           }
         }),
         catchError(err => {
-          if (err.status === 0 || err.status === 504) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             // For network errors. Always attempt fetching data locally
             console.warn('Network error detected. Fetching data locally.');
             return from(this.fetchObservationsLocally(entryFormObsQuery));
@@ -197,7 +197,7 @@ export class ObservationsService {
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          if (err.status === 0 || err.status === 504) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             console.warn('saving unsynced data locally');
             this.saveDataToLocalDatabase(observations, 'false');
           }
@@ -206,15 +206,6 @@ export class ObservationsService {
     );
   }
 
-  /**
-   * Saves observations to the local database and counts the number of unsynced observations
-   * @param observations 
-   * @param synced 
-   */
-  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
-    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
-    this.countUnsyncedObservationsAndRaiseNotification();
-  }
 
   public async syncObservations() {
     // If sync process is still on going then just return
@@ -244,8 +235,24 @@ export class ObservationsService {
       take(1),
       catchError(err => {
         this.isSyncing = false;
-        // TODO. Notify network errors
-        return AppAuthInterceptor.handleError(err);
+
+        // If its a bad request with a returned dto
+        if (err.status === 400 && err.error.dto) {
+          console.log('data checking message: ', err.error.message, 'deleting dto: ', err.error.dto);
+          const obsWithError: CreateObservationModel = err.error.dto;
+          AppDatabase.instance.observations.delete([
+            obsWithError.stationId,
+            obsWithError.elementId,
+            obsWithError.sourceId,
+            obsWithError.level,
+            obsWithError.datetime,
+            obsWithError.interval]);
+          // Attempt to resync the rest of the observations
+          this.syncObservations();
+          return throwError(() => new Error('A locally saved data could not be saved by the server'));
+        } else {
+          return AppAuthInterceptor.handleError(err);
+        }
       }),
     ).subscribe(response => {
       // Server will send {message: success} when there is no error
@@ -260,6 +267,16 @@ export class ObservationsService {
       }
     });
 
+  }
+
+  /**
+ * Saves observations to the local database and counts the number of unsynced observations
+ * @param observations 
+ * @param synced 
+ */
+  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
+    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
+    this.countUnsyncedObservationsAndRaiseNotification();
   }
 
   private async countUnsyncedObservationsAndRaiseNotification(): Promise<number> {
