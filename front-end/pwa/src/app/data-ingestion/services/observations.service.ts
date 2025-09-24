@@ -17,7 +17,7 @@ import { LastStationActivityObservation } from '../models/last-station-activity-
 import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
 import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
 import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
-import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary.model';
+import { DataAvailabilitySummaryModel } from '../models/data-availability-summary.model';
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
 import { QCStatusEnum } from '../models/qc-status.enum';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
@@ -111,6 +111,9 @@ export class ObservationsService {
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {
+            // Delete any of the received data in the local database.
+            // Note, this will only delete observations that are from the server
+            this.deleteDataFromLocalDatabase(observations);
             return of(observations);
           } else {
             // If no server data then this could mean it has either;
@@ -193,7 +196,12 @@ export class ObservationsService {
           // Note, the form will not display data that is being synced until it gets saved in the server
           // Users should be aware that they will have to wait for the syncing to finish. 
           // So navigating away from the form then back will display the data
-          if (response.message === 'success') this.syncObservations();
+          if (response.message === 'success') { 
+            // Always attempt to delete any cached data, this is very useful if previous value was cached due to network issues
+            this.deleteDataFromLocalDatabase(observations);
+            // then attempt syncing of any local data.
+            this.syncObservations();
+          }
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
@@ -238,15 +246,12 @@ export class ObservationsService {
 
         // If its a bad request with a returned dto
         if (err.status === 400 && err.error.dto) {
+          // If the error relates to dto then delete the dto. 
+          // Form parameters may have been changed and this makes the data stale
           console.log('data checking message: ', err.error.message, 'deleting dto: ', err.error.dto);
           const obsWithError: CreateObservationModel = err.error.dto;
-          AppDatabase.instance.observations.delete([
-            obsWithError.stationId,
-            obsWithError.elementId,
-            obsWithError.sourceId,
-            obsWithError.level,
-            obsWithError.datetime,
-            obsWithError.interval]);
+          this.deleteDataFromLocalDatabase([obsWithError]);
+
           // Attempt to resync the rest of the observations
           this.syncObservations();
           return throwError(() => new Error('A locally saved data could not be saved by the server'));
@@ -277,6 +282,21 @@ export class ObservationsService {
   private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
     await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
     this.countUnsyncedObservationsAndRaiseNotification();
+  }
+
+  
+  private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]){
+    //Key is [stationId+elementId+sourceId+level+datetime+interval]
+    const observationKeys: [string, number,number,number,string,number][] = observations.map(obs => {
+      return [
+            obs.stationId,
+            obs.elementId,
+            obs.sourceId,
+            obs.level,
+            obs.datetime,
+            obs.interval];
+    });
+    await AppDatabase.instance.observations.bulkDelete(observationKeys);
   }
 
   private async countUnsyncedObservationsAndRaiseNotification(): Promise<number> {
@@ -343,8 +363,8 @@ export class ObservationsService {
       );
   }
 
-  public findDataAvailabilitySummary(query: DataAvailabilityQueryModel): Observable<DataAvailabilitySummaryQueryModel[]> {
-    return this.http.get<DataAvailabilitySummaryQueryModel[]>(
+  public findDataAvailabilitySummary(query: DataAvailabilityQueryModel): Observable<DataAvailabilitySummaryModel[]> {
+    return this.http.get<DataAvailabilitySummaryModel[]>(
       `${this.endPointUrl}/data-availability-summary`,
       { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
     )

@@ -12,7 +12,7 @@ import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
+import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
@@ -453,13 +453,15 @@ export class ObservationsService {
         return results;
     }
 
-    public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+    public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let extractSQL: string = '';
         let extraSQLCondition: string = '';
         let groupAndOrderBySQL: string = '';
 
-        if (dataAvailabilityQuery.stationIds && dataAvailabilityQuery.stationIds.length > 0) {
+        if ( dataAvailabilityQuery.stationIds.length > 0) {
             extraSQLCondition = `${extraSQLCondition} station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')}) AND `;
+        }else{
+            throw new BadRequestException('station(s) must be selected');
         }
 
         if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
@@ -474,9 +476,13 @@ export class ObservationsService {
             extraSQLCondition = `${extraSQLCondition} interval = ${dataAvailabilityQuery.interval} AND `;
         }
 
-        if (dataAvailabilityQuery.excludeMissingValues) {
+        if (dataAvailabilityQuery.excludeConfirmedMissing) {
             extraSQLCondition = `${extraSQLCondition} value IS NOT NULL AND `;
         }
+
+
+            // TODO. LEFT HERE
+            
 
         let year: number;
         let month: number;
@@ -485,6 +491,10 @@ export class ObservationsService {
 
         const utcOffset: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
         const strTimeZone: string = `'UTC+${utcOffset}'`;
+
+        
+    
+
 
         switch (dataAvailabilityQuery.durationType) {
             case 'days_of_month':

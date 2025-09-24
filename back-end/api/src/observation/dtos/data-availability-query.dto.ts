@@ -1,8 +1,15 @@
 import { Transform, Type } from "class-transformer";
-import { IsInt, IsOptional, IsString } from "class-validator";
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
-export class DataAvailabilitySummaryQueryDto {
+export enum DurationTypeEnum {
+    DAY,
+    MONTH,
+    YEAR,
+    YEARS,
+}
+
+export class DataAvailabilityQueryDto {
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({ each: true })
     stationIds: string[];
@@ -11,6 +18,7 @@ export class DataAvailabilitySummaryQueryDto {
     @IsInt({ each: true })
     elementIds: number[];
 
+    @IsOptional()
     @IsInt()
     interval: number;
 
@@ -22,21 +30,31 @@ export class DataAvailabilitySummaryQueryDto {
     @IsOptional()
     @Type(() => String) // Required to stop transformer from converting the value type to boolean
     @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
-    excludeMissingValues?: boolean;
+    excludeConfirmedMissing?: boolean;
 
-    @IsString()
-    durationType: 'days_of_month' | 'months_of_year' | 'years';
+    @IsEnum(DurationTypeEnum, { message: 'duration must be a valid DurationTypeEnum value' })
+    durationType: DurationTypeEnum;
 
-    @IsOptional()
-    @IsString()
-    durationDaysOfMonth?: string; // 2025-01
+    @IsDateString()
+    fromDate: string;
 
-    @IsOptional()
-    @IsInt()
-    durationMonthsOfYear?: number; // 2025
+    @IsDateString()
+    toDate: string;
 
-    @IsOptional()
-    @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
-    @IsInt({ each: true })
-    durationYears?: number[]; // [2025,2024,2023]
+
+
+
+    // @IsOptional()
+    // @IsString()
+    // durationDaysOfMonth?: string; // 2025-01
+
+    // @IsOptional()
+    // @IsInt()
+    // durationMonthsOfYear?: number; // 2025
+
+    // @IsOptional()
+    // @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    // @IsInt({ each: true })
+    // durationYears?: number[]; // [2025,2024,2023]
 }
+

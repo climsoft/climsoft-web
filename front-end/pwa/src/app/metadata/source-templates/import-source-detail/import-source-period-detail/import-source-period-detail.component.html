@@ -9,7 +9,7 @@
         <app-number-input *ngIf="periodDefinition.columnPosition !== undefined"
             [label]="'Column Position (values in minutes)'" [(numValue)]="periodDefinition.columnPosition" />
 
-        <app-period-single-input *ngIf="periodDefinition.defaultInterval !== undefined" [label]="'Default Interval'"
+        <app-interval-selector-single *ngIf="periodDefinition.defaultInterval !== undefined" [label]="'Default Interval'"
             [selectedId]="periodDefinition.defaultInterval" (selectedIdChange)="onPeriodSelected($event)" />
 
     </div>

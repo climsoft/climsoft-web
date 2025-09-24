@@ -1,57 +1,48 @@
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { DataAvailabilityQueryModel } from './models/data-availability-query.model';
+import { DataAvailabilityQueryModel, DurationTypeEnum } from './models/data-availability-query.model';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { DataAvailabilityOptionsDialogComponent } from './data-availability-options-dialog/data-availability-options-dialog.component';
+import { DataAvailabilityDetailsDialogComponent } from './data-availability-details-dialog/data-availability-details-dialog.component';
 
 @Component({
   selector: 'app-data-availability',
   templateUrl: './data-availability.component.html',
   styleUrls: ['./data-availability.component.scss']
 })
-export class DataAvailabilityComponent implements OnDestroy {
-    //@ViewChild('appDataAvailabilityOptionsDialog') dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
+export class DataAvailabilityComponent implements OnInit, OnDestroy {
+  @ViewChild('appDataAvailabilityDetailsDialog') dataAvailabilityDetailsDialogComponent!: DataAvailabilityDetailsDialogComponent;
 
   protected enableQueryButton: boolean = true;
-  private dataAvailabilityFilter!: DataAvailabilityQueryModel;
-  private stations!: StationCacheModel[];
+  private filter!: DataAvailabilityQueryModel;
+  private allStations!: StationCacheModel[];
   private chartInstance!: echarts.ECharts;
-  private stationRendered!: StationCacheModel[];
-  private dateValues!: number[];
-  private utcOffset: number = 0;
-  private user!: LoggedInUserModel;
-  protected openDialog: boolean = false;
+  private stationsRendered!: StationCacheModel[];
+  private datesRendered!: number[];
+  private utcOffset!: number;
+
+  private heatMapDateValues!: string[]; // Used by heatmap chart to show labels in the x-axis
+  private heatMapStationValues!: string[];// Used by heatmap chart to show labels in the y-axis
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private appAuthService: AppAuthService,
-    private observationService: ObservationsService, 
+    private observationService: ObservationsService,
     private cachedMetadataSearchService: CachedMetadataSearchService,
-    private router: Router,
+    private route: ActivatedRoute,
   ) {
+
     this.pagesDataService.setPageHeader('Data Availability');
-
-    this.appAuthService.user.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(user => {
-      if (!user) {
-        throw new Error('User not logged in');
-      }
-
-      this.user = user;
-    });
 
     // Get the climsoft time zone display setting
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
@@ -59,9 +50,39 @@ export class DataAvailabilityComponent implements OnDestroy {
     ).subscribe((allMetadataLoaded) => {
       if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.stations = this.cachedMetadataSearchService.stationsMetadata;
+      this.allStations = this.cachedMetadataSearchService.stationsMetadata;
     });
 
+  }
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      if (params.keys.length === 0) return;
+
+      const stationIds: string[] = params.getAll('stationIds');
+      const elementIds: string[] = params.getAll('elementIds');
+      const intervals: string[] = params.getAll('interval');
+      const level: string | null = params.get('level');
+      const excludeConfirmedMissing: string | null = params.get('durationType');
+      const durationType: string | null = params.get('durationType');
+      const fromDate: string | null = params.get('fromDate');
+      const toDate: string | null = params.get('toDate');
+
+      // const newFilter: DataAvailabilityQueryModel = { 
+      //   stationIds: stationIds,
+
+      //  };
+
+      // if (stationIds.length > 0) newFilter.stationIds = stationIds;
+      // if (elementIds.length > 0) newFilter.elementIds = elementIds.map(Number);
+      // if (intervals.length > 0) newFilter.interval = intervals.map(Number);
+      // if (level) newFilter.level = parseInt(level, 10);
+      // if (fromDate) newFilter.fromDate = fromDate;
+      // if (toDate) newFilter.toDate = toDate;
+
+      //this.filter = newFilter;
+      //this.queryData();
+    });
   }
 
   ngOnDestroy(): void {
@@ -74,41 +95,49 @@ export class DataAvailabilityComponent implements OnDestroy {
 
   protected onQueryClick(newDataAvailabilityFilter: DataAvailabilityQueryModel): void {
     this.enableQueryButton = false;
-    this.dataAvailabilityFilter = newDataAvailabilityFilter;
+    this.filter = newDataAvailabilityFilter;
 
-    this.observationService.findDataAvailabilitySummary(this.dataAvailabilityFilter).pipe(
+    this.observationService.findDataAvailabilitySummary(this.filter).pipe(
       take(1)
     ).subscribe({
       next: data => {
         //console.log('al data', data)
-        this.stationRendered =
-          this.dataAvailabilityFilter.stationIds.length > 0 ?
-            this.stations.filter(station => this.dataAvailabilityFilter.stationIds.includes(station.id)) : this.stations;
+        this.enableQueryButton = true;
+        this.stationsRendered = this.allStations.filter(station => this.filter.stationIds.includes(station.id));
+        this.heatMapStationValues = this.stationsRendered.map(item => `${item.id} - ${item.name}`);
+        this.datesRendered = [];
+        let dateToolTipPrefix: string; // Used by heat map chart (cell) tooltip for x-axis prefix 
 
-        const strStationValues: string[] = this.stationRendered.map(item => `${item.id} - ${item.name}`);// Used by heatmap chart to show labels in the y-axis
-        this.dateValues = [];
-        let strDateValues: string[]; // Used by heatmap chart to show labels in the x-axis
-        let dateToolTipPrefix: string; // Used by heat map chart tooltip for x-axis prefix
-        switch (this.dataAvailabilityFilter.durationType) {
-          case 'days_of_month':
-            const [year, month] = this.dataAvailabilityFilter.durationDaysOfMonth.split('-').map(Number);
-            const daysInMonth = new Date(year, month, 0).getDate(); // day 0 of next month = last day of this month
-            this.dateValues = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-            // Populate strDateValues with "1-Wed", "2-Thu", etc.
-            strDateValues = this.dateValues.map(day => {
-              const date = new Date(year, month - 1, day); // month is 0-based
+        const fromDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.fromDate, this.utcOffset, 'add').split('T')[0];
+        const toDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.toDate, this.utcOffset, 'add').split('T')[0];
+        const [fromYear, fromMonth, fromDay] = fromDate.split('-').map(Number);
+        switch (this.filter.durationType) {
+          case DurationTypeEnum.DAY:
+            this.datesRendered = Array.from({ length: 24 }, (_, i) => i);
+            this.heatMapDateValues = this.datesRendered.map(hour => {
+              return `${StringUtils.addLeadingZero(hour)}`;
+            });
+            dateToolTipPrefix = 'Hour';
+            break;
+          case DurationTypeEnum.MONTH:
+            const daysInMonth = new Date(fromYear, fromMonth, 0).getDate(); // day 0 of next month = last day of this month
+            this.datesRendered = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+            // Populate with "1-Wed", "2-Thu", etc.
+            this.heatMapDateValues = this.datesRendered.map(day => {
+              const date = new Date(fromYear, fromMonth - 1, day); // month is 0-based
               const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g., "Mon", "Tue"
               return `${day}\n${weekday}`;
             });
 
             dateToolTipPrefix = 'Day';
             break;
-          case 'months_of_year':
-            this.dateValues = Array.from({ length: 12 }, (_, i) => i + 1);
+          case DurationTypeEnum.YEAR:
+            this.datesRendered = Array.from({ length: 12 }, (_, i) => i + 1);
 
-            // Populate strDateValues with "1-Jan", "2-Feb", etc.
-            strDateValues = this.dateValues.map(month => {
+            // Populate with "1-Jan", "2-Feb", etc.
+            this.heatMapDateValues = this.datesRendered.map(month => {
               const date = new Date(2025, month - 1); // use any year, just to get month name
               const monthName = date.toLocaleDateString('en-US', { month: 'short' });
               return `${month}\n${monthName}`;
@@ -116,9 +145,15 @@ export class DataAvailabilityComponent implements OnDestroy {
 
             dateToolTipPrefix = 'Month';
             break;
-          case 'years':
-            this.dateValues = this.dataAvailabilityFilter.durationYears;
-            strDateValues = this.dateValues.map(item => item.toString());
+          case DurationTypeEnum.YEARS:
+            this.datesRendered = [];
+            const toYear: number = Number(toDate.split('-')[0]);
+
+            for (let i: number = fromYear; i <= toYear; i++) {
+              this.datesRendered[i];
+            }
+
+            this.heatMapDateValues = this.datesRendered.map(String);
             dateToolTipPrefix = 'Year';
             break;
           default:
@@ -132,12 +167,12 @@ export class DataAvailabilityComponent implements OnDestroy {
         let maxValue: number = 0
         for (const recordCountData of data) {
 
-          const dateValueIndex = this.dateValues.findIndex(dateValue => dateValue === recordCountData.dateValue);
+          const dateValueIndex = this.datesRendered.findIndex(dateValue => dateValue === recordCountData.dateValue);
           if (dateValueIndex === -1) {
             continue;
           }
 
-          const stationIndex = this.stationRendered.findIndex(station => station.id === recordCountData.stationId);
+          const stationIndex = this.stationsRendered.findIndex(station => station.id === recordCountData.stationId);
           if (stationIndex === -1) {
             continue;
           }
@@ -149,15 +184,12 @@ export class DataAvailabilityComponent implements OnDestroy {
           }
         }
 
-        this.generateChart(strDateValues, strStationValues, chartData, maxValue, dateToolTipPrefix);
+        this.generateChart(this.heatMapDateValues, this.heatMapStationValues, chartData, maxValue, dateToolTipPrefix);
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Flow', message: err, type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Data Availability', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
       },
-      complete: () => {
-        this.enableQueryButton = true;
-      }
     });
   }
 
@@ -204,7 +236,7 @@ export class DataAvailabilityComponent implements OnDestroy {
             return value.length > 27 ? value.slice(0, 24) + '…' : value;
           },
           overflow: 'truncate', // could also try 'break', 'none', or 'breakAll'
-        },    
+        },
       },
       dataZoom: [
         {
@@ -264,102 +296,83 @@ export class DataAvailabilityComponent implements OnDestroy {
     // Add click handler
     this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
     this.chartInstance.on('click', (params: any) => {
-      //console.log('click happened', params);
 
-      if (params.componentType === 'series') {
-        const dateIndex = params.value[0];    // x-axis index (date)
-        const stationIndex = params.value[1]; // y-axis index (station)
-        //const value = params.value[2]; // value
-        const stationId: string = this.stationRendered[stationIndex].id; // stations[stationIndex].split(' ')[0];
-        const dateComponent: number = Number(this.dateValues[dateIndex]);
-        //console.log(`Clicked cell - Station: ${stationId}, Date: ${dateComponent}`);
-        this.showVariables(stationId, dateComponent);
-      }else if (params.componentType === 'xAxis' ) {
-        //console.log('Clicked xAxis label:', params.value);
-        // Add your custom logic here, e.g., open a new page, filter data
-        // window.open('https://example.com/day/' + params.value);
-      } else if (params.componentType === 'yAxis' ) {
-        //console.log('Clicked yAxis label:', params.value);
-        // Add your custom logic here
+
+      const detailsDialogFilter: DataAvailabilityQueryModel = { ...this.filter };
+      let dateIndex: number;
+      let stationIndex: number;
+      let stationId: string;
+      let dateValue: number
+      switch (params.componentType) {
+        case 'series':
+          dateIndex = params.value[0];    // x-axis index (date)
+          stationIndex = params.value[1]; // y-axis index (station) 
+          stationId = this.stationsRendered[stationIndex].id;
+          dateValue = this.datesRendered[dateIndex];
+          console.log(`Clicked cell - Station: ${stationId}, Date: ${dateValue}`);
+
+          detailsDialogFilter.stationIds = [stationId];
+
+          console.log('Clicked series value:', params.value);
+
+          this.changeDates(detailsDialogFilter, dateValue);
+          break;
+        case 'xAxis':
+          console.log('Clicked xAxis value:', params.value);
+          dateIndex = this.heatMapDateValues.indexOf(params.value)
+          dateValue = this.datesRendered[dateIndex];
+          console.log('Clicked date:', dateValue);
+
+          this.changeDates(detailsDialogFilter, dateValue);
+          break;
+
+        case 'yAxis':
+          console.log('Clicked yAxis value:', params.value);
+          stationIndex = this.heatMapStationValues.indexOf(params.value)
+          stationId = this.stationsRendered[stationIndex].id;
+          console.log('Clicked station id:', stationId);
+
+          detailsDialogFilter.stationIds = [stationId];
+          break;
+        default:
+          return;
       }
-      // TODO. Left here
-      //this.openDialog = true;
+
+
+      this.dataAvailabilityDetailsDialogComponent.showDialog(detailsDialogFilter);
+
     });
 
 
   }
 
-  protected onOptionClicked(option: 'view_data'|'drill_down'): void{
+  private changeDates(detailsDialogFilter: DataAvailabilityQueryModel, dateValue: number): void {
+    let fromDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(detailsDialogFilter.fromDate, this.utcOffset, 'add'));
+    let toDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(detailsDialogFilter.toDate, this.utcOffset, 'add'));
 
-  }
-
-  private showVariables(stationId: string, dateComponent: number) {
-    let fromDate: string;
-    let toDate: string;
-    switch (this.dataAvailabilityFilter.durationType) {
-      case 'days_of_month':
-        fromDate = `${this.dataAvailabilityFilter.durationDaysOfMonth}-${StringUtils.addLeadingZero(dateComponent)}`;
-        toDate = fromDate;
+    switch (this.filter.durationType) {
+      case DurationTypeEnum.DAY:
+        fromDate.setUTCHours(dateValue);
+        toDate.setUTCHours(dateValue);
         break;
-      case 'months_of_year':
-        const year: number = this.dataAvailabilityFilter.durationMonthsOfYear;
-        const daysInMonth = new Date(year, dateComponent, 0).getDate(); // day 0 of next month = last day of this month
-        const strMonthValue = StringUtils.addLeadingZero(dateComponent);
-        fromDate = `${year}-${strMonthValue}-01`;
-        toDate = `${year}-${strMonthValue}-${daysInMonth}`;
+      case DurationTypeEnum.MONTH:
+        fromDate.setUTCDate(dateValue);
+        toDate.setUTCDate(dateValue);
         break;
-      case 'years':
-        fromDate = `${dateComponent}-01-01`;
-        toDate = `${dateComponent}-12-31`;
+      case DurationTypeEnum.YEAR:
+        fromDate.setUTCMonth(dateValue - 1);
+        toDate.setUTCMonth(dateValue - 1);
+        break;
+      case DurationTypeEnum.YEARS:
+        fromDate.setUTCFullYear(dateValue);
+        toDate.setUTCFullYear(dateValue);
         break;
       default:
         throw new Error('Developer error. Duration type not supported');
     }
 
-    const viewFilter: ViewObservationQueryModel = {};
-
-    // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-    // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-    viewFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
-    viewFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00Z`, this.utcOffset, 'subtract');
-
-    viewFilter.stationIds = [stationId];
-
-    if (this.dataAvailabilityFilter.elementIds && this.dataAvailabilityFilter.elementIds.length > 0) {
-      viewFilter.elementIds = this.dataAvailabilityFilter.elementIds;
-    }
-
-    if (this.dataAvailabilityFilter.interval) {
-      viewFilter.intervals = [this.dataAvailabilityFilter.interval]
-    }
-
-    if (this.dataAvailabilityFilter.level !== undefined) {
-      viewFilter.level = this.dataAvailabilityFilter.level
-    }
-
-    let componentPath: string = '';
-    if (this.user.isSystemAdmin) {
-      // For admins just open data correction
-      componentPath = 'data-ingestion/data-correction';
-    } else if (this.user.permissions) {
-      if (this.user.permissions.entryPermissions) {
-        // If user has correction permissions then just open data correction      
-        componentPath = 'data-ingestion/data-correction';
-      } else if (this.user.permissions.ingestionMonitoringPermissions) {
-        // If user has monitorig permissions then just open data explorer 
-        componentPath = '/data-monitoring/data-explorer';
-      }
-    }
-
-    if (componentPath) {
-      const serialisedUrl = this.router.serializeUrl(
-        this.router.createUrlTree([componentPath], { queryParams: viewFilter })
-      );
-
-      window.open(serialisedUrl, '_blank');
-    }
-
-
+    detailsDialogFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(fromDate.toISOString(), this.utcOffset, 'subtract');
+    detailsDialogFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.utcOffset, 'subtract');
   }
 
 }

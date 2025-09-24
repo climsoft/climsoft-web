@@ -1,0 +1,54 @@
+<app-dialog [(open)]="open" [title]="'Data Availability Details'" [displayOkOption]="false"
+    [displayDeleteOption]="false" [displayCancelOption]="true" [cancelButtonLabel]="'Close'">
+    <div *ngIf="open" class="card border-0 p-0">
+        <div class="card-header d-flex justify-content-end align-items-center align-items-center px-1 py-0">
+            <div class="d-flex align-items-center">
+                <div *ngIf="detailsAvailabilityFilter.durationType !== durationTypeEnum.DAY">
+                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="drillDown()">
+                        Drill Down
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="viewData()">
+                        View Data
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        <div class="card-body px-0">
+            <div class="app-table-container" style="height: 80vh;">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th>Station</th>
+                            <th>Element</th>
+                            <th>From Date</th>
+                            <th>To Date</th>
+                            <th>Expected</th>
+                            <th>Non-Missing</th>
+                            <th>Confirmed Missing</th>
+                            <th>Gaps</th>
+                            <th>Gaps + Missing</th>
+                            <th>QC Fails</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let detail of availabilityDetails" class="app-cursor-pointer">
+                            <td> {{ detail.stationId + ' - ' + detail.stationName }} </td>
+                            <td> {{ detail.elementId + ' - ' + detail.elementAbbrv }} </td>
+                            <td> {{ detail.fromDate }} </td>
+                            <td> {{ detail.toDate }} </td>
+                            <td> {{ detail.expected }} </td>
+                            <td> {{ detail.nonMissing }} </td>
+                            <td> {{ detail.confirmedMissing }} </td>
+                            <td> {{ detail.gaps }} </td>
+                            <td> {{ detail.gapsNMissing }} </td>
+                            <td> {{ detail.qcFails }} </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</app-dialog>

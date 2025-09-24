@@ -22,7 +22,7 @@ import { SelectorSingleInputComponent } from './controls/selector-input/selector
 
 import { HourSingleInputComponent } from './controls/hour-input/hour-single-input/hour-single-input.component';
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
-import { IntervalSingleInputComponent } from './controls/period-input/interval-single-input/interval-single-input.component';
+import { IntervalSelectorSingleComponent } from './controls/period-input/interval-selector-single/interval-selector-single.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
@@ -71,7 +71,7 @@ const controlsComponents = [
   HourSingleInputComponent,
   HourMultipleInputComponent,
   YearMonthInputComponent,
-  IntervalSingleInputComponent,
+  IntervalSelectorSingleComponent,
   
   DropDownButtonComponent,    
   ElementDomainSingleInputComponent,  
