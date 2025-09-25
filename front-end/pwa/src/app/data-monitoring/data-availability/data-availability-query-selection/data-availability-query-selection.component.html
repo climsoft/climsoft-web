@@ -26,13 +26,14 @@
                 <div class="col-auto mb-2">
                     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'availabilityDuration'"
                         [groupItems]=" [
-                        { label:'Day', checked: true },  
-                        { label:'Month', checked: false },  
-                        { label:'Year', checked: false},
-                        { label:'Years', checked: false}
+                        { label:'Day', checked: durationType === durationTypeEnum.DAY },  
+                        { label:'Month', checked: durationType === durationTypeEnum.MONTH },  
+                        { label:'Year', checked: durationType === durationTypeEnum.YEAR},
+                        { label:'Years', checked: durationType === durationTypeEnum.YEARS}
                         ]" (checkedValueChange)="onDurationChange($event)" />
 
-                    <app-date-input *ngIf="durationType === durationTypeEnum.DAY" [id]="'availabilityDay'" [(value)]="durationDay" />
+                    <app-date-input *ngIf="durationType === durationTypeEnum.DAY" [id]="'availabilityDay'"
+                        [(value)]="durationDay" />
 
                     <app-year-month-input *ngIf="durationType === durationTypeEnum.MONTH" [id]="'availabilityMonth'"
                         [(value)]="durationMonth" />

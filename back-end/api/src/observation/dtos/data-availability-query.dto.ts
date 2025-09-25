@@ -3,10 +3,10 @@ import { IsDateString, IsEnum, IsInt, IsOptional, IsString } from "class-validat
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export enum DurationTypeEnum {
-    DAY,
-    MONTH,
-    YEAR,
-    YEARS,
+    DAY = 'day',
+    MONTH = 'month',
+    YEAR = 'year',
+    YEARS = 'years',
 }
 
 export class DataAvailabilityQueryDto {
@@ -14,6 +14,7 @@ export class DataAvailabilityQueryDto {
     @IsString({ each: true })
     stationIds: string[];
 
+    @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds: number[];

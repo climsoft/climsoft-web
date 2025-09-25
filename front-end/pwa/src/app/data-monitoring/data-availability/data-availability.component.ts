@@ -23,7 +23,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
   @ViewChild('appDataAvailabilityDetailsDialog') dataAvailabilityDetailsDialogComponent!: DataAvailabilityDetailsDialogComponent;
 
   protected enableQueryButton: boolean = true;
-  private filter!: DataAvailabilityQueryModel;
+  protected filter!: DataAvailabilityQueryModel;
   private allStations!: StationCacheModel[];
   private chartInstance!: echarts.ECharts;
   private stationsRendered!: StationCacheModel[];
@@ -44,44 +44,71 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
 
     this.pagesDataService.setPageHeader('Data Availability');
 
-    // Get the climsoft time zone display setting
-    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((allMetadataLoaded) => {
-      if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.allStations = this.cachedMetadataSearchService.stationsMetadata;
-    });
+
 
   }
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      if (params.keys.length === 0) return;
+      if (params.keys.length > 0) {
+        const stationIds: string[] = params.getAll('stationIds');
+        const elementIds: string[] = params.getAll('elementIds');
+        const interval: string | null = params.get('interval');
+        const level: string | null = params.get('level');
+        const excludeConfirmedMissing: string | null = params.get('excludeConfirmedMissing');
+        const durationType: string | null = params.get('durationType');
+        const fromDate: string | null = params.get('fromDate');
+        const toDate: string | null = params.get('toDate');
 
-      const stationIds: string[] = params.getAll('stationIds');
-      const elementIds: string[] = params.getAll('elementIds');
-      const intervals: string[] = params.getAll('interval');
-      const level: string | null = params.get('level');
-      const excludeConfirmedMissing: string | null = params.get('durationType');
-      const durationType: string | null = params.get('durationType');
-      const fromDate: string | null = params.get('fromDate');
-      const toDate: string | null = params.get('toDate');
+        if (stationIds.length === 0) {
+          throw new Error('station ids must be selected');
+        }
+        if (durationType === null) {
+          throw new Error('duration type must be selected');
+        }
 
-      // const newFilter: DataAvailabilityQueryModel = { 
-      //   stationIds: stationIds,
+        if (fromDate === null) {
+          throw new Error('from datee must be selected');
+        }
 
-      //  };
+        if (toDate === null) {
+          throw new Error('from datee must be selected');
+        }
 
-      // if (stationIds.length > 0) newFilter.stationIds = stationIds;
-      // if (elementIds.length > 0) newFilter.elementIds = elementIds.map(Number);
-      // if (intervals.length > 0) newFilter.interval = intervals.map(Number);
-      // if (level) newFilter.level = parseInt(level, 10);
-      // if (fromDate) newFilter.fromDate = fromDate;
-      // if (toDate) newFilter.toDate = toDate;
+        const newFilter: DataAvailabilityQueryModel = {
+          stationIds: stationIds,
+          durationType: DurationTypeEnum[durationType.toUpperCase() as keyof typeof DurationTypeEnum],
+          fromDate: fromDate,
+          toDate: toDate,
+        };
 
-      //this.filter = newFilter;
-      //this.queryData();
+        if (elementIds.length > 0) newFilter.elementIds = elementIds.map(Number);
+        if (interval) newFilter.interval = Number(interval);
+        if (level) newFilter.level = Number(level);
+        if (excludeConfirmedMissing) newFilter.excludeConfirmedMissing = Boolean(excludeConfirmedMissing);
+
+        console.log('newFilter: ', newFilter);
+
+        this.filter = newFilter;
+
+
+      }
+
+      console.log('still called!')
+
+      // Get the climsoft time zone display setting
+      this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe((allMetadataLoaded) => {
+        if (!allMetadataLoaded) return;
+        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+        this.allStations = this.cachedMetadataSearchService.stationsMetadata;
+
+        // If there is a filter then load data
+        if (this.filter) this.onQueryClick(this.filter);
+
+      });
+
     });
   }
 
@@ -101,17 +128,15 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-        //console.log('al data', data)
         this.enableQueryButton = true;
         this.stationsRendered = this.allStations.filter(station => this.filter.stationIds.includes(station.id));
         this.heatMapStationValues = this.stationsRendered.map(item => `${item.id} - ${item.name}`);
         this.datesRendered = [];
         let dateToolTipPrefix: string; // Used by heat map chart (cell) tooltip for x-axis prefix 
 
-
         const fromDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.fromDate, this.utcOffset, 'add').split('T')[0];
         const toDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.toDate, this.utcOffset, 'add').split('T')[0];
-        const [fromYear, fromMonth, fromDay] = fromDate.split('-').map(Number);
+        const [fromYear, fromMonth] = fromDate.split('-').map(Number);
         switch (this.filter.durationType) {
           case DurationTypeEnum.DAY:
             this.datesRendered = Array.from({ length: 24 }, (_, i) => i);
@@ -134,6 +159,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
             dateToolTipPrefix = 'Day';
             break;
           case DurationTypeEnum.YEAR:
+            // 12 months of the year
             this.datesRendered = Array.from({ length: 12 }, (_, i) => i + 1);
 
             // Populate with "1-Jan", "2-Feb", etc.
@@ -149,8 +175,9 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
             this.datesRendered = [];
             const toYear: number = Number(toDate.split('-')[0]);
 
-            for (let i: number = fromYear; i <= toYear; i++) {
-              this.datesRendered[i];
+            // Years from and to selected years
+            for (let yr: number = fromYear; yr <= toYear; yr++) {
+              this.datesRendered.push(yr);
             }
 
             this.heatMapDateValues = this.datesRendered.map(String);
@@ -161,12 +188,11 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
         }
 
 
-        // Follow [x-index, y-index, value] format
+        // Chart data follows [x-index, y-index, value] format
         // [dateValueIndex, stationIndex,  value]
         const chartData: [number, number, number][] = [];
         let maxValue: number = 0
         for (const recordCountData of data) {
-
           const dateValueIndex = this.datesRendered.findIndex(dateValue => dateValue === recordCountData.dateValue);
           if (dateValueIndex === -1) {
             continue;
@@ -296,8 +322,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
     // Add click handler
     this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
     this.chartInstance.on('click', (params: any) => {
-
-
+      // Create the dialg filter from the general filter then start overriding the parameters based on what has been clicked
       const detailsDialogFilter: DataAvailabilityQueryModel = { ...this.filter };
       let dateIndex: number;
       let stationIndex: number;
@@ -309,55 +334,61 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
           stationIndex = params.value[1]; // y-axis index (station) 
           stationId = this.stationsRendered[stationIndex].id;
           dateValue = this.datesRendered[dateIndex];
-          console.log(`Clicked cell - Station: ${stationId}, Date: ${dateValue}`);
 
+          // Overwrite the station ids and date to reflect the cell clicked station id and date value
           detailsDialogFilter.stationIds = [stationId];
-
-          console.log('Clicked series value:', params.value);
-
-          this.changeDates(detailsDialogFilter, dateValue);
+          this.changeDatesBasedOnClickedHeatMapParam(detailsDialogFilter, dateValue);
           break;
         case 'xAxis':
-          console.log('Clicked xAxis value:', params.value);
           dateIndex = this.heatMapDateValues.indexOf(params.value)
           dateValue = this.datesRendered[dateIndex];
-          console.log('Clicked date:', dateValue);
 
-          this.changeDates(detailsDialogFilter, dateValue);
+          // Overwrite the date to reflect the x-axis clicked date value
+          this.changeDatesBasedOnClickedHeatMapParam(detailsDialogFilter, dateValue);
           break;
-
         case 'yAxis':
-          console.log('Clicked yAxis value:', params.value);
           stationIndex = this.heatMapStationValues.indexOf(params.value)
           stationId = this.stationsRendered[stationIndex].id;
-          console.log('Clicked station id:', stationId);
 
+          // Overwrite the station id to reflect the y-axis station
           detailsDialogFilter.stationIds = [stationId];
           break;
         default:
+          // Any other click events are not supported. So just return
           return;
       }
 
-
+      // Show the dialog 
       this.dataAvailabilityDetailsDialogComponent.showDialog(detailsDialogFilter);
-
     });
 
 
   }
 
-  private changeDates(detailsDialogFilter: DataAvailabilityQueryModel, dateValue: number): void {
+  /**
+   * Changes the date values of the passed filter based on the duration type of the filter
+   * @param detailsDialogFilter 
+   * @param dateValue 
+   */
+  private changeDatesBasedOnClickedHeatMapParam(detailsDialogFilter: DataAvailabilityQueryModel, dateValue: number): void {
+    // Dates shown on the heatmap are based on utcOffset timezone(e.g to reflect the local timezone) set while dates on the filter are on UTC timezone.
+    // So add the utcoffset to get the dates in local timezones first before making adjustments to the from and to date
     let fromDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(detailsDialogFilter.fromDate, this.utcOffset, 'add'));
     let toDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(detailsDialogFilter.toDate, this.utcOffset, 'add'));
 
     switch (this.filter.durationType) {
       case DurationTypeEnum.DAY:
         fromDate.setUTCHours(dateValue);
-        toDate.setUTCHours(dateValue);
+        toDate.setUTCHours(dateValue);        
         break;
       case DurationTypeEnum.MONTH:
+           console.log('dateValue from ', dateValue)
+        console.log('before from ', fromDate)
+        console.log('before from ', fromDate)
         fromDate.setUTCDate(dateValue);
         toDate.setUTCDate(dateValue);
+        console.log('after from ', fromDate)
+        console.log('after to ', toDate)
         break;
       case DurationTypeEnum.YEAR:
         fromDate.setUTCMonth(dateValue - 1);
@@ -371,6 +402,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
         throw new Error('Developer error. Duration type not supported');
     }
 
+    // cheange the from and to date to UTC timezone as required by the API 
     detailsDialogFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(fromDate.toISOString(), this.utcOffset, 'subtract');
     detailsDialogFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.utcOffset, 'subtract');
   }

@@ -10,8 +10,8 @@ export interface DataAvailabilityQueryModel {
 }
 
 export enum DurationTypeEnum {
-    DAY,
-    MONTH,
-    YEAR,
-    YEARS,
+    DAY = 'day',
+    MONTH = 'month',
+    YEAR = 'year',
+    YEARS = 'years',
 }

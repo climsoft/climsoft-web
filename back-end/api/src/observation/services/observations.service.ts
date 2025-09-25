@@ -12,7 +12,7 @@ import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
+import { DataAvailabilityQueryDto, DurationTypeEnum } from '../dtos/data-availability-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
@@ -355,8 +355,6 @@ export class ObservationsService {
             .whereInIds(compositeKeys)
             .execute();
 
-        console.log('Soft Deleted Observations: ', updatedResults);
-
         this.climsoftV4Service.saveWebObservationstoV4DB();
 
         // If affected results not supported then just return the dtos length.
@@ -454,109 +452,59 @@ export class ObservationsService {
     }
 
     public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-        let extractSQL: string = '';
-        let extraSQLCondition: string = '';
-        let groupAndOrderBySQL: string = '';
+        let sqlExtract: string;
+        let sqlCondition: string;
 
-        if ( dataAvailabilityQuery.stationIds.length > 0) {
-            extraSQLCondition = `${extraSQLCondition} station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')}) AND `;
-        }else{
+        if (dataAvailabilityQuery.stationIds.length === 0) {
             throw new BadRequestException('station(s) must be selected');
         }
 
+        sqlCondition = `station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')})`;
+
+
         if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
-            extraSQLCondition = `${extraSQLCondition} element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
+            sqlCondition = `${sqlCondition} AND element_id IN (${dataAvailabilityQuery.elementIds.join(',')})`;
         }
 
         if (dataAvailabilityQuery.level !== undefined) {
-            extraSQLCondition = `${extraSQLCondition} level = ${dataAvailabilityQuery.level} AND `;
+            sqlCondition = `${sqlCondition} AND level = ${dataAvailabilityQuery.level}`;
         }
 
         if (dataAvailabilityQuery.interval) {
-            extraSQLCondition = `${extraSQLCondition} interval = ${dataAvailabilityQuery.interval} AND `;
+            sqlCondition = `${sqlCondition} AND interval = ${dataAvailabilityQuery.interval}`;
         }
 
         if (dataAvailabilityQuery.excludeConfirmedMissing) {
-            extraSQLCondition = `${extraSQLCondition} value IS NOT NULL AND `;
+            sqlCondition = `${sqlCondition} AND value IS NOT NULL`;
         }
 
-
-            // TODO. LEFT HERE
-            
-
-        let year: number;
-        let month: number;
-        let startDate: string;
-        let endDate: string;
-
+        // TODO. this setting should be retrived from the cache
         const utcOffset: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
         const strTimeZone: string = `'UTC+${utcOffset}'`;
 
-        
-    
-
-
         switch (dataAvailabilityQuery.durationType) {
-            case 'days_of_month':
-                if (!dataAvailabilityQuery.durationDaysOfMonth) throw new BadRequestException('Duration not povided');
-                const splitYearMonth: string[] = dataAvailabilityQuery.durationDaysOfMonth.split('-');
-                year = Number(splitYearMonth[0]);
-                month = Number(splitYearMonth[1]);
-
-                // Note month is 1 based here. So month 1 will refer to march once inside Date object because date objects month index are 0 based
-                const lastEndDateDay: number = new Date(year, month, 0).getDate();
-                startDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationDaysOfMonth}-01T00:00:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                endDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationDaysOfMonth}-${lastEndDateDay}T23:59:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                extractSQL = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = extraSQLCondition + ` date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
-
-                //TODO. Investigate at time zone SQL more
-
-                // const lastEndDateDay: number = DateUtils.getLastDayOfMonth(year, month);
-                // startDate = `'${dataAvailabilityQuery.durationDaysOfMonth}-01 00:00:00'`;
-                // endDate =  `'${dataAvailabilityQuery.durationDaysOfMonth}-${lastEndDateDay} 23:59:00'`;
-
-                // extractSQL = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                // extraSQLCondition = extraSQLCondition + `  date_time BETWEEN  ( (${startDate}::timestamptz) AT TIME ZONE ${strTimeZone}) AND ( (${endDate}::timestamptz) AT TIME ZONE ${strTimeZone})`;
-                // groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+            case DurationTypeEnum.DAY:
+                sqlExtract = `EXTRACT(HOUR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
-            case 'months_of_year':
-                if (!dataAvailabilityQuery.durationMonthsOfYear) throw new BadRequestException('Duration not povided');
-                year = dataAvailabilityQuery.durationMonthsOfYear;
-                startDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${year}-01-01T00:00:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                endDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${year}-12-31T23:59:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                extractSQL = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = `${extraSQLCondition} date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+            case DurationTypeEnum.MONTH:
+                sqlExtract = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
-            case 'years':
-                if (!dataAvailabilityQuery.durationYears) throw new BadRequestException('Duration not povided');
-                const years: number[] = dataAvailabilityQuery.durationYears;
-                extractSQL = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = `${extraSQLCondition}  
-                  EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) IN (${years.join(',')}) AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+            case DurationTypeEnum.YEAR:
+                sqlExtract = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                break;
+            case DurationTypeEnum.YEARS:
+                sqlExtract = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
             default:
                 throw new BadRequestException('Duration type not supported');
         }
 
         const sql = `
-            SELECT station_id, COUNT(element_id) AS record_count, ${extractSQL} FROM observations 
-            WHERE ${extraSQLCondition} deleted = FALSE ${groupAndOrderBySQL};
+            SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract} FROM observations 
+            WHERE ${sqlCondition} 
+            AND date_time BETWEEN '${dataAvailabilityQuery.fromDate}' AND '${dataAvailabilityQuery.toDate}' 
+            AND deleted = FALSE 
+            GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value;
             `
 
         //console.log(sql)

@@ -45,19 +45,39 @@ export class DataAvailabilityDetailsDialogComponent implements OnDestroy {
   public showDialog(detailsDialogFilter: DataAvailabilityQueryModel): void {
     this.detailsAvailabilityFilter = detailsDialogFilter;
     this.open = true;
-    // this.showViewData = showViewData;
-    // this.showDrillDown = showDrillDown;
+
+    // Load gap analysis
   }
 
   protected drillDown(): void {
+    const filter: DataAvailabilityQueryModel = { ...this.detailsAvailabilityFilter };
+    switch (filter.durationType) {
+      case DurationTypeEnum.DAY:
+        throw new Error('Developer error. Drill down not supported for day duration type');
+      case DurationTypeEnum.MONTH:
+        filter.durationType = DurationTypeEnum.DAY;
+        break;
+      case DurationTypeEnum.YEAR:
+        filter.durationType = DurationTypeEnum.MONTH;
+        break;
+      case DurationTypeEnum.YEARS:
+        filter.durationType = DurationTypeEnum.YEAR;
+        break;
+      default:
+        throw new Error('Developer error. Duration type not supported');
+    }
+
     const serialisedUrl = this.router.serializeUrl(
-      this.router.createUrlTree(['/data-monitoring/data-explorer'], { queryParams: this.detailsAvailabilityFilter })
+      this.router.createUrlTree(['/data-monitoring/data-availability'], { queryParams: filter })
     );
 
     window.open(serialisedUrl, '_blank');
+    this.open = false;
   }
 
   protected viewData(): void {
+    // Important to note the view filter has no exclude missing so the number of records shown in data correction or explorer
+    // may differ from what is hsown in data availability. They should always be the same when missing values are not excluded.
     const viewFilter: ViewObservationQueryModel = {
       stationIds: this.detailsAvailabilityFilter.stationIds,
       fromDate: this.detailsAvailabilityFilter.fromDate,
@@ -88,6 +108,7 @@ export class DataAvailabilityDetailsDialogComponent implements OnDestroy {
       );
 
       window.open(serialisedUrl, '_blank');
+      this.open = false;
     } else {
       throw new Error('Developer error. Permissions could not be verified.');
     }
