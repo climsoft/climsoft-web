@@ -21,6 +21,8 @@ import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { ViewUserDto } from 'src/user/dtos/view-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
+import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
+import { DataAvailaibilityDetailsDto } from '../dtos/data-availability-details.dto';
 
 @Injectable()
 export class ObservationsService {
@@ -419,6 +421,7 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` element_id = ${stationStatusQuery.elementId} AND `;
         }
 
+        // TODO. Use parameterised queries
         const results = await this.dataSource.manager.query(
             `
             SELECT DISTINCT station_id 
@@ -438,6 +441,7 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` AND o.element_id = ${stationStatusQuery.elementId}`;
         }
 
+        // TODO. use parameterised queries
         const results = await this.dataSource.manager.query(
             `
             SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
@@ -451,30 +455,33 @@ export class ObservationsService {
         return results;
     }
 
-    public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+    public async findDataAvailabilitySummary(filter: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let sqlExtract: string;
         let sqlCondition: string;
 
-        if (dataAvailabilityQuery.stationIds.length === 0) {
-            throw new BadRequestException('station(s) must be selected');
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 31)) {
+            throw new BadRequestException('Date range exceeds 30 years');
         }
 
-        sqlCondition = `station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')})`;
+        sqlCondition = `deleted = FALSE AND date_time BETWEEN '${filter.fromDate}' AND '${filter.toDate}'`;
 
-
-        if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
-            sqlCondition = `${sqlCondition} AND element_id IN (${dataAvailabilityQuery.elementIds.join(',')})`;
+        if (filter.stationIds && filter.stationIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND station_id IN (${filter.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        if (dataAvailabilityQuery.level !== undefined) {
-            sqlCondition = `${sqlCondition} AND level = ${dataAvailabilityQuery.level}`;
+        if (filter.elementIds && filter.elementIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND element_id IN (${filter.elementIds.join(',')})`;
         }
 
-        if (dataAvailabilityQuery.interval) {
-            sqlCondition = `${sqlCondition} AND interval = ${dataAvailabilityQuery.interval}`;
+        if (filter.level !== undefined) {
+            sqlCondition = `${sqlCondition} AND level = ${filter.level}`;
         }
 
-        if (dataAvailabilityQuery.excludeConfirmedMissing) {
+        if (filter.interval) {
+            sqlCondition = `${sqlCondition} AND interval = ${filter.interval}`;
+        }
+
+        if (filter.excludeConfirmedMissing) {
             sqlCondition = `${sqlCondition} AND value IS NOT NULL`;
         }
 
@@ -482,7 +489,7 @@ export class ObservationsService {
         const utcOffset: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
         const strTimeZone: string = `'UTC+${utcOffset}'`;
 
-        switch (dataAvailabilityQuery.durationType) {
+        switch (filter.durationType) {
             case DurationTypeEnum.DAY:
                 sqlExtract = `EXTRACT(HOUR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
@@ -499,43 +506,79 @@ export class ObservationsService {
                 throw new BadRequestException('Duration type not supported');
         }
 
+        // TODO. use parameterised queries
         const sql = `
             SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract} FROM observations 
             WHERE ${sqlCondition} 
-            AND date_time BETWEEN '${dataAvailabilityQuery.fromDate}' AND '${dataAvailabilityQuery.toDate}' 
-            AND deleted = FALSE 
             GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value;
             `
 
-        //console.log(sql)
+        console.log('Availability summary SQL :', sql)
 
-        const results = await this.dataSource.manager.query(sql);
+        const rows = await this.dataSource.manager.query(sql);
 
         //console.log('results: ', results)
 
-        return results.map((item: { station_id: string; record_count: number; extracted_date_value: number; }) => {
-            return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
+        return rows.map((r: any) => {
+            return {
+                stationId: r.station_id,
+                recordCount: Number(r.record_count),
+                dateValue: Number(r.extracted_date_value)
+            };
         });
     }
 
-    public async findDataFlow(queryDto: DataFlowQueryDto): Promise<ViewObservationDto[]> {
+    public async findDataAvailabilityDetails(filter: DataAvailabilityDetailsQueryDto): Promise<DataAvailaibilityDetailsDto[]> {
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 31)) {
+            throw new BadRequestException('Date range exceeds 30 years');
+        }
+
+        // Build param array in the exact order of the function signature
+        const params = [
+            filter.stationIds?.length ? filter.stationIds : null,     // p_station_ids varchar[]
+            filter.elementIds?.length ? filter.elementIds : null,     // p_element_ids int[]
+            filter.level ?? null,                                     // p_level int
+            filter.interval ?? null,                                  // p_interval int
+            filter.fromDate ?? null,                                  // p_from_date timestamptz
+            filter.toDate ?? null                                     // p_to_date timestamptz
+        ];
+
+        const sql = `SELECT *  FROM func_data_availaibility_details($1, $2, $3, $4, $5, $6)`;
+
+        const rows = await this.dataSource.query(sql, params);
+
+        return rows.map((r: any) => ({
+            stationId: r.station_id,
+            elementId: r.element_id,
+            level: r.level,
+            interval: r.interval,
+            fromDate: r.from_date,
+            toDate: r.to_date,
+            expected: Number(r.expected),
+            nonMissing: Number(r.non_missing),
+            confirmedMissing: Number(r.confirmed_missing),
+            gaps: Number(r.gaps),
+            gapsPlusMissing: Number(r.gaps_plus_missing),
+            qcNones: Number(r.qc_nones),
+            qcPasses: Number(r.qc_passes),
+            qcFails: Number(r.qc_fails),
+        }));
+    }
+
+    public async findDataFlow(filter: DataFlowQueryDto): Promise<ViewObservationDto[]> {
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
-        if (queryDto.fromDate && queryDto.toDate) {
-            if (DateUtils.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
-                throw new BadRequestException('Date range exceeds 10 years');
-            }
-        } else {
-            throw new BadRequestException('Date range required');
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 11)) {
+            throw new BadRequestException('Date range exceeds 10 years');
         }
 
         // TODO merge this with find processed observations method
         const obsEntities = await this.observationRepo.findBy({
-            stationId: queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds),
-            elementId: queryDto.elementId,
-            level: queryDto.level,
-            interval: queryDto.interval,
-            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
+            stationId: filter.stationIds.length === 1 ? filter.stationIds[0] : In(filter.stationIds),
+            elementId: filter.elementId,
+            level: filter.level,
+            interval: filter.interval,
+            datetime: Between(new Date(filter.fromDate), new Date(filter.toDate)),
             deleted: false,
         });
 

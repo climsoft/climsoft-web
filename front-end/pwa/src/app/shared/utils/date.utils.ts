@@ -96,7 +96,7 @@ export class DateUtils {
     public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number): string {
         if (utcOffset === 0) {
             return strDateTimeInJavaScriptIso.replace('T', ' ').
-            replace('Z', '').replace(':00', '').replace('.000', '');
+                replace('Z', '').replace(':00', '').replace('.000', '');
         }
 
         // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
@@ -107,7 +107,7 @@ export class DateUtils {
         //return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
         return DateUtils.getDatetimesBasedOnUTCOffset(
             strDateTimeInJavaScriptIso, utcOffset, 'add'
-        ). replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
+        ).replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
     }
 
     public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {
@@ -143,6 +143,11 @@ export class DateUtils {
         return `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
     }
 
+    public static isMoreThanMaxCalendarYears(fromDate: Date, toDate: Date, maxYears: number): boolean {
+        const yearsLater = new Date(fromDate);
+        yearsLater.setFullYear(yearsLater.getFullYear() + maxYears);
+        return toDate > yearsLater;
+    }
 
 }
 

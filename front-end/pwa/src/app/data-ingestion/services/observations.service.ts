@@ -21,6 +21,8 @@ import { DataAvailabilitySummaryModel } from '../models/data-availability-summar
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
 import { QCStatusEnum } from '../models/qc-status.enum';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
+import { DataAvailabilityDetailsQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-details-query.model';
+import { DataAvailaibilityDetailsModel } from 'src/app/data-monitoring/data-availability/models/data-availability-details.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -196,7 +198,7 @@ export class ObservationsService {
           // Note, the form will not display data that is being synced until it gets saved in the server
           // Users should be aware that they will have to wait for the syncing to finish. 
           // So navigating away from the form then back will display the data
-          if (response.message === 'success') { 
+          if (response.message === 'success') {
             // Always attempt to delete any cached data, this is very useful if previous value was cached due to network issues
             this.deleteDataFromLocalDatabase(observations);
             // then attempt syncing of any local data.
@@ -284,17 +286,17 @@ export class ObservationsService {
     this.countUnsyncedObservationsAndRaiseNotification();
   }
 
-  
-  private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]){
+
+  private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]) {
     //Key is [stationId+elementId+sourceId+level+datetime+interval]
-    const observationKeys: [string, number,number,number,string,number][] = observations.map(obs => {
+    const observationKeys: [string, number, number, number, string, number][] = observations.map(obs => {
       return [
-            obs.stationId,
-            obs.elementId,
-            obs.sourceId,
-            obs.level,
-            obs.datetime,
-            obs.interval];
+        obs.stationId,
+        obs.elementId,
+        obs.sourceId,
+        obs.level,
+        obs.datetime,
+        obs.interval];
     });
     await AppDatabase.instance.observations.bulkDelete(observationKeys);
   }
@@ -367,6 +369,16 @@ export class ObservationsService {
     return this.http.get<DataAvailabilitySummaryModel[]>(
       `${this.endPointUrl}/data-availability-summary`,
       { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
+    )
+      .pipe(
+        catchError(AppAuthInterceptor.handleError)
+      );
+  }
+
+  public findDataAvailabilityDetails(query: DataAvailabilityDetailsQueryModel): Observable<DataAvailaibilityDetailsModel[]> {
+    return this.http.get<DataAvailaibilityDetailsModel[]>(
+      `${this.endPointUrl}/data-availability-details`,
+      { params: StringUtils.getQueryParams<DataAvailabilityDetailsQueryModel>(query) }
     )
       .pipe(
         catchError(AppAuthInterceptor.handleError)

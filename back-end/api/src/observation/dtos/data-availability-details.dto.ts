@@ -1,4 +1,4 @@
-export interface DataAvailaibilityDetailsModel {
+export interface DataAvailaibilityDetailsDto {
   stationId: string;
   elementId: number;
   level: number;

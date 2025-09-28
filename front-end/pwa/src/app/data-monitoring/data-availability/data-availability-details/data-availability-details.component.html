@@ -23,6 +23,8 @@
                         <tr>
                             <th>Station</th>
                             <th>Element</th>
+                            <th>Level</th>
+                            <th>Inteval</th>
                             <th>From Date</th>
                             <th>To Date</th>
                             <th>Expected</th>
@@ -30,6 +32,8 @@
                             <th>Confirmed Missing</th>
                             <th>Gaps</th>
                             <th>Gaps + Missing</th>
+                            <th>QC Nones</th>
+                            <th>QC Passes</th>
                             <th>QC Fails</th>
                         </tr>
                     </thead>
@@ -37,13 +41,17 @@
                         <tr *ngFor="let detail of availabilityDetails" class="app-cursor-pointer">
                             <td> {{ detail.stationId + ' - ' + detail.stationName }} </td>
                             <td> {{ detail.elementId + ' - ' + detail.elementAbbrv }} </td>
-                            <td> {{ detail.fromDate }} </td>
-                            <td> {{ detail.toDate }} </td>
+                            <td> {{ detail.level }} </td>
+                            <td> {{ detail.intervalName }} </td>
+                            <td> {{ detail.fromFormattedDatetime }} </td>
+                            <td> {{ detail.toFormattedDatetime }} </td>
                             <td> {{ detail.expected }} </td>
                             <td> {{ detail.nonMissing }} </td>
                             <td> {{ detail.confirmedMissing }} </td>
                             <td> {{ detail.gaps }} </td>
-                            <td> {{ detail.gapsNMissing }} </td>
+                            <td> {{ detail.gapsPlusMissing }} </td>
+                            <td> {{ detail.qcNones }} </td>
+                            <td> {{ detail.qcPasses }} </td>
                             <td> {{ detail.qcFails }} </td>
                         </tr>
                     </tbody>

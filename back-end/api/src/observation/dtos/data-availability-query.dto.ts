@@ -10,9 +10,10 @@ export enum DurationTypeEnum {
 }
 
 export class DataAvailabilityQueryDto {
+    @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({ each: true })
-    stationIds: string[];
+    stationIds?: string[];
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
@@ -21,7 +22,7 @@ export class DataAvailabilityQueryDto {
 
     @IsOptional()
     @IsInt()
-    interval: number;
+    interval?: number;
 
     @IsOptional()
     @IsInt()
@@ -41,21 +42,5 @@ export class DataAvailabilityQueryDto {
 
     @IsDateString()
     toDate: string;
-
-
-
-
-    // @IsOptional()
-    // @IsString()
-    // durationDaysOfMonth?: string; // 2025-01
-
-    // @IsOptional()
-    // @IsInt()
-    // durationMonthsOfYear?: number; // 2025
-
-    // @IsOptional()
-    // @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
-    // @IsInt({ each: true })
-    // durationYears?: number[]; // [2025,2024,2023]
 }
 

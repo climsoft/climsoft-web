@@ -1,6 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { DataAvailaibilityDetails } from '../models/data-availability-details.model';
 import { DataAvailabilityQueryModel, DurationTypeEnum } from '../models/data-availability-query.model';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { AppAuthService } from 'src/app/app-auth.service';
@@ -8,16 +7,15 @@ import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.mod
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'app-data-availability-details-dialog',
-  templateUrl: './data-availability-details-dialog.component.html',
-  styleUrls: ['./data-availability-details-dialog.component.scss']
+  selector: 'app-data-availability-options-dialog',
+  templateUrl: './data-availability-options-dialog.component.html',
+  styleUrls: ['./data-availability-options-dialog.component.scss']
 })
-export class DataAvailabilityDetailsDialogComponent implements OnDestroy {
+export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
   protected detailsAvailabilityFilter!: DataAvailabilityQueryModel;
   protected durationTypeEnum: typeof DurationTypeEnum = DurationTypeEnum; // used by the template
   protected open: boolean = false;
 
-  protected availabilityDetails!: DataAvailaibilityDetails[];
   private user!: LoggedInUserModel;
 
   private destroy$ = new Subject<void>();
@@ -42,11 +40,9 @@ export class DataAvailabilityDetailsDialogComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(detailsDialogFilter: DataAvailabilityQueryModel): void {
-    this.detailsAvailabilityFilter = detailsDialogFilter;
+  public showDialog(filter: DataAvailabilityQueryModel): void {
+    this.detailsAvailabilityFilter = filter;
     this.open = true;
-
-    // Load gap analysis
   }
 
   protected drillDown(): void {
@@ -80,13 +76,13 @@ export class DataAvailabilityDetailsDialogComponent implements OnDestroy {
     // may differ from what is hsown in data availability. They should always be the same when missing values are not excluded.
     const viewFilter: ViewObservationQueryModel = {
       stationIds: this.detailsAvailabilityFilter.stationIds,
+      elementIds: this.detailsAvailabilityFilter.elementIds,
+      level: this.detailsAvailabilityFilter.level,
       fromDate: this.detailsAvailabilityFilter.fromDate,
       toDate: this.detailsAvailabilityFilter.toDate,
     };
 
-    if (this.detailsAvailabilityFilter.elementIds && this.detailsAvailabilityFilter.elementIds.length > 0) viewFilter.elementIds = this.detailsAvailabilityFilter.elementIds;
     if (this.detailsAvailabilityFilter.interval) viewFilter.intervals = [this.detailsAvailabilityFilter.interval];
-    if (this.detailsAvailabilityFilter.level !== undefined) viewFilter.level = this.detailsAvailabilityFilter.level;
 
     let componentPath: string = '';
     if (this.user.isSystemAdmin) {

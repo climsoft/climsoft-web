@@ -1,5 +1,5 @@
 export interface DataAvailabilityQueryModel {
-    stationIds: string[];
+    stationIds?: string[];
     elementIds?: number[];
     interval?: number;
     level?: number;

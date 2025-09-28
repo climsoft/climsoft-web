@@ -12,7 +12,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { DataAvailabilityDetailsDialogComponent } from './data-availability-details-dialog/data-availability-details-dialog.component';
+import { DataAvailabilityOptionsDialogComponent } from './data-availability-options-dialog/data-availability-options-dialog.component';
 
 @Component({
   selector: 'app-data-availability',
@@ -20,7 +20,7 @@ import { DataAvailabilityDetailsDialogComponent } from './data-availability-deta
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements OnInit, OnDestroy {
-  @ViewChild('appDataAvailabilityDetailsDialog') dataAvailabilityDetailsDialogComponent!: DataAvailabilityDetailsDialogComponent;
+  @ViewChild('appDataAvailabilityOptionsDialog') dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
 
   protected enableQueryButton: boolean = true;
   protected filter!: DataAvailabilityQueryModel;
@@ -85,16 +85,12 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
         if (elementIds.length > 0) newFilter.elementIds = elementIds.map(Number);
         if (interval) newFilter.interval = Number(interval);
         if (level) newFilter.level = Number(level);
-        if (excludeConfirmedMissing) newFilter.excludeConfirmedMissing = Boolean(excludeConfirmedMissing);
-
-        console.log('newFilter: ', newFilter);
+        if (excludeConfirmedMissing !== null) {
+          newFilter.excludeConfirmedMissing = excludeConfirmedMissing.toString().toLowerCase() === 'true' ? true : false;
+        }
 
         this.filter = newFilter;
-
-
       }
-
-      console.log('still called!')
 
       // Get the climsoft time zone display setting
       this.cachedMetadataSearchService.allMetadataLoaded.pipe(
@@ -129,7 +125,16 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
-        this.stationsRendered = this.allStations.filter(station => this.filter.stationIds.includes(station.id));
+        this.stationsRendered = [];
+        if (this.filter.stationIds && this.filter.stationIds.length > 0) {
+          for (const station of this.allStations) {
+            if (this.filter.stationIds.includes(station.id)) {
+              this.stationsRendered.push(station);
+            }
+          }
+        } else {
+          this.stationsRendered = this.allStations;
+        }
         this.heatMapStationValues = this.stationsRendered.map(item => `${item.id} - ${item.name}`);
         this.datesRendered = [];
         let dateToolTipPrefix: string; // Used by heat map chart (cell) tooltip for x-axis prefix 
@@ -359,7 +364,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
       }
 
       // Show the dialog 
-      this.dataAvailabilityDetailsDialogComponent.showDialog(detailsDialogFilter);
+      this.dataAvailabilityOptionsDialogComponent.showDialog(detailsDialogFilter);
     });
 
 
@@ -379,10 +384,10 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
     switch (this.filter.durationType) {
       case DurationTypeEnum.DAY:
         fromDate.setUTCHours(dateValue);
-        toDate.setUTCHours(dateValue);        
+        toDate.setUTCHours(dateValue);
         break;
       case DurationTypeEnum.MONTH:
-           console.log('dateValue from ', dateValue)
+        console.log('dateValue from ', dateValue)
         console.log('before from ', fromDate)
         console.log('before from ', fromDate)
         fromDate.setUTCDate(dateValue);

@@ -23,10 +23,10 @@ export class DateUtils {
     }
 
 
-    public static isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
-        const tenYearsLater = new Date(fromDate);
-        tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
-        return toDate > tenYearsLater;
+    public static isMoreThanMaxCalendarYears(fromDate: Date, toDate: Date, maxYears: number): boolean {
+        const yearsLater = new Date(fromDate);
+        yearsLater.setFullYear(yearsLater.getFullYear() + maxYears);
+        return toDate > yearsLater;
     }
 
 }

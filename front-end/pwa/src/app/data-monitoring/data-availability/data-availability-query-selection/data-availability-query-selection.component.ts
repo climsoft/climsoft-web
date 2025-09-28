@@ -80,14 +80,13 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
   private setSelectionsFromQuery() {
     if (this.utcOffset === undefined || !this.outputFilter) return;
 
-    this.stationIds = this.outputFilter.stationIds;
+    if (this.outputFilter.stationIds) this.stationIds = this.outputFilter.stationIds;
     if (this.outputFilter.elementIds) this.elementIds = this.outputFilter.elementIds;
     if (this.outputFilter.level) this.level = this.outputFilter.level;
     if (this.outputFilter.interval) this.interval = this.outputFilter.interval;
-    this.durationType = this.outputFilter.durationType;
-
     if (this.outputFilter.excludeConfirmedMissing !== undefined) this.excludeMissingValues = this.outputFilter.excludeConfirmedMissing;
 
+    this.durationType = this.outputFilter.durationType;
     const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.utcOffset, 'add').split('T')[0];
     const toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.utcOffset, 'add').split('T')[0];
     const [fromYear, fromMonth, fromDay] = fromDate.split('-');
@@ -158,10 +157,10 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
   }
 
   protected onQueryClick(): void {
-    if (this.stationIds.length === 0) {
-      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Station selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
+    // if (this.stationIds.length === 0) {
+    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Station selection required', type: ToastEventTypeEnum.ERROR });
+    //   return;
+    // }
 
     let fromDate: string;
     let toDate: string;
@@ -198,15 +197,23 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
     fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
     toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00Z`, this.utcOffset, 'subtract');
 
+    if (new Date(fromDate) > new Date(toDate)) {
+      this.pagesDataService.showToast({ title: 'Data Availability', message: 'From date cannot be greater than to date.', type: ToastEventTypeEnum.ERROR });
+      return;
+    } else if (DateUtils.isMoreThanMaxCalendarYears(new Date(fromDate), new Date(toDate), 31)) {
+      this.pagesDataService.showToast({ title: 'Data Availability', message: 'Only a maximum of 30 years is allowed.', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
     // Set the new output filter
     this.outputFilter = {
-      stationIds: this.stationIds,
       durationType: this.durationType,
       fromDate: fromDate,
       toDate: toDate,
       excludeConfirmedMissing: this.excludeMissingValues,
     };
 
+    if (this.stationIds.length > 0) this.outputFilter.stationIds = this.stationIds;
     if (this.elementIds.length > 0) this.outputFilter.elementIds = this.elementIds;
     if (this.level !== null) this.outputFilter.level = this.level;
     if (this.interval !== null) this.outputFilter.interval = this.interval;

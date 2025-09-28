@@ -19,6 +19,7 @@ import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
 import { DataEntryCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
+import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -65,6 +66,12 @@ export class ObservationsController {
   getDataAvailabilitySummary(
     @Query(AuthorisedStationsPipe) query: DataAvailabilityQueryDto) {
     return this.observationsService.findDataAvailabilitySummary(query);
+  }
+
+  @Get('data-availability-details')
+  getDataAvailabilitydetails(
+    @Query(AuthorisedStationsPipe) query: DataAvailabilityDetailsQueryDto) {
+    return this.observationsService.findDataAvailabilityDetails(query);
   }
 
   @Get('data-flow')
