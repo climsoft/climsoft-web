@@ -74,7 +74,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
       if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
       if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
       if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
-      if (level) this.queryFilter.level = parseInt(level, 10);
+      if (level !== null) this.queryFilter.level = Number(level);
       if (fromDate) this.queryFilter.fromDate = fromDate;
       if (toDate) this.queryFilter.toDate = toDate;
 

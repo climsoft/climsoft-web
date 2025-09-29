@@ -3,7 +3,7 @@
     <div *ngIf="open" class="card border-0 p-0">
         <div class="card-body px-0">
             <div class="d-flex align-items-center justify-content-center">
-                <div *ngIf="detailsAvailabilityFilter.durationType !== durationTypeEnum.DAY">
+                <div *ngIf="!hideDrillDown">
                     <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="drillDown()">
                         Drill Down
                     </button>

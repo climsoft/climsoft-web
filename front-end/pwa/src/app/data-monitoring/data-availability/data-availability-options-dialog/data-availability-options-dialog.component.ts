@@ -15,6 +15,7 @@ export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
   protected detailsAvailabilityFilter!: DataAvailabilityQueryModel;
   protected durationTypeEnum: typeof DurationTypeEnum = DurationTypeEnum; // used by the template
   protected open: boolean = false;
+  protected hideDrillDown: boolean= false;
 
   private user!: LoggedInUserModel;
 
@@ -40,28 +41,29 @@ export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(filter: DataAvailabilityQueryModel): void {
+  public showDialog(filter: DataAvailabilityQueryModel, hideDrillDown: boolean): void {
     this.detailsAvailabilityFilter = filter;
+    this.hideDrillDown = hideDrillDown;
     this.open = true;
   }
 
   protected drillDown(): void {
     const filter: DataAvailabilityQueryModel = { ...this.detailsAvailabilityFilter };
-    switch (filter.durationType) {
-      case DurationTypeEnum.DAY:
-        throw new Error('Developer error. Drill down not supported for day duration type');
-      case DurationTypeEnum.MONTH:
-        filter.durationType = DurationTypeEnum.DAY;
-        break;
-      case DurationTypeEnum.YEAR:
-        filter.durationType = DurationTypeEnum.MONTH;
-        break;
-      case DurationTypeEnum.YEARS:
-        filter.durationType = DurationTypeEnum.YEAR;
-        break;
-      default:
-        throw new Error('Developer error. Duration type not supported');
-    }
+    // switch (filter.durationType) {
+    //   case DurationTypeEnum.DAY:
+    //     throw new Error('Developer error. Drill down not supported for day duration type');
+    //   case DurationTypeEnum.MONTH:
+    //     filter.durationType = DurationTypeEnum.DAY;
+    //     break;
+    //   case DurationTypeEnum.YEAR:
+    //     filter.durationType = DurationTypeEnum.MONTH;
+    //     break;
+    //   case DurationTypeEnum.YEARS:
+    //     filter.durationType = DurationTypeEnum.YEAR;
+    //     break;
+    //   default:
+    //     throw new Error('Developer error. Duration type not supported');
+    // }
 
     const serialisedUrl = this.router.serializeUrl(
       this.router.createUrlTree(['/data-monitoring/data-availability'], { queryParams: filter })
