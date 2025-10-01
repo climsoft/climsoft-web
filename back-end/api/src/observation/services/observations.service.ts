@@ -513,7 +513,7 @@ export class ObservationsService {
             GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value;
             `
 
-        console.log('Availability summary SQL :', sql)
+        //console.log('Availability summary SQL :', sql)
 
         const rows = await this.dataSource.manager.query(sql);
 

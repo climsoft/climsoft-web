@@ -118,6 +118,7 @@ export class DateUtils {
         } else {
             newDate.setHours(newDate.getHours() + utcOffset);
         }
+        
         return newDate.toISOString();
     }
 

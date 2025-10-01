@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { DataAvailaibilityDetailsModel } from '../models/data-availability-details.model';
-import { DataAvailabilityQueryModel, DurationTypeEnum } from '../models/data-availability-query.model';
+import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
@@ -28,11 +28,9 @@ interface DataAvailaibilityDetailsView extends DataAvailaibilityDetailsModel {
   styleUrls: ['./data-availability-details.component.scss']
 })
 export class DataAvailabilityDetailsComponent implements OnDestroy {
-  protected detailsAvailabilityFilter!: DataAvailabilityQueryModel;
+  protected dataAvailabilityFilter!: DataAvailabilitySummaryQueryModel;
   protected durationTypeEnum: typeof DurationTypeEnum = DurationTypeEnum; // used by the template
-  protected open: boolean = false;
-
-  protected availabilityDetails!: DataAvailaibilityDetailsView[];
+  protected availabilityDetails: DataAvailaibilityDetailsView[] =[];
   private user!: LoggedInUserModel;
 
   private destroy$ = new Subject<void>();
@@ -60,24 +58,26 @@ export class DataAvailabilityDetailsComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(filter: DataAvailabilityQueryModel): void {
-    this.detailsAvailabilityFilter = filter;
-    this.open = true;
+  public loadDetails(dataAvailabilityFilter: DataAvailabilitySummaryQueryModel): void {
+
+    if(1==1)  return;
+
+    this.dataAvailabilityFilter = dataAvailabilityFilter;
 
     // Load gap analysis
-    this.loadDetails({
-      stationIds: filter.stationIds,
-      elementIds: filter.elementIds,
-      interval: filter.interval,
-      level: filter.level,
-      fromDate: filter.fromDate,
-      toDate: filter.toDate,
+    this.loadDetailsFromServer({
+      stationIds: dataAvailabilityFilter.stationIds,
+      elementIds: dataAvailabilityFilter.elementIds,
+      interval: dataAvailabilityFilter.interval,
+      level: dataAvailabilityFilter.level,
+      fromDate: dataAvailabilityFilter.fromDate,
+      toDate: dataAvailabilityFilter.toDate,
     })
   }
 
-  private loadDetails(filter: DataAvailabilityDetailsQueryModel): void {
-    console.log('filter: ', filter);
-    this.observationService.findDataAvailabilityDetails(filter).pipe(
+  private loadDetailsFromServer(dataAvailabilityDetailsFilter: DataAvailabilityDetailsQueryModel): void {
+    console.log('filter: ', dataAvailabilityDetailsFilter);
+    this.observationService.findDataAvailabilityDetails(dataAvailabilityDetailsFilter).pipe(
       take(1)
     ).subscribe({
       next: data => {
@@ -116,7 +116,7 @@ export class DataAvailabilityDetailsComponent implements OnDestroy {
 
 
   protected drillDown(): void {
-    const filter: DataAvailabilityQueryModel = { ...this.detailsAvailabilityFilter };
+    const filter: DataAvailabilitySummaryQueryModel = { ...this.dataAvailabilityFilter };
     switch (filter.durationType) {
       case DurationTypeEnum.DAY:
         throw new Error('Developer error. Drill down not supported for day duration type');
@@ -137,22 +137,21 @@ export class DataAvailabilityDetailsComponent implements OnDestroy {
       this.router.createUrlTree(['/data-monitoring/data-availability'], { queryParams: filter })
     );
 
-    window.open(serialisedUrl, '_blank');
-    this.open = false;
+    window.open(serialisedUrl, '_blank'); 
   }
 
   protected viewData(): void {
     // Important to note the view filter has no exclude missing so the number of records shown in data correction or explorer
     // may differ from what is hsown in data availability. They should always be the same when missing values are not excluded.
     const viewFilter: ViewObservationQueryModel = {
-      stationIds: this.detailsAvailabilityFilter.stationIds,
-      elementIds: this.detailsAvailabilityFilter.elementIds,
-      level: this.detailsAvailabilityFilter.level,
-      fromDate: this.detailsAvailabilityFilter.fromDate,
-      toDate: this.detailsAvailabilityFilter.toDate,
+      stationIds: this.dataAvailabilityFilter.stationIds,
+      elementIds: this.dataAvailabilityFilter.elementIds,
+      level: this.dataAvailabilityFilter.level,
+      fromDate: this.dataAvailabilityFilter.fromDate,
+      toDate: this.dataAvailabilityFilter.toDate,
     };
 
-    if (this.detailsAvailabilityFilter.interval) viewFilter.intervals = [this.detailsAvailabilityFilter.interval];
+    if (this.dataAvailabilityFilter.interval) viewFilter.intervals = [this.dataAvailabilityFilter.interval];
 
     let componentPath: string = '';
     if (this.user.isSystemAdmin) {
@@ -173,8 +172,7 @@ export class DataAvailabilityDetailsComponent implements OnDestroy {
         this.router.createUrlTree([componentPath], { queryParams: viewFilter })
       );
 
-      window.open(serialisedUrl, '_blank');
-      this.open = false;
+      window.open(serialisedUrl, '_blank'); 
     } else {
       throw new Error('Developer error. Permissions could not be verified.');
     }

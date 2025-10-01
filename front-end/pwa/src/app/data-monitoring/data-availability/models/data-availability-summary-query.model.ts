@@ -1,4 +1,4 @@
-export interface DataAvailabilityQueryModel {
+export interface DataAvailabilitySummaryQueryModel {
     stationIds?: string[];
     elementIds?: number[];
     interval?: number;

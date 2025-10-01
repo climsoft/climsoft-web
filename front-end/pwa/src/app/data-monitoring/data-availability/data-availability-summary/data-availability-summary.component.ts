@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
@@ -8,7 +8,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ActivatedRoute } from '@angular/router';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { DataAvailabilityQueryModel, DurationTypeEnum } from '../models/data-availability-query.model';
+import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
 import { DataAvailabilityOptionsDialogComponent } from '../data-availability-options-dialog/data-availability-options-dialog.component';
 
 @Component({
@@ -19,14 +19,20 @@ import { DataAvailabilityOptionsDialogComponent } from '../data-availability-opt
 export class DataAvailabilitySummaryComponent implements OnDestroy {
   @ViewChild('appDataAvailabilityOptionsDialog') dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
 
-  protected enableQueryButton: boolean = true;
-  protected filter!: DataAvailabilityQueryModel;
-  private allStations!: StationCacheModel[];
-  private chartInstance!: echarts.ECharts;
+  @Input()
+  public enableQueryButton: boolean = true;
+
+  private filter!: DataAvailabilitySummaryQueryModel;
+
+  @Input()
+  public allStations!: StationCacheModel[];
+
+  @Input()
+  public utcOffset!: number;
+
   private stationsRendered!: StationCacheModel[];
   private datesRendered!: number[];
-  private utcOffset!: number;
-
+  private chartInstance!: echarts.ECharts;
   private heatMapDateValues!: string[]; // Used by heatmap chart to show labels in the x-axis
   private heatMapStationValues!: string[];// Used by heatmap chart to show labels in the y-axis
 
@@ -35,15 +41,9 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
-    private route: ActivatedRoute,
   ) {
 
-    // TODO left here.
-
   }
-
-
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -53,13 +53,12 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     }
   }
 
-
-  private loadSummary(): void {
-    if (!this.filter) return;
-
+  public loadSummary(filter: DataAvailabilitySummaryQueryModel, utcOffset: number): void {
+    this.filter = filter;
+    this.utcOffset = utcOffset;
     this.enableQueryButton = false;
     this.observationService.findDataAvailabilitySummary(this.filter).pipe(
-      take(1)
+      take(1) 
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
@@ -168,7 +167,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     }
 
     this.chartInstance = echarts.init(document.getElementById('dataAvailabilityChart'));
-
+ 
     const chartOptions = {
       tooltip: {
         position: 'top',
@@ -266,7 +265,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     this.chartInstance.off('click'); // remove any previous handler to avoid duplicates
     this.chartInstance.on('click', (params: any) => {
       // Create the dialg filter from the general filter then start overriding the parameters based on what has been clicked
-      const detailsDialogFilter: DataAvailabilityQueryModel = { ...this.filter };
+      const detailsDialogFilter: DataAvailabilitySummaryQueryModel = { ...this.filter };
       let dateIndex: number;
       let stationIndex: number;
       let stationId: string;
@@ -316,7 +315,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
    * @param filter 
    * @param dateValue 
    */
-  private changeDurationTypeNDatesBasedOnClickedHeatMapParam(filter: DataAvailabilityQueryModel, dateValue: number): void {
+  private changeDurationTypeNDatesBasedOnClickedHeatMapParam(filter: DataAvailabilitySummaryQueryModel, dateValue: number): void {
     // Dates shown on the heatmap are based on utcOffset timezone(e.g to reflect the local timezone) set while dates on the filter are on UTC timezone.
     // So add the utcoffset to get the dates in local timezones first before making adjustments to the from and to date
     let fromDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(filter.fromDate, this.utcOffset, 'add'));

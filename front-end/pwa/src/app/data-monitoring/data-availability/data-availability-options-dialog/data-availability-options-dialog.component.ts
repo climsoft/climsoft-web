@@ -1,6 +1,6 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { DataAvailabilityQueryModel, DurationTypeEnum } from '../models/data-availability-query.model';
+import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./data-availability-options-dialog.component.scss']
 })
 export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
-  protected detailsAvailabilityFilter!: DataAvailabilityQueryModel;
+  protected detailsAvailabilityFilter!: DataAvailabilitySummaryQueryModel;
   protected durationTypeEnum: typeof DurationTypeEnum = DurationTypeEnum; // used by the template
   protected open: boolean = false;
   protected hideDrillDown: boolean= false;
@@ -41,14 +41,14 @@ export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(filter: DataAvailabilityQueryModel, hideDrillDown: boolean): void {
+  public showDialog(filter: DataAvailabilitySummaryQueryModel, hideDrillDown: boolean): void {
     this.detailsAvailabilityFilter = filter;
     this.hideDrillDown = hideDrillDown;
     this.open = true;
   }
 
   protected drillDown(): void {
-    const filter: DataAvailabilityQueryModel = { ...this.detailsAvailabilityFilter };
+    const filter: DataAvailabilitySummaryQueryModel = { ...this.detailsAvailabilityFilter };
     // switch (filter.durationType) {
     //   case DurationTypeEnum.DAY:
     //     throw new Error('Developer error. Drill down not supported for day duration type');

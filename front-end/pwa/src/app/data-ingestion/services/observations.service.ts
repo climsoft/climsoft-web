@@ -16,7 +16,7 @@ import { AppDatabase } from 'src/app/app-database';
 import { LastStationActivityObservation } from '../models/last-station-activity-observation.model';
 import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
 import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
-import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
+import { DataAvailabilitySummaryQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-summary-query.model';
 import { DataAvailabilitySummaryModel } from '../models/data-availability-summary.model';
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
 import { QCStatusEnum } from '../models/qc-status.enum';
@@ -288,15 +288,15 @@ export class ObservationsService {
 
 
   private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]) {
-    //Key is [stationId+elementId+sourceId+level+datetime+interval]
-    const observationKeys: [string, number, number, number, string, number][] = observations.map(obs => {
+    //Key is [stationId+elementId+level+datetime+interval+sourceId]
+    const observationKeys: [string, number, number, string, number, number][] = observations.map(obs => {
       return [
         obs.stationId,
         obs.elementId,
-        obs.sourceId,
         obs.level,
         obs.datetime,
-        obs.interval];
+        obs.interval,
+        obs.sourceId,];
     });
     await AppDatabase.instance.observations.bulkDelete(observationKeys);
   }
@@ -365,10 +365,10 @@ export class ObservationsService {
       );
   }
 
-  public findDataAvailabilitySummary(query: DataAvailabilityQueryModel): Observable<DataAvailabilitySummaryModel[]> {
+  public findDataAvailabilitySummary(query: DataAvailabilitySummaryQueryModel): Observable<DataAvailabilitySummaryModel[]> {
     return this.http.get<DataAvailabilitySummaryModel[]>(
       `${this.endPointUrl}/data-availability-summary`,
-      { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
+      { params: StringUtils.getQueryParams<DataAvailabilitySummaryQueryModel>(query) }
     )
       .pipe(
         catchError(AppAuthInterceptor.handleError)

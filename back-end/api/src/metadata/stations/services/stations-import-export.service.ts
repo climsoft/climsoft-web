@@ -68,14 +68,12 @@ export class StationsImportExportService {
             // Execute the duckdb DDL SQL commands
             await this.fileIOService.duckDb.exec(alterSQLs);
 
-            let duplicates: TableData | undefined;
-            //check for duplicate ids
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.ID_PROPERTY);
+             //check for duplicate ids
+            const duplicates: TableData | undefined = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.ID_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
             //check for duplicate names
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.NAME_PROPERTY);
-            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
-
+            // duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.NAME_PROPERTY);
+            // if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
 
             // Get all the data imported
             const rows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.LATITUDE_PROPERTY}, ${this.LONGITUDE_PROPERTY}, ${this.ELEVATION_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY}, ${this.STATUS_PROPERTY}, ${this.DATE_ESTABLISHED_PROPERTY}, ${this.DATE_CLOSED_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);

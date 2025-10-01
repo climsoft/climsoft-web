@@ -3,7 +3,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { DataAvailabilityQueryModel, DurationTypeEnum } from '../models/data-availability-query.model';
+import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
@@ -16,8 +16,8 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 })
 export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public enableQueryButton: boolean = true;
-  @Input() public inputFilter!: DataAvailabilityQueryModel;
-  @Output() public queryClick = new EventEmitter<DataAvailabilityQueryModel>()
+  @Input() public inputFilter!: DataAvailabilitySummaryQueryModel;
+  @Output() public queryClick = new EventEmitter<DataAvailabilitySummaryQueryModel>()
 
   protected stationIds: string[] = [];
   protected sourceIds: number[] = [];
@@ -31,7 +31,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
   protected durationYear: number;
   protected durationYears: [number, number];
   protected excludeMissingValues: boolean = false;
-  protected outputFilter!: DataAvailabilityQueryModel;
+  protected outputFilter!: DataAvailabilitySummaryQueryModel;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
   private utcOffset!: number;
