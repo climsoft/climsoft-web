@@ -96,7 +96,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
 
             // Populate with "1-Wed", "2-Thu", etc.
             this.heatMapDateValues = this.datesRendered.map(day => {
-              const date = new Date(fromYear, fromMonth - 1, day); // month is 0-based
+              const date = new Date(fromYear, fromMonth - 1, day); // month is 0-based 
               const weekday = date.toLocaleDateString('en-US', { weekday: 'short' }); // e.g., "Mon", "Tue"
               return `${day}\n${weekday}`;
             });
@@ -329,10 +329,8 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
         fromDate.setUTCHours(dateValue);
         toDate.setUTCHours(dateValue);
         break;
-      case DurationTypeEnum.MONTH:
-        console.log('before date value: ', dateValue, ' fromDate: ', filter.fromDate, 'toDate: ', filter.toDate);
-        fromDate.setUTCDate(dateValue);
-        //toDate.setUTCMonth(fromDate.getUTCMonth());
+      case DurationTypeEnum.MONTH: 
+        fromDate.setUTCDate(dateValue); 
         toDate.setUTCDate(dateValue);
         filter.durationType = DurationTypeEnum.DAY;
         break;
@@ -350,7 +348,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
         throw new Error('Developer error. Duration type not supported');
     }
 
-    // cheange the from and to date to UTC timezone as required by the API 
+    // change the from and to date to UTC timezone as required by the API 
     filter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(fromDate.toISOString(), this.utcOffset, 'subtract');
     filter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.utcOffset, 'subtract');
   }
