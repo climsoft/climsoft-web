@@ -60,7 +60,7 @@
 
             <hr />
 
-            <!--Period-->
+            <!--Interval-->
             <div class="mb-3">
                 <app-import-source-period-detail [periodDefinition]="tabularImportSource.intervalDefinition" />
             </div>
@@ -69,8 +69,7 @@
 
             <!--level-->
             <div class="mb-3">
-                <app-import-source-level-detail
-                    [(levelColumnPosition)]="tabularImportSource.levelColumnPosition" />
+                <app-import-source-level-detail [(levelColumnPosition)]="tabularImportSource.levelColumnPosition" />
             </div>
 
             <hr />
@@ -95,19 +94,34 @@
                 <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'" [(value)]="viewSource.scaleValues" />
             </div>
         </div>
-        
+
         <hr class="border border-secondary border-1">
-        
+        <div>
+            <div class="mb-2" >
+                 <app-check-box-input [label]="'Attach Template Script (SQL, Python or R )'" [(value)]="tempScript" />
+            </div>
+            <div *ngIf="tempScript" class="d-flex flex-column align-items-center">
+                <div class="fw-bold">Scripts will be supported in the next version release</div>
+                <div class="text-info">
+                    Scripts will enable import of odd file structures not supported by Climsoft
+                    <br /> The attached script will be executed to produce the the import template that you configure to import.
+                </div>
+            </div>
+        </div>
+
+
+        <hr class="border border-secondary border-1">
+
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
         </div>
-       
+
         <hr class="border border-secondary border-1">
 
         <div>
             <app-text-input [label]="'Comment'" [(value)]="viewSource.comment" />
         </div>
-        
+
         <div *ngIf="errorMessage">
             <hr class="border border-secondary border-1">
 

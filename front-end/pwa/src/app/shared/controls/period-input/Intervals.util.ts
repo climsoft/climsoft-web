@@ -1,4 +1,7 @@
 export class IntervalsUtil {
+    // TODO. Because of monthly and yearly, 
+    // these should be changed to enums, the the api will translate the enums to their correct minute interval.
+    // When querying the database, the API should be able to know that months vary from 28 to 31 days and yearly vary from 365 to 366
     public static possibleIntervals: Interval[] = [
         { id: 5, name: "5 mins" },
         { id: 10, name: "10 mins" },
@@ -10,13 +13,10 @@ export class IntervalsUtil {
         { id: 720, name: "12 hrs" },
         { id: 1440, name: "Daily" },
         { id: 2880, name: "2 Days" },
+        { id: 1080, name: "Weekly" },
         { id: 14400, name: "Dekadal" },
-        { id: 40320, name: "28 Days" },
-        { id: 41760, name: "29 Days" },
-        { id: 43200, name: "30 Days" },
-        { id: 44640, name: "31 Days" },
-        { id: 525600, name: "365 Days" },
-        { id: 527040, name: "366 Days" }
+        { id: 44640, name: "Monthly" }, // TODO. Abandon use of minutes at fron end level
+        { id: 527040, name: "Yearly" }, // TODO. Abandon use of minutes at fron end level
     ];
 
     public static findInterval(minutes: number): Interval | undefined {

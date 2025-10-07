@@ -187,6 +187,6 @@ export class CachedMetadataSearchService {
     }
 
     public getUTCOffSet(): number {
-        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;;
+        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     }
 }

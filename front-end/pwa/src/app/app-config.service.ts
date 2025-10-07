@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, isDevMode } from '@angular/core';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +25,8 @@ export class AppConfigService {
 
     // Because of PWA required capability. Just always use the document location
     console.log('origin url: ', this.document.location.origin);
-    if (this.document.location.origin === 'http://localhost:4200') {
+    // this.document.location.origin === 'http://localhost:4200'
+    if (isDevMode()) { // TODO. Test this to make sure that ng build always returns the correct environment mode: development or production
       this._apiBaseUrl = `http://localhost:3000`;
     } else {
       this._apiBaseUrl = `${this.document.location.origin}/api`;

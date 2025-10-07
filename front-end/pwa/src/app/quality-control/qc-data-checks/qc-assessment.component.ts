@@ -97,7 +97,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isMoreThanTenCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate))) {
+    if (DateUtils.isMoreThanMaxCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate), 11)) {
       this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -124,12 +124,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
       }
     });
-  }
-
-  private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
-    const tenYearsLater = new Date(fromDate);
-    tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
-    return toDate > tenYearsLater;
   }
 
   private queryData(): void {

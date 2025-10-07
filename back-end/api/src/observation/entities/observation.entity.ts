@@ -6,10 +6,11 @@ import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
 import { SourceTemplateEntity } from "src/metadata/source-templates/entities/source-template.entity";
 
+// TODO. Investigate if a constraints check for interval to always be greater than 0 is necessary
 @Entity("observations")
 @Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
+//@Check("CHK_observations_both_value_null_and_flag_missing", `"value" IS NULL AND "flag" IS 'missing'`) // TODO. Investigate if this check will ever be necessary before adding it. Flag settings may change within the preview rleases
 //@Check("CHK_observations_no_future_dates", `"date_time" <= NOW()`) // TODO. Investigate why this is refusing current date
-// TODO. Add a constraints check for interval. It should always be greater than 0
 export class ObservationEntity extends AppBaseEntity {
   //------------------
   @PrimaryColumn({ name: "station_id", type: "varchar" })

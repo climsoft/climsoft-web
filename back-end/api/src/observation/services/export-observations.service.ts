@@ -187,7 +187,7 @@ export class ExportObservationsService {
             ) TO '${outputPath}' WITH CSV HEADER;
         `;
 
-        console.log('Executing COPY command:', sql); // Debugging log
+        //console.log('Executing COPY command:', sql); // Debugging log
 
         // Execute raw SQL query (without parameterized placeholders)
         // TODO. Find away of tracking the export process at the database level

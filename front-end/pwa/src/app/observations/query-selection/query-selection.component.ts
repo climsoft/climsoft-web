@@ -27,7 +27,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   @Input() public displayObservationDateSelector: boolean = true;
   @Input() public displayEntryDateSelector: boolean = true;
   @Input() public displayFilterHeader: boolean = true;
-  @Input() public query!: ViewObservationQueryModel;
+  @Input() public inputFilter!: ViewObservationQueryModel;
   @Output() public queryClick = new EventEmitter<ViewObservationQueryModel>();
   @Output() public queryAllowedChange = new EventEmitter<boolean>();
 
@@ -36,13 +36,14 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected elementIds: number[] = [];
   protected intervals: number[] = [];
   protected level: number | null = 0;
+  protected dateRange: DateRange;
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
   private utcOffset!: number;
-  protected dateRange: DateRange;
+
   protected displayFilterControls: boolean = true;
-  private changedQuery: ViewObservationQueryModel = { deleted: false };
+  private outputFilter!: ViewObservationQueryModel;// { deleted: false };
 
   private destroy$ = new Subject<void>();
 
@@ -62,7 +63,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.setSelectionsFromQuery(this.changedQuery);
+      this.setSelectionsFromOutputFilter();
     });
 
 
@@ -74,9 +75,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       this.setStationsAllowed();
     }
 
-    if (changes['query'] && this.query && this.query !== this.changedQuery ) {
-      this.changedQuery = this.query;
-      this.setSelectionsFromQuery(this.changedQuery);
+    if (changes['inputFilter'] && this.inputFilter && this.inputFilter !== this.outputFilter) {
+      this.outputFilter = { ...this.inputFilter };
+      this.setSelectionsFromOutputFilter();
     }
   }
 
@@ -85,17 +86,17 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setSelectionsFromQuery(query: ViewObservationQueryModel) {
-    if (this.utcOffset === undefined) return;
+  private setSelectionsFromOutputFilter() {
+    if (this.utcOffset === undefined || !this.outputFilter) return;
 
-    if (query.stationIds) this.stationIds = query.stationIds;
-    if (query.elementIds) this.elementIds = query.elementIds;
-    if (query.level) this.level = query.level;
-    if (query.intervals) this.intervals = query.intervals;
-    if (query.sourceIds) this.sourceIds = query.sourceIds;
-    if (query.useEntryDate) this.useEntryDate = query.useEntryDate;
-    if (query.fromDate) this.dateRange.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(query.fromDate, this.utcOffset, 'add').split('T')[0];
-    if (query.toDate) this.dateRange.toDate = DateUtils.getDatetimesBasedOnUTCOffset(query.toDate, this.utcOffset, 'add').split('T')[0];
+    if (this.outputFilter.stationIds) this.stationIds = this.outputFilter.stationIds;
+    if (this.outputFilter.elementIds) this.elementIds = this.outputFilter.elementIds;
+    if (this.outputFilter.level) this.level = this.outputFilter.level;
+    if (this.outputFilter.intervals) this.intervals = this.outputFilter.intervals;
+    if (this.outputFilter.sourceIds) this.sourceIds = this.outputFilter.sourceIds;
+    if (this.outputFilter.useEntryDate !== undefined) this.useEntryDate = this.outputFilter.useEntryDate;
+    if (this.outputFilter.fromDate) this.dateRange.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.utcOffset, 'add').split('T')[0];
+    if (this.outputFilter.toDate) this.dateRange.toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.utcOffset, 'add').split('T')[0];
   }
 
   private setStationsAllowed(): void {
@@ -119,7 +120,6 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
         this.queryAllowedChange.emit(this.queryAllowed);
         throw new Error('Developer error. Permissions NOT set.');
       }
-
 
       const permissions: UserPermissionModel = user.permissions;
       switch (this.parentComponentName) {
@@ -161,28 +161,27 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   }
 
   protected onQueryClick(): void {
+    // Always reset the filter
+    this.outputFilter = this.outputFilter ? { deleted: this.outputFilter.deleted } : { deleted: false };
     // Get the data based on the selection filter 
-    this.changedQuery.stationIds = this.stationIds.length > 0 ? this.stationIds : undefined;
-    this.changedQuery.elementIds = this.elementIds.length > 0 ? this.elementIds : undefined;
-    this.changedQuery.intervals = this.intervals.length > 0 ? this.intervals : undefined;
-    this.changedQuery.level = this.level !== null ? this.level : undefined;
-    this.changedQuery.sourceIds = this.sourceIds.length > 0 ? this.sourceIds : undefined;
+    if (this.stationIds.length > 0) this.outputFilter.stationIds = this.stationIds;
+    if (this.elementIds.length > 0) this.outputFilter.elementIds = this.elementIds;
+    if (this.elementIds.length > 0) this.outputFilter.elementIds = this.elementIds;
+    if (this.intervals.length > 0) this.outputFilter.intervals = this.intervals;
+    if (this.level !== null) this.outputFilter.level = this.level;
+    if (this.sourceIds.length > 0) this.outputFilter.sourceIds = this.sourceIds;
+    if (this.useEntryDate) this.outputFilter.useEntryDate = this.useEntryDate;
 
-    // TODO. Investigate. If this is set to false, the dto sets it true for some reasons
-    // So only setting to true (making it to defined) when its to be set to true.
-    // When this.useEntryDate is false then don't define it, to avoid the bug defined above.
-    this.changedQuery.useEntryDate = this.useEntryDate ? true : undefined;
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-    this.changedQuery.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
+    this.outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
       `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
-
-    // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-    // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-    this.changedQuery.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
+    this.outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
       `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
-    this.queryClick.emit(this.changedQuery);
+
+    // Emit the new filter parameters
+    this.queryClick.emit(this.outputFilter);
   }
 
 

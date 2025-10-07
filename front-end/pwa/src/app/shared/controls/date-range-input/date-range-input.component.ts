@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { StringUtils } from '../../utils/string.utils';
 
 export interface DateRange {
   fromDate: string;
@@ -11,7 +10,7 @@ export interface DateRange {
   templateUrl: './date-range-input.component.html',
   styleUrls: ['./date-range-input.component.scss']
 })
-export class DateRangeInputComponent implements OnChanges {
+export class DateRangeInputComponent {
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public disabled!: boolean;
@@ -27,11 +26,6 @@ export class DateRangeInputComponent implements OnChanges {
   @Output() public inputBlur = new EventEmitter<DateRange>();
 
   constructor() {
-  }
-
-
-  ngOnChanges(changes: SimpleChanges): void {
-  
   }
 
   protected onFromDateChange(value: string | null) {

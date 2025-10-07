@@ -72,8 +72,8 @@ export class AppDatabase extends Dexie {
     formStations!: Table<FormStation, number>;
     stationNetworks!: Table<StationNetwork, string>;
     qcTests!: Table<ViewQCTestModel, number>;
-    // stationId, elementId, sourceId, level, datetime, interval  as compund key
-    observations!: Table<CachedObservationModel, [string, number, number, number, string, number]>;
+    // stationId, elementId, level, datetime, interval, sourceId  as compund key
+    observations!: Table<CachedObservationModel, [string, number, number, string, number, number]>;
 
     //--------------------------------------
 
@@ -85,7 +85,8 @@ export class AppDatabase extends Dexie {
     //--------------------------------------
 
     constructor() {
-        super('climsoft_db'); // Database name
+        // Database name
+        super('climsoft_preview_db');
 
         this.version(1).stores({
             metadataModificationLog: 'metadataName',
@@ -99,26 +100,19 @@ export class AppDatabase extends Dexie {
             elementTypes: `id, name, subdomainId`,
             elements: `id, name, abbreviation, typeId`,
             sourceTemplates: `id, name, sourceType`,
-
             stationNetworks: `stationId`,
             stationForms: `stationId`,
             formStations: `formId`,
-            elementsQcTests: `id, elementId, qcTestType, observationInterval, [elementId+qcTestType+observationInterval]`,
+            qcTests: 'id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]',
+            generalSettings: 'id, name',
 
-            // Note. Compoud key [stationId+elementId+sourceId+level+datetime+interval] is used for putting and deleting data in the local database. 
+            // Note. Compoud key [stationId+elementId+level+datetime+interval+sourceId] is used for putting and deleting data in the local database. 
             // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.
-            observations: `[stationId+elementId+sourceId+level+datetime+interval], stationId, elementId, sourceId, level, datetime, interval, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
+            observations: `[stationId+elementId+level+datetime+interval+sourceId], stationId, elementId, sourceId, level, datetime, interval, synced, entryDatetime, [stationId+sourceId+level+elementId+datetime]`,
 
             userSettings: `name`,
             stationsSearchHistory: `name`,
             elementsSearchHistory: `name`,
-        });
-
-        // // v2 – add only new stores / delete old ones / add indexes (no PK changes!)
-        this.version(2).stores({
-            generalSettings: 'id, name',
-            qcTests: 'id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]',
-            elementsQcTests: null, // delete the old store
         });
     }
 

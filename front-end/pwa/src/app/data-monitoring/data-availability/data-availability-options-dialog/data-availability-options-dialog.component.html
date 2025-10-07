@@ -1,19 +1,19 @@
-<app-dialog [(open)]="open" [title]="'Select Option'" [displayOkOption]="false" [displayCancelOption]="false"
-    [displayDeleteOption]="false" [cancelButtonLabel]="'Close'">
-    <div class="card border-0 p-0">
-        <div class="card-header d-flex">
+<app-dialog [(open)]="open" [title]="'Data Availability Options'" [displayOkOption]="false"
+    [displayDeleteOption]="false" [displayCancelOption]="true" [cancelButtonLabel]="'Cancel'">
+    <div *ngIf="open" class="card border-0 p-0">
+        <div class="card-body px-0">
+            <div class="d-flex align-items-center justify-content-center">
+                <div *ngIf="!hideDrillDown">
+                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="drillDown()">
+                        Drill Down
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="viewData()">
+                        View Data
+                    </button>
+                </div>
 
-        </div>
-        <div class="card-body p-0">
-            <div *ngIf="showViewData">
-                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onOptionClick('view_data')">
-                    View Data
-                </button>
-            </div>
-            <div *ngIf="showDrillDown">
-                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onOptionClick('drill_down')">
-                    Drill Down
-                </button>
             </div>
         </div>
     </div>

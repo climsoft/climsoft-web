@@ -11,7 +11,7 @@ export class QCTestsService {
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
 
-    public async findObservationsWithDuplicates(selectObsevationDto: ViewObservationQueryDTO) {
+    public async findSameObsWithDiffSources(selectObsevationDto: ViewObservationQueryDTO) {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
         if (!selectObsevationDto.page || !selectObsevationDto.pageSize || selectObsevationDto.pageSize >= 1000) {
             throw new BadRequestException("You must specify page and page size. Page size must be less than 1000")
@@ -51,7 +51,7 @@ export class QCTestsService {
         return formattedResult;
     }
 
-    public async countObservationsWithDuplicates(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
+    public async countSameObsWithDiffSources(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
         const whereExpression = this.getQueryFilter(selectObsevationDto);
         const query = `
         SELECT COUNT(*) AS count_num
@@ -68,10 +68,13 @@ export class QCTestsService {
     }
 
     public async performQC(queryDto: ViewObservationQueryDTO, userId: number) {
+        // TODO. Define a filter dto for qc. It should always require a date range.
+
+        
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {
-            if (DateUtils.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
+            if (DateUtils.isMoreThanMaxCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate), 11)) {
                 throw new BadRequestException('Date range exceeds 10 years');
             }
         } else {
@@ -88,7 +91,7 @@ export class QCTestsService {
         SELECT ( COUNT(*) FILTER (WHERE func_execute_qc_tests(observation_record, ${userId}) IS TRUE) ) AS qc_fails  
         FROM (SELECT * FROM observations WHERE ${whereExpression}) AS observation_record;
         `;
-       
+
         //console.log('qc query: ', query, ' | query dto: ', queryDto)
 
         // As of 14/06/2025 it was noticed that when this is called multiple times a deadlock occurs at the nodejs level.
@@ -128,7 +131,7 @@ export class QCTestsService {
     private getQueryDateFilter(queryDto: ViewObservationQueryDTO): string | null {
         // Important. limit the date selection to 10 years for perfomance reasons.
         if (queryDto.fromDate && queryDto.toDate) {
-            if (DateUtils.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
+            if (DateUtils.isMoreThanMaxCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate), 11)) {
                 throw new BadRequestException('Date range exceeds 10 years');
             }
         } else {

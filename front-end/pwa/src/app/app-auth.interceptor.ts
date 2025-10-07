@@ -59,8 +59,8 @@ export class AppAuthInterceptor implements HttpInterceptor {
       console.log(`Network error ${err.status} was detected`);
       // Return an observable with a user-facing error message.
       return throwError(() => new Error(`Network error ${err.status} was detected`));
-    } else {
-      // The backend returned an unsuccessful response code.
+    }else {
+      // The backend returned an unsuccessful response code for instance status 500 for internal server error.
       // The response body may contain clues as to what went wrong.
       console.log(`Backend returned code ${err.status}, body was: `, err.error);
       // Return an observable with a user-facing error message.

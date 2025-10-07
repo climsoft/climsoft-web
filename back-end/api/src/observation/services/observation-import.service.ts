@@ -15,8 +15,6 @@ import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 
-
-
 @Injectable()
 export class ObservationImportService {
     // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
@@ -61,7 +59,7 @@ export class ObservationImportService {
             }
 
         } catch (error) {
-            console.error("File Import Failed: " + error)
+            console.error("File Import Failed: " , error)
             throw new BadRequestException("Error: File Import Failed: " + error);
         } finally {
             this.fileIOService.deleteFile(tmpFilePathName);
@@ -107,7 +105,7 @@ export class ObservationImportService {
         await this.fileIOService.duckDb.exec(alterSQLs);
         console.log("DuckDB alters took: ", new Date().getTime() - startTime);
 
-        if (importDef.scaleValues) {
+        if (sourceDef.scaleValues) {
             startTime = new Date().getTime();
             // Scale values if indicated, execute the scale values SQL
             await this.fileIOService.duckDb.exec(await this.getScaleValueSQL(tmpObsTableName));
@@ -277,22 +275,51 @@ export class ObservationImportService {
 
     private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportTabularSourceDTO, tableName: string): string {
         let sql: string = "";
-        if (importDef.datetimeDefinition.dateTimeColumnPostion !== undefined) {
+        if (importDef.datetimeDefinition.dateTimeInSingleColumn !== undefined) {
+            const dateTimeDef = importDef.datetimeDefinition.dateTimeInSingleColumn;
             // Rename the date time column
-            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${importDef.datetimeDefinition.dateTimeColumnPostion - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
 
+            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.datetimeFormat}')::VARCHAR;`;
+
             // Convert all values to a valid sql timestamp that ignores the microseconds
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
         } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
-            if (importDef.datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn) {
-            } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn.dateInMultipleColumn) {
+            const dateTimeDef = importDef.datetimeDefinition.dateTimeInMultipleColumn;
+            if (dateTimeDef.dateInSingleColumn && dateTimeDef.timeInSingleColumn) {
+
+                // Rename the date and time column
+                sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateInSingleColumn.columnPosition - 1} TO date_col;`;
+
+                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeInSingleColumn.columnPosition - 1} TO time_col;`;
+
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR;`;
+
+                sql = sql + `UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col;`;
+
+                // Rename the date time column
+                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
+
+                // Make sure there are no null values on the column
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+
+                sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateInSingleColumn.dateFormat} ${dateTimeDef.timeInSingleColumn.timeFormat}')::VARCHAR;`;
+
+
+                // Convert all values to a valid sql timestamp that ignores the microseconds
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
+
+
+            } else if (dateTimeDef.dateInMultipleColumn) {
+
             }
 
-            if (importDef.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.columnPosition !== undefined) {
-            } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn.hourDefinition.defaultHour !== undefined) {
+            if (dateTimeDef.hourDefinition.columnPosition !== undefined) {
+
+            } else if (dateTimeDef.hourDefinition.defaultHour !== undefined) {
             }
         }
 
@@ -330,13 +357,13 @@ export class ObservationImportService {
     }
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
-        const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME}  FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
+        const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME} FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
         const elements: CreateViewElementDto[] = await this.elementsService.find({ elementIds: elementIdsToScale });
-        let scalingSQLs: string = ""
+        let scalingSQLs: string = '';
         for (const element of elements) {
             // Only scale elements that have a scaling factor > 0 
             if (element.entryScaleFactor) {
-                scalingSQLs = scalingSQLs + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = ${this.VALUE_PROPERTY_NAME} / ${element.entryScaleFactor} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.id} AND ${this.VALUE_PROPERTY_NAME} IS NOT NULL;`;
+                scalingSQLs = scalingSQLs + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = (${this.VALUE_PROPERTY_NAME} / ${element.entryScaleFactor}) WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.id} AND ${this.VALUE_PROPERTY_NAME} IS NOT NULL;`;
             }
         }
         return scalingSQLs;

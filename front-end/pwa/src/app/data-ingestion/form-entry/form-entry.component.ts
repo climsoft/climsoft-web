@@ -353,8 +353,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         };
       },
       error: err => {
-        // Important to log the error for tracing purposes
-        console.log('error logged: ', err);
         if (AppAuthInterceptor.isKnownNetworkError(err)) {
           // If there is network error then save observations as unsynchronised and no need to send data to server
           this.pagesDataService.showToast({
@@ -366,6 +364,8 @@ export class FormEntryComponent implements OnInit, OnDestroy {
             title: 'Data Entry', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
           });
         } else {
+          // Log the error for tracing purposes
+          console.log('error logged: ', err);
           this.pagesDataService.showToast({
             title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
           });
