@@ -1,5 +1,7 @@
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { StringUtils } from 'src/shared/utils/string.utils';
 
 export class CreateUpdateSourceDto {
   @IsString()
@@ -28,26 +30,33 @@ export class CreateUpdateSourceDto {
 * Determines whether to allow missing values or not.
 * If true, entry of missing values will be allowed.
 */
-  @IsBoolean()
-  allowMissingValue: boolean;
+  @IsOptional()
+  @Type(() => String) // Required to stop transformer from converting the value type to boolean
+  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+  allowMissingValue?: boolean;
 
   /**
 * Determines whether to scale the values. 
 * To be used when data being imported is not scaled
 */
-  @IsBoolean()
-  scaleValues: boolean;
+  @IsOptional()
+  @Type(() => String) // Required to stop transformer from converting the value type to boolean
+  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+  scaleValues?: boolean;
 
   /** Sample paper image that resembles the source design */
+  @IsOptional()
   @IsString()
-  sampleImage: string;
+  sampleImage?: string;
 
-  @IsBoolean()
-  disabled: boolean;
+  @IsOptional()
+  @Type(() => String) // Required to stop transformer from converting the value type to boolean
+  @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+  disabled?: boolean;
 
   @IsOptional()
   @IsString()
-  comment: string | null;
+  comment?: string | null;
 }
 
 export interface SourceParametersValidity {

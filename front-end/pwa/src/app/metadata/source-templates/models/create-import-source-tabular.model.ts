@@ -1,7 +1,7 @@
 import { FlagEnum } from "../../../data-ingestion/models/flag.enum";
 import { DataStructureValidity } from "./create-import-source.model";
 
-export interface ImportTabularSourceModel extends  DataStructureValidity{
+export interface ImportTabularSourceModel extends DataStructureValidity {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -131,37 +131,58 @@ export interface FlagDefinition {
     flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
 }
 
+export type DateTimeFormatTypes = '%Y-%m-%d %H:%M:%S' |
+    '%Y-%m-%d %H:%M' |
+    '%Y-%m-%d' |
+    '%d-%m-%Y %H:%M:%S' |
+    '%d-%m-%Y %H:%M' |
+    '%d-%m-%Y' |
+    '%Y/%m/%d %H:%M:%S' |
+    '%Y/%m/%d %H:%M' |
+    '%Y/%m/%d' |
+    '%d/%m/%Y %H:%M:%S' |
+    '%d/%m/%Y %H:%M' |
+    '%d/%m/%Y';
+
+export type DateFormatTypes = '%Y-%m-%d' | '%d-%m-%Y' | '%Y/%m/%d' | '%d/%m/%Y';
+
+export type TimeFormatTypes = '%H:%M:%S' | '%H:%M';
+
 /**
  * When dateTimeColumnPostion is not specified then  dateInMultipleColumn should be specified, that is,
  * either dateTimeColumnPostion or dateInMultipleColumn must be provided, but not both.
  */
-export interface DateTimeDefinition {
+export class DateTimeDefinition {
 
     /**
-     * The date time column position
-     * Expected format: 'yyyy-mm-dd hh:mm:ss'
-     */
-    dateTimeColumnPostion?: number;
+    * The date time column position
+    * Expected format: 'yyyy-mm-dd hh:mm:ss'
+    */
+    dateTimeInSingleColumn?: {
+        columnPosition: number;
+        datetimeFormat: DateTimeFormatTypes;
+    };
 
     dateTimeInMultipleColumn?: {
 
         dateInSingleColumn?: {
-            dateColumnPosition: number,
-            // yyyy-mm-dd, yyyy/mm/dd,
-            // dd-mm-yyyy, dd/mm/yyyy,
-            // iso dateformat that is, yyyy-mm-dd hh:mm:ss
-            datetimeFormat: 'yyyy-mm-dd hh:mm:ss' | 'yyyy-mm-dd' | 'yyyy/mm/dd' | 'dd-mm-yyyy' | 'dd/mm/yyyy',
-        },
+            columnPosition: number;
+            dateFormat: DateFormatTypes;
+        };
+
+        timeInSingleColumn?: {
+            columnPosition: number;
+            timeFormat: TimeFormatTypes;
+        };
 
         dateInMultipleColumn?: {
-            yearColumnPosition: number,
-            monthColumnPosition: number,
-            dayColumnPosition: number
-        },
+            yearColumnPosition: number;
+            monthColumnPosition: number;
+            dayColumnPosition: number;
+        };
 
-        hourDefinition: HourDefinition
+        hourDefinition: HourDefinition;
     };
-
 }
 
 /**

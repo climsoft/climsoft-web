@@ -22,14 +22,14 @@ export class SourceTemplateEntity extends AppBaseEntity {
     @Column({ name: "utc_offset", type: "int" })
     utcOffset: number;
 
-    @Column({ name: "allow_missing_value", type: "boolean" })
+    @Column({ name: "allow_missing_value", type: "boolean", default: false })
     allowMissingValue: boolean;
 
-    @Column({ name: "scale_values", type: "boolean" })
+    @Column({ name: "scale_values", type: "boolean" , default: false})
     scaleValues: boolean;
 
     @Column({ name: "sample_image", type: "varchar", nullable: true })
-    sampleImage: string;
+    sampleImage: string | null;
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters: SourceParametersValidity;

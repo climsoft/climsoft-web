@@ -146,6 +146,23 @@ export class FlagDefinition {
     flagsToFetch?: { sourceId: string; databaseId: FlagEnum }[];
 }
 
+export type DateTimeFormatTypes = '%Y-%m-%d %H:%M:%S' |
+    '%Y-%m-%d %H:%M' |
+    '%Y-%m-%d' |
+    '%d-%m-%Y %H:%M:%S' |
+    '%d-%m-%Y %H:%M' |
+    '%d-%m-%Y' |
+    '%Y/%m/%d %H:%M:%S' |
+    '%Y/%m/%d %H:%M' |
+    '%Y/%m/%d' |
+    '%d/%m/%Y %H:%M:%S' |
+    '%d/%m/%Y %H:%M' |
+    '%d/%m/%Y';
+
+export type DateFormatTypes = '%Y-%m-%d' | '%d-%m-%Y' | '%Y/%m/%d' | '%d/%m/%Y';
+
+export type TimeFormatTypes = '%H:%M:%S' | '%H:%M';
+
 /**
  * When dateTimeColumnPostion is not specified then  dateInMultipleColumn should be specified, that is,
  * either dateTimeColumnPostion or dateInMultipleColumn must be provided, but not both.
@@ -156,16 +173,21 @@ export class DateTimeDefinition {
     * The date time column position
     * Expected format: 'yyyy-mm-dd hh:mm:ss'
     */
-    dateTimeColumnPostion?: number;
+    dateTimeInSingleColumn?: {
+        columnPosition: number;
+        datetimeFormat: DateTimeFormatTypes;
+    };
 
     dateTimeInMultipleColumn?: {
 
         dateInSingleColumn?: {
-            dateColumnPosition: number;
-            // yyyy-mm-dd, yyyy/mm/dd,
-            // dd-mm-yyyy, dd/mm/yyyy,
-            // iso dateformat that is, yyyy-mm-dd hh:mm:ss
-            datetimeFormat: 'yyyy-mm-dd hh:mm:ss' | 'yyyy-mm-dd' | 'yyyy/mm/dd' | 'dd-mm-yyyy' | 'dd/mm/yyyy';
+            columnPosition: number;
+            dateFormat: DateFormatTypes;
+        };
+
+        timeInSingleColumn?: {
+            columnPosition: number;
+            timeFormat: TimeFormatTypes;
         };
 
         dateInMultipleColumn?: {
@@ -176,7 +198,6 @@ export class DateTimeDefinition {
 
         hourDefinition: HourDefinition;
     };
-
 }
 
 /**
@@ -186,12 +207,10 @@ export class HourDefinition {
     /**
      * If provided, then defaultHour will not be used.
      */
-    @IsInt()
     columnPosition?: number;
 
     /**
      * Should be provided when hourColumnPosition is not provided.
      */
-    @IsInt()
     defaultHour?: number;
 }

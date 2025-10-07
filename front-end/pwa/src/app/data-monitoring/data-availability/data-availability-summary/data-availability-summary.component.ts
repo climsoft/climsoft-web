@@ -56,9 +56,12 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
   public loadSummary(filter: DataAvailabilitySummaryQueryModel, utcOffset: number): void {
     this.filter = filter;
     this.utcOffset = utcOffset;
+
+
+
     this.enableQueryButton = false;
     this.observationService.findDataAvailabilitySummary(this.filter).pipe(
-      take(1) 
+      take(1)
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
@@ -167,7 +170,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     }
 
     this.chartInstance = echarts.init(document.getElementById('dataAvailabilityChart'));
- 
+
     const chartOptions = {
       tooltip: {
         position: 'top',
@@ -327,7 +330,9 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
         toDate.setUTCHours(dateValue);
         break;
       case DurationTypeEnum.MONTH:
+        console.log('before date value: ', dateValue, ' fromDate: ', filter.fromDate, 'toDate: ', filter.toDate);
         fromDate.setUTCDate(dateValue);
+        //toDate.setUTCMonth(fromDate.getUTCMonth());
         toDate.setUTCDate(dateValue);
         filter.durationType = DurationTypeEnum.DAY;
         break;

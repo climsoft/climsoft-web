@@ -20,6 +20,7 @@ export class ImportSourceDetailComponent implements OnInit {
 
   protected viewSource!: ViewSourceModel;
   protected errorMessage: string = '';
+  protected tempScript: boolean = false; // TODO. Temporary
 
   private destroy$ = new Subject<void>();
 
@@ -67,7 +68,10 @@ export class ImportSourceDetailComponent implements OnInit {
         },
         levelColumnPosition: undefined,
         datetimeDefinition: {
-          dateTimeColumnPostion: 1
+          dateTimeInSingleColumn: {
+            columnPosition: 1,
+            datetimeFormat: '%Y-%m-%d %H:%M',
+          }
         },
         isValid: () => true
       }
@@ -139,7 +143,7 @@ export class ImportSourceDetailComponent implements OnInit {
       name: this.viewSource.name,
       description: this.viewSource.description,
       sourceType: SourceTypeEnum.IMPORT,
-      scaleValues: false,
+      scaleValues: this.viewSource.scaleValues,
       allowMissingValue: this.viewSource.allowMissingValue,
       sampleImage: this.viewSource.sampleImage,
       utcOffset: this.viewSource.utcOffset,
@@ -148,7 +152,7 @@ export class ImportSourceDetailComponent implements OnInit {
       comment: this.viewSource.comment,
     };
 
-    // console.log('saved', createUpdateSource)
+     console.log('saved', createUpdateSource)
 
     if (this.viewSource.id === 0) {
       this.importSourcesService.put(createUpdateSource).pipe(

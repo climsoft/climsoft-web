@@ -82,11 +82,11 @@ export class SourceTemplatesService {
 
         entity.description = dto.description;
         entity.sourceType = dto.sourceType;
-        entity.utcOffset = dto.utcOffset;
-        entity.allowMissingValue = dto.allowMissingValue;
-        entity.scaleValues = dto.scaleValues;
-        entity.sampleImage = dto.sampleImage;
         entity.parameters = dto.parameters;
+        entity.utcOffset = dto.utcOffset;
+        entity.allowMissingValue = dto.allowMissingValue ? true : false;
+        entity.scaleValues = dto.scaleValues ? true : false;
+        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
@@ -106,10 +106,13 @@ export class SourceTemplatesService {
         entity.name = dto.name;
         entity.description = dto.description;
         entity.sourceType = dto.sourceType;
-        entity.utcOffset = dto.utcOffset;
-        entity.allowMissingValue = dto.allowMissingValue;
-        entity.sampleImage = dto.sampleImage;
         entity.parameters = dto.parameters;
+        entity.utcOffset = dto.utcOffset;
+        entity.allowMissingValue = dto.allowMissingValue ? true : false;
+        entity.scaleValues = dto.scaleValues ? true : false;
+        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
+        entity.disabled = dto.disabled ? true : false;
+        entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
@@ -144,7 +147,7 @@ export class SourceTemplatesService {
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleImage: entity.sampleImage,
+            sampleImage: entity.sampleImage?  entity.sampleImage: '' ,
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
             disabled: entity.disabled,

@@ -27,7 +27,7 @@ export class ImportSourceStationDetailComponent implements OnChanges {
   }
 
   protected onIncludeStation(include: boolean): void {
-    this.stationDefinition = include ? { columnPosition: 0, stationsToFetch: undefined } : undefined;
+    this.stationDefinition = include ? { columnPosition: 1, stationsToFetch: undefined } : undefined;
     this.stationDefinitionChange.emit(this.stationDefinition);
   }
 

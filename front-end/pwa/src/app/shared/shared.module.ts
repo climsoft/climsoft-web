@@ -2,9 +2,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http'; 
+import { HttpClientModule } from '@angular/common/http';
 //--------------------------------
- 
+
 //--------- components ------------
 import { TextInputComponent } from './controls/text-input/text-input.component';
 import { DateInputComponent } from './controls/date-input/date-input.component';
@@ -24,7 +24,7 @@ import { HourSingleInputComponent } from './controls/hour-input/hour-single-inpu
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
 import { IntervalSelectorSingleComponent } from './controls/period-input/interval-selector-single/interval-selector-single.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
-import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component'; 
+import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
 import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
 import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
@@ -39,14 +39,17 @@ import { DateRangeInputComponent } from './controls/date-range-input/date-range-
 import { IntervalSelectorMultipleComponent } from './controls/period-input/interval-selector-multiple/interval-selector-multiple.component';
 import { YearSelectorMultipleComponent } from './controls/year-selector/year-selector-multiple/year-selector-multiple.component';
 import { YearSelectorSingleComponent } from './controls/year-selector/year-selector-single-input/year-selector-single.component';
+import { DatetimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/datetime-format-selector-single/datetime-format-selector-single.component';
+import { TimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/time-format-selector-single/time-format-selector-single.component';
+import { DateFormatSelectorSingleComponent } from './controls/datetime-format-selectors/date-format-selector-single/date-format-selector-single.component';
 
 //--------------------------------
-  
+
 const angularModules = [
   CommonModule,
   ReactiveFormsModule,
   FormsModule,
-  HttpClientModule, 
+  HttpClientModule,
 ];
 
 //--------------------------------
@@ -72,15 +75,15 @@ const controlsComponents = [
   HourMultipleInputComponent,
   YearMonthInputComponent,
   IntervalSelectorSingleComponent,
-  
-  DropDownButtonComponent,    
-  ElementDomainSingleInputComponent,  
+
+  DropDownButtonComponent,
+  ElementDomainSingleInputComponent,
   ElementSubdomainSingleInputComponent,
   ServerTypeInputComponent,
   FlagSingleInputComponent,
   PageInputComponent,
-  DropDownContainerComponent, 
- 
+  DropDownContainerComponent,
+
   MapComponent,
   DataStructureInputComponent,
 
@@ -89,6 +92,10 @@ const controlsComponents = [
 
   YearSelectorMultipleComponent,
   YearSelectorSingleComponent,
+
+  DatetimeFormatSelectorSingleComponent,
+  DateFormatSelectorSingleComponent,
+  TimeFormatSelectorSingleComponent,
 ];
 
 const directives = [
@@ -99,13 +106,13 @@ const directives = [
 @NgModule({
   declarations: [
     ...controlsComponents,
-    ...directives, 
+    ...directives,
   ],
   imports: [
-    ...angularModules, 
+    ...angularModules,
   ],
   providers: [
-   
+
   ],
   exports: [
     ...angularModules,

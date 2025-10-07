@@ -59,8 +59,6 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
     }
   }
 
-
-
   protected onSingleFetchElementsChange(fetch: boolean) {
 
     if (!this.elementAndValueDefinition.hasElement?.singleColumn) {
@@ -102,6 +100,7 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
     if (last.columnPosition !== 0 && last.databaseId !== 0) {
 
       // Set the new valid values from the place holder
+      //this.elementColumnsHolder = this.elementColumnsHolder.filter( item => item.columnPosition !== 0);
       this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
 
       //Add new placholder values
@@ -111,4 +110,3 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
   }
 
 }
- 
