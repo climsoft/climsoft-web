@@ -1,34 +1,36 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, take } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { ActivatedRoute } from '@angular/router';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary-query.model';
 import { DataAvailabilityOptionsDialogComponent } from '../data-availability-options-dialog/data-availability-options-dialog.component';
+import { DurationTypeEnum } from '../models/duration-type.enum';
 
 @Component({
   selector: 'app-data-availability-summary',
   templateUrl: './data-availability-summary.component.html',
   styleUrls: ['./data-availability-summary.component.scss']
 })
-export class DataAvailabilitySummaryComponent implements OnDestroy {
-  @ViewChild('appDataAvailabilityOptionsDialog') dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
+export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
+  @ViewChild('appDataAvailabilityOptionsDialog')
+  private dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
 
   @Input()
+  public filter!: DataAvailabilitySummaryQueryModel;
+
+ 
   public enableQueryButton: boolean = true;
 
-  private filter!: DataAvailabilitySummaryQueryModel;
+  @Output()
+  public enableQueryButtonChange = new EventEmitter<boolean>();
 
-  @Input()
-  public allStations!: StationCacheModel[];
-
-  @Input()
-  public utcOffset!: number;
+  @Output()
+  public filterChange = new EventEmitter<DataAvailabilitySummaryQueryModel>();
 
   private stationsRendered!: StationCacheModel[];
   private datesRendered!: number[];
@@ -41,8 +43,15 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
+    private cachedMetadataService: CachedMetadataService,
   ) {
+  }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['filter'] && this.filter) {
+
+      this.loadSummary();
+    }
   }
 
   ngOnDestroy(): void {
@@ -53,34 +62,37 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     }
   }
 
-  public loadSummary(filter: DataAvailabilitySummaryQueryModel, utcOffset: number): void {
-    this.filter = filter;
-    this.utcOffset = utcOffset;
+  protected onQueryClick(newSummaryFilter: DataAvailabilitySummaryQueryModel): void {
+    this.filter = newSummaryFilter;
+    this.loadSummary();
+    this.filterChange.emit(this.filter);
+  }
 
-
-
+  private loadSummary(): void {
+    console.log('loading summary for: ', this.filter);
     this.enableQueryButton = false;
     this.observationService.findDataAvailabilitySummary(this.filter).pipe(
       take(1)
     ).subscribe({
       next: data => {
+         console.log('summary data: ', data);
         this.enableQueryButton = true;
         this.stationsRendered = [];
         if (this.filter.stationIds && this.filter.stationIds.length > 0) {
-          for (const station of this.allStations) {
+          for (const station of this.cachedMetadataService.stationsMetadata) {
             if (this.filter.stationIds.includes(station.id)) {
               this.stationsRendered.push(station);
             }
           }
         } else {
-          this.stationsRendered = this.allStations;
+          this.stationsRendered = [...this.cachedMetadataService.stationsMetadata];
         }
         this.heatMapStationValues = this.stationsRendered.map(item => `${item.id} - ${item.name}`);
         this.datesRendered = [];
         let dateToolTipPrefix: string; // Used by heat map chart (cell) tooltip for x-axis prefix 
 
-        const fromDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.fromDate, this.utcOffset, 'add').split('T')[0];
-        const toDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.toDate, this.utcOffset, 'add').split('T')[0];
+        const fromDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
+        const toDate: string = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.toDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
         const [fromYear, fromMonth] = fromDate.split('-').map(Number);
         switch (this.filter.durationType) {
           case DurationTypeEnum.DAY:
@@ -158,8 +170,8 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
         this.generateChart(this.heatMapDateValues, this.heatMapStationValues, chartData, maxValue, dateToolTipPrefix);
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Availability', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
+        this.pagesDataService.showToast({ title: 'Data Availability', message: err, type: ToastEventTypeEnum.ERROR });
       },
     });
   }
@@ -303,7 +315,7 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
           return;
       }
 
-      console.log('detailsDialogFilter: ', detailsDialogFilter);
+      //console.log('detailsDialogFilter: ', detailsDialogFilter);
 
       // Show the dialog 
       this.dataAvailabilityOptionsDialogComponent.showDialog(detailsDialogFilter, this.filter.durationType === DurationTypeEnum.DAY);
@@ -321,16 +333,16 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
   private changeDurationTypeNDatesBasedOnClickedHeatMapParam(filter: DataAvailabilitySummaryQueryModel, dateValue: number): void {
     // Dates shown on the heatmap are based on utcOffset timezone(e.g to reflect the local timezone) set while dates on the filter are on UTC timezone.
     // So add the utcoffset to get the dates in local timezones first before making adjustments to the from and to date
-    let fromDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(filter.fromDate, this.utcOffset, 'add'));
-    let toDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(filter.toDate, this.utcOffset, 'add'));
+    let fromDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(filter.fromDate, this.cachedMetadataService.utcOffSet, 'add'));
+    let toDate: Date = new Date(DateUtils.getDatetimesBasedOnUTCOffset(filter.toDate, this.cachedMetadataService.utcOffSet, 'add'));
 
     switch (this.filter.durationType) {
       case DurationTypeEnum.DAY:
         fromDate.setUTCHours(dateValue);
         toDate.setUTCHours(dateValue);
         break;
-      case DurationTypeEnum.MONTH: 
-        fromDate.setUTCDate(dateValue); 
+      case DurationTypeEnum.MONTH:
+        fromDate.setUTCDate(dateValue);
         toDate.setUTCDate(dateValue);
         filter.durationType = DurationTypeEnum.DAY;
         break;
@@ -349,11 +361,8 @@ export class DataAvailabilitySummaryComponent implements OnDestroy {
     }
 
     // change the from and to date to UTC timezone as required by the API 
-    filter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(fromDate.toISOString(), this.utcOffset, 'subtract');
-    filter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.utcOffset, 'subtract');
+    filter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(fromDate.toISOString(), this.cachedMetadataService.utcOffSet, 'subtract');
+    filter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(toDate.toISOString(), this.cachedMetadataService.utcOffSet, 'subtract');
   }
-
-
-
 
 }

@@ -12,10 +12,12 @@ import { ObservationsModule } from '../observations/observations.module';
 import { StationStatusQuerySelectionComponent } from './station-status/station-status-query-selection/station-status-query-selection.component';
 import { DataIngestionModule } from '../data-ingestion/data-ingestion.module';
 import { DataAvailabilityComponent } from './data-availability/data-availability.component';
-import { DataAvailabilityQuerySelectionComponent } from './data-availability/data-availability-query-selection/data-availability-query-selection.component';
-import { DataAvailabilitySummaryComponent } from './data-availability/data-availability-summary/data-availability-summary.component';
 import { DataAvailabilityDetailsComponent } from './data-availability/data-availability-details/data-availability-details.component';
 import { DataAvailabilityOptionsDialogComponent } from './data-availability/data-availability-options-dialog/data-availability-options-dialog.component';
+import { DataAvailabilityFilterSelectionGeneralComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+import { DataAvailabilityFilterSelectionSummaryComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-summary/data-availability-filter-selection-summary.component';
+import { DataAvailabilityFilterSelectionDetailsComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-details/data-availability-filter-selection-details.component';
+import { DataAvailabilitySummaryComponent } from './data-availability/data-availability-summary/data-availability-summary.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +27,9 @@ import { DataAvailabilityOptionsDialogComponent } from './data-availability/data
     DataFlowComponent,
     DataFlowQuerySelectionComponent,
     DataAvailabilityComponent,
-    DataAvailabilityQuerySelectionComponent,
+    DataAvailabilityFilterSelectionGeneralComponent,
+    DataAvailabilityFilterSelectionSummaryComponent,
+    DataAvailabilityFilterSelectionDetailsComponent,
     DataAvailabilitySummaryComponent,
     DataAvailabilityDetailsComponent,
     DataAvailabilityOptionsDialogComponent,

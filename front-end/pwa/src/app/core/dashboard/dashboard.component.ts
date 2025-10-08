@@ -3,7 +3,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -19,7 +19,7 @@ export class DashboardComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,) {
+    private cachedMetadataSearchService: CachedMetadataService,) {
     this.pagesDataService.setPageHeader('Dashboard');
 
     this.appAuthService.user.pipe(

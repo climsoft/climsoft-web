@@ -7,7 +7,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.ut
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
@@ -51,7 +51,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
     private qualityControlService: QualityControlService,
   ) {
@@ -62,7 +62,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.queryData();
     });
   }

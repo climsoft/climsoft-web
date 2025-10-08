@@ -543,7 +543,7 @@ export class ObservationsService {
             filter.toDate ?? null                                     // p_to_date timestamptz
         ];
 
-        const sql = `SELECT *  FROM func_data_availaibility_details($1, $2, $3, $4, $5, $6)`;
+        const sql = `SELECT * FROM func_data_availaibility_details($1, $2, $3, $4, $5, $6)`;
 
         const rows = await this.dataSource.query(sql, params);
 

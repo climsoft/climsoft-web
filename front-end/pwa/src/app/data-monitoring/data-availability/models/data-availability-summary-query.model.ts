@@ -1,3 +1,5 @@
+import { DurationTypeEnum } from "./duration-type.enum";
+
 export interface DataAvailabilitySummaryQueryModel {
     stationIds?: string[];
     elementIds?: number[];
@@ -7,11 +9,4 @@ export interface DataAvailabilitySummaryQueryModel {
     durationType: DurationTypeEnum;
     fromDate: string;
     toDate: string;
-}
-
-export enum DurationTypeEnum {
-    DAY = 'day',
-    MONTH = 'month',
-    YEAR = 'year',
-    YEARS = 'years',
 }

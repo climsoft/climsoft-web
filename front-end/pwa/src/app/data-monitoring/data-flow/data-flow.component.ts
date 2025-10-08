@@ -6,7 +6,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import * as echarts from 'echarts';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { DataFlowQueryModel } from 'src/app/data-ingestion/models/data-flow-query.model';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 interface DataFlowView {
   stationId: string
@@ -33,7 +33,7 @@ export class DataFlowComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
   ) {
     this.pagesDataService.setPageHeader('Data Flow');
 
@@ -42,7 +42,7 @@ export class DataFlowComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe((allMetadataLoaded) => {
       if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.stationsMetadata =  this.cachedMetadataSearchService.stationsMetadata;
     });
 

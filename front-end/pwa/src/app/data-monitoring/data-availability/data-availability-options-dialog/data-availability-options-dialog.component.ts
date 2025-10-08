@@ -1,10 +1,11 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
+import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary-query.model';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { Router } from '@angular/router';
+import { DurationTypeEnum } from '../models/duration-type.enum';
 
 @Component({
   selector: 'app-data-availability-options-dialog',
@@ -49,22 +50,6 @@ export class DataAvailabilityOptionsDialogComponent implements OnDestroy {
 
   protected drillDown(): void {
     const filter: DataAvailabilitySummaryQueryModel = { ...this.detailsAvailabilityFilter };
-    // switch (filter.durationType) {
-    //   case DurationTypeEnum.DAY:
-    //     throw new Error('Developer error. Drill down not supported for day duration type');
-    //   case DurationTypeEnum.MONTH:
-    //     filter.durationType = DurationTypeEnum.DAY;
-    //     break;
-    //   case DurationTypeEnum.YEAR:
-    //     filter.durationType = DurationTypeEnum.MONTH;
-    //     break;
-    //   case DurationTypeEnum.YEARS:
-    //     filter.durationType = DurationTypeEnum.YEAR;
-    //     break;
-    //   default:
-    //     throw new Error('Developer error. Duration type not supported');
-    // }
-
     const serialisedUrl = this.router.serializeUrl(
       this.router.createUrlTree(['/data-monitoring/data-availability'], { queryParams: filter })
     );

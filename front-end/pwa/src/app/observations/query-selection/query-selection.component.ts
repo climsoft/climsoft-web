@@ -9,7 +9,7 @@ import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-i
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DataExplorerComponent } from 'src/app/data-monitoring/data-explorer/data-explorer.component';
 import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-checks/query-qc-data-checks/query-qc-data-checks.component';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
   selector: 'app-query-selection',
@@ -49,7 +49,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
 
   constructor(
     private appAuthService: AppAuthService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
   ) {
 
     // Set default dates to yesterday
@@ -62,7 +62,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.setSelectionsFromOutputFilter();
     });
 

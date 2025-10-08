@@ -1,2 +1,8 @@
-<div id="dataAvailabilityChart" style="width: 100%; height: 80vh;"></div>
-<app-data-availability-options-dialog #appDataAvailabilityOptionsDialog />
+<div>
+    <div class="mb-2">
+        <app-data-availability-filter-selection-summary [enableQueryButton]="enableQueryButton"
+            [filter]="filter" (filterChange)="onQueryClick($event)" />
+    </div>
+    <div id="dataAvailabilityChart" style="width: 100%; height: 80vh;"></div>
+    <app-data-availability-options-dialog #appDataAvailabilityOptionsDialog />
+</div>

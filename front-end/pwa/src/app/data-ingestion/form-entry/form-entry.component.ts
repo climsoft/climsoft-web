@@ -21,7 +21,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 @Component({
@@ -66,7 +66,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     (private pagesDataService: PagesDataService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
-      private cachedMetadataSearchService: CachedMetadataSearchService,
+      private cachedMetadataSearchService: CachedMetadataService,
       private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
