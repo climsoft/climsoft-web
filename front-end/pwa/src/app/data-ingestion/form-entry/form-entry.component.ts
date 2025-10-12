@@ -87,8 +87,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
-      console.log('metadata loaded: ', allMetadataLoaded);
-
       if (!allMetadataLoaded) return;
 
       this.station = this.cachedMetadataSearchService.getStation(stationId);

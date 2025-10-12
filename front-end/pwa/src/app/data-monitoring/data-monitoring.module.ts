@@ -15,8 +15,8 @@ import { DataAvailabilityComponent } from './data-availability/data-availability
 import { DataAvailabilityDetailsComponent } from './data-availability/data-availability-details/data-availability-details.component';
 import { DataAvailabilityOptionsDialogComponent } from './data-availability/data-availability-options-dialog/data-availability-options-dialog.component';
 import { DataAvailabilityFilterSelectionGeneralComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
-import { DataAvailabilityFilterSelectionSummaryComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-summary/data-availability-filter-selection-summary.component';
-import { DataAvailabilityFilterSelectionDetailsComponent } from './data-availability/data-availability-query-selection/data-availability-filter-selection-details/data-availability-filter-selection-details.component';
+import { DataAvailabilityFilterSelectionSummaryComponent } from './data-availability/data-availability-summary/data-availability-filter-selection-summary/data-availability-filter-selection-summary.component';
+import { DataAvailabilityFilterSelectionDetailsComponent } from './data-availability/data-availability-details/data-availability-filter-selection-details/data-availability-filter-selection-details.component';
 import { DataAvailabilitySummaryComponent } from './data-availability/data-availability-summary/data-availability-summary.component';
 
 @NgModule({
@@ -38,7 +38,7 @@ import { DataAvailabilitySummaryComponent } from './data-availability/data-avail
   imports: [
     DataMonitoringRoutingModule,
     SharedModule,
-    MetadataModule,
+    MetadataModule, 
     ObservationsModule,
     DataIngestionModule,
   ]

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleCha
 import { Subject, takeUntil } from 'rxjs';
 import { DataAvailabilitySummaryQueryModel } from '../../models/data-availability-summary-query.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../../data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';

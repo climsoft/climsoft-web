@@ -15,7 +15,7 @@ import { DataAvailabilityFilterModel } from './data-availability-query-selection
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements OnInit, OnDestroy {
-  protected activeTab: 'summary' | 'details' = 'summary'; 
+  protected activeTab: 'summary' | 'details' = 'summary';
   protected summaryFilter!: DataAvailabilitySummaryQueryModel;
   protected detailsFilter!: DataAvailabilityFilterModel;
 
@@ -109,12 +109,15 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
 
     // When choosing tabs. Change the filters of those tabs with contents of the previous tab.
     if (this.activeTab === 'summary') {
+
       this.summaryFilter = {
         ...this.detailsFilter,
         fromDate: this.summaryFilter.fromDate, // Important. Don't use details from date as it changes the starting hour
         durationType: this.summaryFilter.durationType,
         excludeConfirmedMissing: this.summaryFilter.excludeConfirmedMissing,
       }
+
+
 
     } else if (this.activeTab === 'details') {
       this.detailsFilter = {
@@ -123,6 +126,9 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
       }
 
     }
+
+    console.log('summaryFilter: ', this.summaryFilter);
+    console.log('detailsFilter: ', this.detailsFilter);
 
   }
 

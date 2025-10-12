@@ -23,7 +23,7 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
   @Input()
   public filter!: DataAvailabilitySummaryQueryModel;
 
- 
+
   public enableQueryButton: boolean = true;
 
   @Output()
@@ -75,7 +75,7 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-         console.log('summary data: ', data);
+        console.log('summary data: ', data);
         this.enableQueryButton = true;
         this.stationsRendered = [];
         if (this.filter.stationIds && this.filter.stationIds.length > 0) {

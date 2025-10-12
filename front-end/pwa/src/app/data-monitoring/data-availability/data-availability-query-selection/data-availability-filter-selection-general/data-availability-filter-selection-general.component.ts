@@ -2,20 +2,20 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleCha
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DurationTypeEnum } from '../../models/duration-type.enum';
 
 export interface DataAvailabilityFilterModel {
-    stationIds?: string[];
-    elementIds?: number[];
-    interval?: number;
-    level?: number; 
-    durationType: DurationTypeEnum;
-    fromDate: string;
-    toDate: string;
+  stationIds?: string[];
+  elementIds?: number[];
+  interval?: number;
+  level?: number;
+  durationType: DurationTypeEnum;
+  fromDate: string;
+  toDate: string;
 }
 
 @Component({
@@ -52,7 +52,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
   constructor(
     private pagesDataService: PagesDataService,
-    private appAuthService: AppAuthService, 
+    private appAuthService: AppAuthService,
     private cachedMetadataService: CachedMetadataService,
   ) {
 
@@ -70,6 +70,14 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['inputFilter'] && this.inputFilter && this.inputFilter !== this.outputFilter) {
+      if (this.outputFilter) {
+        if (this.areFiltersEqual(this.inputFilter, this.outputFilter)) {
+          console.log('inputFilter are equal');
+          return;
+        }
+      }
+
+         console.log('setting outputFilter');
       this.outputFilter = { ...this.inputFilter };
       this.setSelectionsFromQuery();
     }
@@ -80,12 +88,45 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
     this.destroy$.complete();
   }
 
+  private areFiltersEqual(
+    filter1: DataAvailabilityFilterModel,
+    filter2: DataAvailabilityFilterModel
+  ): boolean {
+    // Compare primitive values
+    if (
+      filter1.interval !== filter2.interval ||
+      filter1.level !== filter2.level ||
+      filter1.durationType !== filter2.durationType ||
+      filter1.fromDate !== filter2.fromDate ||
+      filter1.toDate !== filter2.toDate
+    ) {
+      return false;
+    }
+
+    // Compare arrays
+    return (
+      this.areArraysEqualUnordered(filter1.stationIds, filter2.stationIds) &&
+      this.areArraysEqualUnordered(filter1.elementIds, filter2.elementIds)
+    );
+  }
+
+  private areArraysEqualUnordered<T>(arr1?: T[], arr2?: T[]): boolean {
+    if (arr1 === arr2)  return true;   
+    if (!arr1 || !arr2) return false;
+    if (arr1.length !== arr2.length) return false;
+
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+
+    return sorted1.every((val, index) => val === sorted2[index]);
+  }
+
   private setSelectionsFromQuery() {
     if (this.outputFilter.stationIds) this.stationIds = this.outputFilter.stationIds;
     if (this.outputFilter.elementIds) this.elementIds = this.outputFilter.elementIds;
     if (this.outputFilter.level) this.level = this.outputFilter.level;
     if (this.outputFilter.interval) this.interval = this.outputFilter.interval;
-   
+
     this.durationType = this.outputFilter.durationType;
     const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
     const toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
@@ -102,7 +143,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
         this.durationYear = Number(fromYear);
         break;
       case DurationTypeEnum.YEARS:
-        this.durationYears = [Number(fromYear), Number(toDate[0])];
+        this.durationYears = [Number(fromYear), Number(toDate.split('-')[0])]; 
         break;
       default:
         throw new Error('Developer error. Duration type not supported');
@@ -203,7 +244,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
     this.outputFilter = {
       durationType: this.durationType,
       fromDate: fromDate,
-      toDate: toDate, 
+      toDate: toDate,
     };
 
     if (this.stationIds.length > 0) this.outputFilter.stationIds = this.stationIds;
