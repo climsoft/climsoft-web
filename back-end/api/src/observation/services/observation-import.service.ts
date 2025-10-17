@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
 import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
@@ -17,6 +17,7 @@ import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.
 
 @Injectable()
 export class ObservationImportService {
+    private readonly logger = new Logger(ObservationImportService.name);
     // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
     private readonly STATION_ID_PROPERTY_NAME: keyof CreateObservationDto = "stationId";
     private readonly ELEMENT_ID_PROPERTY_NAME: keyof CreateObservationDto = "elementId";
@@ -59,7 +60,7 @@ export class ObservationImportService {
             }
 
         } catch (error) {
-            console.error("File Import Failed: " , error)
+            console.error("File Import Failed: ", error)
             throw new BadRequestException("Error: File Import Failed: " + error);
         } finally {
             this.fileIOService.deleteFile(tmpFilePathName);
@@ -100,29 +101,31 @@ export class ObservationImportService {
 
         //console.log("alterSQLs: ", alterSQLs);
 
-        let startTime = new Date().getTime();
         // Execute the duckdb DDL SQL commands
+        let startTime = new Date().getTime();
         await this.fileIOService.duckDb.exec(alterSQLs);
-        console.log("DuckDB alters took: ", new Date().getTime() - startTime);
+        this.logger.log(`DuckDB alters took ${new Date().getTime() - startTime} milliseconds`);
 
         if (sourceDef.scaleValues) {
             startTime = new Date().getTime();
             // Scale values if indicated, execute the scale values SQL
             await this.fileIOService.duckDb.exec(await this.getScaleValueSQL(tmpObsTableName));
-            console.log("DuckDB scaling took: ", new Date().getTime() - startTime);
+            this.logger.log(`DuckDB scaling took ${new Date().getTime() - startTime} milliseconds`);
         }
 
-        startTime = new Date().getTime();
         // Get the rows of the columns that match the dto properties
+        startTime = new Date().getTime();
         const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
-
-        console.log("DuckDB fetch rows took: ", new Date().getTime() - startTime);
+        this.logger.log(`DuckDB fetch rows took ${new Date().getTime() - startTime} milliseconds`);
 
         // Delete the table 
+        startTime = new Date().getTime();
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
+        this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
 
         // Save the rows into the database
-        await this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
+        // TODO. Note, no need await. All current active ingestion processes will be tagged and show on the ingestion monitoring page
+        this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
     }
 
     private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {

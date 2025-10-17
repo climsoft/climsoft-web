@@ -254,6 +254,7 @@ export class ObservationsService {
     public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, qcStatus = QCStatusEnum.NONE, ignoreV4Saving: boolean = false): Promise<void> {
         let startTime = new Date().getTime();
 
+        // Transform dtos to entities
         const obsEntities: ObservationEntity[] = [];
         for (const dto of createObservationDtos) {
             const entity: ObservationEntity = this.observationRepo.create({
@@ -274,18 +275,18 @@ export class ObservationsService {
 
             obsEntities.push(entity);
         }
-
-
         this.logger.log(`DTO transformation took: ${(new Date().getTime() - startTime)} milliseconds`);
 
+        // Save in batches of 1000 to minimise excess payload errors when saving to postgres
+        this.logger.log(`Saving ${obsEntities.length} entities from user - ${userId}`);
         startTime = new Date().getTime();
-
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
             await this.insertOrUpdateObsValues(this.observationRepo, batch);
+            this.logger.log(`${batch.length} entities from user - ${userId} successfully saved!`);
         }
-        this.logger.log(`Saving entities took: ${(new Date().getTime() - startTime)} milliseconds`);
+        this.logger.log(`Saving entities from user - ${userId}, took: ${(new Date().getTime() - startTime)} milliseconds`);
 
         if (!ignoreV4Saving) {
             // Initiate saving to version 4 database as well

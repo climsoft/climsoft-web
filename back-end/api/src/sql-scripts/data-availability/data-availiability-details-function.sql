@@ -61,9 +61,7 @@ BEGIN
 										o.station_id, 
 										o.element_id, 
 										o.level, 
-										o."interval", 
-										MIN(o.date_time) AS from_date, 
-										MAX(o.date_time) AS to_date
+										o."interval"
 									FROM observations o
 									WHERE %s
 									GROUP BY o.station_id, o.element_id, o.level, o."interval"
@@ -74,7 +72,7 @@ BEGIN
 										og.element_id, 
 										og.level, og.
 										"interval", 
-										generate_series(og.from_date, og.to_date, (og."interval" || ' minutes')::interval) AS date_time
+										generate_series($5, $6, (og."interval" || ' minutes')::interval) AS date_time
 									FROM observation_groups og
 					),
 					infilled_data AS (
