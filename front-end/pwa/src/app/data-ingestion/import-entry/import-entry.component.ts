@@ -21,7 +21,6 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
   protected uploadMessage: string = "Upload File";
   protected uploadError: boolean = false;
   protected showUploadProgress: boolean = false;
-  protected uploadProgress: number = 0;
 
   protected showStationSelection: boolean = false;
   protected selectedStationId!: string | null;
@@ -53,7 +52,6 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
         } else {
           this.onlyIncludeStationIds = [];
         }
-        console.log('station permission: ', user.permissions.entryPermissions.stationIds)
       } else {
         throw new Error('Data entry not allowed');
       }
@@ -86,7 +84,6 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-
   protected onFileSelected(fileInputEvent: any): void {
     if (fileInputEvent.target.files.length === 0) {
       return;
@@ -100,68 +97,50 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
 
     this.disableUpload = true;
     this.showUploadProgress = true;
-    this.uploadProgress = 0;
     this.uploadError = false;
-    this.uploadMessage = "Uploading file..."
+    this.uploadMessage = "Uploading and processing file..."
 
     // Get the file and append it as the form data to be sent
     const selectedFile = fileInputEvent.target.files[0] as File;
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    const params = new HttpParams();
     let url = `${this.appConfigService.apiBaseUrl}/observations/upload/${this.viewSource.id}`;
     // If station id is provided, append it as a route parameter
     if (this.showStationSelection && this.selectedStationId) {
       url = url + "/" + this.selectedStationId;
     }
 
-    this.http.post(
-      url,
-      formData,
-      {
-        reportProgress: true,
-        observe: 'events',
-        params: params
-      }).pipe(
-        catchError(error => {
-          console.log("Error returned: ", error);
-          return throwError(() => new Error('Something bad happened. Please try again later.'));
-        })
-      ).subscribe(event => {
-        if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            this.uploadProgress = Math.round(100 * (event.loaded / event.total));
-            this.uploadMessage = this.uploadProgress < 100 ? "Uploading file..." : "Processing file...";
-          }
-        } else if (event.type === HttpEventType.Response) {
-          this.disableUpload = false;
-          // Clear the file input
-          fileInputEvent.target.value = null;
+    this.http.post(url, formData).pipe(
+      take(1),
+      catchError(error => {
+        this.disableUpload = false;
+        this.showUploadProgress = false;
+        this.uploadMessage = 'Something bad happened. Please try again later.';
+        this.uploadError = true;
+        console.log("Error returned: ", error);
+        return error;
+      }),
+    ).subscribe(res => {
+      this.disableUpload = false;
+      this.showUploadProgress = false;
+      // Clear the file input
+      fileInputEvent.target.value = null;
 
-          // Reset upload progress
-          this.showUploadProgress = false;
-          this.uploadProgress = 0;
-          this.uploadError = false;
-
-          if (!event.body) {
-            this.uploadMessage = "Something went wrong!";
-            this.uploadError = true;
-            return;
-          }
-
-          let response: string = (event.body as any).message;
-          if (response === "success") {
-            this.uploadMessage = "Imported data successfully saved!";
-          } else {
-            this.uploadMessage = response;
-            this.uploadError = true;
-          }
+      if (res) {
+        let message: string = (res as any).message;
+        if (message === "success") {
+          this.uploadMessage = "File successfully uploaded and processed!";
+        } else {
+          this.uploadMessage = message;
+          this.uploadError = true;
         }
-      });
+      } else {
+        this.uploadMessage = "Something went wrong!";
+        this.uploadError = true;
+      }
 
+    });
   }
-
-
 
 }
