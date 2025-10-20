@@ -14,7 +14,7 @@ import { CreateViewGeneralSettingModel } from "src/app/admin/general-settings/mo
 @Injectable({
     providedIn: 'root'
 })
-export class CachedMetadataSearchService {
+export class CachedMetadataService {
     private _stationsMetadata!: StationCacheModel[];
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
@@ -58,8 +58,8 @@ export class CachedMetadataSearchService {
     }
 
     private setMetadataLoaded(): void {
-        if (this._stationsMetadata  && this._stationsMetadata.length > 0
-            && this._elementsMetadata  && this._elementsMetadata.length > 0
+        if (this._stationsMetadata && this._stationsMetadata.length > 0
+            && this._elementsMetadata && this._elementsMetadata.length > 0
             && this._sourcesMetadata && this._sourcesMetadata.length > 0
             && this._qcTestsMetadata && this._qcTestsMetadata.length > 0
             && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
@@ -80,7 +80,7 @@ export class CachedMetadataSearchService {
             this.checkingForUpdates = true;
             setTimeout(() => {
                 this.checkingForUpdates = false;
-                console.warn('checking of metadata updates reset');
+                console.log('checking of metadata updates reset');
             }, 5000);
         }
         return this._allMetadataLoaded.asObservable();
@@ -109,6 +109,10 @@ export class CachedMetadataSearchService {
     public get generalSettingsMetadata(): CreateViewGeneralSettingModel[] {
         if (!this._allMetadataLoaded.value) throw new Error('Developer error. General setings metadata not yet loaded.');
         return this._generalSettingsMetadata;
+    }
+
+    public get utcOffSet(): number {
+        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     }
 
     public getStation(stationId: string): StationCacheModel {
@@ -186,7 +190,4 @@ export class CachedMetadataSearchService {
         return metadata;
     }
 
-    public getUTCOffSet(): number {
-        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-    }
 }

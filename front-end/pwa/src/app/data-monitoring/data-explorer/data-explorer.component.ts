@@ -9,7 +9,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ActivatedRoute } from '@angular/router';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -41,7 +41,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
     private route: ActivatedRoute,
   ) {
 
@@ -51,7 +51,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
        if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });

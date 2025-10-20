@@ -14,7 +14,7 @@ import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.serv
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = "0.0.2"; // TODO. Should come from a versioning file. 
+  private readonly SUPPORTED_DB_VERSION: string = "0.0.3"; // TODO. Should come from a versioning file. 
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -84,6 +84,7 @@ export class MigrationsService {
     await this.sqlScriptsService.addEntryDatetimeTriggerToDB();
     await this.sqlScriptsService.addLogsTriggersToDB();
     await this.sqlScriptsService.addQCTestsFunctionsToDB();
+     await this.sqlScriptsService.addDataAvailabilityFunctionsToDB();
   }
 
   private async seedFirstUser() {

@@ -34,17 +34,16 @@ export interface V4ElementModel {
 export interface V4StationModel {
     stationId: string;
     stationName: string;
-    wmoid: string;
-    icaoid: string;
-    wsi: string;
+    wmoid: string | null;
+    icaoid: string | null;
+    wsi: string | null;
     longitude: number;
     latitude: number;
     elevation: string;
-    qualifier: string;
+    qualifier: string | null;
     stationOperational: boolean;
-    openingDatetime: string;
-    closingDatetime: string;
-    authority: string;
+    openingDatetime: string | null;
+    closingDatetime: string | null; 
 }
 
 @Injectable()
@@ -120,7 +119,8 @@ export class ClimsoftV4WebSyncSetUpService {
                 password: AppConfig.v4DbCredentials.password,
                 database: AppConfig.v4DbCredentials.databaseName,
                 port: AppConfig.v4DbCredentials.port,
-                dateStrings: true,
+                dateStrings: true, 
+                charset: 'utf8mb4',
             });
 
             // Clear any previous conflicts
@@ -298,7 +298,6 @@ export class ClimsoftV4WebSyncSetUpService {
         try {
             conn = await this.v4DBPool.getConnection();
             const rows: V4StationModel[] = await conn.query("SELECT stationId as stationId, stationName as stationName, wmoid as wmoid, icaoid as icaoid, wsi as wsi, longitude as longitude, latitude as latitude, elevation as elevation, qualifier as qualifier, stationOperational as stationOperational, openingDatetime as openingDatetime, closingDatetime as closingDatetime, authority as authority FROM station");
-            //console.log('station rows: ', rows[0]);
             return rows;
         } catch (error) {
             console.error('Setting up V4 stations failed: ', error);
@@ -329,6 +328,23 @@ export class ClimsoftV4WebSyncSetUpService {
             if (v5Dtos.find(item => item.name === v4Station.stationName)) {
                 v4Station.stationName = `${v4Station.stationName}_${(i + 1)}`;
             }
+
+            // Some climsoft version 4 installations have the below columns storing null bytes instead of nulls
+            // So ignore such null bytes
+            //----------------------------------------------
+            if(v4Station.wmoid !== null && v4Station.wmoid.startsWith('\x00')){
+                v4Station.wmoid = null;
+            }
+
+             if(v4Station.wsi !== null && v4Station.wsi.startsWith('\x00')){
+                v4Station.wsi = null;
+            }
+
+             if(v4Station.icaoid !== null && v4Station.icaoid.startsWith('\x00')){
+                v4Station.icaoid = null;
+            }
+
+            //----------------------------------------------
 
             // Make sure the wmo id is unique. V5 doesn't accept duplicates like v4 model
             if (v4Station.wmoid !== null && v5Dtos.find(item => item.wmoId === v4Station.wmoid)) {
@@ -370,7 +386,18 @@ export class ClimsoftV4WebSyncSetUpService {
             v5Dtos.push(dto);
         }
 
-        await this.stationsService.bulkPut(v5Dtos, userId);
+        // Save on batches of a thousand just incase there are many stations
+        const batchSize: number = 1000;
+        for (let i = 0; i < v5Dtos.length; i += batchSize) {
+            const batch = v5Dtos.slice(i, i + batchSize);
+            try {
+                await this.stationsService.bulkPut(batch, userId);
+            } catch (error) {
+                //console.error(error);
+                console.log('Error saving stations: ', batch);
+                return false;
+            }
+        }
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of stations or changes in v4 configuration
         this.setupV4StationsChecking();

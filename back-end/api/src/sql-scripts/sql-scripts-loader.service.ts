@@ -30,7 +30,7 @@ export class SqlScriptsLoaderService {
             await this.dataSource.query(sql);
             this.logger.log('default entry date time triggers added');
         } catch (error) {
-            this.logger.error(`Developer error in adding entry date time triggers: ${error}`);
+            this.logger.error(`Developer error in adding entry date time triggers`);
             throw new Error(error);
         }
     }
@@ -75,11 +75,29 @@ export class SqlScriptsLoaderService {
             await this.dataSource.query(sql);
             this.logger.log('qc tests functions added');
         } catch (error) {
-            this.logger.error(`Developer error in adding qc tests functions: ${error}`);
+            this.logger.error(`Developer error in adding qc tests functions`);
             throw new Error(error);
         }
     }
 
+     /**
+     * Used by the migrations service
+     */
+    public async addDataAvailabilityFunctionsToDB() {
+        try {
+            // Get the script directory from absolute path of this service file
+            // For windows platform, replace the backslashes with forward slashes.
+            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/data-availability/data-availiability-details-function.sql`
+            const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
+            //console.log('ENTRY DATE TIME SQL:', sql);
+            await this.dataSource.query(sql);
+            this.logger.log('data availability functions added');
+        } catch (error) {
+            this.logger.error(`Developer error in adding data availability functions`);
+            throw new Error(error);
+        }
+    }
 
 
 

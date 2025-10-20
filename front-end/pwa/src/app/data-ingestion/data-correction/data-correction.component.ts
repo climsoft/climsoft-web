@@ -9,7 +9,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.ut
 import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
@@ -40,7 +40,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
     private route: ActivatedRoute,
   ) {
@@ -51,7 +51,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       // Get the climsoft time zone display setting
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });

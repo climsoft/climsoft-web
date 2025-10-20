@@ -3,21 +3,35 @@ import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from '../models/data-availability-summary-query.model';
-import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { DurationTypeEnum } from '../../models/duration-type.enum';
+
+export interface DataAvailabilityFilterModel {
+  stationIds?: string[];
+  elementIds?: number[];
+  interval?: number;
+  level?: number;
+  durationType: DurationTypeEnum;
+  fromDate: string;
+  toDate: string;
+}
 
 @Component({
-  selector: 'app-data-availability-query-selection',
-  templateUrl: './data-availability-query-selection.component.html',
-  styleUrls: ['./data-availability-query-selection.component.scss']
+  selector: 'app-data-availability-filter-selection-general',
+  templateUrl: './data-availability-filter-selection-general.component.html',
+  styleUrls: ['./data-availability-filter-selection-general.component.scss']
 })
-export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDestroy {
-  @Input() public enableQueryButton: boolean = true;
-  @Input() public inputFilter!: DataAvailabilitySummaryQueryModel;
-  @Output() public queryClick = new EventEmitter<DataAvailabilitySummaryQueryModel>()
+export class DataAvailabilityFilterSelectionGeneralComponent implements OnChanges, OnDestroy {
+  @Input()
+  public enableQueryButton: boolean = true;
+
+  @Input()
+  public inputFilter!: DataAvailabilityFilterModel;
+
+  @Output()
+  public queryClick = new EventEmitter<DataAvailabilityFilterModel>();
 
   protected stationIds: string[] = [];
   protected sourceIds: number[] = [];
@@ -30,18 +44,16 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
   protected durationMonth: string;
   protected durationYear: number;
   protected durationYears: [number, number];
-  protected excludeMissingValues: boolean = false;
-  protected outputFilter!: DataAvailabilitySummaryQueryModel;
+  protected outputFilter!: DataAvailabilityFilterModel;
   protected queryAllowed: boolean = true;
   protected includeOnlyStationIds: string[] = [];
-  private utcOffset!: number;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataService: CachedMetadataService,
   ) {
 
     // Set the defaults of date selectors from today date
@@ -52,21 +64,20 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
     this.durationYear = Number(year);
     this.durationYears = [Number(year) - 10, Number(year)];
 
-    // Load the utc offset metadata
-    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-      this.setSelectionsFromQuery();
-    });
 
     this.setStationsAllowed();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-
     if (changes['inputFilter'] && this.inputFilter && this.inputFilter !== this.outputFilter) {
+      if (this.outputFilter) {
+        if (this.areFiltersEqual(this.inputFilter, this.outputFilter)) {
+          console.log('inputFilter are equal');
+          return;
+        }
+      }
+
+         console.log('setting outputFilter');
       this.outputFilter = { ...this.inputFilter };
       this.setSelectionsFromQuery();
     }
@@ -77,18 +88,48 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
     this.destroy$.complete();
   }
 
-  private setSelectionsFromQuery() {
-    if (this.utcOffset === undefined || !this.outputFilter) return;
+  private areFiltersEqual(
+    filter1: DataAvailabilityFilterModel,
+    filter2: DataAvailabilityFilterModel
+  ): boolean {
+    // Compare primitive values
+    if (
+      filter1.interval !== filter2.interval ||
+      filter1.level !== filter2.level ||
+      filter1.durationType !== filter2.durationType ||
+      filter1.fromDate !== filter2.fromDate ||
+      filter1.toDate !== filter2.toDate
+    ) {
+      return false;
+    }
 
+    // Compare arrays
+    return (
+      this.areArraysEqualUnordered(filter1.stationIds, filter2.stationIds) &&
+      this.areArraysEqualUnordered(filter1.elementIds, filter2.elementIds)
+    );
+  }
+
+  private areArraysEqualUnordered<T>(arr1?: T[], arr2?: T[]): boolean {
+    if (arr1 === arr2)  return true;   
+    if (!arr1 || !arr2) return false;
+    if (arr1.length !== arr2.length) return false;
+
+    const sorted1 = [...arr1].sort();
+    const sorted2 = [...arr2].sort();
+
+    return sorted1.every((val, index) => val === sorted2[index]);
+  }
+
+  private setSelectionsFromQuery() {
     if (this.outputFilter.stationIds) this.stationIds = this.outputFilter.stationIds;
     if (this.outputFilter.elementIds) this.elementIds = this.outputFilter.elementIds;
     if (this.outputFilter.level) this.level = this.outputFilter.level;
     if (this.outputFilter.interval) this.interval = this.outputFilter.interval;
-    if (this.outputFilter.excludeConfirmedMissing !== undefined) this.excludeMissingValues = this.outputFilter.excludeConfirmedMissing;
 
     this.durationType = this.outputFilter.durationType;
-    const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.utcOffset, 'add').split('T')[0];
-    const toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.utcOffset, 'add').split('T')[0];
+    const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
+    const toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.outputFilter.toDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
     const [fromYear, fromMonth, fromDay] = fromDate.split('-');
 
     switch (this.durationType) {
@@ -102,7 +143,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
         this.durationYear = Number(fromYear);
         break;
       case DurationTypeEnum.YEARS:
-        this.durationYears = [Number(fromYear), Number(toDate[0])];
+        this.durationYears = [Number(fromYear), Number(toDate.split('-')[0])]; 
         break;
       default:
         throw new Error('Developer error. Duration type not supported');
@@ -156,12 +197,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
     }
   }
 
-  protected onQueryClick(): void {
-    // if (this.stationIds.length === 0) {
-    //   this.pagesDataService.showToast({ title: 'Data Availability', message: 'Station selection required', type: ToastEventTypeEnum.ERROR });
-    //   return;
-    // }
-
+  public getFilterFromSelections(): DataAvailabilityFilterModel | null {
     let fromDate: string;
     let toDate: string;
     switch (this.durationType) {
@@ -191,18 +227,17 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
         throw new Error('Developer error. Duration type not supported');
     }
 
-
     // Subtracts the offset to get UTC time if offset is plus and adds the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-    fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
-    toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00Z`, this.utcOffset, 'subtract');
+    fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
+    toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
 
     if (new Date(fromDate) > new Date(toDate)) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'From date cannot be greater than to date.', type: ToastEventTypeEnum.ERROR });
-      return;
+      return null;
     } else if (DateUtils.isMoreThanMaxCalendarYears(new Date(fromDate), new Date(toDate), 31)) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'Only a maximum of 30 years is allowed.', type: ToastEventTypeEnum.ERROR });
-      return;
+      return null;
     }
 
     // Set the new output filter
@@ -210,7 +245,6 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
       durationType: this.durationType,
       fromDate: fromDate,
       toDate: toDate,
-      excludeConfirmedMissing: this.excludeMissingValues,
     };
 
     if (this.stationIds.length > 0) this.outputFilter.stationIds = this.stationIds;
@@ -218,8 +252,7 @@ export class DataAvailabilityQuerySelectionComponent implements OnChanges, OnDes
     if (this.level !== null) this.outputFilter.level = this.level;
     if (this.interval !== null) this.outputFilter.interval = this.interval;
 
-    this.queryClick.emit(this.outputFilter);
+    return this.outputFilter;
   }
-
 
 }

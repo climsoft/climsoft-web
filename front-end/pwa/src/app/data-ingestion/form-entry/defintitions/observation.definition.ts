@@ -4,7 +4,7 @@ import { ViewObservationLogModel } from "src/app/data-ingestion/models/view-obse
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
+import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
 import { QCTestTypeEnum } from "src/app/metadata/qc-tests/models/qc-test-type.enum";
 import { ViewObservationModel, ViewQCTestLog } from "../../models/view-observation.model";
 
@@ -43,10 +43,10 @@ export class ObservationDefinition {
     public originalInterval: number;
 
 
-    private cachedMetadataSearchService: CachedMetadataSearchService;
+    private cachedMetadataSearchService: CachedMetadataService;
 
     constructor(
-        newCachedMetadataSearchService: CachedMetadataSearchService,
+        newCachedMetadataSearchService: CachedMetadataService,
         observation: ViewObservationModel,
         scaleValue: boolean,) {
         this._observation = observation;
@@ -328,7 +328,7 @@ export class ObservationDefinition {
 
     public getObservationLog(): ViewObservationLogModel[] {
         const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
-        const utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+        const utcOffset = this.cachedMetadataSearchService.utcOffSet;
         // Transform the log data accordingly
         const viewObservationLog: ViewObservationLogModel[] = this.observation.log ? this.observation.log.map(item => {
             const viewLog = { ...item };
@@ -344,7 +344,7 @@ export class ObservationDefinition {
         }
         ) : [];
 
-       
+
 
         return viewObservationLog;
     }

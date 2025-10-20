@@ -1,19 +1,13 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { Subject, take, takeUntil } from 'rxjs';
-import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import * as echarts from 'echarts';
-import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { DataAvailabilitySummaryQueryModel, DurationTypeEnum } from './models/data-availability-summary-query.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { PagesDataService } from 'src/app/core/services/pages-data.service';
+import { Subject, takeUntil } from 'rxjs';
+import { DataAvailabilitySummaryQueryModel } from './models/data-availability-summary-query.model';
 import { ActivatedRoute } from '@angular/router';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { DataAvailabilityDetailsQueryModel } from './models/data-availability-details-query.model';
+import { DurationTypeEnum } from './models/duration-type.enum';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
-import { DataAvailabilityOptionsDialogComponent } from './data-availability-options-dialog/data-availability-options-dialog.component';
-import { DataAvailabilitySummaryComponent } from './data-availability-summary/data-availability-summary.component';
-import { DataAvailabilityDetailsComponent } from './data-availability-details/data-availability-details.component';
-
-type tab = 'summary' | 'details';
+import { DataAvailabilityFilterModel } from './data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 
 @Component({
   selector: 'app-data-availability',
@@ -21,26 +15,22 @@ type tab = 'summary' | 'details';
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements OnInit, OnDestroy {
-  @ViewChild('appDataAvailabilitySummary') appDataSummary!: DataAvailabilitySummaryComponent;
-  @ViewChild('appDataAvailabilityDetails') appDataDetails!: DataAvailabilityDetailsComponent;
-
-  protected activeTab: tab = 'summary';
-  protected enableQueryButton: boolean = true;
-  protected filter!: DataAvailabilitySummaryQueryModel;
-  protected utcOffset!: number;
-  protected allStations!: StationCacheModel[];
+  protected activeTab: 'summary' | 'details' = 'summary';
+  protected summaryFilter!: DataAvailabilitySummaryQueryModel;
+  protected detailsFilter!: DataAvailabilityFilterModel;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataService: CachedMetadataService,
     private route: ActivatedRoute,
   ) {
     this.pagesDataService.setPageHeader('Data Availability');
   }
 
   ngOnInit(): void {
+    let newFilter: DataAvailabilitySummaryQueryModel | null = null;
     this.route.queryParamMap.subscribe(params => {
       if (params.keys.length > 0) {
         const stationIds: string[] = params.getAll('stationIds');
@@ -63,7 +53,7 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
           throw new Error('from datee must be selected');
         }
 
-        const newFilter: DataAvailabilitySummaryQueryModel = {
+        newFilter = {
           durationType: DurationTypeEnum[durationType.toUpperCase() as keyof typeof DurationTypeEnum],
           fromDate: fromDate,
           toDate: toDate,
@@ -77,20 +67,18 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
           newFilter.excludeConfirmedMissing = excludeConfirmedMissing.toString().toLowerCase() === 'true' ? true : false;
         }
 
-        this.filter = newFilter;
+
       }
 
-      // Get the climsoft time zone display setting
-      this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+      //Check if all metadathas been loaded and if there is a filter then load data availability
+      this.cachedMetadataService.allMetadataLoaded.pipe(
         takeUntil(this.destroy$),
       ).subscribe((allMetadataLoaded) => {
         if (!allMetadataLoaded) return;
-        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
-        this.allStations = this.cachedMetadataSearchService.stationsMetadata;
-
-        // If there is a filter then load data
-        if (this.filter) this.loadDataAvailability();
-
+        if (newFilter) {
+          this.summaryFilter = newFilter;
+          this.detailsFilter = newFilter;
+        }
       });
 
     });
@@ -101,31 +89,48 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onTabClick(selectedTab: tab): void {
+  protected onTabClick(selectedTab: 'summary' | 'details'): void {
     this.activeTab = selectedTab;
-    this.loadDataAvailability();
-  }
+    const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(new Date().toISOString(), this.cachedMetadataService.utcOffSet, 'subtract');
 
-  protected onQueryClick(newDataAvailabilityFilter: DataAvailabilitySummaryQueryModel): void {
-    this.filter = newDataAvailabilityFilter;
-    this.loadDataAvailability();
-  }
-
-  private loadDataAvailability(): void {
-    switch (this.activeTab) {
-      case 'summary':
-        this.appDataSummary.loadSummary(this.filter, this.utcOffset);
-        break;
-      case 'details':
-        this.appDataDetails.loadDetails(this.filter);
-        break;
-      default:
-        throw new Error('Developer error: tab type not supported.')
+    // If summary filter is not defined. Just define it
+    if (!this.summaryFilter) {
+      this.summaryFilter = {
+        durationType: DurationTypeEnum.DAY,
+        fromDate: fromDate,
+        toDate: fromDate,
+      }
     }
+
+    // If details filter is not defined. Just define it
+    if (!this.detailsFilter) {
+      this.detailsFilter = { ...this.summaryFilter };
+    }
+
+    // When choosing tabs. Change the filters of those tabs with contents of the previous tab.
+    if (this.activeTab === 'summary') {
+
+      this.summaryFilter = {
+        ...this.detailsFilter,
+        fromDate: this.summaryFilter.fromDate, // Important. Don't use details from date as it changes the starting hour
+        durationType: this.summaryFilter.durationType,
+        excludeConfirmedMissing: this.summaryFilter.excludeConfirmedMissing,
+      }
+
+
+
+    } else if (this.activeTab === 'details') {
+      this.detailsFilter = {
+        ...this.summaryFilter,
+        fromDate: this.detailsFilter.fromDate,// Important. Do't use summary from date
+      }
+
+    }
+
+    console.log('summaryFilter: ', this.summaryFilter);
+    console.log('detailsFilter: ', this.detailsFilter);
+
   }
-
-
-
-
 
 }
+

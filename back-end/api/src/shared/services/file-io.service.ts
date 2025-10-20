@@ -1,4 +1,5 @@
 import { Injectable, StreamableFile } from '@nestjs/common';
+import os from "os";
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";

@@ -10,7 +10,7 @@ import { RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/model
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
-import { CachedMetadataSearchService } from "src/app/metadata/metadata-updates/cached-metadata-search.service";
+import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
 import { ViewObservationModel } from "../../models/view-observation.model";
 import { QCStatusEnum } from "../../models/qc-status.enum";
 
@@ -43,12 +43,12 @@ export class FormEntryDefinition {
 
  
 
-    private cachedMetadataSearchService: CachedMetadataSearchService;
+    private cachedMetadataSearchService: CachedMetadataService;
 
     constructor(
         station: StationCacheModel, 
         source: ViewSourceModel,      
-        newCachedMetadataSearchService: CachedMetadataSearchService) {
+        newCachedMetadataSearchService: CachedMetadataService) {
 
         this.station = station;
         this.source = source; 
