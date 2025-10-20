@@ -7,26 +7,23 @@
             <div class="row g-2 px-2">
                 <div *ngIf="displayStationSelector" class="col-auto mb-2">
                     <app-station-selector-multiple [label]="'Stations'" [(selectedIds)]="stationIds"
-                        [includeOnlyIds]="includeOnlyStationIds" (selectedIdsChange)="onValueChanged()" />
+                        [includeOnlyIds]="includeOnlyStationIds" />
                 </div>
 
                 <div *ngIf="displayElementSelector" class="col-auto mb-2">
-                    <app-element-selector-multiple [label]="'Elements'" [(selectedIds)]="elementIds"
-                        (selectedIdsChange)="onValueChanged()" />
+                    <app-element-selector-multiple [label]="'Elements'" [(selectedIds)]="elementIds" />
                 </div>
 
                 <div *ngIf="displayLevelSelector" class="col-auto mb-2">
-                    <app-number-input [label]="'Level'" [(value)]="level" (valueChange)="onValueChanged()" />
+                    <app-number-input [label]="'Level'" [(value)]="level" />
                 </div>
 
                 <div *ngIf="displayIntervalSelector" class="col-auto mb-2">
-                    <app-interval-selector-multiple [label]="'Interval'" [(selectedIds)]="intervals"
-                        (selectedIdsChange)="onValueChanged()" />
+                    <app-interval-selector-multiple [label]="'Interval'"  [(selectedIds)]="intervals" />
                 </div>
 
                 <div *ngIf="displaySourceSelector" class="col-auto mb-2">
-                    <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds"
-                        (selectedIdsChange)="onValueChanged()" />
+                    <app-source-selector-multiple [label]="'Sources'" [(selectedIds)]="sourceIds" />
                 </div>
 
                 <div *ngIf="displayObservationDateSelector ||  displayEntryDateSelector" class="col-auto mb-2">
@@ -39,14 +36,13 @@
                     </div>
 
                     <div class="row">
-                        <app-date-range-input [id]="'observation_or_entry_date'" [(value)]="dateRange"
-                            (valueChange)="onValueChanged()" />
+                        <app-date-range-input [id]="'observation_or_entry_date'" [(value)]="dateRange" />
                     </div>
 
                 </div>
-            </div> 
+            </div>
 
-            <div >
+            <div>
                 <button type="button" class="btn btn-outline-secondary btn-sm"
                     [disabled]=" !queryAllowed || !enableQueryButton " (click)="onQueryClick()">
                     Query

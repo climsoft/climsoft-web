@@ -5,14 +5,11 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ActivatedRoute } from '@angular/router';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 interface ObservationEntry {
   obsDef: ObservationDefinition;
@@ -44,7 +41,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private observationService: ObservationsService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
     private route: ActivatedRoute,
   ) {
 
@@ -54,7 +51,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
        if (!allMetadataLoaded) return;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });
@@ -77,7 +74,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
       if (stationIds.length > 0) this.queryFilter.stationIds = stationIds;
       if (elementIds.length > 0) this.queryFilter.elementIds = elementIds.map(Number);
       if (intervals.length > 0) this.queryFilter.intervals = intervals.map(Number);
-      if (level) this.queryFilter.level = parseInt(level, 10);
+      if (level !== null) this.queryFilter.level = Number(level);
       if (fromDate) this.queryFilter.fromDate = fromDate;
       if (toDate) this.queryFilter.toDate = toDate;
 

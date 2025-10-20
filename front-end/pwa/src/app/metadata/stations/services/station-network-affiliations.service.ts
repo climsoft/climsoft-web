@@ -5,7 +5,6 @@ import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ViewNetworkAffiliationModel } from '../../network-affiliations/models/view-network-affiliation.model';
 import { StationCountPerNetworkAffiliationCount } from '../models/station-count-per-network-affiliation-count';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Injectable({
   providedIn: 'root'

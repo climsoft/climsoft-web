@@ -5,7 +5,7 @@ import { QualityControlService } from '../../data-ingestion/services/quality-con
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { Router } from '@angular/router';
 import { AppAuthService } from 'src/app/app-auth.service';
@@ -42,7 +42,7 @@ export class SourceChecksComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private qualityControlService: QualityControlService,
-    private cachedMetadataSearchService: CachedMetadataSearchService, 
+    private cachedMetadataSearchService: CachedMetadataService, 
     private router: Router,
   ) {
     this.pagesDataService.setPageHeader('Source Checks');
@@ -62,7 +62,7 @@ export class SourceChecksComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (allMetadataLoaded) {
-        this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+        this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       }
 
     });

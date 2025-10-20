@@ -5,19 +5,19 @@ export interface CreateImportSourceModel extends SourceParametersValidity {
     dataStructureType: DataStructureTypeEnum;
 
     dataStructureParameters: DataStructureValidity;
-     
-     /**
-      * source values that represent missing.
-      * Applicable only when import of missing values is allowed.
-      */
-     sourceMissingValueFlags: string;
+
+    /**
+     * source values that represent missing.
+     * Applicable only when import of missing values is allowed.
+     */
+    sourceMissingValueFlags: string;
 
 }
 
 export enum DataStructureTypeEnum {
     TABULAR = "tabular",
     KEY_VALUE = "key_value",
-    BUFR = "bufr"
+    BUFR = "bufr",
 }
 
 export interface DataStructureValidity {

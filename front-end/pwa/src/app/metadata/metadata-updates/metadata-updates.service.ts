@@ -1,11 +1,12 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { catchError, concatMap, from, Observable, of, throwError } from "rxjs";
+import { catchError, concatMap, from, Observable, of } from "rxjs";
 import { Injectable } from "@angular/core";
 import { AppDatabase } from "src/app/app-database";
 import { MetadataUpdatesQueryModel } from "./metadata-updates-query.model";
 import { MetadataUpdatesResponseModel } from "./metadata-updates-response.model";
 import { AppConfigService } from "src/app/app-config.service";
+import { AppAuthInterceptor } from "src/app/app-auth.interceptor";
 
 @Injectable({
     providedIn: 'root'
@@ -37,7 +38,7 @@ export class MetadataUpdatesService {
         let httpParams: HttpParams = StringUtils.getQueryParams(query);
         return this.http.get<MetadataUpdatesResponseModel>(`${this.endPointUrl}/${this.getUpdateRouteParam(tableName)}`, { params: httpParams })
             .pipe(
-                catchError(this.handleError)
+                catchError(AppAuthInterceptor.handleError)
             );
     }
 
@@ -99,20 +100,5 @@ export class MetadataUpdatesService {
             default:
                 throw new Error('Developer error: metadata name not recognised');
         }
-
-    }
-
-    private handleError(error: HttpErrorResponse) {
-        //console.log('auth error', error)
-        if (error.status === 0) {
-            // A client-side or network error occurred. Handle it accordingly.
-            console.error('An error occurred:', error.error);
-        } else {
-            // The backend returned an unsuccessful response code.
-            // The response body may contain clues as to what went wrong.
-            console.error(`Backend returned code ${error.status}, body was: `, error.error);
-        }
-        // Return an observable with a user-facing error message.
-        return throwError(() => new Error('Something bad happened. please try again later.'));
     }
 }

@@ -7,7 +7,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.ut
 import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
@@ -51,7 +51,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataSearchService: CachedMetadataSearchService,
+    private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
     private qualityControlService: QualityControlService,
   ) {
@@ -62,7 +62,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      this.utcOffset = this.cachedMetadataSearchService.getUTCOffSet();
+      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.queryData();
     });
   }
@@ -97,7 +97,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.isMoreThanTenCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate))) {
+    if (DateUtils.isMoreThanMaxCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate), 11)) {
       this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -124,12 +124,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
       }
     });
-  }
-
-  private isMoreThanTenCalendarYears(fromDate: Date, toDate: Date): boolean {
-    const tenYearsLater = new Date(fromDate);
-    tenYearsLater.setFullYear(tenYearsLater.getFullYear() + 11);
-    return toDate > tenYearsLater;
   }
 
   private queryData(): void {

@@ -21,7 +21,8 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
-import { CachedMetadataSearchService } from 'src/app/metadata/metadata-updates/cached-metadata-search.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 @Component({
   selector: 'app-form-entry',
@@ -65,7 +66,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     (private pagesDataService: PagesDataService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
-      private cachedMetadataSearchService: CachedMetadataSearchService,
+      private cachedMetadataSearchService: CachedMetadataService,
       private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
@@ -350,38 +351,28 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         };
       },
       error: err => {
-        // Important to log the error for tracing purposes
-        console.log('error logged: ', err);
-
-        if (err instanceof HttpErrorResponse) {
-          if (err.status === 0) {
-            // If there is network error then save observations as unsynchronised and no need to send data to server
-            this.pagesDataService.showToast({
-              title: 'Data Entry', message: `${savableObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
-            });
-          } else if (err.status === 400) {
-            // If there is a bad request error then show the server message
-            this.pagesDataService.showToast({
-              title: 'Data Entry', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
-            });
-          } else {
-            this.pagesDataService.showToast({
-              title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
-            });
-          }
-        } else {
+        if (AppAuthInterceptor.isKnownNetworkError(err)) {
+          // If there is network error then save observations as unsynchronised and no need to send data to server
           this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
+            title: 'Data Entry', message: `${savableObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
+          });
+        } else if (err.status === 400) {
+          // If there is a bad request error then show the server message
+          this.pagesDataService.showToast({
+            title: 'Data Entry', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+          });
+        } else {
+          // Log the error for tracing purposes
+          console.log('error logged: ', err);
+          this.pagesDataService.showToast({
+            title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
           });
         }
-
       }
     }
     );
 
   }
-
-
 
   /**
    * Determine the ability to save based on whether there are changes and all observation changes are valid

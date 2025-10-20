@@ -16,10 +16,13 @@ import { AppDatabase } from 'src/app/app-database';
 import { LastStationActivityObservation } from '../models/last-station-activity-observation.model';
 import { StationStatusQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-query.model';
 import { StationStatusDataQueryModel } from 'src/app/data-monitoring/station-status/models/station-status-data-query.model';
-import { DataAvailabilityQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-query.model';
-import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-summary.model';
+import { DataAvailabilitySummaryQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-summary-query.model';
+import { DataAvailabilitySummaryModel } from '../models/data-availability-summary.model';
 import { DataFlowQueryModel } from '../models/data-flow-query.model';
 import { QCStatusEnum } from '../models/qc-status.enum';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
+import { DataAvailabilityDetailsQueryModel } from 'src/app/data-monitoring/data-availability/models/data-availability-details-query.model';
+import { DataAvailaibilityDetailsModel } from 'src/app/data-monitoring/data-availability/models/data-availability-details.model';
 
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
@@ -42,7 +45,7 @@ export class ObservationsService {
   public findProcessed(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -52,21 +55,21 @@ export class ObservationsService {
       `${this.endPointUrl}/count`,
       { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   private findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
     return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   private countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -75,14 +78,14 @@ export class ObservationsService {
       `${this.endPointUrl}/log`,
       { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public countObsNotSavedToV4(): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-v4-unsaved-observations`)
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -91,7 +94,7 @@ export class ObservationsService {
       `${this.endPointUrl}/generate-export/${exportTemplateId}`,
       { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -110,6 +113,9 @@ export class ObservationsService {
       .pipe(
         switchMap(observations => {
           if (observations.length > 0) {
+            // Delete any of the received data in the local database.
+            // Note, this will only delete observations that are from the server
+            this.deleteDataFromLocalDatabase(observations);
             return of(observations);
           } else {
             // If no server data then this could mean it has either;
@@ -121,13 +127,13 @@ export class ObservationsService {
           }
         }),
         catchError(err => {
-          if (err.status === 0) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             // For network errors. Always attempt fetching data locally
             console.warn('Network error detected. Fetching data locally.');
             return from(this.fetchObservationsLocally(entryFormObsQuery));
           } else {
             // For other errors handle them normally 
-            return this.handleError(err);
+            return AppAuthInterceptor.handleError(err);
           }
 
         })
@@ -192,11 +198,16 @@ export class ObservationsService {
           // Note, the form will not display data that is being synced until it gets saved in the server
           // Users should be aware that they will have to wait for the syncing to finish. 
           // So navigating away from the form then back will display the data
-          if (response.message === 'success') this.syncObservations();
+          if (response.message === 'success') {
+            // Always attempt to delete any cached data, this is very useful if previous value was cached due to network issues
+            this.deleteDataFromLocalDatabase(observations);
+            // then attempt syncing of any local data.
+            this.syncObservations();
+          }
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          if (err.status === 0) {
+          if (AppAuthInterceptor.isKnownNetworkError(err)) {
             console.warn('saving unsynced data locally');
             this.saveDataToLocalDatabase(observations, 'false');
           }
@@ -205,15 +216,6 @@ export class ObservationsService {
     );
   }
 
-  /**
-   * Saves observations to the local database and counts the number of unsynced observations
-   * @param observations 
-   * @param synced 
-   */
-  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
-    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
-    this.countUnsyncedObservationsAndRaiseNotification();
-  }
 
   public async syncObservations() {
     // If sync process is still on going then just return
@@ -243,8 +245,21 @@ export class ObservationsService {
       take(1),
       catchError(err => {
         this.isSyncing = false;
-        // TODO. Notify network errors
-        return this.handleError(err);
+
+        // If its a bad request with a returned dto
+        if (err.status === 400 && err.error.dto) {
+          // If the error relates to dto then delete the dto. 
+          // Form parameters may have been changed and this makes the data stale
+          console.log('data checking message: ', err.error.message, 'deleting dto: ', err.error.dto);
+          const obsWithError: CreateObservationModel = err.error.dto;
+          this.deleteDataFromLocalDatabase([obsWithError]);
+
+          // Attempt to resync the rest of the observations
+          this.syncObservations();
+          return throwError(() => new Error('A locally saved data could not be saved by the server'));
+        } else {
+          return AppAuthInterceptor.handleError(err);
+        }
       }),
     ).subscribe(response => {
       // Server will send {message: success} when there is no error
@@ -259,6 +274,31 @@ export class ObservationsService {
       }
     });
 
+  }
+
+  /**
+ * Saves observations to the local database and counts the number of unsynced observations
+ * @param observations 
+ * @param synced 
+ */
+  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
+    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
+    this.countUnsyncedObservationsAndRaiseNotification();
+  }
+
+
+  private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]) {
+    //Key is [stationId+elementId+level+datetime+interval+sourceId]
+    const observationKeys: [string, number, number, string, number, number][] = observations.map(obs => {
+      return [
+        obs.stationId,
+        obs.elementId,
+        obs.level,
+        obs.datetime,
+        obs.interval,
+        obs.sourceId,];
+    });
+    await AppDatabase.instance.observations.bulkDelete(observationKeys);
   }
 
   private async countUnsyncedObservationsAndRaiseNotification(): Promise<number> {
@@ -286,21 +326,21 @@ export class ObservationsService {
   public restore(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.patch<number>(`${this.endPointUrl}/restore`, observations)
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public softDelete(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
   public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
     return this.http.delete<number>(`${this.endPointUrl}/hard`, { body: observations })
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -311,7 +351,7 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -321,17 +361,27 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<StationStatusQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
-  public findDataAvailabilitySummary(query: DataAvailabilityQueryModel): Observable<DataAvailabilitySummaryQueryModel[]> {
-    return this.http.get<DataAvailabilitySummaryQueryModel[]>(
+  public findDataAvailabilitySummary(query: DataAvailabilitySummaryQueryModel): Observable<DataAvailabilitySummaryModel[]> {
+    return this.http.get<DataAvailabilitySummaryModel[]>(
       `${this.endPointUrl}/data-availability-summary`,
-      { params: StringUtils.getQueryParams<DataAvailabilityQueryModel>(query) }
+      { params: StringUtils.getQueryParams<DataAvailabilitySummaryQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
+      );
+  }
+
+  public findDataAvailabilityDetails(query: DataAvailabilityDetailsQueryModel): Observable<DataAvailaibilityDetailsModel[]> {
+    return this.http.get<DataAvailaibilityDetailsModel[]>(
+      `${this.endPointUrl}/data-availability-details`,
+      { params: StringUtils.getQueryParams<DataAvailabilityDetailsQueryModel>(query) }
+    )
+      .pipe(
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
@@ -341,25 +391,11 @@ export class ObservationsService {
       { params: StringUtils.getQueryParams<DataFlowQueryModel>(query) }
     )
       .pipe(
-        catchError(this.handleError)
+        catchError(AppAuthInterceptor.handleError)
       );
   }
 
-  private handleError(error: HttpErrorResponse) {
 
-    //console.log('auth error', error)
-
-    if (error.status === 0) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error);
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong.
-      console.error(`Backend returned code ${error.status}, body was: `, error.error);
-    }
-    // Return an observable with a user-facing error message.
-    return throwError(() => new Error('Something bad happened. please try again later.'));
-  }
 
 
 }

@@ -34,7 +34,6 @@ export class DataEntryCheckService {
     @OnEvent('source.created')
     handleSourceCreated(payload: { id: number; dto: any }) {
         console.log(`Source created: ID ${payload.id}`);
-        // maybe invalidate cache, trigger sync, etc.
         this.resetFormParameters();
     }
 
@@ -74,18 +73,20 @@ export class DataEntryCheckService {
             } else {
                 throw new Error('Developer error: Source type not recognised')
             }
-
         }
     }
 
     public async checkData(observationDtos: CreateObservationDto[], user: LoggedInUserDto): Promise<void> {
         const startTime = new Date().getTime();
-        this.logger.log(`checking ${observationDtos.length} observations from user: ${user.id} - ${user.email}`);
+        let errorMessage: { message: string, dto: CreateObservationDto | number; }
+        this.logger.log(`checking ${observationDtos.length} observations from user: ${user.id} - ${user.name} - ${user.email}`);
         // Validate all observations entered
         const todayDate: Date = new Date();
         for (const dto of observationDtos) {
             // If user is not system admin then check for data entry permissions
             if (!user.isSystemAdmin) {
+                // For permission issues, don't retur the error message with a dto. 
+                // The front end deletes any bad request exception that has a dto
                 if (!user.permissions) throw new BadRequestException('Permissions not found');
                 if (!user.permissions.entryPermissions) throw new BadRequestException('Entry permissions not found');
                 if (user.permissions.entryPermissions.stationIds && user.permissions.entryPermissions.stationIds.length > 0) {
@@ -95,32 +96,54 @@ export class DataEntryCheckService {
 
             const source = this.sourceParameters.get(dto.sourceId);
 
-            if (!source) throw new BadRequestException('Source template not found');
+            if (!source) {
+                errorMessage = { message: 'Source template not found', dto: dto };
+                this.logger.error(JSON.stringify(errorMessage));
+                throw new BadRequestException(errorMessage);
+            }
 
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const formTemplate: FormParams = source.settings as FormParams;
                 // check element
-                if (!formTemplate.form.elementIds.includes(dto.elementId)) throw new BadRequestException('Element not allowed');
+                if (!formTemplate.form.elementIds.includes(dto.elementId)) {
+                    errorMessage = { message: 'Element not allowed', dto: dto };
+                    this.logger.error(JSON.stringify(errorMessage));
+                    throw new BadRequestException(errorMessage);
+                }
 
                 // Check if hour is allowed for the form
-                if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) throw new BadRequestException('Hour not allowed');
+                if (!formTemplate.utcAdjustedHours.includes(parseInt(dto.datetime.substring(11, 13), 10))) {
+                    errorMessage = { message: 'Hour not allowed', dto: dto };
+                    this.logger.error(JSON.stringify(errorMessage));
+                    throw new BadRequestException(errorMessage);
+                }
 
                 // Check for interval is allowed for the form
                 if (!formTemplate.form.allowIntervalEditing) {
-                    if (formTemplate.form.interval !== dto.interval) throw new BadRequestException('Interval not allowed');
+                    if (formTemplate.form.interval !== dto.interval) {
+                        errorMessage = { message: 'Interval not allowed', dto: dto };
+                        this.logger.error(JSON.stringify(errorMessage));
+                        throw new BadRequestException(errorMessage);
+                    }
                 }
 
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
-                // TODO. Use source params to validate the inut. Use full when doing data correction
+                // TODO. Deprecate this check. Import data checking sould be done by DuckDB
             }
 
             // Check for future dates           
             if (new Date(dto.datetime) > todayDate) {
-                // TODO. Follow up on when invalid dates are being bypassed at the front end. 
-                this.logger.log(`obs datetime: ${dto.datetime} todayDate: ${todayDate.toISOString()}`);
-                throw new BadRequestException('Future dates not allowed');
+                // TODO. Follow up on when invalid dates are being bypassed at the front end.  
+                errorMessage = { message: 'Future dates not allowed', dto: dto };
+                this.logger.error(`${JSON.stringify(errorMessage)} | TodayDate: ${todayDate.toISOString()}`);
+                throw new BadRequestException(errorMessage);
             }
 
+            if (dto.value === null && dto.flag === null) {
+                errorMessage = { message: 'Both value and flag are missing, not allowed.', dto: dto };
+                this.logger.error(JSON.stringify(errorMessage));
+                throw new BadRequestException(errorMessage);
+            }
         }
 
         this.logger.log(`observations checks took: ${new Date().getTime() - startTime} milliseconds`);

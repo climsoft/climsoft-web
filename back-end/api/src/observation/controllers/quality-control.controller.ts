@@ -11,12 +11,12 @@ export class QualityControlController {
 
   @Get('duplicates')
   findObservationsWithDuplicates(@Query(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {
-    return this.sourceCheckService.findObservationsWithDuplicates(queryDto);
+    return this.sourceCheckService.findSameObsWithDiffSources(queryDto);
   }
 
   @Get('count-duplicates')
   countObservationsWithDuplicates(@Query(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {
-    return this.sourceCheckService.countObservationsWithDuplicates(queryDto);
+    return this.sourceCheckService.countSameObsWithDiffSources(queryDto);
   }
 
   @Post('perform-qc')

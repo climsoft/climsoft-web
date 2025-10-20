@@ -1,3 +1,10 @@
 .group-row-border {
-    border-bottom: 2px solid #000;
-  }
+  border-bottom: 2px solid #000;
+}
+
+.table-row-header {
+  position: sticky;
+  left: 0;
+  background: #f0f0f0;
+  z-index: 1;
+}

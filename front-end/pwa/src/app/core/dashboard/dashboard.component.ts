@@ -3,6 +3,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { PagesDataService } from '../services/pages-data.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -17,7 +18,8 @@ export class DashboardComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private appAuthService: AppAuthService,) {
+    private appAuthService: AppAuthService,
+    private cachedMetadataSearchService: CachedMetadataService,) {
     this.pagesDataService.setPageHeader('Dashboard');
 
     this.appAuthService.user.pipe(
@@ -28,7 +30,14 @@ export class DashboardComponent implements OnDestroy {
       }
 
       this.user = user;
+    });
 
+    // calling this to make sure when a user re-logs in. The metadata updates automatically.
+    // This also makes other components to have access to the metadata almost instantaneously.
+    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(allMetadataLoaded => {
+      if (allMetadataLoaded) console.log('all metadata loaded');
     });
   }
 

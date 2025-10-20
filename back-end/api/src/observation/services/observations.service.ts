@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, DeleteResult, Equal, FindManyOptions, FindOperator, FindOptionsWhere, In, LessThanOrEqual, MoreThanOrEqual, Repository, UpdateResult } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
@@ -7,13 +7,12 @@ import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
-import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
+import { DataAvailabilityQueryDto, DurationTypeEnum } from '../dtos/data-availability-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
@@ -21,10 +20,14 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { ViewUserDto } from 'src/user/dtos/view-user.dto';
+import { OnEvent } from '@nestjs/event-emitter';
+import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
+import { DataAvailaibilityDetailsDto } from '../dtos/data-availability-details.dto';
 
 @Injectable()
 export class ObservationsService {
     private readonly logger = new Logger(ObservationsService.name);
+    private users: Map<number, ViewUserDto> = new Map();
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
@@ -32,9 +35,38 @@ export class ObservationsService {
         private climsoftV4Service: ClimsoftWebToV4SyncService,
         private usersService: UsersService,
         private generalSettingsService: GeneralSettingsService,
-    ) { }
+    ) {
+        this.resetLoadedusers();
+    }
 
-      public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
+    @OnEvent('user.created')
+    handleSourceCreated(payload: { id: number; dto: any }) {
+        console.log(`user created: ID ${payload.id}`);
+
+        this.resetLoadedusers();
+    }
+
+    @OnEvent('user.updated')
+    handleSourceUpdated(payload: { id: number; dto: any }) {
+        console.log(`user updated: ID ${payload.id}`);
+        this.resetLoadedusers();
+    }
+
+    @OnEvent('user.deleted')
+    handleSourceDeleted(payload: { id: number }) {
+        console.log(`user deleted: ID ${payload.id}`);
+        this.resetLoadedusers();
+    }
+
+    private async resetLoadedusers() {
+        this.users.clear();
+        const newUsers: ViewUserDto[] = await this.usersService.findAll();
+        for (const user of newUsers) {
+            this.users.set(user.id, user);
+        }
+    }
+
+    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
@@ -44,7 +76,7 @@ export class ObservationsService {
             // Note, interval is commented out because of cumulative data in entry forms
             // Once its agreed to deprecate changing of interval at form level. Then merge findFormData and findProcessed functions.
             //interval: queryDto.interval, 
-            deleted: false
+            deleted: false,
         });
 
         return this.createViewObsDtos(entities);
@@ -54,9 +86,7 @@ export class ObservationsService {
         return this.createViewObsDtos(await this.findProcessedObsEntities(queryDto));
     }
 
-    private async createViewObsDtos(obsEntities: ObservationEntity[]) : Promise<ViewObservationDto[]> {
-        // TODO. Find a way of using cached users
-        const users: ViewUserDto[] = await this.usersService.findAll();
+    private async createViewObsDtos(obsEntities: ObservationEntity[]): Promise<ViewObservationDto[]> {
         const obsView: ViewObservationDto[] = [];
         for (const obsEntity of obsEntities) {
             const viewObs: ViewObservationDto = {
@@ -71,7 +101,7 @@ export class ObservationsService {
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: obsEntity.qcTestLog,
-                log: await this.createViewLog(obsEntity, users),
+                log: this.createViewLog(obsEntity),
                 entryDatetime: obsEntity.entryDateTime.toISOString(),
             };
             obsView.push(viewObs);
@@ -79,17 +109,19 @@ export class ObservationsService {
         return obsView;
     }
 
-    private async createViewLog(entity: ObservationEntity, users: ViewUserDto[]): Promise<ViewObservationLogDto[]> {
+    private createViewLog(entity: ObservationEntity): ViewObservationLogDto[] {
         const viewLogDto: ViewObservationLogDto[] = [];
+        let user: ViewUserDto | undefined;
         if (entity.log) {
             for (const logItem of entity.log) {
-                const user = users.find(user => user.id === logItem.entryUserId)
+                user = this.users.get(logItem.entryUserId);
                 viewLogDto.push({
                     value: logItem.value,
                     flag: logItem.flag,
                     qcStatus: logItem.qcStatus,
                     comment: logItem.comment,
                     deleted: logItem.deleted,
+                    entryUserName: user ? user.name : '',
                     entryUserEmail: user ? user.email : '',
                     entryDateTime: logItem.entryDateTime,
                 });
@@ -98,19 +130,19 @@ export class ObservationsService {
 
         // Include the current values as log.
         // Important because present values should be part of the record history
-        const user = users.find(user => user.id === entity.entryUserId)
+        user = this.users.get(entity.entryUserId);
         const currentValuesAsLogObj: ViewObservationLogDto = {
             value: entity.value,
             flag: entity.flag,
             qcStatus: entity.qcStatus,
             comment: entity.comment,
             deleted: entity.deleted,
+            entryUserName: user ? user.name : '',
             entryUserEmail: user ? user.email : '',
             entryDateTime: entity.entryDateTime.toISOString()
         }
 
         viewLogDto.push(currentValuesAsLogObj);
-
         return viewLogDto;
     }
 
@@ -123,11 +155,11 @@ export class ObservationsService {
 
         const findOptions: FindManyOptions<ObservationEntity> = {
             order: {
+                datetime: "ASC", // Sort by date time first
                 stationId: "ASC",
                 elementId: "ASC",
-                level: "ASC",
-                datetime: "ASC",
                 interval: "ASC",
+                level: "ASC",
             },
             where: this.getProcessedFilter(queryDto),
             skip: (queryDto.page - 1) * queryDto.pageSize,
@@ -213,74 +245,6 @@ export class ObservationsService {
 
     }
 
-  
-
-    // TODO merge this with find processed observations method
-    // public async findCorrectionData(selectObsevationDto: ViewObservationQueryDTO): Promise<CreateObservationDto[]> {
-    //     const entities = await this.findProcessedObsEntities(selectObsevationDto);
-    //     const dtos: CreateObservationDto[] = entities.map(data => ({
-    //         stationId: data.stationId,
-    //         elementId: data.elementId,
-    //         sourceId: data.sourceId,
-    //         level: data.level,
-    //         datetime: data.datetime.toISOString(),
-    //         interval: data.interval,
-    //         value: data.value,
-    //         flag: data.flag,
-    //         comment: data.comment,
-    //     })
-    //     );
-
-    //     return dtos;
-    // }
-
-    // TODO. deprecate this
-    public async findObservationLog(queryDto: ViewObservationLogQueryDto): Promise<ViewObservationLogDto[]> {
-        const entity: ObservationEntity | null = await this.observationRepo.findOneBy({
-            stationId: queryDto.stationId,
-            elementId: queryDto.elementId,
-            sourceId: queryDto.sourceId,
-            level: queryDto.level,
-            interval: queryDto.interval,
-            datetime: new Date(queryDto.datetime)
-        });
-
-        if (!entity) {
-            throw new NotFoundException('Observation not found');
-        }
-
-        const viewLogDto: ViewObservationLogDto[] = [];
-        if (entity.log) {
-            for (const item of entity.log) {
-                viewLogDto.push({
-                    value: item.value,
-                    flag: item.flag,
-                    qcStatus: item.qcStatus,
-                    comment: item.comment,
-                    deleted: item.deleted,
-                    entryUserEmail: (await this.usersService.findOne(item.entryUserId)).email,
-                    entryDateTime: item.entryDateTime,
-                });
-            }
-        }
-
-        // Include the current values as log.
-        // Important because present values should be part of the record history
-        const currentValuesAsLogObj: ViewObservationLogDto = {
-            value: entity.value,
-            flag: entity.flag,
-            qcStatus: entity.qcStatus,
-            comment: entity.comment,
-            deleted: entity.deleted,
-            entryUserEmail: (await this.usersService.findOne(entity.entryUserId)).email,
-            entryDateTime: entity.entryDateTime.toISOString()
-        }
-
-        viewLogDto.push(currentValuesAsLogObj);
-
-        return viewLogDto;
-    }
-
     /**
      * 
      * @param createObservationDtos 
@@ -290,6 +254,7 @@ export class ObservationsService {
     public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, qcStatus = QCStatusEnum.NONE, ignoreV4Saving: boolean = false): Promise<void> {
         let startTime = new Date().getTime();
 
+        // Transform dtos to entities
         const obsEntities: ObservationEntity[] = [];
         for (const dto of createObservationDtos) {
             const entity: ObservationEntity = this.observationRepo.create({
@@ -310,18 +275,18 @@ export class ObservationsService {
 
             obsEntities.push(entity);
         }
-
-
         this.logger.log(`DTO transformation took: ${(new Date().getTime() - startTime)} milliseconds`);
 
+        // Save in batches of 1000 to minimise excess payload errors when saving to postgres
+        this.logger.log(`Saving ${obsEntities.length} entities from user - ${userId}`);
         startTime = new Date().getTime();
-
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
             await this.insertOrUpdateObsValues(this.observationRepo, batch);
+            this.logger.log(`${batch.length} entities from user - ${userId} successfully saved!`);
         }
-        this.logger.log(`Saving entities took: ${(new Date().getTime() - startTime)} milliseconds`);
+        this.logger.log(`Saving entities from user - ${userId}, took: ${(new Date().getTime() - startTime)} milliseconds`);
 
         if (!ignoreV4Saving) {
             // Initiate saving to version 4 database as well
@@ -393,8 +358,6 @@ export class ObservationsService {
             .whereInIds(compositeKeys)
             .execute();
 
-        console.log('Soft Deleted Observations: ', updatedResults);
-
         this.climsoftV4Service.saveWebObservationstoV4DB();
 
         // If affected results not supported then just return the dtos length.
@@ -459,6 +422,7 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` element_id = ${stationStatusQuery.elementId} AND `;
         }
 
+        // TODO. Use parameterised queries
         const results = await this.dataSource.manager.query(
             `
             SELECT DISTINCT station_id 
@@ -478,6 +442,7 @@ export class ObservationsService {
             extraSQLCondition = extraSQLCondition + ` AND o.element_id = ${stationStatusQuery.elementId}`;
         }
 
+        // TODO. use parameterised queries
         const results = await this.dataSource.manager.query(
             `
             SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
@@ -491,131 +456,130 @@ export class ObservationsService {
         return results;
     }
 
-    public async findDataAvailabilitySummary(dataAvailabilityQuery: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
-        let extractSQL: string = '';
-        let extraSQLCondition: string = '';
-        let groupAndOrderBySQL: string = '';
+    public async findDataAvailabilitySummary(filter: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+        let sqlExtract: string;
+        let sqlCondition: string;
 
-        if (dataAvailabilityQuery.stationIds && dataAvailabilityQuery.stationIds.length > 0) {
-            extraSQLCondition = `${extraSQLCondition} station_id IN (${dataAvailabilityQuery.stationIds.map(id => `'${id}'`).join(',')}) AND `;
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 31)) {
+            throw new BadRequestException('Date range exceeds 30 years');
         }
 
-        if (dataAvailabilityQuery.elementIds && dataAvailabilityQuery.elementIds.length > 0) {
-            extraSQLCondition = `${extraSQLCondition} element_id IN (${dataAvailabilityQuery.elementIds.join(',')}) AND `;
+        sqlCondition = `deleted = FALSE AND date_time BETWEEN '${filter.fromDate}' AND '${filter.toDate}'`;
+
+        if (filter.stationIds && filter.stationIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND station_id IN (${filter.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        if (dataAvailabilityQuery.level !== undefined) {
-            extraSQLCondition = `${extraSQLCondition} level = ${dataAvailabilityQuery.level} AND `;
+        if (filter.elementIds && filter.elementIds.length > 0) {
+            sqlCondition = `${sqlCondition} AND element_id IN (${filter.elementIds.join(',')})`;
         }
 
-        if (dataAvailabilityQuery.interval) {
-            extraSQLCondition = `${extraSQLCondition} interval = ${dataAvailabilityQuery.interval} AND `;
+        if (filter.level !== undefined) {
+            sqlCondition = `${sqlCondition} AND level = ${filter.level}`;
         }
 
-        if (dataAvailabilityQuery.excludeMissingValues) {
-            extraSQLCondition = `${extraSQLCondition} value IS NOT NULL AND `;
+        if (filter.interval) {
+            sqlCondition = `${sqlCondition} AND interval = ${filter.interval}`;
         }
 
-        let year: number;
-        let month: number;
-        let startDate: string;
-        let endDate: string;
+        if (filter.excludeConfirmedMissing) {
+            sqlCondition = `${sqlCondition} AND value IS NOT NULL`;
+        }
 
+        // TODO. this setting should be retrived from the cache
         const utcOffset: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
         const strTimeZone: string = `'UTC+${utcOffset}'`;
 
-        switch (dataAvailabilityQuery.durationType) {
-            case 'days_of_month':
-                if (!dataAvailabilityQuery.durationDaysOfMonth) throw new BadRequestException('Duration not povided');
-                const splitYearMonth: string[] = dataAvailabilityQuery.durationDaysOfMonth.split('-');
-                year = Number(splitYearMonth[0]);
-                month = Number(splitYearMonth[1]);
-
-                // Note month is 1 based here. So month 1 will refer to march once inside Date object because date objects month index are 0 based
-                const lastEndDateDay: number = new Date(year, month, 0).getDate();
-                startDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationDaysOfMonth}-01T00:00:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                endDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${dataAvailabilityQuery.durationDaysOfMonth}-${lastEndDateDay}T23:59:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                extractSQL = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = extraSQLCondition + ` date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
-
-                //TODO. Investigate at time zone SQL more
-
-                // const lastEndDateDay: number = DateUtils.getLastDayOfMonth(year, month);
-                // startDate = `'${dataAvailabilityQuery.durationDaysOfMonth}-01 00:00:00'`;
-                // endDate =  `'${dataAvailabilityQuery.durationDaysOfMonth}-${lastEndDateDay} 23:59:00'`;
-
-                // extractSQL = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                // extraSQLCondition = extraSQLCondition + `  date_time BETWEEN  ( (${startDate}::timestamptz) AT TIME ZONE ${strTimeZone}) AND ( (${endDate}::timestamptz) AT TIME ZONE ${strTimeZone})`;
-                // groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+        switch (filter.durationType) {
+            case DurationTypeEnum.DAY:
+                sqlExtract = `EXTRACT(HOUR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
-            case 'months_of_year':
-                if (!dataAvailabilityQuery.durationMonthsOfYear) throw new BadRequestException('Duration not povided');
-                year = dataAvailabilityQuery.durationMonthsOfYear;
-                startDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${year}-01-01T00:00:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                endDate = DateUtils.getDatetimesBasedOnUTCOffset(
-                    `${year}-12-31T23:59:00Z`, utcOffset, 'subtract'
-                ).replace('T', ' ').replace('Z', '');
-
-                extractSQL = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = `${extraSQLCondition} date_time BETWEEN '${startDate}' AND '${endDate}' AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+            case DurationTypeEnum.MONTH:
+                sqlExtract = `EXTRACT(DAY FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
-            case 'years':
-                if (!dataAvailabilityQuery.durationYears) throw new BadRequestException('Duration not povided');
-                const years: number[] = dataAvailabilityQuery.durationYears;
-                extractSQL = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
-                extraSQLCondition = `${extraSQLCondition}  
-                  EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) IN (${years.join(',')}) AND `;
-                groupAndOrderBySQL = `GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value`;
+            case DurationTypeEnum.YEAR:
+                sqlExtract = `EXTRACT(MONTH FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
+                break;
+            case DurationTypeEnum.YEARS:
+                sqlExtract = `EXTRACT(YEAR FROM (date_time AT TIME ZONE 'UTC' AT TIME ZONE ${strTimeZone})) AS extracted_date_value`;
                 break;
             default:
                 throw new BadRequestException('Duration type not supported');
         }
 
+        // TODO. use parameterised queries
         const sql = `
-            SELECT station_id, COUNT(element_id) AS record_count, ${extractSQL} FROM observations 
-            WHERE ${extraSQLCondition} deleted = FALSE ${groupAndOrderBySQL};
+            SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract} FROM observations 
+            WHERE ${sqlCondition} 
+            GROUP BY station_id, extracted_date_value ORDER BY station_id, extracted_date_value;
             `
 
-        //console.log(sql)
+        //console.log('Availability summary SQL :', sql)
 
-        const results = await this.dataSource.manager.query(sql);
+        const rows = await this.dataSource.manager.query(sql);
 
         //console.log('results: ', results)
 
-        return results.map((item: { station_id: string; record_count: number; extracted_date_value: number; }) => {
-            return { stationId: item.station_id, recordCount: Number(item.record_count), dateValue: Number(item.extracted_date_value) };
+        return rows.map((r: any) => {
+            return {
+                stationId: r.station_id,
+                recordCount: Number(r.record_count),
+                dateValue: Number(r.extracted_date_value)
+            };
         });
     }
 
-    public async findDataFlow(queryDto: DataFlowQueryDto): Promise<ViewObservationDto[]> {
+    public async findDataAvailabilityDetails(filter: DataAvailabilityDetailsQueryDto): Promise<DataAvailaibilityDetailsDto[]> {
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 31)) {
+            throw new BadRequestException('Date range exceeds 30 years');
+        }
+
+        // Build param array in the exact order of the function signature
+        const params = [
+            filter.stationIds?.length ? filter.stationIds : null,     // p_station_ids varchar[]
+            filter.elementIds?.length ? filter.elementIds : null,     // p_element_ids int[]
+            filter.level ?? null,                                     // p_level int
+            filter.interval ?? null,                                  // p_interval int
+            filter.fromDate ?? null,                                  // p_from_date timestamptz
+            filter.toDate ?? null                                     // p_to_date timestamptz
+        ];
+
+        const sql = `SELECT * FROM func_data_availaibility_details($1, $2, $3, $4, $5, $6)`;
+
+        const rows = await this.dataSource.query(sql, params);
+
+        return rows.map((r: any) => ({
+            stationId: r.station_id,
+            elementId: r.element_id,
+            level: r.level,
+            interval: r.interval,
+            fromDate: r.from_date,
+            toDate: r.to_date,
+            expected: Number(r.expected),
+            nonMissing: Number(r.non_missing),
+            confirmedMissing: Number(r.confirmed_missing),
+            gaps: Number(r.gaps),
+            gapsPlusMissing: Number(r.gaps_plus_missing),
+            qcNones: Number(r.qc_nones),
+            qcPasses: Number(r.qc_passes),
+            qcFails: Number(r.qc_fails),
+        }));
+    }
+
+    public async findDataFlow(filter: DataFlowQueryDto): Promise<ViewObservationDto[]> {
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
-        if (queryDto.fromDate && queryDto.toDate) {
-            if (DateUtils.isMoreThanTenCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate))) {
-                throw new BadRequestException('Date range exceeds 10 years');
-            }
-        } else {
-            throw new BadRequestException('Date range required');
+        if (DateUtils.isMoreThanMaxCalendarYears(new Date(filter.fromDate), new Date(filter.toDate), 11)) {
+            throw new BadRequestException('Date range exceeds 10 years');
         }
 
         // TODO merge this with find processed observations method
         const obsEntities = await this.observationRepo.findBy({
-            stationId: queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds),
-            elementId: queryDto.elementId,
-            level: queryDto.level,
-            interval: queryDto.interval,
-            datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
+            stationId: filter.stationIds.length === 1 ? filter.stationIds[0] : In(filter.stationIds),
+            elementId: filter.elementId,
+            level: filter.level,
+            interval: filter.interval,
+            datetime: Between(new Date(filter.fromDate), new Date(filter.toDate)),
             deleted: false,
         });
 

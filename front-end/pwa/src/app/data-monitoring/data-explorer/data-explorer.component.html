@@ -1,7 +1,7 @@
 <div class="card border-0">
     <div>
-        <app-query-selection [parentComponentName]="componentName" [includeDeletedData]="false"
-            [enableQueryButton]="enableQueryButton" [query]="queryFilter" (queryClick)="onQueryClick($event)" />
+        <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
+            [inputFilter]="queryFilter" (queryClick)="onQueryClick($event)" />
     </div>
 
     <div class="card border-0 p-0 mt-2">

@@ -1,18 +1,45 @@
 <div *ngIf="datetimeDefinition">
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateDefinition'" [groupItems]="[
-        { label:'Date Time in Single Column',checked: datetimeDefinition.dateTimeColumnPostion !== undefined}, 
+        { label:'Date Time in Single Column',checked: datetimeDefinition.dateTimeInSingleColumn !== undefined}, 
         { label:'Date Time in Multiple Columns', checked: datetimeDefinition.dateTimeInMultipleColumn !== undefined}]"
         (checkedValueChange)="onDatetimeSelection($event)" />
 
     <div class="ms-4">
-        <div *ngIf="datetimeDefinition.dateTimeColumnPostion !== undefined">
-            <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position (values in format YYYY-MM-DD HH:SS)'"
-                [(numValue)]="datetimeDefinition.dateTimeColumnPostion" />
+        <div *ngIf="datetimeDefinition.dateTimeInSingleColumn !== undefined">
+            <div class="mb-2">
+                <app-number-input [id]="'date_time_col_pos'" [label]="'Column Position'"
+                    [(numValue)]="datetimeDefinition.dateTimeInSingleColumn.columnPosition" />
+            </div>
+            <div>
+                <app-datetime-format-selector-single [label]="'Date time format'"
+                    [(selectedId)]="datetimeDefinition.dateTimeInSingleColumn.datetimeFormat" />
+            </div>
         </div>
         <div *ngIf="datetimeDefinition.dateTimeInMultipleColumn !== undefined">
-            Not yet supported
-        </div>
 
+            <div *ngIf="datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn !== undefined" class="mb-2">
+                <div class="mb-2">
+                    <app-number-input [id]="'date_col_pos'" [label]="'Date Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.columnPosition" />
+                </div>
+                <div>
+                    <app-date-format-selector-single [label]="'Date format'"
+                        [(selectedId)]="datetimeDefinition.dateTimeInMultipleColumn.dateInSingleColumn.dateFormat" />
+                </div>
+            </div>
+
+            <div *ngIf="datetimeDefinition.dateTimeInMultipleColumn.timeInSingleColumn !== undefined">
+                <div class="mb-2">
+                    <app-number-input [id]="'time_col_pos'" [label]="'Time Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumn.timeInSingleColumn.columnPosition" />
+                </div>
+                <div>
+                    <app-time-format-selector-single [label]="'Time format'"
+                        [(selectedId)]="datetimeDefinition.dateTimeInMultipleColumn.timeInSingleColumn.timeFormat" />
+                </div>
+            </div>
+
+        </div>
     </div>
 
 </div>

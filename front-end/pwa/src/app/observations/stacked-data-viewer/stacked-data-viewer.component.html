@@ -11,6 +11,7 @@
                 <th>Source</th>
                 <th>Value & Flag</th>
                 <th>Comment</th>
+                <th>QC Status</th>
                 <th>Delete</th>
             </tr>
         </thead>
@@ -32,10 +33,11 @@
                     </div>
                 </td>
                 <td>{{ obsEntry.obsDef.comment }}</td>
+                <td>{{ obsEntry.obsDef.observation.qcStatus }}</td>
                 <td>
                     <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
                         [disabled]="obsEntry.obsDef.observationChanged" (valueChange)="onUserInput()" />
-                </td>
+                </td> 
             </tr>
         </tbody>
     </table>

@@ -14,7 +14,7 @@ import { CreateViewGeneralSettingModel } from "src/app/admin/general-settings/mo
 @Injectable({
     providedIn: 'root'
 })
-export class CachedMetadataSearchService {
+export class CachedMetadataService {
     private _stationsMetadata!: StationCacheModel[];
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
@@ -55,15 +55,13 @@ export class CachedMetadataSearchService {
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
-
-
     }
 
     private setMetadataLoaded(): void {
-        if (this._stationsMetadata
-            && this._elementsMetadata
-            && this._sourcesMetadata
-            && this._qcTestsMetadata
+        if (this._stationsMetadata && this._stationsMetadata.length > 0
+            && this._elementsMetadata && this._elementsMetadata.length > 0
+            && this._sourcesMetadata && this._sourcesMetadata.length > 0
+            && this._qcTestsMetadata && this._qcTestsMetadata.length > 0
             && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }
@@ -82,10 +80,39 @@ export class CachedMetadataSearchService {
             this.checkingForUpdates = true;
             setTimeout(() => {
                 this.checkingForUpdates = false;
-                console.warn('checking of metadata updates reset');
+                console.log('checking of metadata updates reset');
             }, 5000);
         }
         return this._allMetadataLoaded.asObservable();
+    }
+
+    public get stationsMetadata(): StationCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Stations metadata not yet loaded.');
+        return this._stationsMetadata;
+    }
+
+    public get elementsMetadata(): ElementCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Elements metadata not yet loaded.');
+        return this._elementsMetadata;
+    }
+
+    public get sourcesMetadata(): ViewSourceModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. Sources metadata not yet loaded.');
+        return this._sourcesMetadata;
+    }
+
+    public get qcTestsMetadata(): QCTestCacheModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. QC tests metadata not yet loaded.');
+        return this._qcTestsMetadata;
+    }
+
+    public get generalSettingsMetadata(): CreateViewGeneralSettingModel[] {
+        if (!this._allMetadataLoaded.value) throw new Error('Developer error. General setings metadata not yet loaded.');
+        return this._generalSettingsMetadata;
+    }
+
+    public get utcOffSet(): number {
+        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
     }
 
     public getStation(stationId: string): StationCacheModel {
@@ -163,7 +190,4 @@ export class CachedMetadataSearchService {
         return metadata;
     }
 
-    public getUTCOffSet(): number {
-        return (this.getGeneralSetting(SettingIdEnum.DISPLAY_TIME_ZONE).parameters as ClimsoftDisplayTimeZoneModel).utcOffset;;
-    }
 }

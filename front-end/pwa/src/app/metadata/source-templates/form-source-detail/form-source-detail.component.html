@@ -42,7 +42,7 @@
         <hr />
 
         <div>
-            <app-period-single-input [label]="'Interval'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
+            <app-interval-selector-single [label]="'Interval'" [includeOnlyIds]="[60, 180, 360, 720, 1440, 2880]"
                 [selectedId]="selectedIntervalId" (selectedIdChange)="onIntervalSelected($event)" />
 
         </div>

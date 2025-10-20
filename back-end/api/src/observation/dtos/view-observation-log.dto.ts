@@ -7,6 +7,7 @@ export class ViewObservationLogDto {
   qcStatus: QCStatusEnum;
   comment: string | null;
   deleted: boolean;
+  entryUserName: string;
   entryUserEmail: string;
   entryDateTime: string;
 }

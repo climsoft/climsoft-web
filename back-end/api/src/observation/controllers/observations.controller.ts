@@ -8,7 +8,6 @@ import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe'
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
-import { ViewObservationLogQueryDto } from '../dtos/view-observation-log-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ExportObservationsService } from '../services/export-observations.service';
@@ -16,10 +15,11 @@ import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
+import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
 import { DataEntryCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
+import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
 
 @Controller('observations')
 export class ObservationsController {
@@ -50,23 +50,6 @@ export class ObservationsController {
     return this.observationsService.findFormData(createObsevationQuery);
   }
 
-  // TODO. deprecate this handle
-  //@Get('correction-data')
-  //getCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-    //return this.observationsService.findCorrectionData(viewObsevationQuery);
-    //return this.observationsService.findProcessed(viewObsevationQuery);
-  //}
-
-  //@Get('count-correction-data')
-  //countCorrectionData(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationQueryDTO) {
-  //  return this.observationsService.count(viewObsevationQuery);
-  //}
-
-  @Get('log')
-  getObservationLog(@Query(AuthorisedStationsPipe) viewObsevationQuery: ViewObservationLogQueryDto) {
-    return this.observationsService.findObservationLog(viewObsevationQuery);
-  }
-
   @Get('stations-observation-status')
   getStationsObservationStatus(@Query(AuthorisedStationsPipe) stationStatusQuery: StationStatusQueryDto) { // TODO. Create dto query to make the necessary filter
     return this.observationsService.findStationsStatus(stationStatusQuery);
@@ -81,8 +64,14 @@ export class ObservationsController {
 
   @Get('data-availability-summary')
   getDataAvailabilitySummary(
-    @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
+    @Query(AuthorisedStationsPipe) query: DataAvailabilityQueryDto) {
     return this.observationsService.findDataAvailabilitySummary(query);
+  }
+
+  @Get('data-availability-details')
+  getDataAvailabilitydetails(
+    @Query(AuthorisedStationsPipe) query: DataAvailabilityDetailsQueryDto) {
+    return this.observationsService.findDataAvailabilityDetails(query);
   }
 
   @Get('data-flow')

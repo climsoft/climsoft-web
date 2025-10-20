@@ -82,39 +82,46 @@ export class SourceTemplatesService {
 
         entity.description = dto.description;
         entity.sourceType = dto.sourceType;
-        entity.utcOffset = dto.utcOffset;
-        entity.allowMissingValue = dto.allowMissingValue;
-        entity.scaleValues = dto.scaleValues;
-        entity.sampleImage = dto.sampleImage;
         entity.parameters = dto.parameters;
+        entity.utcOffset = dto.utcOffset;
+        entity.allowMissingValue = dto.allowMissingValue ? true : false;
+        entity.scaleValues = dto.scaleValues ? true : false;
+        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
 
-        this.eventEmitter.emit('source.created', { id: entity.id, dto });
+        const viewDto: ViewSourceDto = this.createViewDto(entity);
 
-        return this.createViewDto(entity);
+        this.eventEmitter.emit('source.created', { id: entity.id, viewDto });
+
+        return viewDto;
 
     }
 
-    public async update(id: number, dto: CreateUpdateSourceDto, userId: number) {
-        const source = await this.findEntity(id);
-        source.name = dto.name;
-        source.description = dto.description;
-        source.sourceType = dto.sourceType;
-        source.utcOffset = dto.utcOffset;
-        source.allowMissingValue = dto.allowMissingValue;
-        source.sampleImage = dto.sampleImage;
-        source.parameters = dto.parameters;
-        source.entryUserId = userId;
+    public async update(id: number, dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+        const entity = await this.findEntity(id);
+        entity.name = dto.name;
+        entity.description = dto.description;
+        entity.sourceType = dto.sourceType;
+        entity.parameters = dto.parameters;
+        entity.utcOffset = dto.utcOffset;
+        entity.allowMissingValue = dto.allowMissingValue ? true : false;
+        entity.scaleValues = dto.scaleValues ? true : false;
+        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
+        entity.disabled = dto.disabled ? true : false;
+        entity.comment = dto.comment ? dto.comment : null;
+        entity.entryUserId = userId;
 
-        await this.sourceRepo.save(source);
+        await this.sourceRepo.save(entity);
 
-        this.eventEmitter.emit('source.updated', { id, dto });
+        const viewDto: ViewSourceDto = this.createViewDto(entity);
 
-        return source;
+        this.eventEmitter.emit('source.updated', { id, viewDto });
+
+        return viewDto;
     }
 
     public async delete(id: number): Promise<number> {
@@ -132,7 +139,7 @@ export class SourceTemplatesService {
         return true;
     }
 
-    private async createViewDto(entity: SourceTemplateEntity): Promise<ViewSourceDto> {
+    private createViewDto(entity: SourceTemplateEntity): ViewSourceDto {
         const dto: ViewSourceDto = {
             id: entity.id,
             name: entity.name,
@@ -140,7 +147,7 @@ export class SourceTemplatesService {
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleImage: entity.sampleImage,
+            sampleImage: entity.sampleImage?  entity.sampleImage: '' ,
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
             disabled: entity.disabled,

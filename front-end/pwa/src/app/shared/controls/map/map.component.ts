@@ -1,9 +1,10 @@
-import { Component, AfterViewInit, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, AfterViewInit, Input, SimpleChanges, OnChanges, ElementRef, ViewChild } from '@angular/core';
 import { take } from 'rxjs';
 import { ClimsoftBoundaryModel } from 'src/app/admin/general-settings/models/settings/climsoft-boundary.model';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import * as L from 'leaflet';
 import * as turf from "@turf/turf";
+import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 
 @Component({
   selector: 'app-map',
@@ -12,17 +13,17 @@ import * as turf from "@turf/turf";
 })
 export class MapComponent implements AfterViewInit, OnChanges {
   @Input() public mapHeight: string = '80vh';
-  @Input() public mapContentLayerGroup!: L.LayerGroup;
+  @Input() public contentLayersGroup!: L.LayerGroup;
 
 
   // Generate a random map id to make user it's alway unique
   protected mapContainerId: string = `map_${Math.random().toString()}`;
 
-  // Create the overall content layer group. This will contains all other layers displayed on the map.
-  private mapOverallContentLayerGroup: L.LayerGroup = L.layerGroup();
+  // Create the overall content layer group. This contains all other layers displayed on the map.
+  private allLayersGroup: L.LayerGroup = L.layerGroup();
 
   // Create the climsoft boundary layer group to show the boundaries of climsoft operations 
-  private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
+ // private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
 
   protected climsoftBoundary!: ClimsoftBoundaryModel;
   private map!: L.Map;
@@ -31,21 +32,29 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
   ngAfterViewInit(): void {
     // Load the climsoft boundary setting.
-    this.generalSettingsService.findOne(1).pipe(
+    this.generalSettingsService.findOne(SettingIdEnum.CLIMSOFT_BOUNDARY).pipe(
       take(1)
     ).subscribe((data) => {
       if (data && data.parameters) {
-        this.climsoftBoundary = data.parameters as ClimsoftBoundaryModel
-        this.setupMap();
+        this.climsoftBoundary = data.parameters as ClimsoftBoundaryModel;
+        // Settting of the map has been done under the `setTimeout` because 
+        // leaflet throws an error of map container not found
+        // when this component is used in a dialog like the station search dialog.
+        // As of 08/09/2025, its not clear why the map container is not being found considering
+        // `setupMap` is being called under `ngAfterViewInit`
+        setTimeout(() => {
+           this.setupMap();
+        }, 0);
+       
       }
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['mapContentLayerGroup'] && this.mapContentLayerGroup) {
-      this.mapOverallContentLayerGroup.clearLayers();
-      this.boundaryMapLayerGroup.addTo(this.mapOverallContentLayerGroup);
-      this.mapContentLayerGroup.addTo(this.mapOverallContentLayerGroup);
+    if (changes['contentLayersGroup'] && this.contentLayersGroup) {
+      this.allLayersGroup.clearLayers();
+      //this.boundaryMapLayerGroup.addTo(this.allLayersGroup);
+      this.contentLayersGroup.addTo(this.allLayersGroup);
     }
 
 
@@ -77,15 +86,15 @@ export class MapComponent implements AfterViewInit, OnChanges {
 
 
     // If boundary coordinates provided, then add them to the boundary layer for visibility
-    if (this.climsoftBoundary.boundary) {
-      const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
-      L.geoJSON(multipolygon, {
-        style: { fillColor: 'transparent', color: '#1330BF', weight: 0.5 }, // "opacity": 0.5 
-      }).addTo(this.boundaryMapLayerGroup);
-    }
+    // if (this.climsoftBoundary.boundary) {
+    //   const multipolygon = turf.multiPolygon(this.climsoftBoundary.boundary);
+    //   L.geoJSON(multipolygon, {
+    //     style: { fillColor: 'transparent', color: '#1330BF', weight: 0.5 }, // "opacity": 0.5 
+    //   }).addTo(this.boundaryMapLayerGroup);
+    // }
 
     // Add content layer group to the map
-    this.mapOverallContentLayerGroup.addTo(this.map);
+    this.allLayersGroup.addTo(this.map);
 
   }
 
