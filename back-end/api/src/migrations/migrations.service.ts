@@ -92,8 +92,8 @@ export class MigrationsService {
     if (count === 0) {
       const newUser = await this.userService.create(
         {
-          name: "admin",
-          email: "admin@climsoft.org",
+          name: 'admin',
+          email: 'admin@climsoft.org',
           phone: null,
           isSystemAdmin: true,
           permissions: null,
@@ -104,7 +104,7 @@ export class MigrationsService {
         }
       );
 
-      await this.userService.changeUserPassword({ userId: newUser.id, password: "climsoft@admin!2" });
+      await this.userService.changeUserPassword({ userId: newUser.id, password: '123' });
       this.logger.log(`User ${newUser.name} added`);
     }
   }
