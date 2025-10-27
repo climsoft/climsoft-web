@@ -8,6 +8,8 @@ import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DurationTypeEnum } from '../../models/duration-type.enum';
 
+// TODO. Needs to be refactored.
+
 export interface DataAvailabilityFilterModel {
   stationIds?: string[];
   elementIds?: number[];
@@ -64,7 +66,6 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
     this.durationYear = Number(year);
     this.durationYears = [Number(year) - 10, Number(year)];
 
-
     this.setStationsAllowed();
   }
 
@@ -77,7 +78,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
         }
       }
 
-         console.log('setting outputFilter');
+      console.log('setting outputFilter');
       this.outputFilter = { ...this.inputFilter };
       this.setSelectionsFromQuery();
     }
@@ -111,7 +112,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
   }
 
   private areArraysEqualUnordered<T>(arr1?: T[], arr2?: T[]): boolean {
-    if (arr1 === arr2)  return true;   
+    if (arr1 === arr2) return true;
     if (!arr1 || !arr2) return false;
     if (arr1.length !== arr2.length) return false;
 
@@ -143,7 +144,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
         this.durationYear = Number(fromYear);
         break;
       case DurationTypeEnum.YEARS:
-        this.durationYears = [Number(fromYear), Number(toDate.split('-')[0])]; 
+        this.durationYears = [Number(fromYear), Number(toDate.split('-')[0])];
         break;
       default:
         throw new Error('Developer error. Duration type not supported');
@@ -151,6 +152,7 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
   }
 
+  // TODO. remove this. It's already being done at the parent component
   private setStationsAllowed(): void {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),

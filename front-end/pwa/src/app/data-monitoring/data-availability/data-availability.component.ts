@@ -8,6 +8,10 @@ import { DataAvailabilityDetailsQueryModel } from './models/data-availability-de
 import { DurationTypeEnum } from './models/duration-type.enum';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DataAvailabilityFilterModel } from './data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+import { AppAuthService } from 'src/app/app-auth.service';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
+
+// TODO. This component needs more refactoring.
 
 @Component({
   selector: 'app-data-availability',
@@ -15,6 +19,7 @@ import { DataAvailabilityFilterModel } from './data-availability-query-selection
   styleUrls: ['./data-availability.component.scss']
 })
 export class DataAvailabilityComponent implements OnInit, OnDestroy {
+  protected stationsPermitted!: StationCacheModel[];
   protected activeTab: 'summary' | 'details' = 'summary';
   protected summaryFilter!: DataAvailabilitySummaryQueryModel;
   protected detailsFilter!: DataAvailabilityFilterModel;
@@ -25,8 +30,14 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataService: CachedMetadataService,
     private route: ActivatedRoute,
+    private appAuthService: AppAuthService,
   ) {
     this.pagesDataService.setPageHeader('Data Availability');
+
+    this.cachedMetadataService.allMetadataLoaded.subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
+      this.filterOutPermittedStations(this.cachedMetadataService.stationsMetadata)
+    });
   }
 
   ngOnInit(): void {
@@ -66,8 +77,6 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
         if (excludeConfirmedMissing !== null) {
           newFilter.excludeConfirmedMissing = excludeConfirmedMissing.toString().toLowerCase() === 'true' ? true : false;
         }
-
-
       }
 
       //Check if all metadathas been loaded and if there is a filter then load data availability
@@ -87,6 +96,41 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private filterOutPermittedStations(stations: StationCacheModel[]): void {
+    // Get user
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      if (!user) {
+        throw new Error('User not logged in');
+      }
+
+      // If user is not admin then filter out the stations
+      if (!user.isSystemAdmin) {
+        if (!user.permissions) {
+          throw new Error('Developer error. Permissions NOT set.');
+        }
+
+        // Filter out stations permitted
+        if (user.permissions.ingestionMonitoringPermissions) {
+          const stationIds: string[] | undefined = user.permissions.ingestionMonitoringPermissions.stationIds;
+          // If stations have been defined then set them
+          if (stationIds) {
+            stations = stations.filter(station => stationIds.includes(station.id));
+          }
+        } else {
+          throw new Error('Data monitoring not allowed');
+        }
+      }
+
+      // Get stations that are operational and have locations only
+      this.stationsPermitted = stations;
+
+      console.log('stations permitted: ', this.stationsPermitted)
+
+    });
   }
 
   protected onTabClick(selectedTab: 'summary' | 'details'): void {
@@ -127,8 +171,8 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
 
     }
 
-    console.log('summaryFilter: ', this.summaryFilter);
-    console.log('detailsFilter: ', this.detailsFilter);
+    //console.log('summaryFilter: ', this.summaryFilter);
+    //console.log('detailsFilter: ', this.detailsFilter);
 
   }
 
