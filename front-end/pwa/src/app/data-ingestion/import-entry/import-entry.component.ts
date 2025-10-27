@@ -130,7 +130,7 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
       if (res) {
         let message: string = (res as any).message;
         if (message === "success") {
-          this.uploadMessage = "File successfully uploaded and processed!";
+          this.uploadMessage = "File successfully uploaded and processed! Data Import Commenced.";
         } else {
           this.uploadMessage = message;
           this.uploadError = true;

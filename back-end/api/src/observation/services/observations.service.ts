@@ -12,7 +12,7 @@ import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilityQueryDto, DurationTypeEnum } from '../dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto, DurationTypeEnum } from '../dtos/data-availability-summary-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
@@ -456,7 +456,7 @@ export class ObservationsService {
         return results;
     }
 
-    public async findDataAvailabilitySummary(filter: DataAvailabilityQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
+    public async findDataAvailabilitySummary(filter: DataAvailabilitySummaryQueryDto): Promise<{ stationId: string; recordCount: number; dateValue: number }[]> {
         let sqlExtract: string;
         let sqlCondition: string;
 

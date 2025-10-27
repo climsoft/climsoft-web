@@ -13,7 +13,6 @@ export class DataAvailabilityDetailsQueryDto {
     @IsInt({ each: true })
     elementIds?: number[];
 
-    @IsOptional()
     @IsInt()
     interval?: number;
 

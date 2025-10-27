@@ -15,7 +15,7 @@ import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
-import { DataAvailabilityQueryDto } from '../dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
 import { DataEntryCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
@@ -64,7 +64,7 @@ export class ObservationsController {
 
   @Get('data-availability-summary')
   getDataAvailabilitySummary(
-    @Query(AuthorisedStationsPipe) query: DataAvailabilityQueryDto) {
+    @Query(AuthorisedStationsPipe) query: DataAvailabilitySummaryQueryDto) {
     return this.observationsService.findDataAvailabilitySummary(query);
   }
 

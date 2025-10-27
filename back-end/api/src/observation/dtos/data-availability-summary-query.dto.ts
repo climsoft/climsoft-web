@@ -9,7 +9,7 @@ export enum DurationTypeEnum {
     YEARS = 'years',
 }
 
-export class DataAvailabilityQueryDto {
+export class DataAvailabilitySummaryQueryDto {
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
     @IsString({ each: true })

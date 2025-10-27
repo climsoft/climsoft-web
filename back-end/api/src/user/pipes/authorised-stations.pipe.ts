@@ -10,8 +10,9 @@ import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dt
 import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
 import { UserPermissionDto } from '../dtos/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
-import { DataAvailabilityQueryDto } from 'src/observation/dtos/data-availability-query.dto';
+import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
 import { DataFlowQueryDto } from 'src/observation/dtos/data-flow-query.dto';
+import { DataAvailabilityDetailsQueryDto } from 'src/observation/dtos/data-availability-details-query.dto';
 
 @Injectable()
 export class AuthorisedStationsPipe implements PipeTransform {
@@ -89,8 +90,10 @@ export class AuthorisedStationsPipe implements PipeTransform {
         }
       case StationStatusQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as StationStatusQueryDto, user.permissions);
-      case DataAvailabilityQueryDto.name:
-        return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilityQueryDto, user.permissions);
+      case DataAvailabilitySummaryQueryDto.name:
+          return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilitySummaryQueryDto, user.permissions);
+      case DataAvailabilityDetailsQueryDto.name:
+        return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilityDetailsQueryDto, user.permissions);
       case DataFlowQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as DataFlowQueryDto, user.permissions);
       case ViewObservationLogQueryDto.name:
@@ -148,7 +151,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
     return value;
   }
 
-  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO | StationStatusQueryDto | DataAvailabilityQueryDto, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
+  private handleMonitoringViewObservationQueryDTO(value: ViewObservationQueryDTO | StationStatusQueryDto | DataAvailabilitySummaryQueryDto | DataAvailabilityDetailsQueryDto, userPermissions: UserPermissionDto): ViewObservationQueryDTO {
     if (!value) throw new BadRequestException('Query value must be defined');
 
     if (!userPermissions.ingestionMonitoringPermissions) throw new BadRequestException('Not authorised to monitor data');

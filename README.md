@@ -1,83 +1,11 @@
-# Climsoft-Web
+# Climsoft Web - Climate and Hydrology Database Management Platform
 
-## Overview
-Climsoft Web is a comprehensive web application featuring both frontend and backend components. The frontend is developed with Angular, while the backend leverages NestJS and PostgreSQL for a robust, full-stack solution.
+Climsoft Web is an open-source platform designed to streamline the collection, processing, quality control, storage, and dissemination of climate and hydrological data. It provides an integrated environment for National Meteorological and Hydrological Services (NMHSs), Regional Climate Centres (RCCs), Research Institutions, and development partners to manage observational data from diverse sources — including manual stations, automatic weather stations, and remote sensing systems — within a unified architecture.
 
-## Development Deployment Guide
-To deploy the Climsoft Web application for development purposes, follow these steps:
+This directory contains the source code distribution and bindings of the Climsoft Web - Climate and Hydrology Database Management Platform.
 
-### Prerequisites
-- Ensure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
-- Start the Docker engine via the Docker Desktop application.
-- Ensure Node.js is [downloaded](https://nodejs.org/en) and installed on your machine.
-- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
-- For CI/CD(continuous integration and development) workflows, use [visual studio code](https://code.visualstudio.com/) to execute set up commands, pull and push latest changes.
+Copyright and license information can be found in the file COPYRIGHT.
 
-### Setup
-1. **Clone the Repository**:
-   Execute the following command to Clone Climsoft Web to your local machine using the command:
-   ```bash
-   git clone https://github.com/climsoft/climsoft-web.git
-   ```
+General documentation about this version of Climsoft Web can be found at [https://www.climsoft.org/docs/devel/](https://docs.google.com/document/d/1VKiTcGnmF42iKSrzLFWt0UGz-JqOQ6lcTfW_Lm3ML0s/edit?usp=sharing) . In particular, information about building Climsoft Web from the source code can be found at [https://www.climsoft.org/docs/devel/installation.html](https://docs.google.com/document/d/1u_tL9bR9g6uIg7y96jPTykySiaJpVAwTX0YZhgCancU/edit?usp=sharing).
 
-2. **Start PostgreSQL**:
-   Within the cloned repository directory, execute the following command to initialise the PostgreSQL container:
-   ```bash
-   docker-compose -f docker-compose.dev.yaml up
-   ```
-
-3. **Backend API Setup**:
-   Navigate to `back-end/api` and run the commands below to install NestJS dependencies, launch the backend API with hot-reload enabled and execute seeding migration scripts:
-   ```bash
-   npm install
-   ```
-   ```bash
-   nest start --watch
-   ```
-
-4. **Frontend Setup**:
-   In the `front-end/pwa` directory, execute the following commands to install Angular dependencies and launch the development server:
-   ```bash
-   npm install
-   ```
-    ```bash
-   ng serve
-   ```
-
-5. **Access the Application**:
-   Open a web browser and go to `http://localhost:4200/` to view the application. Default
-
-## Testing Deployment Guide
-For testing deployment with Docker containers for PWA, API and PostgreSQL, follow these steps:
-
-### Prerequisites
-- Make sure Docker Desktop is [downloaded](https://docs.docker.com/get-docker/) and [installed](https://docs.docker.com/engine/install/) on your machine.
-- Activate the Docker engine using the Docker Desktop application.
-- Ensure Git is [downloaded](https://git-scm.com/) and installed on your machine.
-- For CI/CD(continuous integration and development) workflows, we recommend using [GitHub Desktop](https://desktop.github.com/) to pull latest changes.
-- Use Windows Powershell (5.1 and above) to execute the commands outlined.
-
-### Setup
-1. **Clone the Repository**:
-   Clone Climsoft Web to your machine:
-   ```bash
-   git clone https://github.com/climsoft/climsoft-web.git
-   ```
-   
-2. **Set environment variables**:
-   Within the cloned directoty, create a .env file and add contents from .env.example. Change the contents of your .env file to reflect your environment settings
-
-3. **Initialise Containers**:
-   Within the cloned repository directory, execute the following command to build and initialise the PWA, API and PostgreSQL containers:
-   ```bash
-   docker-compose -f docker-compose.test.yaml up --build
-   ```
-   Note, the application will use the `.env` to set the required environment variables.
-4. **Access the Application**:
-   Navigate to `http://localhost:8080/` in your web browser to interact with the application.
-   Default username is `admin@climsoft.org` and default password is `climsoft@admin!2`
-5. **Stopping the Application**:
-   Press `Ctrl + C` or execute the following command to stop the PWA, API and PostgreSQL containers:
-   ```bash
-   docker-compose -f docker-compose.test.yaml down
-   ```
+The latest version of this software, and related software, may be obtained at [https://www.climsoft.org/climsoft-web/download/](https://github.com/climsoft/climsoft-web/releases). For more information look at our web site located at [https://www.climsoft.org](https://www.climsoft.org) .
