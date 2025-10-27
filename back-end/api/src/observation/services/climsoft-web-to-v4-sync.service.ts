@@ -282,7 +282,7 @@ export class ClimsoftWebToV4SyncService {
             // Each set of parameters will run the DELETE statement.
             const results: mariadb.UpsertResult = await connection.batch(deleteStatement, values);
 
-            this.logger.log('V4 Delete status: '+ results);
+            this.logger.log(`V4 Delete status: ${JSON.stringify(results)}`);
 
             // Note:
             // If some of the keys do not exist in the database the affectedRows count may be lower

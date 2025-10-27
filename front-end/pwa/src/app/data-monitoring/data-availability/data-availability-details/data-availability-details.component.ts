@@ -9,6 +9,7 @@ import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.ut
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DataAvailabilityFilterModel } from '../data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 
+// TODO. Refactor this component
 
 interface DataAvailaibilityDetailsView extends DataAvailaibilityDetailsModel {
   stationName: string;
@@ -24,10 +25,10 @@ interface DataAvailaibilityDetailsView extends DataAvailaibilityDetailsModel {
   styleUrls: ['./data-availability-details.component.scss']
 })
 export class DataAvailabilityDetailsComponent implements OnChanges {
+
   @Input()
   public filter!: DataAvailabilityFilterModel;
 
-  
   protected enableQueryButton: boolean = true;
 
   @Output()
@@ -72,7 +73,7 @@ export class DataAvailabilityDetailsComponent implements OnChanges {
       toDate: this.filter.toDate
     };
 
-      this.enableQueryButton = false;
+    this.enableQueryButton = false;
     this.observationService.findDataAvailabilityDetails(detailsFilter).pipe(
       take(1),
     ).subscribe({

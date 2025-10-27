@@ -19,8 +19,8 @@
 
     <div class="card border-0 px-0">
         <div class="card-body p-0 mt-2">
-            <app-data-availability-summary *ngIf="activeTab === 'summary'" [(filter)]="summaryFilter" />
-            <app-data-availability-details *ngIf="activeTab === 'details'" [(filter)]="detailsFilter" />
+            <app-data-availability-summary *ngIf="activeTab === 'summary'" [stationsPermitted]="stationsPermitted" [(filter)]="summaryFilter"  />
+            <app-data-availability-details *ngIf="activeTab === 'details'"  [(filter)]="detailsFilter" />
         </div>
     </div>
 </div>

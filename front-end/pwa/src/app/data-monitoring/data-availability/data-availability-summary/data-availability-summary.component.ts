@@ -11,6 +11,8 @@ import { DataAvailabilitySummaryQueryModel } from '../models/data-availability-s
 import { DataAvailabilityOptionsDialogComponent } from '../data-availability-options-dialog/data-availability-options-dialog.component';
 import { DurationTypeEnum } from '../models/duration-type.enum';
 
+// TODO. Refactor this code.
+
 @Component({
   selector: 'app-data-availability-summary',
   templateUrl: './data-availability-summary.component.html',
@@ -21,10 +23,12 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
   private dataAvailabilityOptionsDialogComponent!: DataAvailabilityOptionsDialogComponent;
 
   @Input()
+  public stationsPermitted!: StationCacheModel[];
+
+  @Input()
   public filter!: DataAvailabilitySummaryQueryModel;
 
-
-  public enableQueryButton: boolean = true;
+  protected enableQueryButton: boolean = true;
 
   @Output()
   public enableQueryButtonChange = new EventEmitter<boolean>();
@@ -49,7 +53,6 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['filter'] && this.filter) {
-
       this.loadSummary();
     }
   }
@@ -79,13 +82,13 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
         this.enableQueryButton = true;
         this.stationsRendered = [];
         if (this.filter.stationIds && this.filter.stationIds.length > 0) {
-          for (const station of this.cachedMetadataService.stationsMetadata) {
+          for (const station of this.stationsPermitted) {
             if (this.filter.stationIds.includes(station.id)) {
               this.stationsRendered.push(station);
             }
           }
         } else {
-          this.stationsRendered = [...this.cachedMetadataService.stationsMetadata];
+          this.stationsRendered = [...this.stationsPermitted];
         }
         this.heatMapStationValues = this.stationsRendered.map(item => `${item.id} - ${item.name}`);
         this.datesRendered = [];
