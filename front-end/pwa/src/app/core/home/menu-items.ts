@@ -64,7 +64,7 @@ export class MenuItemsUtil {
             name: MainMenuNameEnum.DATA_INGESTION,
             url: '/data-ingestion',
             icon: 'bi bi-file-earmark-text',
-            open: false,
+            open: true, // By default, data ingestion to always be open. Helps with simplify the learning curve in data entry on mobile phones.
             children: [
                 {
                     name: SubMenuNameEnum.DATA_ENTRY,
