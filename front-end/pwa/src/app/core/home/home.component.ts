@@ -14,13 +14,14 @@ import { MainMenuNameEnum, MenuItem, MenuItemsUtil, SubMenuNameEnum } from './me
 })
 export class HomeComponent implements OnInit, OnDestroy {
   protected featuresNavItems: MenuItem[] = [];
-  protected bOpenSideNav: boolean = false;
+  protected openSideNav: boolean = false;
   protected pageHeaderName: string = '';
   protected toasts: ToastEvent[] = [];
   protected unsyncedObservations: string = '';
   protected displayUserDropDown: boolean = false;
   protected user!: LoggedInUserModel;
   protected appIsOffline: boolean = false;
+  private viewPortSize!:  ViewPortSize;
 
   private destroy$ = new Subject<void>();
 
@@ -43,8 +44,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
 
     // Subscribe to the app view port size changes
-    this.appViewPortService.viewPortSize.subscribe((viewPortSize) => {
-      this.bOpenSideNav = viewPortSize === ViewPortSize.LARGE;
+    this.appViewPortService.viewPortSize.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe((viewPortSize) => {
+      this.viewPortSize = viewPortSize;
+      this.openSideNav = this.viewPortSize  === ViewPortSize.LARGE;
     });
 
     // Subscribe to the oage header changes
@@ -96,6 +100,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  protected onMenuItemClick(menuItem: MenuItem): void{ 
+    if( menuItem.url && this.viewPortSize === ViewPortSize.SMALL){
+      this.openSideNav = false;
+    } 
   }
 
   protected logOut(): void {
@@ -208,6 +218,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       && item.name !== SubMenuNameEnum.ORGANISATIONS
       && item.name !== SubMenuNameEnum.NETWORK_AFFILIATIONS
       && item.name !== SubMenuNameEnum.REGIONS
+      && item.name !== SubMenuNameEnum.QC_TESTS
     );
 
     this.featuresNavItems.push(metadataMenuItems);

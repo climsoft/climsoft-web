@@ -1,11 +1,11 @@
 <div class="d-flex vh-100 overflow-hidden">
   <!-- Side Menu Content -->
-  <div *ngIf="bOpenSideNav" class="flex-shrink-0 overflow-y-auto border-light shadow-sm">
+  <div *ngIf="openSideNav" class="flex-shrink-0 overflow-y-auto border-light shadow-sm">
 
     <div class="navbar sticky-top shadow-sm bg-light p-0">
       <div class="d-flex flex-row w-100 justify-content-between">
         <div class=" nav-bar-title px-3 ">Climsoft Web</div>
-        <div *ngIf="bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav">
+        <div *ngIf="openSideNav" (click)="openSideNav = !openSideNav">
           <i class="bi bi-list py-1 nav-bar-icon"></i>
         </div>
       </div>
@@ -29,7 +29,7 @@
               <div *ngIf="nav.children.length > 0">
                 <div *ngIf="nav.open" class="list-group-item list-group list-group-flush p-0 border-0">
                   <a *ngFor="let subNav of nav.children" class="list-group-item list-group-item-action"
-                    [routerLink]="nav.url + subNav.url">
+                    [routerLink]="nav.url + subNav.url" (click)="onMenuItemClick(nav)">
                     <i class="bi bi-arrow-right-short"></i> {{ subNav.name }}
                   </a>
                 </div>
@@ -50,7 +50,7 @@
     <div class="navbar bg-light sticky-top shadow-sm p-0 mb-3">
       <div class="d-flex flex-row justify-content-between w-100">
         <div class="d-inline-flex">
-          <div *ngIf="!bOpenSideNav" (click)="bOpenSideNav = !bOpenSideNav">
+          <div *ngIf="!openSideNav" (click)="openSideNav = !openSideNav">
             <i class="bi bi-list py-1 nav-bar-icon"></i>
           </div>
           <div class="ms-1 nav-bar-title">{{pageHeaderName}}</div>

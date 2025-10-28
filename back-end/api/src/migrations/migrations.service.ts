@@ -84,7 +84,7 @@ export class MigrationsService {
     await this.sqlScriptsService.addEntryDatetimeTriggerToDB();
     await this.sqlScriptsService.addLogsTriggersToDB();
     await this.sqlScriptsService.addQCTestsFunctionsToDB();
-     await this.sqlScriptsService.addDataAvailabilityFunctionsToDB();
+    await this.sqlScriptsService.addDataAvailabilityFunctionsToDB();
   }
 
   private async seedFirstUser() {
