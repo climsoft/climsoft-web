@@ -1,4 +1,4 @@
-import { Database, TableData } from "duckdb-async";
+import { Database } from "duckdb-async";
 
 export class DuckDBUtils {
 
@@ -22,8 +22,7 @@ export class DuckDBUtils {
         });
 
         // Delete any record that is not supposed to be fetched .    
-        let sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
-
+        let sql ;
         if (includeNullDeletes) {
             sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
         } else {

@@ -128,8 +128,6 @@ export class DataAvailabilityComponent implements OnInit, OnDestroy {
       // Get stations that are operational and have locations only
       this.stationsPermitted = stations;
 
-      console.log('stations permitted: ', this.stationsPermitted)
-
     });
   }
 
