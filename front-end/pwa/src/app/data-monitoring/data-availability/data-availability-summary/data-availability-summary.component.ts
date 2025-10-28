@@ -260,6 +260,18 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
         orient: 'horizontal',
         left: 'center',
         top: 0,
+        inRange: {
+          // Use Viridis color palette which is a gold standard in data visualisation.
+          // Note ommiting this will result to heatmap using red by default which expresses dange when values increase.
+          color: [
+            '#440154', // dark purple
+            '#414487', // purple-blue
+            '#2a788e', // teal
+            '#22a884', // green
+            '#7ad151', // yellow-green
+            '#fde725'  // yellow
+          ]
+        }
       },
       series: [
         {

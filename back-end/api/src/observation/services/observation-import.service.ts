@@ -99,7 +99,7 @@ export class ObservationImportService {
         // the column positions are changed when stacking the data into a single element column.
         alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
 
-        //console.log("alterSQLs: ", alterSQLs);
+        console.log("alterSQLs: ", alterSQLs);
 
         // Execute the duckdb DDL SQL commands
         let startTime = new Date().getTime();
@@ -286,10 +286,8 @@ export class ObservationImportService {
             // Make sure there are no null values on the column
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
 
-            sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.datetimeFormat}')::VARCHAR;`;
-
-            // Convert all values to a valid sql timestamp that ignores the microseconds
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
+            // Convert all values to a valid sql timestamp using the format specified
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.datetimeFormat}');`;
         } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
             const dateTimeDef = importDef.datetimeDefinition.dateTimeInMultipleColumn;
             if (dateTimeDef.dateInSingleColumn && dateTimeDef.timeInSingleColumn) {
@@ -309,14 +307,11 @@ export class ObservationImportService {
                 // Make sure there are no null values on the column
                 sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
 
-                sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateInSingleColumn.dateFormat} ${dateTimeDef.timeInSingleColumn.timeFormat}')::VARCHAR;`;
+                // Convert all values to a valid sql timestamp using the format specified
+                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateInSingleColumn.dateFormat} ${dateTimeDef.timeInSingleColumn.timeFormat}');`;
 
 
-                // Convert all values to a valid sql timestamp that ignores the microseconds
-                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP_S;`;
-
-
-            } else if (dateTimeDef.dateInMultipleColumn) {
+            } else if (dateTimeDef.dateInMultipleColumn) { 
 
             }
 
@@ -339,11 +334,8 @@ export class ObservationImportService {
             sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
         }
 
-        // change the date_time back to varchar as expected by the dto
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR;`;
-
-        // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
-        sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
+        // change the date_time back to varchar while formating the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z` as expected by the dto
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR USING strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 
         return sql;
     }
