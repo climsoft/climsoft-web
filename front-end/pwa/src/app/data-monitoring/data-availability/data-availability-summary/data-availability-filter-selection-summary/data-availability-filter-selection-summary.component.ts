@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { DataAvailabilitySummaryQueryModel } from '../../models/data-availability-summary-query.model';
-import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../../data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../../data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 
 @Component({
   selector: 'app-data-availability-filter-selection-summary',
@@ -39,7 +39,7 @@ export class DataAvailabilityFilterSelectionSummaryComponent implements OnChange
     if (generalFilter) {
       this.filter = { ...generalFilter };
       if (this.excludeMissingValues) this.filter.excludeConfirmedMissing = this.excludeMissingValues;
-      this.filterChange.emit(generalFilter);
+      this.filterChange.emit(this.filter);
     }
   }
 

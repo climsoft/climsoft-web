@@ -5,8 +5,8 @@ import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { DurationTypeEnum } from '../../models/duration-type.enum';
+import { StringUtils } from 'src/app/shared/utils/string.utils'; 
+import { DurationTypeEnum } from '../models/duration-type.enum';
 
 // TODO. Needs to be refactored.
 

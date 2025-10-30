@@ -99,7 +99,7 @@ export class ObservationImportService {
         // the column positions are changed when stacking the data into a single element column.
         alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
 
-        console.log("alterSQLs: ", alterSQLs);
+        //console.log("alterSQLs: ", alterSQLs);
 
         // Execute the duckdb DDL SQL commands
         let startTime = new Date().getTime();

@@ -78,7 +78,7 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
-        console.log('summary data: ', data);
+        //console.log('summary data: ', data);
         this.enableQueryButton = true;
         this.stationsRendered = [];
         if (this.filter.stationIds && this.filter.stationIds.length > 0) {
@@ -229,7 +229,7 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
           type: 'slider',
           xAxisIndex: 0,
           orient: 'horizontal',
-          bottom: 15,     // Push it below visualMap if needed
+          bottom: 15,
           height: 30,
           left: 200,     // Align with the grid.left so it doesn't overlap Y labels
           right: 50,     // Match grid.right to avoid overlap with Y zoom
@@ -247,11 +247,10 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
           width: 30,           // Width of the zoom bar 
           height: '80%'
         },
-        ,
         {
           type: 'inside',
           yAxisIndex: 0
-        }
+        },
       ],
       visualMap: {
         min: 0,
@@ -260,18 +259,13 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
         orient: 'horizontal',
         left: 'center',
         top: 0,
+        itemWidth: 20,      // Width of the color bar (default: 20)
+        itemHeight: 300,    // Length of the color bar (default: 140) 
         inRange: {
-          // Use Viridis color palette which is a gold standard in data visualisation.
-          // Note ommiting this will result to heatmap using red by default which expresses dange when values increase.
-          color: [
-            '#440154', // dark purple
-            '#414487', // purple-blue
-            '#2a788e', // teal
-            '#22a884', // green
-            '#7ad151', // yellow-green
-            '#fde725'  // yellow
-          ]
-        }
+          // Use yellow to green instead of yellow to red which is oftenly interpreted as danger.
+          // Note ommiting this will result to heatmap using red by default which expresses dange when values increase.         
+          color: ['#ffffe0', '#ffff99', '#ccff66', '#99ff33', '#66cc00', '#339900', '#006600'],
+        },
       },
       series: [
         {
@@ -286,7 +280,7 @@ export class DataAvailabilitySummaryComponent implements OnChanges, OnDestroy {
             }
           }
         }
-      ]
+      ],
     };
 
     this.chartInstance.setOption(chartOptions);
