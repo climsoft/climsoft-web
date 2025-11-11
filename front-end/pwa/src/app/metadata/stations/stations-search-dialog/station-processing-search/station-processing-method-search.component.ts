@@ -22,13 +22,11 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected stationProcessingMethods: SearchModel[] = [];
-
+  protected selections: SearchModel[] = [];
 
   constructor(
   ) {
-
-    this.stationProcessingMethods = Object.values(StationObsProcessingMethodEnum).map(item => {
+    this.selections = Object.values(StationObsProcessingMethodEnum).map(item => {
       return {
         processingMethod: item,
         selected: false,
@@ -42,7 +40,7 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.stationProcessingMethods.sort((a, b) => {
+      this.selections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
         if (a.formattedStatus.toLowerCase().includes(this.searchValue)) {
           return -1;
@@ -60,7 +58,16 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
           this.selectAll(false);
           break;
         case SelectionOptionTypeEnum.SORT_SELECTED:
-          this.sortBySelected();
+          // Sort the array so that items with `selected: true` come first
+          this.selections.sort((a, b) => {
+            if (a.selected === b.selected) {
+              return 0; // If both are the same (either true or false), leave their order unchanged
+            }
+            return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
+          });
+          break;
+        case SelectionOptionTypeEnum.SORT_BY_NAME:
+          this.selections.sort((a, b) => a.processingMethod.localeCompare(b.processingMethod));
           break;
         default:
           break;
@@ -74,27 +81,16 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
   }
 
   private selectAll(select: boolean): void {
-    for (const item of this.stationProcessingMethods) {
+    for (const item of this.selections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
   }
 
-  private sortBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.stationProcessingMethods.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
-      }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
-  }
 
   private emitSearchedStationIds() {
-    // TODO. a hack around due to event after view errors: Investigate later.
-    //setTimeout(() => {
     const searchedIds: string[] = []
-    const selectedStationStatuses = this.stationProcessingMethods.filter(item => item.selected);
+    const selectedStationStatuses = this.selections.filter(item => item.selected);
     for (const selectedStatus of selectedStationStatuses) {
       for (const station of this.stations) {
         if (station.stationObsProcessingMethod === selectedStatus.processingMethod) {
@@ -103,7 +99,6 @@ export class StationProcessingMethodSearchComponent implements OnChanges {
       }
     }
     this.searchedIdsChange.emit(searchedIds);
-    //}, 0);
   }
 
 

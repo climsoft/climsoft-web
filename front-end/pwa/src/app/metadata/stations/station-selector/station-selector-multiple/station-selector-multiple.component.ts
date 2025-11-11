@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
@@ -16,16 +17,15 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
-  protected allStations: StationCacheModel[] = [];
   protected stations: StationCacheModel[] = [];
   protected selectedStations: StationCacheModel[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor(private stationsCacheService: StationsCacheService) {
-    this.stationsCacheService.cachedStations.pipe(
+  constructor( private cachedMetadataService: CachedMetadataService) {
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.allStations = data;
+    ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return; 
       this.setStationsToInclude();
       this.filterBasedOnSelectedIds();
     });
@@ -48,7 +48,9 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   private setStationsToInclude(): void {
-    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
+    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? 
+    this.cachedMetadataService.stationsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) : 
+     this.cachedMetadataService.stationsMetadata;
   }
 
   private filterBasedOnSelectedIds(): void {
@@ -64,8 +66,10 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
    * @param selectedOptions 
    */
   protected onSelectedOptionsChange(selectedOptions: StationCacheModel[]) {
-    this.selectedIds.length = 0;
+    this.selectedIds.length = 0; // clear the array
     this.selectedIds.push(...selectedOptions.map(data => data.id));
+    
+    // emit the id changes
     this.selectedIdsChange.emit(this.selectedIds);
   }
 

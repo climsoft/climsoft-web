@@ -1,4 +1,4 @@
-<div *ngIf="environments" class="app-table-container" style="max-height: 300px;">
+<div #stnEnvironmentTableContainer class="app-table-container" style="max-height: 300px;">
     <table class="table table-sm table-hover">
         <thead>
             <tr>
@@ -8,7 +8,7 @@
             </tr>
         </thead>
         <tbody class="table-group-divider overflow-y-scroll">
-            <tr *ngFor="let item of environments" class="cursor-pointer" [class.table-primary]="item.selected"
+            <tr *ngFor="let item of selections" class="cursor-pointer" [class.table-primary]="item.selected"
                 (click)="onSelected(item)">
                 <td><i class="bi bi-cursor"></i></td>
                 <td>{{ item.environment.name }}</td>

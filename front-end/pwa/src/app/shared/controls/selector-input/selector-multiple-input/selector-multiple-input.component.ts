@@ -6,36 +6,26 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-multiple-input.component.scss']
 })
 export class SelectorMultipleInputComponent<T> implements OnChanges {
-  @Input()
-  public id!: string;
-  @Input()
-  public label!: string;
-  @Input()
-  public placeholder!: string;
-  @Input()
-  public errorMessage!: string;
-  @Input()
-  public options: T[] = [];
-  @Input()
-  public selectedOptions: T[] = [];
-  @Input()
-  public optionDisplayFn: (option: T) => string = (option => String(option));
-  @Output()
-  public selectedOptionsChange = new EventEmitter<T[]>();
-  @Input()
-  public displayAdvancedSearchOption: boolean = false;
-  @Output()
-  public displayAdvancedSearchOptionClick = new EventEmitter<void>();
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public placeholder!: string;
+  @Input() public errorMessage!: string;
+  @Input() public options: T[] = [];
+  @Input() public selectedOptions: T[] = [];
+  @Input() public optionDisplayFn: (option: T) => string = (option => String(option));
+  @Output() public selectedOptionsChange = new EventEmitter<T[]>();
+  @Input() public displayAdvancedSearchOption: boolean = false;
+  @Output() public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
-  protected filteredOptions: T[] =  [...this.options];
+  protected filteredOptions: T[] = [...this.options];
   protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if (!this.options)   this.options = []; // should never be undefined       
-      this.filteredOptions =  [...this.options];
+      if (!this.options) this.options = []; // should never be undefined       
+      this.filteredOptions = [...this.options];
     }
 
     if (changes['selectedOptions']) {
@@ -71,7 +61,7 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onSearchInput(searchValue: string): void {
     // If empty value then just reset the filtered options with all the possible options.
     if (!searchValue) {
-      this.filteredOptions =  [...this.options];
+      this.filteredOptions = [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(searchValue.toLowerCase())

@@ -78,6 +78,9 @@ import { ExportTypeSelectorSingleComponent } from './export-templates/export-typ
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
 import { StationIDNameSearchComponent } from './stations/stations-search-dialog/station-id-name-search/station-id-name-search.component';
 import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
+import { elementIDNameSearchComponent } from './elements/elements-search-dialog/element-id-name-search/element-id-name-search.component';
+import { ElementDomainSearchComponent } from './elements/elements-search-dialog/element-domain-search/element-domain-search.component';
+import { ElementSubdomainsSearchComponent } from './elements/elements-search-dialog/element-sub-domain-search/element-sub-domain-search.component';
 
 @NgModule({
   declarations: [
@@ -142,6 +145,9 @@ import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.com
     ImportElementsDialogComponent,
     ElementTypeSingleInputComponent,
     ElementsSearchDialogComponent,
+    elementIDNameSearchComponent,
+    ElementDomainSearchComponent,
+    ElementSubdomainsSearchComponent,
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
 

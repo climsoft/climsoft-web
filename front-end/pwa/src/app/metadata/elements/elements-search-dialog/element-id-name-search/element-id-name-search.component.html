@@ -1,18 +1,20 @@
-<div #stnFocusesTableContainer class="app-table-container" style="max-height: 300px;">
+<div #elementIdNameTableContainer class="app-table-container" style="max-height: 300px;">
     <table class="table table-sm table-hover">
         <thead>
             <tr>
                 <th></th>
+                <th>Id</th>
+                <th>Abbreviation</th>
                 <th>Name</th>
-                <th>Description</th>
             </tr>
         </thead>
         <tbody class="table-group-divider overflow-y-scroll">
             <tr *ngFor="let item of selections" class="cursor-pointer" [class.table-primary]="item.selected"
                 (click)="onSelected(item)">
                 <td><i class="bi bi-cursor"></i></td>
-                <td>{{ item.focus.name }}</td>
-                <td>{{ item.focus.description }}</td>
+                <td>{{ item.element.id }}</td>
+                <td>{{ item.element.abbreviation }}</td>
+                <td>{{ item.element.name }}</td>
             </tr>
         </tbody>
     </table>

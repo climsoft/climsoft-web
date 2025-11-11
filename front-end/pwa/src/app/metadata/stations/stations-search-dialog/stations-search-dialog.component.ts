@@ -7,9 +7,22 @@ import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.s
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
 export enum SelectionOptionTypeEnum {
-  SELECT_ALL = 'Select All',
-  DESELECT_ALL = 'Deselect All',
-  SORT_SELECTED = 'Sort Selected',
+  SELECT_ALL,
+  DESELECT_ALL,
+  SORT_SELECTED,
+  SORT_BY_ID,
+  SORT_BY_NAME,
+}
+
+export enum SearchByOptionEnum {
+  ID_NAME = 'Id or Name',
+  REGION = 'Region',
+  ORGANISATION = "Organisation",
+  NETWORK_AFFILIATION = "Network Affiliation",
+  STATUS = "Status",
+  PROCESSING = "Processing",
+  ENVIRONMENT = "Environment",
+  FOCUS = "Focus",
 }
 
 @Component({
@@ -22,20 +35,23 @@ export class StationsSearchDialogComponent implements OnDestroy {
   public searchedIdsChange = new EventEmitter<string[]>();
 
   protected open: boolean = false;
-  protected activeTab: 'new' | 'history' = 'history';
+  protected activeTab!: 'new' | 'history';
   protected previousSearches!: StationSearchHistoryModel[];
   protected searchName: string = '';
   protected saveSearch: boolean = false;
-  protected searchBy: string = 'Id or Name';
+  protected searchByOptionEnum: typeof SearchByOptionEnum = SearchByOptionEnum;
+  protected searchBy: SearchByOptionEnum = SearchByOptionEnum.ID_NAME;
   protected searchValue: string = '';
 
   // Note. Angular does not call ngOnChanges() if the input value doesn’t change by reference across detection cycles.
-  // So use object for selection to enforce change detection. This is required for instance when sort selection is clicked several times.
+  // So use object for selection to enforce change detection. 
+  // This is required for instance when sort selection is clicked several times.
   protected selectionOption!: { value: SelectionOptionTypeEnum };
+  protected selectionOptionTypeEnum: typeof SelectionOptionTypeEnum = SelectionOptionTypeEnum;
 
   protected stations: StationCacheModel[] = [];
   protected searchedIds: string[] = [];
-  protected largeScreen: boolean = true; // used to determine whether to show the map viewer
+  protected displayMapviewer: boolean = true; // used to determine whether to show the map viewer
 
   private destroy$ = new Subject<void>();
 
@@ -45,7 +61,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.viewPortService.viewPortSize.pipe(
       takeUntil(this.destroy$),
     ).subscribe((viewPortSize) => {
-      this.largeScreen = viewPortSize === ViewPortSize.LARGE;
+      this.displayMapviewer = viewPortSize === ViewPortSize.LARGE;
     });
 
   }
@@ -55,35 +71,47 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public showDialog(selectedIds?: string[], includeOnlyIds?: string[]): void {
+  public async showDialog(selectedIds?: string[], includeOnlyIds?: string[]): Promise<void> {
     this.open = true;
     this.stations = includeOnlyIds && includeOnlyIds.length > 0 ?
-      this.cachedMetadataService.stationsMetadata.filter(
-        item => includeOnlyIds.includes(item.id)
-      ) : this.cachedMetadataService.stationsMetadata;
+      this.cachedMetadataService.stationsMetadata.filter(item => includeOnlyIds.includes(item.id)) :
+      this.cachedMetadataService.stationsMetadata;
 
     // Set selected ids from a new copy of the array not same reference array
     // This makes sure that controls that call the dialog are not affect by how the dialog internally manipulates searched ids
+    // especially when okay is not clicked
     this.setSearchedIds(selectedIds ? [...selectedIds] : []);
     if (this.searchedIds.length > 0) {
       this.activeTab = 'new';
-      this.searchBy = 'Id or Name';
-    } else {
-      this.activeTab = 'history';
+      this.searchBy = SearchByOptionEnum.ID_NAME;
+    } else if (this.activeTab === 'new') {
+      this.searchBy = SearchByOptionEnum.ID_NAME;
+    } else if (this.activeTab === 'history') {
       this.loadSearchHistory();
+    } else {
+      // If it's the first time the dialog is being shown then load history 
+      // and if not previous searches then just show new tab
+      await this.loadSearchHistory();
+      if (this.previousSearches.length === 0) {
+        this.activeTab = 'new';
+        this.searchBy = SearchByOptionEnum.ID_NAME;
+      } else {
+        this.activeTab = 'history';
+      }
     }
+  }
+
+  protected onTabClick(selectedTab: 'new' | 'history'): void {
+    this.searchName = '';
+    this.saveSearch = false;
+    // clear the searched ids array
+    this.setSearchedIds([]);
+    this.activeTab = selectedTab;
+    if (this.activeTab === 'history') this.loadSearchHistory();
   }
 
   private async loadSearchHistory(): Promise<void> {
     this.previousSearches = await AppDatabase.instance.stationsSearchHistory.toArray();
-  }
-
-  protected onTabChange(selectedTab: 'new' | 'history'): void {
-    this.searchName = '';
-    this.saveSearch = false;
-    this.setSearchedIds([]);
-    this.activeTab = selectedTab;
-    if (this.activeTab === 'history') this.loadSearchHistory();
   }
 
   protected onPreviousSearchSelected(selectedSearch: StationSearchHistoryModel): void {
@@ -92,9 +120,9 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onEditPreviousSearch(selectedSearch: StationSearchHistoryModel): void {
-    this.searchBy = 'Id or Name';
+    this.searchBy = SearchByOptionEnum.ID_NAME;
     this.searchName = selectedSearch.name;
-    this.saveSearch = selectedSearch.name ? true : false;
+    this.saveSearch = true;
     this.setSearchedIds(selectedSearch.stationIds);
     this.activeTab = 'new';
   }
@@ -104,44 +132,37 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.loadSearchHistory();
   }
 
-  protected onSearchOptionChange(option: string): void {
+  protected onSearchOptionChange(option: SearchByOptionEnum): void {
     this.searchBy = option;
-    // TODO. In future support concatenation
-    this.setSearchedIds([]);
-  }
-
-  protected onSearchInput(searchValue: string): void {
-    // Using set timeout to improve typing UX of the search especially for devices like tablets and phones
-    setTimeout(() => {
-      this.searchValue = searchValue.toLowerCase();
-    }, 0);
-  }
-
-  protected onOptionClick(options: 'Select All' | 'Deselect All' | 'Sort Selected'): void {
-    switch (options) {
-      case 'Select All':
-        this.selectionOption = { value: SelectionOptionTypeEnum.SELECT_ALL };
-        break;
-      case 'Deselect All':
-        this.selectionOption = { value: SelectionOptionTypeEnum.DESELECT_ALL };
-        break;
-      case 'Sort Selected':
-        this.selectionOption = { value: SelectionOptionTypeEnum.SORT_SELECTED };
-        break;
-      default:
-        break;
+    this.searchValue = '';
+    if (option !== SearchByOptionEnum.ID_NAME) {
+      this.setSearchedIds([]);
     }
   }
 
+  protected setSearchedIds(searchedIds: string[]): void {
+    // Defer this update to the next change detection cycle to avoid the
+    // ExpressionChangedAfterItHasBeenCheckedError. This error occurs when the child
+    // component updates the parent's 'searchedIds' property (via an event) during the
+    // same change detection cycle in which the parent's view has already been checked.
+    setTimeout(() => this.searchedIds = searchedIds, 0);
+  }
+
+  protected onSearchInput(newSearchValue: string): void {
+    // Using set timeout to improve typing UX of the search especially for devices like tablets and phones
+    setTimeout(() => this.searchValue = newSearchValue.toLowerCase(), 0);
+  }
+
+  protected onSelectionOptionClick(option: SelectionOptionTypeEnum): void {
+    this.selectionOption = { value: option };
+  }
+
   protected onOkClick(): void {
+    this.searchName = this.searchName.trim();
     if (this.searchName && this.searchedIds.length > 0) {
       AppDatabase.instance.stationsSearchHistory.put({ name: this.searchName, stationIds: this.searchedIds });
     }
     this.searchedIdsChange.emit(this.searchedIds);
-  }
-
-  protected setSearchedIds(searchedIds: string[]): void {
-    this.searchedIds = searchedIds;
   }
 
 }

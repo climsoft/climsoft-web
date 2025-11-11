@@ -8,7 +8,7 @@
             </tr>
         </thead>
         <tbody class="table-group-divider overflow-y-scroll">
-            <tr *ngFor="let item of stationProcessingMethods" class="cursor-pointer"
+            <tr *ngFor="let item of selections" class="cursor-pointer"
                 [class.table-primary]="item.selected" (click)="onSelected(item)">
                 <td><i class="bi bi-cursor"></i></td>
                 <td>{{ item.formattedStatus }}</td> 

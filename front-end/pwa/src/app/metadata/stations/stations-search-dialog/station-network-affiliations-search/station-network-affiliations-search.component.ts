@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
+import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import { StationCacheModel } from '../../services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
 import { NetworkAffiliationsCacheService } from 'src/app/metadata/network-affiliations/services/network-affiliations-cache.service';
@@ -17,12 +17,14 @@ interface SearchModel {
   styleUrls: ['./station-network-affiliations-search.component.scss']
 })
 export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnDestroy {
+  @ViewChild('networkAffiliationsTableContainer') networkAffiliationsTableContainer!: ElementRef;
+
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected networkAffiliations: SearchModel[] = [];
+  protected selections: SearchModel[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -34,7 +36,7 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
     this.networkAffiliationsCacheService.cachedNetworkAffiliations.pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.networkAffiliations = data.map(networkAffiliation => {
+      this.selections = data.map(networkAffiliation => {
         return {
           networkAffiliation: networkAffiliation, selected: false
         }
@@ -45,13 +47,14 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.networkAffiliations.sort((a, b) => {
+      this.selections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
         if (a.networkAffiliation.name.toLowerCase().includes(this.searchValue)) {
           return -1;
         }
         return 1;
       });
+      this.scrollToTop();
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
@@ -63,7 +66,18 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
           this.selectAll(false);
           break;
         case SelectionOptionTypeEnum.SORT_SELECTED:
-          this.sortBySelected();
+          // Sort the array so that items with `selected: true` come first
+          this.selections.sort((a, b) => {
+            if (a.selected === b.selected) {
+              return 0; // If both are the same (either true or false), leave their order unchanged
+            }
+            return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
+          });
+          this.scrollToTop();
+          break;
+        case SelectionOptionTypeEnum.SORT_BY_NAME:
+          this.selections.sort((a, b) => a.networkAffiliation.name.localeCompare(b.networkAffiliation.name));
+          this.scrollToTop();
           break;
         default:
           break;
@@ -82,24 +96,23 @@ export class StationNetworkAffiliationsSearchComponent implements OnChanges, OnD
   }
 
   private selectAll(select: boolean): void {
-    for (const item of this.networkAffiliations) {
+    for (const item of this.selections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
   }
 
-  private sortBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.networkAffiliations.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
+  private scrollToTop(): void {
+    // Use setTimeout to scroll after the view has been updated with the sorted list.
+    setTimeout(() => {
+      if (this.networkAffiliationsTableContainer && this.networkAffiliationsTableContainer.nativeElement) {
+        this.networkAffiliationsTableContainer.nativeElement.scrollTop = 0;
       }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
+    }, 0);
   }
 
   private emitSearchedStationIds() {
-    const selectedAffiliationIds: number[] = this.networkAffiliations.filter(item => item.selected).map(item => item.networkAffiliation.id);
+    const selectedAffiliationIds: number[] = this.selections.filter(item => item.selected).map(item => item.networkAffiliation.id);
     if (selectedAffiliationIds.length > 0) {
       this.stationNetworkAffiliationsService.getStationsAssignedToNetworkAffiliations(selectedAffiliationIds).pipe(
         take(1),

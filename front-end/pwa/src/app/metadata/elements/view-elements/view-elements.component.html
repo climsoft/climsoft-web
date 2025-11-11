@@ -5,10 +5,10 @@
         Count: {{ elements.length | number:'1.0-0' }}
       </div>
       <div class="me-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="elementSearch.openDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgSearchElements.showDialog()">
           Search
         </button>
-        <app-elements-search-dialog #elementSearch (searchedIdsChange)="onSearchInput($event)" />
+        <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
       </div>
 
       <div>

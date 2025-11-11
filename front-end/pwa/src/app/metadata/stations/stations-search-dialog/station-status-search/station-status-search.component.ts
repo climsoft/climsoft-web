@@ -22,10 +22,10 @@ export class StationStatusSearchComponent implements OnChanges {
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected stationStatuses: SearchModel[] = [];
+  protected selections: SearchModel[] = [];
 
-  constructor( ) {
-    this.stationStatuses = Object.values(StationStatusEnum).map(item => {
+  constructor() {
+    this.selections = Object.values(StationStatusEnum).map(item => {
       return {
         status: item,
         selected: false,
@@ -39,7 +39,7 @@ export class StationStatusSearchComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.stationStatuses.sort((a, b) => {
+      this.selections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
         if (a.formattedStatus.toLowerCase().includes(this.searchValue)) {
           return -1;
@@ -57,7 +57,16 @@ export class StationStatusSearchComponent implements OnChanges {
           this.selectAll(false);
           break;
         case SelectionOptionTypeEnum.SORT_SELECTED:
-          this.sortBySelected();
+          // Sort the array so that items with `selected: true` come first
+          this.selections.sort((a, b) => {
+            if (a.selected === b.selected) {
+              return 0; // If both are the same (either true or false), leave their order unchanged
+            }
+            return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
+          });
+          break;
+        case SelectionOptionTypeEnum.SORT_BY_NAME:
+          this.selections.sort((a, b) => a.formattedStatus.localeCompare(b.formattedStatus));
           break;
         default:
           break;
@@ -70,30 +79,20 @@ export class StationStatusSearchComponent implements OnChanges {
     this.emitSearchedStationIds();
   }
 
-
-
   private selectAll(select: boolean): void {
-    for (const item of this.stationStatuses) {
+    for (const item of this.selections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
   }
 
-  private sortBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.stationStatuses.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
-      }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
-  }
+
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
     //setTimeout(() => {
     const searchedIds: string[] = []
-    const selectedStationStatuses = this.stationStatuses.filter(item => item.selected);
+    const selectedStationStatuses = this.selections.filter(item => item.selected);
     for (const selectedStatus of selectedStationStatuses) {
       for (const station of this.stations) {
         if (station.status === selectedStatus.status) {

@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
+import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { StationCacheModel } from '../../services/stations-cache.service';
 import { Subject, takeUntil } from 'rxjs';
 import { SelectionOptionTypeEnum } from '../stations-search-dialog.component';
 import { OrganisationsCacheService } from 'src/app/metadata/organisations/services/organisations-cache.service';
@@ -16,12 +16,14 @@ interface SearchModel {
   styleUrls: ['./station-organisations-search.component.scss']
 })
 export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy {
+  @ViewChild('organisationsTableContainer') organisationsTableContainer!: ElementRef;
+
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected organisations: SearchModel[] = [];
+  protected selections: SearchModel[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -31,7 +33,7 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
     this.organisationsService.cachedOrganisations.pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.organisations = data.map(organisation => {
+      this.selections = data.map(organisation => {
         return {
           organisation: organisation, selected: false
         }
@@ -43,13 +45,14 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.organisations.sort((a, b) => {
+      this.selections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
         if (a.organisation.name.toLowerCase().includes(this.searchValue)) {
           return -1;
         }
         return 1;
       });
+      this.scrollToTop();
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
@@ -61,7 +64,18 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
           this.selectAll(false);
           break;
         case SelectionOptionTypeEnum.SORT_SELECTED:
-          this.sortBySelected();
+          // Sort the array so that items with `selected: true` come first
+          this.selections.sort((a, b) => {
+            if (a.selected === b.selected) {
+              return 0; // If both are the same (either true or false), leave their order unchanged
+            }
+            return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
+          });
+          this.scrollToTop();
+          break;
+        case SelectionOptionTypeEnum.SORT_BY_NAME:
+          this.selections.sort((a, b) => a.organisation.name.localeCompare(b.organisation.name));
+          this.scrollToTop();
           break;
         default:
           break;
@@ -82,27 +96,26 @@ export class StationOrganisationsSearchComponent implements OnChanges, OnDestroy
 
 
   private selectAll(select: boolean): void {
-    for (const item of this.organisations) {
+    for (const item of this.selections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
   }
 
-  private sortBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.organisations.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
+  private scrollToTop(): void {
+    // Use setTimeout to scroll after the view has been updated with the sorted list.
+    setTimeout(() => {
+      if (this.organisationsTableContainer && this.organisationsTableContainer.nativeElement) {
+        this.organisationsTableContainer.nativeElement.scrollTop = 0;
       }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
+    }, 0);
   }
 
   private emitSearchedStationIds() {
     // TODO. a hack around due to event after view errors: Investigate later.
     //setTimeout(() => {
     const searchedStationIds: string[] = [];
-    const selectedOrganisations = this.organisations.filter(item => item.selected);
+    const selectedOrganisations = this.selections.filter(item => item.selected);
     for (const selectedorganisation of selectedOrganisations) {
       for (const station of this.stations) {
         if (station.organisationId === selectedorganisation.organisation.id) {

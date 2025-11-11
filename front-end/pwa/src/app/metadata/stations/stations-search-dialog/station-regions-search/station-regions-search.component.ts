@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
-import { StationCacheModel, StationsCacheService } from '../../services/stations-cache.service';
+import { Component, Input, Output, EventEmitter, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild } from '@angular/core';
+import { StationCacheModel } from '../../services/stations-cache.service';
 import { Subject, takeUntil } from 'rxjs';
 import { RegionsCacheService } from 'src/app/metadata/regions/services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.model';
@@ -19,12 +19,14 @@ interface SearchModel {
   styleUrls: ['./station-regions-search.component.scss']
 })
 export class StationRegionSearchComponent implements OnChanges, OnDestroy {
+  @ViewChild('regionsTableContainer') regionsTableContainer!: ElementRef;
+
   @Input() public stations!: StationCacheModel[];
   @Input() public searchValue!: string;
   @Input() public selectionOption!: { value: SelectionOptionTypeEnum };
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
-  protected regions: SearchModel[] = [];
+  protected selections: SearchModel[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -35,7 +37,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     this.regionsService.cachedRegions.pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.regions = data.map(region => {
+      this.selections = data.map(region => {
         return {
           region: region, selected: false, formattedRegionType: StringUtils.formatEnumForDisplay(region.regionType)
         }
@@ -46,7 +48,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['searchValue'] && this.searchValue) {
       // Make the searched items be the first items
-      this.regions.sort((a, b) => {
+      this.selections.sort((a, b) => {
         // If search is found, move it before `b`, otherwise after
         if (a.region.name.toLowerCase().includes(this.searchValue)
           || a.region.regionType.toLowerCase().includes(this.searchValue)) {
@@ -54,6 +56,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
         }
         return 1;
       });
+      this.scrollToTop();
     }
 
     if (changes['selectionOption'] && this.selectionOption) {
@@ -65,7 +68,18 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
           this.selectAll(false);
           break;
         case SelectionOptionTypeEnum.SORT_SELECTED:
-          this.sortBySelected();
+          // Sort the array so that items with `selected: true` come first
+          this.selections.sort((a, b) => {
+            if (a.selected === b.selected) {
+              return 0; // If both are the same (either true or false), leave their order unchanged
+            }
+            return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
+          });
+          this.scrollToTop();
+          break;
+        case SelectionOptionTypeEnum.SORT_BY_NAME:
+          this.selections.sort((a, b) => a.region.name.localeCompare(b.region.name));
+          this.scrollToTop();
           break;
         default:
           break;
@@ -83,29 +97,26 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
     this.emitSearchedStationIds();
   }
 
-
   private selectAll(select: boolean): void {
-    for (const item of this.regions) {
+    for (const item of this.selections) {
       item.selected = select;
     }
     this.emitSearchedStationIds();
   }
 
-  private sortBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.regions.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
+
+  private scrollToTop(): void {
+    // Use setTimeout to scroll after the view has been updated with the sorted list.
+    setTimeout(() => {
+      if (this.regionsTableContainer && this.regionsTableContainer.nativeElement) {
+        this.regionsTableContainer.nativeElement.scrollTop = 0;
       }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
+    }, 0);
   }
 
   private emitSearchedStationIds() {
-    // TODO. a hack around due to event after view errors: Investigate later.
-    //setTimeout(() => {
     const searchedStationIds: string[] = [];
-    const selectedRegions = this.regions.filter(region => region.selected);
+    const selectedRegions = this.selections.filter(region => region.selected);
     for (const selectedRegion of selectedRegions) {
       for (const station of this.stations) {
         if (station.location) {
@@ -115,9 +126,7 @@ export class StationRegionSearchComponent implements OnChanges, OnDestroy {
         }
       }
     }
-
     this.searchedIdsChange.emit(searchedStationIds);
-    // }, 0);
   }
 
 

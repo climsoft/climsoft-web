@@ -1,12 +1,21 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { AppDatabase } from 'src/app/app-database';
-import { take } from 'rxjs';  
 import { ElementSearchHistoryModel } from '../models/elements-search-history.model';
-import { ElementCacheModel, ElementsCacheService } from '../services/elements-cache.service';
+import { ElementCacheModel } from '../services/elements-cache.service';
+import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
-interface ElementSearchModel {
-  element: ElementCacheModel;
-  selected: boolean;
+export enum SelectionOptionTypeEnum {
+  SELECT_ALL,
+  DESELECT_ALL,
+  SORT_SELECTED,
+  SORT_BY_ID,
+  SORT_BY_NAME,
+}
+
+export enum SearchByOptionEnum {
+  ID_NAME = 'Id or Name',
+  DOMAIN = 'Domain',
+  SUB_DOMAIN = "Sub-domain",
 }
 
 @Component({
@@ -20,48 +29,82 @@ export class ElementsSearchDialogComponent {
   public searchedIdsChange = new EventEmitter<number[]>();
 
   protected open: boolean = false;
-  protected activeTab: 'new' | 'history' = 'history';
+  protected activeTab!: 'new' | 'history' ;
   protected previousSearches!: ElementSearchHistoryModel[];
-  protected elementsSelections!: ElementSearchModel[];
-  protected searchedIds: number[] = [];
   protected searchName: string = '';
   protected saveSearch: boolean = false;
+  protected searchByOptionEnum: typeof SearchByOptionEnum = SearchByOptionEnum;
+  protected searchBy: SearchByOptionEnum = SearchByOptionEnum.ID_NAME;
+  protected searchValue: string = '';
 
-  constructor(private elementsCacheService: ElementsCacheService) { 
+  // Note. Angular does not call ngOnChanges() if the input value doesn’t change by reference across detection cycles.
+  // So use object for selection to enforce change detection. 
+  // This is required for instance when sort selection is clicked several times.
+  protected selectionOption!: { value: SelectionOptionTypeEnum };
+  protected selectionOptionTypeEnum: typeof SelectionOptionTypeEnum = SelectionOptionTypeEnum;
+
+  protected elements: ElementCacheModel[] = [];
+  protected searchedIds: number[] = [];
+  protected largeScreen: boolean = true; // used to determine whether to show the map viewer
+
+  constructor(private cachedMetadataService: CachedMetadataService) {
   }
 
-  public openDialog(): void {
-    this.loadSearchHistory();
+  public async showDialog(selectedIds?: number[], includeOnlyIds?: number[]): Promise<void> {
     this.open = true;
+    this.elements = includeOnlyIds && includeOnlyIds.length > 0 ?
+      this.cachedMetadataService.elementsMetadata.filter(item => includeOnlyIds.includes(item.id)) :
+      this.cachedMetadataService.elementsMetadata;
+
+    // Set selected ids from a new copy of the array not same reference array
+    // This makes sure that controls that call the dialog are not affect by how the dialog internally manipulates searched ids
+    // especially when okay is not clicked
+    this.setSearchedIds(selectedIds ? [...selectedIds] : []);
+    if (this.searchedIds.length > 0) {
+      this.activeTab = 'new';
+      this.searchBy = SearchByOptionEnum.ID_NAME; 
+    } else if (this.activeTab === 'new') {
+      this.searchBy = SearchByOptionEnum.ID_NAME;
+    } else if (this.activeTab === 'history') {
+      this.loadSearchHistory(); 
+    } else { 
+      // If it's the first time the dialog is being shown then load history 
+      // and if not previous searches then just show new tab
+      await this.loadSearchHistory();
+      if (this.previousSearches.length === 0) {
+        this.activeTab = 'new';
+        this.searchBy = SearchByOptionEnum.ID_NAME;       
+      } else {
+        this.activeTab = 'history';
+      }
+       
+    }
+
+   
   }
- 
+
+  protected onTabClick(selectedTab: 'new' | 'history'): void {
+    this.searchName = '';
+    this.saveSearch = false;
+    this.setSearchedIds([]);
+    this.activeTab = selectedTab;
+    if (this.activeTab === 'history') this.loadSearchHistory();
+  }
+
   private async loadSearchHistory(): Promise<void> {
     this.previousSearches = await AppDatabase.instance.elementsSearchHistory.toArray();
   }
 
-  protected onTabChange(selectedTab: 'new' | 'history'): void {
-    this.searchedIds = [];
-    this.searchName = '';
-    this.saveSearch = false;
-    if(selectedTab === 'new'){
-      this.loadElementsSelections();
-    }
-   
-    this.activeTab = selectedTab;
-   }
-
   protected onPreviousSearchSelected(selectedSearch: ElementSearchHistoryModel): void {
-    this.searchedIds = selectedSearch.elementIds;
     this.searchName = selectedSearch.name;
+    this.setSearchedIds(selectedSearch.elementIds);
   }
 
   protected onEditPreviousSearch(selectedSearch: ElementSearchHistoryModel): void {
-    this.onIdsSelected(selectedSearch.elementIds);
-    this.onSearchNameInput(selectedSearch.name);
-    this.saveSearch = selectedSearch.name ? true : false;
-
-    this.loadElementsSelections();
-    this.sortSelectionBySelected();
+    this.searchBy = SearchByOptionEnum.ID_NAME;
+    this.searchName = selectedSearch.name;
+    this.saveSearch = true;
+    this.setSearchedIds(selectedSearch.elementIds);
     this.activeTab = 'new';
   }
 
@@ -70,91 +113,34 @@ export class ElementsSearchDialogComponent {
     this.loadSearchHistory();
   }
 
-  private loadElementsSelections(): void {
-    this.elementsCacheService.cachedElements.pipe(take(1)).subscribe(elements => {
-      this.elementsSelections = elements.map(element => {
-        return {
-          element: element,
-          selected: this.searchedIds.includes(element.id),
-        };
-      });
-    });
-  }
-
-  protected onSearchInput(searchValue: string): void {
-    searchValue = searchValue.toLowerCase();
-    // Make the searched items be the first items
-    this.elementsSelections.sort((a, b) => {
-      // If search is found, move it before `b`, otherwise after
-      if (a.element.id.toString() === searchValue 
-        || a.element.name.toLowerCase().includes(searchValue)
-        || a.element.typeName.toLowerCase().includes(searchValue) ) {
-        return -1;
-      }
-      return 1;
-    });
-  }
-
-  protected onOptionClick(options: 'Filter' | 'Select All' | 'Deselect All' | 'Sort Selected'): void {
-    switch (options) {
-      case 'Filter':
-        // TODO
-        break;
-      case 'Select All':
-        this.selectAll(true);
-        break;
-      case 'Deselect All':
-        this.selectAll(false);
-        break;
-      case 'Sort Selected':
-        this.sortSelectionBySelected();
-        break;
-      default:
-        break;
+  protected onSearchOptionChange(option: SearchByOptionEnum): void {
+    this.searchBy = option;
+    this.searchValue = '';
+    if (option !== SearchByOptionEnum.ID_NAME) {
+      this.setSearchedIds([]);
     }
-
   }
 
-  protected onElementSelected(selection: ElementSearchModel): void {
-    selection.selected = !selection.selected;
-    this.setSearchedIdsFromSelections()
-  }
-
-  private selectAll(select: boolean): void {
-    for (const item of this.elementsSelections) {
-      item.selected = select;
-    }
-
-    this.setSearchedIdsFromSelections()
-  }
-
-  private sortSelectionBySelected(): void {
-    // Sort the array so that items with `selected: true` come first
-    this.elementsSelections.sort((a, b) => {
-      if (a.selected === b.selected) {
-        return 0; // If both are the same (either true or false), leave their order unchanged
-      }
-      return a.selected ? -1 : 1; // If `a.selected` is true, move it before `b`, otherwise after
-    });
-  }
-
-  private setSearchedIdsFromSelections(): void {
-    this.onIdsSelected(this.elementsSelections.filter(item => item.selected).map(item => item.element.id));
-  }
-
-  private onIdsSelected(searchedIds: number[]): void {
+  protected setSearchedIds(searchedIds: number[]): void {
     this.searchedIds = searchedIds;
   }
 
-  protected onSearchNameInput(searchName: string): void {
-    this.searchName = searchName;
+  protected onSearchInput(newSearchValue: string): void {
+    // Using set timeout to improve typing UX of the search especially for devices like tablets and phones
+    setTimeout(() => {
+      this.searchValue = newSearchValue.toLowerCase();
+    }, 0);
+  }
+
+  protected onSelectionOptionClick(option: SelectionOptionTypeEnum): void {
+    this.selectionOption = { value: option };
   }
 
   protected onOkClick(): void {
-    if (this.searchedIds.length > 0 && this.searchName) {
+    this.searchName = this.searchName.trim();
+    if (this.saveSearch && this.searchName && this.searchedIds.length > 0) {
       AppDatabase.instance.elementsSearchHistory.put({ name: this.searchName, elementIds: this.searchedIds });
     }
-
     this.searchedIdsChange.emit(this.searchedIds);
   }
 
