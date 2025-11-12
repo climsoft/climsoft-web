@@ -53,122 +53,156 @@
                         </ul>
                     </div>
 
+                    <div *ngIf="displayMapviewer" class="ms-1" style="min-width: 520px;">
+                        <app-view-stations-geo-map [mapHeight]="'430px'" [displayStats]="false"
+                            [stationIds]="searchedIds" />
+                    </div>
+
                 </div>
 
-                <div *ngIf="activeTab === 'new'" class="mt-2">
-                    <div>
-                        <div>Search By:</div>
+                <div *ngIf="activeTab === 'new'">
+                    <!-- filter -->
+                    <div class="card border-0 p-0" style="max-width: 1080px;">
+                        <div class="card-header mb-2 px-1 fw-bold">
+                            <app-toggle-chevron [(open)]="displayFilterControls">Filter</app-toggle-chevron>
+                        </div>
+                        <div *ngIf="displayFilterControls" class="card-body p-0 mt-2">
+                            <div class="row g-2 px-2">
+                                <div class="col-auto mb-2">
+                                    <app-region-selector-multiple [id]="'stn-search-region'" [label]="'Region'"
+                                        (selectedIdsChange)="onRegionsSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-organisation-selector-multiple [id]="'stn-search-org'" [label]="'Organisation'"
+                                        (selectedIdsChange)="onOrganisationsSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-network-affiliations-selector-multiple [id]="'stn-search-network-affi'"
+                                        [label]="'Network Affiliations'"
+                                        (selectedIdsChange)="onNetworkAffiliationsSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-station-environment-selector-multiple [id]="'stn-search-environment'"
+                                        [label]="'Environment'"
+                                        (selectedIdsChange)="onStationEnvironmentsSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-station-focus-selector-multiple [id]="'stn-search-focus'" [label]="'Focus'"
+                                        (selectedIdsChange)="onStationFocusesSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-station-obs-processing-selector-multiple [id]="'stn-search-processing'"
+                                        [label]="'Processing Method'"
+                                        (selectedIdsChange)="onStationObsProcessingMethodSelected($event)" />
+                                </div>
+                                <div class="col-auto mb-2">
+                                    <app-station-status-selector-multiple [id]="'stn-search-status'" [label]="'Status'"
+                                        (selectedIdsChange)="onStationStatusSelected($event)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- search input and viewer -->
+                    <div class="d-flex align-items-center">
                         <div>
-                            <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'searchOptions'"
-                                [groupItems]="[ 
-                                    { label:searchByOptionEnum.ID_NAME ,checked: searchBy === searchByOptionEnum.ID_NAME }, 
-                                    { label:searchByOptionEnum.REGION, checked : searchBy === searchByOptionEnum.REGION},
-                                    { label:searchByOptionEnum.ORGANISATION, checked : searchBy === searchByOptionEnum.ORGANISATION},
-                                    { label:searchByOptionEnum.NETWORK_AFFILIATION, checked : searchBy === searchByOptionEnum.NETWORK_AFFILIATION},
-                                    { label:searchByOptionEnum.STATUS, checked : searchBy === searchByOptionEnum.STATUS},
-                                    { label:searchByOptionEnum.PROCESSING, checked : searchBy === searchByOptionEnum.PROCESSING},
-                                    { label:searchByOptionEnum.ENVIRONMENT, checked : searchBy === searchByOptionEnum.ENVIRONMENT},
-                                    { label:searchByOptionEnum.FOCUS, checked : searchBy === searchByOptionEnum.FOCUS},
-                                    ]" (checkedValueChange)="onSearchOptionChange($event)" />
-                        </div>
-                        <div class="mt-2">
-                            <div class="flex-grow-1">
-                                <app-text-input [id]="'station_search_input'" [placeholder]="'Search'"
-                                    (valueChange)="onSearchInput($event)" />
+                            <!-- Search input -->
+                            <div>
+                                <div class="flex-grow-1">
+                                    <app-text-input [id]="'station_search_input'" [label]="'Search'"
+                                        [placeholder]="'Type to search'" (valueChange)="onSearchInput($event)" />
+                                </div>
+                            </div>
+
+                            <!-- Sort and Select -->
+                            <div class="mt-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex justify-content-start align-items-center">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                            (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_SELECTED)">
+                                            Sort Selected
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                            (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_BY_ID)">
+                                            Sort By ID
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                            (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_BY_NAME)">
+                                            Sort By Name
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                            (click)="onSelectionOptionClick(selectionOptionTypeEnum.SELECT_ALL)">
+                                            Select All
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+                                            (click)="onSelectionOptionClick(selectionOptionTypeEnum.DESELECT_ALL)">
+                                            Deselect All
+                                        </button>
+                                    </div>
+
+                                    <div class="mx-2 fw-bold d-flex align-items-center">
+                                        <div [class.text-success]="searchedIds.length > 0">
+                                            {{ searchedIds.length | number:'1.0-0' }}
+                                        </div>
+                                        <div class="mx-2">/</div>
+                                        <div>
+                                            {{ selections.length | number:'1.0-0' }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+
+                                    <div #stnIdNameTableContainer class="app-table-container"
+                                        style="max-height: 300px;">
+                                        <table class="table table-sm table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th></th>
+                                                    <th>Id</th>
+                                                    <th>Name</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="table-group-divider overflow-y-scroll">
+                                                <tr *ngFor="let item of selections" class="cursor-pointer"
+                                                    [class.table-primary]="item.selected" (click)="onSelected(item)">
+                                                    <td><i class="bi bi-cursor"></i></td>
+                                                    <td>{{ item.station.id }}</td>
+                                                    <td>{{ item.station.name }}</td>
+                                                    <td>{{ item.station.statusName }}</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+
+
+                                </div>
+
+                            </div>
+
+                            <!-- Save Search -->
+                            <div class="mt-2">
+                                <app-check-box-input [id]="'save_station_search'" [label]="'Save Search'"
+                                    [(value)]="saveSearch" />
+                                <div *ngIf="saveSearch" class="ms-2">
+                                    <app-text-input [id]="'station_search_save'" [(value)]="searchName" />
+                                </div>
                             </div>
                         </div>
+
+                        <!-- map viewer -->
+                        <div *ngIf="displayMapviewer" class="ms-1" style="min-width: 520px;">
+                            <app-view-stations-geo-map [mapHeight]="'430px'" [displayStats]="false"
+                                [stationIds]="searchedIds" />
+                        </div>
+
                     </div>
-
-                    <hr />
-
-                    <div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex justify-content-start align-items-center">
-                                <button type="button" class="btn btn-outline-secondary btn-sm"
-                                    (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_SELECTED)">
-                                    Sort Selected
-                                </button>
-                                <button *ngIf="searchBy === searchByOptionEnum.ID_NAME" type="button"
-                                    class="btn btn-outline-secondary btn-sm ms-2"
-                                    (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_BY_ID)">
-                                    Sort By ID
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
-                                    (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_BY_NAME)">
-                                    Sort By Name
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
-                                    (click)="onSelectionOptionClick(selectionOptionTypeEnum.SELECT_ALL)">
-                                    Select All
-                                </button>
-                                <button *ngIf="searchBy === 'Id or Name'" type="button"
-                                    class="btn btn-outline-secondary btn-sm ms-2"
-                                    (click)="onSelectionOptionClick(selectionOptionTypeEnum.DESELECT_ALL)">
-                                    Deselect All
-                                </button>
-                            </div>
-
-                            <div class="mx-2 fw-bold" [class.text-success]="searchedIds.length > 0">
-                                [{{ searchedIds.length | number:'1.0-0' }}]
-                            </div>
-                        </div>
-
-                        <div class="mt-2">
-                            <div *ngIf="searchBy ==='Id or Name'">
-                                <app-station-id-name-search [stations]="stations" [inputSearchedIds]="searchedIds"
-                                    [searchValue]="searchValue" [selectionOption]="selectionOption"
-                                    (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Region'">
-                                <app-station-regions-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Organisation'">
-                                <app-station-organisations-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Network Affiliation'">
-                                <app-station-network-affiliations-search [stations]="stations"
-                                    [searchValue]="searchValue" [selectionOption]="selectionOption"
-                                    (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Status'">
-                                <app-station-status-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Processing'">
-                                <app-station-processing-method-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Environment'">
-                                <app-station-environments-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === 'Focus'">
-                                <app-station-focuses-search [stations]="stations" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <hr />
-
-                    <div>
-                        <app-check-box-input [id]="'save_station_search'" [label]="'Save Search'"
-                            [(value)]="saveSearch" />
-                        <div *ngIf="saveSearch" class="ms-2">
-                            <app-text-input [id]="'station_search_save'" [(value)]="searchName" />
-                        </div>
-                    </div>
-
                 </div>
 
 
-                <div *ngIf="displayMapviewer" class="ms-1" style="min-width: 430px;">
-                    <app-view-stations-geo-map [mapHeight]="'430px'" [displayStats]="false"
-                        [stationIds]="searchedIds" />
-                </div>
+
             </div>
 
 

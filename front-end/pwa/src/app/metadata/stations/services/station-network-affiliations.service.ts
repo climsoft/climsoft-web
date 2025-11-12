@@ -65,8 +65,6 @@ export class StationNetworkAffiliationsService {
       );
   }
 
-    
-
   public putStationsAssignedToNetworkAffiliation(networkAffiliationId: number, stationIds: string[]): Observable<string[]> {
     return this.http.put<string[]>(`${this.endPointUrl}/stations-assigned-to-network-affiliation/${networkAffiliationId}`, stationIds)
       .pipe(

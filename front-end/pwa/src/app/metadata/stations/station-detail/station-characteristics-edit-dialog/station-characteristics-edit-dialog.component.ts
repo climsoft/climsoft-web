@@ -3,7 +3,6 @@ import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/metadata/stations/models/update-station.model';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { StationsCacheService } from '../../services/stations-cache.service';
 import { AppLocationService } from 'src/app/app-location.service';
 import { CreateStationModel } from '../../models/create-station.model';
