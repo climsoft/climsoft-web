@@ -19,7 +19,7 @@ export class ViewElementsComponent implements OnDestroy {
 
   private allElements!: CreateViewElementModel[];
   protected elements!: CreateViewElementModel[];
-  private searchedIds!: number[];
+  protected searchedIds!: number[];
 
   protected optionClicked: optionsType | undefined;
   protected dropDownItems: optionsType[] = [];

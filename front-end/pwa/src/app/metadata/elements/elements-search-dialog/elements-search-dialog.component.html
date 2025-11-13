@@ -53,37 +53,24 @@
                 </div>
             </div>
 
-            <div *ngIf="activeTab === 'new'" class="mt-2">
-                <div>
-                    <div>Search By:</div>
-                    <div>
-                        <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'searchOptions'"
-                            [groupItems]="[ 
-                                    { label:searchByOptionEnum.ID_NAME,checked: searchBy === searchByOptionEnum.ID_NAME}, 
-                                    { label:searchByOptionEnum.DOMAIN, checked : searchBy === searchByOptionEnum.DOMAIN},
-                                    { label:searchByOptionEnum.SUB_DOMAIN, checked : searchBy === searchByOptionEnum.SUB_DOMAIN},
-                                    ]" (checkedValueChange)="onSearchOptionChange($event)" />
+            <div *ngIf="activeTab === 'new'">
+
+                <div class="mt-2">
+                    <!-- Search Input -->
+                    <div class="flex-grow-1">
+                        <app-text-input [id]="'station_search_input'" [label]="'Search'"
+                            [placeholder]="'Type to search'" (valueChange)="onSearchInput($event)" />
                     </div>
+
+                    <!-- Sort and Select -->
                     <div class="mt-2">
-                        <div class="flex-grow-1">
-                            <app-text-input [id]="'station_search_input'" [placeholder]="'Search'"
-                                (valueChange)="onSearchInput($event)" />
-                        </div>
-                    </div>
-                </div>
-
-                <hr />
-
-                <div>
-                    <div>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex justify-content-start align-items-center">
                                 <button type="button" class="btn btn-outline-secondary btn-sm"
                                     (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_SELECTED)">
                                     Sort Selected
                                 </button>
-                                <button *ngIf="searchBy === searchByOptionEnum.ID_NAME" type="button"
-                                    class="btn btn-outline-secondary btn-sm ms-2"
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
                                     (click)="onSelectionOptionClick(selectionOptionTypeEnum.SORT_BY_ID)">
                                     Sort By ID
                                 </button>
@@ -95,8 +82,7 @@
                                     (click)="onSelectionOptionClick(selectionOptionTypeEnum.SELECT_ALL)">
                                     Select All
                                 </button>
-                                <button *ngIf="searchBy === 'Id or Name'" type="button"
-                                    class="btn btn-outline-secondary btn-sm ms-2"
+                                <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
                                     (click)="onSelectionOptionClick(selectionOptionTypeEnum.DESELECT_ALL)">
                                     Deselect All
                                 </button>
@@ -106,33 +92,38 @@
                             </div>
                         </div>
 
-                        <div class="mt-2">
-                            <div *ngIf="searchBy === searchByOptionEnum.ID_NAME,">
-                                <app-element-id-name-search [elements]="elements" [searchedIds]="searchedIds"
-                                    [searchValue]="searchValue" [selectionOption]="selectionOption"
-                                    (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-                            <div *ngIf="searchBy === searchByOptionEnum.DOMAIN">
-                                <app-element-domain-search [elements]="elements" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
-
-                            <div *ngIf="searchBy === searchByOptionEnum.SUB_DOMAIN">
-                                <app-element-sub-domain-search [elements]="elements" [searchValue]="searchValue"
-                                    [selectionOption]="selectionOption" (searchedIdsChange)="setSearchedIds($event)" />
-                            </div>
+                        <div #elementIdNameTableContainer class="app-table-container mt-2" style="max-height: 300px;">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Id</th>
+                                        <th>Abbreviation</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-group-divider overflow-y-scroll">
+                                    <tr *ngFor="let item of selections" class="cursor-pointer"
+                                        [class.table-primary]="item.selected" (click)="onSelected(item)">
+                                        <td><i class="bi bi-cursor"></i></td>
+                                        <td>{{ item.element.id }}</td>
+                                        <td>{{ item.element.abbreviation }}</td>
+                                        <td>{{ item.element.name }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
                     </div>
-                </div>
 
-                <hr />
-
-                <div>
-                    <app-check-box-input [id]="'save_station_search'" [label]="'Save Search'" [(value)]="saveSearch" />
-                    <div *ngIf="saveSearch" class="ms-2">
-                        <app-text-input [id]="'station_search_save'" [(value)]="searchName" />
+                    <div class="mt-2">
+                        <app-check-box-input [id]="'save_element_search'" [label]="'Save Search'"
+                            [(value)]="saveSearch" />
+                        <div *ngIf="saveSearch" class="ms-2">
+                            <app-text-input [id]="'input_save_element_search_save'" [(value)]="searchName" />
+                        </div>
                     </div>
+
                 </div>
 
             </div>

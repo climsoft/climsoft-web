@@ -112,6 +112,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     if (selectedIds && selectedIds.length > 0) {
       this.activeTab = 'new';
       this.filterBasedOnSelections(selectedIds);
+      this.onSelectionOptionClick(SelectionOptionTypeEnum.SORT_SELECTED);
     } else if (this.activeTab === 'history') {
       this.loadSearchHistory();
     } else {
@@ -270,16 +271,9 @@ export class StationsSearchDialogComponent implements OnDestroy {
 
   protected onSelected(stationSelection: StationSearchModel): void {
     stationSelection.selected = !stationSelection.selected;
-    this.setSearchedIds(); // TODO. Simply remove or add id from searchedIds array
-  }
-
-  protected setSearchedSelections1(searchedIds: string[]): void {
-    for (const selection of this.selections) {
-      selection.selected = searchedIds.includes(selection.station.id);
-    }
-
     this.setSearchedIds();
   }
+
 
   private filterBasedOnSelections(selectedIds?: string[]): void {
     this.selections = this.stations.map(item => {
