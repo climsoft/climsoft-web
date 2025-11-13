@@ -70,9 +70,6 @@ import { QCStatusSelectorSingleComponent } from './qc-tests/qc-status-selector-s
 import { ExportTypeSelectorSingleComponent } from './export-templates/export-type-selector-single/export-type-selector-single.component';
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
 import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
-import { elementIDNameSearchComponent } from './elements/elements-search-dialog/element-id-name-search/element-id-name-search.component';
-import { ElementDomainSearchComponent } from './elements/elements-search-dialog/element-domain-search/element-domain-search.component';
-import { ElementSubdomainsSearchComponent } from './elements/elements-search-dialog/element-sub-domain-search/element-sub-domain-search.component';
 import { RegionSelectorMultipleComponent } from './regions/regions-selector/region-selector-multiple/region-selector-multiple.component';
 import { OrganisationSelectorMultipleComponent } from './organisations/organisation-selector/organisation-selector-multiple/organisation-selector-multiple.component';
 import { NetworkAffiliationsSelectorMultipleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-multiple/network-affiliations-selector-multiple.component';
@@ -149,9 +146,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     ImportElementsDialogComponent,
     ElementTypeSingleInputComponent,
     ElementsSearchDialogComponent,
-    elementIDNameSearchComponent,
-    ElementDomainSearchComponent,
-    ElementSubdomainsSearchComponent,
+  
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
 

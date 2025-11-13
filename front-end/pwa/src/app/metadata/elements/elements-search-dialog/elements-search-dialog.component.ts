@@ -102,19 +102,37 @@ export class ElementsSearchDialogComponent {
     // Using set timeout to improve typing UX of the search especially for devices like tablets and phones
     setTimeout(() => {
       const searchValue = newSearchValue.toLowerCase();
-      // Make the searched items be the first items
-      this.selections.sort((a, b) => {
+
+      if (isNaN(Number(searchValue))) {
+        // For string inputs use element name and abbreviation to search
+        // Make the searched items be the first items
+        this.selections.sort((a, b) => {
+          // If search is found, move it before `b`, otherwise after
+          if (a.element.abbreviation.toLowerCase().includes(searchValue)
+            || a.element.name.toLowerCase().includes(searchValue)) {
+            return -1;
+          }
+          return 1;
+        });
+      } else {
+        // For number inputs use element id to search
+        const numSearchValue = Number(newSearchValue);
         // If search is found, move it before `b`, otherwise after
-        if (a.element.id.toString() === searchValue
-          || a.element.abbreviation.toLowerCase().includes(searchValue)
-          || a.element.name.toLowerCase().includes(searchValue)) {
-          return -1;
-        }
-        return 1;
-      });
+        this.selections.sort((a, b) => {
+          if (a.element.id === numSearchValue) {
+            return -1;
+          }
+          return 1;
+        });
+      }
 
       this.scrollToTop();
     }, 0);
+  }
+
+  protected onEnterKeyPress(): void {
+    this.selections[0].selected = true;
+    this.setSearchedIds();
   }
 
   protected onSelectionOptionClick(option: SelectionOptionTypeEnum): void {

@@ -222,6 +222,11 @@ export class StationsSearchDialogComponent implements OnDestroy {
     }, 0);
   }
 
+  protected onEnterKeyPress(): void {
+    this.selections[0].selected = true;
+    this.setSearchedIds();
+  }
+
   protected onSelectionOptionClick(option: SelectionOptionTypeEnum): void {
     switch (option) {
       case SelectionOptionTypeEnum.SORT_SELECTED:

@@ -59,7 +59,8 @@
                     <!-- Search Input -->
                     <div class="flex-grow-1">
                         <app-text-input [id]="'station_search_input'" [label]="'Search'"
-                            [placeholder]="'Type to search'" (valueChange)="onSearchInput($event)" />
+                            [placeholder]="'Type to search'" [simulateTabOnEnter]="false"
+                            (valueChange)="onSearchInput($event)" (inputEnterKeyPress)="onEnterKeyPress()" />
                     </div>
 
                     <!-- Sort and Select -->
