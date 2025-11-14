@@ -5,21 +5,21 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from
   templateUrl: './radio-buttons-input.component.html',
   styleUrls: ['./radio-buttons-input.component.scss']
 })
-export class RadioButtonsInputComponent implements OnChanges {
-
-  @Input() inline: boolean= false;
-  @Input() asButtons: boolean= false;
-  @Input() groupName!: string;
-  @Input() groupItems!: { label: string, checked?: boolean, hintMessage?: string }[];
-  @Input() checkedValue!: string;
-  @Output() checkedValueChange = new EventEmitter<string>();
+export class RadioButtonsInputComponent<T> implements OnChanges {
+  @Input() public inline: boolean = false;
+  @Input() public asButtons: boolean = false;
+  @Input() public groupName!: string;
+  @Input() public groupItems!: { label: T, checked?: boolean, hintMessage?: string }[];
+  @Input() public checkedValue!: T;
+  @Input() public groupItemDisplayFn: (option: T) => string = (option => String(option));
+  @Output() public checkedValueChange = new EventEmitter<T>();
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.groupItems && this.checkedValue) {
-      const valueFound = this.groupItems.find(item =>  (item.label === this.checkedValue) );
+      const valueFound = this.groupItems.find(item => (item.label === this.checkedValue));
       if (valueFound) {
         valueFound.checked = true;
       }

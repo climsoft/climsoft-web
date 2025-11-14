@@ -2,6 +2,7 @@
 import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 //--------------------------------------------
@@ -42,6 +43,7 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
+    DragDropModule,
     SharedModule,
     MetadataModule,
     AdminModule,

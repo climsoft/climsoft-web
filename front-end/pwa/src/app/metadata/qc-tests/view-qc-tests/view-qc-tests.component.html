@@ -5,10 +5,10 @@
       <div class="d-flex mx-2">
         Count: {{ elementQCTestParams.length | number:'1.0-0' }}
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2"
-        (click)="appSearchAssignedStations.openDialog()">
+      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="dlgSearchElements.showDialog()">
         Search
       </button>
+      <app-elements-search-dialog #dlgSearchElements />
       <div>
         <app-drop-down-button [buttonText]="'Options'"
           [dropDownItems]="['Add', 'Order By Name', 'Order By Element Id', 'Order By Element Name','Delete All']"
@@ -50,7 +50,6 @@
         </tbody>
       </table>
     </div>
-    <app-elements-search-dialog #appSearchAssignedStations />
     <app-qc-test-input-parameter-dialog #dlgQcEdit />
   </div>
 </div>

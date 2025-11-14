@@ -51,7 +51,7 @@ export class CachedMetadataService {
             this.setMetadataLoaded();
         });
 
-        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => {
+        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => { 
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });

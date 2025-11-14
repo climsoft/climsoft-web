@@ -7,8 +7,8 @@ import { DataAvailabilityDetailsQueryModel } from '../models/data-availability-d
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
-import { DataAvailabilityFilterModel } from '../data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
-
+import { DataAvailabilityFilterModel } from '../data-availability-filter-selection-general/data-availability-filter-selection-general.component';
+ 
 // TODO. Refactor this component
 
 interface DataAvailaibilityDetailsView extends DataAvailaibilityDetailsModel {

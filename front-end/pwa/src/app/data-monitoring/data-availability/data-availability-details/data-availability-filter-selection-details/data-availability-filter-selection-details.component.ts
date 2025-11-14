@@ -2,12 +2,12 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleCha
 import { Subject, takeUntil } from 'rxjs';
 import { DataAvailabilitySummaryQueryModel } from '../../models/data-availability-summary-query.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../../data-availability-query-selection/data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DataAvailabilityDetailsQueryModel } from '../../models/data-availability-details-query.model';
 import { DurationTypeEnum } from '../../models/duration-type.enum';
+import { DataAvailabilityFilterModel, DataAvailabilityFilterSelectionGeneralComponent } from '../../data-availability-filter-selection-general/data-availability-filter-selection-general.component';
 
 @Component({
   selector: 'app-data-availability-filter-selection-details',
@@ -39,7 +39,6 @@ export class DataAvailabilityFilterSelectionDetailsComponent implements OnChange
     if (changes['filter'] && this.filter) { 
       const time = DateUtils.getDatetimesBasedOnUTCOffset(this.filter.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[1].split(':')[0];
       this.startingHour = Number(time);
-
     }
   }
 

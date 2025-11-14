@@ -1,4 +1,22 @@
-.search-contents{
-    max-height: 200px;
-    overflow: auto; 
+.search-history-contents {
+  max-height: 200px;
+  overflow: auto;
 }
+
+.cdk-drag-preview {
+  background: #f8f9fa;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  border-radius: 0.25rem;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 200ms ease;
+}
+
+// .cdk-drop-list-dragging .cdk-drag {
+//   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+// }

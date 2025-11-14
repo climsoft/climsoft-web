@@ -28,7 +28,7 @@ export class ViewStationsComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private stationsCacheService: StationsCacheService,
+    private stationsCacheService: StationsCacheService, // TODO. Use cached metadat service
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Stations');
@@ -63,19 +63,20 @@ export class ViewStationsComponent implements OnDestroy {
   }
 
   private filterBasedOnSearchedIds(): void {
-    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : this.allStations;
+    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : [...this.allStations];
   }
 
   protected onOptionsClick(option: optionsType): void {
     this.optionClicked = option;
     switch (option) {
       case 'Order By Id':
-        this.stations = [...this.stations].sort((a, b) => a.id.localeCompare(b.id));
+        this.stations .sort((a, b) => a.id.localeCompare(b.id));
         break;
       case 'Order By Name':
-        this.stations = [...this.stations].sort((a, b) => a.name.localeCompare(b.name));
+        this.stations .sort((a, b) => a.name.localeCompare(b.name));
         break;
       case 'Delete All':
+        // TODO. Check if operation is doable first
         this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
           if (data) {
             this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });

@@ -5,7 +5,8 @@
         Count: {{ stationViews.length | number:'1.0-0' }}
       </div>
       <div class="mb-1">
-        <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="stationSearch.showDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+          (click)="stationSearch.showDialog( undefined, getVisibleStationsForSearchDialog())">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
@@ -14,7 +15,7 @@
 
   </div>
 
-  <div class="card-body p-0" >
+  <div class="card-body p-0">
     <div *ngIf="stationViews" class="app-table-container" style="height: 80vh;">
 
       <table class="table table-hover table-sm">

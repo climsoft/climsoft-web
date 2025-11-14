@@ -6,50 +6,40 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-multiple-input.component.scss']
 })
 export class SelectorMultipleInputComponent<T> implements OnChanges {
-  @Input()
-  public id!: string;
-  @Input()
-  public label!: string;
-  @Input()
-  public placeholder!: string;
-  @Input()
-  public errorMessage!: string;
-  @Input()
-  public options: T[] = [];
-  @Input()
-  public selectedOptions: T[] = [];
-  @Input()
-  public optionDisplayFn: (option: T) => string = (option => String(option));
-  @Output()
-  public selectedOptionsChange = new EventEmitter<T[]>();
-  @Input()
-  public displayAdvancedSearchOption: boolean = false;
-  @Output()
-  public displayAdvancedSearchOptionClick = new EventEmitter<void>();
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public placeholder!: string;
+  @Input() public errorMessage!: string;
+  @Input() public options: T[] = [];
+  @Input() public selectedOptions: T[] = [];
+  @Input() public optionDisplayFn: (option: T) => string = (option => String(option));
+  @Output() public selectedOptionsChange = new EventEmitter<T[]>();
+  @Input() public displayAdvancedSearchOption: boolean = false;
+  @Output() public displayAdvancedSearchOptionClick = new EventEmitter<void>();
 
-  protected filteredOptions: T[] =  [...this.options];
+  protected filteredOptions: T[] = [...this.options];
   protected displaySelectedOptions: string = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     // Important check because when an option is selected ngOnChanges gets raised. 
     // So to prevent resetting filtered options this check is necessary
     if (changes['options']) {
-      if (!this.options)   this.options = []; // should never be undefined       
-      this.filteredOptions =  [...this.options];
+      if (!this.options) this.options = []; // should never be undefined       
+      this.filteredOptions = [...this.options];
     }
 
     if (changes['selectedOptions']) {
       if (!this.selectedOptions) {
         this.selectedOptions = []; // should never be undefined
       }
-      this.setDisplaySelectedOptions();
+      this.setDisplayOfSelectedOptions();
     }
   }
 
   /**
    * Formats the selected options for display
    */
-  private setDisplaySelectedOptions(): void {
+  private setDisplayOfSelectedOptions(): void {
     if (this.selectedOptions.length === 0) {
       this.displaySelectedOptions = '';
     } else {
@@ -71,10 +61,11 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   protected onSearchInput(searchValue: string): void {
     // If empty value then just reset the filtered options with all the possible options.
     if (!searchValue) {
-      this.filteredOptions =  [...this.options];
+      this.filteredOptions = [...this.options];
     } else {
+      const trimmedSearchValue = searchValue.trim().toLowerCase();
       this.filteredOptions = this.options.filter(option =>
-        this.optionDisplayFn(option).toLowerCase().includes(searchValue.toLowerCase())
+        this.optionDisplayFn(option).toLowerCase().includes(trimmedSearchValue)
       );
     }
   }
@@ -87,13 +78,13 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
       this.selectedOptions.splice(index, 1);
     }
     this.selectedOptionsChange.emit(this.selectedOptions);
-    this.setDisplaySelectedOptions();
+    this.setDisplayOfSelectedOptions();
   }
 
   protected onCancelOptionClick(): void {
     this.selectedOptions.length = 0;
     this.selectedOptionsChange.emit(this.selectedOptions);
-    this.setDisplaySelectedOptions();
+    this.setDisplayOfSelectedOptions();
   }
 
   protected onAdvancedSearchClick(): void {
@@ -104,16 +95,24 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
    * Move selected options to the top
    */
   protected onDisplayDropDownClick(): void {
-    // Move the selected options to the top
+    //----------------------------------------------------------------
+    // Sort filtered options to have the selected options as first items in the filtered options array
+    //----------------------------------------------------------------
+    // Create a map for quick lookups of the desired order.
+    const orderMap = new Map(this.selectedOptions.map((value, index) => [value, index]));
+     this.filteredOptions =   [...this.options].sort((a, b) => {
+      const aInSelected = orderMap.has(a);
+      const bInSelected = orderMap.has(b);
 
-    // Remove each value from the array if it exists
-    for (let i = this.selectedOptions.length - 1; i >= 0; i--) {
-      const index = this.filteredOptions.indexOf(this.selectedOptions[i]);
-      if (index > -1) {
-        this.filteredOptions.splice(index, 1);             // Remove from current position
-        this.filteredOptions.unshift(this.selectedOptions[i]);           // Insert at the top
+      // If both are in selectedIds, sort by their order in selectedIds
+      if (aInSelected && bInSelected) {
+        return orderMap.get(a)! - orderMap.get(b)!;
       }
-    }
+      if (aInSelected) return -1; // a comes first
+      if (bInSelected) return 1;  // b comes first 
+      return 0; // Keep original order for unselected items
+    });
+    //----------------------------------------------------------------
   }
 
 }

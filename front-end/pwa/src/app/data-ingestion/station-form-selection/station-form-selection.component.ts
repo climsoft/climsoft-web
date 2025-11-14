@@ -93,6 +93,10 @@ export class StationFormSelectionComponent implements OnDestroy {
     });
   }
 
+  protected getVisibleStationsForSearchDialog(): string[]{
+    return this.allStationViews.map(item=> item.station.id);
+  }
+
   protected onSearchInput(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
     this.filterBasedOnSearchedIds();
