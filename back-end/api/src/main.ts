@@ -70,10 +70,11 @@ async function bootstrap() {
       }),
       secret: AppConfig.dbCredentials.password,
       resave: false,
+      rolling: true, // Reset the session cookie expiration on every request
       saveUninitialized: false,
       cookie: {
-        maxAge: 24 * 60 * 60 * 1000,  // Set to 24 hours. Note, this is given in milliseconds
-        secure: false, //TODO set to true only when using HTTPS
+        maxAge: 2 * 60 * 60 * 1000,  // Set to 2 hours. Note, this is given in milliseconds.
+        secure: false, // TODO. Set to true only when using HTTPS.
       },
     }),
   );

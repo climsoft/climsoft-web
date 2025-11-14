@@ -1,3 +1,5 @@
+import { QCStatusEnum } from "src/app/data-ingestion/models/qc-status.enum";
+
 export interface UserPermissionModel {
     stationsMetadataPermissions?: {
         stationIds?: string[];
@@ -7,11 +9,11 @@ export interface UserPermissionModel {
     entryPermissions?: {
         stationIds?: string[];
         importPermissions?: {
-            importTemplateIds?: number[]; 
+            importTemplateIds?: number[];
         };
         // TODO. Include observation date range in future.
     };
- 
+
     qcPermissions?: {
         stationIds?: string[];
         // TODO. Include range
@@ -22,10 +24,27 @@ export interface UserPermissionModel {
         // TODO. Include range
     };
 
-    exportPermissions?: {
-        exportTemplateIds?: number[];
-        // TODO. In future add permissions like frequency and priority
-    };
+    exportPermissions?: ExportTemplatePermissionsModel;
 
-  
+
+}
+
+export interface ExportTemplatePermissionsModel {
+    stationIds?: string[];
+    elementIds?: number[];
+    intervals?: number[];
+    observationDate?: {
+        last?: {
+            duration: number,
+            durationType: 'days' | 'hours' | 'minutes',
+        };
+        fromDate?: string;
+        within?: {
+            fromDate: string;
+            toDate: string;
+        };
+    };
+    qcStatus?: QCStatusEnum;
+    exportTemplateIds?: number[];
+
 }
