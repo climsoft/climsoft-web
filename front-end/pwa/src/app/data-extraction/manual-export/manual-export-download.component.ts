@@ -4,6 +4,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
+import { ExportTemplatePermissionsModel } from 'src/app/admin/users/models/user-permission.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
@@ -11,6 +12,7 @@ import { ObservationsService } from 'src/app/data-ingestion/services/observation
 import { ExportTemplateParametersModel } from 'src/app/metadata/export-templates/models/export-template-params.model';
 import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
 import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
@@ -36,48 +38,42 @@ export class ManualExportDownloadComponent implements OnInit {
   protected downloadLink: string = '';
   protected hideDownloadButton: boolean = true;
   protected showDateSelection: boolean = true;
-  private utcOffset: number = 0;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
+    private appAuthService: AppAuthService,
     private exportTemplateService: ExportTemplatesService,
     private observationService: ObservationsService,
-    private generalSettingsService: GeneralSettingsService,
+    private cachedMetadataService: CachedMetadataService,
     private route: ActivatedRoute,) {
-    // Get the climsoft time zone display setting
-    this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE).pipe(
+
+    // Check on allowed options
+    this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      if (data) this.utcOffset = (data.parameters as ClimsoftDisplayTimeZoneModel).utcOffset;
-    });
-  }
+    ).subscribe(user => {
+      if (!user) return;
 
-  ngOnInit(): void {
-    const exportTemplateId = this.route.snapshot.params['id'];
-    // TODO. handle errors where the export is not found for the given id
-    this.exportTemplateService.findOne(+exportTemplateId).pipe(
-      take(1)
-    ).subscribe((data) => {
-      this.viewExportTemplate = data;
-      this.pagesDataService.setPageHeader(`Export From ${this.viewExportTemplate.name}`);
+      let exportPermissions: ExportTemplatePermissionsModel = {};
 
-      const parameters: ExportTemplateParametersModel = this.viewExportTemplate.parameters;
-
-      if (parameters.stationIds) {
-        this.includeOnlyStationIds = parameters.stationIds;
+      if (user.permissions && user.permissions.exportPermissions) {
+        exportPermissions = user.permissions.exportPermissions;
       }
 
-      if (parameters.elementIds) {
-        this.includeOnlyElementIds = parameters.elementIds;
+      if (exportPermissions.stationIds) {
+        this.includeOnlyStationIds = exportPermissions.stationIds;
       }
 
-      if (parameters.intervals) {
-        this.includeOnlyIntervals = parameters.intervals
+      if (exportPermissions.elementIds) {
+        this.includeOnlyElementIds = exportPermissions.elementIds;
       }
 
-      const observationDate = parameters.observationDate;
+      if (exportPermissions.intervals) {
+        this.includeOnlyIntervals = exportPermissions.intervals
+      }
+
+      const observationDate = exportPermissions.observationDate;
       if (observationDate) {
         if (observationDate.last) {
           // For last option
@@ -98,6 +94,19 @@ export class ManualExportDownloadComponent implements OnInit {
         this.showDateSelection = true;
       }
 
+    });
+
+
+  }
+
+  ngOnInit(): void {
+    const exportTemplateId = this.route.snapshot.params['id'];
+    // TODO. handle errors where the export is not found for the given id
+    this.exportTemplateService.findOne(+exportTemplateId).pipe(
+      take(1)
+    ).subscribe((data) => {
+      this.viewExportTemplate = data;
+      this.pagesDataService.setPageHeader(`Export From ${this.viewExportTemplate.name}`);
     });
   }
 
@@ -135,13 +144,13 @@ export class ManualExportDownloadComponent implements OnInit {
     if (this.dateRange.fromDate) {
       // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract');
+      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
     }
 
     if (this.dateRange.toDate) {
       // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract');
+      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
     }
 
     this.hidePreparingExport = false;

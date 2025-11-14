@@ -1,6 +1,6 @@
 <div class="card border-0">
   <!-- tab header -->
-  <div class="card-header d-flex justify-content-between align-items-center px-1">
+  <div class="card-header d-flex justify-content-between align-items-end px-1">
     <ul class="nav nav-tabs card-header-tabs">
       <li class="nav-item">
         <button class="nav-link active" [class.active]="activeTab === 'table'" (click)="onTabClick('table')">
@@ -18,31 +18,40 @@
         </button>
       </li>
     </ul>
-    <div class="d-flex align-items-center">
-      <div *ngIf="stations" class="d-flex mx-2">
-        Count: {{ stations.length | number:'1.0-0' }}
+    <div class="d-flex align-items-end">
+      <div>
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="dlgAddStation.showDialog()">
+          Add
+        </button>
+        <app-edit-station-dialog #dlgAddStation />
       </div>
-      <div *ngIf="activeTab !== 'treemap'" class="me-2">
+      <div>
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
+          (click)="dlgImportStations.showDialog()">
+          Import
+        </button>
+        <app-import-stations-dialog #dlgImportStations />
+      </div>
+
+
+      <div *ngIf="activeTab !== 'treemap'" class="ms-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
-      <div>
+      <div class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="$event === 'Download'? stnDownloadLink.click(): onOptionsClick($event)"
           [offSetRight]="true" />
-        <div *ngIf="optionClicked">
-          <app-station-characteristics-edit-dialog [open]="optionClicked === 'Add'" (ok)="onOptionsDialogClosed()"
-            (cancelClick)="onOptionsDialogClosed()" />
-
-          <app-import-stations-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
-            (cancelClick)="onOptionsDialogClosed()" />
-        </div>
 
         <!-- TODO. find a way of doing this through the drop down in future -->
         <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
 
+      </div>
+      <div *ngIf="stations" class="d-flex mx-2">
+        [{{ stations.length | number:'1.0-0' }}]
       </div>
     </div>
   </div>

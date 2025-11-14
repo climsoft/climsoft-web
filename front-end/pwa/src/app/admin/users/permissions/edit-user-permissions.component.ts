@@ -3,6 +3,8 @@ import { UserPermissionModel } from '../models/user-permission.model';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 
 @Component({
   selector: 'app-edit-user-permissions',
@@ -94,12 +96,75 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.userPermissions.exportPermissions = change ? {} : undefined;
   }
 
-  protected onExportSelectionTypeChange(selectionType: string): void {
+    protected onExportStationsSelection(option: string): void {
+       if (!this.userPermissions.exportPermissions)  return;
+
+       this.userPermissions.exportPermissions.stationIds = option === 'All' ? undefined : [];
+    }
+  
+    protected onExportElementsSelection(option: string): void {
+        if (!this.userPermissions.exportPermissions)  return;
+
+      this.userPermissions.exportPermissions.elementIds = option === 'All' ? undefined : [];
+    }
+  
+    protected onExportIntervalsSelection(option: string): void {
+        if (!this.userPermissions.exportPermissions)  return;
+
+      this.userPermissions.exportPermissions.intervals = option === 'All' ? undefined : [1440]; 
+    }
+  
+    protected onExportDateSelection(option: string): void {
+        if (!this.userPermissions.exportPermissions)  return;
+
+      if (option === 'All') {
+        this.userPermissions.exportPermissions.observationDate = undefined;
+      } else if (option === 'Within') {
+        this.userPermissions.exportPermissions.observationDate = {
+          within: {
+            fromDate: DateUtils.getDateOnlyAsString(new Date()),
+            toDate: DateUtils.getDateOnlyAsString(new Date()),
+          },
+        };
+      } else if (option === 'From') {
+        this.userPermissions.exportPermissions.observationDate = {
+          fromDate: DateUtils.getDateOnlyAsString(new Date()),
+        };
+      } else if (option === 'Last') {
+        this.userPermissions.exportPermissions.observationDate = {
+          last: {
+            duration: 31,
+            durationType: 'days',
+          }
+        };
+      }
+  
+    }
+  
+    protected onExportLastSelection(option: string): void {
+       if (!this.userPermissions.exportPermissions)  return;
+
+      if (!(this.userPermissions.exportPermissions.observationDate && this.userPermissions.exportPermissions.observationDate.last)) {
+        return;
+      }
+  
+      if (option === 'Days') {
+        this.userPermissions.exportPermissions.observationDate.last.durationType = 'days';
+      } else if (option === 'Hours') {
+        this.userPermissions.exportPermissions.observationDate.last.durationType = 'hours';
+      }
+    }
+  
+    protected onExportQcSelection(option: string): void {
+       if (!this.userPermissions.exportPermissions)  return;
+
+      this.userPermissions.exportPermissions.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
+    }
+
+  protected onExportTemplateSelection(selectionType: string): void {
     if (this.userPermissions.exportPermissions) {
       this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
     }
   }
-
-
 
 }

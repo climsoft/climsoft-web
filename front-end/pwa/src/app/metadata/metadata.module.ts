@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
-import { MetadataRoutingModule } from './metadata-routing.module';
-import { FormSelectorDialogComponent } from './stations/station-detail/station-forms/form-selector-dialog/form-selector-dialog.component';
+import { MetadataRoutingModule } from './metadata-routing.module'; 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
@@ -10,14 +9,10 @@ import { ViewStationsTableComponent } from './stations/view-stations/view-statio
 import { ViewSourcesComponent } from './source-templates/view-sources/view-sources.component';
 import { FormSourceDetailComponent } from './source-templates/form-source-detail/form-source-detail.component';
 import { ImportSourceDetailComponent } from './source-templates/import-source-detail/import-source-detail.component';
-import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
-import { StationDetailComponent } from './stations/station-detail/station-detail.component';
-import { StationCharacteristicsEditDialogComponent } from './stations/station-detail/station-characteristics-edit-dialog/station-characteristics-edit-dialog.component';
-import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component';
-import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
-import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
-import { StationCharacteristicsComponent } from './stations/station-detail/station-characteristics/station-characteristics.component';
-import { StationFormsComponent } from './stations/station-detail/station-forms/station-forms.component';
+import { ViewStationsComponent } from './stations/view-stations/view-stations.component'; 
+import { EditStationDialogComponent } from './stations/edit-station-dialog/edit-station-dialog.component';
+import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component'; 
+import { ViewElementsComponent } from './elements/view-elements/view-elements.component';  
 import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
 import { ImportSourcePeriodDetailComponent } from './source-templates/import-source-detail/import-source-period-detail/import-source-period-detail.component';
@@ -26,9 +21,7 @@ import { ImportSourceDelimeterDetailComponent } from './source-templates/import-
 import { ImportSourceLevelDetailComponent } from './source-templates/import-source-detail/import-source-level-detail/import-source-level-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './source-templates/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-templates/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
-import { ElementCharacteristicsInputDialogComponent } from './elements/element-characteristics-input-dialog/element-characteristics-input-dialog.component';
-import { ElementCharacteristicsComponent } from './elements/element-detail/element-characteristics/element-characteristics.component';
-import { ElementQCTestsComponent } from './elements/element-detail/element-qc-tests/element-qc-tests.component';
+import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
 import { QCTestParameterInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-test-parameter-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
 import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
@@ -61,9 +54,7 @@ import { StationEnvironmentSelectorSingleComponent } from './stations/station-en
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
-import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
-import { StationNetworksComponent } from './stations/station-detail/stations-networks/station-networks-affiliations.component';
-import { NetworkAffiliationSelectorDialogComponent } from './stations/station-detail/stations-networks/form-selector-dialog/network-affiliation-selector-dialog.component';
+import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component'; 
 import { ElementTypeSingleInputComponent } from './elements/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
 import { QCStatusSelectorSingleComponent } from './qc-tests/qc-status-selector-single/qc-status-selector-single.component';
@@ -79,12 +70,10 @@ import { StationEnvironmentSelectorMultipleComponent } from './stations/station-
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
 
 @NgModule({
-  declarations: [
-    FormSelectorDialogComponent,
+  declarations: [ 
 
     ViewNetworkAffiliationsComponent,
-    NetworkAffiliationDetailsComponent,
-    NetworkAffiliationSelectorDialogComponent,
+    NetworkAffiliationDetailsComponent, 
     NetworkAffiliationsSelectorMultipleComponent,
     NetworkAffiliationsSelectorSingleComponent,
 
@@ -103,9 +92,8 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     FormSourceDetailComponent,
     ImportSourceDetailComponent,
 
-    ViewStationsComponent,
-    StationDetailComponent,
-    StationCharacteristicsEditDialogComponent,
+    ViewStationsComponent, 
+    EditStationDialogComponent,
     ImportStationsDialogComponent,
 
     StationObsProcessingSingleSelectorComponent,
@@ -123,15 +111,11 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     ViewStationsTableComponent,
     ViewStationsGeoMapComponent,
     ViewStationsTreeMapComponent,
-
-    StationNetworksComponent,
+ 
 
     StationsSearchDialogComponent,
-
-    ElementDetailComponent,
-    ViewElementsComponent,
-    StationCharacteristicsComponent,
-    StationFormsComponent,
+ 
+    ViewElementsComponent,  
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
     ImportSourcePeriodDetailComponent,
@@ -141,8 +125,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     ImportSourceMissingFlagDetailComponent,
     ImportSourceFlagDetailComponent,
 
-    ElementCharacteristicsInputDialogComponent,
-    ElementCharacteristicsComponent,
+    EditElementDialogComponent, 
     ImportElementsDialogComponent,
     ElementTypeSingleInputComponent,
     ElementsSearchDialogComponent,
@@ -158,8 +141,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
-    ViewQCTestsComponent,
-    ElementQCTestsComponent,
+    ViewQCTestsComponent, 
     QCTestParameterInputDialogComponent,
     QCTestTypeSingleSelectorComponent,
     QCTestRangeThresholdParamsComponent,
@@ -225,8 +207,6 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
 
     StationsSearchDialogComponent,
 
-    FormSelectorDialogComponent,
-
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
@@ -235,7 +215,6 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,
-
   ]
 })
 export class MetadataModule { } 

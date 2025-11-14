@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { DataSource } from "typeorm"
 import { ExportTemplateParametersDto } from 'src/metadata/export-templates/dtos/export-template-paramers.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -9,9 +9,12 @@ import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
+import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
+import { ExportTemplatePermissionsDto } from 'src/user/dtos/user-permission.dto';
 
 @Injectable()
 export class ExportObservationsService {
+    private readonly logger = new Logger(ExportObservationsService.name);
     constructor(
         private exportTemplatesService: ExportTemplatesService,
         private dataSource: DataSource,
@@ -20,7 +23,19 @@ export class ExportObservationsService {
     ) {
     }
 
-    public async generateExports(exportTemplateId: number, query: ViewObservationQueryDTO, userId: number): Promise<number> {
+    public async generateExports(exportTemplateId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<number> {
+        if (!user.isSystemAdmin) {
+            if (user.permissions && user.permissions.exportPermissions) {
+                if (user.permissions.exportPermissions.exportTemplateIds) {
+                    if (!user.permissions.exportPermissions.exportTemplateIds.includes(exportTemplateId)) {
+                        throw new BadRequestException('User not allowed to export data using the given template');
+                    }
+                }
+            } else {
+                throw new BadRequestException('User not allowed to export data');
+            }
+        }
+
         const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId);
 
         // If export is disabled then don't generate it
@@ -28,34 +43,36 @@ export class ExportObservationsService {
             throw new BadRequestException('Export disabled');
         }
 
-        const exportParams: ExportTemplateParametersDto = this.getTemplateFiltersBasedOnQuery(viewTemplateExportDto.parameters, query);
+        const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
+        const exportParams: ExportTemplateParametersDto = viewTemplateExportDto.parameters;
 
+        // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
         let sqlCondition: string = 'ob.deleted = false';
 
         // DATA FILTER SELECTIONS
         //------------------------------------------------------------------------------------------------
-        if (exportParams.stationIds && exportParams.stationIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportParams.stationIds.map(id => `'${id}'`).join(',')})`;
+        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        if (exportParams.elementIds && exportParams.elementIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportParams.elementIds.join(',')})`;
+        if (exportPermissions.elementIds && exportPermissions.elementIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportPermissions.elementIds.join(',')})`;
         }
 
-        if (exportParams.intervals && exportParams.intervals.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportParams.intervals.join(',')})`;
+        if (exportPermissions.intervals && exportPermissions.intervals.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.interval IN (${exportPermissions.intervals.join(',')})`;
         }
 
-        if (exportParams.observationDate) {
-            if (exportParams.observationDate.within) {
-                const within = exportParams.observationDate.within;
+        if (exportPermissions.observationDate) {
+            if (exportPermissions.observationDate.within) {
+                const within = exportPermissions.observationDate.within;
                 sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
-            } else if (exportParams.observationDate.fromDate) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportParams.observationDate.fromDate}'`;
-            } else if (exportParams.observationDate.last) {
-                const durationType = exportParams.observationDate.last.durationType;
-                const duration = exportParams.observationDate.last.duration;
+            } else if (exportPermissions.observationDate.fromDate) {
+                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationDate.fromDate}'`;
+            } else if (exportPermissions.observationDate.last) {
+                const durationType = exportPermissions.observationDate.last.durationType;
+                const duration = exportPermissions.observationDate.last.duration;
                 if (durationType === 'days') {
                     sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${duration} days'`;
                 } else if (durationType === 'hours') {
@@ -66,8 +83,8 @@ export class ExportObservationsService {
             }
         }
 
-        if (exportParams.qcStatus) {
-            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportParams.qcStatus}'`;
+        if (exportPermissions.qcStatus) {
+            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportPermissions.qcStatus}'`;
         }
         //------------------------------------------------------------------------------------------------
 
@@ -172,7 +189,7 @@ export class ExportObservationsService {
 
         }
         //------------------------------------------------------------------------------------------------
-        const outputPath: string = `/var/lib/postgresql/exports/${userId}_${exportTemplateId}.csv`;
+        const outputPath: string = `/var/lib/postgresql/exports/${user.id}_${exportTemplateId}.csv`;
         const sql: string = `
             COPY (
                 SELECT 
@@ -193,73 +210,79 @@ export class ExportObservationsService {
         // TODO. Find away of tracking the export process at the database level
         const results = await this.dataSource.manager.query(sql);
 
-        //console.log('Postgres copying done: ', outputPath, ' Results: ', results);
+        this.logger.log(`Export done:  ${outputPath} . Results: ${JSON.stringify(results)}`)
 
         // Return the path to the generated CSV file
         return viewTemplateExportDto.id;
     }
 
-    private getTemplateFiltersBasedOnQuery(exportParams: ExportTemplateParametersDto, query: ViewObservationQueryDTO): ExportTemplateParametersDto {
-        if (exportParams.stationIds && exportParams.stationIds.length > 0) {
-            if (query.stationIds) {
-                exportParams.stationIds = exportParams.stationIds.filter(item => query.stationIds?.includes(item));
-            }
-        } else {
-            exportParams.stationIds = query.stationIds;
+    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportTemplatePermissionsDto {
+        let exportPermissions: ExportTemplatePermissionsDto = {};
+
+        if (user.permissions && user.permissions.exportPermissions) {
+            exportPermissions = user.permissions.exportPermissions;
         }
 
-        if (exportParams.elementIds && exportParams.elementIds.length > 0) {
-            if (query.stationIds) {
-                exportParams.elementIds = exportParams.elementIds.filter(item => query.elementIds?.includes(item));
+        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
+            if (queryDto.stationIds) {
+                exportPermissions.stationIds = exportPermissions.stationIds.filter(item => queryDto.stationIds?.includes(item));
             }
         } else {
-            exportParams.elementIds = query.elementIds;
+            exportPermissions.stationIds = queryDto.stationIds;
         }
 
-        if (exportParams.intervals && exportParams.intervals.length > 0) {
-            if (query.stationIds) {
-                exportParams.intervals = exportParams.intervals.filter(item => query.intervals?.includes(item));
+        if (exportPermissions.elementIds && exportPermissions.elementIds.length > 0) {
+            if (queryDto.stationIds) {
+                exportPermissions.elementIds = exportPermissions.elementIds.filter(item => queryDto.elementIds?.includes(item));
             }
         } else {
-            exportParams.intervals = query.intervals;
+            exportPermissions.elementIds = queryDto.elementIds;
         }
 
-        if (exportParams.observationDate) {
-            if (exportParams.observationDate.within) {
-                if (query.fromDate) {
-                    if (new Date(query.fromDate) < new Date(exportParams.observationDate.within.fromDate)) {
+        if (exportPermissions.intervals && exportPermissions.intervals.length > 0) {
+            if (queryDto.stationIds) {
+                exportPermissions.intervals = exportPermissions.intervals.filter(item => queryDto.intervals?.includes(item));
+            }
+        } else {
+            exportPermissions.intervals = queryDto.intervals;
+        }
+
+        if (exportPermissions.observationDate) {
+            if (exportPermissions.observationDate.within) {
+                if (queryDto.fromDate) {
+                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationDate.within.fromDate)) {
                         throw new BadRequestException('from date can not be less than that what is allowed by the template');
                     }
-                    exportParams.observationDate.within.fromDate = query.fromDate;
+                    exportPermissions.observationDate.within.fromDate = queryDto.fromDate;
                 }
 
-                if (query.toDate) {
-                    if (new Date(query.toDate) > new Date(exportParams.observationDate.within.toDate)) {
+                if (queryDto.toDate) {
+                    if (new Date(queryDto.toDate) > new Date(exportPermissions.observationDate.within.toDate)) {
                         throw new BadRequestException('to date can not be greater than that what is allowed by the template');
                     }
-                    exportParams.observationDate.within.toDate = query.toDate;
+                    exportPermissions.observationDate.within.toDate = queryDto.toDate;
                 }
 
-            } else if (exportParams.observationDate.fromDate) {
+            } else if (exportPermissions.observationDate.fromDate) {
 
-                if (query.fromDate) {
-                    if (new Date(query.fromDate) < new Date(exportParams.observationDate.fromDate)) {
+                if (queryDto.fromDate) {
+                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationDate.fromDate)) {
                         throw new BadRequestException('from date can not be less that what is allowed by the template');
                     }
-                    exportParams.observationDate.fromDate = query.fromDate;
+                    exportPermissions.observationDate.fromDate = queryDto.fromDate;
                 }
             }
         } else {
-            if (query.fromDate && query.toDate) {
-                exportParams.observationDate = { within: { fromDate: query.fromDate, toDate: query.toDate } };
-            } else if (query.fromDate) {
-                exportParams.observationDate = { fromDate: query.fromDate };
-            } else if (query.toDate) {
+            if (queryDto.fromDate && queryDto.toDate) {
+                exportPermissions.observationDate = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
+            } else if (queryDto.fromDate) {
+                exportPermissions.observationDate = { fromDate: queryDto.fromDate };
+            } else if (queryDto.toDate) {
                 throw new BadRequestException('to date only is not allowed by the template');
             }
         }
 
-        return exportParams;
+        return exportPermissions;
     }
 
     public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {

@@ -5,7 +5,7 @@ import { ElementSearchHistoryModel } from '../models/elements-search-history.mod
 import { ElementCacheModel } from '../services/elements-cache.service';
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
-export enum SelectionOptionTypeEnum {
+enum SelectionOptionTypeEnum {
   SELECT_ALL,
   DESELECT_ALL,
   SORT_SELECTED,

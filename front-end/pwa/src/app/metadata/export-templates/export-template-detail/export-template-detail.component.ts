@@ -56,58 +56,7 @@ export class ExportTemplateDetailComponent implements OnInit {
     }
   }
 
-  protected onStationsStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.stationIds = option === 'All' ? undefined : [];
-  }
 
-  protected onElementsStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.elementIds = option === 'All' ? undefined : [];
-  }
-
-  protected onIntervalsStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.intervals = option === 'All' ? undefined : [1440]; 
-  }
-
-  protected onDateStatusSelection(option: string): void {
-    if (option === 'All') {
-      this.viewExportTemplate.parameters.observationDate = undefined;
-    } else if (option === 'Within') {
-      this.viewExportTemplate.parameters.observationDate = {
-        within: {
-          fromDate: DateUtils.getDateOnlyAsString(new Date()),
-          toDate: DateUtils.getDateOnlyAsString(new Date()),
-        },
-      };
-    } else if (option === 'From') {
-      this.viewExportTemplate.parameters.observationDate = {
-        fromDate: DateUtils.getDateOnlyAsString(new Date()),
-      };
-    } else if (option === 'Last') {
-      this.viewExportTemplate.parameters.observationDate = {
-        last: {
-          duration: 31,
-          durationType: 'days',
-        }
-      };
-    }
-
-  }
-
-  protected onLastStatusSelection(option: string): void {
-    if (!(this.viewExportTemplate.parameters.observationDate && this.viewExportTemplate.parameters.observationDate.last)) {
-      return;
-    }
-
-    if (option === 'Days') {
-      this.viewExportTemplate.parameters.observationDate.last.durationType = 'days';
-    } else if (option === 'Hours') {
-      this.viewExportTemplate.parameters.observationDate.last.durationType = 'hours';
-    }
-  }
-
-  protected onQcStatusSelection(option: string): void {
-    this.viewExportTemplate.parameters.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
-  }
 
   protected onUnstackData(value: boolean) {
     this.viewExportTemplate.parameters.unstackData = value;

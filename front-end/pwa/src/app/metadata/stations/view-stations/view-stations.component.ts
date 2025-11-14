@@ -5,9 +5,10 @@ import { StationCacheModel, StationsCacheService } from 'src/app/metadata/statio
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { CreateStationModel } from '../models/create-station.model';
+import { OptionEnum } from 'src/app/shared/options.enum';
+import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
 type tab = 'table' | 'geomap' | 'treemap';
-type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Download' | 'Delete All';
 
 @Component({
   selector: 'app-view-stations',
@@ -16,35 +17,36 @@ type optionsType = 'Order By Id' | 'Order By Name' | 'Add' | 'Import' | 'Downloa
 })
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
-  private allStations!: StationCacheModel[];
   protected stations!: StationCacheModel[];
   protected searchedIds!: string[];
-
-  protected optionClicked: optionsType | undefined;
-  protected dropDownItems: optionsType[] = [];
+ 
+  protected dropDownItems: OptionEnum[] = [];
+  protected optionTypeEnum: typeof OptionEnum = OptionEnum;
+  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private stationsCacheService: StationsCacheService, // TODO. Use cached metadat service
-    private router: Router,
-    private route: ActivatedRoute) {
+    private cachedMetadataService: CachedMetadataService,
+    private stationsCacheService: StationsCacheService,) {
     this.pagesDataService.setPageHeader('Stations');
 
     // Check on allowed options
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Order By Id', 'Order By Name', 'Add', 'Import', 'Download', 'Delete All'] : ['Order By Id', 'Order By Name', 'Download'];
+      if (!user) return;
+      this.isSystemAdmin = user.isSystemAdmin;
+      this.dropDownItems = this.isSystemAdmin ? [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD, OptionEnum.DELETE_ALL] : [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD];
     });
 
-    this.stationsCacheService.cachedStations.pipe(
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(stations => {
-      this.allStations = stations;
-      this.filterBasedOnSearchedIds();
+    ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
+      this.stations = [...this.cachedMetadataService.stationsMetadata];
     });
   }
 
@@ -59,25 +61,24 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onSearchInput(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
-    this.filterBasedOnSearchedIds();
+    this.stations = this.searchedIds && this.searchedIds.length > 0 ?
+      this.cachedMetadataService.stationsMetadata.filter(item => this.searchedIds.includes(item.id)) :
+      [...this.cachedMetadataService.stationsMetadata];
   }
 
-  private filterBasedOnSearchedIds(): void {
-    this.stations = this.searchedIds && this.searchedIds.length > 0 ? this.allStations.filter(item => this.searchedIds.includes(item.id)) : [...this.allStations];
-  }
-
-  protected onOptionsClick(option: optionsType): void {
-    this.optionClicked = option;
+  protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
-      case 'Order By Id':
-        this.stations .sort((a, b) => a.id.localeCompare(b.id));
+      case OptionEnum.SORT_BY_ID:
+        this.stations.sort((a, b) => a.id.localeCompare(b.id));
         break;
-      case 'Order By Name':
-        this.stations .sort((a, b) => a.name.localeCompare(b.name));
+      case OptionEnum.SORT_BY_NAME:
+        this.stations.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'Delete All':
+      case OptionEnum.DELETE_ALL:
         // TODO. Check if operation is doable first
-        this.stationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+        this.stationsCacheService.deleteAll().pipe(
+          take(1),
+        ).subscribe(data => {
           if (data) {
             this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
           }
@@ -86,14 +87,6 @@ export class ViewStationsComponent implements OnDestroy {
       default:
         break;
     }
-  }
-
-  protected onOptionsDialogClosed(): void {
-    this.optionClicked = undefined;
-  }
-
-  protected onEditStation(station: CreateStationModel) {
-    this.router.navigate(['station-detail', station.id], { relativeTo: this.route.parent });
   }
 
   protected get downloadLink(): string {

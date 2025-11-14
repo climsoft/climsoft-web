@@ -6,17 +6,13 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
-  selector: 'app-element-characteristics-input-dialog',
-  templateUrl: './element-characteristics-input-dialog.component.html',
-  styleUrls: ['./element-characteristics-input-dialog.component.scss']
+  selector: 'app-edit-element-dialog',
+  templateUrl: './edit-element-dialog.component.html',
+  styleUrls: ['./edit-element-dialog.component.scss']
 })
-export class ElementCharacteristicsInputDialogComponent {
-
-  @Output()
-  public ok = new EventEmitter<void>();
-
-  @Output()
-  public cancelClick = new EventEmitter<void>();
+export class EditElementDialogComponent {
+  @Output() public ok = new EventEmitter<void>();
+  @Output() public cancelClick = new EventEmitter<void>();
 
   protected open!: boolean;
   protected title: string = '';
@@ -27,8 +23,7 @@ export class ElementCharacteristicsInputDialogComponent {
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService) { }
 
-  public openDialog(elementId?: number): void {
-    this.open = true;
+  public showDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
       this.bNew = false;
@@ -63,6 +58,8 @@ export class ElementCharacteristicsInputDialogComponent {
         comment: null,
       };
     }
+
+    this.open = true;
   }
 
   protected onTypeChange(typeId: number | null): void {

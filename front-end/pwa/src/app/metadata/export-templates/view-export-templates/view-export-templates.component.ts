@@ -37,11 +37,11 @@ export class ViewExportTemplatesComponent  {
         this.exportsService.deleteAll().pipe(
           take(1)
         ).subscribe(data => {
-          this.pagesDataService.showToast({ title: "Exports Deleted", message: `All Exports deleted`, type: ToastEventTypeEnum.SUCCESS });
+          this.pagesDataService.showToast({ title: "Exports Deleted", message: `All exports deleted`, type: ToastEventTypeEnum.SUCCESS });
         });
         break;
       default:
-        throw new Error('Developer error, option not supported');
+        throw new Error('Developer Error. Option not supported');
     }
   }
 
