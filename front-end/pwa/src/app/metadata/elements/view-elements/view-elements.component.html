@@ -1,29 +1,34 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
-      <div *ngIf="elements" class="d-flex mx-2">
-        Count: {{ elements.length | number:'1.0-0' }}
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="dlgEditElement.showDialog()">
+        Add
+      </button>
+      <div>
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
+          (click)="dlgImportElements.showDialog()">
+          Import
+        </button>
+        <app-import-elements-dialog #dlgImportElements />
       </div>
-      <div class="me-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgSearchElements.showDialog(searchedIds)">
+      <div class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="dlgSearchElements.showDialog(searchedIds)">
           Search
         </button>
         <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
       </div>
-
-      <div>
+      <div class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
-          (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClicked($event)"
+          (dropDownOptionClick)="$event === 'Download'? elementDownloadLink.click(): onOptionsClick($event)"
           [offSetRight]="true" />
-        <div *ngIf="optionClicked">
-
-          <app-import-elements-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
-            (cancelClick)="onOptionsDialogClosed()" />
-        </div>
 
         <!-- TODO. find a way of doing this through the drop down in future -->
         <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
-
+      </div>
+      <div *ngIf="elements" class="d-flex mx-2">
+        [{{ elements.length | number:'1.0-0' }}]
       </div>
     </div>
   </div>
@@ -38,25 +43,20 @@
             <th>Abbreviation</th>
             <th>Name</th>
             <th>Description</th>
-            <th *ngIf="showEditButton"></th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr *ngFor="let element of elements" class="app-cursor-pointer">
-            <td (click)="onEditElement(element)"><i class="bi bi-arrow-right-short"></i></td>
-            <td (click)="onEditElement(element)">{{ element.id }}</td>
-            <td (click)="onEditElement(element)">{{ element.abbreviation }}</td>
-            <td (click)="onEditElement(element)">{{ element.name }}</td>
-            <td (click)="onEditElement(element)">{{ element.description }}</td>
-            <td *ngIf="showEditButton">
-              <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="dlgElementCharacteristicsDialog.openDialog(element.id)">Edit</button>
-            </td>
+          <tr *ngFor="let element of elements" class="app-cursor-pointer"
+            (click)="isSystemAdmin? dlgEditElement.showDialog(element.id): ''">
+            <td><i class="bi bi-cursor"></i></td>
+            <td>{{ element.id }}</td>
+            <td>{{ element.abbreviation }}</td>
+            <td>{{ element.name }}</td>
+            <td>{{ element.description }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <app-element-characteristics-input-dialog #dlgElementCharacteristicsDialog (ok)="onOptionsDialogClosed()"
-    (cancelClick)="onOptionsDialogClosed()" />
+  <app-edit-element-dialog #dlgEditElement />
 </div>

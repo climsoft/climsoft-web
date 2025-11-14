@@ -13,7 +13,7 @@ import { ViewRegionModel } from '../../regions/models/view-region.model';
 import { booleanPointInPolygon, multiPolygon, point } from '@turf/turf';
 import { StationNetworkAffiliationsService } from '../services/station-network-affiliations.service';
 
-export enum SelectionOptionTypeEnum {
+enum SelectionOptionTypeEnum {
   SELECT_ALL,
   DESELECT_ALL,
   SORT_SELECTED,

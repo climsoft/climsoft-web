@@ -13,28 +13,24 @@
             <th>Environment</th>
             <th>Focus</th>
             <th>Status</th>
-            <th *ngIf="showEditButton"></th>
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let station of stations">
-            <td (click)="onStationClicked(station)"><i class="bi bi-arrow-right-short"></i></td>
-            <td (click)="onStationClicked(station)">{{ station.id }}</td>
-            <td (click)="onStationClicked(station)">{{ station.name }}</td>
-            <td (click)="onStationClicked(station)">{{ station.location? station.location.latitude: '' }}</td>
-            <td (click)="onStationClicked(station)">{{ station.location? station.location.longitude: '' }}</td>
-            <td (click)="onStationClicked(station)">{{ station.stationObsProcessingMethodName }}</td>
-            <td (click)="onStationClicked(station)">{{ station.stationObsEnvironmentName }}</td>
-            <td (click)="onStationClicked(station)">{{ station.stationObsFocusName }}</td>
-            <td (click)="onStationClicked(station)">{{ station.status }}</td>
-            <td *ngIf="showEditButton">
-              <button type="button" class="btn btn-outline-secondary btn-sm"
-                (click)="dlgStationEdit.openDialog(station.id)">Edit</button>
-            </td>
+          <tr class="app-cursor-pointer" *ngFor="let station of stations"
+            (click)="isSystemAdmin? dlgStationEdit.showDialog(station.id): ''">
+            <td><i class="bi bi-cursor"></i></td>
+            <td>{{ station.id }}</td>
+            <td>{{ station.name }}</td>
+            <td>{{ station.location? station.location.latitude: '' }}</td>
+            <td>{{ station.location? station.location.longitude: '' }}</td>
+            <td>{{ station.stationObsProcessingMethodName }}</td>
+            <td>{{ station.stationObsEnvironmentName }}</td>
+            <td>{{ station.stationObsFocusName }}</td>
+            <td>{{ station.status }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <app-station-characteristics-edit-dialog #dlgStationEdit />
+    <app-edit-station-dialog #dlgStationEdit />
   </div>
 </div>

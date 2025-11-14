@@ -3,29 +3,21 @@ import { Observable, take } from 'rxjs';
 import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { UpdateStationModel } from 'src/app/metadata/stations/models/update-station.model';
-import { StationsCacheService } from '../../services/stations-cache.service';
+import { StationsCacheService } from '../services/stations-cache.service';
 import { AppLocationService } from 'src/app/app-location.service';
-import { CreateStationModel } from '../../models/create-station.model';
-import { StationStatusEnum } from '../../models/station-status.enum';
+import { CreateStationModel } from '../models/create-station.model';
+import { StationStatusEnum } from '../models/station-status.enum';
 
 @Component({
-  selector: 'app-station-characteristics-edit-dialog',
-  templateUrl: './station-characteristics-edit-dialog.component.html',
-  styleUrls: ['./station-characteristics-edit-dialog.component.scss']
+  selector: 'app-edit-station-dialog',
+  templateUrl: './edit-station-dialog.component.html',
+  styleUrls: ['./edit-station-dialog.component.scss']
 })
-export class StationCharacteristicsEditDialogComponent implements OnChanges {
-  @Input()
-  public open!: boolean;
+export class EditStationDialogComponent {
+  @Output() public ok = new EventEmitter<void>();
+  @Output() public cancelClick = new EventEmitter<void>();
 
-  @Input()
-  public editStationId!: string;
-
-  @Output()
-  public ok = new EventEmitter<void>();
-
-  @Output()
-  public cancelClick = new EventEmitter<void>();
-
+  protected open: boolean = false;
   protected title!: string;
   protected station!: CreateStationModel;
   protected bNew: boolean = false;
@@ -35,19 +27,7 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
     private pagesDataService: PagesDataService,
     private locationService: AppLocationService,) { }
 
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.open) {
-      this.setupDialog(this.editStationId);
-    }
-  }
-
-  public openDialog(stationId?: string): void {
-    this.open = true;
-    this.setupDialog(stationId);
-  }
-
-  private setupDialog(stationId?: string): void {
+  public showDialog(stationId?: string): void {
     if (stationId) {
       this.title = "Edit Station";
       this.stationsCacheService.findOne(stationId).pipe(
@@ -99,6 +79,8 @@ export class StationCharacteristicsEditDialogComponent implements OnChanges {
         comment: '',
       };
     }
+
+    this.open = true;
   }
 
   protected requestLocation(): void {

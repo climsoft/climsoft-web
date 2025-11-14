@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationsCacheService } from '../services/stations-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
@@ -10,16 +10,11 @@ import { AppConfigService } from 'src/app/app-config.service';
   templateUrl: './import-stations-dialog.component.html',
   styleUrls: ['./import-stations-dialog.component.scss']
 })
-export class ImportStationsDialogComponent implements OnChanges {
-  @Input()
-  public open: boolean = false;
+export class ImportStationsDialogComponent {
+  @Output() public okClick = new EventEmitter<void>();
+  @Output() public cancelClick = new EventEmitter<void>();
 
-  @Output()
-  public okClick = new EventEmitter<void>();
-
-  @Output()
-  public cancelClick = new EventEmitter<void>();
-
+  protected open: boolean = false;
   protected uploadMessage: string = "";
   protected uploadError: boolean = false;
   protected showUploadProgress: boolean = false;
@@ -36,24 +31,14 @@ export class ImportStationsDialogComponent implements OnChanges {
     private http: HttpClient) {
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.open) {
-      this.setupDialog();
-    }
-  }
-
-  public openDialog(): void {
-    this.open = true;
-    this.setupDialog();
-  }
-
-  private setupDialog(): void {
+  public showDialog(): void {
     this.uploadMessage = "";
     this.uploadError = false;
     this.uploadProgress = 0;
     this.disableUpload = false;
     this.fileInputEvent = undefined;
     this.fileName = "";
+    this.open = true;
   }
 
   protected onFileSelected(fileInputEvent: any): void {

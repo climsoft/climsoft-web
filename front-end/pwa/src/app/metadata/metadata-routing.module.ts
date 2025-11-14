@@ -1,11 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
-import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
-import { ElementDetailComponent } from './elements/element-detail/element-detail.component';
+import { ViewElementsComponent } from './elements/view-elements/view-elements.component'; 
 import { FormSourceDetailComponent } from './source-templates/form-source-detail/form-source-detail.component';
-import { ViewSourcesComponent } from './source-templates/view-sources/view-sources.component';
-import { StationDetailComponent } from './stations/station-detail/station-detail.component';
+import { ViewSourcesComponent } from './source-templates/view-sources/view-sources.component'; 
 import { ImportSourceDetailComponent } from './source-templates/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
@@ -32,10 +30,6 @@ const routes: Routes = [
       {
         path: 'view-elements',
         component: ViewElementsComponent,
-      },
-      {
-        path: 'element-detail/:id',
-        component: ElementDetailComponent
       },
       {
         path: 'view-sources',
@@ -72,11 +66,7 @@ const routes: Routes = [
       {
         path: 'view-stations',
         component: ViewStationsComponent,
-      },
-      {
-        path: 'station-detail/:id',
-        component: StationDetailComponent
-      },
+      }, 
       {
         path: 'view-qc-tests',
         component: ViewQCTestsComponent
@@ -93,8 +83,6 @@ const routes: Routes = [
         path: 'view-connectors',
         component: ViewConnectorsComponent
       },
-
-
     ]
   }
 

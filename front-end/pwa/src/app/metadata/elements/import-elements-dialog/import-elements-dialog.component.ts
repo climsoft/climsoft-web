@@ -1,7 +1,7 @@
 import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
@@ -30,7 +30,7 @@ export class ImportElementsDialogComponent implements OnChanges {
   protected fileName: string = "";
 
   constructor(
-    private appConfigService: AppConfigService, 
+    private appConfigService: AppConfigService,
     private elementsCacheService: ElementsCacheService,
     private pagesDataService: PagesDataService,
     private http: HttpClient) {
@@ -42,7 +42,7 @@ export class ImportElementsDialogComponent implements OnChanges {
     }
   }
 
-  public openDialog(): void {
+  public showDialog(): void {
     this.open = true;
     this.setupDialog();
   }
