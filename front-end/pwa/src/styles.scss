@@ -29,6 +29,10 @@ body {
     cursor: pointer;
 }
 
+.app-cursor-drag {
+    cursor: grab;
+}
+
 .app-table-container {
     height: 60vh; // This should be overwritten depending on the component number of controls
     overflow: auto;

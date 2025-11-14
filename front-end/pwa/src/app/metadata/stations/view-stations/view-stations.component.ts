@@ -28,7 +28,7 @@ export class ViewStationsComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private stationsCacheService: StationsCacheService,
+    private stationsCacheService: StationsCacheService, // TODO. Use cached metadat service
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Stations');

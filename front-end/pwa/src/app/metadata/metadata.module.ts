@@ -126,7 +126,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
 
     StationNetworksComponent,
 
-    StationsSearchDialogComponent, 
+    StationsSearchDialogComponent,
 
     ElementDetailComponent,
     ViewElementsComponent,
@@ -146,7 +146,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     ImportElementsDialogComponent,
     ElementTypeSingleInputComponent,
     ElementsSearchDialogComponent,
-  
+
     ElementSelectorSingleComponent,
     ElementSelectorMultipleComponent,
 

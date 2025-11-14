@@ -1,10 +1,9 @@
-import { Component, AfterViewInit, Input, SimpleChanges, OnChanges, ElementRef, ViewChild } from '@angular/core';
-import { take } from 'rxjs';
+import { Component, AfterViewInit, Input, SimpleChanges, OnChanges } from '@angular/core';
+import { Subject, takeUntil } from 'rxjs';
 import { ClimsoftBoundaryModel } from 'src/app/admin/general-settings/models/settings/climsoft-boundary.model';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import * as L from 'leaflet';
-import * as turf from "@turf/turf";
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
   selector: 'app-map',
@@ -23,30 +22,31 @@ export class MapComponent implements AfterViewInit, OnChanges {
   private allLayersGroup: L.LayerGroup = L.layerGroup();
 
   // Create the climsoft boundary layer group to show the boundaries of climsoft operations 
- // private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
+  // private boundaryMapLayerGroup: L.LayerGroup = L.layerGroup();
 
   protected climsoftBoundary!: ClimsoftBoundaryModel;
   private map!: L.Map;
 
-  constructor(private generalSettingsService: GeneralSettingsService,) { }
+   private destroy$ = new Subject<void>();
+
+  constructor(private cachedMetadataService: CachedMetadataService) { }
 
   ngAfterViewInit(): void {
     // Load the climsoft boundary setting.
-    this.generalSettingsService.findOne(SettingIdEnum.CLIMSOFT_BOUNDARY).pipe(
-      take(1)
-    ).subscribe((data) => {
-      if (data && data.parameters) {
-        this.climsoftBoundary = data.parameters as ClimsoftBoundaryModel;
-        // Settting of the map has been done under the `setTimeout` because 
-        // leaflet throws an error of map container not found
-        // when this component is used in a dialog like the station search dialog.
-        // As of 08/09/2025, its not clear why the map container is not being found considering
-        // `setupMap` is being called under `ngAfterViewInit`
-        setTimeout(() => {
-           this.setupMap();
-        }, 0);
-       
-      }
+    this.cachedMetadataService.allMetadataLoaded.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
+      this.cachedMetadataService.getGeneralSetting(SettingIdEnum.CLIMSOFT_BOUNDARY);
+      this.climsoftBoundary = this.cachedMetadataService.getGeneralSetting(SettingIdEnum.CLIMSOFT_BOUNDARY).parameters as ClimsoftBoundaryModel;
+      // Settting of the map has been done under the `setTimeout` because 
+      // leaflet throws an error of map container not found
+      // when this component is used in a dialog like the station search dialog.
+      // As of 08/09/2025, its not clear why the map container is not being found considering
+      // `setupMap` is being called under `ngAfterViewInit`
+      setTimeout(() => {
+        this.setupMap();
+      }, 0);
     });
   }
 
@@ -56,8 +56,11 @@ export class MapComponent implements AfterViewInit, OnChanges {
       //this.boundaryMapLayerGroup.addTo(this.allLayersGroup);
       this.contentLayersGroup.addTo(this.allLayersGroup);
     }
+  }
 
-
+   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setupMap(): void {

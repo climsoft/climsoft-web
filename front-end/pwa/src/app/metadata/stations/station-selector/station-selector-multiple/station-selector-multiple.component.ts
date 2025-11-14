@@ -21,11 +21,11 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   protected selectedStations: StationCacheModel[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor( private cachedMetadataService: CachedMetadataService) {
+  constructor(private cachedMetadataService: CachedMetadataService) {
     this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return; 
+      if (!allMetadataLoaded) return;
       this.setStationsToInclude();
       this.filterBasedOnSelectedIds();
     });
@@ -48,9 +48,9 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   private setStationsToInclude(): void {
-    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? 
-    this.cachedMetadataService.stationsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) : 
-     this.cachedMetadataService.stationsMetadata;
+    this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ?
+      this.cachedMetadataService.stationsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) :
+      this.cachedMetadataService.stationsMetadata;
   }
 
   private filterBasedOnSelectedIds(): void {
@@ -68,25 +68,46 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   protected onSelectedOptionsChange(selectedOptions: StationCacheModel[]) {
     this.selectedIds.length = 0; // clear the array
     this.selectedIds.push(...selectedOptions.map(data => data.id));
-    
+
     // emit the id changes
     this.selectedIdsChange.emit(this.selectedIds);
   }
 
   /**
-   * Called from advanced search dialog
-   * @param newSearchedIds 
+   * Raised when advanced search input changes
+   * @param newSelectedIds 
    */
-  protected onAdvancedSearchInput(newSearchedIds: string[]): void {
-    this.selectedIds.length = 0;
-    const newSelectedStations: StationCacheModel[] = [];
-    for (const station of this.stations) {
-      if (newSearchedIds.includes(station.id)) {
-        this.selectedIds.push(station.id);
-        newSelectedStations.push(station); 
+  protected onAdvancedSearchInput(newSelectedIds: string[]): void {
+    // Get the selected elements based on the new selected Ids
+    const newSelectedStations: StationCacheModel[] = this.stations.filter(station => newSelectedIds.includes(station.id));
+
+    //----------------------------------------------------------------
+    // Sort selected stations to have the selectedIds as first items in the filtered options array
+    //----------------------------------------------------------------
+    // Create a map for quick lookups of the desired order.
+    const orderMap = new Map(newSelectedIds.map((idValue, index) => [idValue, index]));
+    newSelectedStations.sort((a, b) => {
+      const aInSelected = orderMap.has(a.id);
+      const bInSelected = orderMap.has(b.id);
+
+      // If both are in selectedIds, sort by their order in selectedIds
+      if (aInSelected && bInSelected) {
+        return orderMap.get(a.id)! - orderMap.get(b.id)!;
       }
-    }
+      if (aInSelected) return -1; // a comes first
+      if (bInSelected) return 1;  // b comes first 
+      return 0;
+    });
+    //----------------------------------------------------------------
+
+
+    // Set the new selected elements and Ids
     this.selectedStations = newSelectedStations;
+    //this.selectedIds = newSelectedIds;
+    this.selectedIds.length = 0;
+    this.selectedIds.push(...newSelectedIds);
+
+    // Emit the changes
     this.selectedIdsChange.emit(this.selectedIds);
   }
 }

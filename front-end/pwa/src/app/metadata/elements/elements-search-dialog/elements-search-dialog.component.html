@@ -22,7 +22,7 @@
                     No saved searches
                 </div>
                 <div *ngIf="previousSearches && previousSearches.length>0">
-                    <ul class="list-group rounded-0 list-group-flush p-0 search-contents">
+                    <ul class="list-group rounded-0 list-group-flush p-0 search-history-contents">
                         <li class="list-group-item list-group-item-action px-0 d-flex justify-content-between cursor-pointer"
                             *ngFor="let item of previousSearches"
                             [class.list-group-item-primary]="item.name === searchName"
@@ -59,7 +59,7 @@
                     <!-- Search Input -->
                     <div class="flex-grow-1">
                         <app-text-input [id]="'station_search_input'" [label]="'Search'"
-                            [placeholder]="'Type to search'" [simulateTabOnEnter]="false"
+                            [placeholder]="'Type to search'" [simulateTabOnEnter]="false" [(value)]="searchValue"
                             (valueChange)="onSearchInput($event)" (inputEnterKeyPress)="onEnterKeyPress()" />
                     </div>
 
@@ -88,8 +88,8 @@
                                     Deselect All
                                 </button>
                             </div>
-                            <div class="mx-2 fw-bold" [class.text-success]="searchedIds.length > 0">
-                                [{{ searchedIds.length | number:'1.0-0' }}]
+                            <div class="mx-2 fw-bold" [class.text-success]="selectedIds.length > 0">
+                                [{{ selectedIds.length | number:'1.0-0' }}]
                             </div>
                         </div>
 
@@ -101,15 +101,29 @@
                                         <th>Id</th>
                                         <th>Abbreviation</th>
                                         <th>Name</th>
+                                        <th *ngIf="!searchValue"></th>
                                     </tr>
                                 </thead>
-                                <tbody class="table-group-divider overflow-y-scroll">
-                                    <tr *ngFor="let item of selections" class="cursor-pointer"
-                                        [class.table-primary]="item.selected" (click)="onSelected(item)">
-                                        <td><i class="bi bi-cursor"></i></td>
-                                        <td>{{ item.element.id }}</td>
-                                        <td>{{ item.element.abbreviation }}</td>
-                                        <td>{{ item.element.name }}</td>
+                                <tbody cdkDropList [cdkDropListData]="filteredElements"
+                                    (cdkDropListDropped)="onDragDrop($event)" cdkDropListOrientation="vertical"
+                                    class="table-group-divider overflow-y-scroll">
+                                    <tr *ngFor="let item of filteredElements" cdkDrag style="user-select: none;"
+                                        [class.table-primary]="item.selected">
+                                        <td class="app-cursor-pointer" (click)="onSelectedClick(item)">
+                                            <i class="bi bi-cursor"></i>
+                                        </td>
+                                        <td class="app-cursor-pointer" (click)="onSelectedClick(item)">
+                                            {{ item.element.id }}
+                                        </td>
+                                        <td class="app-cursor-pointer" (click)="onSelectedClick(item)">
+                                            {{ item.element.abbreviation }}
+                                        </td>
+                                        <td class="app-cursor-pointer" (click)="onSelectedClick(item)">
+                                            {{ item.element.name }}
+                                        </td>
+                                        <td *ngIf="!searchValue" cdkDragHandle class="app-cursor-drag">
+                                            <i class="bi-grip-vertical"></i>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
