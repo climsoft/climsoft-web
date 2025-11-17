@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
   selector: 'app-edit-user-permissions',
@@ -12,19 +13,19 @@ import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
   styleUrls: ['./edit-user-permissions.component.scss']
 })
 export class EditUserPermissionsComponent implements OnDestroy {
-  @Input()
-  public userPermissions!: UserPermissionModel;
+  @Input() public userPermissions!: UserPermissionModel;
   protected onlyIncludeImportIds: number[] = [];
   private destroy$ = new Subject<void>();
 
-  constructor(private sourceCacheService: SourceTemplatesCacheService) {
+  constructor(private cachedMetadataService: CachedMetadataService) {
     // Get sources 
-    this.sourceCacheService.cachedSources.pipe(
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((data) => {
+    ).subscribe(allMetadataLoaded => {
+      if(!allMetadataLoaded) return;
       // Note. Don't filter out disabled imports. 
       // Admin should be able to allocate even disabled imports because they may want to occassion enable or disable large imports.
-      this.onlyIncludeImportIds = data.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
+      this.onlyIncludeImportIds =  this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
     });
   }
 
@@ -54,18 +55,16 @@ export class EditUserPermissionsComponent implements OnDestroy {
       this.userPermissions.entryPermissions.stationIds = (selectionType === 'All') ? undefined : [];
     }
   }
+  //-----------------------------------------------------
 
   protected onCanImportDataChange(change: boolean): void {
-    if (this.userPermissions.entryPermissions) {
-      this.userPermissions.entryPermissions.importPermissions = change ? {} : undefined;
-    }
- 
+    this.userPermissions.importPermissions = change ? {} : undefined;
   }
 
   protected onImportSelectionTypeChange(selectionType: string): void {
-    if (this.userPermissions.entryPermissions && this.userPermissions.entryPermissions.importPermissions) {
-      this.userPermissions.entryPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
-    } 
+    if (this.userPermissions.importPermissions) {
+      this.userPermissions.importPermissions.importTemplateIds = (selectionType === 'All') ? undefined : [];
+    }
   }
   //-----------------------------------------------------
 
@@ -96,70 +95,70 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.userPermissions.exportPermissions = change ? {} : undefined;
   }
 
-    protected onExportStationsSelection(option: string): void {
-       if (!this.userPermissions.exportPermissions)  return;
+  protected onExportStationsSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
 
-       this.userPermissions.exportPermissions.stationIds = option === 'All' ? undefined : [];
-    }
-  
-    protected onExportElementsSelection(option: string): void {
-        if (!this.userPermissions.exportPermissions)  return;
+    this.userPermissions.exportPermissions.stationIds = option === 'All' ? undefined : [];
+  }
 
-      this.userPermissions.exportPermissions.elementIds = option === 'All' ? undefined : [];
-    }
-  
-    protected onExportIntervalsSelection(option: string): void {
-        if (!this.userPermissions.exportPermissions)  return;
+  protected onExportElementsSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
 
-      this.userPermissions.exportPermissions.intervals = option === 'All' ? undefined : [1440]; 
-    }
-  
-    protected onExportDateSelection(option: string): void {
-        if (!this.userPermissions.exportPermissions)  return;
+    this.userPermissions.exportPermissions.elementIds = option === 'All' ? undefined : [];
+  }
 
-      if (option === 'All') {
-        this.userPermissions.exportPermissions.observationDate = undefined;
-      } else if (option === 'Within') {
-        this.userPermissions.exportPermissions.observationDate = {
-          within: {
-            fromDate: DateUtils.getDateOnlyAsString(new Date()),
-            toDate: DateUtils.getDateOnlyAsString(new Date()),
-          },
-        };
-      } else if (option === 'From') {
-        this.userPermissions.exportPermissions.observationDate = {
+  protected onExportIntervalsSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
+
+    this.userPermissions.exportPermissions.intervals = option === 'All' ? undefined : [1440];
+  }
+
+  protected onExportPeriodSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
+
+    if (option === 'All') {
+      this.userPermissions.exportPermissions.observationPeriod = undefined;
+    } else if (option === 'Within') {
+      this.userPermissions.exportPermissions.observationPeriod = {
+        within: {
           fromDate: DateUtils.getDateOnlyAsString(new Date()),
-        };
-      } else if (option === 'Last') {
-        this.userPermissions.exportPermissions.observationDate = {
-          last: {
-            duration: 31,
-            durationType: 'days',
-          }
-        };
-      }
-  
+          toDate: DateUtils.getDateOnlyAsString(new Date()),
+        },
+      };
+    } else if (option === 'From') {
+      this.userPermissions.exportPermissions.observationPeriod = {
+        fromDate: DateUtils.getDateOnlyAsString(new Date()),
+      };
+    } else if (option === 'Last') {
+      this.userPermissions.exportPermissions.observationPeriod = {
+        last: {
+          duration: 31,
+          durationType: 'days',
+        }
+      };
     }
-  
-    protected onExportLastSelection(option: string): void {
-       if (!this.userPermissions.exportPermissions)  return;
 
-      if (!(this.userPermissions.exportPermissions.observationDate && this.userPermissions.exportPermissions.observationDate.last)) {
-        return;
-      }
-  
-      if (option === 'Days') {
-        this.userPermissions.exportPermissions.observationDate.last.durationType = 'days';
-      } else if (option === 'Hours') {
-        this.userPermissions.exportPermissions.observationDate.last.durationType = 'hours';
-      }
-    }
-  
-    protected onExportQcSelection(option: string): void {
-       if (!this.userPermissions.exportPermissions)  return;
+  }
 
-      this.userPermissions.exportPermissions.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
+  protected onExportPeriodLastSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
+
+    if (!(this.userPermissions.exportPermissions.observationPeriod && this.userPermissions.exportPermissions.observationPeriod.last)) {
+      return;
     }
+
+    if (option === 'Days') {
+      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'days';
+    } else if (option === 'Hours') {
+      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'hours';
+    }
+  }
+
+  protected onExportQcSelection(option: string): void {
+    if (!this.userPermissions.exportPermissions) return;
+
+    this.userPermissions.exportPermissions.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
+  }
 
   protected onExportTemplateSelection(selectionType: string): void {
     if (this.userPermissions.exportPermissions) {

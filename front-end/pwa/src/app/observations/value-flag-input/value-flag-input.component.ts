@@ -38,9 +38,6 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input()
   public simulateTabOnEnter: boolean = false;
 
-  @Input()
-  public allowIntervalEditing: boolean = false;
-
   @Output()
   public userInputVF = new EventEmitter<ObservationDefinition>();
 
@@ -93,8 +90,7 @@ export class ValueFlagInputComponent implements OnChanges {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput('');
-    this.observationDefinition.updateCommentInput('');
-    this.observationDefinition.updateIntervalInput(this.observationDefinition.originalInterval);
+    this.observationDefinition.updateCommentInput(''); 
     this.resetInternals();
     this.userInputVF.emit(this.observationDefinition);
   }
@@ -104,8 +100,7 @@ export class ValueFlagInputComponent implements OnChanges {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
-    this.observationDefinition.updateCommentInput(comment);
-    this.observationDefinition.updateIntervalInput(this.observationDefinition.originalInterval);
+    this.observationDefinition.updateCommentInput(comment); 
     this.resetInternals();
     this.userInputVF.emit(this.observationDefinition);
   }
@@ -166,16 +161,6 @@ export class ValueFlagInputComponent implements OnChanges {
 
   protected onExtraInfoOkClicked(): void {
     let bValueChanged: boolean = false;
-
-    if (!this.allowIntervalEditing) {
-      if (this.interval > this.observationDefinition.interval) {
-        this.observationDefinition.updateIntervalInput(this.interval);
-        this.observationDefinition.updateValueFlagFromUserInput(
-          this.observationDefinition.observation.value === null ? 'C' : `${this.observationDefinition.getUnScaledValue(this.observationDefinition.observation.value)}C`
-        )
-        bValueChanged = true
-      }
-    }
 
     if (this.comment !== this.observationDefinition.comment) {
       this.observationDefinition.updateCommentInput(this.comment);

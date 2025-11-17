@@ -9,7 +9,6 @@ import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
-import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 
 // TODO. Try using angular forms?
 
@@ -35,7 +34,6 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected utcOffset: number = 0;
   protected allowMissingValue: boolean = true;
   protected requireTotalInput: boolean = false;
-  protected allowIntervalEditing: boolean = false;
   protected allowStationSelection: boolean = false;
   protected allowEntryAtStationOnly: boolean = false;
   protected selectorsErrorMessage: string = '';
@@ -49,8 +47,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourceTemplatesCacheService,
-    private observationService: ObservationsService,
+    private sourcesCacheService: SourceTemplatesCacheService, 
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -69,7 +66,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Template');
-      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowIntervalEditing: false, allowStationSelection: false, isValid: () => true }
+      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowStationSelection: false, isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -237,7 +234,6 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       interval: this.selectedIntervalId,
       requireTotalInput: this.requireTotalInput,
       allowEntryAtStationOnly: this.allowEntryAtStationOnly,
-      allowIntervalEditing: this.allowIntervalEditing,
       allowStationSelection: this.allowStationSelection,
       isValid: () => true
     };

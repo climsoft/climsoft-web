@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { NetworkStatusTypeEnum, PagesDataService, ToastEvent } from '../services/pages-data.service';
+import { NetworkStatusTypeEnum, PagesDataService, ToastEvent, ToastEventTypeEnum } from '../services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from '../../app-auth.service';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
@@ -21,7 +21,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   protected displayUserDropDown: boolean = false;
   protected user!: LoggedInUserModel;
   protected appIsOffline: boolean = false;
-  private viewPortSize!:  ViewPortSize;
+  private viewPortSize!: ViewPortSize;
 
   private destroy$ = new Subject<void>();
 
@@ -48,7 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe((viewPortSize) => {
       this.viewPortSize = viewPortSize;
-      this.openSideNav = this.viewPortSize  === ViewPortSize.LARGE;
+      this.openSideNav = this.viewPortSize === ViewPortSize.LARGE;
     });
 
     // Subscribe to the oage header changes
@@ -102,10 +102,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onMenuItemClick(menuItem: MenuItem): void{ 
-    if( menuItem.url && this.viewPortSize === ViewPortSize.SMALL){
+  protected onMenuItemClick(menuItem: MenuItem): void {
+    if (menuItem.url && this.viewPortSize === ViewPortSize.SMALL) {
       this.openSideNav = false;
-    } 
+    }
+  }
+
+  protected closeUserDropDown(): void {
+    this.displayUserDropDown = false;
   }
 
   protected logOut(): void {
@@ -119,13 +123,30 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private showToast(currentToast: ToastEvent) {
     this.toasts.push(currentToast);
-    // automatically hide the toast after 3 seconds
+
+    // If it's an error the hide the toast after 10 seconds else hide after 3 seconds.
+    let timeout: number = 3000;
+    switch (currentToast.type) {
+      case ToastEventTypeEnum.INFO:
+      case ToastEventTypeEnum.SUCCESS:
+        timeout = 3000;
+        break;
+      case ToastEventTypeEnum.WARNING:
+        timeout = 4000;
+        break;
+      case ToastEventTypeEnum.ERROR:
+        timeout = 10000;
+        break;
+      default:
+        // TODO. Developer error
+        break;
+    }
     setTimeout(() => {
       if (this.toasts.length > 0) {
         //remove the first
         this.toasts.splice(0, 1);
       }
-    }, 3000);
+    }, timeout);
   }
 
   protected syncObservations() {
@@ -172,7 +193,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       );
     } else {
       // If no import permissions then remove manual import sub-modules
-      if (!user.permissions.entryPermissions.importPermissions) {
+      if (!user.permissions.importPermissions) {
         dataIngestionMenuItems.children = dataIngestionMenuItems.children.filter(item =>
           item.name !== SubMenuNameEnum.MANUAL_IMPORT
         );

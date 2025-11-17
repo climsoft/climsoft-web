@@ -127,14 +127,6 @@ export class ObservationDefinition {
     }
 
     /**
-     * TODO. Deprecate editing of interval.
-     * @param interval 
-     */
-    public updateIntervalInput(interval: number): void {
-        this.observation.interval = interval;
-    }
-
-    /**
      * Checks validity of the value flag input and if valid sets it as the new value for observation value and flag.
      * Updates it's internal state depending on the validity of the value flag input
      * @param valueFlagInput  e.g '200', '200E', 'M', ''

@@ -1,0 +1,38 @@
+<div *ngIf="groupName" class="mt-2">
+  <div>Observation Period:</div>
+  <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="groupName + 'data_entry_observation_period'"
+    [groupItems]="[
+      { label:'All', checked: selectedOption === 'All' }, 
+      { label:'Within' , checked: selectedOption === 'Within'}, 
+      { label:'From' , checked: selectedOption === 'From'}, 
+      { label:'Last' , checked: selectedOption === 'Last'} ]" (checkedValueChange)="changeObservationPeriod($event)" />
+
+
+  <div *ngIf="selectedOption === 'Within'" class="mt-2">
+    <div class="d-flex align-items-center ">
+      <app-date-input [id]="groupName + '_data_entry_start_date'" [value]="within.fromDate"
+        (valueChange)="onWithinFromDateChange($event)" />
+      <div class="mx-2">To</div>
+      <app-date-input [id]="groupName + '_data_entry_end_date'" [value]="within.toDate"
+        (valueChange)="onWithinToDateChange($event)" />
+    </div>
+  </div>
+
+  <div *ngIf="selectedOption === 'From'">
+    <app-date-input [id]="groupName + '_data_entry_from_date'" [value]="fromDate"
+      (valueChange)="onFromDateChange($event)" />
+  </div>
+
+  <div *ngIf="selectedOption === 'Last'" class="d-flex align-items-center">
+    <app-number-input [id]="groupName + '_data_entry_last_days'" [numValue]="last.duration"
+      (numValueChange)="onLastDurationChange($event)" />
+    <div class="ms-2">
+      <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="groupName + 'data_entry_last_duration'"
+        [groupItems]=" [
+                    { label:'Days', checked: last.durationType === 'days'}, 
+                    { label:'Hours' , checked: last.durationType === 'hours'} ]"
+        (checkedValueChange)="onLastDurationTypeChange($event)" />
+    </div>
+  </div>
+
+</div>

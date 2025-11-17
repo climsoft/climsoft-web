@@ -20,7 +20,7 @@ export class PasswordChangeComponent {
     private userService: UsersService,) {
   }
 
-  public openDialog(userId: number, userEmail: string): void {
+  public showDialog(userId: number, userEmail: string): void {
     this.userId = userId;
     this.userEmail = userEmail;
     this.open = true;

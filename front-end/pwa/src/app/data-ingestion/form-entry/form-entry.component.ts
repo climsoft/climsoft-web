@@ -8,7 +8,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { ObservationDefinition } from './defintitions/observation.definition';
 import { LnearLayoutComponent } from './linear-layout/linear-layout.component';
@@ -23,6 +23,7 @@ import * as turf from '@turf/turf';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
+import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
   selector: 'app-form-entry',
@@ -64,6 +65,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   constructor
     (private pagesDataService: PagesDataService,
+      private appAuthService: AppAuthService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
       private cachedMetadataSearchService: CachedMetadataService,
@@ -72,6 +74,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private location: Location,) {
 
     this.pagesDataService.setPageHeader('Data Entry');
+
+    this.appAuthService.user.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(user => {
+      if (!user) return;
+      this.pagesDataService.showToast({ title: 'Data Entry', message: `You are currently logged in as ${user.email}`, type: ToastEventTypeEnum.WARNING });
+    });
 
     // Important note. 
     // Set user form settings then attempt to sync the observations. 
@@ -307,7 +316,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    */
   protected onSave(): void {
     if (this.userLocationErrorMessage) {
-      this.pagesDataService.showToast({ title: 'Observations', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
     }
     //console.log('save clicked');
@@ -327,28 +336,20 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(
       take(1)
     ).subscribe({
-      next: response => {
-        if (response.message === 'success') {
-          this.pagesDataService.showToast({
-            title: 'Data Entry',
-            message: `${savableObservations.length} ${obsMessage} saved successfully`,
-            type: ToastEventTypeEnum.SUCCESS
-          });
+      next: () => {
+        this.pagesDataService.showToast({
+          title: 'Data Entry',
+          message: `${savableObservations.length} ${obsMessage} saved successfully`,
+          type: ToastEventTypeEnum.SUCCESS
+        });
 
-          // Then sequence to next date if sequencing is on
-          if (this.userFormSettings.incrementDateSelector) {
-            this.sequenceToNextDate();
-          }
+        // Then sequence to next date if sequencing is on
+        if (this.userFormSettings.incrementDateSelector) {
+          this.sequenceToNextDate();
+        }
 
-          // Reload the data from server
-          this.loadObservations();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Data Entry',
-            message: `Something wrong happened. ${obsMessage} NOT saved.`,
-            type: ToastEventTypeEnum.ERROR
-          });
-        };
+        // Reload the data from server
+        this.loadObservations();
       },
       error: err => {
         if (AppAuthInterceptor.isKnownNetworkError(err)) {
@@ -359,11 +360,11 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         } else if (err.status === 400) {
           // If there is a bad request error then show the server message
           this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
+            title: 'Data Entry', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR
           });
         } else {
           // Log the error for tracing purposes
-          console.log('error logged: ', err);
+          console.log('data entry error: ', err);
           this.pagesDataService.showToast({
             title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
           });

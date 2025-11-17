@@ -2,16 +2,16 @@ import { QCStatusEnum } from "src/app/data-ingestion/models/qc-status.enum";
 
 export interface UserPermissionModel {
     stationsMetadataPermissions?: {
-        stationIds?: string[];
-        // TODO. Include ability to to assign forms, elements, instruments, etc
+        stationIds?: string[]; 
     };
 
     entryPermissions?: {
         stationIds?: string[];
-        importPermissions?: {
-            importTemplateIds?: number[];
-        };
-        // TODO. Include observation date range in future.
+        observationPeriod?: ObservationPeriodPermissionsModel
+    };
+
+    importPermissions?: {
+        importTemplateIds?: number[];
     };
 
     qcPermissions?: {
@@ -33,18 +33,22 @@ export interface ExportTemplatePermissionsModel {
     stationIds?: string[];
     elementIds?: number[];
     intervals?: number[];
-    observationDate?: {
-        last?: {
-            duration: number,
-            durationType: 'days' | 'hours' | 'minutes',
-        };
-        fromDate?: string;
-        within?: {
-            fromDate: string;
-            toDate: string;
-        };
-    };
+    observationPeriod?: ObservationPeriodPermissionsModel;
     qcStatus?: QCStatusEnum;
     exportTemplateIds?: number[];
 
+}
+
+export interface ObservationPeriodPermissionsModel {
+    within?: {
+        fromDate: string;
+        toDate: string;
+    };
+
+    fromDate?: string;
+
+    last?: {
+        duration: number,
+        durationType: 'days' | 'hours' ,
+    };
 }

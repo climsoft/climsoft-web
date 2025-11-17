@@ -10,7 +10,7 @@ import { GeneralSettingsService } from 'src/settings/services/general-settings.s
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
-import { ExportTemplatePermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
 
 @Injectable()
 export class ExportObservationsService {
@@ -64,15 +64,15 @@ export class ExportObservationsService {
             sqlCondition = sqlCondition + ` AND ob.interval IN (${exportPermissions.intervals.join(',')})`;
         }
 
-        if (exportPermissions.observationDate) {
-            if (exportPermissions.observationDate.within) {
-                const within = exportPermissions.observationDate.within;
+        if (exportPermissions.observationPeriod) {
+            if (exportPermissions.observationPeriod.within) {
+                const within = exportPermissions.observationPeriod.within;
                 sqlCondition = sqlCondition + ` AND ob.date_time BETWEEN '${within.fromDate}' AND '${within.toDate}'`;
-            } else if (exportPermissions.observationDate.fromDate) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationDate.fromDate}'`;
-            } else if (exportPermissions.observationDate.last) {
-                const durationType = exportPermissions.observationDate.last.durationType;
-                const duration = exportPermissions.observationDate.last.duration;
+            } else if (exportPermissions.observationPeriod.fromDate) {
+                sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationPeriod.fromDate}'`;
+            } else if (exportPermissions.observationPeriod.last) {
+                const durationType = exportPermissions.observationPeriod.last.durationType;
+                const duration = exportPermissions.observationPeriod.last.duration;
                 if (durationType === 'days') {
                     sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${duration} days'`;
                 } else if (durationType === 'hours') {
@@ -223,7 +223,7 @@ export class ExportObservationsService {
             exportPermissions = user.permissions.exportPermissions;
         }
 
-        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
+        if (exportPermissions.stationIds) {
             if (queryDto.stationIds) {
                 exportPermissions.stationIds = exportPermissions.stationIds.filter(item => queryDto.stationIds?.includes(item));
             }
@@ -231,7 +231,7 @@ export class ExportObservationsService {
             exportPermissions.stationIds = queryDto.stationIds;
         }
 
-        if (exportPermissions.elementIds && exportPermissions.elementIds.length > 0) {
+        if (exportPermissions.elementIds) {
             if (queryDto.stationIds) {
                 exportPermissions.elementIds = exportPermissions.elementIds.filter(item => queryDto.elementIds?.includes(item));
             }
@@ -239,7 +239,7 @@ export class ExportObservationsService {
             exportPermissions.elementIds = queryDto.elementIds;
         }
 
-        if (exportPermissions.intervals && exportPermissions.intervals.length > 0) {
+        if (exportPermissions.intervals) {
             if (queryDto.stationIds) {
                 exportPermissions.intervals = exportPermissions.intervals.filter(item => queryDto.intervals?.includes(item));
             }
@@ -247,40 +247,55 @@ export class ExportObservationsService {
             exportPermissions.intervals = queryDto.intervals;
         }
 
-        if (exportPermissions.observationDate) {
-            if (exportPermissions.observationDate.within) {
+        let observationPeriod: ObservationPeriodPermissionsDto | undefined = exportPermissions.observationPeriod;
+
+        if (observationPeriod) {
+            if (observationPeriod.within) {
+
+                // If from date is specified the validate if it's within the allowed permissions
                 if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationDate.within.fromDate)) {
-                        throw new BadRequestException('from date can not be less than that what is allowed by the template');
+                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.within.fromDate)) {
+                        throw new BadRequestException('from date can not be less than that what is allowed by the permissions');
                     }
-                    exportPermissions.observationDate.within.fromDate = queryDto.fromDate;
+                    observationPeriod.within.fromDate = queryDto.fromDate;
                 }
 
+                 // If to date is specified the validate if it's within the allowed permissions
                 if (queryDto.toDate) {
-                    if (new Date(queryDto.toDate) > new Date(exportPermissions.observationDate.within.toDate)) {
-                        throw new BadRequestException('to date can not be greater than that what is allowed by the template');
+                    if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
+                        throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
                     }
-                    exportPermissions.observationDate.within.toDate = queryDto.toDate;
+                    observationPeriod.within.toDate = queryDto.toDate;
                 }
 
-            } else if (exportPermissions.observationDate.fromDate) {
+            } else if (observationPeriod.fromDate) {
 
+                 // If from date is specified the validate if it's within the allowed permissions
                 if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(exportPermissions.observationDate.fromDate)) {
-                        throw new BadRequestException('from date can not be less that what is allowed by the template');
+                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
+                        throw new BadRequestException('from date can not be less that what is allowed by the permissions');
                     }
-                    exportPermissions.observationDate.fromDate = queryDto.fromDate;
+                    observationPeriod.fromDate = queryDto.fromDate;
                 }
+            } else if (observationPeriod.last) {
+
+                // TODO. validate from and to date based on specified last period
+                // For now. The application will simply ignore them and use what is specified in the permissions
+
             }
         } else {
+
+            // If from date and to date is specified then use within option
             if (queryDto.fromDate && queryDto.toDate) {
-                exportPermissions.observationDate = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
+                observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
             } else if (queryDto.fromDate) {
-                exportPermissions.observationDate = { fromDate: queryDto.fromDate };
+                observationPeriod = { fromDate: queryDto.fromDate };
             } else if (queryDto.toDate) {
-                throw new BadRequestException('to date only is not allowed by the template');
+                throw new BadRequestException('to date only is not allowed by the permissions');
             }
         }
+
+        exportPermissions.observationPeriod = observationPeriod;
 
         return exportPermissions;
     }

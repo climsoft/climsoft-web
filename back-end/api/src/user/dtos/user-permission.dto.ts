@@ -1,6 +1,23 @@
 import { IsOptional } from "class-validator";
 import { QCStatusEnum } from "src/observation/enums/qc-status.enum";
 
+export class ObservationPeriodPermissionsDto {
+    @IsOptional()
+    within?: {
+        fromDate: string;
+        toDate: string;
+    };
+
+    @IsOptional()
+    fromDate?: string;
+
+    @IsOptional()
+    last?: {
+        duration: number,
+        durationType: 'days' | 'hours' ,
+    };
+}
+
 export class ExportTemplatePermissionsDto {
     @IsOptional()
     stationIds?: string[];
@@ -12,17 +29,7 @@ export class ExportTemplatePermissionsDto {
     intervals?: number[];
 
     @IsOptional()
-    observationDate?: {
-        last?: {
-            duration: number,
-            durationType: 'days' | 'hours' | 'minutes',
-        };
-        fromDate?: string;
-        within?: {
-            fromDate: string;
-            toDate: string;
-        };
-    };
+    observationPeriod?: ObservationPeriodPermissionsDto;
 
     @IsOptional()
     qcStatus?: QCStatusEnum;
@@ -36,16 +43,17 @@ export class UserPermissionDto {
     @IsOptional()
     stationsMetadataPermissions?: {
         stationIds?: string[];
-        // TODO. Include ability to to assign forms, elements, instruments, etc
     };
 
     @IsOptional()
     entryPermissions?: {
         stationIds?: string[];
-        importPermissions?: {
-            importTemplateIds?: number[];
-        };
-        // TODO. Include observation date range in future.
+        observationPeriod?: ObservationPeriodPermissionsDto
+    };
+
+    @IsOptional()
+    importPermissions?: {
+        importTemplateIds?: number[];
     };
 
     @IsOptional()
