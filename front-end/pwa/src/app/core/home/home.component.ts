@@ -132,6 +132,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         timeout = 3000;
         break;
       case ToastEventTypeEnum.WARNING:
+        timeout = 4000;
+        break;
       case ToastEventTypeEnum.ERROR:
         timeout = 10000;
         break;
