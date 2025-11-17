@@ -8,6 +8,8 @@ import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { CreateImportSourceDTO } from 'src/metadata/source-templates/dtos/create-import-source.dto';
+import { ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 
 // TODO. Later convert this service to a guard??
 
@@ -21,9 +23,14 @@ interface EntryFormValidation {
     settings: FormParams | CreateImportSourceDTO;
 }
 
+interface ValidationErrorMessage {
+    message: string,
+    dto?: CreateObservationDto | DeleteObservationDto;
+}
+
 @Injectable()
-export class DataEntryCheckService {
-    private readonly logger = new Logger(DataEntryCheckService.name);
+export class DataEntryAndCorrectionCheckService {
+    private readonly logger = new Logger(DataEntryAndCorrectionCheckService.name);
     private sourceParameters: Map<number, EntryFormValidation> = new Map();
 
     constructor(
@@ -76,24 +83,93 @@ export class DataEntryCheckService {
         }
     }
 
-    public async checkData(observationDtos: CreateObservationDto[], user: LoggedInUserDto): Promise<void> {
+    public async checkData(observationDtos: CreateObservationDto[] | DeleteObservationDto[], user: LoggedInUserDto, operation: 'data-entry' | 'data-deletion'): Promise<void> {
         const startTime = new Date().getTime();
-        let errorMessage: { message: string, dto: CreateObservationDto | number; }
+        let errorMessage: ValidationErrorMessage;
         this.logger.log(`checking ${observationDtos.length} observations from user: ${user.id} - ${user.name} - ${user.email}`);
         // Validate all observations entered
         const todayDate: Date = new Date();
         for (const dto of observationDtos) {
-            // If user is not system admin then check for data entry permissions
+
+            //-------------------------------------------------------------------------------
+            // First check for all data edits
+            //-------------------------------------------------------------------------------
+            // If user is  system admin then do not check for data entry permissions
             if (!user.isSystemAdmin) {
-                // For permission issues, don't retur the error message with a dto. 
-                // The front end deletes any bad request exception that has a dto
-                if (!user.permissions) throw new BadRequestException('Permissions not found');
-                if (!user.permissions.entryPermissions) throw new BadRequestException('Entry permissions not found');
-                if (user.permissions.entryPermissions.stationIds && user.permissions.entryPermissions.stationIds.length > 0) {
-                    if (!user.permissions.entryPermissions.stationIds.includes(dto.stationId)) throw new BadRequestException('Not allowed to enter data for station');
+                if (!user.permissions) {
+                    throw new BadRequestException('All permissions not found');
+                }
+
+                const entryPermissions = user.permissions.entryPermissions;
+                let errorMessage: ValidationErrorMessage;
+
+                if (!entryPermissions) {
+                    errorMessage = { message: 'Entry permissions not found', dto: dto };
+                    this.logger.error(JSON.stringify(errorMessage));
+                    throw new BadRequestException(errorMessage);
+                }
+
+                if (entryPermissions.stationIds) {
+                    if (!entryPermissions.stationIds.includes(dto.stationId)) {
+                        errorMessage = { message: 'Station of the observation is not in the list of stations you are allowed to enter/correct/delete data for', dto: dto };
+                        this.logger.error(JSON.stringify(errorMessage));
+                        throw new BadRequestException(errorMessage);
+                    }
+                }
+
+                if (entryPermissions.observationPeriod) {
+                    const observationPeriod: ObservationPeriodPermissionsDto | undefined = entryPermissions.observationPeriod;
+                    if (observationPeriod) {
+                        if (observationPeriod.within) {
+
+                            if (new Date(dto.datetime) < new Date(observationPeriod.within.fromDate)) {
+                                errorMessage = { message: 'Date of the observation is outside what you are allowed to enter/correct/delete data for', dto: dto };
+                                this.logger.error(JSON.stringify(errorMessage));
+                                throw new BadRequestException(errorMessage);
+                            }
+
+                            if (new Date(dto.datetime) > new Date(observationPeriod.within.toDate)) {
+                                errorMessage = { message: 'Date of the observation is outside what you are allowed to enter/correct/delete data for', dto: dto };
+                                this.logger.error(JSON.stringify(errorMessage));
+                                throw new BadRequestException(errorMessage);
+                            }
+
+                        } else if (observationPeriod.fromDate) {
+                            if (new Date(dto.datetime) < new Date(observationPeriod.fromDate)) {
+                                errorMessage = { message: 'Date of the observation is outside what you are allowed to enter/correct/delete data for', dto: dto };
+                                this.logger.error(JSON.stringify(errorMessage));
+                                throw new BadRequestException(errorMessage);
+                            }
+                        } else if (observationPeriod.last) {
+                            const now = new Date();
+                            const earliestAllowedDate = new Date();
+                            const duration = observationPeriod.last.duration;
+                            const durationType = observationPeriod.last.durationType;
+
+                            if (durationType === 'days') {
+                                earliestAllowedDate.setDate(now.getDate() - duration);
+                            } else if (durationType === 'hours') {
+                                earliestAllowedDate.setHours(now.getHours() - duration);
+                            }
+
+                            if (new Date(dto.datetime) < earliestAllowedDate) {
+                                errorMessage = { message: `Date of the observation is outside what you are allowed to enter/correct/delete data for.`, dto: dto };
+                                this.logger.error(JSON.stringify(errorMessage));
+                                throw new BadRequestException(errorMessage);
+                            }
+                        }
+                    }
                 }
             }
+            //-------------------------------------------------------------------------------
 
+
+            // If its a deletion operation, no need to check for source validations
+            if (operation === 'data-deletion') continue;
+
+            //-------------------------------------------------------------------------------
+            // Check for source paramters 
+            //-------------------------------------------------------------------------------
             const source = this.sourceParameters.get(dto.sourceId);
 
             if (!source) {
@@ -118,35 +194,37 @@ export class DataEntryCheckService {
                     throw new BadRequestException(errorMessage);
                 }
 
-                // Check for interval is allowed for the form
-                if (!formTemplate.form.allowIntervalEditing) {
-                    if (formTemplate.form.interval !== dto.interval) {
-                        errorMessage = { message: 'Interval not allowed', dto: dto };
-                        this.logger.error(JSON.stringify(errorMessage));
-                        throw new BadRequestException(errorMessage);
-                    }
-                }
-
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
-                // TODO. Deprecate this check. Import data checking sould be done by DuckDB
+                // Do nothing.
             }
+            //-------------------------------------------------------------------------------
 
-            // Check for future dates           
+
+            //-------------------------------------------------------------------------------
+            // Check for future dates      
+            //-------------------------------------------------------------------------------    
             if (new Date(dto.datetime) > todayDate) {
-                // TODO. Follow up on when invalid dates are being bypassed at the front end.  
                 errorMessage = { message: 'Future dates not allowed', dto: dto };
                 this.logger.error(`${JSON.stringify(errorMessage)} | TodayDate: ${todayDate.toISOString()}`);
                 throw new BadRequestException(errorMessage);
             }
+            //-------------------------------------------------------------------------------
 
-            if (dto.value === null && dto.flag === null) {
+            //-------------------------------------------------------------------------------
+            // Check for valid value and flag
+            //-------------------------------------------------------------------------------
+            const tempDto = dto as CreateObservationDto
+            if (tempDto.value === null && tempDto.flag === null) {
                 errorMessage = { message: 'Both value and flag are missing, not allowed.', dto: dto };
                 this.logger.error(JSON.stringify(errorMessage));
                 throw new BadRequestException(errorMessage);
             }
+            // TODO. In future check for valid flag entry given the associated element
+            //-------------------------------------------------------------------------------
         }
 
         this.logger.log(`observations checks took: ${new Date().getTime() - startTime} milliseconds`);
     }
+
 
 }

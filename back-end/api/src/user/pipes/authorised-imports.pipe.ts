@@ -22,21 +22,18 @@ export class AuthorisedImportsPipe implements PipeTransform {
     // If user is not admin and has no permissions then throw error
     if (!user.permissions) throw new BadRequestException('Could not check for permissions');
 
-    // If useris not allowed to enter data then throw error
-    if (!user.permissions.entryPermissions) throw new BadRequestException('Not authorised to enter data');
-
-    // If user has no export permissions then throw not authorised error
-    if (!user.permissions.entryPermissions.importPermissions) throw new BadRequestException('Not authorised to export data');
+    // If user has no import permissions then throw not authorised error
+    if (!user.permissions.importPermissions) throw new BadRequestException('Not authorised to import data');
 
     // If user is allowed to export using any template then just return value requested
-    if (!user.permissions.entryPermissions.importPermissions.importTemplateIds) return value;
+    if (!user.permissions.importPermissions.importTemplateIds) return value;
 
     // Ensure metatype is available
     if (!metadata.metatype) {
       throw new BadRequestException('Could not determine how to authorize exports');
     }
 
-    const authorisedImportIds: number[] = user.permissions.entryPermissions.importPermissions.importTemplateIds;
+    const authorisedImportIds: number[] = user.permissions.importPermissions.importTemplateIds;
 
     // Handle different types of metatype
     switch (metadata.metatype.name) {
@@ -51,7 +48,7 @@ export class AuthorisedImportsPipe implements PipeTransform {
 
   private handleArray(value: number[], authorisedImportIds: number[]): number[] {
     if (value) {
-      if (!this.allAreAuthorisedExports(value, authorisedImportIds)) {
+      if (!this.allAreAuthorisedImports(value, authorisedImportIds)) {
         throw new BadRequestException('Not authorised to access the imports');
       }
     } else {
@@ -61,7 +58,7 @@ export class AuthorisedImportsPipe implements PipeTransform {
   }
 
   private handleNumber(value: number, authorisedImportIds: number[]): number {
-    if (value && this.allAreAuthorisedExports([value], authorisedImportIds)) {
+    if (value && this.allAreAuthorisedImports([value], authorisedImportIds)) {
       return value;
     } else {
       throw new BadRequestException('Not authorised to access the import');
@@ -69,7 +66,7 @@ export class AuthorisedImportsPipe implements PipeTransform {
   }
 
 
-  private allAreAuthorisedExports(requestedIds: number[], authorisedIds: number[]): boolean {
+  private allAreAuthorisedImports(requestedIds: number[], authorisedIds: number[]): boolean {
     return requestedIds.every(id => authorisedIds.includes(id));
   }
 }

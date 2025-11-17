@@ -73,7 +73,7 @@ export class ManualExportDownloadComponent implements OnInit {
         this.includeOnlyIntervals = exportPermissions.intervals
       }
 
-      const observationDate = exportPermissions.observationDate;
+      const observationDate = exportPermissions.observationPeriod;
       if (observationDate) {
         if (observationDate.last) {
           // For last option

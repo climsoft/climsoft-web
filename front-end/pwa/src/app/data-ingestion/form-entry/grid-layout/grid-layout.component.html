@@ -26,7 +26,6 @@
                         <div class="app-value-flag-container">
                             <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                                 [borderSize]="userFormSettings.fieldsBorderSize"
-                                [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
                                 [observationDefinition]="getObservationDef(rowIndex,colIndex)"
                                 [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
                                 (userInputVF)="onUserInputVF($event,colIndex)" [simulateTabOnEnter]="false"

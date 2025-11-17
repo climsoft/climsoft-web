@@ -37,7 +37,7 @@
                         <td (click)="onEditUserClick(user)">{{ user.disabled? 'Yes': 'No' }}</td>
                         <td>
                             <button type="button" class="btn btn-outline-secondary btn-sm"
-                                (click)="adminPasswordChangeDialog.openDialog(user.id, user.email)">Change
+                                (click)="adminPasswordChangeDialog.showDialog(user.id, user.email)">Change
                                 Password</button>
                         </td>
                     </tr>

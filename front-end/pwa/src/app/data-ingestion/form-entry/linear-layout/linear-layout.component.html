@@ -1,6 +1,5 @@
 <div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0"
-  class="linear-layout-container p-2"
-  [ngStyle]="{height: layoutHeight + 'vh'}">
+  class="linear-layout-container p-2" [ngStyle]="{height: layoutHeight + 'vh'}">
   <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
 
@@ -11,7 +10,6 @@
           <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
             [borderSize]="userFormSettings.fieldsBorderSize"
             [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-            [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
             [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
             [simulateTabOnEnter]="true" />
         </div>
@@ -37,7 +35,6 @@
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let firstIndex = index"
       [id]="fieldDef.name" [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
       [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-      [allowIntervalEditing]="formDefinitions.formMetadata.allowIntervalEditing"
       [observationDefinition]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
       [simulateTabOnEnter]="true" />
 

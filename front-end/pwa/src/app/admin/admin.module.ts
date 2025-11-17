@@ -15,6 +15,7 @@ import { ViewAuditsComponent } from './audits/view-audits/view-audits.component'
 import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 import { EditUserPermissionsComponent } from './users/permissions/edit-user-permissions.component';
+import { EditUserPermissionsDurationComponent } from './users/permissions/edit-user-permissions-duration/edit-user-permissions-duration.component';
 
 @NgModule({
   declarations: [
@@ -23,11 +24,14 @@ import { EditUserPermissionsComponent } from './users/permissions/edit-user-perm
     ClimsoftBoundaryComponent,
     ClimsoftDisplayTimezoneComponent,
     ClimsoftV4Component,
+    
     ViewUserGroupsComponent,
     ViewUsersComponent,
     UserGroupDetailsComponent,
     UserDetailsComponent,
     EditUserPermissionsComponent,
+    EditUserPermissionsDurationComponent,
+
     UserGroupSelectorSingleComponent,
     PasswordChangeComponent,
     ViewAuditsComponent,

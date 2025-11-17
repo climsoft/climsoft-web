@@ -13,6 +13,7 @@ import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-
 import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 
 
@@ -223,32 +224,26 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
     if (deletedObs.length > 0) {
       // Requery data only if there are no observation changes. This prevents mutliple requerying.
-      this.deleteObservations(deletedObs, changedObs.length === 0);
-    }
-
-    if (changedObs.length > 0) {
+      this.deleteObservations(deletedObs, changedObs);
+    } else if (changedObs.length > 0) {
       this.updatedObservations(changedObs);
     }
-
   }
 
-  private deleteObservations(deletedObs: DeleteObservationModel[], reQueryData: boolean): void {
+  private deleteObservations(deletedObs: DeleteObservationModel[], changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.softDelete(deletedObs).subscribe({
-      next: data => {
+      next: () => {
         this.enableSaveButton = true;
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
-          });
+        this.pagesDataService.showToast({
+          title: 'Data Correction', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
+        });
 
-          if (reQueryData) this.queryData();
-
+        if (changedObs.length > 0) {
+          this.updatedObservations(changedObs);
         } else {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
-          });
+          this.queryData();
         }
       },
       error: err => {
@@ -262,21 +257,11 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.bulkPutDataFromDataCorrection(changedObs).subscribe({
-      next: response => {
+      next: () => {
         this.enableSaveButton = true;
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
-        if (response.message === 'success') {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'Data Correction', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-
+        this.pagesDataService.showToast({ title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS });
+        this.queryData();
       },
       error: err => {
         this.enableSaveButton = true;
@@ -285,21 +270,17 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  private handleError(err: HttpErrorResponse): void {
-    if (err.status === 0 || err.status === 504) {
+  private handleError(err: HttpErrorResponse): void { 
+    if (AppAuthInterceptor.isKnownNetworkError(err)) {
       // If there is network error then save observations as unsynchronised and no need to send data to server
-      this.pagesDataService.showToast({
-        title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
-      });
+      this.pagesDataService.showToast({ title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING });
     } else if (err.status === 400) {
       // If there is a bad request error then show the server message
-      this.pagesDataService.showToast({
-        title: 'Data Correction', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
-      });
+      this.pagesDataService.showToast({ title: 'Data Correction', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR });
     } else {
-      this.pagesDataService.showToast({
-        title: 'Data Correction', message: `Something wrong happened. Contact admin. ${err}`, type: ToastEventTypeEnum.ERROR
-      });
+      // Log the error for tracing purposes
+      console.log('data entry error: ', err);
+      this.pagesDataService.showToast({ title: 'Data Correction', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
     }
   }
 

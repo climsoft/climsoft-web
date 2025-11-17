@@ -181,15 +181,15 @@ export class ClimsoftWebToV4SyncService {
             }
 
             // Execute the batch upsert 
-            const results: mariadb.UpsertResult = await connection.batch(upsertStatement, values);
-
-            this.logger.log('V4 afftected rows: ' + results.affectedRows);
+            const results: mariadb.UpsertResult[] = await connection.batch(upsertStatement, values);
+            const totalAffectedRows = results.reduce((sum, result) => sum + result.affectedRows, 0);
+            this.logger.log(`V4 affected rows: ${totalAffectedRows}`);
 
             // As of 03/02/2025, when an existing row is updated MariaDB counts this as a row affected twice
             // Once for detecting the conflict (i.e., attempting to insert)
             // Once for performing the update
             // So more affected rows should return true as well.
-            return results.affectedRows >= entities.length;
+            return totalAffectedRows >= entities.length;
         } catch (err) {
             console.error('Error saving observations to v4 initial table:', err);
             return false;
@@ -280,9 +280,9 @@ export class ClimsoftWebToV4SyncService {
 
             // Execute the batch deletion.
             // Each set of parameters will run the DELETE statement.
-            const results: mariadb.UpsertResult = await connection.batch(deleteStatement, values);
-
-            this.logger.log(`V4 Delete status: ${JSON.stringify(results)}`);
+            const results: mariadb.UpsertResult[] = await connection.batch(deleteStatement, values);
+            const totalAffectedRows = results.reduce((sum, result) => sum + result.affectedRows, 0);
+            this.logger.log(`V4 deleted rows: ${totalAffectedRows}`);
 
             // Note:
             // If some of the keys do not exist in the database the affectedRows count may be lower

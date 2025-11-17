@@ -27,6 +27,7 @@ import { DataAvailaibilityDetailsModel } from 'src/app/data-monitoring/data-avai
 export interface CachedObservationModel extends CreateObservationModel {
   synced: 'true' | 'false'; // booleans are not indexable in indexdb and DexieJs so use 'true'|'false' for readabilty and semantics
   entryDatetime: Date; // Note. This represents the Date that record was added into the local database
+  serverErrorMessage: string;
 }
 
 @Injectable({
@@ -59,28 +60,6 @@ export class ObservationsService {
       );
   }
 
-  private findCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<ViewObservationModel[]> {
-    return this.http.get<ViewObservationModel[]>(`${this.endPointUrl}/correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
-
-  private countCorrectionData(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count-correction-data`, { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
-
-  private findObsLog(observationQuery: ViewObservationLogQueryModel): Observable<ViewObservationLogModel[]> {
-    return this.http.get<ViewObservationLogModel[]>(
-      `${this.endPointUrl}/log`,
-      { params: StringUtils.getQueryParams<ViewObservationLogQueryModel>(observationQuery) })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
 
   public countObsNotSavedToV4(): Observable<number> {
     return this.http.get<number>(`${this.endPointUrl}/count-v4-unsaved-observations`)
@@ -162,11 +141,7 @@ export class ObservationsService {
       .where('[stationId+sourceId+level+elementId+datetime]')
       .anyOf(filters).toArray();
 
-    return this.convertToViewObservationModels(cachedObservations);
-  }
-
-  private convertToViewObservationModels(cachedObservations: CachedObservationModel[]): ViewObservationModel[] {
-    return cachedObservations.map((cachedObservation) => ({
+    return cachedObservations.map(cachedObservation => ({
       stationId: cachedObservation.stationId,
       elementId: cachedObservation.elementId,
       sourceId: cachedObservation.sourceId,
@@ -192,18 +167,15 @@ export class ObservationsService {
 
     return this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       tap({
-        next: (response: any) => {
-          // Server will send {message: 'success'} when there is no error
+        next: () => {
           // Start syncing in unsynced data asynchronously
           // Note, the form will not display data that is being synced until it gets saved in the server
           // Users should be aware that they will have to wait for the syncing to finish. 
           // So navigating away from the form then back will display the data
-          if (response.message === 'success') {
-            // Always attempt to delete any cached data, this is very useful if previous value was cached due to network issues
-            this.deleteDataFromLocalDatabase(observations);
-            // then attempt syncing of any local data.
-            this.syncObservations();
-          }
+          // Always attempt to delete any cached data, this is very useful if previous value was cached due to network issues
+          this.deleteDataFromLocalDatabase(observations);
+          // then attempt syncing of any local data.
+          this.syncObservations();
         },
         error: err => {
           // If there is network error then save observations as unsynchronised and no need to send data to server
@@ -238,25 +210,36 @@ export class ObservationsService {
 
     // Else send the unsynced data to server in batches of 1000
     this.isSyncing = true;
-    const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations
-      .where('synced').equals('false').limit(1000).toArray();
-    const observations: CreateObservationModel[] = this.convertToViewObservationModels(cachedObservations);
+    const cachedObservations: CachedObservationModel[] = await AppDatabase.instance.observations.where('synced').equals('false').limit(1000).toArray();
+    const observations: CreateObservationModel[] = cachedObservations.map(cachedObservation => ({
+      stationId: cachedObservation.stationId,
+      elementId: cachedObservation.elementId,
+      sourceId: cachedObservation.sourceId,
+      level: cachedObservation.level,
+      datetime: cachedObservation.datetime,
+      interval: cachedObservation.interval,
+      value: cachedObservation.value,
+      flag: cachedObservation.flag,
+      comment: cachedObservation.comment,
+    }));
+
     this.http.put<{ message: string }>(`${this.endPointUrl}/data-entry`, observations).pipe(
       take(1),
       catchError(err => {
         this.isSyncing = false;
 
         // If its a bad request with a returned dto
-        if (err.status === 400 && err.error.dto) {
-          // If the error relates to dto then delete the dto. 
-          // Form parameters may have been changed and this makes the data stale
-          console.log('data checking message: ', err.error.message, 'deleting dto: ', err.error.dto);
-          const obsWithError: CreateObservationModel = err.error.dto;
-          this.deleteDataFromLocalDatabase([obsWithError]);
+        if (err.status === 400) {
 
-          // Attempt to resync the rest of the observations
-          this.syncObservations();
-          return throwError(() => new Error('A locally saved data could not be saved by the server'));
+          if (err.error.dto) {
+            // If the error relates to dto then update the dto with the server error message. 
+            // Form parameters may have been changed and this makes the data stale
+            console.warn('unsucessful syncing of data: ', err.error.message, err.error.dto);
+            const obsWithError: CreateObservationModel = err.error.dto;
+            this.saveDataToLocalDatabase([obsWithError], 'false', err.error.message);
+          }
+          // TODO. Show a sync icon error
+          return throwError(() => new Error(`A locally saved data could not be saved by the server`));
         } else {
           return AppAuthInterceptor.handleError(err);
         }
@@ -276,13 +259,22 @@ export class ObservationsService {
 
   }
 
+
+
   /**
  * Saves observations to the local database and counts the number of unsynced observations
  * @param observations 
  * @param synced 
  */
-  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false') {
-    await AppDatabase.instance.observations.bulkPut(observations.map(item => { return { ...item, synced: synced, entryDatetime: new Date() } }));
+  private async saveDataToLocalDatabase(observations: CreateObservationModel[], synced: 'true' | 'false', serverErrorMessage: string = '') {
+    await AppDatabase.instance.observations.bulkPut(observations.map(item => {
+      return {
+        ...item,
+        synced: synced,
+        entryDatetime: new Date(),
+        serverErrorMessage: serverErrorMessage,
+      }
+    }));
     this.countUnsyncedObservationsAndRaiseNotification();
   }
 
@@ -331,10 +323,7 @@ export class ObservationsService {
   }
 
   public softDelete(observations: DeleteObservationModel[]): Observable<number> {
-    return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
+    return this.http.delete<number>(`${this.endPointUrl}/soft`, { body: observations });
   }
 
   public hardDelete(observations: DeleteObservationModel[]): Observable<number> {
@@ -343,7 +332,6 @@ export class ObservationsService {
         catchError(AppAuthInterceptor.handleError)
       );
   }
-
 
   public findStationsObservationStatus(query: StationStatusQueryModel): Observable<string[]> {
     return this.http.get<string[]>(
@@ -394,8 +382,5 @@ export class ObservationsService {
         catchError(AppAuthInterceptor.handleError)
       );
   }
-
-
-
 
 }

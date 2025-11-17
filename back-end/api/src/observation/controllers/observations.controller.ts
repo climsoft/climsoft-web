@@ -16,7 +16,7 @@ import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
 import { DataAvailabilitySummaryQueryDto } from '../dtos/data-availability-summary-query.dto';
-import { DataEntryCheckService } from '../services/data-entry-check.service';
+import { DataEntryAndCorrectionCheckService } from '../services/data-entry-check.service';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
@@ -25,9 +25,9 @@ import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-detai
 export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
-    private observationUpload: ObservationImportService,
+    private observationImportService: ObservationImportService,
     private exportObservationsService: ExportObservationsService,
-    private dataEntryCheckService: DataEntryCheckService,
+    private dataEntryCheckService: DataEntryAndCorrectionCheckService,
   ) { }
 
   @Get()
@@ -107,12 +107,12 @@ export class ObservationsController {
     const user = AuthUtil.getLoggedInUser(request);
 
     // Validate form data. If any invalid bad request will be thrown
-    await this.dataEntryCheckService.checkData(observationDtos, user);
+    await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
 
     // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id);
 
-    // Return success if all operations are successful
+    // // TODO. deprecate the JSON below and just return http success - http 200
     return { message: "success" };
   }
 
@@ -124,12 +124,12 @@ export class ObservationsController {
     const user = AuthUtil.getLoggedInUser(request);
 
     // Validate form data. If any invalid bad request will be thrown
-    await this.dataEntryCheckService.checkData(observationDtos, user);
+    await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
 
     // Save the data
     await this.observationsService.bulkPut(observationDtos, user.id, QCStatusEnum.PASSED);
 
-    // Return success if all operations are successful
+    // TODO. Just return success - http 200
     return { message: "success" };
   }
 
@@ -147,7 +147,7 @@ export class ObservationsController {
     ) file: Express.Multer.File) {
     try {
       const user = AuthUtil.getLoggedInUser(request);
-      await this.observationUpload.processFile(sourceId, file, user.id, user.username);
+      await this.observationImportService.processFile(sourceId, file, user.id, user.username);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -171,7 +171,7 @@ export class ObservationsController {
 
     try {
       const user = AuthUtil.getLoggedInUser(request);
-      await this.observationUpload.processFile(sourceId, file, user.id, user.username, stationId);
+      await this.observationImportService.processFile(sourceId, file, user.id, user.username, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -191,7 +191,11 @@ export class ObservationsController {
   async softDelete(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
-    return this.observationsService.softDelete(observationDtos, AuthUtil.getLoggedInUserId(request));
+         const user = AuthUtil.getLoggedInUser(request);
+      // Validate form data. If any invalid bad request will be thrown
+    await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
+
+    return this.observationsService.softDelete(observationDtos, user.id);
   }
 
   @Admin()

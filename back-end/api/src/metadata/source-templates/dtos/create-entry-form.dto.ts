@@ -44,9 +44,6 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
   allowEntryAtStationOnly: boolean;
 
   @IsBoolean()
-  allowIntervalEditing: boolean;
-
-  @IsBoolean()
   allowStationSelection: boolean;
 
   isValid(): boolean {

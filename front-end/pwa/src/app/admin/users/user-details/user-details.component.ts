@@ -33,7 +33,7 @@ export class UserDetailsComponent implements OnInit {
     if (StringUtils.containsNumbersOnly(userId)) {
       this.pagesDataService.setPageHeader('Edit User');
       this.usersService.findOne(+userId).pipe(take(1)).subscribe((data) => {
-        this.viewUser = data;
+        this.viewUser = data; 
       });
     } else {
       this.pagesDataService.setPageHeader('New User');

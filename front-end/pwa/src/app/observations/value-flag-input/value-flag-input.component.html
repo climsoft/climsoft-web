@@ -34,17 +34,6 @@
             <div class="card-body p-0">
 
                 <div *ngIf="activeTab === 'new'" class="mt-2">
-                    <div *ngIf="allowIntervalEditing">
-                        <div class="d-flex ">
-                            <div style="max-width: 90px;">
-                                <app-number-input [label]="'Interval'" [(numValue)]="interval" />
-                            </div>
-                            <div class="ms-2 d-flex align-items-end">
-                                minutes
-                            </div>
-                        </div>
-                        <hr />
-                    </div>
                     <div>
                         <app-text-input [label]="'Comment'" [(value)]="comment" />
                     </div>

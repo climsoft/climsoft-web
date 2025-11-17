@@ -73,7 +73,7 @@ export class AppAuthInterceptor implements HttpInterceptor {
     // Error 0 means there was no server response.
     // Error 504 is returned by angular service worker when there is no connection to the server
     // Error 502 indicates a communication problem between two servers on the internet, in this case cloudflare server and on-premise server hosting climsoft. 
-    // Error 530 is returned by cloudflare when the server is no connection to the server that has the cloudflare tunnel service
+    // Error 530 is returned by cloudflare when there is no connection to the server that has the cloudflare tunnel service
     return err.status === 0 || err.status === 504 || err.status === 502 || err.status === 530;
   }
 
