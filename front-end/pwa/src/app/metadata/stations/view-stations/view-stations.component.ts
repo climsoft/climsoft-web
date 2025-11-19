@@ -19,7 +19,7 @@ export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
   protected stations!: StationCacheModel[];
   protected searchedIds!: string[];
- 
+
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
   protected isSystemAdmin: boolean = false;
@@ -39,7 +39,10 @@ export class ViewStationsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems = this.isSystemAdmin ? [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD, OptionEnum.DELETE_ALL] : [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD];
+      this.dropDownItems = [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD];
+      if (this.isSystemAdmin) {
+        this.dropDownItems.push(OptionEnum.DELETE_ALL);
+      }
     });
 
     this.cachedMetadataService.allMetadataLoaded.pipe(

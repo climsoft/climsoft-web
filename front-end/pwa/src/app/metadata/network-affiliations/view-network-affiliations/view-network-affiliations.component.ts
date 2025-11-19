@@ -22,8 +22,8 @@ interface View extends NetworkAffiliationCacheModel {
 export class ViewNetworkAffiliationsComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
   protected networkAffiliations!: View[];
-  protected dropDownItems: optionsType[] = [];
   protected selectedNetwork!: View;
+  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -42,7 +42,8 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Delete All'] : [];
+      if (!user) return;
+      this.isSystemAdmin = user.isSystemAdmin;
     });
 
     // Get all sources 
@@ -83,7 +84,7 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     } else if (option === 'Delete All') {
       this.networkAffiliationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
-          this.pagesDataService.showToast({ title: "Network Affiliation Deleted", message: `All network affiliation deleted`, type: ToastEventTypeEnum.SUCCESS });
+          this.pagesDataService.showToast({ title: 'Network Affiliation Deleted', message: 'All network affiliation deleted', type: ToastEventTypeEnum.SUCCESS });
         }
       });
     }
@@ -91,16 +92,14 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
 
   protected onEditNetworkAffiliation(networkAff: View): void {
     this.router.navigate(['network-affiliation-details', networkAff.id], { relativeTo: this.route.parent });
-
   }
-
 
   protected onAssignStationsClicked(selectedSource: View) {
     this.selectedNetwork = selectedSource;
     this.stationNetworkAffiliationsService.getStationsAssignedToNetworkAffiliations([selectedSource.id]).pipe(
       take(1),
-    ).subscribe((data) => {
-      this.appStationSearchDialog.showDialog(data);
+    ).subscribe(stationIds => {
+      this.appStationSearchDialog.showDialog(stationIds);
     });
   }
 

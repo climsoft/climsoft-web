@@ -31,7 +31,7 @@ export class QCTestParameterInputDialogComponent {
     private qcTestscacheService: QCTestsCacheService,
     private pagesDataService: PagesDataService) { }
 
-  public openDialog(elementQCTestId?: number): void {
+  public showDialog(elementQCTestId?: number): void {
     this.open = true;
     this.title = elementQCTestId ? 'Edit QC Test' : 'New QC Test';
 

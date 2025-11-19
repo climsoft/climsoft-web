@@ -17,7 +17,7 @@
         </thead>
         <tbody>
           <tr class="app-cursor-pointer" *ngFor="let station of stations"
-            (click)="isSystemAdmin? dlgStationEdit.showDialog(station.id): ''">
+            (click)="isSystemAdmin ? dlgStationEdit.showDialog(station.id): ''">
             <td><i class="bi bi-cursor"></i></td>
             <td>{{ station.id }}</td>
             <td>{{ station.name }}</td>
