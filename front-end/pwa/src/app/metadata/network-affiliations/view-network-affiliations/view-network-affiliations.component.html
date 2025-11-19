@@ -1,21 +1,18 @@
-<div *ngIf="networkAffiliations" class="card border-0">
+<div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
 
     <div class="d-flex align-items-center">
-      <div class="d-flex mx-2">
-        Count: {{ networkAffiliations.length | number:'1.0-0' }}
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="onOptionsClicked('Add')">
+        Add
+      </button>
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
+          (dropDownOptionClick)="onOptionsClicked('Delete All')" [offSetRight]="true" />
       </div>
-      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
-        Search
-      </button> -->
-      <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
-          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      <div *ngIf="networkAffiliations" class="d-flex mx-2">
+        [{{ networkAffiliations.length | number:'1.0-0' }}]
       </div>
-
-      <!-- <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
-        (cancelClick)="onOptionsDialogClosed()" /> -->
-
     </div>
   </div>
 

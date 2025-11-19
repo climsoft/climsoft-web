@@ -15,7 +15,7 @@ type optionsType = 'Add' | 'Delete All';
 })
 export class ViewOrganisationsComponent implements OnDestroy {
   protected organisations!: ViewOrganisationModel[];
-  protected dropDownItems: optionsType[] = [];
+  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
@@ -33,7 +33,8 @@ export class ViewOrganisationsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Add', 'Delete All'] : [];
+      if (!user) return;
+      this.isSystemAdmin = user.isSystemAdmin;
     });
 
     // Get all sources 
@@ -66,6 +67,7 @@ export class ViewOrganisationsComponent implements OnDestroy {
   }
 
   protected onEditOrganisation(organisation: ViewOrganisationModel): void {
+    if (!this.isSystemAdmin) return;
     this.router.navigate(['organisation-details', organisation.id], { relativeTo: this.route.parent });
   }
 

@@ -5,9 +5,8 @@
         (click)="dlgEditElement.showDialog()">
         Add
       </button>
-      <div>
-        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
-          (click)="dlgImportElements.showDialog()">
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgImportElements.showDialog()">
           Import
         </button>
         <app-import-elements-dialog #dlgImportElements />

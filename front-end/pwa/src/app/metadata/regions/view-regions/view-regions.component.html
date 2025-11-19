@@ -10,20 +10,19 @@
       </li>
     </ul>
     <div class="d-flex align-items-center">
-      <div *ngIf="regions" class="d-flex mx-2">
-        Count: {{ regions.length | number:'1.0-0' }}
-      </div>
-      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2 " (click)="onSearch()">
-        Search
-      </button> -->
-      <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="onOptionsClicked('Import')">
+        Import
+      </button>
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
-
+      <div *ngIf="regions" class="d-flex mx-2">
+        [{{ regions.length | number:'1.0-0' }}]
+      </div>
       <app-import-regions-dialog [open]="optionClicked === 'Import'" (ok)="onOptionsDialogClosed()"
         (cancelClick)="onOptionsDialogClosed()" />
-
     </div>
   </div>
 

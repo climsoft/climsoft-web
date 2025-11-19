@@ -2,11 +2,19 @@ import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
-import { ElementCacheModel, ElementsCacheService } from '../../elements/services/elements-cache.service';
 import { QCTestParameterInputDialogComponent } from '../qc-test-input-dialog/qc-test-parameter-input-dialog.component';
+import { AppAuthService } from 'src/app/app-auth.service';
+import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
 interface ElementQCTestView extends QCTestCacheModel {
   elementName: string;
+}
+
+enum OptionEnum {
+  SORT_BY_NAME = 'Sort by Name',
+  SORT_BY_ELEMENT_ID = 'Sort by Element Id',
+  SORT_BY_ELEMENT_NAME = 'Sort by Element Name',
+  DELETE_ALL = 'Delete All',
 }
 
 @Component({
@@ -18,31 +26,45 @@ export class ViewQCTestsComponent implements OnDestroy {
   @ViewChild('dlgQcEdit') appQCEditDialog!: QCTestParameterInputDialogComponent;
 
   protected elementQCTestParams!: ElementQCTestView[];
-  protected elements!: ElementCacheModel[];
+  // protected elements!: ElementCacheModel[];
+  protected searchedIds!: number[];
+
+  protected dropDownItems: OptionEnum[] = [];
+  protected optionTypeEnum: typeof OptionEnum = OptionEnum;
+  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private elementsQCTestsCacheService: QCTestsCacheService,
-    private elementsCacheService: ElementsCacheService) {
+    private appAuthService: AppAuthService,
+    private cachedMetadataService: CachedMetadataService,
+    private elementsQCTestsCacheService: QCTestsCacheService,) {
 
     this.pagesDataService.setPageHeader('QC Tests');
 
-    this.elementsCacheService.cachedElements.pipe(
+    // Check on allowed options
+    this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.elements = data;
-      this.setElementNames();
+    ).subscribe(user => {
+      if (!user) return;
+      this.isSystemAdmin = user.isSystemAdmin;
+      this.dropDownItems = [OptionEnum.SORT_BY_NAME, OptionEnum.SORT_BY_ELEMENT_ID, OptionEnum.SORT_BY_ELEMENT_NAME];
+      if (this.isSystemAdmin) {
+        this.dropDownItems.push(OptionEnum.DELETE_ALL)
+      }
     });
 
-    // Get all sources 
-    this.elementsQCTestsCacheService.cachedQCTests.pipe(
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(data => {
-      this.elementQCTestParams = data.map(item => { return { ...item, elementName: '' } });
-      this.setElementNames();
+    ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
+      this.elementQCTestParams = this.cachedMetadataService.qcTestsMetadata.map(qcTest => {
+        const element = this.cachedMetadataService.elementsMetadata.find(item => item.id === qcTest.elementId);
+        return { ...qcTest, elementName: element ? element.name : '' };
+      });
     });
+
   }
 
   ngOnDestroy() {
@@ -50,33 +72,33 @@ export class ViewQCTestsComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  private setElementNames(): void {
-    if (!this.elements || !this.elementQCTestParams) return;
-    this.elementQCTestParams.forEach(elementQCTestParam => {
-      const element = this.elements.find(item => item.id === elementQCTestParam.elementId);
-      if (element) elementQCTestParam.elementName = element.name;
+  protected onSearchInput(searchedIds: number[]): void {
+    this.searchedIds = searchedIds;
+    const qcTestsCache = this.searchedIds && this.searchedIds.length > 0 ?
+      this.cachedMetadataService.qcTestsMetadata.filter(item => this.searchedIds.includes(item.id)) : this.cachedMetadataService.qcTestsMetadata;
+
+    this.elementQCTestParams = qcTestsCache.map(qcTest => {
+      const element = this.cachedMetadataService.elementsMetadata.find(item => item.id === qcTest.elementId);
+      return { ...qcTest, elementName: element ? element.name : '' };
     });
   }
 
-  protected onOptionsClicked(option: 'Add' | 'Order By Name' | 'Order By Element Id' | 'Order By Element Name' | 'Delete All') {
+  protected onOptionsClicked(option: OptionEnum) {
     switch (option) {
-      case 'Add':
-        this.appQCEditDialog.openDialog();
-        break;
-      case 'Order By Name':
+      case OptionEnum.SORT_BY_NAME:
         this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.name.localeCompare(b.name));
-        break; 
-      case 'Order By Element Id':
+        break;
+      case OptionEnum.SORT_BY_ELEMENT_ID:
         this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementId - b.elementId);
         break;
-      case 'Order By Element Name':
+      case OptionEnum.SORT_BY_ELEMENT_NAME:
         this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementName.localeCompare(b.elementName));
         break;
-      case 'Delete All':
+      case OptionEnum.DELETE_ALL:
         this.elementsQCTestsCacheService.deleteAll().pipe(
-          take(1)
+          take(1),
         ).subscribe(data => {
-          this.pagesDataService.showToast({ title: "QC Tests Deleted", message: `All QC tests deleted`, type: ToastEventTypeEnum.SUCCESS });
+          this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
         });
         return;
       default:

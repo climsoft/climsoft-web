@@ -1,18 +1,23 @@
-<div *ngIf="elementQCTestParams" class="card border-0">
+<div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
-
     <div class="d-flex align-items-center">
-      <div class="d-flex mx-2">
-        Count: {{ elementQCTestParams.length | number:'1.0-0' }}
-      </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="dlgSearchElements.showDialog()">
-        Search
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="dlgQcEdit.showDialog()">
+        Add
       </button>
-      <app-elements-search-dialog #dlgSearchElements />
-      <div>
-        <app-drop-down-button [buttonText]="'Options'"
-          [dropDownItems]="['Add', 'Order By Name', 'Order By Element Id', 'Order By Element Name','Delete All']"
+      <div class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="dlgSearchElements.showDialog(searchedIds)">
+          Search
+        </button>
+        <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
+      </div>
+      <div class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+      <div *ngIf="elementQCTestParams" class="d-flex mx-2">
+        [{{ elementQCTestParams.length | number:'1.0-0' }}]
       </div>
     </div>
   </div>
@@ -37,7 +42,7 @@
         </thead>
         <tbody>
           <tr class="app-cursor-pointer" *ngFor="let qcTestParam of elementQCTestParams"
-            (click)="dlgQcEdit.openDialog(qcTestParam.id)">
+            (click)="isSystemAdmin? dlgQcEdit.showDialog(qcTestParam.id): ''">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ qcTestParam.name }}</td>
             <td>{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>

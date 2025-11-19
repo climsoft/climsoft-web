@@ -19,7 +19,7 @@ export class ViewRegionsComponent implements OnDestroy {
   protected regions!: ViewRegionModel[];
 
   protected optionClicked: optionsType | undefined;
-  protected dropDownItems: optionsType[] = [];
+  protected isSystemAdmin: boolean = false;
   
   private destroy$ = new Subject<void>();
 
@@ -35,7 +35,8 @@ export class ViewRegionsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      this.dropDownItems = user && user.isSystemAdmin ? ['Import', 'Delete All'] : [];
+            if (!user) return;
+      this.isSystemAdmin = user.isSystemAdmin;
     });
 
     // Get all regions 

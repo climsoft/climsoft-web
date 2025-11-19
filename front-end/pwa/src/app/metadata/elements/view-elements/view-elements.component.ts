@@ -17,7 +17,7 @@ export class ViewElementsComponent implements OnDestroy {
   protected searchedIds!: number[];
 
   protected dropDownItems: OptionEnum[] = [];
-   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
+  protected optionTypeEnum: typeof OptionEnum = OptionEnum;
   protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
@@ -26,7 +26,7 @@ export class ViewElementsComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataService: CachedMetadataService,
     private elementsCacheService: ElementsCacheService,
-    private appAuthService: AppAuthService, ) {
+    private appAuthService: AppAuthService,) {
 
     this.pagesDataService.setPageHeader('Elements');
 
@@ -36,7 +36,10 @@ export class ViewElementsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems = this.isSystemAdmin ? [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_ABBREVIATION, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD, OptionEnum.DELETE_ALL] : [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_ABBREVIATION, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD];
+      this.dropDownItems =  [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_ABBREVIATION, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD] 
+      if (this.isSystemAdmin) {
+        this.dropDownItems.push(OptionEnum.DELETE_ALL);
+      }
     });
 
 
@@ -61,7 +64,7 @@ export class ViewElementsComponent implements OnDestroy {
       [...this.cachedMetadataService.elementsMetadata];
   }
 
-  protected onOptionsClick(option: OptionEnum): void { 
+  protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
       case OptionEnum.SORT_BY_ID:
         this.elements.sort((a, b) => a.id - b.id);
