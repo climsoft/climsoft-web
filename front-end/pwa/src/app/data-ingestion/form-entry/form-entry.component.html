@@ -71,16 +71,17 @@
           <div *ngIf="formDefinitions.formMetadata.layout === 'LINEAR'">
             <app-linear-layout #appLinearLayout [userFormSettings]="userFormSettings"
               [formDefinitions]="formDefinitions" [refreshLayout]="refreshLayout"
-              (totalIsValid)="onTotalIsValid($event)" (userInputVF)="onUserInputVF($event)"
-              (focusSaveButton)="onFocusSaveButton()" />
+              [duplicateObservations]="duplicateObservations" (totalIsValid)="onTotalIsValid($event)"
+              (userInputVF)="onUserInputVF($event)" (focusSaveButton)="onFocusSaveButton()" />
           </div>
           <!--------------->
 
           <!-- table layout -->
           <div *ngIf="formDefinitions.formMetadata.layout === 'GRID'">
             <app-grid-layout #appGridLayout [userFormSettings]="userFormSettings" [formDefinitions]="formDefinitions"
-              [refreshLayout]="refreshLayout" (totalIsValid)="onTotalIsValid($event)"
-              (userInputVF)="onUserInputVF($event)" (focusSaveButton)="onFocusSaveButton()">
+              [refreshLayout]="refreshLayout" [duplicateObservations]="duplicateObservations"
+              (totalIsValid)="onTotalIsValid($event)" (userInputVF)="onUserInputVF($event)"
+              (focusSaveButton)="onFocusSaveButton()">
             </app-grid-layout>
           </div>
           <!--------------->

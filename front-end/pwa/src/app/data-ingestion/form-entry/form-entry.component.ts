@@ -4,7 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
-import { Subject, take, takeUntil } from 'rxjs';
+import { map, Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
@@ -20,10 +20,12 @@ import { UserSettingEnum } from 'src/app/app-config.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
-import { HttpErrorResponse } from '@angular/common/http';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
+import { ViewObservationQueryModel } from '../models/view-observation-query.model';
+import { ViewObservationModel } from '../models/view-observation.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -61,6 +63,28 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected userFormSettings!: UserFormSettingStruct;
   protected userLocationErrorMessage: string = '';
 
+  /**
+ * Used to determine whether to display element selector 
+ */
+  protected displayElementSelector: boolean = false;
+
+  /**
+   * Used to determine whether to display date selector
+   */
+  protected displayDateSelector: boolean = false;
+
+  /**
+   * Used to determine whether to display year-month selector
+   */
+  protected displayYearMonthSelector: boolean = false;
+
+  /**
+   * Used to determine whether to display hour selector
+   */
+  protected displayHourSelector: boolean = false;
+
+  protected duplicateObservations: Map<string, ViewObservationModel> = new Map<string, ViewObservationModel>();
+
   private destroy$ = new Subject<void>();
 
   constructor
@@ -68,7 +92,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       private appAuthService: AppAuthService,
       private stationFormsService: StationFormsService,
       private observationService: ObservationsService,
-      private cachedMetadataSearchService: CachedMetadataService,
+      private cachedMetadataService: CachedMetadataService,
       private locationService: AppLocationService,
       private route: ActivatedRoute,
       private location: Location,) {
@@ -93,22 +117,35 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     const stationId = this.route.snapshot.params['stationid'];
     const sourceId = +this.route.snapshot.params['sourceid'];
 
-    this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
 
-      this.station = this.cachedMetadataSearchService.getStation(stationId);
-      this.source = this.cachedMetadataSearchService.getSource(sourceId);
-      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.cachedMetadataSearchService);
+      this.station = this.cachedMetadataService.getStation(stationId);
+      this.source = this.cachedMetadataService.getSource(sourceId);
+      this.formDefinitions = new FormEntryDefinition(this.station, this.source, this.cachedMetadataService);
 
       this.loadObservations();
 
       /** Gets default date value (YYYY-MM-DD) used by date selector */
       const date: Date = new Date()
-      this.defaultDateValue = `${date.getFullYear()}-${StringUtils.addLeadingZero(date.getMonth() + 1)}-${StringUtils.addLeadingZero(date.getDate())}`;
+      this.defaultDateValue = date.toISOString().split('T')[0];
       // Gets default year-month value (YYYY-MM) used by year-month selector
       this.defaultYearMonthValue = `${this.formDefinitions.yearSelectorValue}-${StringUtils.addLeadingZero(this.formDefinitions.monthSelectorValue)}`;
+
+      //-----------------------------------------------------
+      // Set selectors to use
+      //-----------------------------------------------------
+      this.displayElementSelector = this.formDefinitions.elementSelectorValue !== null;
+      if (this.formDefinitions.daySelectorValue) {
+        this.displayDateSelector = true; // If day is included then use the date selector
+      } else {
+        this.displayYearMonthSelector = true; // If day is not included then use the year month selector
+      }
+      this.displayHourSelector = this.formDefinitions.hourSelectorValue !== null;
+      //-----------------------------------------------------
+
 
       if (this.formDefinitions.formMetadata.allowStationSelection) {
         // Get the station ids assigned to use the form
@@ -132,33 +169,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Used to determine whether to display element selector 
-   */
-  protected get displayElementSelector(): boolean {
-    return this.formDefinitions.formMetadata.selectors.includes('ELEMENT');
-  }
 
-  /**
-   * Used to determine whether to display date selector
-   */
-  protected get displayDateSelector(): boolean {
-    return this.formDefinitions.formMetadata.selectors.includes('DAY');
-  }
-
-  /**
-   * Used to determine whether to display year-month selector
-   */
-  protected get displayYearMonthSelector(): boolean {
-    return !this.displayDateSelector;
-  }
-
-  /**
-   * Used to determine whether to display hour selector
-   */
-  protected get displayHourSelector(): boolean {
-    return this.formDefinitions.formMetadata.selectors.includes('HOUR');
-  }
 
   /**
    * Loads any existing observations from the database
@@ -168,21 +179,61 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.totalIsValid = false;
     this.refreshLayout = false;
     this.changedObsDefs = [];
+    this.duplicateObservations = new Map<string, ViewObservationModel>();
 
-    const entryFormObsQuery = this.formDefinitions.createObservationQuery();
+    const entryFormObsQuery: EntryFormObservationQueryModel = this.formDefinitions.createObservationQuery();
     this.observationService.findEntryFormData(entryFormObsQuery).pipe(
-      take(1)
+      take(1),
     ).subscribe(data => {
       this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
       // Set firts value flag to have focus ready for rapid data entry
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
       if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
+
+      // Then fetch duplicates
+      this.loadDuplicates(entryFormObsQuery);
+
+    });
+  }
+
+
+  private loadDuplicates(entryFormObsQuery: EntryFormObservationQueryModel): void {
+    const viewObsQuery: ViewObservationQueryModel = {
+      stationIds: [entryFormObsQuery.stationId],
+      elementIds: entryFormObsQuery.elementIds,
+      level: entryFormObsQuery.level,
+      intervals: [entryFormObsQuery.interval],
+      fromDate: entryFormObsQuery.fromDate,
+      toDate: entryFormObsQuery.toDate,
+      deleted: false,
+      page: 1,
+      pageSize: 1000, // TODO. What should be done when it comes to instances that have more than 1000 rows. For instance - 31 days by 35 elements
+    };
+
+    this.observationService.findProcessed(viewObsQuery).pipe(
+      take(1),
+    ).subscribe(observations => {
+      // Get same observations that are not from the current source id. They are the duplicates
+      const newDuplicateObservations = new Map<string, ViewObservationModel>();
+      for (const observation of observations) {
+        if (observation.sourceId !== entryFormObsQuery.sourceId) {
+            // Add utc because it needs to be displayed based on display utc offset
+          observation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(observation.datetime, this.source.utcOffset, 'add');
+          
+          newDuplicateObservations.set(`${observation.elementId}-${observation.datetime}`, observation);
+        }
+      }
+ 
+      // Only set the duplicates array when there are duplicates. This makes angular detection to only be raised when there are dplicates
+      if (newDuplicateObservations.size > 0) {
+        this.duplicateObservations = newDuplicateObservations;
+      }
     });
   }
 
   protected onStationChange(stationId: string) {
-    this.formDefinitions.station = this.cachedMetadataSearchService.getStation(stationId);
+    this.formDefinitions.station = this.cachedMetadataService.getStation(stationId);
     this.loadObservations();
   }
 

@@ -3,7 +3,7 @@ import { ObservationDefinition } from '../../data-ingestion/form-entry/defintiti
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 import { ObservationsService } from '../../data-ingestion/services/observations.service';
 import { ViewObservationLogModel } from 'src/app/data-ingestion/models/view-observation-log.model';
-import { ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.model';
+import { ViewObservationModel, ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.model';
 
 /**
  * Component for data entry of observations
@@ -17,32 +17,25 @@ import { ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.mo
 export class ValueFlagInputComponent implements OnChanges {
   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
 
-  @Input()
-  public id!: string;
+  @Input() public id!: string;
 
-  @Input()
-  public label!: string;
+  @Input() public label!: string;
 
-  @Input()
-  public borderSize!: number;
+  @Input() public borderSize!: number;
 
-  @Input()
-  public observationDefinition!: ObservationDefinition;
+  @Input() public observationDefinition!: ObservationDefinition;
 
-  @Input()
-  public displayExtraInfoOption: boolean = false;
+  @Input() public displayExtraInfoOption: boolean = false;
 
-  @Input()
-  public disableValueFlagEntry: boolean = false;
+  @Input() public disableValueFlagEntry: boolean = false;
 
-  @Input()
-  public simulateTabOnEnter: boolean = false;
+  @Input() public simulateTabOnEnter: boolean = false;
 
-  @Output()
-  public userInputVF = new EventEmitter<ObservationDefinition>();
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel> ;
 
-  @Output()
-  public enterKeyPress = new EventEmitter<void>();
+  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
+
+  @Output() public enterKeyPress = new EventEmitter<void>();
 
   protected showChanges: boolean = false;
 
@@ -51,7 +44,6 @@ export class ValueFlagInputComponent implements OnChanges {
   protected activeTab: 'new' | 'history' | 'qctests' = 'new';
 
   // These variables are needed because they are set in a dialog 
-  protected interval!: number;
   protected comment!: string | null;
   protected viewObservationLog!: ViewObservationLogModel[];
   protected viewQCTestLog!: ViewQCTestLog[];
@@ -59,9 +51,14 @@ export class ValueFlagInputComponent implements OnChanges {
   constructor() { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.observationDefinition) {
+    if (changes['observationDefinition'] && this.observationDefinition) {
 
-      this.resetInternals();
+      // Get the comment from database
+      // TODO. Deprecate this
+      this.comment = this.observationDefinition.comment;
+
+
+
 
       // TODO. 
       // Disabled on 13/05/2025 due to how forms try to maipulate dates on the forms. 
@@ -79,6 +76,14 @@ export class ValueFlagInputComponent implements OnChanges {
       // }
     }
 
+    if (changes['duplicateObservations'] && this.duplicateObservations) {
+      const isDuplicated = this.duplicateObservations.get(`${this.observationDefinition.observation.elementId}-${this.observationDefinition.observation.datetime}`);
+      if (isDuplicated) console.log('duplicate found: ', isDuplicated);
+      // TODO. Display the duplicate and disable the control
+      // This means the history should also indicate the source of the data so that data entry clerk can just have a look at where it came from
+
+    }
+
   }
 
   public focus(): void {
@@ -90,8 +95,9 @@ export class ValueFlagInputComponent implements OnChanges {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput('');
-    this.observationDefinition.updateCommentInput(''); 
-    this.resetInternals();
+    this.observationDefinition.updateCommentInput('');
+    // Get the comment from database
+    this.comment = this.observationDefinition.comment;
     this.userInputVF.emit(this.observationDefinition);
   }
 
@@ -100,18 +106,14 @@ export class ValueFlagInputComponent implements OnChanges {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
-    this.observationDefinition.updateCommentInput(comment); 
-    this.resetInternals();
+    this.observationDefinition.updateCommentInput(comment);
+    // Get the comment from database
+    this.comment = this.observationDefinition.comment;
+
     this.userInputVF.emit(this.observationDefinition);
   }
 
-  private resetInternals(): void {
-    // Get period in days for data that has a period of a day or greater
-    this.interval = this.observationDefinition.interval;
 
-    // Get the comment from database
-    this.comment = this.observationDefinition.comment;
-  }
 
   /**
    * Handles input change and updates its internal state

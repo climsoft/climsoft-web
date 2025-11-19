@@ -19,6 +19,8 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
 
   protected stations: StationCacheModel[] = [];
   protected selectedStations: StationCacheModel[] = [];
+  private allMetadataLoaded: boolean = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(private cachedMetadataService: CachedMetadataService) {
@@ -26,6 +28,7 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
+      this.allMetadataLoaded = allMetadataLoaded;
       this.setStationsToInclude();
       this.filterBasedOnSelectedIds();
     });
@@ -48,12 +51,16 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   private setStationsToInclude(): void {
+    if (!this.allMetadataLoaded) return;
+    
     this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ?
       this.cachedMetadataService.stationsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) :
       this.cachedMetadataService.stationsMetadata;
   }
 
   private filterBasedOnSelectedIds(): void {
+    if (!this.allMetadataLoaded) return;
+
     this.selectedStations = this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 

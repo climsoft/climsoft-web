@@ -7,6 +7,7 @@ import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.
 import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';
+import { ViewObservationModel } from '../../models/view-observation.model';
 
 @Component({
   selector: 'app-linear-layout',
@@ -17,25 +18,21 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
   @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
   @ViewChild('appTotal') totalComponent!: NumberInputComponent;
 
-  @Input()
-  public userFormSettings!: UserFormSettingStruct;
+  @Input() public userFormSettings!: UserFormSettingStruct;
 
-  @Input()
-  public formDefinitions!: FormEntryDefinition;
+  @Input() public formDefinitions!: FormEntryDefinition;
 
-  @Input()
-  public refreshLayout!: boolean;
+  @Input() public refreshLayout!: boolean;
 
-  @Output()
-  public focusSaveButton = new EventEmitter<void>();
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel>  ;
+
+  @Output() public focusSaveButton = new EventEmitter<void>();
 
   /** Emitted when observation value is changed */
-  @Output()
-  public userInputVF = new EventEmitter<ObservationDefinition>();
+  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
 
   /** Emitted when observation value or total value is changed */
-  @Output()
-  public totalIsValid = new EventEmitter<boolean>();
+  @Output() public totalIsValid = new EventEmitter<boolean>();
 
   /** Holds entry fields needed for creating value flag components; elements, days, hours */
   protected fieldDefinitions!: FieldEntryDefinition[];
@@ -71,15 +68,12 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
       this.observationsDefinitions = this.formDefinitions.obsDefsForLinearLayout;
     }
 
-
     if (changes["userFormSettings"] && this.userFormSettings) {
-      // The height may not exist due to previous releases
-      if (this.userFormSettings.linearLayoutSettings.height) this.layoutHeight = this.userFormSettings.linearLayoutSettings.height;
+      this.layoutHeight = this.userFormSettings.linearLayoutSettings.height;
       if (this.fieldDefinitions) {
         // Setting change could be related to maximum rows so reinitialise the chunks
         this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
       }
-
     }
   }
 

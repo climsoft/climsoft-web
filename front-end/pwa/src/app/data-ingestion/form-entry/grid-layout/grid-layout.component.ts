@@ -5,6 +5,7 @@ import { ObservationDefinition } from '../defintitions/observation.definition';
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
+import { ViewObservationModel } from '../../models/view-observation.model';
 
 @Component({
   selector: 'app-grid-layout',
@@ -19,6 +20,8 @@ export class GridLayoutComponent implements OnChanges {
   @Input() public userFormSettings!: UserFormSettingStruct;
 
   @Input() public formDefinitions!: FormEntryDefinition;
+
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel>  ;
 
   @Input() public refreshLayout!: boolean;
 

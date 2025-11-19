@@ -27,6 +27,7 @@
                             <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                                 [borderSize]="userFormSettings.fieldsBorderSize"
                                 [observationDefinition]="getObservationDef(rowIndex,colIndex)"
+                                [duplicateObservations]="duplicateObservations"
                                 [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
                                 (userInputVF)="onUserInputVF($event,colIndex)" [simulateTabOnEnter]="false"
                                 (enterKeyPress)="onVFEnterKeyPressed(rowIndex, colIndex)" />

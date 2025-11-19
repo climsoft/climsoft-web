@@ -60,7 +60,7 @@ export class ObservationDefinition {
 
         this._existsInDatabase = observation.value !== null || observation.flag !== null;
         // set original database values for future comparison
-        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}`;
+        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.comment}`;
 
     }
 
@@ -106,16 +106,11 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        return `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}` !== this._databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.comment}` !== this._databaseValues;
     }
 
     public get comment(): string | null {
         return this.observation.comment;
-    }
-
-    // TODO. Deprecate editing of interval
-    public get interval(): number {
-        return this.observation.interval;
     }
 
     public get existsInDatabase(): boolean {

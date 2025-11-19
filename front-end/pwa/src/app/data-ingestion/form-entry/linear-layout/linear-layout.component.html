@@ -11,7 +11,7 @@
             [borderSize]="userFormSettings.fieldsBorderSize"
             [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
             [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
-            [simulateTabOnEnter]="true" />
+            [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
         </div>
       </div>
 
@@ -36,7 +36,7 @@
       [id]="fieldDef.name" [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
       [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
       [observationDefinition]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
-      [simulateTabOnEnter]="true" />
+      [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">
       <app-number-input #appTotal [id]="'total'" [label]="'TOTAL'" [borderSize]="userFormSettings.fieldsBorderSize"
