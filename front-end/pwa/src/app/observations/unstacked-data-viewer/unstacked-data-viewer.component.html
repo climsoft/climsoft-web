@@ -15,10 +15,10 @@
             <tr *ngFor="let groupedEntryKV of groupedEntries | keyvalue; let firstIndex = index;">
                 <td>{{ firstIndex + 1 }}</td>
                 <td>
-                    {{ groupedEntryKV.value[0].obsDef.observation.stationId + '-' + groupedEntryKV.value[0].stationName }}
+                    {{ groupedEntryKV.value[0].observation.stationId + '-' + groupedEntryKV.value[0].stationName }}
                 </td>
                 <td>
-                    {{ groupedEntryKV.value[0].obsDef.observation.level }}
+                    {{ groupedEntryKV.value[0].observation.level }}
                 </td>
                 <td>
                     {{ groupedEntryKV.value[0].formattedDatetime }}
@@ -33,8 +33,8 @@
                     <div *ngIf="getObservation(elementAbbrv, groupedEntryKV.value) as ev"
                         class="app-value-flag-container">
                         <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
-                            [displayExtraInfoOption]="true" [observationDefinition]="ev.obsDef"
-                            [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput()" />
+                            [displayExtraInfoOption]="true" [scaleValue]="false" [observationEntry]="ev"
+                            [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>
             </tr>

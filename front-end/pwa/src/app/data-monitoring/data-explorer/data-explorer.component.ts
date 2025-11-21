@@ -7,19 +7,10 @@ import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ActivatedRoute } from '@angular/router';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
-interface ObservationEntry {
-  obsDef: ObservationDefinition;
-  stationName: string;
-  elementId: number;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
-}
 
 @Component({
   selector: 'app-data-explorer',
@@ -50,7 +41,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
     this.cachedMetadataSearchService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
-       if (!allMetadataLoaded) return;
+      if (!allMetadataLoaded) return;
       this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
@@ -146,13 +137,18 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const observationView: ObservationEntry = {
-            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
+            observation: observation,
+            confirmAsCorrect: false,
+            delete: false,
+            change: 'no_change',
+            hardDelete: false,
+            restore: false,
             stationName: stationMetadata.name,
-            elementId: elementMetadata.id,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+            intervalName: IntervalsUtil.getIntervalName(observation.interval),
+            qcTestsFailed: [],
           }
           return observationView;
 
@@ -175,7 +171,7 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
     const obsIdentifierMap = new Map<string, number>();
 
     for (let i = 0; i < observationsEntries.length; i++) {
-      const obs = observationsEntries[i].obsDef.observation;
+      const obs = observationsEntries[i].observation;
       const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
       // Update the map with the latest index for each unique identifier
       obsIdentifierMap.set(obsIdentifier, i);

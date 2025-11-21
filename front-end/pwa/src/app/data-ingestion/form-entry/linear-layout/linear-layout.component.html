@@ -9,8 +9,8 @@
         <div class="p-1">
           <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
             [borderSize]="userFormSettings.fieldsBorderSize"
-            [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-            [observationDefinition]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
+            [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleValue]="true"
+            [observationEntry]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
             [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
         </div>
       </div>
@@ -34,8 +34,8 @@
   <div *ngIf="!largeScreen" class="d-flex flex-column">
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let firstIndex = index"
       [id]="fieldDef.name" [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
-      [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption"
-      [observationDefinition]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
+      [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleValue]="true"
+      [observationEntry]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
       [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
 
     <div *ngIf="formDefinitions.formMetadata.requireTotalInput" class="mb-2">

@@ -1,7 +1,7 @@
 <div class="card border-0">
 
-    <app-query-selection [parentComponentName]="componentName" 
-        [enableQueryButton]="enableQueryButton" (queryClick)="onQueryClick($event)" />
+    <app-query-selection [parentComponentName]="componentName" [enableQueryButton]="enableQueryButton"
+        (queryClick)="onQueryClick($event)" />
 
     <div class="card border-0 p-0 mt-2">
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
@@ -39,17 +39,17 @@
 
                         <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
                             <td>{{i + 1}}</td>
-                            <td> {{ obsEntry.obsDef.observation.stationId + ' - '+ obsEntry.stationName }}</td>
-                            <td>{{ obsEntry.elementAbbrv }}</td>
-                            <td>{{ obsEntry.obsDef.observation.level }}</td>
+                            <td> {{ obsEntry.observation.stationId + ' - '+ obsEntry.stationName }}</td>
+                            <td>{{ obsEntry.observation.elementId + ' - '+ obsEntry.elementAbbrv }}</td>
+                            <td>{{ obsEntry.observation.level }}</td>
                             <td>{{ obsEntry.formattedDatetime }}</td>
                             <td>{{ obsEntry.intervalName }}</td>
                             <td>{{ obsEntry.sourceName }}</td>
                             <td>
                                 <div class="px-2">
                                     <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
-                                        [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="true"
-                                        (valueChange)="onUserInput()" />
+                                        [scaleValue]="false" [observationEntry]="obsEntry"
+                                        [disableValueFlagEntry]="true" />
                                 </div>
                             </td>
                             <td>
@@ -68,7 +68,7 @@
         </div>
 
         <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-            <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSave"
+            <button type="button" class="btn btn-sm btn-outline-primary me-2" [disabled]="!enableSaveButton"
                 (click)="onSave()">
                 Submit
             </button>

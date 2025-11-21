@@ -6,7 +6,6 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { CreateObservationModel } from 'src/app/data-ingestion/models/create-observation.model';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
-import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -14,6 +13,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
+import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
+import { ViewObservationModel } from '../models/view-observation.model';
 
 
 
@@ -24,18 +25,16 @@ import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 })
 export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected observationsEntries: ObservationEntry[] = [];
-  protected observations!: CreateObservationModel[];
-
   protected pageInputDefinition: PagingParameters = new PagingParameters();
-
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected numOfChanges: number = 0;
-  protected utcOffset: number = 0;
+
 
   protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
   protected useUnstackedViewer: boolean = false;
+  protected numOfChanges: number = 0;
+
 
   private destroy$ = new Subject<void>();
 
@@ -51,8 +50,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
-      // Get the climsoft time zone display setting
-      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.allMetadataLoaded = allMetadataLoaded;
       this.queryData();
     });
@@ -100,7 +97,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   }
 
   private queryData(): void {
-    if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
+    if (!(this.allMetadataLoaded && this.queryFilter)) {
       return;
     }
 
@@ -109,6 +106,8 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     console.log('querying data...');
 
     this.observationsEntries = [];
+    this.numOfChanges = 0;
+    this.enableSaveButton = false;
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
     this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
@@ -143,20 +142,21 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
-        this.observations = data;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
+            observation: observation,
+            confirmAsCorrect: false,
             delete: false,
+            change: 'no_change',
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
-            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.cachedMetadataSearchService.utcOffSet),
+            intervalName: IntervalsUtil.getIntervalName(observation.interval),
           }
           return entry;
 
@@ -178,47 +178,58 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         this.useUnstackedViewer = !this.useUnstackedViewer;
         break;
       case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true; });
-        this.onUserInput();
+        for (const entry of this.observationsEntries) {
+          entry.delete = true;
+        }
+        this.numOfChanges = this.observationsEntries.length;
         break;
       default:
         throw new Error("Developer error. Option not supported");
     }
   }
 
-  protected onUserInput(): void {
+  protected onUserInput() {
     this.numOfChanges = 0;
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.delete || obsEntry.obsDef.observationChanged) this.numOfChanges++;
+    for (const entry of this.observationsEntries) {
+      if (entry.delete || entry.change === 'valid_change' || entry.change === 'invalid_change')
+        this.numOfChanges++;
     }
+  }
+
+  protected onUserDeleteClick(observationEntry: ObservationEntry) {
+    observationEntry.delete = !observationEntry.delete;
+    this.onUserInput();
   }
 
   protected onSave(): void {
     const deletedObs: DeleteObservationModel[] = [];
     const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
-      const obsModel = obsEntry.obsDef.observation;
       if (obsEntry.delete) {
         deletedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval
         });
-      } else if (obsEntry.obsDef.observationChanged) {
+      } else if (obsEntry.change === 'valid_change') {
         changedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval,
-          value: obsModel.value,
-          flag: obsModel.flag,
-          comment: obsModel.comment
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval,
+          value: obsEntry.observation.value,
+          flag: obsEntry.observation.flag,
+          comment: obsEntry.observation.comment
         });
+      } else if (obsEntry.change === 'invalid_change') {
+
+        // TODO. Show toast message
+        return;
       }
     }
 
@@ -270,7 +281,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  private handleError(err: HttpErrorResponse): void { 
+  private handleError(err: HttpErrorResponse): void {
     if (AppAuthInterceptor.isKnownNetworkError(err)) {
       // If there is network error then save observations as unsynchronised and no need to send data to server
       this.pagesDataService.showToast({ title: 'Data Correction', message: `Application is offline`, type: ToastEventTypeEnum.WARNING });

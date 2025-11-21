@@ -12,7 +12,7 @@ export class DateInputComponent implements OnChanges {
   @Input() public disabled!: boolean;
   @Input() public hintMessage!: string;
   @Input() public showNavigationButtons!: boolean;
-  @Input() public errorMessage!: string | null;
+  @Input() public errorMessage!: string;
   @Input() public maxDate!: string;
   @Input() public minDate!: string;
   @Input() public value!: string | null | undefined;

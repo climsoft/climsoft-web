@@ -9,24 +9,13 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ObservationDefinition } from 'src/app/data-ingestion/form-entry/defintitions/observation.definition';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { QualityControlService } from 'src/app/data-ingestion/services/quality-control.service';
-import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
-interface ObservationEntry {
-  obsDef: ObservationDefinition;
-  confirmAsCorrect: boolean;
-  delete: boolean;
-  stationName: string;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
-  qcTestLog: QCTestCacheModel[];
-}
 
 @Component({
   selector: 'app-qc-assessment',
@@ -39,13 +28,12 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
   protected enablePerformQCButton: boolean = true;
-  protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
-  private utcOffset: number = 0;
 
   protected queryFilter!: ViewObservationQueryModel;
   private allMetadataLoaded: boolean = false;
   protected useUnstackedViewer: boolean = false;
+  protected numOfChanges: number = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -62,7 +50,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
       this.queryData();
     });
   }
@@ -127,13 +114,15 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   }
 
   private queryData(): void {
-    if (!(this.allMetadataLoaded && this.queryFilter && this.utcOffset !== undefined)) {
+    if (!(this.allMetadataLoaded && this.queryFilter)) {
       return;
     }
 
     console.log('querying data...');
 
     this.observationsEntries = [];
+    this.numOfChanges = 0;
+    this.enableSaveButton = false;
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
     this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
@@ -159,6 +148,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected loadData(): void {
     this.enableQueryButton = false;
     this.enableSaveButton = false;
+    this.observationsEntries = [];
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
@@ -179,15 +169,18 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
             }) : [];
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
+            observation: observation,
             confirmAsCorrect: false,
             delete: false,
+            change: 'no_change',
+            hardDelete: false,
+            restore: false,
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
-            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
+            formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.cachedMetadataSearchService.utcOffSet),
             intervalName: IntervalsUtil.getIntervalName(observation.interval),
-            qcTestLog: qcTestLogMetadata,
+            qcTestsFailed: qcTestLogMetadata,
           }
           return entry;
 
@@ -212,12 +205,18 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
         this.useUnstackedViewer = !this.useUnstackedViewer;
         break;
       case 'Confirm All':
-        this.observationsEntries.forEach(item => { item.confirmAsCorrect = true; });
-        this.onUserInput();
+        for (const entry of this.observationsEntries) {
+          entry.confirmAsCorrect = true;
+          entry.delete = false;
+        }
+        this.numOfChanges = this.observationsEntries.length;
         break;
       case 'Delete All':
-        this.observationsEntries.forEach(item => { item.delete = true; });
-        this.onUserInput();
+        for (const entry of this.observationsEntries) {
+          entry.confirmAsCorrect = false;
+          entry.delete = true;
+        }
+        this.numOfChanges = this.observationsEntries.length;
         break;
       default:
         throw new Error("Developer error. Option not supported");
@@ -226,139 +225,113 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   protected onUserInput() {
     this.numOfChanges = 0;
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.confirmAsCorrect || obsEntry.delete || obsEntry.obsDef.observationChanged) {
+    for (const entry of this.observationsEntries) {
+      if (entry.delete || entry.confirmAsCorrect || entry.change === 'valid_change' || entry.change === 'invalid_change')
         this.numOfChanges++;
-      }
     }
+  }
+
+  protected onUserDeleteClick(observationEntry: ObservationEntry) {
+    observationEntry.delete = !observationEntry.delete;
+    this.onUserInput();
+  }
+
+  protected onUserConfirmAsCorrectClick(observationEntry: ObservationEntry) {
+    observationEntry.delete = !observationEntry.delete;
+    this.onUserInput();
   }
 
   protected onSave(): void {
-    this.deleteObservations();
-    this.updatedObservations();
-  }
-
-  private deleteObservations(): void {
-    // Create required observation dtos 
     const deletedObs: DeleteObservationModel[] = [];
+    const changedObs: CreateObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
       if (obsEntry.delete) {
-        const obsModel = obsEntry.obsDef.observation;
         deletedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval
-        })
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval
+        });
+      } else if (obsEntry.change === 'valid_change' || obsEntry.confirmAsCorrect) {
+        changedObs.push({
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval,
+          value: obsEntry.observation.value,
+          flag: obsEntry.observation.flag,
+          comment: obsEntry.observation.comment
+        });
+      } else if (obsEntry.change === 'invalid_change') {
+        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observations detected', type: ToastEventTypeEnum.ERROR });
+        return;
       }
     }
 
-
-    if (deletedObs.length === 0) {
-      return;
+    if (deletedObs.length > 0) {
+      // Requery data only if there are no observation changes. This prevents mutliple requerying.
+      this.deleteObservations(deletedObs, changedObs);
+    } else if (changedObs.length > 0) {
+      this.updatedObservations(changedObs);
     }
+  }
 
+  private deleteObservations(deletedObs: DeleteObservationModel[], changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.softDelete(deletedObs).subscribe({
-      next: data => {
+      next: () => {
         this.enableSaveButton = true;
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'QC Assessment', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
-          });
+        this.pagesDataService.showToast({
+          title: 'QC Assessment', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} deleted`, type: ToastEventTypeEnum.SUCCESS
+        });
 
-          this.queryData();
+        if (changedObs.length > 0) {
+          this.updatedObservations(changedObs);
         } else {
-          this.pagesDataService.showToast({
-            title: 'QC Assessment', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT deleted`, type: ToastEventTypeEnum.ERROR
-          });
+          this.queryData();
         }
       },
       error: err => {
         this.enableSaveButton = true;
-        // Important to log the error for tracing purposes
-        console.log('error logged: ', err);
-        this.pagesDataService.showToast({ title: 'QC Assessment', message: err, type: ToastEventTypeEnum.ERROR });
+        this.handleError(err);
       },
     });
   }
 
-  private updatedObservations(): void {
-    // Create required observation dtos 
-    const changedObs: CreateObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      // Get observation entries that have not been deleted  or whose value has been changed or confirmed as correct
-      if (!obsEntry.delete && (obsEntry.confirmAsCorrect || obsEntry.obsDef.observationChanged)) {
-        const obsModel = obsEntry.obsDef.observation;
-        changedObs.push({
-          stationId: obsModel.stationId,
-          elementId: obsModel.elementId,
-          sourceId: obsModel.sourceId,
-          level: obsModel.level,
-          datetime: obsModel.datetime,
-          interval: obsModel.interval,
-          value: obsModel.value,
-          flag: obsModel.flag,
-          comment: obsModel.comment
-        })
-      }
-    }
-
-
-    if (changedObs.length === 0) {
-      return;
-    }
-
+  private updatedObservations(changedObs: CreateObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.bulkPutDataFromQCAssessment(changedObs).subscribe({
-      next: response => {
+      next: () => {
+        this.enableSaveButton = true;
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
-        if (response.message === 'success') {
-          this.pagesDataService.showToast({
-            title: 'QC Assessment', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-
-          this.queryData();
-        } else {
-          this.pagesDataService.showToast({
-            title: 'QC Assessment', message: `Something wrong happened. ${obsMessage} NOT saved`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-
+        this.pagesDataService.showToast({ title: 'QC Assessment', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS });
+        this.queryData();
       },
       error: err => {
         this.enableSaveButton = true;
-        // Important to log the error for tracing purposes
-        console.log('error logged: ', err);
-
-        if (err instanceof HttpErrorResponse) {
-          if (err.status === 0) {
-            // If there is network error then save observations as unsynchronised and no need to send data to server
-            this.pagesDataService.showToast({
-              title: 'QC Assessment', message: `Application is offline`, type: ToastEventTypeEnum.WARNING
-            });
-          } else if (err.status === 400) {
-            // If there is a bad request error then show the server message
-            this.pagesDataService.showToast({
-              title: 'QC Assessment', message: `Invalid data. ${err.error.message}`, type: ToastEventTypeEnum.ERROR
-            });
-          } else {
-            this.pagesDataService.showToast({
-              title: 'QC Assessment', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
-            });
-          }
-        } else {
-          this.pagesDataService.showToast({
-            title: 'QC Assessment', message: `Unknown server error. Contact admin.`, type: ToastEventTypeEnum.ERROR
-          });
-        }
-
+        this.handleError(err);
       },
     });
+  }
+
+  private handleError(err: HttpErrorResponse): void {
+    if (AppAuthInterceptor.isKnownNetworkError(err)) {
+      // If there is network error then save observations as unsynchronised and no need to send data to server
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: `Application is offline`, type: ToastEventTypeEnum.WARNING });
+    } else if (err.status === 400) {
+      // If there is a bad request error then show the server message
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR });
+    } else {
+      // Log the error for tracing purposes
+      console.log('data entry error: ', err);
+      this.pagesDataService.showToast({ title: 'QC Assessment', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
+    }
   }
 
   protected getRowNumber(currentRowIndex: number): number {

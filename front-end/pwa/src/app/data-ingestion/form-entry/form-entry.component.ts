@@ -10,8 +10,7 @@ import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-s
 import { SameInputStruct } from './assign-same-input/assign-same-input.component';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
-import { ObservationDefinition } from './defintitions/observation.definition';
-import { LnearLayoutComponent } from './linear-layout/linear-layout.component';
+import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 import { ObservationsService } from '../services/observations.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
@@ -26,6 +25,8 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
 import { ViewObservationQueryModel } from '../models/view-observation-query.model';
 import { ViewObservationModel } from '../models/view-observation.model';
+import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
 @Component({
   selector: 'app-form-entry',
@@ -33,7 +34,7 @@ import { ViewObservationModel } from '../models/view-observation.model';
   styleUrls: ['./form-entry.component.scss']
 })
 export class FormEntryComponent implements OnInit, OnDestroy {
-  @ViewChild('appLinearLayout') linearLayoutComponent!: LnearLayoutComponent;
+  @ViewChild('appLinearLayout') linearLayoutComponent!: LinearLayoutComponent;
   @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent;
   @ViewChild('saveButton') saveButton!: ElementRef;
 
@@ -51,8 +52,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   private totalIsValid!: boolean;
 
   protected refreshLayout: boolean = false;
-
-  protected changedObsDefs: ObservationDefinition[] = [];
 
   protected openSameInputDialog: boolean = false;
   protected openUserFormSettingsDialog: boolean = false;
@@ -83,7 +82,10 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    */
   protected displayHourSelector: boolean = false;
 
+  // Key is `elementId-datetime`
   protected duplicateObservations: Map<string, ViewObservationModel> = new Map<string, ViewObservationModel>();
+
+  protected observationEntries: ObservationEntry[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -178,14 +180,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // Reset controls
     this.totalIsValid = false;
     this.refreshLayout = false;
-    this.changedObsDefs = [];
+    this.observationEntries = [];
     this.duplicateObservations = new Map<string, ViewObservationModel>();
 
     const entryFormObsQuery: EntryFormObservationQueryModel = this.formDefinitions.createObservationQuery();
     this.observationService.findEntryFormData(entryFormObsQuery).pipe(
       take(1),
     ).subscribe(data => {
-      this.formDefinitions.createEntryObsDefs(data);
+      this.observationEntries = this.formDefinitions.createEntryObsDefs(data);
       this.refreshLayout = true;
       // Set firts value flag to have focus ready for rapid data entry
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
@@ -218,13 +220,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       const newDuplicateObservations = new Map<string, ViewObservationModel>();
       for (const observation of observations) {
         if (observation.sourceId !== entryFormObsQuery.sourceId) {
-            // Add utc because it needs to be displayed based on display utc offset
+          // Add utc because it needs to be displayed based on display utc offset
           observation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(observation.datetime, this.source.utcOffset, 'add');
-          
+
           newDuplicateObservations.set(`${observation.elementId}-${observation.datetime}`, observation);
         }
       }
- 
+
       // Only set the duplicates array when there are duplicates. This makes angular detection to only be raised when there are dplicates
       if (newDuplicateObservations.size > 0) {
         this.duplicateObservations = newDuplicateObservations;
@@ -330,14 +332,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
    * @param input 
    */
   protected onAssignSameValue(input: SameInputStruct): void {
-    for (const obsDef of this.formDefinitions.allObsDefs) {
-      // Check if value flag is empty
-      if (StringUtils.isNullOrEmpty(obsDef.getvalueFlagForDisplay())) {
-        // Set the new the value flag input
-        obsDef.updateValueFlagFromUserInput(input.valueFlag, input.comment); 
-      }
-    }
-
     if (this.linearLayoutComponent) {
       this.linearLayoutComponent.sameInput(input.valueFlag, input.comment);
     }
@@ -345,7 +339,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     if (this.gridLayoutComponent) {
       this.gridLayoutComponent.sameInput(input.valueFlag, input.comment);
     }
-
   }
 
   /**
@@ -369,27 +362,52 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
     }
-    //console.log('save clicked');
-    // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
-    const savableObservations: CreateObservationModel[] | null = this.checkValidityAndGetChanges();
-    //console.log('saving: ',  newObservations)
-    if (savableObservations === null) return;
 
-    for (const observation of savableObservations) {
-      // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
-      // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(observation.datetime, this.source.utcOffset, 'subtract');
+    // Set total as valid, because everything has been cleared
+    if (this.formDefinitions.formMetadata.requireTotalInput && !this.totalIsValid) {
+      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR });
+      return;
     }
-    const obsMessage: string = 'observation' + (savableObservations.length === 1 ? '' : 's');
+
+    const createObservations: CreateObservationModel[] = [];
+    for (const obsEntry of this.observationEntries) {
+      if (obsEntry.change === 'valid_change') {
+        createObservations.push({
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+
+          // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+          // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+          datetime: DateUtils.getDatetimesBasedOnUTCOffset(obsEntry.observation.datetime, this.source.utcOffset, 'subtract'),
+
+          interval: obsEntry.observation.interval,
+          value: obsEntry.observation.value,
+          flag: obsEntry.observation.flag,
+          comment: obsEntry.observation.comment,
+        });
+      } else if (obsEntry.change === 'invalid_change') {
+        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observations detected', type: ToastEventTypeEnum.ERROR });
+        return;
+      }
+    }
+
+    if (createObservations.length === 0) {
+      this.pagesDataService.showToast({ title: 'Observations', message: 'No changes made', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+    const obsMessage: string = `observation${createObservations.length === 1 ? '' : 's'}`;
 
     // Send to server for saving 
-    this.observationService.bulkPutDataFromEntryForm(savableObservations).pipe(
+    this.observationService.bulkPutDataFromEntryForm(createObservations).pipe(
       take(1)
     ).subscribe({
       next: () => {
         this.pagesDataService.showToast({
           title: 'Data Entry',
-          message: `${savableObservations.length} ${obsMessage} saved successfully`,
+          message: `${createObservations.length} ${obsMessage} saved successfully`,
           type: ToastEventTypeEnum.SUCCESS
         });
 
@@ -405,7 +423,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         if (AppAuthInterceptor.isKnownNetworkError(err)) {
           // If there is network error then save observations as unsynchronised and no need to send data to server
           this.pagesDataService.showToast({
-            title: 'Data Entry', message: `${savableObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
+            title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
           });
         } else if (err.status === 400) {
           // If there is a bad request error then show the server message
@@ -423,76 +441,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
     );
 
-  }
-
-  /**
-   * Determine the ability to save based on whether there are changes and all observation changes are valid
-   * @returns 
-   */
-  private checkValidityAndGetChanges(): CreateObservationModel[] | null {
-    if (!this.formDefinitions) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `Form parameters not set`, type: ToastEventTypeEnum.ERROR });
-      return null;
-    }
-
-    // Set total as valid, because everything has been cleared
-    if (this.formDefinitions.formMetadata.requireTotalInput && !this.totalIsValid) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR });
-      return null;
-    }
-
-    const newObservations: CreateObservationModel[] = [];
-
-    // CODE BLOCK THAT HAS THE BUG THAT ENFORCED USING EXPLICIT EVENT COMMUNICATION
-    //----------------------------------------
-    // for (const obsDef of this.formDefinitions.allObsDefs) {
-    //   // Check for change validity
-    //   if (!obsDef.observationChangeIsValid) {
-    //     this.pagesDataService.showToast({ title: 'Observations', message: `Invalid value detected`, type: ToastEventTypeEnum.ERROR });
-    //     return null;
-    //   }
-
-    //   //SERIOUS BUG THAT INVOLVES OBJECTS SOMEHOW NOT BEING PASSED BY REFERENCE. SOMETIMES IT DOESN'T HAPPEN
-    //   //----------------------------------------
-    //   // Get observations that have changes and have either value or flag, that is, ignore blanks or unchanged values.
-    //   if (obsDef.observationChanged && (obsDef.observation.value !== null || obsDef.observation.flag !== null)) {
-    //     newObservations.push(obsDef.observation);
-    //   }
-
-    // }
-    //----------------------------------------
-
-    for (const obsDef of this.changedObsDefs) {
-      // Check for change validity
-      if (!obsDef.observationChangeIsValid) {
-        this.pagesDataService.showToast({ title: 'Observations', message: `Invalid value detected`, type: ToastEventTypeEnum.ERROR });
-        return null;
-      }
-
-      // Get observations that have either value or flag, that is, ignore blanks
-      if (obsDef.observation.value !== null || obsDef.observation.flag !== null) {
-        newObservations.push({
-          stationId: obsDef.observation.stationId,
-          elementId: obsDef.observation.elementId,
-          sourceId: obsDef.observation.sourceId,
-          level: obsDef.observation.level,
-          datetime: obsDef.observation.datetime,
-          interval: obsDef.observation.interval,
-          value: obsDef.observation.value,
-          flag: obsDef.observation.flag,
-          comment: obsDef.observation.comment,
-        });
-      }
-
-    }
-
-    if (newObservations.length === 0) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `No changes made`, type: ToastEventTypeEnum.ERROR });
-      return null;
-    }
-
-
-    return newObservations;
   }
 
   private sequenceToNextDate(): void {
@@ -572,28 +520,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
-  // Important note, this explicit event communication between components was adopted because inconsistent behavior was observed 
-  // when using mutable updates to nested objects, in this case the observation object that is part of the obdervation definition object, 
-  // this likely stems from Angular's reliance on object references for change detection.
-  protected onUserInputVF(obsDef: ObservationDefinition) {
-    const obsDefIndex: number = this.changedObsDefs.findIndex(item => item === obsDef);
-    if (obsDefIndex > -1) {
-      this.changedObsDefs.splice(obsDefIndex, 1);
-    }
-
-    // Ignore unchanged values
-    if (obsDef.observationChanged) {
-      this.changedObsDefs.push(obsDef);
-    }
+  protected onUserInputVF(observationEntry: ObservationEntry) {
+    // TODO
   }
 
   protected onFocusSaveButton(): void {
     // Focusing the save button immediately has a bug of raising a click event immediately thus saving the contents even though its just a focus
     // This timeout is hacky way of solving the problem. 
-    // TODO investigate why the above happens
-    //console.log('save before focus');
-    // this.saveButton.nativeElement.focus();
-    //console.log('save after focus');
+    // TODO investigate why the above happens 
     setTimeout(() => {
       this.saveButton.nativeElement.focus();
     }, 0);

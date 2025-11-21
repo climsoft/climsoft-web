@@ -1,20 +1,21 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { FormEntryDefinition } from '../defintitions/form-entry.definition';
-import { FieldEntryDefinition } from '../defintitions/field.definition';
-import { ObservationDefinition } from '../defintitions/observation.definition';
+import { FieldEntryDefinition } from '../defintitions/field.definition'; 
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewObservationModel } from '../../models/view-observation.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
 @Component({
   selector: 'app-linear-layout',
   templateUrl: './linear-layout.component.html',
   styleUrls: ['./linear-layout.component.scss']
 })
-export class LnearLayoutComponent implements OnChanges, OnDestroy {
+export class LinearLayoutComponent implements OnChanges, OnDestroy {
   @ViewChildren(ValueFlagInputComponent) vfComponents!: QueryList<ValueFlagInputComponent>;
   @ViewChild('appTotal') totalComponent!: NumberInputComponent;
 
@@ -29,7 +30,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
   @Output() public focusSaveButton = new EventEmitter<void>();
 
   /** Emitted when observation value is changed */
-  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
+  @Output() public userInputVF = new EventEmitter<ObservationEntry>();
 
   /** Emitted when observation value or total value is changed */
   @Output() public totalIsValid = new EventEmitter<boolean>();
@@ -41,7 +42,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
   protected fieldDefinitionsChunks!: FieldEntryDefinition[][];
 
   /** Holds all the observation definitions used  by created value flag components */
-  protected observationsDefinitions!: ObservationDefinition[];
+  protected observationsDefinitions!: ObservationEntry[];
 
   /** Holds the error message for total validation. Used by the total component */
   protected totalErrorMessage!: string;
@@ -52,7 +53,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private viewPortService: ViewportService) {
+  constructor(private viewPortService: ViewportService, private cachedMetadataService: CachedMetadataService) {
     this.viewPortService.viewPortSize.pipe(
       takeUntil(this.destroy$),
     ).subscribe((viewPortSize) => {
@@ -102,7 +103,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
   * @param fieldDef 
   * @returns 
   */
-  protected getObservationDefByFieldDef(fieldDef: FieldEntryDefinition): ObservationDefinition {
+  protected getObservationDefByFieldDef(fieldDef: FieldEntryDefinition): ObservationEntry {
     const index = this.fieldDefinitions.findIndex(item => item === fieldDef);
     return this.observationsDefinitions[index];
   }
@@ -112,7 +113,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
    * @param fieldDef 
    * @returns 
    */
-  protected getObservationDefByIndex(index: number): ObservationDefinition {
+  protected getObservationDefByIndex(index: number): ObservationEntry {
     return this.observationsDefinitions[index];
   }
 
@@ -120,7 +121,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
    * Handles observation value changes
    * Clears any total error message  
    */
-  protected onUserInputVF(observationDef: ObservationDefinition): void {
+  protected onUserInputVF(observationDef: ObservationEntry): void {
     this.userInputVF.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
@@ -135,7 +136,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
    * @param value 
    */
   protected onTotalValueChange(value: number | null): void {
-    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(this.observationsDefinitions);
+    const expectedTotal = FormEntryDefinition.getTotalValuesOfObs(this.observationsDefinitions, this.cachedMetadataService);
     this.totalErrorMessage = '';
 
     if (expectedTotal !== value) {
