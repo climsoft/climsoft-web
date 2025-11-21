@@ -1,11 +1,12 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, ViewChildren, QueryList, AfterViewInit } from '@angular/core';
 import { FormEntryDefinition } from '../defintitions/form-entry.definition';
-import { FieldEntryDefinition } from '../defintitions/field.definition';
-import { ObservationDefinition } from '../defintitions/observation.definition';
+import { FieldEntryDefinition } from '../defintitions/field.definition'; 
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
 import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { ViewObservationModel } from '../../models/view-observation.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
 @Component({
   selector: 'app-grid-layout',
@@ -26,7 +27,7 @@ export class GridLayoutComponent implements OnChanges {
   @Input() public refreshLayout!: boolean;
 
   /** Emitted when observation value is changed */
-  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
+  @Output() public userInputVF = new EventEmitter<ObservationEntry>();
 
   /** Emitted when observation value or total value is changed */
   @Output() public totalIsValid = new EventEmitter<boolean>();
@@ -40,14 +41,14 @@ export class GridLayoutComponent implements OnChanges {
   protected colFieldDefinitions!: FieldEntryDefinition[];
 
   /** Holds all the observation definitions used  by created value flag components */
-  protected observationsDefinitions!: ObservationDefinition[][];
+  protected observationsDefinitions!: ObservationEntry[][];
 
   /** Holds the error message for total validation. Used by the total components of each column */
   protected totalErrorMessage!: string[];
 
   protected layoutHeight: number = 60;
 
-  constructor() { }
+  constructor(private cachedMetadataService: CachedMetadataService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["refreshLayout"] && this.refreshLayout) {
@@ -79,7 +80,7 @@ export class GridLayoutComponent implements OnChanges {
    * @param colIndex 
    * @returns 
    */
-  protected getObservationDef(rowIndex: number, colIndex: number): ObservationDefinition {
+  protected getObservationDef(rowIndex: number, colIndex: number): ObservationEntry {
     return this.observationsDefinitions[rowIndex][colIndex];
   }
 
@@ -87,7 +88,7 @@ export class GridLayoutComponent implements OnChanges {
   * Handles observation value changes
   * Clears any total error message  
   */
-  protected onUserInputVF(observationDef: ObservationDefinition, colIndex: number): void {
+  protected onUserInputVF(observationDef: ObservationEntry, colIndex: number): void {
     this.userInputVF.emit(observationDef);
 
     // Only emit total validity if the definition metadata requires it
@@ -104,13 +105,13 @@ export class GridLayoutComponent implements OnChanges {
    */
   protected onTotalValueChange(colIndex: number, value: number | null): void {
     // Get all observation in the column
-    const colObservations: ObservationDefinition[] = [];
+    const colObservations: ObservationEntry[] = [];
     for (let rowIndex = 0; rowIndex < this.rowFieldDefinitions.length; rowIndex++) {
       colObservations.push(this.observationsDefinitions[rowIndex][colIndex]);
     }
 
     // Get their total as the expected
-    const expectedTotal: number | null = FormEntryDefinition.getTotalValuesOfObs(colObservations);
+    const expectedTotal: number | null = FormEntryDefinition.getTotalValuesOfObs(colObservations,this.cachedMetadataService);
 
     // Clear previous error message of the column total
     this.totalErrorMessage[colIndex] = '';

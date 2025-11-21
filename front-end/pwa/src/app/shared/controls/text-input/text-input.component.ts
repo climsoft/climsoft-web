@@ -30,10 +30,10 @@ export class TextInputComponent {
   @Input() public disabled: boolean = false;
   @Input() public readonly: boolean = false;
   @Input() public showChanges: boolean = false;
-  @Input() public hintMessage: string | null | undefined; // TODO. Null not needed
-  @Input() public errorMessage: string | null | undefined; // TODO. Null not needed
-  @Input() public warningMessage: string | undefined;
-  @Input() public value: string | number | null | undefined = '';
+  @Input() public hintMessage!: string;
+  @Input() public errorMessage!: string;
+  @Input() public warningMessage!: string;
+  @Input() public value!: string | number | null | undefined;
   @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();
@@ -58,7 +58,7 @@ export class TextInputComponent {
 
   protected onValueChange(value: string): void {
     this.value = value;
-    this.valueChange.emit(value);
+    this.valueChange.emit(this.value);
   }
 
   protected onInputClick(): void {

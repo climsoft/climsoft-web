@@ -2,13 +2,14 @@ import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templat
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ObservationDefinition } from "./observation.definition";
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
 import { ViewObservationModel } from "../../models/view-observation.model";
 import { QCStatusEnum } from "../../models/qc-status.enum";
+import { NumberUtils } from "src/app/shared/utils/number.utils";
+import { ObservationEntry } from "src/app/observations/models/observation-entry.model";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
@@ -33,9 +34,9 @@ export class FormEntryDefinition {
     /** value of the hour selector */
     public hourSelectorValue: number | null;
 
-    private _allObsDefs: ObservationDefinition[] = [];
-    private _obsDefsForLinearLayout: ObservationDefinition[] = [];
-    private _obsDefsForGridLayout: ObservationDefinition[][] = [];
+    private _allObsDefs: ObservationEntry[] = [];
+    private _obsDefsForLinearLayout: ObservationEntry[] = [];
+    private _obsDefsForGridLayout: ObservationEntry[][] = [];
 
 
 
@@ -73,15 +74,15 @@ export class FormEntryDefinition {
 
     }
 
-    public get allObsDefs(): ObservationDefinition[] {
+    public get allObsDefs(): ObservationEntry[] {
         return this._allObsDefs;
     }
 
-    public get obsDefsForLinearLayout(): ObservationDefinition[] {
+    public get obsDefsForLinearLayout(): ObservationEntry[] {
         return this._obsDefsForLinearLayout;
     }
 
-    public get obsDefsForGridLayout(): ObservationDefinition[][] {
+    public get obsDefsForGridLayout(): ObservationEntry[][] {
         return this._obsDefsForGridLayout;
     }
 
@@ -126,7 +127,7 @@ export class FormEntryDefinition {
 
 
 
-    public createEntryObsDefs(dbObservations: ViewObservationModel[]): void {
+    public createEntryObsDefs(dbObservations: ViewObservationModel[]): ObservationEntry[] {
         for (const dbObservation of dbObservations) {
             // Add because it needs to be displayed based on display utc offset
             dbObservation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(dbObservation.datetime, this.source.utcOffset, 'add');
@@ -144,6 +145,7 @@ export class FormEntryDefinition {
             default:
                 throw new Error("Developer error. Layout not supported");
         }
+        return this.allObsDefs;
     }
 
 
@@ -153,8 +155,8 @@ export class FormEntryDefinition {
      * @param dbObservations 
      * @returns the observations that will be used by the value flag controls in a linear layout
      */
-    private getEntryObsForLinearLayout(dbObservations: ViewObservationModel[]): ObservationDefinition[] {
-        const obsDefinitions: ObservationDefinition[] = [];
+    private getEntryObsForLinearLayout(dbObservations: ViewObservationModel[]): ObservationEntry[] {
+        const obsDefinitions: ObservationEntry[] = [];
         const entryField: FieldType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
 
@@ -187,7 +189,21 @@ export class FormEntryDefinition {
             //Find the equivalent observation from the database. 
             //If it exists use it to create the observation definition
             const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
-            obsDefinitions.push(this.createNewObsDefinition(dbObs ? dbObs : newObs));
+
+            obsDefinitions.push({
+                observation: dbObs ? dbObs : newObs,
+                confirmAsCorrect: false,
+                delete: false,
+                change: 'no_change',
+                hardDelete: false,
+                restore: false,
+                stationName: '',
+                elementAbbrv: '',
+                sourceName: '',
+                formattedDatetime: '',
+                intervalName: '',
+                qcTestsFailed: [],
+            });
         }
 
         return obsDefinitions;
@@ -197,13 +213,13 @@ export class FormEntryDefinition {
      * Used by grid layout.
      * @returns observations that will be used by the value flag controls in a grid layout.
      */
-    private getEntryObsForGridLayout(dbObservations: ViewObservationModel[]): ObservationDefinition[][] {
+    private getEntryObsForGridLayout(dbObservations: ViewObservationModel[]): ObservationEntry[][] {
 
         if (this.formMetadata.fields.length < 2 || !this.formMetadata.fields[1]) {
             throw new Error("Developer error: number of entry fields not supported.");
         }
 
-        const obsDefinitions: ObservationDefinition[][] = [];
+        const obsDefinitions: ObservationEntry[][] = [];
         const rowEntryField: FieldType = this.formMetadata.fields[0];
         const colEntryField: FieldType = this.formMetadata.fields[1];
 
@@ -213,7 +229,7 @@ export class FormEntryDefinition {
         for (const rowFieldDef of rowEntryfieldDefs) {
 
             // Array to hold the observations in a row
-            const subArrEntryObservations: ObservationDefinition[] = [];
+            const subArrEntryObservations: ObservationEntry[] = [];
 
             for (const colFieldDef of colEntryfieldDefs) {
                 const newObs: ViewObservationModel = this.createEmptyObservation();
@@ -251,7 +267,14 @@ export class FormEntryDefinition {
                 //Find the equivalent observation from the database. 
                 //If it exists use it to create the observation definition
                 const dbObs: ViewObservationModel | null = this.findEquivalentDBObservation(newObs, dbObservations);
-                subArrEntryObservations.push(this.createNewObsDefinition(dbObs ? dbObs : newObs));
+                subArrEntryObservations.push({
+                    observation: dbObs ? dbObs : newObs,
+                    confirmAsCorrect: false,
+                    delete: false,
+                    change: 'no_change',
+                    hardDelete: false,
+                    restore: false, 
+                });
             }
 
             obsDefinitions.push(subArrEntryObservations);
@@ -325,14 +348,6 @@ export class FormEntryDefinition {
         return `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(day)}T${StringUtils.addLeadingZero(hour)}:00:00.000Z`;
     }
 
-    /**
-     * Creates a new observation definition from the observation model and the element metadata
-     * @param observation 
-     * @returns 
-     */
-    private createNewObsDefinition(observation: ViewObservationModel): ObservationDefinition {
-        return new ObservationDefinition(this.cachedMetadataSearchService, observation, true);
-    }
 
     private findEquivalentDBObservation(newObs: ViewObservationModel, dbObservations: ViewObservationModel[]): ViewObservationModel | null {
         for (const dbObservation of dbObservations) {
@@ -350,20 +365,29 @@ export class FormEntryDefinition {
         return null;
     }
 
-    public static getTotalValuesOfObs(obsDefs: ObservationDefinition[]): number | null {
+    public static getTotalValuesOfObs(obsDefs: ObservationEntry[], cachedMetadataService: CachedMetadataService): number | null {
         let total = 0;
         let allAreNull: boolean = true;
 
         for (const obsDef of obsDefs) {
-            const unScaledValue = obsDef.getUnScaledValue(obsDef.observation.value)
-            if (unScaledValue !== null) {
-                total = total + unScaledValue;
-                allAreNull = false;
+            if (obsDef.observation.value === null) {
+                continue;
             }
+
+            const unScaledValue = FormEntryDefinition.getUnScaledValue(obsDef.observation.elementId, obsDef.observation.value, cachedMetadataService);
+            total = total + unScaledValue;
+            allAreNull = false;
         }
 
         return allAreNull ? null : total;
 
     }
+
+    public static getUnScaledValue(elementId: number, value: number, cachedMetadataService: CachedMetadataService): number {
+        // To remove rounding errors use number utils round off
+        const element = cachedMetadataService.getElement(elementId);
+        return value && element.entryScaleFactor ? NumberUtils.roundOff(value * element.entryScaleFactor, 4) : value;
+    }
+
 
 }

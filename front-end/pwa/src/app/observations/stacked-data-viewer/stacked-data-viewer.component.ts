@@ -9,15 +9,12 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
   styleUrls: ['./stacked-data-viewer.component.scss']
 })
 export class StackedDataViewerComponent implements OnChanges {
-  @Input()
-  public pageInputDefinition!: PagingParameters;
+  @Input() public pageInputDefinition!: PagingParameters;
 
-  @Input()
-  public observationsEntries!: ObservationEntry[];
+  @Input() public observationsEntries!: ObservationEntry[];
 
-  @Output()
-  public valueChange: EventEmitter<void> = new EventEmitter<void>;
- 
+  @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>; 
+
   protected allBoundariesIndices: number[] = [];
 
   constructor() {
@@ -34,19 +31,24 @@ export class StackedDataViewerComponent implements OnChanges {
   }
 
   protected getObservation(elementCol: string, observations: ObservationEntry[]) {
-    return observations.find(item => `${item.obsDef.observation.elementId} - ${item.elementAbbrv}` === elementCol);
+    return observations.find(item => `${item.observation.elementId} - ${item.elementAbbrv}` === elementCol);
   }
 
-  protected onUserInput() {
-    this.valueChange.emit();
+  protected onUserInput(observationEntry: ObservationEntry) {
+    this.valueChange.emit(observationEntry);
+  }
+
+   protected onUserDeleteClick(observationEntry: ObservationEntry) {
+    observationEntry.delete = !observationEntry.delete;
+    this.onUserInput(observationEntry);
   }
 
   protected setRowBoundaryLineSettings(observationsEntries: ObservationEntry[]): void {
-     this.allBoundariesIndices = [];
+    this.allBoundariesIndices = [];
     const obsIdentifierMap = new Map<string, number>();
 
     for (let i = 0; i < observationsEntries.length; i++) {
-      const obs = observationsEntries[i].obsDef.observation;
+      const obs = observationsEntries[i].observation;
       const obsIdentifier = `${obs.stationId}-${obs.elementId}-${obs.level}-${obs.interval}-${obs.datetime}`;
       // Update the map with the latest index for each unique identifier
       obsIdentifierMap.set(obsIdentifier, i);

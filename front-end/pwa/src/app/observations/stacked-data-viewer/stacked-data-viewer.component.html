@@ -19,25 +19,25 @@
             <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
                 [class.group-row-border]="includeLowerBoundaryLine(i)">
                 <td>{{ getRowNumber(i) }}</td>
-                <td>{{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
-                <td>{{ obsEntry.obsDef.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
-                <td>{{ obsEntry.obsDef.observation.level }}</td>
+                <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
+                <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
+                <td>{{ obsEntry.observation.level }}</td>
                 <td>{{ obsEntry.formattedDatetime }}</td>
                 <td>{{ obsEntry.intervalName }}</td>
                 <td>{{ obsEntry.sourceName }}</td>
                 <td>
                     <div class="app-value-flag-container">
-                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
-                            [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="obsEntry.delete"
-                            (userInputVF)="onUserInput()" />
+                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true" [scaleValue]="false"
+                            [observationEntry]="obsEntry" [disableValueFlagEntry]="obsEntry.delete"
+                            (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>
-                <td>{{ obsEntry.obsDef.comment }}</td>
-                <td>{{ obsEntry.obsDef.observation.qcStatus }}</td>
+                <td>{{ obsEntry.observation.comment }}</td>
+                <td>{{ obsEntry.observation.qcStatus }}</td>
                 <td>
-                    <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
-                        [disabled]="obsEntry.obsDef.observationChanged" (valueChange)="onUserInput()" />
-                </td> 
+                    <app-check-box-input [id]="i + '_delete'" [value]="obsEntry.delete"
+                        (valueChange)="onUserDeleteClick(obsEntry)" />
+                </td>
             </tr>
         </tbody>
     </table>

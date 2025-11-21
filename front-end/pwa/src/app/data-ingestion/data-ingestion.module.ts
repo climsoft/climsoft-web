@@ -5,7 +5,7 @@ import { StationFormSelectionComponent } from './station-form-selection/station-
 import { FormEntryComponent } from './form-entry/form-entry.component';
 import { UserFormSettingsComponent } from './form-entry/user-form-settings/user-form-settings.component';
 import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
-import { LnearLayoutComponent } from './form-entry/linear-layout/linear-layout.component'; 
+import { LinearLayoutComponent } from './form-entry/linear-layout/linear-layout.component'; 
 import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
@@ -24,7 +24,7 @@ import { ObservationsModule } from '../observations/observations.module';
     FormEntryComponent,
     UserFormSettingsComponent,
     GridLayoutComponent,
-    LnearLayoutComponent, 
+    LinearLayoutComponent, 
     AssignSameInputComponent, 
     ImportSelectionComponent,
     DataCorrectionComponent,   
