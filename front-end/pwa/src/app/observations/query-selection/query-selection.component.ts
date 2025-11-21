@@ -106,7 +106,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
       if (!user) {
         this.queryAllowed = false;
         this.queryAllowedChange.emit(this.queryAllowed);
-        throw new Error('User not logged in');
+        return;
       }
 
       this.queryAllowed = true;

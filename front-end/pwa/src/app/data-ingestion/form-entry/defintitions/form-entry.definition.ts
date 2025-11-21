@@ -1,15 +1,11 @@
 import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils";
 import { FieldEntryDefinition } from "./field.definition";
-import { CreateObservationModel } from "src/app/data-ingestion/models/create-observation.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ObservationDefinition } from "./observation.definition";
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
-import { ViewQCTestModel } from "src/app/metadata/qc-tests/models/view-qc-test.model";
-import { RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../models/entry-form-observation-query.model";
-import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
 import { ViewObservationModel } from "../../models/view-observation.model";
 import { QCStatusEnum } from "../../models/qc-status.enum";
@@ -41,17 +37,17 @@ export class FormEntryDefinition {
     private _obsDefsForLinearLayout: ObservationDefinition[] = [];
     private _obsDefsForGridLayout: ObservationDefinition[][] = [];
 
- 
+
 
     private cachedMetadataSearchService: CachedMetadataService;
 
     constructor(
-        station: StationCacheModel, 
-        source: ViewSourceModel,      
+        station: StationCacheModel,
+        source: ViewSourceModel,
         newCachedMetadataSearchService: CachedMetadataService) {
 
         this.station = station;
-        this.source = source; 
+        this.source = source;
         this.formMetadata = source.parameters as CreateEntryFormModel;
         this.cachedMetadataSearchService = newCachedMetadataSearchService;
 
@@ -66,7 +62,7 @@ export class FormEntryDefinition {
         // If one of selectors is hour, then set the current default hour to what what is equal or immediate greater hour
         this.hourSelectorValue = null;
         if (this.formMetadata.selectors.includes('HOUR')) {
-            let currentHour: number = new Date().getHours()
+            let currentHour: number = new Date().getHours();
             for (const allowedDataEntryHour of this.formMetadata.hours) {
                 this.hourSelectorValue = allowedDataEntryHour;
                 if (allowedDataEntryHour >= currentHour) {
@@ -98,25 +94,25 @@ export class FormEntryDefinition {
         //get the data based on the selection filter
         const observationQuery: EntryFormObservationQueryModel = {
             stationId: this.station.id,
-            sourceId: this.source.id,
-            level: 0,
             elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
+            level: 0,
+            interval: (this.source.parameters as CreateEntryFormModel).interval,
+            sourceId: this.source.id,
             fromDate: '',
             toDate: '',
         };
 
         const year: number = this.yearSelectorValue;
         const month: number = this.monthSelectorValue;
-        //const hours: number[] = this.hourSelectorValue === null ? this.formMetadata.hours : [this.hourSelectorValue];
 
-        // If day value is defined then just define a single data time else define all date times for the entire month
+        // If day value is defined then just define a single day range (24 hours) else define all date times for the entire month
         if (this.daySelectorValue) {
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.000Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.000Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.00Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.00Z`;
         } else {
             const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.000Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.000Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.00Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.00Z`;
         }
 
         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
@@ -314,7 +310,7 @@ export class FormEntryDefinition {
             comment: null,
             qcStatus: QCStatusEnum.NONE,
             qcTestLog: null,
-            log: null,
+            log: [],
             entryDatetime: '',
         };
     }
@@ -335,7 +331,7 @@ export class FormEntryDefinition {
      * @returns 
      */
     private createNewObsDefinition(observation: ViewObservationModel): ObservationDefinition {
-        return new ObservationDefinition( this.cachedMetadataSearchService,  observation, true);
+        return new ObservationDefinition(this.cachedMetadataSearchService, observation, true);
     }
 
     private findEquivalentDBObservation(newObs: ViewObservationModel, dbObservations: ViewObservationModel[]): ViewObservationModel | null {

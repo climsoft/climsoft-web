@@ -50,20 +50,20 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
       if (this.observationPeriod.within) {
         this.within.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.observationPeriod.within.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
         this.within.toDate = DateUtils.getDatetimesBasedOnUTCOffset(this.observationPeriod.within.toDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
-          this.selectedOption = 'Within';
+        this.selectedOption = 'Within';
       } else if (this.observationPeriod.fromDate) {
         this.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(this.observationPeriod.fromDate, this.cachedMetadataService.utcOffSet, 'add').split('T')[0];
-          this.selectedOption = 'From';
+        this.selectedOption = 'From';
       } else if (this.observationPeriod.last) {
         this.last = this.observationPeriod.last;
-          this.selectedOption = 'Last';
+        this.selectedOption = 'Last';
       }
-    }else{
+    } else {
       this.selectedOption = 'All';
     }
   }
 
-  protected changeObservationPeriod(option:'All' | 'Within' | 'From' | 'Last'): void {
+  protected changeObservationPeriod(option: 'All' | 'Within' | 'From' | 'Last'): void {
     this.selectedOption = option;
     this.observationPeriod = undefined;
     if (option === 'Within') {
@@ -118,7 +118,4 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
 
     this.changeObservationPeriod('Last');
   }
-
-
-
 }

@@ -8,7 +8,7 @@ export interface ViewObservationModel extends CreateObservationModel {
         qcTestId: number;
         qcStatus: QCStatusEnum;
     }[] | null;
-    log: ViewObservationLogModel[] | null;
+    log: ViewObservationLogModel[];
     entryDatetime: string;
 }
 

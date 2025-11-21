@@ -66,16 +66,14 @@ export class ObservationsService {
         }
     }
 
-    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<CreateObservationDto[]> {
+    public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
             stationId: queryDto.stationId,
             elementId: In(queryDto.elementIds),
+            interval: queryDto.interval,
             sourceId: queryDto.sourceId,
             level: queryDto.level,
             datetime: Between(new Date(queryDto.fromDate), new Date(queryDto.toDate)),
-            // Note, interval is commented out because of cumulative data in entry forms
-            // Once its agreed to deprecate changing of interval at form level. Then merge findFormData and findProcessed functions.
-            //interval: queryDto.interval, 
             deleted: false,
         });
 
@@ -83,7 +81,89 @@ export class ObservationsService {
     }
 
     public async findProcessed(queryDto: ViewObservationQueryDTO): Promise<ViewObservationDto[]> {
-        return this.createViewObsDtos(await this.findProcessedObsEntities(queryDto));
+        // TODO. This is a temporary check. Find out how we can do this at the dto validation level. 
+        if (!(queryDto.page && queryDto.pageSize && queryDto.pageSize <= 1000)) {
+            throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
+        }
+
+        const findOptions: FindManyOptions<ObservationEntity> = {
+            order: {
+                datetime: "ASC", // Sort by date time first
+                stationId: "ASC",
+                elementId: "ASC",
+                interval: "ASC",
+                level: "ASC",
+            },
+            where: this.getProcessedFilter(queryDto),
+            skip: (queryDto.page - 1) * queryDto.pageSize,
+            take: queryDto.pageSize
+        };
+
+        return this.createViewObsDtos(await this.observationRepo.find(findOptions));
+    }
+
+    public async count(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto);
+        return this.observationRepo.countBy(whereOptions);
+    }
+
+    private getProcessedFilter(queryDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
+        const whereOptions: FindOptionsWhere<ObservationEntity> = {};
+
+        if (queryDto.stationIds) {
+            whereOptions.stationId = queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds);
+        }
+
+        if (queryDto.elementIds) {
+            whereOptions.elementId = queryDto.elementIds.length === 1 ? queryDto.elementIds[0] : In(queryDto.elementIds);
+        }
+
+        if (queryDto.level !== undefined) {
+            whereOptions.level = queryDto.level;
+        }
+
+        if (queryDto.intervals) {
+            whereOptions.interval = queryDto.intervals.length === 1 ? queryDto.intervals[0] : In(queryDto.intervals);
+        }
+
+        if (queryDto.sourceIds) {
+            whereOptions.sourceId = queryDto.sourceIds.length === 1 ? queryDto.sourceIds[0] : In(queryDto.sourceIds);
+        }
+
+        this.setProcessedObsDateFilter(queryDto, whereOptions);
+
+        if (queryDto.qcStatus) {
+            whereOptions.qcStatus = queryDto.qcStatus;
+        }
+
+        whereOptions.deleted = queryDto.deleted;
+
+        return whereOptions;
+    }
+
+    private setProcessedObsDateFilter(selectObsevationDto: ViewObservationQueryDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
+        let dateOperator: FindOperator<Date> | null = null;
+        if (selectObsevationDto.fromDate && selectObsevationDto.toDate) {
+            if (selectObsevationDto.fromDate === selectObsevationDto.toDate) {
+                dateOperator = Equal(new Date(selectObsevationDto.fromDate));
+            } else {
+                dateOperator = Between(new Date(selectObsevationDto.fromDate), new Date(selectObsevationDto.toDate));
+            }
+
+        } else if (selectObsevationDto.fromDate) {
+            dateOperator = MoreThanOrEqual(new Date(selectObsevationDto.fromDate));
+        } else if (selectObsevationDto.toDate) {
+            dateOperator = LessThanOrEqual(new Date(selectObsevationDto.toDate));
+        }
+
+        if (dateOperator !== null) {
+            if (selectObsevationDto.useEntryDate) {
+                selectOptions.entryDateTime = dateOperator;
+            } else {
+                selectOptions.datetime = dateOperator;
+            }
+        }
+
     }
 
     private async createViewObsDtos(obsEntities: ObservationEntity[]): Promise<ViewObservationDto[]> {
@@ -146,34 +226,6 @@ export class ObservationsService {
         return viewLogDto;
     }
 
-    public async findProcessedObsEntities(queryDto: ViewObservationQueryDTO): Promise<ObservationEntity[]> {
-        // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
-        // TODO. Move this check else where so that this function can be universally applicable
-        if (!(queryDto.page && queryDto.pageSize && queryDto.pageSize <= 1000)) {
-            throw new BadRequestException("You must specify page and page size. Page size must be less than or equal to 1000")
-        }
-
-        const findOptions: FindManyOptions<ObservationEntity> = {
-            order: {
-                datetime: "ASC", // Sort by date time first
-                stationId: "ASC",
-                elementId: "ASC",
-                interval: "ASC",
-                level: "ASC",
-            },
-            where: this.getProcessedFilter(queryDto),
-            skip: (queryDto.page - 1) * queryDto.pageSize,
-            take: queryDto.pageSize
-        };
-
-        return this.observationRepo.find(findOptions);
-    }
-
-    public async count(selectObsevationDto: ViewObservationQueryDTO): Promise<number> {
-        const whereOptions: FindOptionsWhere<ObservationEntity> = this.getProcessedFilter(selectObsevationDto);
-        return this.observationRepo.countBy(whereOptions);
-    }
-
     /**
      * Counts the number of records needed to be saved to V4.
      * Important note. Maximum count is 1,000,001 to limit compute needed
@@ -184,65 +236,6 @@ export class ObservationsService {
             where: { savedToV4: false },
             take: 1000001, // Important. Limit to 1 million and 1 for performance reasons
         });
-    }
-
-    private getProcessedFilter(queryDto: ViewObservationQueryDTO): FindOptionsWhere<ObservationEntity> {
-        const whereOptions: FindOptionsWhere<ObservationEntity> = {};
-
-        if (queryDto.stationIds) {
-            whereOptions.stationId = queryDto.stationIds.length === 1 ? queryDto.stationIds[0] : In(queryDto.stationIds);
-        }
-
-        if (queryDto.elementIds) {
-            whereOptions.elementId = queryDto.elementIds.length === 1 ? queryDto.elementIds[0] : In(queryDto.elementIds);
-        }
-
-        if (queryDto.level !== undefined) {
-            whereOptions.level = queryDto.level;
-        }
-
-        if (queryDto.intervals) {
-            whereOptions.interval = queryDto.intervals.length === 1 ? queryDto.intervals[0] : In(queryDto.intervals);
-        }
-
-        if (queryDto.sourceIds) {
-            whereOptions.sourceId = queryDto.sourceIds.length === 1 ? queryDto.sourceIds[0] : In(queryDto.sourceIds);
-        }
-
-        this.setProcessedObsDateFilter(queryDto, whereOptions);
-
-        if (queryDto.qcStatus) {
-            whereOptions.qcStatus = queryDto.qcStatus;
-        }
-
-        whereOptions.deleted = queryDto.deleted;
-
-        return whereOptions;
-    }
-
-    private setProcessedObsDateFilter(selectObsevationDto: ViewObservationQueryDTO, selectOptions: FindOptionsWhere<ObservationEntity>) {
-        let dateOperator: FindOperator<Date> | null = null;
-        if (selectObsevationDto.fromDate && selectObsevationDto.toDate) {
-            if (selectObsevationDto.fromDate === selectObsevationDto.toDate) {
-                dateOperator = Equal(new Date(selectObsevationDto.fromDate));
-            } else {
-                dateOperator = Between(new Date(selectObsevationDto.fromDate), new Date(selectObsevationDto.toDate));
-            }
-
-        } else if (selectObsevationDto.fromDate) {
-            dateOperator = MoreThanOrEqual(new Date(selectObsevationDto.fromDate));
-        } else if (selectObsevationDto.toDate) {
-            dateOperator = LessThanOrEqual(new Date(selectObsevationDto.toDate));
-        }
-
-        if (dateOperator !== null) {
-            if (selectObsevationDto.useEntryDate) {
-                selectOptions.entryDateTime = dateOperator;
-            } else {
-                selectOptions.datetime = dateOperator;
-            }
-        }
-
     }
 
     /**
@@ -267,7 +260,7 @@ export class ObservationsService {
                 value: dto.value,
                 flag: dto.flag,
                 qcStatus: qcStatus,
-                comment: dto.comment,
+                comment: dto.comment ? dto.comment : null,
                 entryUserId: userId,
                 deleted: false,
                 savedToV4: ignoreV4Saving,
@@ -597,7 +590,7 @@ export class ObservationsService {
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: null,
-                log: null,
+                log: [],
                 entryDatetime: obsEntity.entryDateTime.toISOString()
             };
             obsView.push(viewObs);

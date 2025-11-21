@@ -25,7 +25,7 @@ export class ObservationDefinition {
      * Determines whether the value input will be scaled or not (using the element entry factor).
      * Also determines whether _valueFlagForDisplay will be ins scaled or unscaled format. 
      */
-    private scaleValue: boolean;
+    public scaleValue: boolean;
 
 
 
@@ -39,8 +39,7 @@ export class ObservationDefinition {
      */
     private _validationWarningMessage: string = "";
 
-    public valueFlagInput!: string;
-    public originalInterval: number;
+    public valueFlagInput!: string; 
 
 
     private cachedMetadataSearchService: CachedMetadataService;
@@ -51,36 +50,15 @@ export class ObservationDefinition {
         scaleValue: boolean,) {
         this._observation = observation;
         this.cachedMetadataSearchService = newCachedMetadataSearchService;
-        this.scaleValue = scaleValue;
-        this.originalInterval = observation.interval; // TODO. Deprecate editing of interval
+        this.scaleValue = scaleValue; 
         this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
-
-        // validate database values
-        //this.validateOriginalValue(); // TODO. Deprecate this. no need to validate database values because QC has been implemented
 
         this._existsInDatabase = observation.value !== null || observation.flag !== null;
         // set original database values for future comparison
-        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}`;
+        this._databaseValues = `${this.getvalueFlagForDisplay()}${this.comment}`;
 
     }
 
-    private validateOriginalValue(): void {
-        // Validate input format validity. If there is a response then entry is invalid
-        this._validationErrorMessage = this.checkInputFormatValidity(this.getvalueFlagForDisplay())
-        if (!StringUtils.isNullOrEmpty(this._validationErrorMessage)) {
-            return;
-        }
-
-        // If there is a value input then validate
-        if (this.observation.value !== null) {
-            this._validationWarningMessage = this.checkValueLimitsValidity(this.observation.value);
-        }
-
-        // If there is a flag input then validate. Use first letter only
-        if (this.observation.flag !== null) {
-            this._validationErrorMessage = this.checkFlagLetterValidity(this.observation.value, this.observation.flag[0]);
-        }
-    }
 
     public getvalueFlagForDisplay(): string {
         return this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);;
@@ -106,25 +84,18 @@ export class ObservationDefinition {
     }
 
     public get observationChanged(): boolean {
-        return `${this.getvalueFlagForDisplay()}${this.interval}${this.comment}` !== this._databaseValues;
+        return `${this.getvalueFlagForDisplay()}${this.comment}` !== this._databaseValues;
     }
 
     public get comment(): string | null {
         return this.observation.comment;
     }
 
-    // TODO. Deprecate editing of interval
-    public get interval(): number {
-        return this.observation.interval;
-    }
-
     public get existsInDatabase(): boolean {
         return this._existsInDatabase;
     }
 
-    public updateCommentInput(comment: string | null): void {
-        this.observation.comment = StringUtils.isNullOrEmpty(comment) ? null : comment;
-    }
+   
 
     /**
      * Checks validity of the value flag input and if valid sets it as the new value for observation value and flag.
@@ -133,7 +104,7 @@ export class ObservationDefinition {
      * @param enforceLimitCheck whether to enforce limit check or not
      * @returns empty string if value flag contents are valid, else returns the error message.
      */
-    public updateValueFlagFromUserInput(newValueFlagInput: string): void {
+    public updateValueFlagFromUserInput(newValueFlagInput: string, comment?: string): void {
         // Important, trim any white spaces (empty values will always be ignored)
         this.valueFlagInput = newValueFlagInput.trim();
         this._validationErrorMessage = "";
@@ -170,7 +141,11 @@ export class ObservationDefinition {
         // Set the value and flag to the observation model 
         this.observation.value = value;
         this.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
-        //this.valueFlagInput = this.constructValueFlagForDisplayStr(this.observation.value, this.observation.flag);
+        
+        if(comment !== undefined){
+            this.observation.comment = comment;
+        }
+    
     }
 
     private constructValueFlagForDisplayStr(value: number | null, flag: FlagEnum | null): string {
@@ -318,28 +293,7 @@ export class ObservationDefinition {
         return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
     }
 
-    public getObservationLog(): ViewObservationLogModel[] {
-        const element = this.cachedMetadataSearchService.getElement(this.observation.elementId);
-        const utcOffset = this.cachedMetadataSearchService.utcOffSet;
-        // Transform the log data accordingly
-        const viewObservationLog: ViewObservationLogModel[] = this.observation.log ? this.observation.log.map(item => {
-            const viewLog = { ...item };
-            // Display the values in scaled form 
-            if (this.scaleValue && viewLog.value && element.entryScaleFactor) {
-                // To remove rounding errors number utils round off
-                viewLog.value = this.getUnScaledValue(viewLog.value);
-            }
-
-            // Convert the entry date time to current local time
-            viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, utcOffset);
-            return viewLog;
-        }
-        ) : [];
-
-
-
-        return viewObservationLog;
-    }
+  
 
     public getQCTestLog(): ViewQCTestLog[] {
         if (!this.observation.qcTestLog) {

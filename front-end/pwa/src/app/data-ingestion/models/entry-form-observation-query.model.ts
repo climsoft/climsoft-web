@@ -1,8 +1,9 @@
 export interface EntryFormObservationQueryModel {
     stationId: string;
+    elementIds: number[];
+    interval: number;
+    level: number;
     sourceId: number;
-    level: number;  
-    elementIds: number[];    
     fromDate: string;
     toDate: string;
 }

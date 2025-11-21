@@ -3,7 +3,10 @@ import { ObservationDefinition } from '../../data-ingestion/form-entry/defintiti
 import { TextInputComponent } from 'src/app/shared/controls/text-input/text-input.component';
 import { ObservationsService } from '../../data-ingestion/services/observations.service';
 import { ViewObservationLogModel } from 'src/app/data-ingestion/models/view-observation-log.model';
-import { ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.model';
+import { ViewObservationModel, ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 /**
  * Component for data entry of observations
@@ -17,66 +20,49 @@ import { ViewQCTestLog } from 'src/app/data-ingestion/models/view-observation.mo
 export class ValueFlagInputComponent implements OnChanges {
   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
 
-  @Input()
-  public id!: string;
+  @Input() public id!: string;
 
-  @Input()
-  public label!: string;
+  @Input() public label!: string;
 
-  @Input()
-  public borderSize!: number;
+  @Input() public borderSize!: number;
 
-  @Input()
-  public observationDefinition!: ObservationDefinition;
+  @Input() public observationDefinition!: ObservationDefinition;
 
-  @Input()
-  public displayExtraInfoOption: boolean = false;
+  @Input() public displayExtraInfoOption: boolean = false;
 
-  @Input()
-  public disableValueFlagEntry: boolean = false;
+  @Input() public disableValueFlagEntry: boolean = false;
 
-  @Input()
-  public simulateTabOnEnter: boolean = false;
+  @Input() public simulateTabOnEnter: boolean = false;
 
-  @Output()
-  public userInputVF = new EventEmitter<ObservationDefinition>();
+  // Used by form entry to disable input of data when its already entered using a different source
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel>;
 
-  @Output()
-  public enterKeyPress = new EventEmitter<void>();
+  @Output() public userInputVF = new EventEmitter<ObservationDefinition>();
 
-  protected showChanges: boolean = false;
-
-  protected displayExtraInfoDialog: boolean = false;
+  @Output() public enterKeyPress = new EventEmitter<void>();
 
   protected activeTab: 'new' | 'history' | 'qctests' = 'new';
-
-  // These variables are needed because they are set in a dialog 
-  protected interval!: number;
-  protected comment!: string | null;
+  protected showChanges: boolean = false;
+  protected displayExtraInfoDialog: boolean = false;
+  protected duplicateObservation: ViewObservationModel | undefined;
   protected viewObservationLog!: ViewObservationLogModel[];
+  protected duplicateObservationLog!: ViewObservationLogModel[];
   protected viewQCTestLog!: ViewQCTestLog[];
+  protected comment: string = '';
 
-  constructor() { }
+  constructor(private cachedMetadataService: CachedMetadataService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.observationDefinition) {
+    if (changes['observationDefinition'] && this.observationDefinition) {
+      this.comment = this.observationDefinition.comment ? this.observationDefinition.comment : '';
+    }
 
-      this.resetInternals();
-
-      // TODO. 
-      // Disabled on 13/05/2025 due to how forms try to maipulate dates on the forms. 
-      // Especially with utc 0 or not 0
-      // If not declared as disabled then disable any future data entry
-      // if (!this.disableValueFlagEntry) {
-      //   // Disable entry of future dates, excluding hour because the observation date times are in UTC.
-      //   //const obsDate = new Date(this.observationDefinition.observation.datetime);
-      //   //const nowDate = new Date();
-      //   //this.disableValueFlagEntry = new Date(obsDate.getFullYear(), obsDate.getMonth(), obsDate.getDate()) > new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate())
-
-      //   //this.disableValueFlagEntry = new Date(this.observationDefinition.observation.datetime) > new Date()
-
-      //   //console.log(this.observationDefinition.observation.datetime, ' obsdate: ', new Date(this.observationDefinition.observation.datetime), ' : now', new Date());
-      // }
+    if (changes['duplicateObservations'] && this.duplicateObservations && this.observationDefinition) {
+      this.duplicateObservation = this.duplicateObservations.get(`${this.observationDefinition.observation.elementId}-${this.observationDefinition.observation.datetime}`);
+      if (this.duplicateObservation) {
+        // If duplicate is found then disable entry of data.
+        this.disableValueFlagEntry = true;
+      }
     }
 
   }
@@ -90,28 +76,22 @@ export class ValueFlagInputComponent implements OnChanges {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput('');
-    this.observationDefinition.updateCommentInput(''); 
-    this.resetInternals();
+    this.observationDefinition.observation.comment = '';
+    this.comment = '';
     this.userInputVF.emit(this.observationDefinition);
   }
 
-  public onSameValueInput(valueFlagInput: string, comment: string | null): void {
+  public onSameValueInput(valueFlagInput: string, comment: string): void {
     if (this.disableValueFlagEntry) {
       return;
     }
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
-    this.observationDefinition.updateCommentInput(comment); 
-    this.resetInternals();
+    this.observationDefinition.observation.comment = comment;
+    this.comment = comment;
     this.userInputVF.emit(this.observationDefinition);
   }
 
-  private resetInternals(): void {
-    // Get period in days for data that has a period of a day or greater
-    this.interval = this.observationDefinition.interval;
 
-    // Get the comment from database
-    this.comment = this.observationDefinition.comment;
-  }
 
   /**
    * Handles input change and updates its internal state
@@ -123,6 +103,7 @@ export class ValueFlagInputComponent implements OnChanges {
     this.observationDefinition.updateValueFlagFromUserInput(valueFlagInput);
     this.userInputVF.emit(this.observationDefinition);
   }
+
 
   /**
    * Handles Enter key pressed and updates its internal state
@@ -137,18 +118,35 @@ export class ValueFlagInputComponent implements OnChanges {
     this.enterKeyPress.emit();
   }
 
+
+
   //----------------------------------------
   // Extra information functionality
 
   protected onDisplayExtraInfoOptionClick(): void {
+    // If value flag is disabled then new comment tab will not be shown. So just show the history tab
+    // Else just show the tab that the user had last clicked on
+    if (this.disableValueFlagEntry) {
+      this.onTabChange('history');
+    }
     this.displayExtraInfoDialog = true;
+
   }
 
   protected onTabChange(selectedTab: 'new' | 'history' | 'qctests'): void {
     this.activeTab = selectedTab;
     switch (this.activeTab) {
       case 'history':
-        this.viewObservationLog = this.observationDefinition.getObservationLog();
+        // If there is a duplicate and this is new entry then no need to show the log table for the new entry
+        if (!(this.duplicateObservation && this.observationDefinition.observation.log.length === 0)) {
+          this.viewObservationLog = this.getObservationLog(this.observationDefinition.observation);
+        }
+
+        // If there is a duplicate then show the log for the duplicate as well
+        if (this.duplicateObservation) {
+          this.duplicateObservationLog = this.getObservationLog(this.duplicateObservation);
+        }
+
         break;
       case 'qctests':
         this.viewQCTestLog = this.observationDefinition.getQCTestLog();
@@ -160,17 +158,36 @@ export class ValueFlagInputComponent implements OnChanges {
   }
 
   protected onExtraInfoOkClicked(): void {
-    let bValueChanged: boolean = false;
-
+    // If comment is changed then update the comment
     if (this.comment !== this.observationDefinition.comment) {
-      this.observationDefinition.updateCommentInput(this.comment);
-      bValueChanged = true
-    }
-
-    if (bValueChanged) {
+      this.observationDefinition.observation.comment = this.comment;
       this.userInputVF.emit(this.observationDefinition);
     }
+  }
 
+
+  private getObservationLog(observation: ViewObservationModel): ViewObservationLogModel[] {
+    const element = this.cachedMetadataService.getElement(observation.elementId);
+    // Transform the log data accordingly
+    const viewObservationLog: ViewObservationLogModel[] = observation.log.map(item => {
+      const viewLog: ViewObservationLogModel = { ...item };
+      // Display the values in scaled form 
+      if (this.observationDefinition.scaleValue && viewLog.value && element.entryScaleFactor) {
+        // To remove rounding errors number utils round off
+        viewLog.value = this.observationDefinition.getUnScaledValue(viewLog.value);
+      }
+
+      // Convert the entry date time to current local time
+      viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, this.cachedMetadataService.utcOffSet);
+      return viewLog;
+    }
+    );
+
+    return viewObservationLog;
+  }
+
+  protected getSourceName(sourceId: number): string {
+    return this.cachedMetadataService.getSource(sourceId).name;
   }
 
 

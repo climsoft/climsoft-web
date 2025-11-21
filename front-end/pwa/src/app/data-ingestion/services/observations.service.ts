@@ -1,14 +1,12 @@
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, from, Observable, of, throwError } from 'rxjs';
 import { catchError, switchMap, take, tap } from 'rxjs/operators';
 import { ViewObservationQueryModel } from '../models/view-observation-query.model';
 import { ViewObservationModel } from '../models/view-observation.model';
 import { CreateObservationModel } from '../models/create-observation.model';
 import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
-import { ViewObservationLogQueryModel } from '../models/view-observation-log-query.model';
-import { ViewObservationLogModel } from '../models/view-observation-log.model';
 import { DeleteObservationModel } from '../models/delete-observation.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { AppConfigService } from 'src/app/app-config.service';
@@ -48,37 +46,6 @@ export class ObservationsService {
       .pipe(
         catchError(AppAuthInterceptor.handleError)
       );
-  }
-
-  // There should always be a limit requirement for performance reasons
-  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(
-      `${this.endPointUrl}/count`,
-      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
-
-
-  public countObsNotSavedToV4(): Observable<number> {
-    return this.http.get<number>(`${this.endPointUrl}/count-v4-unsaved-observations`)
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
-
-  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(
-      `${this.endPointUrl}/generate-export/${exportTemplateId}`,
-      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
-      .pipe(
-        catchError(AppAuthInterceptor.handleError)
-      );
-  }
-
-  public getDownloadExportLink(exportTemplateId: number): string {
-    return `${this.endPointUrl}/download-export/${exportTemplateId}`;
   }
 
   /**
@@ -153,7 +120,7 @@ export class ObservationsService {
       comment: cachedObservation.comment,
       qcStatus: QCStatusEnum.NONE,
       qcTestLog: null,
-      log: null,
+      log: [],
       entryDatetime: '',
     }));
   }
@@ -260,7 +227,6 @@ export class ObservationsService {
   }
 
 
-
   /**
  * Saves observations to the local database and counts the number of unsynced observations
  * @param observations 
@@ -277,7 +243,6 @@ export class ObservationsService {
     }));
     this.countUnsyncedObservationsAndRaiseNotification();
   }
-
 
   private async deleteDataFromLocalDatabase(observations: CreateObservationModel[]) {
     //Key is [stationId+elementId+level+datetime+interval+sourceId]
@@ -305,6 +270,16 @@ export class ObservationsService {
 
   public get unsyncedObservations() {
     return this._unsyncedObservations.asObservable();
+  }
+
+  // TODO. There should always be a limit requirement for performance reasons
+  public count(viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(
+      `${this.endPointUrl}/count`,
+      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(AppAuthInterceptor.handleError)
+      );
   }
 
   public bulkPutDataFromDataCorrection(observations: CreateObservationModel[]): Observable<{ message: string }> {
@@ -381,6 +356,27 @@ export class ObservationsService {
       .pipe(
         catchError(AppAuthInterceptor.handleError)
       );
+  }
+
+
+  public countObsNotSavedToV4(): Observable<number> {
+    return this.http.get<number>(`${this.endPointUrl}/count-v4-unsaved-observations`)
+      .pipe(
+        catchError(AppAuthInterceptor.handleError)
+      );
+  }
+
+  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<number> {
+    return this.http.get<number>(
+      `${this.endPointUrl}/generate-export/${exportTemplateId}`,
+      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      .pipe(
+        catchError(AppAuthInterceptor.handleError)
+      );
+  }
+
+  public getDownloadExportLink(exportTemplateId: number): string {
+    return `${this.endPointUrl}/download-export/${exportTemplateId}`;
   }
 
 }

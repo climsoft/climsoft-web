@@ -6,12 +6,15 @@ export class EntryFormObservationQueryDto {
     @IsString()
     stationId: string;
 
-    @IsInt()
-    sourceId: number;
-
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsInt({ each: true })
     elementIds: number[];
+
+    @IsInt()
+    interval: number;
+
+    @IsInt()
+    sourceId: number;
 
     @IsInt()
     level: number;
