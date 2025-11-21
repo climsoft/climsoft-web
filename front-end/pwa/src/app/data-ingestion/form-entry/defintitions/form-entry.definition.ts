@@ -310,7 +310,7 @@ export class FormEntryDefinition {
             comment: null,
             qcStatus: QCStatusEnum.NONE,
             qcTestLog: null,
-            log: null,
+            log: [],
             entryDatetime: '',
         };
     }

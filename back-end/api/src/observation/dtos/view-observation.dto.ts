@@ -7,6 +7,6 @@ import { ViewObservationLogDto } from "./view-observation-log.dto";
 export class ViewObservationDto extends CreateObservationDto {
     qcStatus: QCStatusEnum;
     qcTestLog: QCTestLogVo[] | null;
-    log: ViewObservationLogDto[] | null;
+    log: ViewObservationLogDto[];
     entryDatetime: string; 
 }

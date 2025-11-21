@@ -260,7 +260,7 @@ export class ObservationsService {
                 value: dto.value,
                 flag: dto.flag,
                 qcStatus: qcStatus,
-                comment: dto.comment,
+                comment: dto.comment ? dto.comment : null,
                 entryUserId: userId,
                 deleted: false,
                 savedToV4: ignoreV4Saving,
@@ -590,7 +590,7 @@ export class ObservationsService {
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: null,
-                log: null,
+                log: [],
                 entryDatetime: obsEntity.entryDateTime.toISOString()
             };
             obsView.push(viewObs);

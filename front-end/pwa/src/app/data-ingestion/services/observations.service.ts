@@ -120,7 +120,7 @@ export class ObservationsService {
       comment: cachedObservation.comment,
       qcStatus: QCStatusEnum.NONE,
       qcTestLog: null,
-      log: null,
+      log: [],
       entryDatetime: '',
     }));
   }

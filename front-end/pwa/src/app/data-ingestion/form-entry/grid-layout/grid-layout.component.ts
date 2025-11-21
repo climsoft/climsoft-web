@@ -21,7 +21,7 @@ export class GridLayoutComponent implements OnChanges {
 
   @Input() public formDefinitions!: FormEntryDefinition;
 
-  @Input() public duplicateObservations!: Map<string, ViewObservationModel>  ;
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel>;
 
   @Input() public refreshLayout!: boolean;
 
@@ -215,7 +215,7 @@ export class GridLayoutComponent implements OnChanges {
     }
   }
 
-  public sameInput(valueFlag: string, comment: string | null): void {
+  public sameInput(valueFlag: string, comment: string): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
     })

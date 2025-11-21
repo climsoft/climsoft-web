@@ -99,12 +99,6 @@ export class DateUtils {
                 replace('Z', '').replace(':00', '').replace('.000', '');
         }
 
-        // Will subtract the offset to get UTC time if local time is ahead of UTC and add the offset to get UTC time if local time is behind UTC
-        // Note, it's addition and NOT subtraction because this is meant to display the datetime NOT submiting it
-        // const dateAdjusted = new Date(strDateTimeInJavaScriptIso);
-        //dateAdjusted.setHours(dateAdjusted.getHours() + utcOffset);
-
-        //return dateAdjusted.toISOString().replace('T', ' ').replace('Z', '');
         return DateUtils.getDatetimesBasedOnUTCOffset(
             strDateTimeInJavaScriptIso, utcOffset, 'add'
         ).replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');

@@ -334,8 +334,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       // Check if value flag is empty
       if (StringUtils.isNullOrEmpty(obsDef.getvalueFlagForDisplay())) {
         // Set the new the value flag input
-        obsDef.updateValueFlagFromUserInput(input.valueFlag);
-        obsDef.updateCommentInput(input.comment);
+        obsDef.updateValueFlagFromUserInput(input.valueFlag, input.comment); 
       }
     }
 

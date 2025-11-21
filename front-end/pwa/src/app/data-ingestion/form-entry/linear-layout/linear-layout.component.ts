@@ -194,7 +194,7 @@ export class LnearLayoutComponent implements OnChanges, OnDestroy {
     });
   }
 
-  public sameInput(valueFlag: string, comment: string | null): void {
+  public sameInput(valueFlag: string, comment: string ): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
     });
