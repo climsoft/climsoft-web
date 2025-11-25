@@ -66,7 +66,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
       // Set up the field definitions for both layouts and the observation definitions for value flag components
       this.fieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
-      this.observationsDefinitions = this.formDefinitions.obsDefsForLinearLayout;
+      this.observationsDefinitions = this.formDefinitions.getObsEntriesForLinearLayout();
     }
 
     if (changes["userFormSettings"] && this.userFormSettings) {

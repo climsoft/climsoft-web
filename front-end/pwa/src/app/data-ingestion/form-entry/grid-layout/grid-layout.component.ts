@@ -58,7 +58,7 @@ export class GridLayoutComponent implements OnChanges {
 
       this.rowFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.colFieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[1]);
-      this.observationsDefinitions = this.formDefinitions.obsDefsForGridLayout;
+      this.observationsDefinitions = this.formDefinitions.getObsEntriesForGridLayout();
       // Important to statically fill with undefined values for working with 'some' and 'every' array functions
       this.totalErrorMessage = new Array(this.colFieldDefinitions.length).fill(undefined);
     }

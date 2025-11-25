@@ -12,6 +12,7 @@ import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { FormEntryDefinition } from 'src/app/data-ingestion/form-entry/defintitions/form-entry.definition';
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
 import { ObservationEntry } from '../models/observation-entry.model';
+import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 
 /**
  * Component for data entry of observations
@@ -72,29 +73,14 @@ export class ValueFlagInputComponent implements OnChanges {
   protected validationWarningMessage: string = '';
 
   protected valueFlagInput: string = '';
+  private element!: ElementCacheModel;
 
   constructor(private cachedMetadataService: CachedMetadataService) { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['observationEntry'] && this.observationEntry) {
-      let valueStr;
-      const flagStr = this.observationEntry.observation.flag === null ? '' : this.observationEntry.observation.flag[0].toUpperCase();
-
-      // If scaling is on and entry scale factor is >=10 then just add zero.
-      // TODO this could be implemented later to factor when the scale is like 100
-      if (this.observationEntry.observation.value === null) {
-        valueStr = '';
-      } else if (this.scaleValue) {
-        valueStr = FormEntryDefinition.getUnScaledValue(this.observationEntry.observation.elementId, this.observationEntry.observation.value, this.cachedMetadataService).toString();
-        const element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);
-        if (element.entryScaleFactor >= 10 && valueStr.length === 1) {
-          valueStr = `0${valueStr}`;
-        }
-      } else {
-        valueStr = this.observationEntry.observation.value.toString();
-      }
-
-      this.valueFlagInput = `${valueStr}${flagStr}`;
+      this.element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);
+      this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flag);
       this.comment = this.observationEntry.observation.comment ? this.observationEntry.observation.comment : '';
       // set original database values for future comparison
       this.originalValues = `${this.valueFlagInput}-${this.comment}`;
@@ -102,12 +88,38 @@ export class ValueFlagInputComponent implements OnChanges {
 
     if (changes['duplicateObservations'] && this.duplicateObservations && this.observationEntry) {
       this.duplicateObservation = this.duplicateObservations.get(`${this.observationEntry.observation.elementId}-${this.observationEntry.observation.datetime}`);
-      if (this.duplicateObservation) {
-        // If duplicate is found then disable entry of data.
+      if (this.duplicateObservation ) {
+        // If duplicate exist then disable entry.
         this.disableValueFlagEntry = true;
+
+        // If there is no value flag, e.g it's an attempt to enter a new record, then show the duplicate values
+        if (this.valueFlagInput === '') {
+          this.valueFlagInput = this.getValueFlagString(this.duplicateObservation.value, this.duplicateObservation.flag);
+          this.comment = this.duplicateObservation.comment ? this.duplicateObservation.comment : '';
+        }
       }
     }
 
+  }
+
+  private getValueFlagString(value: number | null, flag: FlagEnum | null): string {
+    let valueStr;
+    const flagStr = flag === null ? '' : flag[0].toUpperCase();
+
+    // If scaling is on and entry scale factor is >=10 then just add zero.
+    // TODO this could be implemented later to factor when the scale is like 100
+    if (value === null) {
+      valueStr = '';
+    } else if (this.scaleValue) {
+      valueStr = FormEntryDefinition.getUnScaledValue(this.element, value).toString();
+      if (this.element.entryScaleFactor >= 10 && valueStr.length === 1) {
+        valueStr = `0${valueStr}`;
+      }
+    } else {
+      valueStr = value.toString();
+    }
+
+    return `${valueStr}${flagStr}`;
   }
 
   public focus(): void {
@@ -180,12 +192,12 @@ export class ValueFlagInputComponent implements OnChanges {
       case 'history':
         // If there is a duplicate and this is new entry then no need to show the log table for the new entry
         if (!(this.duplicateObservation && this.observationEntry.observation.log.length === 0)) {
-          this.viewObservationLog = this.getObservationLog(this.observationEntry.observation);
+          this.viewObservationLog = this.formatObservationLog(this.observationEntry.observation.log);
         }
 
         // If there is a duplicate then show the log for the duplicate as well
         if (this.duplicateObservation) {
-          this.duplicateObservationLog = this.getObservationLog(this.duplicateObservation);
+          this.duplicateObservationLog = this.formatObservationLog(this.duplicateObservation.log);
         }
 
         break;
@@ -389,15 +401,14 @@ export class ValueFlagInputComponent implements OnChanges {
     return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
   }
 
-  private getObservationLog(observation: ViewObservationModel): ViewObservationLogModel[] {
-    const element = this.cachedMetadataService.getElement(observation.elementId);
+  private formatObservationLog(viewObservationLog: ViewObservationLogModel[]): ViewObservationLogModel[] {
     // Transform the log data accordingly
-    const viewObservationLog: ViewObservationLogModel[] = observation.log.map(item => {
+    return viewObservationLog.map(item => {
       const viewLog: ViewObservationLogModel = { ...item };
       // Display the values in scaled form 
-      if (this.scaleValue && viewLog.value && element.entryScaleFactor) {
+      if (this.scaleValue && viewLog.value && this.element.entryScaleFactor) {
         // To remove rounding errors number utils round off
-        viewLog.value = FormEntryDefinition.getUnScaledValue(observation.elementId, viewLog.value, this.cachedMetadataService);
+        viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
       }
 
       // Convert the entry date time to current local time
@@ -405,8 +416,6 @@ export class ValueFlagInputComponent implements OnChanges {
       return viewLog;
     }
     );
-
-    return viewObservationLog;
   }
 
 

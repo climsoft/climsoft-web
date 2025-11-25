@@ -10,13 +10,14 @@ import { ViewObservationModel } from "../../models/view-observation.model";
 import { QCStatusEnum } from "../../models/qc-status.enum";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { ObservationEntry } from "src/app/observations/models/observation-entry.model";
+import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
  */
 export class FormEntryDefinition {
     public station: StationCacheModel;
-    public source: ViewSourceModel;
+    private source: ViewSourceModel;
     public formMetadata: CreateEntryFormModel;
 
     /** value of the element selector */
@@ -74,15 +75,15 @@ export class FormEntryDefinition {
 
     }
 
-    public get allObsDefs(): ObservationEntry[] {
+    public getAllObsEntries(): ObservationEntry[] {
         return this._allObsDefs;
     }
 
-    public get obsDefsForLinearLayout(): ObservationEntry[] {
+    public getObsEntriesForLinearLayout(): ObservationEntry[] {
         return this._obsDefsForLinearLayout;
     }
 
-    public get obsDefsForGridLayout(): ObservationEntry[][] {
+    public getObsEntriesForGridLayout(): ObservationEntry[][] {
         return this._obsDefsForGridLayout;
     }
 
@@ -127,25 +128,25 @@ export class FormEntryDefinition {
 
 
 
-    public createEntryObsDefs(dbObservations: ViewObservationModel[]): ObservationEntry[] {
+    public createObsEntries(dbObservations: ViewObservationModel[]): ObservationEntry[] {
         for (const dbObservation of dbObservations) {
             // Add because it needs to be displayed based on display utc offset
             dbObservation.datetime = DateUtils.getDatetimesBasedOnUTCOffset(dbObservation.datetime, this.source.utcOffset, 'add');
         }
 
         switch (this.formMetadata.layout) {
-            case "LINEAR":
-                this._obsDefsForLinearLayout = this.getEntryObsForLinearLayout(dbObservations);
+            case 'LINEAR':
+                this._obsDefsForLinearLayout = this.createObsEntriesForLinearLayout(dbObservations);
                 this._allObsDefs = this._obsDefsForLinearLayout;
                 break;
-            case "GRID":
-                this._obsDefsForGridLayout = this.getEntryObsForGridLayout(dbObservations);
+            case 'GRID':
+                this._obsDefsForGridLayout = this.createObsEntriesForGridLayout(dbObservations);
                 this._allObsDefs = this._obsDefsForGridLayout.flat();
                 break;
             default:
                 throw new Error("Developer error. Layout not supported");
         }
-        return this.allObsDefs;
+        return this.getAllObsEntries();
     }
 
 
@@ -155,7 +156,7 @@ export class FormEntryDefinition {
      * @param dbObservations 
      * @returns the observations that will be used by the value flag controls in a linear layout
      */
-    private getEntryObsForLinearLayout(dbObservations: ViewObservationModel[]): ObservationEntry[] {
+    private createObsEntriesForLinearLayout(dbObservations: ViewObservationModel[]): ObservationEntry[] {
         const obsDefinitions: ObservationEntry[] = [];
         const entryField: FieldType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
@@ -213,7 +214,7 @@ export class FormEntryDefinition {
      * Used by grid layout.
      * @returns observations that will be used by the value flag controls in a grid layout.
      */
-    private getEntryObsForGridLayout(dbObservations: ViewObservationModel[]): ObservationEntry[][] {
+    private createObsEntriesForGridLayout(dbObservations: ViewObservationModel[]): ObservationEntry[][] {
 
         if (this.formMetadata.fields.length < 2 || !this.formMetadata.fields[1]) {
             throw new Error("Developer error: number of entry fields not supported.");
@@ -273,7 +274,7 @@ export class FormEntryDefinition {
                     delete: false,
                     change: 'no_change',
                     hardDelete: false,
-                    restore: false, 
+                    restore: false,
                 });
             }
 
@@ -312,8 +313,6 @@ export class FormEntryDefinition {
                 entryFieldDefs = DateUtils.getHours(this.formMetadata.hours);
                 break;
             default:
-                //Not supported
-                //todo. display error in set up 
                 throw new Error("Developer Error: Entry Field Not Recognised");
         }
 
@@ -374,7 +373,7 @@ export class FormEntryDefinition {
                 continue;
             }
 
-            const unScaledValue = FormEntryDefinition.getUnScaledValue(obsDef.observation.elementId, obsDef.observation.value, cachedMetadataService);
+            const unScaledValue = FormEntryDefinition.getUnScaledValue(cachedMetadataService.getElement(obsDef.observation.elementId), obsDef.observation.value);
             total = total + unScaledValue;
             allAreNull = false;
         }
@@ -383,9 +382,8 @@ export class FormEntryDefinition {
 
     }
 
-    public static getUnScaledValue(elementId: number, value: number, cachedMetadataService: CachedMetadataService): number {
-        // To remove rounding errors use number utils round off
-        const element = cachedMetadataService.getElement(elementId);
+    public static getUnScaledValue(element: ElementCacheModel, value: number): number {
+        // To remove rounding errors use number utils round off 
         return value && element.entryScaleFactor ? NumberUtils.roundOff(value * element.entryScaleFactor, 4) : value;
     }
 

@@ -105,7 +105,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (!user) return;
-      this.pagesDataService.showToast({ title: 'Data Entry', message: `You are currently logged in as ${user.email}`, type: ToastEventTypeEnum.WARNING });
+      this.pagesDataService.showToast({ title: 'Data Entry', message: `You are currently logged in as ${user.email}`, type: ToastEventTypeEnum.WARNING, timeout: 6000 });
     });
 
     // Important note. 
@@ -187,18 +187,18 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.observationService.findEntryFormData(entryFormObsQuery).pipe(
       take(1),
     ).subscribe(data => {
-      this.observationEntries = this.formDefinitions.createEntryObsDefs(data);
+      this.observationEntries = this.formDefinitions.createObsEntries(data);
       this.refreshLayout = true;
       // Set firts value flag to have focus ready for rapid data entry
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
       if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
 
-      // Then fetch duplicates
-      this.loadDuplicates(entryFormObsQuery);
-
+      // If double data entry is not allowed then fetch duplicates so that value flag component can prevent double data entry
+      if (!this.formDefinitions.formMetadata.allowDoubleDataEntry) {
+        this.loadDuplicates(entryFormObsQuery);
+      }
     });
   }
-
 
   private loadDuplicates(entryFormObsQuery: EntryFormObservationQueryModel): void {
     const viewObsQuery: ViewObservationQueryModel = {
@@ -227,7 +227,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Only set the duplicates array when there are duplicates. This makes angular detection to only be raised when there are dplicates
+      // Only set the duplicates map when there are duplicates. This makes angular detection to only be raised when there are dplicates
       if (newDuplicateObservations.size > 0) {
         this.duplicateObservations = newDuplicateObservations;
       }
@@ -365,7 +365,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
     // Set total as valid, because everything has been cleared
     if (this.formDefinitions.formMetadata.requireTotalInput && !this.totalIsValid) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
       return;
     }
 
@@ -388,7 +388,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           comment: obsEntry.observation.comment,
         });
       } else if (obsEntry.change === 'invalid_change') {
-        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observations detected', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observation(s) detected', type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         return;
       }
     }
@@ -405,11 +405,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: () => {
-        this.pagesDataService.showToast({
-          title: 'Data Entry',
-          message: `${createObservations.length} ${obsMessage} saved successfully`,
-          type: ToastEventTypeEnum.SUCCESS
-        });
+        this.pagesDataService.showToast({ title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved successfully`, type: ToastEventTypeEnum.SUCCESS });
 
         // Then sequence to next date if sequencing is on
         if (this.userFormSettings.incrementDateSelector) {
@@ -422,20 +418,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       error: err => {
         if (AppAuthInterceptor.isKnownNetworkError(err)) {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING, timeout: 5000 });
         } else if (err.status === 400) {
           // If there is a bad request error then show the server message
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         } else {
           // Log the error for tracing purposes
           console.log('data entry error: ', err);
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         }
       }
     }

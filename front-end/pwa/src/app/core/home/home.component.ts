@@ -121,32 +121,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
-  private showToast(currentToast: ToastEvent) {
-    this.toasts.push(currentToast);
-
-    // If it's an error the hide the toast after 10 seconds else hide after 3 seconds.
-    let timeout: number = 3000;
-    switch (currentToast.type) {
-      case ToastEventTypeEnum.INFO:
-      case ToastEventTypeEnum.SUCCESS:
-        timeout = 3000;
-        break;
-      case ToastEventTypeEnum.WARNING:
-        timeout = 4000;
-        break;
-      case ToastEventTypeEnum.ERROR:
-        timeout = 10000;
-        break;
-      default:
-        // TODO. Developer error
-        break;
-    }
+  private showToast(newToast: ToastEvent) {
+    this.toasts.push(newToast);
     setTimeout(() => {
-      if (this.toasts.length > 0) {
-        //remove the first
-        this.toasts.splice(0, 1);
+      const index: number = this.toasts.findIndex(toast => toast === newToast);
+      if (index !== 1) {
+        this.toasts.splice(index, 1);
       }
-    }, timeout);
+    }, newToast.timeout ? newToast.timeout : 3000);
   }
 
   protected syncObservations() {

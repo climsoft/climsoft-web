@@ -36,6 +36,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   protected requireTotalInput: boolean = false;
   protected allowStationSelection: boolean = false;
   protected allowEntryAtStationOnly: boolean = false;
+  protected allowDoubleDataEntry: boolean = false;
   protected selectorsErrorMessage: string = '';
   protected fieldsErrorMessage: string = '';
   protected elementsErrorMessage: string = '';
@@ -47,7 +48,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourceTemplatesCacheService, 
+    private sourcesCacheService: SourceTemplatesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }
@@ -66,7 +67,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Template');
-      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowStationSelection: false, isValid: () => true }
+      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowStationSelection: false, allowDoubleDataEntry: false, isValid: () => true }
       this.viewSource = {
         id: 0,
         name: '',
@@ -118,6 +119,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.requireTotalInput = entryForm.requireTotalInput;
     this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly;
     this.allowStationSelection = entryForm.allowStationSelection;
+    this.allowDoubleDataEntry = entryForm.allowDoubleDataEntry;
   }
 
   public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
@@ -235,6 +237,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       requireTotalInput: this.requireTotalInput,
       allowEntryAtStationOnly: this.allowEntryAtStationOnly,
       allowStationSelection: this.allowStationSelection,
+      allowDoubleDataEntry: this.allowDoubleDataEntry,
       isValid: () => true
     };
 

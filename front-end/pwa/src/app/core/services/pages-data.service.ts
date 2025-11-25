@@ -17,6 +17,7 @@ export interface ToastEvent {
   title: string;
   message: string;
   type: ToastEventTypeEnum;
+  timeout?: number; // In milliseconds
 }
 
 @Injectable({

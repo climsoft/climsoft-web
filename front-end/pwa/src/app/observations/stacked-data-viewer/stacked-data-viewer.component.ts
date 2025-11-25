@@ -30,10 +30,6 @@ export class StackedDataViewerComponent implements OnChanges {
     this.setRowBoundaryLineSettings(this.observationsEntries);
   }
 
-  protected getObservation(elementCol: string, observations: ObservationEntry[]) {
-    return observations.find(item => `${item.observation.elementId} - ${item.elementAbbrv}` === elementCol);
-  }
-
   protected onUserInput(observationEntry: ObservationEntry) {
     this.valueChange.emit(observationEntry);
   }
