@@ -1,5 +1,6 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core'; 
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ObservationEntry } from '../models/observation-entry.model';
+import { ValueFlagInputComponent } from '../value-flag-input/value-flag-input.component';
 
 @Component({
   selector: 'app-unstacked-data-viewer',
@@ -7,18 +8,16 @@ import { ObservationEntry } from '../models/observation-entry.model';
   styleUrls: ['./unstacked-data-viewer.component.scss']
 })
 export class UnstackedDataViewerComponent implements OnChanges {
-  @Input()
-  public observationsEntries!: ObservationEntry[];
- 
-  @Output()
-  public valueChange: EventEmitter<void> = new EventEmitter<void>;
+  @Input() public observationsEntries!: ObservationEntry[];
+
+  @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
 
   protected groupedEntries!: Map<string, ObservationEntry[]>;
 
   // array of element abbreviations
   protected elementColumns!: string[];
 
-  constructor( ) {
+  constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -26,14 +25,14 @@ export class UnstackedDataViewerComponent implements OnChanges {
       this.loadData();
     }
   }
- 
+
   private loadData(): void {
     // Key is observation identifier
     const newGroupedEntries = new Map<string, ObservationEntry[]>();
     const newElementColumns: string[] = [];
 
     for (const obs of this.observationsEntries) {
-      const obsIdentifier = `${obs.obsDef.observation.stationId}-${obs.obsDef.observation.level}-${obs.obsDef.observation.datetime}-${obs.obsDef.observation.interval}-${obs.obsDef.observation.sourceId}`;
+      const obsIdentifier = `${obs.observation.stationId}-${obs.observation.level}-${obs.observation.datetime}-${obs.observation.interval}-${obs.observation.sourceId}`;
 
       // If observation group already exist then just push the new observation into the group
       // If it does not exist create a new group
@@ -44,7 +43,7 @@ export class UnstackedDataViewerComponent implements OnChanges {
       }
 
       // Add the element to the list of table element columns
-      const elementCol :string = `${obs.obsDef.observation.elementId} - ${obs.elementAbbrv}`;
+      const elementCol: string = `${obs.observation.elementId} - ${obs.elementAbbrv}`;
       if (!newElementColumns.find(item => item === elementCol)) {
         newElementColumns.push(elementCol);
       }
@@ -55,12 +54,14 @@ export class UnstackedDataViewerComponent implements OnChanges {
   }
 
   protected getObservation(elementCol: string, observations: ObservationEntry[]) {
-    return observations.find(item => `${item.obsDef.observation.elementId} - ${item.elementAbbrv}` === elementCol);
+    return observations.find(item => `${item.observation.elementId} - ${item.elementAbbrv}` === elementCol);
   }
 
-  protected onUserInput() { 
-    this.valueChange.emit();
+  protected onUserInput(observationEntry: ObservationEntry) {
+    this.valueChange.emit(observationEntry);
   }
+
+ 
 
 
 }

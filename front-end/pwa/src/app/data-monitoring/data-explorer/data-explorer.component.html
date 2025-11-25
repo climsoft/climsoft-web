@@ -35,16 +35,16 @@
                         <tr *ngFor="let obsEntry of observationsEntries; let i = index;"
                             [class.group-row-border]="includeLowerBoundaryLine(i)">
                             <td>{{ getRowNumber(i) }}</td>
-                            <td> {{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
-                            <td>{{ obsEntry.elementId + '-'+ obsEntry.elementAbbrv }}</td>
-                            <td>{{ obsEntry.obsDef.observation.level }}</td>
+                            <td> {{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
+                            <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv}}</td>
+                            <td>{{ obsEntry.observation.level }}</td>
                             <td>{{ obsEntry.formattedDatetime }}</td>
                             <td>{{ obsEntry.intervalName }}</td>
                             <td>{{ obsEntry.sourceName }}</td>
                             <td>
                                 <div class="px-2 app-value-flag-container">
                                     <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
-                                        [observationDefinition]="obsEntry.obsDef" [disableValueFlagEntry]="true" />
+                                        [observationEntry]="obsEntry" [disableValueFlagEntry]="true" />
                                 </div>
                             </td>
                         </tr>

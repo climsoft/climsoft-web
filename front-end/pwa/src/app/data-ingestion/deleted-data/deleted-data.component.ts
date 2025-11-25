@@ -6,21 +6,14 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { Subject, take, takeUntil } from 'rxjs';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
-import { ObservationDefinition } from '../form-entry/defintitions/observation.definition';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
+import { HttpErrorResponse } from '@angular/common/http';
 
-interface ObservationEntry {
-  obsDef: ObservationDefinition;
-  restore: boolean;
-  hardDelete: boolean;
-  stationName: string;
-  elementAbbrv: string;
-  sourceName: string;
-  formattedDatetime: string;
-  intervalName: string;
-}
+
 
 @Component({
   selector: 'app-deleted-data',
@@ -41,7 +34,7 @@ export class DeletedDataComponent implements OnDestroy {
 
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private queryFilter!: ViewObservationQueryModel;
-  protected enableSave: boolean = false;
+  protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
   protected numOfChanges: number = 0;
   protected allBoundariesIndices: number[] = [];
@@ -98,7 +91,7 @@ export class DeletedDataComponent implements OnDestroy {
           this.loadData();
         } else {
           this.pagesDataService.showToast({ title: 'Delete Data', message: 'No data', type: ToastEventTypeEnum.INFO });
-          this.enableSave = false;
+          this.enableSaveButton = false;
         }
       },
       error: err => {
@@ -113,7 +106,7 @@ export class DeletedDataComponent implements OnDestroy {
 
   protected loadData(): void {
     this.enableQueryButton = false;
-    this.enableSave = false;
+    this.enableSaveButton = false;
     this.numOfChanges = 0;
     this.allBoundariesIndices = [];
     this.observationsEntries = [];
@@ -130,14 +123,17 @@ export class DeletedDataComponent implements OnDestroy {
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
 
           const entry: ObservationEntry = {
-            obsDef: new ObservationDefinition(this.cachedMetadataSearchService, observation, false),
+            observation: observation,
+            change: 'no_change',
+            confirmAsCorrect: false,
+            delete: false,
             restore: false,
             hardDelete: false,
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval)
+            intervalName: IntervalsUtil.getIntervalName(observation.interval),
           }
 
           return entry;
@@ -149,7 +145,7 @@ export class DeletedDataComponent implements OnDestroy {
       },
       complete: () => {
         this.enableQueryButton = true;
-        this.enableSave = true;
+        this.enableSaveButton = true;
       }
     });
   }
@@ -180,93 +176,94 @@ export class DeletedDataComponent implements OnDestroy {
   }
 
   protected onSave(): void {
-    this.restoreObservations();
-    this.hardDeleteObservations();
-  }
-
-
-  private hardDeleteObservations(): void {
-    this.enableSave = false;
-    // Create required observation dtos 
     const deletedObs: DeleteObservationModel[] = [];
-    for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.hardDelete) {
-        // Important. Explicitly convert the view model to create model
-        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
-        deletedObs.push({
-          stationId: viewModel.stationId,
-          elementId: viewModel.elementId,
-          level: viewModel.level,
-          datetime: viewModel.datetime,
-          interval: viewModel.interval,
-          sourceId: viewModel.sourceId
-        })
-      }
-    }
-
-
-    if (deletedObs.length === 0) {
-      return;
-    }
-
-    // Send to server for saving
-    this.observationService.hardDelete(deletedObs).subscribe((data) => {
-      this.enableSave = true;
-      if (data) {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} hard deleted`, type: ToastEventTypeEnum.SUCCESS
-        });
-
-        this.queryData();
-      } else {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} NOT hard deleted`, type: ToastEventTypeEnum.ERROR
-        });
-      }
-    });
-  }
-
-  private restoreObservations(): void {
-    this.enableSave = false;
-    // Create required observation dtos 
     const restoredObs: DeleteObservationModel[] = [];
     for (const obsEntry of this.observationsEntries) {
-      if (obsEntry.restore) {
-        // Important. Explicitly convert the view model to create model
-        const viewModel = obsEntry.obsDef.observation as ViewObservationModel;
-        restoredObs.push({
-          stationId: viewModel.stationId,
-          elementId: viewModel.elementId,
-          sourceId: viewModel.sourceId,
-          level: viewModel.level,
-          datetime: viewModel.datetime,
-          interval: viewModel.interval
-        })
-      }
+      if (obsEntry.hardDelete) {
+        deletedObs.push({
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval
+        });
+      } else if (obsEntry.restore) {
+        deletedObs.push({
+          stationId: obsEntry.observation.stationId,
+          elementId: obsEntry.observation.elementId,
+          sourceId: obsEntry.observation.sourceId,
+          level: obsEntry.observation.level,
+          datetime: obsEntry.observation.datetime,
+          interval: obsEntry.observation.interval
+        });
+      } 
     }
 
-
-    if (restoredObs.length === 0) {
-      return;
+    if (deletedObs.length > 0) {
+      // Requery data only if there are no observation changes. This prevents mutliple requerying.
+      this.hardDeleteObservations(deletedObs, restoredObs);
+    } else if (restoredObs.length > 0) {
+      this.restoreObservations(restoredObs);
     }
+  }
 
+
+  private hardDeleteObservations(deletedObs: DeleteObservationModel[], changedObs: DeleteObservationModel[]): void {
+    this.enableSaveButton = false;
     // Send to server for saving
-    this.observationService.restore(restoredObs).subscribe((data) => {
-      this.enableSave = true;
-      if (data) {
+    this.observationService.softDelete(deletedObs).subscribe({
+      next: () => {
+        this.enableSaveButton = true;
         this.pagesDataService.showToast({
-          title: 'Observations', message: `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'} restored`, type: ToastEventTypeEnum.SUCCESS
+          title: 'Delete Data', message: `${deletedObs.length} observation${deletedObs.length === 1 ? '' : 's'} hard deleted`, type: ToastEventTypeEnum.SUCCESS
         });
 
-        this.queryData();
-      } else {
-        this.pagesDataService.showToast({
-          title: 'Observations', message: `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'} NOT restored`, type: ToastEventTypeEnum.ERROR
-        });
-      }
+        if (changedObs.length > 0) {
+          this.restoreObservations(changedObs);
+        } else {
+          this.queryData();
+        }
+      },
+      error: err => {
+        this.enableSaveButton = true;
+        this.handleError(err);
+      },
     });
   }
 
+  private restoreObservations(restoredObs: DeleteObservationModel[]): void {
+
+
+    this.enableSaveButton = false;
+    // Send to server for saving
+    this.observationService.restore(restoredObs).subscribe({
+      next: () => {
+        this.enableSaveButton = true;
+        const obsMessage: string = `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'}`;
+        this.pagesDataService.showToast({ title: 'Delete Data', message: `${obsMessage} restored`, type: ToastEventTypeEnum.SUCCESS });
+        this.queryData();
+      },
+      error: err => {
+        this.enableSaveButton = true;
+        this.handleError(err);
+      },
+    });
+  }
+
+  private handleError(err: HttpErrorResponse): void {
+    if (AppAuthInterceptor.isKnownNetworkError(err)) {
+      // If there is network error then save observations as unsynchronised and no need to send data to server
+      this.pagesDataService.showToast({ title: 'Delete Data', message: `Application is offline`, type: ToastEventTypeEnum.WARNING });
+    } else if (err.status === 400) {
+      // If there is a bad request error then show the server message
+      this.pagesDataService.showToast({ title: 'Delete Data', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR });
+    } else {
+      // Log the error for tracing purposes
+      console.log('data entry error: ', err);
+      this.pagesDataService.showToast({ title: 'Delete Data', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
+    }
+  }
 
 
 }

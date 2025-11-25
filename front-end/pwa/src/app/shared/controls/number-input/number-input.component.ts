@@ -15,7 +15,7 @@ export class NumberInputComponent implements OnChanges {
   @Input() public disabled!: boolean;
   @Input() public borderSize!: number;
   @Input() public hintMessage!: string;
-  @Input() public errorMessage!: string | null;
+  @Input() public errorMessage!: string;
   @Input() public max!: number;
   @Input() public min!: number;
   @Input() public value!: number | null;

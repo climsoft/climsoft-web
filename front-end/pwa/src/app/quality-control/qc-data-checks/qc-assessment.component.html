@@ -50,24 +50,24 @@
                             <tbody>
                                 <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
                                     <td>{{ getRowNumber(i) }}</td>
-                                    <td>{{ obsEntry.obsDef.observation.stationId + '-' + obsEntry.stationName }}</td>
-                                    <td>{{ obsEntry.obsDef.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
-                                    <td>{{ obsEntry.obsDef.observation.level }}</td>
+                                    <td>{{ obsEntry.observation.stationId + '-' + obsEntry.stationName }}</td>
+                                    <td>{{ obsEntry.observation.elementId + '-' + obsEntry.elementAbbrv }}</td>
+                                    <td>{{ obsEntry.observation.level }}</td>
                                     <td>{{ obsEntry.formattedDatetime }}</td>
                                     <td>{{ obsEntry.intervalName }}</td>
                                     <td>{{ obsEntry.sourceName }}</td>
                                     <td>
                                         <div class="app-value-flag-container">
                                             <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
-                                                [observationDefinition]="obsEntry.obsDef"
+                                                [scaleValue]="false" [observationEntry]="obsEntry"
                                                 [disableValueFlagEntry]="obsEntry.confirmAsCorrect || obsEntry.delete"
                                                 (userInputVF)="onUserInput()" />
                                         </div>
                                     </td>
-                                    <td>{{ obsEntry.obsDef.comment }}</td>
+                                    <td>{{ obsEntry.observation.comment }}</td>
                                     <td>
                                         <div>
-                                            <div *ngFor="let qcTestLogItem of obsEntry.qcTestLog"
+                                            <div *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed"
                                                 class="d-flex flex-row">
                                                 <div><i class="bi bi-arrow-right-short"></i></div>
                                                 <div>{{qcTestLogItem.name}}</div>
@@ -75,14 +75,13 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <app-check-box-input [id]="i + '_confirm'" [(value)]="obsEntry.confirmAsCorrect"
-                                            [disabled]="obsEntry.obsDef.observationChanged || obsEntry.delete"
-                                            (valueChange)="onUserInput()" />
+                                        <app-check-box-input [id]="i + '_confirm'" [value]="obsEntry.confirmAsCorrect"
+                                            [disabled]="obsEntry.delete" (valueChange)="onUserDeleteClick(obsEntry)" />
                                     </td>
                                     <td>
-                                        <app-check-box-input [id]="i + '_delete'" [(value)]="obsEntry.delete"
-                                            [disabled]="obsEntry.obsDef.observationChanged || obsEntry.confirmAsCorrect"
-                                            (valueChange)="onUserInput()" />
+                                        <app-check-box-input [id]="i + '_delete'" [value]="obsEntry.delete"
+                                            [disabled]="obsEntry.confirmAsCorrect"
+                                            (valueChange)="onUserConfirmAsCorrectClick(obsEntry)" />
                                     </td>
                                 </tr>
                             </tbody>

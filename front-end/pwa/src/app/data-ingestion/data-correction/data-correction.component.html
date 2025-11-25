@@ -20,11 +20,12 @@
 
         <div class="card-body p-0 mt-2">
             <div *ngIf="useUnstackedViewer">
-                <app-unstacked-data-viewer [observationsEntries]="observationsEntries" (valueChange)="onUserInput()" />
+                <app-unstacked-data-viewer [observationsEntries]="observationsEntries"
+                    (valueChange)="onUserInput()" />
             </div>
             <div *ngIf="!useUnstackedViewer">
                 <app-stacked-data-viewer [pageInputDefinition]="pageInputDefinition"
-                    [observationsEntries]="observationsEntries" (valueChange)="onUserInput()" />
+                    [observationsEntries]="observationsEntries" (valueChange)="onUserInput()"  />
             </div>
         </div>
 

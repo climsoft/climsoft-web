@@ -1,12 +1,10 @@
-<ng-container *ngIf="observationDefinition">
+<ng-container *ngIf="observationEntry">
     <app-text-input #appTextInput [id]="id" [label]="label" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
-        [value]="observationDefinition.valueFlagInput" [dropDownOptionMaxHeight]="300"
-        [errorMessage]="observationDefinition.validationErrorMessage"
-        [warningMessage]="observationDefinition.validationWarningMessage"
-        [showChanges]="observationDefinition.observationChangeIsValid && observationDefinition.observationChanged"
-        [displayExtraInfoOption]="displayExtraInfoOption"
-        (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()" (valueChange)="onInputEntry($event)"
-        (inputEnterKeyPress)="onEnterKeyPressed()" [simulateTabOnEnter]="simulateTabOnEnter" />
+        [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
+        [showChanges]="observationEntry.change === 'valid_change'" [errorMessage]="validationErrorMessage"
+        [warningMessage]="validationWarningMessage" [displayExtraInfoOption]="displayExtraInfoOption"
+        [simulateTabOnEnter]="simulateTabOnEnter" (displayExtraInfoOptionClick)="onDisplayExtraInfoOptionClick()"
+        (valueChange)="onInputEntry($event)" (inputEnterKeyPress)="onEnterKeyPressed()" />
 
     <app-dialog [title]="'Extra Information'" [okButtonLabel]="'Ok'" [cancelButtonLabel]="'Cancel'"
         [(open)]="displayExtraInfoDialog" (okClick)="onExtraInfoOkClicked()">
@@ -94,8 +92,8 @@
                                     <td>{{ row.qcStatus }}</td>
                                     <td>{{ row.comment }}</td>
                                     <td>
-                                        <app-check-box-input [id]="'duplicate_obs_log_'+ row.entryDateTime" [disabled]="true"
-                                            [value]="row.deleted" />
+                                        <app-check-box-input [id]="'duplicate_obs_log_'+ row.entryDateTime"
+                                            [disabled]="true" [value]="row.deleted" />
                                     </td>
                                     <td>{{row.entryUserName}}</td>
                                     <td>{{row.entryUserEmail}}</td>
