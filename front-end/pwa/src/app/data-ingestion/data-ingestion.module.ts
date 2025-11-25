@@ -1,12 +1,12 @@
 
 import { NgModule } from '@angular/core';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
-import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
-import { FormEntryComponent } from './form-entry/form-entry.component';
-import { UserFormSettingsComponent } from './form-entry/user-form-settings/user-form-settings.component';
-import { GridLayoutComponent } from './form-entry/grid-layout/grid-layout.component';
-import { LinearLayoutComponent } from './form-entry/linear-layout/linear-layout.component'; 
-import { AssignSameInputComponent } from './form-entry/assign-same-input/assign-same-input.component';
+import { StationFormSelectionComponent } from './data-entry/station-form-selection/station-form-selection.component';
+import { FormEntryComponent } from './data-entry/form-entry/form-entry.component';
+import { UserFormSettingsComponent } from './data-entry/form-entry/user-form-settings/user-form-settings.component';
+import { GridLayoutComponent } from './data-entry/form-entry/grid-layout/grid-layout.component';
+import { LinearLayoutComponent } from './data-entry/form-entry/linear-layout/linear-layout.component'; 
+import { AssignSameInputComponent } from './data-entry/form-entry/assign-same-input/assign-same-input.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 import { DataCorrectionComponent } from './data-correction/data-correction.component'; 
 import { MissingDataComponent } from './missing-data/missing-data.component';

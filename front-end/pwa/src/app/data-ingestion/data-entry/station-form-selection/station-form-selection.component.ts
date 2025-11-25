@@ -9,7 +9,7 @@ import { StationCacheModel, StationsCacheService } from 'src/app/metadata/statio
 import { AppAuthService } from 'src/app/app-auth.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
-import { ObservationsService } from '../services/observations.service';
+import { ObservationsService } from '../../services/observations.service';
 
 interface StationView {
   station: StationCacheModel;

@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { FormEntryComponent } from './form-entry/form-entry.component';
+import { FormEntryComponent } from './data-entry/form-entry/form-entry.component';
 import { ImportEntryComponent } from './import-entry/import-entry.component';
-import { StationFormSelectionComponent } from './station-form-selection/station-form-selection.component';
+import { StationFormSelectionComponent } from './data-entry/station-form-selection/station-form-selection.component';
 import { ImportSelectionComponent } from './import-selection/import-selection.component';
 import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
 import { DeletedDataComponent } from './deleted-data/deleted-data.component'; 

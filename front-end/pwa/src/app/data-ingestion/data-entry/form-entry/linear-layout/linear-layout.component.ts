@@ -3,10 +3,10 @@ import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.s
 import { FormEntryDefinition } from '../defintitions/form-entry.definition';
 import { FieldEntryDefinition } from '../defintitions/field.definition'; 
 import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
-import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
+import { ValueFlagInputComponent } from '../../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewObservationModel } from '../../models/view-observation.model';
+import { ViewObservationModel } from '../../../models/view-observation.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 

@@ -12,7 +12,7 @@ import { StationCacheModel } from 'src/app/metadata/stations/services/stations-c
 import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
-import { ObservationsService } from '../services/observations.service';
+import { ObservationsService } from '../../services/observations.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { AppDatabase } from 'src/app/app-database';
 import { UserSettingEnum } from 'src/app/app-config.service';
@@ -22,9 +22,9 @@ import * as turf from '@turf/turf';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
-import { ViewObservationQueryModel } from '../models/view-observation-query.model';
-import { ViewObservationModel } from '../models/view-observation.model';
+import { EntryFormObservationQueryModel } from '../../models/entry-form-observation-query.model';
+import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
+import { ViewObservationModel } from '../../models/view-observation.model';
 import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 
