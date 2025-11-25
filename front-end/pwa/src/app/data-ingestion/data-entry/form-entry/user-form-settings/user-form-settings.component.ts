@@ -1,36 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { UserSettingEnum } from 'src/app/app-config.service';
-import { AppDatabase } from 'src/app/app-database';
-
-export interface UserFormSettingStruct {
-  displayExtraInformationOption: boolean,
-  incrementDateSelector: boolean;
-  fieldsBorderSize: number;
-
-  linearLayoutSettings: {
-    height: number;
-    maxRows: number;
-  }
-
-  gridLayoutSettings: {
-    height: number;
-    navigation: 'horizontal' | 'vertical';
-  }
-}
-
-export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
-  displayExtraInformationOption: false,
-  incrementDateSelector: false,
-  fieldsBorderSize: 1,
-  linearLayoutSettings: {
-    height: 60,
-    maxRows: 5
-  },
-  gridLayoutSettings: {
-    height: 60,
-    navigation: 'horizontal',
-  }
-}
+import { Component, Output, EventEmitter } from '@angular/core';
+import { UserFormSettingStruct } from '../form-entry.component';
 
 @Component({
   selector: 'app-user-form-settings',
@@ -38,32 +7,37 @@ export const DEFAULT_USER_FORM_SETTINGS: UserFormSettingStruct = {
   styleUrls: ['./user-form-settings.component.scss']
 })
 export class UserFormSettingsComponent {
-  @Input()
-  public open: boolean = false;
-
   @Output()
-  public openChange = new EventEmitter<boolean>();
-
-  @Output()
-  public ok = new EventEmitter<void>();
+  public ok = new EventEmitter<UserFormSettingStruct>();
 
   protected activeTab: 'linear' | 'grid' = 'linear';
-
   protected userFormSettings!: UserFormSettingStruct;
+  protected open: boolean = false;
 
 
-  constructor() {
-    this.loadUserSettings();
-  }
+  constructor() { }
 
-  private async loadUserSettings() {
-    const savedUserFormSetting = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
-    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting.parameters : { ...DEFAULT_USER_FORM_SETTINGS }; //pass by value. Important    
-  }
+  public showDialog(newUserFormSettings: UserFormSettingStruct) {
+    // Important. Clone the form settings
+    this.userFormSettings = {
+      displayExtraInformationOption: newUserFormSettings.displayExtraInformationOption,
+      incrementDateSelector: newUserFormSettings.incrementDateSelector,
+      fieldsBorderSize: newUserFormSettings.fieldsBorderSize,
 
-  public openDialog(): void {
+      linearLayoutSettings: {
+        height: newUserFormSettings.linearLayoutSettings.height,
+        maxRows: newUserFormSettings.linearLayoutSettings.maxRows
+      },
+
+      gridLayoutSettings: {
+        height: newUserFormSettings.gridLayoutSettings.height,
+        navigation: newUserFormSettings.gridLayoutSettings.navigation
+      }
+    };
+
     this.open = true;
   }
+
 
   protected onTabChange(selectedTab: 'linear' | 'grid'): void {
     this.activeTab = selectedTab;
@@ -82,14 +56,11 @@ export class UserFormSettingsComponent {
   }
 
   protected async onOkClick(): Promise<void> {
-    await AppDatabase.instance.userSettings.put({ name: UserSettingEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
     this.open = false;
-    this.ok.emit();
-    this.openChange.emit(this.open);
+    this.ok.emit(this.userFormSettings);
   }
 
   protected onCancelClick(): void {
     this.open = false;
-    this.openChange.emit(this.open);
   }
 }

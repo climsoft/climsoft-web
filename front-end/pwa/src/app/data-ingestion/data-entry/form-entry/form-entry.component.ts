@@ -7,15 +7,13 @@ import { CreateObservationModel } from 'src/app/data-ingestion/models/create-obs
 import { map, Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { SameInputStruct } from './assign-same-input/assign-same-input.component';
+import { AssignSameInputComponent, SameInputStruct } from './assign-same-input/assign-same-input.component';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 import { ObservationsService } from '../../services/observations.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
-import { AppDatabase } from 'src/app/app-database';
-import { UserSettingEnum } from 'src/app/app-config.service';
+import { AppDatabase, UserSetting, UserSettingEnum } from 'src/app/app-database';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
@@ -25,8 +23,24 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { EntryFormObservationQueryModel } from '../../models/entry-form-observation-query.model';
 import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
 import { ViewObservationModel } from '../../models/view-observation.model';
-import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { UserFormSettingsComponent } from './user-form-settings/user-form-settings.component';
+
+export interface UserFormSettingStruct {
+  displayExtraInformationOption: boolean,
+  incrementDateSelector: boolean;
+  fieldsBorderSize: number;
+
+  linearLayoutSettings: {
+    height: number;
+    maxRows: number;
+  }
+
+  gridLayoutSettings: {
+    height: number;
+    navigation: 'horizontal' | 'vertical';
+  }
+}
 
 @Component({
   selector: 'app-form-entry',
@@ -36,7 +50,9 @@ import { ObservationEntry } from 'src/app/observations/models/observation-entry.
 export class FormEntryComponent implements OnInit, OnDestroy {
   @ViewChild('appLinearLayout') linearLayoutComponent!: LinearLayoutComponent;
   @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent;
-  @ViewChild('saveButton') saveButton!: ElementRef;
+  @ViewChild('appSameInputDialog') sameInputDialog!: AssignSameInputComponent;
+  @ViewChild('appUserFormSettingsDialog') userFormSettingsDialog!: UserFormSettingsComponent;
+  @ViewChild('formEntrySubmitButton') submitButton!: ElementRef;
 
   /** Station details */
   protected station!: StationCacheModel;
@@ -49,12 +65,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   /** Definitions used to determine form functionalities */
   protected formDefinitions!: FormEntryDefinition;
 
-  private totalIsValid!: boolean;
-
   protected refreshLayout: boolean = false;
 
-  protected openSameInputDialog: boolean = false;
-  protected openUserFormSettingsDialog: boolean = false;
+  private totalIsValid!: boolean;
 
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
@@ -313,13 +326,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected onOptions(option: 'Same Input' | 'Clear Fields' | 'Settings'): void {
     switch (option) {
       case 'Same Input':
-        this.openSameInputDialog = true;
+        this.sameInputDialog.showDialog();
         break;
       case 'Clear Fields':
         this.clear();
         break;
       case 'Settings':
-        this.openUserFormSettingsDialog = true;
+        this.userFormSettingsDialog.showDialog(this.userFormSettings);
         break;
       default:
         console.warn('Developer eroor: Option NOT allowed', option)
@@ -354,10 +367,15 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected onSaveUserSettings(newUserFormSettings: UserFormSettingStruct): void {
+    this.userFormSettings = newUserFormSettings;
+    AppDatabase.instance.userSettings.put({ name: UserSettingEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
+  }
+
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
-  protected onSave(): void {
+  protected onSubmit(): void {
     if (this.userLocationErrorMessage) {
       this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
@@ -519,14 +537,32 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // This timeout is hacky way of solving the problem. 
     // TODO investigate why the above happens 
     setTimeout(() => {
-      this.saveButton.nativeElement.focus();
+      this.submitButton.nativeElement.focus();
     }, 0);
 
   }
 
   protected async loadUserSettings() {
-    const savedUserFormSetting = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
-    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting.parameters : { ...DEFAULT_USER_FORM_SETTINGS }; //pass by value. Important    
+    const savedUserFormSetting: UserSetting | undefined = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
+    if (savedUserFormSetting) {
+      this.userFormSettings = savedUserFormSetting.parameters;
+    } else {
+      const defaultUserFormSettings: UserFormSettingStruct = {
+        displayExtraInformationOption: false,
+        incrementDateSelector: false,
+        fieldsBorderSize: 1,
+        linearLayoutSettings: {
+          height: 60,
+          maxRows: 5
+        },
+        gridLayoutSettings: {
+          height: 60,
+          navigation: 'horizontal',
+        }
+      }
+
+      this.userFormSettings = defaultUserFormSettings;
+    }
   }
 
   protected onRequestLocation(): void {

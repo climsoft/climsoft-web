@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 
 export interface SameInputStruct {
   valueFlag: string;
@@ -11,29 +11,22 @@ export interface SameInputStruct {
   styleUrls: ['./assign-same-input.component.scss']
 })
 export class AssignSameInputComponent {
-  @Input()
-  public open: boolean = false;
 
-  @Output()
-  public openChange= new EventEmitter<boolean>();
+  @Output() public ok = new EventEmitter<SameInputStruct>();
 
-  @Output()
-  public ok = new EventEmitter<SameInputStruct>();
-
+  protected open: boolean = false;
   protected input: SameInputStruct = { valueFlag: '', comment: '' };
 
-  public openDialog(): void {
+  public showDialog(): void {
     this.open = true;
   }
 
   protected onOkClick(): void {
     this.open = false;
-    this.ok.emit(this.input);
-    this.openChange.emit(this.open);
+    this.ok.emit(this.input); 
   }
 
-  protected onCancelClick(): void{
-    this.open =false;
-    this.openChange.emit(this.open);
+  protected onCancelClick(): void {
+    this.open = false; 
   }
 }

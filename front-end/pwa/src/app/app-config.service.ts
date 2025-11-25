@@ -37,11 +37,4 @@ export class AppConfigService {
   public get apiBaseUrl(): string {
     return this._apiBaseUrl;
   }
-
-}
-
-export enum UserSettingEnum {
-  USER_PROFILE = "user_profile",
-  ENTRY_FORM_SETTINGS = "form_settings",
-  DATA_CORRECTION_SETTINGS = "data_correction_settings",
 }

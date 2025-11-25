@@ -4,12 +4,13 @@ import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
 import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
-import { Subject, take, takeUntil } from 'rxjs';
-import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
+import { Subject, takeUntil } from 'rxjs';
+import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 import { ObservationsService } from '../../services/observations.service';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { AppDatabase, UserSetting, UserSettingEnum } from 'src/app/app-database'; 
 
 interface StationView {
   station: StationCacheModel;
@@ -31,30 +32,25 @@ export class StationFormSelectionComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private stationsCacheService: StationsCacheService,
+    private cachedMetadataService: CachedMetadataService,
     private stationFormsService: StationFormsService,
-    private sourceCacheService: SourceTemplatesCacheService,
     private observationService: ObservationsService,
     private appAuthService: AppAuthService,
     private router: Router,
     private route: ActivatedRoute) {
-      
+
     this.pagesDataService.setPageHeader('Select Station');
 
-    this.sourceCacheService.cachedSources.pipe(
+    this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$)
-    ).subscribe((data) => {
-      // Important. Remove disabled forms
-      this.formSourcesNotDisabled = data.filter(item => item.sourceType === SourceTypeEnum.FORM && !item.disabled);
-    });
+    ).subscribe(allMetadataLoaded => {
+      if (!allMetadataLoaded) return;
+      // Remove disabled forms
+      this.formSourcesNotDisabled = this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.FORM && !item.disabled);
 
-    this.stationsCacheService.cachedStations.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(data => {
       // Filter manual and hybrid stations only
-      const allManualStations: StationView[] = data.filter(
-        item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL ||
-          item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
+      const allManualStations: StationView[] = this.cachedMetadataService.stationsMetadata.filter(
+        item => item.stationObsProcessingMethod === StationObsProcessingMethodEnum.MANUAL || item.stationObsProcessingMethod === StationObsProcessingMethodEnum.HYBRID
       ).map(data => { return { station: data } });
       this.setStationsBasedOnPermissions(allManualStations);
     });
@@ -70,11 +66,9 @@ export class StationFormSelectionComponent implements OnDestroy {
 
   private setStationsBasedOnPermissions(allManualStations: StationView[]) {
     this.appAuthService.user.pipe(
-      take(1),
+      takeUntil(this.destroy$),
     ).subscribe(user => {
-      if (!user) {
-        throw new Error('User not logged in');
-      }
+      if (!user) return;
 
       if (user.isSystemAdmin) {
         this.allStationViews = allManualStations;
@@ -93,8 +87,8 @@ export class StationFormSelectionComponent implements OnDestroy {
     });
   }
 
-  protected getVisibleStationsForSearchDialog(): string[]{
-    return this.allStationViews.map(item=> item.station.id);
+  protected getVisibleStationsForSearchDialog(): string[] {
+    return this.allStationViews.map(item => item.station.id);
   }
 
   protected onSearchInput(searchedIds: string[]): void {
@@ -104,6 +98,30 @@ export class StationFormSelectionComponent implements OnDestroy {
 
   private filterBasedOnSearchedIds(): void {
     this.stationViews = this.searchedIds && this.searchedIds.length > 0 ? this.allStationViews.filter(item => this.searchedIds.includes(item.station.id)) : this.allStationViews;
+  }
+
+  protected async loadUserSettings() {
+    // TODO. Left here
+    //  const savedUserFormSetting: UserSetting | undefined = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
+    //    if (savedUserFormSetting) {
+    //      this.userFormSettings = savedUserFormSetting.parameters;
+    //    } else {
+    //      const defaultUserFormSettings: UserFormSettingStruct = {
+    //        displayExtraInformationOption: false,
+    //        incrementDateSelector: false,
+    //        fieldsBorderSize: 1,
+    //        linearLayoutSettings: {
+    //          height: 60,
+    //          maxRows: 5
+    //        },
+    //        gridLayoutSettings: {
+    //          height: 60,
+    //          navigation: 'horizontal',
+    //        }
+    //      }
+   
+    //      this.userFormSettings = defaultUserFormSettings;
+    //    }  
   }
 
   protected onStationSelected(stationView: StationView): void {

@@ -9,8 +9,7 @@ import { ViewElementTypeModel } from "./metadata/elements/models/view-element-ty
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 import { ViewQCTestModel } from "./metadata/qc-tests/models/view-qc-test.model";
-import { CachedObservationModel } from "./data-ingestion/services/observations.service";
-import { UserSettingEnum } from "./app-config.service";
+import { CachedObservationModel } from "./data-ingestion/services/observations.service"; 
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
 import { ViewOrganisationModel } from "./metadata/organisations/models/view-organisation.model";
 import { ViewNetworkAffiliationModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
@@ -34,6 +33,13 @@ export interface FormStation {
 export interface StationNetwork {
     stationId: string;
     networkAffiliations: ViewNetworkAffiliationModel[];
+}
+
+export enum UserSettingEnum {
+  USER_PROFILE = "user_profile",
+  DATA_ENTRY_STATION_SELECTION_SETTINGS = "data_entry_station_selection_settings",
+  ENTRY_FORM_SETTINGS = "form_settings",
+  DATA_CORRECTION_SETTINGS = "data_correction_settings",
 }
 
 export interface UserSetting {
