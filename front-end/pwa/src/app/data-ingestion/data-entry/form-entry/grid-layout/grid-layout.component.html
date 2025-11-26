@@ -1,7 +1,7 @@
 <ng-container
     *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0">
     <div class="app-table-container" [ngStyle]="{height: layoutHeight + 'vh'}">
-        <table class="table table-hover">
+        <table class="table table-hover table-bordered border-4">
             <thead>
                 <tr class="table-label">
                     <th class="table-row-header">
@@ -22,7 +22,7 @@
                     </td>
 
                     <!-- cell for values -->
-                    <td class="px-0 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
+                    <td class="px-1 py-1 m-0" *ngFor="let colDef of colFieldDefinitions; let colIndex=index;">
                         <div class="app-value-flag-container">
                             <app-value-flag-input [id]="rowDef.id +'-'+ colDef.id"
                                 [borderSize]="userFormSettings.fieldsBorderSize"

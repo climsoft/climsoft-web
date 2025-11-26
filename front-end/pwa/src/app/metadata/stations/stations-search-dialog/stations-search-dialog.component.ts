@@ -41,7 +41,7 @@ interface StationFilterModel {
   styleUrls: ['./stations-search-dialog.component.scss']
 })
 export class StationsSearchDialogComponent implements OnDestroy {
-  @ViewChild('stnIdNameTableContainer') stnIdNameTableContainer!: ElementRef;
+  @ViewChild('stnIdNameTableContainer', { read: ElementRef }) stnIdNameTableContainer!: ElementRef;
 
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
@@ -443,7 +443,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     // Use setTimeout to scroll after the view has been updated with the sorted list.
     setTimeout(() => {
       if (this.stnIdNameTableContainer && this.stnIdNameTableContainer.nativeElement) {
-        this.stnIdNameTableContainer.nativeElement.scrollTop = 0;
+        this.stnIdNameTableContainer.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }, 0);
   }

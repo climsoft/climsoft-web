@@ -33,7 +33,8 @@
         </thead>
         <tbody class="table-group-divider">
           <ng-container *ngFor="let stationView of filteredStationViews">
-            <tr class="app-cursor-pointer" (click)="onStationSelected(stationView)">
+            <tr #stationRow class="app-cursor-pointer" (click)="onStationSelected(stationView)"
+              [id]="'station-row-' + stationView.station.id">
               <td>
                 <app-toggle-chevron [clickable]="false"
                   [open]="stationView.station.id === userStationSelectionState.selectedStationId" />
@@ -45,14 +46,15 @@
             <tr *ngIf="stationView.station.id === userStationSelectionState.selectedStationId">
               <td></td>
               <td colspan="2">
-                <table class="table table-sm table-hover app-cursor-pointer">
+                <table class="table table-sm table-hover">
                   <thead>
                     <tr>
                       <th>Forms</th>
                     </tr>
                   </thead>
                   <tbody class="table-group-divider">
-                    <tr *ngFor="let form of stationView.forms" (click)="onFormClick(stationView.station.id, form.id)">
+                    <tr *ngFor="let form of stationView.forms" (click)="onFormClick(stationView.station.id, form.id)"
+                      class="app-cursor-pointer">
                       <td>
                         <div class="d-flex flex-row">
                           <div class="d-flex flex-row">

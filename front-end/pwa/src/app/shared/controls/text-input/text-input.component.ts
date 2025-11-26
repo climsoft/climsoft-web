@@ -6,7 +6,7 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@
   styleUrls: ['./text-input.component.scss']
 })
 export class TextInputComponent {
-  @ViewChild('appHtmlInput') inputElRef!: ElementRef;
+  @ViewChild('appHtmlInput', { read: ElementRef }) inputElRef!: ElementRef;
 
   @Input() public displayDropDownOption: boolean = false;
   @Input() public dropDownOptionMaxHeight: number = 200;

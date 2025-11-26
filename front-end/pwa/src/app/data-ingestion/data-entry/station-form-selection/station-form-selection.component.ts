@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, ElementRef, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
@@ -28,6 +28,7 @@ interface StationSelectionState {
   styleUrls: ['./station-form-selection.component.scss']
 })
 export class StationFormSelectionComponent implements OnDestroy {
+  @ViewChildren('stationRow', { read: ElementRef }) stationRows!: QueryList<ElementRef>;
   protected allStationViews!: StationView[];
   protected filteredStationViews!: StationView[];
   protected userStationSelectionState: StationSelectionState = {};
@@ -110,6 +111,16 @@ export class StationFormSelectionComponent implements OnDestroy {
         const stationView = this.filteredStationViews.find(stationView => stationView.station.id === selectedStationId);
         if (stationView) {
           this.loadFormsForStation(stationView);
+          // After state is loaded and properties are set, scroll to the last selected station
+          // We use a setTimeout to ensure the view has been updated with the new data
+          // before we try to find the element.
+          setTimeout(() => {
+            const documentElementId = `station-row-${selectedStationId}`;
+            const selectedStationRow = this.stationRows.find(el => el.nativeElement.id === documentElementId);
+            if (selectedStationRow) {
+              selectedStationRow.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 0);
         }
       }
 

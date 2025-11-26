@@ -25,7 +25,7 @@ interface ElementSearchModel {
   styleUrls: ['./elements-search-dialog.component.scss']
 })
 export class ElementsSearchDialogComponent {
-  @ViewChild('elementIdNameTableContainer') elementIdNameTableContainer!: ElementRef;
+  @ViewChild('elementIdNameTableContainer', { read: ElementRef }) elementIdNameTableContainer!: ElementRef;
 
   @Output() public searchedIdsChange = new EventEmitter<number[]>();
 
@@ -281,7 +281,7 @@ export class ElementsSearchDialogComponent {
     // Use setTimeout to scroll after the view has been updated with the sorted list.
     setTimeout(() => {
       if (this.elementIdNameTableContainer && this.elementIdNameTableContainer.nativeElement) {
-        this.elementIdNameTableContainer.nativeElement.scrollTop = 0;
+        this.elementIdNameTableContainer.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }, 0);
   }

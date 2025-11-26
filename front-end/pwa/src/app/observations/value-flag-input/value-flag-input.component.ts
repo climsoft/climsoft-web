@@ -8,9 +8,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { FlagEnum } from 'src/app/data-ingestion/models/flag.enum';
 import { RangeThresholdQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.enum';
-import { NumberUtils } from 'src/app/shared/utils/number.utils';
 import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/defintitions/form-entry.definition';
-import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 
@@ -88,7 +86,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
     if (changes['duplicateObservations'] && this.duplicateObservations && this.observationEntry) {
       this.duplicateObservation = this.duplicateObservations.get(`${this.observationEntry.observation.elementId}-${this.observationEntry.observation.datetime}`);
-      if (this.duplicateObservation ) {
+      if (this.duplicateObservation) {
         // If duplicate exist then disable entry.
         this.disableValueFlagEntry = true;
 
