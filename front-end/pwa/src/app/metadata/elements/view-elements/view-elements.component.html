@@ -26,7 +26,8 @@
         <!-- TODO. find a way of doing this through the drop down in future -->
         <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
       </div>
-      <div *ngIf="elements" class="d-flex mx-2">
+      <div *ngIf="elements" class="d-flex mx-2 app-cursor-pointer"
+        [class.text-success]="searchedIds && searchedIds.length > 0" (click)="onSearchInput([])">
         [{{ elements.length | number:'1.0-0' }}]
       </div>
     </div>
