@@ -1,14 +1,14 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
 import { FormEntryDefinition } from '../defintitions/form-entry.definition';
-import { FieldEntryDefinition } from '../defintitions/field.definition'; 
-import { UserFormSettingStruct } from '../user-form-settings/user-form-settings.component';
-import { ValueFlagInputComponent } from '../../../observations/value-flag-input/value-flag-input.component';
+import { FieldEntryDefinition } from '../defintitions/field.definition';  
+import { ValueFlagInputComponent } from '../../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewObservationModel } from '../../models/view-observation.model';
+import { ViewObservationModel } from '../../../models/view-observation.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { UserFormSettingStruct } from '../form-entry.component';
 
 @Component({
   selector: 'app-linear-layout',
@@ -66,7 +66,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
       // Set up the field definitions for both layouts and the observation definitions for value flag components
       this.fieldDefinitions = this.formDefinitions.getEntryFieldDefs(this.formDefinitions.formMetadata.fields[0]);
       this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
-      this.observationsDefinitions = this.formDefinitions.obsDefsForLinearLayout;
+      this.observationsDefinitions = this.formDefinitions.getObsEntriesForLinearLayout();
     }
 
     if (changes["userFormSettings"] && this.userFormSettings) {

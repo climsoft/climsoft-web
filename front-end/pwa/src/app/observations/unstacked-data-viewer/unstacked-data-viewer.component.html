@@ -8,7 +8,7 @@
                 <th>Date Time</th>
                 <th>Interval</th>
                 <th>Source</th>
-                <th *ngFor="let elementAbbrv of elementColumns">{{ elementAbbrv }}</th>
+                <th *ngFor="let element of elementColumns">{{ element }}</th>
             </tr>
         </thead>
         <tbody>
@@ -29,8 +29,8 @@
                 <td>
                     {{ groupedEntryKV.value[0].sourceName }}
                 </td>
-                <td *ngFor="let elementAbbrv of elementColumns ; let secondIndex = index;">
-                    <div *ngIf="getObservation(elementAbbrv, groupedEntryKV.value) as ev"
+                <td *ngFor="let element of elementColumns ; let secondIndex = index;">
+                    <div *ngIf="getObservation(element, groupedEntryKV.value) as ev"
                         class="app-value-flag-container">
                         <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
                             [displayExtraInfoOption]="true" [scaleValue]="false" [observationEntry]="ev"

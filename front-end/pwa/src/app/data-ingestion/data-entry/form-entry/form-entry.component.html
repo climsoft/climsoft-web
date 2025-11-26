@@ -24,8 +24,8 @@
       <div>
         <app-drop-down-button [dropDownItems]="[ 'Same Input','Clear Fields','Settings']"
           (dropDownOptionClick)="onOptions($event)" [offSetRight]="true" [buttonText]="'Options'" />
-        <app-assign-same-input [(open)]="openSameInputDialog" (ok)="onAssignSameValue($event)" />
-        <app-user-form-settings [(open)]="openUserFormSettingsDialog" (ok)="loadUserSettings()" />
+        <app-assign-same-input #appSameInputDialog (ok)="onAssignSameValue($event)" />
+        <app-user-form-settings #appUserFormSettingsDialog (ok)="onSaveUserSettings($event)" />
       </div>
     </div>
 
@@ -94,7 +94,7 @@
   </div>
 
   <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-    <button #saveButton type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSave()">
+    <button #formEntrySubmitButton type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSubmit()">
       Submit
     </button>
     <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">Cancel</button>

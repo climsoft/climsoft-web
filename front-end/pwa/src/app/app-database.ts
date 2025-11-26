@@ -2,15 +2,13 @@ import Dexie, { Table } from "dexie";
 import { ViewRegionModel } from "./metadata/regions/models/view-region.model";
 import { ViewSourceModel } from "./metadata/source-templates/models/view-source.model";
 import { ViewStationObsEnvModel } from "./metadata/stations/models/view-station-obs-env.model";
-import { ViewStationObsFocusModel } from "./metadata/stations/models/view-station-obs-focus.model";
-import { StationSearchHistoryModel } from "./metadata/stations/models/stations-search-history.model";
+import { ViewStationObsFocusModel } from "./metadata/stations/models/view-station-obs-focus.model"; 
 import { CreateViewElementModel } from "./metadata/elements/models/create-view-element.model";
 import { ViewElementTypeModel } from "./metadata/elements/models/view-element-type.model";
 import { ViewElementSubdomainModel } from "./metadata/elements/models/view-element-subdomain.model";
 import { ElementSearchHistoryModel } from "./metadata/elements/models/elements-search-history.model";
 import { ViewQCTestModel } from "./metadata/qc-tests/models/view-qc-test.model";
-import { CachedObservationModel } from "./data-ingestion/services/observations.service";
-import { UserSettingEnum } from "./app-config.service";
+import { CachedObservationModel } from "./data-ingestion/services/observations.service"; 
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
 import { ViewOrganisationModel } from "./metadata/organisations/models/view-organisation.model";
 import { ViewNetworkAffiliationModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
@@ -36,14 +34,20 @@ export interface StationNetwork {
     networkAffiliations: ViewNetworkAffiliationModel[];
 }
 
-export interface UserSetting {
-    name: UserSettingEnum;
-    parameters: any;
+export enum UserAppStateEnum {
+  USER_PROFILE = "user_profile",
+  DATA_ENTRY_STATION_SELECTION = "data_entry_station_selection",
+  ENTRY_FORM_SETTINGS = "form_settings", 
 }
 
 export interface AppComponentState {
-    id: string; // should be an enumeration
+    name: UserAppStateEnum;
     parameters: any;
+}
+
+export interface StationSearchHistoryModel {
+    name: string;// name of the search
+    stationIds: string[]; // stations selected
 }
 
 export class AppDatabase extends Dexie {
@@ -79,7 +83,7 @@ export class AppDatabase extends Dexie {
 
     //--------------------------------------
     // Front end related tables
-    userSettings!: Table<UserSetting, string>;
+    userSettings!: Table<AppComponentState, string>;
     stationsSearchHistory!: Table<StationSearchHistoryModel, string>;
     elementsSearchHistory!: Table<ElementSearchHistoryModel, string>;
     //--------------------------------------

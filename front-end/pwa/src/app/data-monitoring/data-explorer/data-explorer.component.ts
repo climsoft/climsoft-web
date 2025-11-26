@@ -140,15 +140,12 @@ export class DataExplorerComponent implements OnInit, OnDestroy {
             observation: observation,
             confirmAsCorrect: false,
             delete: false,
-            change: 'no_change',
-            hardDelete: false,
-            restore: false,
+            change: 'no_change', 
             stationName: stationMetadata.name,
             elementAbbrv: elementMetadata.name,
             sourceName: sourceMetadata.name,
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
-            intervalName: IntervalsUtil.getIntervalName(observation.interval),
-            qcTestsFailed: [],
+            intervalName: IntervalsUtil.getIntervalName(observation.interval), 
           }
           return observationView;
 

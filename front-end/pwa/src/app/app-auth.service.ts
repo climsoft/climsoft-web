@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { LoggedInUserModel } from './admin/users/models/logged-in-user.model';
 import { BehaviorSubject, catchError, tap, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { AppConfigService, UserSettingEnum } from './app-config.service';
-import { AppDatabase } from './app-database';
+import { AppConfigService } from './app-config.service';
+import { AppDatabase, UserAppStateEnum } from './app-database';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +23,7 @@ export class AppAuthService {
   }
 
   public async setLoggedInUserFromLocalDB(): Promise<void> {
-    const user = await AppDatabase.instance.userSettings.get(UserSettingEnum.USER_PROFILE);
+    const user = await AppDatabase.instance.userSettings.get(UserAppStateEnum.USER_PROFILE);
     if (user) {
       this._user.next(user.parameters);
     }
@@ -41,7 +41,7 @@ export class AppAuthService {
 
   private saveLoggedInUser(loggedInUser: LoggedInUserModel): void {
     // Save the user data
-    AppDatabase.instance.userSettings.put({ name: UserSettingEnum.USER_PROFILE, parameters: loggedInUser });
+    AppDatabase.instance.userSettings.put({ name: UserAppStateEnum.USER_PROFILE, parameters: loggedInUser });
     this._user.next(loggedInUser)
   }
 
@@ -58,7 +58,7 @@ export class AppAuthService {
 
 
   public removeUser() {
-    AppDatabase.instance.userSettings.delete(UserSettingEnum.USER_PROFILE);
+    AppDatabase.instance.userSettings.delete(UserAppStateEnum.USER_PROFILE);
     this._user.next(null);
   }
 

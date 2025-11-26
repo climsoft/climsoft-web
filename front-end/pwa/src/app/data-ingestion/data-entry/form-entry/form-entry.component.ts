@@ -7,26 +7,40 @@ import { CreateObservationModel } from 'src/app/data-ingestion/models/create-obs
 import { map, Subject, take, takeUntil } from 'rxjs';
 import { FormEntryDefinition } from './defintitions/form-entry.definition';
 import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
-import { SameInputStruct } from './assign-same-input/assign-same-input.component';
+import { AssignSameInputComponent, SameInputStruct } from './assign-same-input/assign-same-input.component';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
-import { DEFAULT_USER_FORM_SETTINGS, UserFormSettingStruct } from './user-form-settings/user-form-settings.component';
 import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
-import { ObservationsService } from '../services/observations.service';
+import { ObservationsService } from '../../services/observations.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
-import { AppDatabase } from 'src/app/app-database';
-import { UserSettingEnum } from 'src/app/app-config.service';
+import { AppDatabase, AppComponentState, UserAppStateEnum } from 'src/app/app-database';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { EntryFormObservationQueryModel } from '../models/entry-form-observation-query.model';
-import { ViewObservationQueryModel } from '../models/view-observation-query.model';
-import { ViewObservationModel } from '../models/view-observation.model';
-import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
+import { EntryFormObservationQueryModel } from '../../models/entry-form-observation-query.model';
+import { ViewObservationQueryModel } from '../../models/view-observation-query.model';
+import { ViewObservationModel } from '../../models/view-observation.model';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
+import { UserFormSettingsComponent } from './user-form-settings/user-form-settings.component';
+
+export interface UserFormSettingStruct {
+  displayExtraInformationOption: boolean,
+  incrementDateSelector: boolean;
+  fieldsBorderSize: number;
+
+  linearLayoutSettings: {
+    height: number;
+    maxRows: number;
+  }
+
+  gridLayoutSettings: {
+    height: number;
+    navigation: 'horizontal' | 'vertical';
+  }
+}
 
 @Component({
   selector: 'app-form-entry',
@@ -36,7 +50,9 @@ import { ObservationEntry } from 'src/app/observations/models/observation-entry.
 export class FormEntryComponent implements OnInit, OnDestroy {
   @ViewChild('appLinearLayout') linearLayoutComponent!: LinearLayoutComponent;
   @ViewChild('appGridLayout') gridLayoutComponent!: GridLayoutComponent;
-  @ViewChild('saveButton') saveButton!: ElementRef;
+  @ViewChild('appSameInputDialog') sameInputDialog!: AssignSameInputComponent;
+  @ViewChild('appUserFormSettingsDialog') userFormSettingsDialog!: UserFormSettingsComponent;
+  @ViewChild('formEntrySubmitButton') submitButton!: ElementRef;
 
   /** Station details */
   protected station!: StationCacheModel;
@@ -49,12 +65,9 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   /** Definitions used to determine form functionalities */
   protected formDefinitions!: FormEntryDefinition;
 
-  private totalIsValid!: boolean;
-
   protected refreshLayout: boolean = false;
 
-  protected openSameInputDialog: boolean = false;
-  protected openUserFormSettingsDialog: boolean = false;
+  private totalIsValid!: boolean;
 
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
@@ -105,7 +118,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(user => {
       if (!user) return;
-      this.pagesDataService.showToast({ title: 'Data Entry', message: `You are currently logged in as ${user.email}`, type: ToastEventTypeEnum.WARNING });
+      this.pagesDataService.showToast({ title: 'Data Entry', message: `You are currently logged in as ${user.email}`, type: ToastEventTypeEnum.WARNING, timeout: 6000 });
     });
 
     // Important note. 
@@ -187,18 +200,18 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     this.observationService.findEntryFormData(entryFormObsQuery).pipe(
       take(1),
     ).subscribe(data => {
-      this.observationEntries = this.formDefinitions.createEntryObsDefs(data);
+      this.observationEntries = this.formDefinitions.createObsEntries(data);
       this.refreshLayout = true;
       // Set firts value flag to have focus ready for rapid data entry
       if (this.linearLayoutComponent) this.linearLayoutComponent.setFocusToFirstVF();
       if (this.gridLayoutComponent) this.gridLayoutComponent.setFocusToFirstVF();
 
-      // Then fetch duplicates
-      this.loadDuplicates(entryFormObsQuery);
-
+      // If double data entry is not allowed then fetch duplicates so that value flag component can prevent double data entry
+      if (!this.formDefinitions.formMetadata.allowDoubleDataEntry) {
+        this.loadDuplicates(entryFormObsQuery);
+      }
     });
   }
-
 
   private loadDuplicates(entryFormObsQuery: EntryFormObservationQueryModel): void {
     const viewObsQuery: ViewObservationQueryModel = {
@@ -227,7 +240,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Only set the duplicates array when there are duplicates. This makes angular detection to only be raised when there are dplicates
+      // Only set the duplicates map when there are duplicates. This makes angular detection to only be raised when there are dplicates
       if (newDuplicateObservations.size > 0) {
         this.duplicateObservations = newDuplicateObservations;
       }
@@ -313,13 +326,13 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected onOptions(option: 'Same Input' | 'Clear Fields' | 'Settings'): void {
     switch (option) {
       case 'Same Input':
-        this.openSameInputDialog = true;
+        this.sameInputDialog.showDialog();
         break;
       case 'Clear Fields':
         this.clear();
         break;
       case 'Settings':
-        this.openUserFormSettingsDialog = true;
+        this.userFormSettingsDialog.showDialog(this.userFormSettings);
         break;
       default:
         console.warn('Developer eroor: Option NOT allowed', option)
@@ -354,10 +367,15 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     }
   }
 
+  protected onSaveUserSettings(newUserFormSettings: UserFormSettingStruct): void {
+    this.userFormSettings = newUserFormSettings;
+    AppDatabase.instance.userSettings.put({ name: UserAppStateEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
+  }
+
   /**
    * Handles saving of observations by sending the data to the server and updating intenal state
    */
-  protected onSave(): void {
+  protected onSubmit(): void {
     if (this.userLocationErrorMessage) {
       this.pagesDataService.showToast({ title: 'Data Entry', message: 'To submit data using this form, user Location is required', type: ToastEventTypeEnum.ERROR });
       return;
@@ -365,7 +383,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
     // Set total as valid, because everything has been cleared
     if (this.formDefinitions.formMetadata.requireTotalInput && !this.totalIsValid) {
-      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Observations', message: `Total value not entered`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
       return;
     }
 
@@ -388,7 +406,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
           comment: obsEntry.observation.comment,
         });
       } else if (obsEntry.change === 'invalid_change') {
-        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observations detected', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Observations', message: 'Invalid observation(s) detected', type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         return;
       }
     }
@@ -405,11 +423,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: () => {
-        this.pagesDataService.showToast({
-          title: 'Data Entry',
-          message: `${createObservations.length} ${obsMessage} saved successfully`,
-          type: ToastEventTypeEnum.SUCCESS
-        });
+        this.pagesDataService.showToast({ title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved successfully`, type: ToastEventTypeEnum.SUCCESS });
 
         // Then sequence to next date if sequencing is on
         if (this.userFormSettings.incrementDateSelector) {
@@ -422,20 +436,14 @@ export class FormEntryComponent implements OnInit, OnDestroy {
       error: err => {
         if (AppAuthInterceptor.isKnownNetworkError(err)) {
           // If there is network error then save observations as unsynchronised and no need to send data to server
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `${createObservations.length} ${obsMessage} saved locally`, type: ToastEventTypeEnum.WARNING, timeout: 5000 });
         } else if (err.status === 400) {
           // If there is a bad request error then show the server message
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         } else {
           // Log the error for tracing purposes
           console.log('data entry error: ', err);
-          this.pagesDataService.showToast({
-            title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR
-          });
+          this.pagesDataService.showToast({ title: 'Data Entry', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR, timeout: 6000 });
         }
       }
     }
@@ -529,14 +537,32 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     // This timeout is hacky way of solving the problem. 
     // TODO investigate why the above happens 
     setTimeout(() => {
-      this.saveButton.nativeElement.focus();
+      this.submitButton.nativeElement.focus();
     }, 0);
 
   }
 
   protected async loadUserSettings() {
-    const savedUserFormSetting = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
-    this.userFormSettings = savedUserFormSetting ? savedUserFormSetting.parameters : { ...DEFAULT_USER_FORM_SETTINGS }; //pass by value. Important    
+    const savedUserFormSetting: AppComponentState | undefined = await AppDatabase.instance.userSettings.get(UserAppStateEnum.ENTRY_FORM_SETTINGS);
+    if (savedUserFormSetting) {
+      this.userFormSettings = savedUserFormSetting.parameters;
+    } else {
+      const defaultUserFormSettings: UserFormSettingStruct = {
+        displayExtraInformationOption: false,
+        incrementDateSelector: false,
+        fieldsBorderSize: 1,
+        linearLayoutSettings: {
+          height: 60,
+          maxRows: 5
+        },
+        gridLayoutSettings: {
+          height: 60,
+          navigation: 'horizontal',
+        }
+      }
+
+      this.userFormSettings = defaultUserFormSettings;
+    }
   }
 
   protected onRequestLocation(): void {

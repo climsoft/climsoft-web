@@ -36,8 +36,9 @@ export class UnstackedDataViewerComponent implements OnChanges {
 
       // If observation group already exist then just push the new observation into the group
       // If it does not exist create a new group
-      if (newGroupedEntries.has(obsIdentifier)) {
-        newGroupedEntries.get(obsIdentifier)?.push(obs);
+      const existingGroup = newGroupedEntries.get(obsIdentifier);
+      if (existingGroup) {
+        existingGroup.push(obs);
       } else {
         newGroupedEntries.set(obsIdentifier, [obs]);
       }
@@ -60,8 +61,5 @@ export class UnstackedDataViewerComponent implements OnChanges {
   protected onUserInput(observationEntry: ObservationEntry) {
     this.valueChange.emit(observationEntry);
   }
-
- 
-
 
 }

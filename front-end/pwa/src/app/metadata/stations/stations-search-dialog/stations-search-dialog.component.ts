@@ -1,7 +1,6 @@
 import { Component, Output, EventEmitter, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { AppDatabase } from 'src/app/app-database';
-import { StationSearchHistoryModel } from '../models/stations-search-history.model';
+import { AppDatabase, StationSearchHistoryModel } from 'src/app/app-database';
 import { StationCacheModel } from '../services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.service';
@@ -42,7 +41,7 @@ interface StationFilterModel {
   styleUrls: ['./stations-search-dialog.component.scss']
 })
 export class StationsSearchDialogComponent implements OnDestroy {
-  @ViewChild('stnIdNameTableContainer') stnIdNameTableContainer!: ElementRef;
+  @ViewChild('stnIdNameTableContainer', { read: ElementRef }) stnIdNameTableContainer!: ElementRef;
 
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
@@ -144,8 +143,15 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onPreviousSearchSelected(selectedSearch: StationSearchHistoryModel): void {
-    this.searchName = selectedSearch.name;
-    this.filteredStations = this.getFilteredStations(this.stations, this.filter, selectedSearch.stationIds);
+    if (this.searchName === selectedSearch.name) {
+      // If same selection then remove selection
+      this.searchName = '';
+      this.filteredStations = this.getFilteredStations(this.stations, this.filter);
+    } else {
+      this.searchName = selectedSearch.name;
+      this.filteredStations = this.getFilteredStations(this.stations, this.filter, selectedSearch.stationIds);
+    }
+
     this.selectedIds = this.getSelectedStationIds(this.filteredStations);
   }
 
@@ -437,7 +443,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     // Use setTimeout to scroll after the view has been updated with the sorted list.
     setTimeout(() => {
       if (this.stnIdNameTableContainer && this.stnIdNameTableContainer.nativeElement) {
-        this.stnIdNameTableContainer.nativeElement.scrollTop = 0;
+        this.stnIdNameTableContainer.nativeElement.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }, 0);
   }
