@@ -1,23 +1,23 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
-      <div *ngIf="stationViews" class="d-flex mx-2">
-        Count: {{ stationViews.length | number:'1.0-0' }}
-      </div>
-      <div class="mb-1">
+      <div>
         <button type="button" class="btn btn-outline-secondary btn-sm me-2"
-          (click)="stationSearch.showDialog( undefined, getVisibleStationsForSearchDialog())">
+          (click)="stationSearch.showDialog( userStationSelectionState.searchedStationIds, getVisibleStationsForSearchDialog())">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
+      </div>
+      <div *ngIf="filteredStationViews" class="d-flex mx-2 app-cursor-pointer"
+        [class.text-success]="userStationSelectionState.searchedStationIds" (click)="onSearchInput([])">
+        [{{ filteredStationViews.length | number:'1.0-0' }}]
       </div>
     </div>
 
   </div>
 
   <div class="card-body p-0">
-    <div *ngIf="stationViews" class="app-table-container" style="height: 80vh;">
-
+    <div class="app-table-container" style="height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -32,19 +32,20 @@
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <ng-container *ngFor="let stationView of stationViews">
-            <tr class="cursor-pointer" (click)="onStationSelected(stationView)">
+          <ng-container *ngFor="let stationView of filteredStationViews">
+            <tr class="app-cursor-pointer" (click)="onStationSelected(stationView)">
               <td>
-                <app-toggle-chevron [clickable]="false" [open]="stationView.station.id === stationIdSelected" />
+                <app-toggle-chevron [clickable]="false"
+                  [open]="stationView.station.id === userStationSelectionState.selectedStationId" />
               </td>
               <td>{{ stationView.station.id}}</td>
               <td>{{ stationView.station.name}}</td>
             </tr>
 
-            <tr *ngIf="stationView.station.id === stationIdSelected">
+            <tr *ngIf="stationView.station.id === userStationSelectionState.selectedStationId">
               <td></td>
               <td colspan="2">
-                <table class="table table-sm table-hover cursor-pointer">
+                <table class="table table-sm table-hover app-cursor-pointer">
                   <thead>
                     <tr>
                       <th>Forms</th>

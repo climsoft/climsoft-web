@@ -94,8 +94,14 @@ export class ElementsSearchDialogComponent {
   }
 
   protected onPreviousSearchSelected(selectedSearch: ElementSearchHistoryModel): void {
-    this.searchName = selectedSearch.name;
-    this.filteredElements = this.getFilteredElements(this.elements, selectedSearch.elementIds);
+    if (this.searchName === selectedSearch.name) {
+      // If same selection then remove selection
+      this.searchName = '';
+      this.filteredElements = this.getFilteredElements(this.elements);
+    } else {
+      this.searchName = selectedSearch.name;
+      this.filteredElements = this.getFilteredElements(this.elements, selectedSearch.elementIds);
+    }
     this.selectedIds = this.getSelectedElementIds(this.filteredElements);
   }
 

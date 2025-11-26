@@ -1,7 +1,6 @@
 import { Component, Output, EventEmitter, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { AppDatabase } from 'src/app/app-database';
-import { StationSearchHistoryModel } from '../models/stations-search-history.model';
+import { AppDatabase, StationSearchHistoryModel } from 'src/app/app-database';
 import { StationCacheModel } from '../services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.service';
@@ -144,8 +143,15 @@ export class StationsSearchDialogComponent implements OnDestroy {
   }
 
   protected onPreviousSearchSelected(selectedSearch: StationSearchHistoryModel): void {
-    this.searchName = selectedSearch.name;
-    this.filteredStations = this.getFilteredStations(this.stations, this.filter, selectedSearch.stationIds);
+    if (this.searchName === selectedSearch.name) {
+      // If same selection then remove selection
+      this.searchName = '';
+      this.filteredStations = this.getFilteredStations(this.stations, this.filter);
+    } else {
+      this.searchName = selectedSearch.name;
+      this.filteredStations = this.getFilteredStations(this.stations, this.filter, selectedSearch.stationIds);
+    }
+
     this.selectedIds = this.getSelectedStationIds(this.filteredStations);
   }
 

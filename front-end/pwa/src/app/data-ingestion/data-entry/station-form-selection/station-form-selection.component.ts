@@ -10,11 +10,16 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
 import { ObservationsService } from '../../services/observations.service';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { AppDatabase, UserSetting, UserSettingEnum } from 'src/app/app-database'; 
+import { AppDatabase, AppComponentState, UserAppStateEnum } from 'src/app/app-database';
 
 interface StationView {
   station: StationCacheModel;
   forms?: ViewSourceModel[];
+}
+
+interface StationSelectionState {
+  selectedStationId?: string,
+  searchedStationIds?: string[];
 }
 
 @Component({
@@ -24,9 +29,8 @@ interface StationView {
 })
 export class StationFormSelectionComponent implements OnDestroy {
   protected allStationViews!: StationView[];
-  protected stationViews!: StationView[];
-  private searchedIds!: string[];
-  protected stationIdSelected: string | undefined;
+  protected filteredStationViews!: StationView[];
+  protected userStationSelectionState: StationSelectionState = {};
   private formSourcesNotDisabled: ViewSourceModel[] = [];
   private destroy$ = new Subject<void>();
 
@@ -60,6 +64,10 @@ export class StationFormSelectionComponent implements OnDestroy {
 
 
   ngOnDestroy() {
+    // Save the state before destroying
+    AppDatabase.instance.userSettings.put({ name: UserAppStateEnum.DATA_ENTRY_STATION_SELECTION, parameters: this.userStationSelectionState });
+    console.log('saved: ', this.userStationSelectionState);
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -83,8 +91,29 @@ export class StationFormSelectionComponent implements OnDestroy {
         throw new Error('Data entry not allowed');
       }
 
-      this.filterBasedOnSearchedIds();
+      this.filteredStationViews = this.allStationViews;
+      this.loadAndRestoreUserStationSelectionState()
     });
+  }
+
+  protected async loadAndRestoreUserStationSelectionState() {
+    const savedUserStationSelectionState: AppComponentState | undefined = await AppDatabase.instance.userSettings.get(UserAppStateEnum.DATA_ENTRY_STATION_SELECTION);
+    if (savedUserStationSelectionState) {
+      this.userStationSelectionState = savedUserStationSelectionState.parameters;
+      const searchedStationIds = this.userStationSelectionState.searchedStationIds;
+      if (searchedStationIds) {
+        this.filteredStationViews = this.allStationViews.filter(item => searchedStationIds.includes(item.station.id));
+      }
+
+      const selectedStationId = this.userStationSelectionState.selectedStationId;
+      if (selectedStationId) {
+        const stationView = this.filteredStationViews.find(stationView => stationView.station.id === selectedStationId);
+        if (stationView) {
+          this.loadFormsForStation(stationView);
+        }
+      }
+
+    }
   }
 
   protected getVisibleStationsForSearchDialog(): string[] {
@@ -92,46 +121,29 @@ export class StationFormSelectionComponent implements OnDestroy {
   }
 
   protected onSearchInput(searchedIds: string[]): void {
-    this.searchedIds = searchedIds;
-    this.filterBasedOnSearchedIds();
-  }
-
-  private filterBasedOnSearchedIds(): void {
-    this.stationViews = this.searchedIds && this.searchedIds.length > 0 ? this.allStationViews.filter(item => this.searchedIds.includes(item.station.id)) : this.allStationViews;
-  }
-
-  protected async loadUserSettings() {
-    // TODO. Left here
-    //  const savedUserFormSetting: UserSetting | undefined = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
-    //    if (savedUserFormSetting) {
-    //      this.userFormSettings = savedUserFormSetting.parameters;
-    //    } else {
-    //      const defaultUserFormSettings: UserFormSettingStruct = {
-    //        displayExtraInformationOption: false,
-    //        incrementDateSelector: false,
-    //        fieldsBorderSize: 1,
-    //        linearLayoutSettings: {
-    //          height: 60,
-    //          maxRows: 5
-    //        },
-    //        gridLayoutSettings: {
-    //          height: 60,
-    //          navigation: 'horizontal',
-    //        }
-    //      }
-   
-    //      this.userFormSettings = defaultUserFormSettings;
-    //    }  
+    if (searchedIds.length > 0) {
+      this.filteredStationViews = this.allStationViews.filter(item => searchedIds.includes(item.station.id));
+      this.userStationSelectionState.searchedStationIds = searchedIds;
+    } else {
+      this.filteredStationViews = this.allStationViews;
+      this.userStationSelectionState.searchedStationIds = undefined;
+    }
   }
 
   protected onStationSelected(stationView: StationView): void {
-    if (stationView.station.id === this.stationIdSelected) {
-      this.stationIdSelected = undefined; // will hide the forms 
-      return;
+    if (stationView.station.id === this.userStationSelectionState.selectedStationId) {
+      this.userStationSelectionState.selectedStationId = undefined; // Will hide the forms 
+    } else {
+      this.userStationSelectionState.selectedStationId = stationView.station.id;
+      this.loadFormsForStation(stationView);
     }
+  }
 
-    this.stationIdSelected = stationView.station.id;
+  protected onFormClick(stationId: string, sourceId: number): void {
+    this.router.navigate(['form-entry', stationId, sourceId], { relativeTo: this.route.parent });
+  }
 
+  private loadFormsForStation(stationView: StationView): void {
     // No need to reload the station forms if already loaded if they have
     if (!stationView.forms) {
       this.stationFormsService.getFormsAssignedToStation(stationView.station.id).pipe(
@@ -141,11 +153,6 @@ export class StationFormSelectionComponent implements OnDestroy {
         stationView.forms = data.filter(stationForm => this.formSourcesNotDisabled.find(form => stationForm.id === form.id));
       });
     }
-
-  }
-
-  protected onFormClick(stationId: string, sourceId: number): void {
-    this.router.navigate(['form-entry', stationId, sourceId], { relativeTo: this.route.parent });
   }
 
 }

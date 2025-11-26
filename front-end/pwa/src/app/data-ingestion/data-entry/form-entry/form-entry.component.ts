@@ -13,7 +13,7 @@ import { LinearLayoutComponent } from './linear-layout/linear-layout.component';
 import { GridLayoutComponent } from './grid-layout/grid-layout.component';
 import { ObservationsService } from '../../services/observations.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
-import { AppDatabase, UserSetting, UserSettingEnum } from 'src/app/app-database';
+import { AppDatabase, AppComponentState, UserAppStateEnum } from 'src/app/app-database';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { AppLocationService } from 'src/app/app-location.service';
 import * as turf from '@turf/turf';
@@ -369,7 +369,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
 
   protected onSaveUserSettings(newUserFormSettings: UserFormSettingStruct): void {
     this.userFormSettings = newUserFormSettings;
-    AppDatabase.instance.userSettings.put({ name: UserSettingEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
+    AppDatabase.instance.userSettings.put({ name: UserAppStateEnum.ENTRY_FORM_SETTINGS, parameters: this.userFormSettings });
   }
 
   /**
@@ -543,7 +543,7 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   }
 
   protected async loadUserSettings() {
-    const savedUserFormSetting: UserSetting | undefined = await AppDatabase.instance.userSettings.get(UserSettingEnum.ENTRY_FORM_SETTINGS);
+    const savedUserFormSetting: AppComponentState | undefined = await AppDatabase.instance.userSettings.get(UserAppStateEnum.ENTRY_FORM_SETTINGS);
     if (savedUserFormSetting) {
       this.userFormSettings = savedUserFormSetting.parameters;
     } else {
