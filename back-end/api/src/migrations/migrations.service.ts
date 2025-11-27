@@ -171,7 +171,7 @@ export class MigrationsService {
           }
         };
 
-        await this.qcTestsService.update(qc.id, { ...qc, parameters: newThresholdParams });
+        await this.qcTestsService.update(qc.id, { ...qc, parameters: newThresholdParams }, 1);
 
         this.logger.log(`Range threshold updated -  ${qc.id} - ${qc.name}`)
       }

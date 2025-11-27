@@ -6,7 +6,7 @@ import { ObservationsService } from 'src/app/data-ingestion/services/observation
 import { ClimsoftV4ImportParametersModel, ElementIntervalModel } from './models/climsoft-v4-import-parameters.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
-@Component({ 
+@Component({
   selector: 'app-climsoft-v4',
   templateUrl: './climsoft-v4.component.html',
   styleUrls: ['./climsoft-v4.component.scss']
@@ -19,7 +19,7 @@ export class ClimsoftV4Component {
   protected v4Conflicts: string[] = [];
   protected elementsToFetch: ElementIntervalModel[] = [];
   protected showImportStarted: boolean = false;
-  protected fromEntryDate!: string; 
+  protected fromEntryDate!: string;
   protected errorMessage: string = '';
 
   constructor(
@@ -100,22 +100,20 @@ export class ClimsoftV4Component {
   }
 
   protected onImportElementsClick(): void {
-    this.climsoftV4Service.importElements().pipe(take(1)).subscribe((data) => {
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements saved to web database`, type: ToastEventTypeEnum.SUCCESS });
-      } else if (data.message === 'error') {
-        this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 elements NOT saved to web database`, type: ToastEventTypeEnum.ERROR });
-      }
+    this.climsoftV4Service.importElements().pipe(take(1)).subscribe(( ) => {
+      this.pagesDataService.showToast({ title: 'V4 Elements Pull', message: `V4 elements saved to web database`, type: ToastEventTypeEnum.SUCCESS });
     });
   }
 
   protected onImportStationsClick(): void {
-    this.climsoftV4Service.importStations().pipe(take(1)).subscribe((data) => {
-      if (data.message === 'success') {
-        this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations saved to web database`, type: ToastEventTypeEnum.SUCCESS });
-      } else if (data.message === 'error') {
-        this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations NOT saved to web database`, type: ToastEventTypeEnum.ERROR });
-      }
+    this.climsoftV4Service.importStations().pipe(take(1)).subscribe(() => {
+     this.pagesDataService.showToast({ title: 'V4 Stations Pull', message: `V4 stations saved to web database`, type: ToastEventTypeEnum.SUCCESS });
+    });
+  }
+
+   protected onImportElementQCClick(): void {
+    this.climsoftV4Service.importElementQcs().pipe(take(1)).subscribe(() => {
+     this.pagesDataService.showToast({ title: 'V4 Element QCs Pull', message: `V4 element QCs saved to web database`, type: ToastEventTypeEnum.SUCCESS });
     });
   }
 
@@ -158,7 +156,7 @@ export class ClimsoftV4Component {
     this.errorMessage = '';
     if (this.fromEntryDate) {
       this.climsoftV4ImportParameters.fromEntryDate = `${this.fromEntryDate}T00:00:00Z`;
-    }else{
+    } else {
       this.errorMessage = 'From entry date required';
       return;
     }
@@ -168,7 +166,7 @@ export class ClimsoftV4Component {
       return;
     }
 
-    if (this.climsoftV4ImportParameters.pollingInterval<= 10) {
+    if (this.climsoftV4ImportParameters.pollingInterval <= 10) {
       this.errorMessage = 'Polling interval must be greater than 10 minutes';
       return;
     }

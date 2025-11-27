@@ -10,7 +10,7 @@ import { CreateQCTestDto } from '../dtos/create-qc-test.dto';
 @Controller('qc-tests')
 export class QCTestsController {
 
-    constructor(private readonly qcTestsService: QCTestsService) {
+    constructor(private qcTestsService: QCTestsService) {
     }
 
     @Get()
@@ -43,8 +43,11 @@ export class QCTestsController {
 
     @Admin()
     @Patch(':id')
-    public update(@Param('id', ParseIntPipe) id: number, @Body() createQcTestDto: CreateQCTestDto) {
-        return this.qcTestsService.update(id, createQcTestDto);
+    public update(
+        @Req() request: Request,
+        @Param('id', ParseIntPipe) id: number,
+        @Body() createQcTestDto: CreateQCTestDto) {
+        return this.qcTestsService.update(id, createQcTestDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
