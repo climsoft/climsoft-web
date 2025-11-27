@@ -2,7 +2,7 @@ import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
-import { QCTestParameterInputDialogComponent } from '../qc-test-input-dialog/qc-test-parameter-input-dialog.component';
+import { QCTestParameterInputDialogComponent } from '../qc-test-input-dialog/qc-test-input-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
@@ -11,9 +11,10 @@ interface ElementQCTestView extends QCTestCacheModel {
 }
 
 enum OptionEnum {
-  SORT_BY_NAME = 'Sort by Name',
+  SORT_BY_QC_NAME = 'Sort by QC Name',
   SORT_BY_ELEMENT_ID = 'Sort by Element Id',
   SORT_BY_ELEMENT_NAME = 'Sort by Element Name',
+  SORT_BY_QC_TYPE = 'Sort by QC Type',
   DELETE_ALL = 'Delete All',
 }
 
@@ -26,7 +27,6 @@ export class ViewQCTestsComponent implements OnDestroy {
   @ViewChild('dlgQcEdit') appQCEditDialog!: QCTestParameterInputDialogComponent;
 
   protected elementQCTestParams!: ElementQCTestView[];
-  // protected elements!: ElementCacheModel[];
   protected searchedIds!: number[];
 
   protected dropDownItems: OptionEnum[] = [];
@@ -49,7 +49,7 @@ export class ViewQCTestsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems = [OptionEnum.SORT_BY_NAME, OptionEnum.SORT_BY_ELEMENT_ID, OptionEnum.SORT_BY_ELEMENT_NAME];
+      this.dropDownItems = [OptionEnum.SORT_BY_QC_NAME, OptionEnum.SORT_BY_ELEMENT_ID, OptionEnum.SORT_BY_ELEMENT_NAME, OptionEnum.SORT_BY_QC_TYPE];
       if (this.isSystemAdmin) {
         this.dropDownItems.push(OptionEnum.DELETE_ALL)
       }
@@ -85,19 +85,22 @@ export class ViewQCTestsComponent implements OnDestroy {
 
   protected onOptionsClicked(option: OptionEnum) {
     switch (option) {
-      case OptionEnum.SORT_BY_NAME:
-        this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.name.localeCompare(b.name));
+      case OptionEnum.SORT_BY_QC_NAME:
+        this.elementQCTestParams.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case OptionEnum.SORT_BY_ELEMENT_ID:
-        this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementId - b.elementId);
+        this.elementQCTestParams.sort((a, b) => a.elementId - b.elementId);
         break;
       case OptionEnum.SORT_BY_ELEMENT_NAME:
-        this.elementQCTestParams = [...this.elementQCTestParams].sort((a, b) => a.elementName.localeCompare(b.elementName));
+        this.elementQCTestParams.sort((a, b) => a.elementName.localeCompare(b.elementName));
+        break;
+      case OptionEnum.SORT_BY_QC_TYPE:
+        this.elementQCTestParams.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
         break;
       case OptionEnum.DELETE_ALL:
         this.elementsQCTestsCacheService.deleteAll().pipe(
           take(1),
-        ).subscribe(data => {
+        ).subscribe(() => {
           this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
         });
         return;

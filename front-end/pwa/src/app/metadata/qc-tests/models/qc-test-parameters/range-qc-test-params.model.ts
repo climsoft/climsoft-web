@@ -1,7 +1,17 @@
-import { QCTestParametersValidity } from "../create-qc-test.model";
-
-export interface RangeThresholdQCTestParamsModel extends QCTestParametersValidity {
+export interface AllRangeThresholdModel {
     lowerThreshold: number;
     upperThreshold: number;
+}
+
+export interface MonthlyRangeThresholdModel {
+    monthId: number;
+    lowerThreshold: number;
+    upperThreshold: number;
+}
+
+export interface RangeThresholdQCTestParamsModel  {
+    stationIds?: string[];
+    allRangeThreshold?: AllRangeThresholdModel;
+    monthsThresholds?: MonthlyRangeThresholdModel[];
 }
 

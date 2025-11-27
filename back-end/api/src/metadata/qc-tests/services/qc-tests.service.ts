@@ -114,7 +114,7 @@ export class QCTestsService {
         qctest.qcTestType = dto.qcTestType;
         qctest.parameters = dto.parameters;
         qctest.disabled = dto.disabled;
-        qctest.comment = dto.comment;
+        qctest.comment = dto.comment? dto.comment: null;
         return this.qcTestsRepo.save(qctest);
     }
 

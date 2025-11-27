@@ -22,8 +22,7 @@ import { ElementTypesController } from './elements/controllers/elements-types.co
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
 import { SourceTemplatesService } from './source-templates/services/source-templates.service';
 import { SourceTemplateEntity } from './source-templates/entities/source-template.entity';
-import { ElementsService } from './elements/services/elements.service'; 
-import { QCTestsController } from './qc-tests/qc-tests.controller';
+import { ElementsService } from './elements/services/elements.service';
 import { QCTestsService } from './qc-tests/services/qc-tests.service';
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
@@ -48,6 +47,7 @@ import { StationNetworkAffiliationsController } from './stations/controllers/sta
 import { StationNetworkAffiliationsService } from './stations/services/station-network-affiliations.service';
 import { SettingsModule } from 'src/settings/settings.module';
 import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
+import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
 
 @Module({
     imports: [
@@ -81,7 +81,6 @@ import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
         ElementsController,
         ElementTypesController,
         ElementSubdomainsController,
-        QCTestsController,
 
         OrganisationsController,
         NetworkAffiliationsController,
@@ -91,6 +90,8 @@ import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
         StationsController,
         StationFormsController,
         StationNetworkAffiliationsController,
+
+        QCTestsController,
 
         SourceTemplatesController,
 
@@ -112,10 +113,10 @@ import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
         StationFormsService,
         StationNetworkAffiliationsService,
 
-
         SourceTemplatesService,
 
         QCTestsService,
+        
         RegionsService,
         StationsImportExportService,
         ElementsImportExportService,

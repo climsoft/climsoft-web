@@ -1,15 +1,15 @@
-<div *ngIf="users"  class="card border-0">
+<div *ngIf="users" class="card border-0">
     <div class="card-header d-flex justify-content-end p-0 align-items-center">
-        <div *ngIf="users" class="d-flex mx-2">
-            Count: {{ users.length | number:'1.0-0' }}
-        </div>
-        <div class="mb-1">
+        <div class="d-flex align-items-center">
             <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearchClick()">
                 Search
             </button> -->
             <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onNewUserClick()">
                 Add
             </button>
+            <div *ngIf="users" class="d-flex mx-2">
+                [{{ users.length | number:'1.0-0' }}]
+            </div>
         </div>
     </div>
 

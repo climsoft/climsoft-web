@@ -1,21 +1,25 @@
-import { IsInt, IsOptional } from "class-validator";
-import { QCTestParametersValidity } from "../create-qc-test.dto";
+import { IsEnum, IsInt, IsNumber, ValidateNested } from "class-validator";
 import { QCTestParamConditionEnum } from "./qc-test-param-condition.enum";
+import { Type } from "class-transformer";
 
+class ContextualCheckDto {
+    @IsEnum(QCTestParamConditionEnum)
+    condition: QCTestParamConditionEnum;
 
-export class ContextualQCTestParamsDto implements QCTestParametersValidity {
+    @IsNumber()
+    value: number;
+}
+
+export class ContextualQCTestParamsDto {
     @IsInt()
     referenceElementId: number;
 
-    @IsOptional() // TODO. Do validations. This should not be optional.
-    primaryCheck: { condition: QCTestParamConditionEnum, value: number };
+    @ValidateNested()
+    @Type(() => ContextualCheckDto)
+    primaryCheck: ContextualCheckDto;
 
-    @IsOptional() // TODO. Do validations. This should not be optional.
-    referenceCheck: { condition: QCTestParamConditionEnum, value: number };
+    @ValidateNested()
+    @Type(() => ContextualCheckDto)
+    referenceCheck: ContextualCheckDto;
 
-    isValid(): boolean {
-        //TODO
-        return true;
-    }
 }
-

@@ -1,19 +1,19 @@
-import { BehaviorSubject, catchError, map, Observable, Subscription, tap, throwError } from "rxjs";
+import { BehaviorSubject, map, Observable, Subscription, tap } from "rxjs";
 import { Injectable } from "@angular/core";
 import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewQCTestModel } from "src/app/metadata/qc-tests/models/view-qc-test.model";
-import { CreateQCTestModel, QCTestParametersValidity } from "src/app/metadata/qc-tests/models/create-qc-test.model";
+import { CreateQCTestModel, QCTestParameters } from "src/app/metadata/qc-tests/models/create-qc-test.model";
 import { QCTestTypeEnum } from "src/app/metadata/qc-tests/models/qc-test-type.enum";
-import { RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model";
-import { FlatLineQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/flat-line-qc-test-params.model";
+import { AllRangeThresholdModel, RangeThresholdQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model";
 import { SpikeQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/spike-qc-test-params.model";
 import { RelationalQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/relational-qc-test-params.model";
 import { ContextualQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/contextual-qc-test-params.model";
 import { IntervalsUtil } from "src/app/shared/controls/period-input/Intervals.util";
+import { FlatLineQCTestParamsModel } from "../models/qc-test-parameters/flat-line-qc-test-params.model";
 
 export interface QCTestCacheModel {
     id: number;
@@ -25,7 +25,7 @@ export interface QCTestCacheModel {
     observationIntervalName: string;
     qcTestType: QCTestTypeEnum;
     qcTestTypeName: string,
-    parameters: QCTestParametersValidity;
+    parameters: QCTestParameters;
     formattedParameters: string;
     disabled: boolean;
     comment: string | null;
@@ -57,7 +57,21 @@ export class QCTestsCacheService {
             switch (elementQCTest.qcTestType) {
                 case QCTestTypeEnum.RANGE_THRESHOLD:
                     const rangeParams = elementQCTest.parameters as RangeThresholdQCTestParamsModel;
-                    formattedParameters = `{ Lower threshold : ${rangeParams.lowerThreshold} } { Upper threshold : ${rangeParams.upperThreshold} }`;
+                    if (rangeParams.stationIds) {
+                        formattedParameters = `Stations [${rangeParams.stationIds.length}]`;
+                    }else{
+                         formattedParameters = `All Stations`;
+                    }
+
+                    if (rangeParams.allRangeThreshold) {
+                        const allRangeThreshold: AllRangeThresholdModel = rangeParams.allRangeThreshold;
+                        formattedParameters = `${formattedParameters} - all thresholds: { Lower threshold : ${allRangeThreshold.lowerThreshold} } { Upper threshold : ${allRangeThreshold.upperThreshold} } `;
+                    }
+
+                    if (rangeParams.monthsThresholds) {
+                        formattedParameters = `${formattedParameters} - monthly thresholds... `;
+                    }
+
                     break;
                 case QCTestTypeEnum.FLAT_LINE:
                     const flatLineParams = elementQCTest.parameters as FlatLineQCTestParamsModel;
@@ -101,7 +115,7 @@ export class QCTestsCacheService {
                 {
                     id: elementQCTest.id,
                     name: elementQCTest.name,
-                    description: elementQCTest.description? elementQCTest.description : '',
+                    description: elementQCTest.description ? elementQCTest.description : '',
                     elementId: elementQCTest.elementId,
                     observationLevel: elementQCTest.observationLevel,
                     observationInterval: elementQCTest.observationInterval,
@@ -120,7 +134,7 @@ export class QCTestsCacheService {
         this._cachedElements.next(newCachedElementsQcTests);
     }
 
-   
+
     public checkForUpdates(): void {
         // If still checking for updates just return
         if (this.checkingForUpdates) return;
@@ -163,7 +177,7 @@ export class QCTestsCacheService {
                 return response.filter(item => item.elementId === elementId);
             })
         );
-      }
+    }
 
     public add(createDto: CreateQCTestModel): Observable<ViewQCTestModel> {
         return this.http.post<ViewQCTestModel>(`${this.endPointUrl}`, createDto)

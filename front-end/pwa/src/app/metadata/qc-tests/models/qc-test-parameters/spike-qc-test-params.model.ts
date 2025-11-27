@@ -1,6 +1,4 @@
-import { QCTestParametersValidity } from "../create-qc-test.model";
-
-export interface SpikeQCTestParamsModel extends QCTestParametersValidity { 
+export interface SpikeQCTestParamsModel { 
     spikeThreshold: number;
 }
 

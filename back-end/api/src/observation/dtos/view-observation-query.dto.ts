@@ -1,21 +1,24 @@
 import { Transform, Type } from "class-transformer";
-import { IsDateString, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDateString, IsEnum, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 
 export class ViewObservationQueryDTO {
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsString({ each: true })
     stationIds?: string[];
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     elementIds?: number[];
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     intervals?: number[];
 
@@ -25,6 +28,7 @@ export class ViewObservationQueryDTO {
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     sourceIds?: number[];
 

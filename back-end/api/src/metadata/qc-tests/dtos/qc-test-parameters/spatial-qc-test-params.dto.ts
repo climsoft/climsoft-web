@@ -1,13 +1,5 @@
-import { QCTestParametersValidity } from "../create-qc-test.dto";
-
-
-export class SpatialQCTestParamsDto  implements QCTestParametersValidity {
+export class SpatialQCTestParamsDto {
     
     // TODO
 
-    isValid(): boolean {
-        //TODO
-        return true;
-    }
 }
-

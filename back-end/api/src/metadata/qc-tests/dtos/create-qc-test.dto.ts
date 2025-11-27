@@ -1,7 +1,6 @@
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
-import { Type } from 'class-transformer';
-import { FlatLineQCTestParametersDto } from './qc-test-parameters/flat-line-qc-test-params.dto';
+import { Type } from 'class-transformer'; 
 import { RangeThresholdQCTestParamsDto } from './qc-test-parameters/range-qc-test-params.dto';
 import { BadRequestException } from '@nestjs/common';
 import { SpikeQCTestParamsDto } from './qc-test-parameters/spike-qc-test-params.dto';
@@ -10,10 +9,8 @@ import { ContextualQCTestParamsDto } from './qc-test-parameters/contextual-qc-te
 import { DiurnalQCTestParamsDto } from './qc-test-parameters/diurnal-qc-test-params.dto';
 import { RemoteSensingQCTestParamsDto } from './qc-test-parameters/remote-sensing-qc-test-params.dto';
 import { SpatialQCTestParamsDto } from './qc-test-parameters/spatial-qc-test-params.dto';
-
-export interface QCTestParametersValidity {
-    isValid(): boolean;
-}
+import { FlatLineQCTestParamsDto } from './qc-test-parameters/flat-line-qc-test-params.dto';
+import { QCTestParameters } from '../entities/qc-test.entity';
 
 export class CreateQCTestDto {
     @IsString()
@@ -46,7 +43,7 @@ export class CreateQCTestDto {
             case QCTestTypeEnum.RANGE_THRESHOLD:
                 return RangeThresholdQCTestParamsDto;
             case QCTestTypeEnum.FLAT_LINE:
-                return FlatLineQCTestParametersDto;
+                return FlatLineQCTestParamsDto;
             case QCTestTypeEnum.SPIKE:
                 return SpikeQCTestParamsDto;
             case QCTestTypeEnum.RELATIONAL_COMPARISON:
@@ -63,13 +60,12 @@ export class CreateQCTestDto {
                 throw new BadRequestException('qcTestType is not recognised');
         }
     })
-    parameters: QCTestParametersValidity;
+    parameters: QCTestParameters;
 
     @IsBoolean()
     disabled: boolean;
 
     @IsOptional() // TODO. Not sure if this correctly represent nulls
     @IsString()
-    comment: string | null;
+    comment?: string | null;
 }
-

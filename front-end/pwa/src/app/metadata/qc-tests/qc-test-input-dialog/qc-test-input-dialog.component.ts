@@ -2,7 +2,6 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { CreateQCTestModel } from 'src/app/metadata/qc-tests/models/create-qc-test.model';
 import { ContextualQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/contextual-qc-test-params.model';
-import { FlatLineQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/flat-line-qc-test-params.model';
 import { QCTestParamConditionEnum } from 'src/app/metadata/qc-tests/models/qc-test-parameters/qc-test-param-condition.enum';
 import { RangeThresholdQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model';
 import { RelationalQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/relational-qc-test-params.model';
@@ -11,11 +10,12 @@ import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.en
 import { ViewQCTestModel } from 'src/app/metadata/qc-tests/models/view-qc-test.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { QCTestsCacheService } from '../services/qc-tests-cache.service';
+import { FlatLineQCTestParamsModel } from '../models/qc-test-parameters/flat-line-qc-test-params.model';
 
 @Component({
-  selector: 'app-qc-test-input-parameter-dialog',
-  templateUrl: './qc-test-parameter-input-dialog.component.html',
-  styleUrls: ['./qc-test-parameter-input-dialog.component.scss']
+  selector: 'app-qc-test-input-dialog',
+  templateUrl: './qc-test-input-dialog.component.html',
+  styleUrls: ['./qc-test-input-dialog.component.scss']
 })
 export class QCTestParameterInputDialogComponent {
   @Output()
@@ -55,7 +55,7 @@ export class QCTestParameterInputDialogComponent {
         this.displayNotYetSupported = false;
       });
     } else {
-      const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
+      const rangeThreshold: RangeThresholdQCTestParamsModel = { allRangeThreshold: { lowerThreshold: 0, upperThreshold: 0 } };
       this.updateQcTest = {
         id: 0,
         name: '',
@@ -118,19 +118,19 @@ export class QCTestParameterInputDialogComponent {
 
     switch (qcTestType) {
       case QCTestTypeEnum.RANGE_THRESHOLD:
-        const rangeThreshold: RangeThresholdQCTestParamsModel = { lowerThreshold: 0, upperThreshold: 0, isValid: () => true };
+        const rangeThreshold: RangeThresholdQCTestParamsModel = { allRangeThreshold: { lowerThreshold: 0, upperThreshold: 0 } };
         this.updateQcTest.parameters = rangeThreshold;
         break;
       case QCTestTypeEnum.FLAT_LINE:
-        const flatLine: FlatLineQCTestParamsModel = { consecutiveRecords: 2, flatLineThreshold: 0, isValid: () => true };
+        const flatLine: FlatLineQCTestParamsModel = { consecutiveRecords: 2, flatLineThreshold: 0 };
         this.updateQcTest.parameters = flatLine;
         break;
       case QCTestTypeEnum.SPIKE:
-        const spike: SpikeQCTestParamsModel = { spikeThreshold: 0, isValid: () => true };
+        const spike: SpikeQCTestParamsModel = { spikeThreshold: 0 };
         this.updateQcTest.parameters = spike;
         break;
       case QCTestTypeEnum.RELATIONAL_COMPARISON:
-        const relational: RelationalQCTestParamsModel = { condition: QCTestParamConditionEnum.GREAT_THAN, referenceElementId: 1, isValid: () => true };
+        const relational: RelationalQCTestParamsModel = { condition: QCTestParamConditionEnum.GREAT_THAN, referenceElementId: 1 };
         this.updateQcTest.parameters = relational;
         break;
       case QCTestTypeEnum.DIURNAL:
@@ -141,8 +141,7 @@ export class QCTestParameterInputDialogComponent {
         const contextual: ContextualQCTestParamsModel = {
           referenceElementId: 1,
           referenceCheck: { condition: QCTestParamConditionEnum.GREAT_THAN, value: 0 },
-          primaryCheck: { condition: QCTestParamConditionEnum.GREAT_THAN, value: 0 },
-          isValid: () => true
+          primaryCheck: { condition: QCTestParamConditionEnum.GREAT_THAN, value: 0 }
         };
         this.updateQcTest.parameters = contextual;
         break;
@@ -187,14 +186,14 @@ export class QCTestParameterInputDialogComponent {
     saveSubscription.pipe(
       take(1)
     ).subscribe({
-      next: data => {
+      next: () => {
         this.open = false;
         this.pagesDataService.showToast({ title: "QC Tests", message: this.updateQcTest.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
         this.ok.emit();
       },
       error: err => {
         this.open = false;
-        this.pagesDataService.showToast({ title: "QC Tests", message: 'Error in saving qc test', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: "QC Tests", message: `Error in saving qc test - ${err}`, type: ToastEventTypeEnum.ERROR , timeout: 8000});
       }
     });
   }

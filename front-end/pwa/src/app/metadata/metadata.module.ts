@@ -15,14 +15,14 @@ import { ImportStationsDialogComponent } from './stations/import-stations-dialog
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';  
 import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
-import { ImportSourcePeriodDetailComponent } from './source-templates/import-source-detail/import-source-period-detail/import-source-period-detail.component';
+import { ImportSourceIntervalDetailComponent } from './source-templates/import-source-detail/import-source-interval-detail/import-source-interval-detail.component';
 import { ImportSourceDateDetailComponent } from './source-templates/import-source-detail/import-source-date-detail/import-source-date-detail.component';
 import { ImportSourceDelimeterDetailComponent } from './source-templates/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
 import { ImportSourceLevelDetailComponent } from './source-templates/import-source-detail/import-source-level-detail/import-source-level-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './source-templates/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-templates/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
-import { QCTestParameterInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-test-parameter-input-dialog.component';
+import { QCTestParameterInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-test-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
 import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
 import { QCTestFlatLineParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
@@ -118,7 +118,7 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     ViewElementsComponent,  
     ImportSourceStationDetailComponent,
     ImportSourceElementAndValueDetailComponent,
-    ImportSourcePeriodDetailComponent,
+    ImportSourceIntervalDetailComponent,
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
     ImportSourceLevelDetailComponent,
