@@ -1,13 +1,5 @@
-import { QCTestParametersValidity } from "../create-qc-test.dto";
-
-
-export class RemoteSensingQCTestParamsDto  implements QCTestParametersValidity {
+export class RemoteSensingQCTestParamsDto {
     
     // TODO
 
-    isValid(): boolean {
-        //TODO
-        return true;
-    }
 }
-

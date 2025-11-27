@@ -5,7 +5,7 @@
     <div *ngIf="filteredOptions" class="card">
         <div class="card-body p-0">
             <div class="p-1">
-                <app-text-input [id]="'search_control'" [placeholder]="'search'"
+                <app-text-input [id]="id +'_' + label + '_' + '_search_control'" [placeholder]="'search'"
                     [displaySearchOption]="displayAdvancedSearchOption" (valueChange)="onSearchInput($event);"
                     (displaySearchOptionClick)="onAdvancedSearchClick()" />
             </div>

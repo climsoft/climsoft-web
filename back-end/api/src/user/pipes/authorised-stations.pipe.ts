@@ -6,8 +6,7 @@ import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-q
 import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-observation-query.dto';
 import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 import { CreateObservationDto } from 'src/observation/dtos/create-observation.dto';
-import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto';
-import { ViewObservationLogQueryDto } from 'src/observation/dtos/view-observation-log-query.dto';
+import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto'; 
 import { UserPermissionDto } from '../dtos/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
 import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
@@ -95,10 +94,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
       case DataAvailabilityDetailsQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilityDetailsQueryDto, user.permissions);
       case DataFlowQueryDto.name:
-        return this.handleMonitoringViewObservationQueryDTO(value as DataFlowQueryDto, user.permissions);
-      case ViewObservationLogQueryDto.name:
-        // TODO. Validate this based on entry, monitoring and qc permissions
-        return value;
+        return this.handleMonitoringViewObservationQueryDTO(value as DataFlowQueryDto, user.permissions); 
       case DeleteObservationDto.name:
         return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
       default:

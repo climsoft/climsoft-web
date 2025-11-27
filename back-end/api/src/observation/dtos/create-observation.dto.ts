@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNumber, IsString, ValidateIf } from 'class-validator';
 import { FlagEnum } from '../enums/flag.enum'; 
 
 export class CreateObservationDto {
@@ -20,16 +20,15 @@ export class CreateObservationDto {
     @IsInt()
     interval: number;
 
-    @IsOptional() // TODO. Not sure if this correctly represents null.
+    @ValidateIf(o => o.value !== null)
     @IsNumber() // covers both integers and floats
     value: number | null;
 
-    @IsOptional() // TODO. Not sure if this correctly represents null.
+    @ValidateIf(o => o.flag !== null)
     @IsEnum(FlagEnum, { message: 'flag must be a valid FlagEnum value or null' })
     flag: FlagEnum | null;
  
-    @IsOptional() // TODO. Not sure if this correctly represents null.
+    @ValidateIf(o => o.comment !== null)
     @IsString()
     comment: string | null;
-
 }

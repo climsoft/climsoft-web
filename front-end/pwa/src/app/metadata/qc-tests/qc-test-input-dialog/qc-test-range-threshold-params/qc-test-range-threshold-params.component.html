@@ -1,8 +1,69 @@
 <div>
-    <div class="mt-2">
-        <app-number-input [label]="'Lower threshold'" [(numValue)]="rangeThresholdQCTestParameters.lowerThreshold" />
+    <div>
+        <app-radio-buttons-input [groupName]="'range_qc_stations_rd_buttons'" [inline]="true" [asButtons]="true"
+            [groupItems]="[
+                { label:'All Stations', checked: rangeThresholdQCTestParameters.stationIds === undefined}, 
+                { label:'Specific Stations', checked: rangeThresholdQCTestParameters.stationIds !== undefined}]"
+            (checkedValueChange)="onStationsSpecificationSelection($event)" />
+        <div class="ms-2" *ngIf="rangeThresholdQCTestParameters.stationIds !== undefined">
+            <app-station-selector-multiple [id]="'qc_station_ids'"
+                [(selectedIds)]="rangeThresholdQCTestParameters.stationIds " />
+        </div>
     </div>
-    <div class="mt-2">
-        <app-number-input [label]="'Upper threshold'" [(numValue)]="rangeThresholdQCTestParameters.upperThreshold" />
+
+    <hr />
+
+    <div>
+        <app-radio-buttons-input [groupName]="'range_qc_months_rd_buttons'" [inline]="true" [asButtons]="true"
+            [groupItems]="[
+                { label:'All Months', checked: rangeThresholdQCTestParameters.allRangeThreshold !== undefined}, 
+                { label:'Per Month', checked: rangeThresholdQCTestParameters.monthsThresholds !== undefined}]"
+            (checkedValueChange)="onMonthsSpecificationSelection($event)" />
+        <div class="ms-2 mt-2">
+            <div *ngIf="rangeThresholdQCTestParameters.allRangeThreshold !== undefined">
+                <div>
+                    <app-number-input [id]="'all_lower_threshold_qc'" [label]="'Lower threshold'"
+                        [(numValue)]="rangeThresholdQCTestParameters.allRangeThreshold.lowerThreshold" />
+                </div>
+                <div class="mt-2">
+                    <app-number-input [id]="'all_upper_threshold_qc'" [label]="'Upper threshold'"
+                        [(numValue)]="rangeThresholdQCTestParameters.allRangeThreshold.upperThreshold" />
+                </div>
+            </div>
+            <div *ngIf="rangeThresholdQCTestParameters.monthsThresholds !== undefined">
+
+                <table class="table table-sm ms-2">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Lower Threshold</th>
+                            <th>Upper Threshold</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr
+                            *ngFor="let item of rangeThresholdQCTestParameters.monthsThresholds; let i = index">
+                            <td>
+                                {{ getMonthName(item.monthId ) }}
+                            </td>
+                            <td>
+                                <app-number-input [id]="i + '_month_lower_threshold_qc'"
+                                    [(numValue)]="item.lowerThreshold" />
+                            </td>
+                            <td>
+                                <app-number-input [id]="i + '_month_upper_threshold_qc'"
+                                    [(numValue)]="item.upperThreshold" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
     </div>
+
+
+
+
 </div>

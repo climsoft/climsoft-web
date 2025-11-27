@@ -33,7 +33,7 @@ export class TextInputComponent {
   @Input() public hintMessage!: string;
   @Input() public errorMessage!: string;
   @Input() public warningMessage!: string;
-  @Input() public value!: string | number | null | undefined;
+  @Input() public value: string | number | null = '';
   @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();
@@ -43,8 +43,8 @@ export class TextInputComponent {
 
 
   // For Year-month, date and number controls control
-  @Input() public max: string | number | undefined;
-  @Input() public min: string | number | undefined;
+  @Input() public max!: string | number;
+  @Input() public min!: string | number;
 
   protected displayDropDown: boolean = false;
 

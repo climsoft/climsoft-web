@@ -33,7 +33,7 @@
                     <div *ngIf="getObservation(element, groupedEntryKV.value) as ev"
                         class="app-value-flag-container">
                         <app-value-flag-input [id]="firstIndex + '_' + secondIndex +'_' + '_vf'"
-                            [displayExtraInfoOption]="true" [scaleValue]="false" [observationEntry]="ev"
+                            [displayExtraInfoOption]="true" [scaleUserInputValue]="false" [observationEntry]="ev"
                             [disableValueFlagEntry]="ev.delete" (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>

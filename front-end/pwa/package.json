@@ -1,6 +1,6 @@
 {
   "name": "climsoftweb",
-  "version": "preview-2.0.4",
+  "version": "preview-2.0.5",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

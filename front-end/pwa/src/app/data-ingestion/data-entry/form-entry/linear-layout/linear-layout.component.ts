@@ -48,8 +48,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
   protected totalErrorMessage!: string;
 
   /** Used to determine the layout to be used depending on the screen size */
-  protected largeScreen: boolean = true;
-  protected layoutHeight: number = 60;
+  protected largeScreen: boolean = true; 
 
   private destroy$ = new Subject<void>();
 
@@ -69,8 +68,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
       this.observationsDefinitions = this.formDefinitions.getObsEntriesForLinearLayout();
     }
 
-    if (changes["userFormSettings"] && this.userFormSettings) {
-      this.layoutHeight = this.userFormSettings.linearLayoutSettings.height;
+    if (changes["userFormSettings"] && this.userFormSettings) { 
       if (this.fieldDefinitions) {
         // Setting change could be related to maximum rows so reinitialise the chunks
         this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);

@@ -1,5 +1,5 @@
 <div *ngIf="userFormSettings && formDefinitions && observationsDefinitions && observationsDefinitions.length>0"
-  class="linear-layout-container p-2" [ngStyle]="{height: layoutHeight + 'vh'}">
+  class="linear-layout-container p-2" [ngStyle]="{height: userFormSettings.linearLayoutSettings.height + 'vh'}">
   <!-- For large screens, use the grid system and
         split the controls definitions into chunks of columns that have rows arranged from top to bottom -->
 
@@ -9,7 +9,7 @@
         <div class="p-1">
           <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
             [borderSize]="userFormSettings.fieldsBorderSize"
-            [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleValue]="true"
+            [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleUserInputValue]="true"
             [observationEntry]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"
             [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
         </div>
@@ -34,7 +34,7 @@
   <div *ngIf="!largeScreen" class="d-flex flex-column">
     <app-value-flag-input class="mb-2" *ngFor="let fieldDef of fieldDefinitions; let firstIndex = index"
       [id]="fieldDef.name" [label]="fieldDef.name" [borderSize]="userFormSettings.fieldsBorderSize"
-      [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleValue]="true"
+      [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleUserInputValue]="true"
       [observationEntry]="getObservationDefByIndex(firstIndex)" (userInputVF)="onUserInputVF($event)"
       [duplicateObservations]="duplicateObservations" [simulateTabOnEnter]="true" />
 

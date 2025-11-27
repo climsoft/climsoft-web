@@ -1,15 +1,17 @@
 import { Transform } from "class-transformer";
-import { IsDateString, IsInt, IsOptional, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDateString, IsInt, IsOptional, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class DataAvailabilityDetailsQueryDto {
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsString({ each: true })
     stationIds?: string[];
 
     @IsOptional()
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     elementIds?: number[];
 

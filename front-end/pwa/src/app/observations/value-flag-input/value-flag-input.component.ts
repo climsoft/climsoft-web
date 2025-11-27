@@ -11,10 +11,16 @@ import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.en
 import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/defintitions/form-entry.definition';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
+import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
 
 /**
  * Component for data entry of observations
  */
+
+interface RangeThreshold {
+  lowerThreshold: number;
+  upperThreshold: number;
+}
 
 @Component({
   selector: 'app-value-flag-input',
@@ -33,10 +39,10 @@ export class ValueFlagInputComponent implements OnChanges {
   @Input() public observationEntry!: ObservationEntry;
 
   /**
- * Determines whether the value input will be scaled or not (using the element entry factor).
- * Also determines whether _valueFlagForDisplay will be ins scaled or unscaled format. 
+ * Determines whether the value input by user will be scaled or not. (by using the element entry factor).
+ * Also determines whether value Flag displayed will be in scaled (e.g 10.5) or unscaled (e.g 105) format. 
  */
-  @Input() public scaleValue: boolean = true;
+  @Input() public scaleUserInputValue: boolean = true;
 
   @Input() public displayExtraInfoOption: boolean = false;
 
@@ -72,6 +78,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
   protected valueFlagInput: string = '';
   private element!: ElementCacheModel;
+  private rangeThresholdToUse: RangeThreshold | undefined;
 
   constructor(private cachedMetadataService: CachedMetadataService) { }
 
@@ -82,6 +89,7 @@ export class ValueFlagInputComponent implements OnChanges {
       this.comment = this.observationEntry.observation.comment ? this.observationEntry.observation.comment : '';
       // set original database values for future comparison
       this.originalValues = `${this.valueFlagInput}-${this.comment}`;
+      this.rangeThresholdToUse = this.getRangeThresholdToUse();
     }
 
     if (changes['duplicateObservations'] && this.duplicateObservations && this.observationEntry) {
@@ -108,7 +116,7 @@ export class ValueFlagInputComponent implements OnChanges {
     // TODO this could be implemented later to factor when the scale is like 100
     if (value === null) {
       valueStr = '';
-    } else if (this.scaleValue) {
+    } else if (this.scaleUserInputValue) {
       valueStr = FormEntryDefinition.getUnScaledValue(this.element, value).toString();
       if (this.element.entryScaleFactor >= 10 && valueStr.length === 1) {
         valueStr = `0${valueStr}`;
@@ -222,6 +230,27 @@ export class ValueFlagInputComponent implements OnChanges {
     }
   }
 
+  private formatObservationLog(viewObservationLog: ViewObservationLogModel[]): ViewObservationLogModel[] {
+    // Transform the log data accordingly
+    return viewObservationLog.map(item => {
+      const viewLog: ViewObservationLogModel = { ...item };
+      // Display the values in scaled form 
+      if (this.scaleUserInputValue && viewLog.value && this.element.entryScaleFactor) {
+        // To remove rounding errors number utils round off
+        viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
+      }
+
+      // Convert the entry date time to current local time
+      viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, this.cachedMetadataService.utcOffSet);
+      return viewLog;
+    }
+    );
+  }
+
+  protected getSourceName(sourceId: number): string {
+    return this.cachedMetadataService.getSource(sourceId).name;
+  }
+
 
   /**
    * Checks validity of the value flag input and if valid sets it as the new value for observation value and flag.
@@ -247,10 +276,8 @@ export class ValueFlagInputComponent implements OnChanges {
     const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(newValueFlagInput);
 
     let value: number | null;
-    if (this.scaleValue && extractedScaledValFlag[0] !== null) {
-      // Transform the value to actual scale 
-      const element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);
-      value = element.entryScaleFactor ? extractedScaledValFlag[0] / element.entryScaleFactor : extractedScaledValFlag[0];
+    if (this.scaleUserInputValue && extractedScaledValFlag[0] !== null) { 
+      value = this.element.entryScaleFactor ? extractedScaledValFlag[0] / this.element.entryScaleFactor : extractedScaledValFlag[0];
     } else {
       value = extractedScaledValFlag[0];
     }
@@ -258,9 +285,19 @@ export class ValueFlagInputComponent implements OnChanges {
     // Transform the flag letter
     const flagLetter: string | null = extractedScaledValFlag[1] === null ? null : extractedScaledValFlag[1].toUpperCase();
 
-    // If there is a value input then validate
-    if (value !== null) {
-      this.validationWarningMessage = this.checkValueLimitsValidity(value);
+    // If there is a value input then check if it's within the range thresholds
+    if (value !== null && this.rangeThresholdToUse) {
+      // Get the scale factor to use. 
+      // if no need to scale the value or the element does not have a scale factor. Just use 1 to show real threshold otherwise multiple by the scale factor
+      const scaleFactor: number = this.scaleUserInputValue && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
+
+      if (value < this.rangeThresholdToUse.lowerThreshold) {
+        this.validationWarningMessage = `Value less than lower limit ${this.rangeThresholdToUse.lowerThreshold * scaleFactor}`;
+      }
+
+      if (value > this.rangeThresholdToUse.upperThreshold) {
+        this.validationWarningMessage = `Value higher than upper limit ${this.rangeThresholdToUse.upperThreshold * scaleFactor}`;
+      }
     }
 
     // If there is a flag input then validate
@@ -313,39 +350,7 @@ export class ValueFlagInputComponent implements OnChanges {
     // Check for any decimals.
     const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
     if (splitNum !== null) {
-      if (this.scaleValue && String(splitNum).includes('.')) return 'Decimals not allowed';
-    }
-
-    return '';
-  }
-
-  /**
-   * Validates the value against the element limits
-   * @param value Unscaled value
-   * @returns empty string if value is valid.
-   */
-  private checkValueLimitsValidity(value: number): string {
-    // If no range thresholds given, then return empty, no need for validations
-    const rangeThresholds = this.cachedMetadataService.getQCTestsFor(
-      this.observationEntry.observation.elementId, this.observationEntry.observation.level, this.observationEntry.observation.interval)
-      .filter(item => item.qcTestType === QCTestTypeEnum.RANGE_THRESHOLD);// 
-
-    if (rangeThresholds.length === 0) {
-      return '';
-    }
-
-    const rangeThreshold = rangeThresholds[0].parameters as RangeThresholdQCTestParamsModel;
-
-    const element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);;
-    // Get the scale factor to use. An element may not have a scale factor
-    const scaleFactor: number = element.entryScaleFactor ? element.entryScaleFactor : 1;
-
-    if (value < rangeThreshold.lowerThreshold) {
-      return `Value less than lower limit ${rangeThreshold.lowerThreshold * scaleFactor}`;
-    }
-
-    if (value > rangeThreshold.upperThreshold) {
-      return `Value higher than upper limit ${rangeThreshold.upperThreshold * scaleFactor}`;
+      if (this.scaleUserInputValue && String(splitNum).includes('.')) return 'Decimals not allowed';
     }
 
     return '';
@@ -399,28 +404,56 @@ export class ValueFlagInputComponent implements OnChanges {
     return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
   }
 
-  private formatObservationLog(viewObservationLog: ViewObservationLogModel[]): ViewObservationLogModel[] {
-    // Transform the log data accordingly
-    return viewObservationLog.map(item => {
-      const viewLog: ViewObservationLogModel = { ...item };
-      // Display the values in scaled form 
-      if (this.scaleValue && viewLog.value && this.element.entryScaleFactor) {
-        // To remove rounding errors number utils round off
-        viewLog.value = FormEntryDefinition.getUnScaledValue(this.element, viewLog.value);
-      }
+  //-------------------------------------------------- 
+  // Getting Range Thresholds To Use
+  //-------------------------------------------------- 
+  private getRangeThresholdToUse(): { lowerThreshold: number, upperThreshold: number } | undefined {
+    // Get all applicable range thresholds for the observation entry
+    const rangeThresholds = this.getRangeThresholds();
 
-      // Convert the entry date time to current local time
-      viewLog.entryDateTime = DateUtils.getPresentableDatetime(viewLog.entryDateTime, this.cachedMetadataService.utcOffSet);
-      return viewLog;
+    // Then select the one to use based system priority of using the thresholds
+    return rangeThresholds
+      .map(threshold => ({
+        priority: this.calculatePriority(threshold),
+        thresholds: this.extractThresholds(threshold)
+      }))
+      .filter(item => item.thresholds !== undefined)
+      .sort((a, b) => a.priority - b.priority)[0]?.thresholds;
+  }
+
+  private getRangeThresholds(): QCTestCacheModel[] {
+    return this.cachedMetadataService.getQCTestsFor(
+      this.observationEntry.observation.elementId,
+      this.observationEntry.observation.level,
+      this.observationEntry.observation.interval
+    ).filter(item => item.qcTestType === QCTestTypeEnum.RANGE_THRESHOLD);
+  }
+
+  private calculatePriority(rangeThreshold: QCTestCacheModel): number {
+    const params = rangeThreshold.parameters as RangeThresholdQCTestParamsModel;
+    const isStationSpecific = params.stationIds?.includes(this.observationEntry.observation.stationId);
+    const hasMonthThresholds = !!params.monthsThresholds;
+
+    if (isStationSpecific && hasMonthThresholds) return 1;
+    if (isStationSpecific) return 2;
+    if (hasMonthThresholds) return 3;
+    return 4;
+  }
+
+  private extractThresholds(rangeThreshold: QCTestCacheModel): { lowerThreshold: number, upperThreshold: number } | undefined {
+    const params = rangeThreshold.parameters as RangeThresholdQCTestParamsModel;
+
+    if (params.monthsThresholds) {
+      const obsMonth = this.getObservationMonth();
+      return params.monthsThresholds[obsMonth - 1];
     }
-    );
+
+    return params.allRangeThreshold;
   }
 
-
-
-  protected getSourceName(sourceId: number): string {
-    return this.cachedMetadataService.getSource(sourceId).name;
+  private getObservationMonth(): number {
+    return Number(this.observationEntry.observation.datetime.split('-')[1]);
   }
-
+  //-------------------------------------------------- 
 
 }

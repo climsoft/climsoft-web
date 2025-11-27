@@ -83,13 +83,38 @@ DECLARE
     lower_threshold FLOAT8;
     upper_threshold FLOAT8;
     qc_test_log JSONB;
+    params JSONB;
+    obs_month INT;
+    threshold_pair JSONB;
 BEGIN
-    -- Decode the JSON parameters to extract lower and upper limits
-    lower_threshold := (qc_test.parameters->>'lowerThreshold')::FLOAT8;
-    upper_threshold := (qc_test.parameters->>'upperThreshold')::FLOAT8;
+    params := qc_test.parameters;
+
+    -- Check for station-specific thresholds first
+    IF params ? 'stationIds' AND jsonb_array_length(params->'stationIds') > 0 AND NOT params->'stationIds' @> to_jsonb(observation_record.station_id) THEN
+        -- This QC test is for specific stations, and the current observation's station is not one of them.
+        -- So we don't perform the test. Returning NULL indicates the test was not applicable.
+        RETURN NULL;
+    END IF;
+
+    -- Check for monthly thresholds
+    IF params ? 'monthsThresholds' THEN
+        obs_month := EXTRACT(MONTH FROM observation_record.date_time);
+        threshold_pair := (params->'monthsThresholds')->(obs_month - 1);
+        IF threshold_pair IS NOT NULL AND threshold_pair != 'null'::jsonb THEN
+            lower_threshold := (threshold_pair->>'lowerThreshold')::FLOAT8;
+            upper_threshold := (threshold_pair->>'upperThreshold')::FLOAT8;
+        END IF;
+    END IF;
+
+    -- If no monthly threshold was found, fall back to allRangeThreshold
+    IF lower_threshold IS NULL AND params ? 'allRangeThreshold' THEN
+        threshold_pair := params->'allRangeThreshold';
+        lower_threshold := (threshold_pair->>'lowerThreshold')::FLOAT8;
+        upper_threshold := (threshold_pair->>'upperThreshold')::FLOAT8;
+    END IF;
 
     -- Perform the range check and create the qc test log
-    IF observation_record.value < lower_threshold OR observation_record.value > upper_threshold THEN
+    IF lower_threshold IS NOT NULL AND (observation_record.value < lower_threshold OR observation_record.value > upper_threshold) THEN
         qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
 	ELSE
 		 qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');

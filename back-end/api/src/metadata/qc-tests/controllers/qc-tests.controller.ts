@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { QCTestsService } from './services/qc-tests.service';
-import { CreateQCTestDto } from './dtos/create-qc-test.dto';
-import { QCTestTypeEnum } from './entities/qc-test-type.enum';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
-import { FindQCTestQueryDto } from './dtos/find-qc-test-query.dto';
+import { QCTestsService } from '../services/qc-tests.service';
+import { FindQCTestQueryDto } from '../dtos/find-qc-test-query.dto';
+import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
+import { CreateQCTestDto } from '../dtos/create-qc-test.dto';
 
 @Controller('qc-tests')
 export class QCTestsController {
@@ -14,7 +14,7 @@ export class QCTestsController {
     }
 
     @Get()
-    public find(@Query() findQCQuery: FindQCTestQueryDto) { 
+    public find(@Query() findQCQuery: FindQCTestQueryDto) {
         return this.qcTestsService.find(findQCQuery);
     }
 
@@ -37,13 +37,13 @@ export class QCTestsController {
     @Post()
     public add(
         @Req() request: Request,
-        @Body() createQcTestDto: CreateQCTestDto) { // TODO. Validate the dto
+        @Body() createQcTestDto: CreateQCTestDto) {
         return this.qcTestsService.create(createQcTestDto, AuthUtil.getLoggedInUserId(request));
     }
 
     @Admin()
     @Patch(':id')
-    public update(@Param('id', ParseIntPipe) id: number, @Body() createQcTestDto: CreateQCTestDto) { // TODO. Validate the dto
+    public update(@Param('id', ParseIntPipe) id: number, @Body() createQcTestDto: CreateQCTestDto) {
         return this.qcTestsService.update(id, createQcTestDto);
     }
 

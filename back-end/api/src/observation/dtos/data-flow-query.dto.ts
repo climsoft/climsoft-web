@@ -1,9 +1,10 @@
 import { Transform } from "class-transformer";
-import { IsDateString, IsInt, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDateString, IsInt, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class DataFlowQueryDto {
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToStringArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsString({ each: true })
     stationIds: string[];
 

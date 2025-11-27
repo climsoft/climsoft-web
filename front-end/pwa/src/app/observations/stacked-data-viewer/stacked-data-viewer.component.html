@@ -27,7 +27,7 @@
                 <td>{{ obsEntry.sourceName }}</td>
                 <td>
                     <div class="app-value-flag-container">
-                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true" [scaleValue]="false"
+                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true" [scaleUserInputValue]="false"
                             [observationEntry]="obsEntry" [disableValueFlagEntry]="obsEntry.delete"
                             (userInputVF)="onUserInput($event)" />
                     </div>

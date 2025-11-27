@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsDateString, IsInt, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDateString, IsInt, IsString } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export class EntryFormObservationQueryDto {
@@ -7,6 +7,7 @@ export class EntryFormObservationQueryDto {
     stationId: string;
 
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
+    @ArrayNotEmpty()
     @IsInt({ each: true })
     elementIds: number[];
 

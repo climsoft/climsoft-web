@@ -1,4 +1,4 @@
-export interface DataAvailaibilityDetailsDto {
+export class DataAvailaibilityDetailsDto {
   stationId: string;
   elementId: number;
   level: number;

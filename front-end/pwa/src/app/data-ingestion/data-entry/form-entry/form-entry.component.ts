@@ -72,7 +72,20 @@ export class FormEntryComponent implements OnInit, OnDestroy {
   protected defaultYearMonthValue!: string;
   protected defaultDateValue!: string;
 
-  protected userFormSettings!: UserFormSettingStruct;
+  protected userFormSettings: UserFormSettingStruct = {
+    displayExtraInformationOption: false,
+    incrementDateSelector: false,
+    fieldsBorderSize: 1,
+    linearLayoutSettings: {
+      height: 60,
+      maxRows: 5
+    },
+    gridLayoutSettings: {
+      height: 60,
+      navigation: 'horizontal',
+    }
+  };
+
   protected userLocationErrorMessage: string = '';
 
   /**
@@ -546,22 +559,6 @@ export class FormEntryComponent implements OnInit, OnDestroy {
     const savedUserFormSetting: AppComponentState | undefined = await AppDatabase.instance.userSettings.get(UserAppStateEnum.ENTRY_FORM_SETTINGS);
     if (savedUserFormSetting) {
       this.userFormSettings = savedUserFormSetting.parameters;
-    } else {
-      const defaultUserFormSettings: UserFormSettingStruct = {
-        displayExtraInformationOption: false,
-        incrementDateSelector: false,
-        fieldsBorderSize: 1,
-        linearLayoutSettings: {
-          height: 60,
-          maxRows: 5
-        },
-        gridLayoutSettings: {
-          height: 60,
-          navigation: 'horizontal',
-        }
-      }
-
-      this.userFormSettings = defaultUserFormSettings;
     }
   }
 

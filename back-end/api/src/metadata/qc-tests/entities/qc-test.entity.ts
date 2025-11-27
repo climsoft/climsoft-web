@@ -2,7 +2,16 @@ import { ElementEntity } from "src/metadata/elements/entities/element.entity";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm"; 
 import { QCTestTypeEnum } from "./qc-test-type.enum";
-import { QCTestParametersValidity } from "../dtos/create-qc-test.dto";
+import { RangeThresholdQCTestParamsDto } from "../dtos/qc-test-parameters/range-qc-test-params.dto"; 
+import { SpikeQCTestParamsDto } from "../dtos/qc-test-parameters/spike-qc-test-params.dto";
+import { RelationalQCTestParamsDto } from "../dtos/qc-test-parameters/relational-qc-test-params.dto";
+import { DiurnalQCTestParamsDto } from "../dtos/qc-test-parameters/diurnal-qc-test-params.dto";
+import { ContextualQCTestParamsDto } from "../dtos/qc-test-parameters/contextual-qc-test-params.dto";
+import { RemoteSensingQCTestParamsDto } from "../dtos/qc-test-parameters/remote-sensing-qc-test-params.dto";
+import { SpatialQCTestParamsDto } from "../dtos/qc-test-parameters/spatial-qc-test-params.dto";
+import { FlatLineQCTestParamsDto } from "../dtos/qc-test-parameters/flat-line-qc-test-params.dto";
+
+export type QCTestParameters = RangeThresholdQCTestParamsDto | FlatLineQCTestParamsDto | SpikeQCTestParamsDto | RelationalQCTestParamsDto | DiurnalQCTestParamsDto | ContextualQCTestParamsDto | RemoteSensingQCTestParamsDto | SpatialQCTestParamsDto;
 
 @Entity("qc_tests")
 @Check("CHK_qc_tests_name_not_empty", `"name" <> ''`)
@@ -40,7 +49,7 @@ export class QCTestEntity extends AppBaseEntity {
   qcTestType: QCTestTypeEnum;
 
   @Column({ name: "parameters", type: "jsonb" })
-  parameters: QCTestParametersValidity;
+  parameters: QCTestParameters;
 
   @Column({ name: "disabled", type: "boolean", default: false })
   @Index()

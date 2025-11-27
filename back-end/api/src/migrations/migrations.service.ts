@@ -11,10 +11,13 @@ import { MetadataDefaults } from './metadata-defaults';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { GeneralSettingsDefaults } from './general-settings-defaults';
 import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.service';
+import { QCTestsService } from 'src/metadata/qc-tests/services/qc-tests.service';
+import { QCTestTypeEnum } from 'src/metadata/qc-tests/entities/qc-test-type.enum';
+import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-tests/dtos/qc-test-parameters/range-qc-test-params.dto';
 
 @Injectable()
 export class MigrationsService {
-  private readonly SUPPORTED_DB_VERSION: string = "0.0.3"; // TODO. Should come from a versioning file. 
+  private readonly SUPPORTED_DB_VERSION: string = '0.0.4'; // TODO. Should come from a versioning file. 
   private readonly logger = new Logger(MigrationsService.name);
 
   constructor(
@@ -25,7 +28,10 @@ export class MigrationsService {
     private elementTypesService: ElementTypesService,
     private stationObsEnvService: StationObsEnvService,
     private stationObsFocusesService: StationObsFocusesService,
-    private generalSettingsService: GeneralSettingsService) { }
+    private generalSettingsService: GeneralSettingsService,
+    private qcTestsService: QCTestsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
+
+  ) { }
 
   public async doMigrations() {
     // Get last db version
@@ -48,6 +54,9 @@ export class MigrationsService {
 
     // Depending on the version the seeding will be different
     await this.seedDatabase();
+
+    // TODO. Temporary solution for preview 1 to 2.0.3 installations. Once all met services have preview 2.0.5 remove this
+    this.changeUpperAndLowerLimitQCStructure();
 
     // After successful migrations, then add the new database version
     const newDBVersion = this.dbVersionRepo.create({
@@ -145,6 +154,27 @@ export class MigrationsService {
     if (count === 0) {
       await this.generalSettingsService.bulkPut(GeneralSettingsDefaults.GENERAL_SETTINGS, 1);
       this.logger.log('general settings added');
+    }
+  }
+
+  // TODO. Temporary function to upgrade preview 2.0.4 and below releases
+  private async changeUpperAndLowerLimitQCStructure() {
+    const rangeQcs = await this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
+
+    for (const qc of rangeQcs) {
+      const oldThresholdParams: any = qc.parameters;
+      if (oldThresholdParams.lowerThreshold !== undefined && oldThresholdParams.upperThreshold !== undefined) {
+        const newThresholdParams: RangeThresholdQCTestParamsDto = {
+          allRangeThreshold: {
+            lowerThreshold: oldThresholdParams.lowerThreshold,
+            upperThreshold: oldThresholdParams.upperThreshold
+          }
+        };
+
+        await this.qcTestsService.update(qc.id, { ...qc, parameters: newThresholdParams });
+
+        this.logger.log(`Range threshold updated -  ${qc.id} - ${qc.name}`)
+      }
     }
   }
 

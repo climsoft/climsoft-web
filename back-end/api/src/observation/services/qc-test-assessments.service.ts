@@ -6,7 +6,7 @@ import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
 
 @Injectable()
-export class QCTestsService {
+export class QCTestAssessmentsService {
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
