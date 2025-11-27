@@ -104,7 +104,7 @@ export class QCTestsService {
 
     }
 
-    public async update(id: number, dto: CreateQCTestDto) {
+    public async update(id: number, dto: CreateQCTestDto, userId: number) {
         const qctest = await this.findEntity(id);
         qctest.name = dto.name;
         qctest.description = dto.description ? dto.description : null;
@@ -115,6 +115,7 @@ export class QCTestsService {
         qctest.parameters = dto.parameters;
         qctest.disabled = dto.disabled;
         qctest.comment = dto.comment? dto.comment: null;
+        qctest.entryUserId = userId;
         return this.qcTestsRepo.save(qctest);
     }
 

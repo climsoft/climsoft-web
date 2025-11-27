@@ -16,6 +16,11 @@ import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/sou
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
+import { QCTestsService } from 'src/metadata/qc-tests/services/qc-tests.service';
+import { CreateQCTestDto } from 'src/metadata/qc-tests/dtos/create-qc-test.dto';
+import { ViewQCTestDto } from 'src/metadata/qc-tests/dtos/view-qc-test.dto';
+import { QCTestTypeEnum } from 'src/metadata/qc-tests/entities/qc-test-type.enum';
+import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-tests/dtos/qc-test-parameters/range-qc-test-params.dto';
 
 export interface V4ElementModel {
     elementId: number;
@@ -43,7 +48,7 @@ export interface V4StationModel {
     qualifier: string | null;
     stationOperational: boolean;
     openingDatetime: string | null;
-    closingDatetime: string | null; 
+    closingDatetime: string | null;
 }
 
 @Injectable()
@@ -62,6 +67,7 @@ export class ClimsoftV4WebSyncSetUpService {
 
     constructor(
         private elementsService: ElementsService,
+        private qcTestsService: QCTestsService,
         private stationsService: StationsService,
         private sourcesService: SourceTemplatesService,
         private usersService: UsersService,
@@ -119,7 +125,7 @@ export class ClimsoftV4WebSyncSetUpService {
                 password: AppConfig.v4DbCredentials.password,
                 database: AppConfig.v4DbCredentials.databaseName,
                 port: AppConfig.v4DbCredentials.port,
-                dateStrings: true, 
+                dateStrings: true,
                 charset: 'utf8mb4',
             });
 
@@ -269,9 +275,84 @@ export class ClimsoftV4WebSyncSetUpService {
         // Important to do this just incase observations were not being saved to v4 database due to lack of elements or changes in v4 configuration
         this.setupV4ElementsForV5MappingAndChecking();
         this.setupWebElementsChecking();
+        return true;
+    }
 
-        // TODO. create and save upper limit and lower limit qc test
+    public async saveV4QCsToV5DB(userId: number): Promise<boolean> {
+        // if version 4 database pool is not set up then return.
+        if (!this.v4DBPool) {
+            return false;
+        }
 
+        const currentV5QCTests: ViewQCTestDto[] = await this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
+        const v4Elements: V4ElementModel[] = await this.getV4Elements();
+        for (let i = 0; i < v4Elements.length; i++) {
+            const v4Element: V4ElementModel = v4Elements[i];
+            const v4ElementType = v4Element.elementType.toLowerCase();
+            let interval: number;
+
+
+            if (v4ElementType === 'hourly') {
+                interval = 1440;
+            } else if (v4ElementType === 'daily') {
+                interval = 60;
+            } else {
+                continue; // No support for other element types
+            }
+
+            if (StringUtils.isNullOrEmpty(v4Element.lowerLimit, true) || isNaN(Number(v4Element.lowerLimit))) {
+                continue;
+            }
+
+            if (StringUtils.isNullOrEmpty(v4Element.upperLimit, true) || isNaN(Number(v4Element.upperLimit))) {
+                continue;
+            }
+
+            let lowerThreshold: number = Number(v4Element.lowerLimit);
+            let upperThreshold: number = Number(v4Element.upperLimit);
+
+            if (v4Element.elementScale) {
+                lowerThreshold = lowerThreshold * v4Element.elementScale;
+                upperThreshold = upperThreshold * v4Element.elementScale;
+            }
+
+            const params: RangeThresholdQCTestParamsDto = { allRangeThreshold: { lowerThreshold: lowerThreshold, upperThreshold: upperThreshold } };
+            
+            // Make sure abbreviation is not empty
+            if (StringUtils.isNullOrEmpty(v4Element.abbreviation, true)) {
+                v4Element.abbreviation = `Empty_${i + 1}`;
+            }
+            const qcName: string = `${v4Element.abbreviation} range threshold`;
+
+            // Use qc name or  (element id, level, interval and comment) to get threshold that came from V4
+            const currentV5QCTest = currentV5QCTests.find(
+                item => item.name === qcName || (item.elementId === v4Element.elementId && item.observationLevel === 0 && item.observationInterval === interval && item.comment === 'pulled from v4 model')
+            );
+           
+            if (currentV5QCTest) {
+                currentV5QCTest.parameters = params;
+                await this.qcTestsService.update(currentV5QCTest.id, currentV5QCTest, userId);
+                this.logger.log(`V4 QC ${currentV5QCTest.name} updated`);
+            } else {
+
+                const dto: CreateQCTestDto = {
+                    name: qcName,
+                    description: 'QC range threshold',
+                    elementId: v4Element.elementId,
+                    observationLevel: 0,
+                    observationInterval: interval,
+                    qcTestType: QCTestTypeEnum.RANGE_THRESHOLD,
+                    parameters: params,
+                    disabled: false,
+                    comment: 'pulled from v4 model',
+                };
+
+
+                await this.qcTestsService.create(dto, userId);
+                this.logger.log(`V4 QC ${dto.name} created`);
+            }
+
+        }
         return true;
     }
 
@@ -332,15 +413,15 @@ export class ClimsoftV4WebSyncSetUpService {
             // Some climsoft version 4 installations have the below columns storing null bytes instead of nulls
             // So ignore such null bytes
             //----------------------------------------------
-            if(v4Station.wmoid !== null && v4Station.wmoid.startsWith('\x00')){
+            if (v4Station.wmoid !== null && v4Station.wmoid.startsWith('\x00')) {
                 v4Station.wmoid = null;
             }
 
-             if(v4Station.wsi !== null && v4Station.wsi.startsWith('\x00')){
+            if (v4Station.wsi !== null && v4Station.wsi.startsWith('\x00')) {
                 v4Station.wsi = null;
             }
 
-             if(v4Station.icaoid !== null && v4Station.icaoid.startsWith('\x00')){
+            if (v4Station.icaoid !== null && v4Station.icaoid.startsWith('\x00')) {
                 v4Station.icaoid = null;
             }
 

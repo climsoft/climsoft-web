@@ -71,6 +71,14 @@ export class ClimsoftV4Controller {
   }
 
   @Admin()
+  @Post('import-element-qcs')
+  async importElementQC(@Req() request: Request) {
+    const saved: boolean = await this.climsoftV4WebSetUpService.saveV4QCsToV5DB(AuthUtil.getLoggedInUserId(request));
+    return { message: saved ? 'success' : 'error' };
+  }
+
+
+  @Admin()
   @Post('save-observations')
   async saveObservations() {
     this.climsoftV4WebSetUpService.resetV4Conflicts();

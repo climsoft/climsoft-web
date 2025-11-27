@@ -61,6 +61,13 @@ export class ClimsoftV4Service {
       );
   }
 
+   public importElementQcs(): Observable<V4OperationsResponse> {
+    return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/import-element-qcs`, {})
+      .pipe(
+        catchError(this.handleError)
+      );
+  }
+
   public saveObservationsToV4(): Observable<V4OperationsResponse> {
     return this.http.post<V4OperationsResponse>(`${this.endPointUrl}/save-observations`, {})
       .pipe(
