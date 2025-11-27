@@ -61,6 +61,12 @@ body {
     font-size: 12px;
 }
 
+.app-label-super-script {
+  vertical-align: super;
+  font-size: 0.6875rem; // 10px 
+  margin-left: 1px;
+}
+
 .app-station-monitoring-stats {
     position: absolute;
     top: 0;

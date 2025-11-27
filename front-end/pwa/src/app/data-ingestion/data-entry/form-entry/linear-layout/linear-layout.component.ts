@@ -1,7 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { FormEntryDefinition } from '../defintitions/form-entry.definition';
-import { FieldEntryDefinition } from '../defintitions/field.definition';  
+import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition'; 
 import { ValueFlagInputComponent } from '../../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';

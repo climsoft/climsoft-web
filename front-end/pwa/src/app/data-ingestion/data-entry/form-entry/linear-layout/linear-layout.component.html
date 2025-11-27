@@ -7,7 +7,7 @@
     <div class="col app-value-flag-container" *ngFor="let chunkArray of fieldDefinitionsChunks; let firstIndex = index">
       <div class="row mb-2 " *ngFor="let fieldDef of chunkArray;">
         <div class="p-1">
-          <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name"
+          <app-value-flag-input [id]="fieldDef.name" [label]="fieldDef.name" [labelSuperScript]="fieldDef.nameSuperScript"
             [borderSize]="userFormSettings.fieldsBorderSize"
             [displayExtraInfoOption]="userFormSettings.displayExtraInformationOption" [scaleUserInputValue]="true"
             [observationEntry]="getObservationDefByFieldDef(fieldDef)" (userInputVF)="onUserInputVF($event)"

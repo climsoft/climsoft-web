@@ -34,6 +34,8 @@ export class ValueFlagInputComponent implements OnChanges {
 
   @Input() public label!: string;
 
+  @Input() public labelSuperScript!: string | undefined;
+
   @Input() public borderSize!: number;
 
   @Input() public observationEntry!: ObservationEntry;

@@ -9,7 +9,7 @@
                     </th>
 
                     <th *ngFor="let colDef of colFieldDefinitions">
-                        {{colDef.name}}
+                        <span>{{colDef.name}}</span><span *ngIf="colDef.nameSuperScript" class="app-label-super-script">{{ colDef.nameSuperScript }}</span>
                     </th>
                 </tr>
             </thead>
