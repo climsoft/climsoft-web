@@ -28,7 +28,7 @@ Climsoft Web is designed to provide an integrated environment for National Meteo
   Developed in **Angular (PWA)**, enabling data entry and validation even without internet access, with background synchronization when online.
 
 * **API & Integration Layer:**
-  Developed in **NestJS** and based on REST. It also includes **DuckDB** for rapid processing of huge datasets and implementations of HTTP, FTP, MQTT and gRPC for connecting to external systems such as WIS2Box.
+  Developed in **NestJS** and based on REST. It includes implementations of HTTP, FTP, MQTT and gRPC for connecting to external systems such as WIS2Box.
 
 * **Analytics & Visualization:**
   Interactive dashboards, statistical summaries, and geospatial visualizations (Leaflet/ECharts) for station networks, QC results, and environmental indicators.
@@ -40,10 +40,10 @@ Climsoft Web is designed to provide an integrated environment for National Meteo
 | Layer              | Technology           | Purpose                                                |
 | ------------------ | -------------------- | ------------------------------------------------------ |
 | **Frontend**       | Angular PWA          | User-friendly data entry, QC review, and visualization |
-| **Backend**        | NestJS (Node.js)  + DuckDB       | Core API, QC processing, and automation services       |
+| **Backend**        | NestJS (Node.js)       | Core API, QC processing, and automation services       |
 | **Database**       | PostgreSQL + DuckDB  | Reliable storage + fast analytical queries             |
 | **Deployment**     | Docker Compose       | Reproducible, portable, and scalable setup             |
-| **Offline Engine** | Dexie.js / IndexedDB | Local caching and synchronization for PWA              |
+| **Offline Database** | Dexie.js / IndexedDB | Local caching and synchronization for PWA              |
 
 ---
 
