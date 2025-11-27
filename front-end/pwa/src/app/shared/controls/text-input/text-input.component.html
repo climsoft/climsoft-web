@@ -1,33 +1,27 @@
 <app-drop-down-container [(displayDropDown)]="displayDropDown" [maxHeight]="dropDownOptionMaxHeight">
   <div main-content>
-    <label *ngIf="label" [for]="id? id:label">{{ label + ':' }}</label>
+    <div *ngIf="label" class="fw-bold">
+      <label [for]="id? id:label">{{ label }} </label>
+      <span *ngIf="labelSuperScript" class="app-label-super-script">{{ labelSuperScript }}</span>
+      <span>:</span>
+    </div>
     <div
       [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">
 
       <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
         class="form-control form-control-sm" [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled"
-        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" 
-        [class.bg-body-secondary]="readonly"
-        [class.text-bg-danger]="errorMessage" 
-        [class.text-bg-warning]="warningMessage"
-        [class.text-bg-success]="showChanges && !errorMessage" 
-        [value]="value" 
-        [attr.min]="min" 
-        [attr.max]="max"
+        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly"
+        [class.text-bg-danger]="errorMessage" [class.text-bg-warning]="warningMessage"
+        [class.text-bg-success]="showChanges && !errorMessage" [value]="value" [attr.min]="min" [attr.max]="max"
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
         [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
-        [ngClass]="['border-'+ borderSize]" 
-        [class.bg-body-secondary]="readonly" 
-        [class.text-bg-danger]="errorMessage"
-        [class.text-bg-warning]="warningMessage" 
-        [class.text-bg-success]="showChanges && !errorMessage" 
-        [value]="value"
-        [attr.min]="min"
-        [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
+        [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
+        [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage" [value]="value"
+        [attr.min]="min" [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
         (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
         (blur)="onInputBlur()" />
 

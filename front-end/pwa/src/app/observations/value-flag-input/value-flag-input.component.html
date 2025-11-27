@@ -1,5 +1,5 @@
 <ng-container *ngIf="observationEntry">
-    <app-text-input #appTextInput [id]="id" [label]="label" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
+    <app-text-input #appTextInput [id]="id" [label]="label" [labelSuperScript]="labelSuperScript" [disabled]="disableValueFlagEntry" [borderSize]="borderSize"
         [value]="valueFlagInput" [dropDownOptionMaxHeight]="300"
         [showChanges]="observationEntry.change === 'valid_change'" [errorMessage]="validationErrorMessage"
         [warningMessage]="validationWarningMessage" [displayExtraInfoOption]="displayExtraInfoOption"

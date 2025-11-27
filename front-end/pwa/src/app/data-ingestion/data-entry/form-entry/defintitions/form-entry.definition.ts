@@ -1,6 +1,5 @@
 import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
-import { DateUtils } from "src/app/shared/utils/date.utils";
-import { FieldEntryDefinition } from "./field.definition";
+import { DateUtils } from "src/app/shared/utils/date.utils"; 
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
@@ -11,6 +10,12 @@ import { QCStatusEnum } from "../../../models/qc-status.enum";
 import { NumberUtils } from "src/app/shared/utils/number.utils";
 import { ObservationEntry } from "src/app/observations/models/observation-entry.model";
 import { ElementCacheModel } from "src/app/metadata/elements/services/elements-cache.service";
+
+export interface FieldEntryDefinition {
+    id: number;
+    name: string;
+    nameSuperScript?: string; // Used when elements are the entry fields in linear layout and columns in grid layout
+}
 
 /**
  * Holds the definitions that define how the form will be rendered and functions used by the components used for data entry operations
@@ -298,7 +303,7 @@ export class FormEntryDefinition {
                 for (const elementId of this.formMetadata.elementIds) {
                     const element = this.cachedMetadataSearchService.getElement(elementId);
                     if (element) {
-                        entryFieldDefs.push({ id: element.id, name: element.abbreviation });
+                        entryFieldDefs.push({ id: element.id, name: element.abbreviation , nameSuperScript: element.units });
                     }
                 }
                 break;
