@@ -51,7 +51,7 @@ export class CachedMetadataService {
             this.setMetadataLoaded();
         });
 
-        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => { 
+        this.generalSettingsCacheService.cachedGeneralSettings.subscribe(data => {
             this._generalSettingsMetadata = data;
             this.setMetadataLoaded();
         });
@@ -61,7 +61,7 @@ export class CachedMetadataService {
         if (this._stationsMetadata && this._stationsMetadata.length > 0
             && this._elementsMetadata && this._elementsMetadata.length > 0
             && this._sourcesMetadata && this._sourcesMetadata.length > 0
-            && this._qcTestsMetadata && this._qcTestsMetadata.length > 0
+            && this._qcTestsMetadata
             && this._generalSettingsMetadata && this._generalSettingsMetadata.length > 0) {
             this._allMetadataLoaded.next(true);
         }

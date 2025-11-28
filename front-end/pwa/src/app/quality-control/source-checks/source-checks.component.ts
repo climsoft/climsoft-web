@@ -1,7 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, take, takeUntil } from 'rxjs';
-import { QualityControlService } from '../../data-ingestion/services/quality-control.service';
+import { QCAssessmentsService } from '../services/qc-assessments.service';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -41,7 +41,7 @@ export class SourceChecksComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private qualityControlService: QualityControlService,
+    private qualityControlService: QCAssessmentsService,
     private cachedMetadataSearchService: CachedMetadataService, 
     private router: Router,
   ) {

@@ -10,20 +10,21 @@
 
       <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
-        class="form-control form-control-sm" [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled"
-        [readOnly]="readonly" [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly"
-        [class.text-bg-danger]="errorMessage" [class.text-bg-warning]="warningMessage"
-        [class.text-bg-success]="showChanges && !errorMessage" [value]="value" [attr.min]="min" [attr.max]="max"
+        class="form-control form-control-sm form-control-sm " [autocomplete]="'off'" [id]="id? id:label"
+        [disabled]="disabled" [readOnly]="readonly" [ngClass]="['border-'+ borderSize]"
+        [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
+        [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
+        [class.app-cursor-pointer]="displayDropDownOption" [value]="value" [attr.min]="min" [attr.max]="max"
         [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <input *ngIf="!simulateTabOnEnter" #appHtmlInput [type]="type" class="form-control form-control-sm"
         [autocomplete]="'off'" [id]="id? id:label" [disabled]="disabled" [readOnly]="readonly"
         [ngClass]="['border-'+ borderSize]" [class.bg-body-secondary]="readonly" [class.text-bg-danger]="errorMessage"
-        [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage" [value]="value"
-        [attr.min]="min" [attr.max]="max" [attr.placeholder]="placeholder" (click)="onInputClick()"
-        (input)="onValueChange($any($event.target).value)" (keydown.enter)="onEnterKeyPressed()"
-        (blur)="onInputBlur()" />
+        [class.text-bg-warning]="warningMessage" [class.text-bg-success]="showChanges && !errorMessage"
+        [class.app-cursor-pointer]="displayDropDownOption" [value]="value" [attr.min]="min" [attr.max]="max"
+        [attr.placeholder]="placeholder" (click)="onInputClick()" (input)="onValueChange($any($event.target).value)"
+        (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <!-- Note in all the buttons below, btn-input-group class is needed to prevent tab selection on enter key press -->
 

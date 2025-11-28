@@ -68,7 +68,7 @@ export class TextInputComponent {
 
   protected onInputClick(): void {
     if (this.displayDropDownOption) {
-      this.showDropDown(true);
+      this.showDropDown(!this.displayDropDown);
     }
     this.inputClick.emit(this.value ? this.value.toString() : '');
   }

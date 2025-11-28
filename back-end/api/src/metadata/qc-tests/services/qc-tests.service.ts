@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Equal, FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QCTestEntity } from '../entities/qc-test.entity'; 
+import { QCTestEntity } from '../entities/qc-test.entity';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
 import { CreateQCTestDto } from '../dtos/create-qc-test.dto';
 import { FindQCTestQueryDto } from '../dtos/find-qc-test-query.dto';
@@ -114,7 +114,7 @@ export class QCTestsService {
         qctest.qcTestType = dto.qcTestType;
         qctest.parameters = dto.parameters;
         qctest.disabled = dto.disabled;
-        qctest.comment = dto.comment? dto.comment: null;
+        qctest.comment = dto.comment ? dto.comment : null;
         qctest.entryUserId = userId;
         return this.qcTestsRepo.save(qctest);
     }
@@ -123,6 +123,11 @@ export class QCTestsService {
         const source = await this.findEntity(id);
         await this.qcTestsRepo.remove(source);
         return id;
+    }
+
+    public async deleteAll(): Promise<void> {
+        // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
+        await this.qcTestsRepo.remove(await this.qcTestsRepo.find());
     }
 
     private async createViewDto(entity: QCTestEntity): Promise<ViewQCTestDto> {
