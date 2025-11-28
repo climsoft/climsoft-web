@@ -11,7 +11,7 @@ export class TextInputComponent {
   @Input() public displayDropDownOption: boolean = false;
   @Input() public dropDownOptionMaxHeight: number = 200;
   @Output() public displayDropDownOptionClick = new EventEmitter<void>();
-
+  @Output() public dropDownDisplayed = new EventEmitter();
 
   @Input() public displayExtraInfoOption: boolean = false;
   @Output() public displayExtraInfoOptionClick = new EventEmitter<void>();
@@ -43,6 +43,7 @@ export class TextInputComponent {
   @Output() public inputBlur = new EventEmitter<string>();
 
 
+
   // For Year-month, date and number controls control
   @Input() public max!: string | number;
   @Input() public min!: string | number;
@@ -53,8 +54,11 @@ export class TextInputComponent {
     this.inputElRef.nativeElement.focus();
   }
 
-  public showDropDown(showDropDrown: boolean) {
-    this.displayDropDown = showDropDrown;
+  public showDropDown(displayDropDown: boolean) {
+    this.displayDropDown = displayDropDown;
+    if (this.displayDropDown) {
+      this.dropDownDisplayed.emit();
+    }
   }
 
   protected onValueChange(value: string): void {
@@ -64,7 +68,7 @@ export class TextInputComponent {
 
   protected onInputClick(): void {
     if (this.displayDropDownOption) {
-      this.displayDropDown = true;
+      this.showDropDown(true);
     }
     this.inputClick.emit(this.value ? this.value.toString() : '');
   }

@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { TextInputComponent } from '../../text-input/text-input.component';
 
 @Component({
   selector: 'app-selector-single-input',
@@ -6,34 +7,27 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-single-input.component.scss']
 })
 export class SelectorSingleInputComponent<T> implements OnChanges {
-  @Input()
-  public id!: string | number;
+  @ViewChild('appSingleSelectorSearchInput') searchInput!: TextInputComponent;
 
-  @Input()
-  public label!: string;
+  @Input() public id!: string | number;
 
-  @Input()
-  public placeholder!: string;
+  @Input() public label!: string;
 
-  @Input()
-  public displayCancelOption!: boolean;
+  @Input() public placeholder!: string;
 
-  @Input()
-  public errorMessage: string = '';
+  @Input() public displayCancelOption!: boolean;
 
-  @Input()
-  public options: T[] = [];
+  @Input() public errorMessage: string = '';
 
-  @Input()
-  public optionDisplayFn: (option: T) => string = (option => String(option));
+  @Input() public options: T[] = [];
 
-  @Input()
-  public selectedOption!: T | null | undefined;
+  @Input() public optionDisplayFn: (option: T) => string = (option => String(option));
 
-  @Output()
-  public selectedOptionChange = new EventEmitter<T | null>();
+  @Input() public selectedOption!: T | null | undefined;
 
-  protected filteredOptions: T[] =  [...this.options];
+  @Output() public selectedOptionChange = new EventEmitter<T | null>();
+
+  protected filteredOptions: T[] = [...this.options];
   protected selectedOptionDisplay: string = '';
 
   constructor() {
@@ -59,7 +53,7 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   protected onSearchInput(inputValue: string): void {
     if (!inputValue) {
-      this.filteredOptions =  [...this.options];
+      this.filteredOptions = [...this.options];
     } else {
       this.filteredOptions = this.options.filter(option =>
         this.optionDisplayFn(option).toLowerCase().includes(inputValue.toLowerCase())
@@ -73,6 +67,11 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
     this.setSelectedOptionDisplay();
   }
 
+  protected onSearchEnterKeyPress(): void {
+    // Just select the first
+    this.onSelectedOption(this.filteredOptions[0]);
+  }
+
   protected onCancelOptionClick(): void {
     this.selectedOption = null;
     this.selectedOptionChange.emit(null);
@@ -82,15 +81,20 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
   /**
    * Move selected option to the top
    */
-  protected onDisplayDropDownClick(): void {
+  protected onDropDownDisplayed(): void {
     if (this.selectedOption) {
-      // Move the selected option to the top
-      const index = this.filteredOptions.indexOf(this.selectedOption);
-      if (index > -1) {
-        this.filteredOptions.splice(index, 1);        // Remove the element
-        this.filteredOptions.unshift(this.selectedOption); // Add it to the beginning
-      }
+      this.filteredOptions.sort((a, b) => {
+        if (a === this.selectedOption) return -1; // a comes first
+        if (b === this.selectedOption) return 1;  // b comes first
+        return 0; // Keep original order for other items
+      });
     }
+
+    // Set the focus to the search input
+    // Set timeout used to give Angular change detection time to render the above the reorder elements
+    setTimeout(() => {
+      this.searchInput.focus();
+    }, 0);
   }
 
 }

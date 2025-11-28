@@ -26,12 +26,18 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allElements = data;
-      this.filterBasedOnSelectedIds();
+      this.setStationsToInclude();
+      this.setSelected();
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.filterBasedOnSelectedIds();
+    if (changes['includeOnlyIds']) {
+      this.setStationsToInclude();
+    }
+    if (changes['selectedId']) {
+      this.setSelected();
+    }
   }
 
   ngOnDestroy() {
@@ -39,14 +45,15 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
-  private filterBasedOnSelectedIds(): void {
-    this.elements = this.allElements;
-    if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.elements = this.elements.filter(item => this.includeOnlyIds.includes(item.id));
-    }
+  private setStationsToInclude(): void {
+    this.elements = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allElements.filter(item => this.includeOnlyIds.includes(item.id)) : this.allElements;
+  }
 
-    const foundElement = this.elements.find(data => data.id === this.selectedId);
-    this.selectedElement = foundElement ? foundElement : null;
+  private setSelected(): void {
+    if (this.selectedId) {
+      const found = this.elements.find(data => data.id === this.selectedId);
+      this.selectedElement = found ? found : null;
+    }
   }
 
   protected optionDisplayFunction(option: ElementCacheModel): string {

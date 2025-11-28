@@ -28,7 +28,7 @@ interface RangeThreshold {
   styleUrls: ['./value-flag-input.component.scss']
 })
 export class ValueFlagInputComponent implements OnChanges {
-  @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
+  @ViewChild('appVFTextInput') textInputComponent!: TextInputComponent;
 
   @Input() public id!: string;
 
@@ -191,7 +191,6 @@ export class ValueFlagInputComponent implements OnChanges {
       this.onTabChange('history');
     }
     this.displayExtraInfoDialog = true;
-
   }
 
   protected onTabChange(selectedTab: 'new' | 'history' | 'qctests'): void {

@@ -1,4 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import { TextInputComponent } from '../../text-input/text-input.component';
 
 @Component({
   selector: 'app-selector-multiple-input',
@@ -6,6 +7,7 @@ import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from
   styleUrls: ['./selector-multiple-input.component.scss']
 })
 export class SelectorMultipleInputComponent<T> implements OnChanges {
+  @ViewChild('appMultipleSelectorSearchInput') searchInput!: TextInputComponent;
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public placeholder!: string;
@@ -81,6 +83,11 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
     this.setDisplayOfSelectedOptions();
   }
 
+  protected onSearchEnterKeyPress(): void {
+    // Just select the first
+    this.onSelectedOption(this.filteredOptions[0]);
+  }
+
   protected onCancelOptionClick(): void {
     this.selectedOptions.length = 0;
     this.selectedOptionsChange.emit(this.selectedOptions);
@@ -94,25 +101,33 @@ export class SelectorMultipleInputComponent<T> implements OnChanges {
   /**
    * Move selected options to the top
    */
-  protected onDisplayDropDownClick(): void {
+  protected onDropDownDisplayed(): void {
     //----------------------------------------------------------------
     // Sort filtered options to have the selected options as first items in the filtered options array
     //----------------------------------------------------------------
     // Create a map for quick lookups of the desired order.
-    const orderMap = new Map(this.selectedOptions.map((value, index) => [value, index]));
-     this.filteredOptions =   [...this.options].sort((a, b) => {
-      const aInSelected = orderMap.has(a);
-      const bInSelected = orderMap.has(b);
+    if (this.selectedOptions.length > 0) {
+      const orderMap = new Map(this.selectedOptions.map((value, index) => [value, index]));
+      this.filteredOptions = [...this.options].sort((a, b) => {
+        const aInSelected = orderMap.has(a);
+        const bInSelected = orderMap.has(b);
 
-      // If both are in selectedIds, sort by their order in selectedIds
-      if (aInSelected && bInSelected) {
-        return orderMap.get(a)! - orderMap.get(b)!;
-      }
-      if (aInSelected) return -1; // a comes first
-      if (bInSelected) return 1;  // b comes first 
-      return 0; // Keep original order for unselected items
-    });
+        // If both are in selectedIds, sort by their order in selectedIds
+        if (aInSelected && bInSelected) {
+          return orderMap.get(a)! - orderMap.get(b)!;
+        }
+        if (aInSelected) return -1; // a comes first
+        if (bInSelected) return 1;  // b comes first 
+        return 0; // Keep original order for unselected items
+      });
+    }
     //----------------------------------------------------------------
+
+    // Set the focus to the search input
+    // Set timeout used to give Angular change detection time to render the above the reorder elements
+    setTimeout(() => {
+      this.searchInput.focus();
+    }, 0);
   }
 
 }

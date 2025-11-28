@@ -1,22 +1,21 @@
 <!-- show drop down when there is a click event or when the user is typing on the input. Note user may navigate using tab or enter keys -->
-<app-text-input #textInput [id]="id" [label]="label" [readonly]="true" [placeholder]="placeholder"
-    [errorMessage]="errorMessage" [displayDropDownOption]="true" 
-    [displayCancelOption]="displayCancelOption"
-    [value]="selectedOptionDisplay" 
-    (displayCancelOptionClick)="onCancelOptionClick()"
-    (displayDropDownOptionClick)="onDisplayDropDownClick()"
-    >
+<app-text-input #appSingleSelector [id]="id" [label]="label" [readonly]="true" [placeholder]="placeholder"
+    [errorMessage]="errorMessage" [displayDropDownOption]="true" [displayCancelOption]="displayCancelOption"
+    [value]="selectedOptionDisplay" (displayCancelOptionClick)="onCancelOptionClick()"
+    (dropDownDisplayed)="onDropDownDisplayed()">
     <div *ngIf="filteredOptions" class="card">
         <div class="card-body p-0">
             <div class="p-1">
-                <app-text-input [id]="'single_selector_search_control'" [placeholder]="'search'"
-                    (valueChange)="onSearchInput($event);" />
+                <app-text-input #appSingleSelectorSearchInput [id]="id +'_' + label + '_' + '_multiple_search_control'"
+                    [placeholder]="'search'" [simulateTabOnEnter]="false" (valueChange)="onSearchInput($event);"
+                    (inputEnterKeyPress)="onSearchEnterKeyPress()" />
             </div>
 
             <div class="list-group rounded-0">
                 <button type="button" class="list-group-item list-group-item-action"
-                    [class.list-group-item-primary]="this.selectedOption === option" *ngFor="let option of filteredOptions"
-                    (click)="onSelectedOption(option); textInput.showDropDown(false);">
+                    [class.list-group-item-primary]="this.selectedOption === option"
+                    *ngFor="let option of filteredOptions"
+                    (click)="onSelectedOption(option); appSingleSelector.showDropDown(false);">
                     {{ optionDisplayFn(option) }}
                 </button>
             </div>
