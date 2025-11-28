@@ -8,8 +8,7 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 @Injectable()
 export class QCTestAssessmentsService {
 
-    constructor(
-        @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
+    constructor(@InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
 
     public async findSameObsWithDiffSources(selectObsevationDto: ViewObservationQueryDTO) {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
@@ -70,7 +69,7 @@ export class QCTestAssessmentsService {
     public async performQC(queryDto: ViewObservationQueryDTO, userId: number) {
         // TODO. Define a filter dto for qc. It should always require a date range.
 
-        
+
         // Important. limit the date selection to 10 years for perfomance reasons
         //TODO. Later find a way of doing this at the DTO level
         if (queryDto.fromDate && queryDto.toDate) {

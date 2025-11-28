@@ -293,9 +293,9 @@ export class ClimsoftV4WebSyncSetUpService {
 
 
             if (v4ElementType === 'hourly') {
-                interval = 1440;
-            } else if (v4ElementType === 'daily') {
                 interval = 60;
+            } else if (v4ElementType === 'daily') {
+                interval = 1440;
             } else {
                 continue; // No support for other element types
             }

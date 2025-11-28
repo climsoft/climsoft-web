@@ -50,6 +50,12 @@ export class QCTestsController {
         return this.qcTestsService.update(id, createQcTestDto, AuthUtil.getLoggedInUserId(request));
     }
 
+     @Admin()
+  @Delete()
+  async deleteAll() {
+    return this.qcTestsService.deleteAll();
+  }
+
     @Admin()
     @Delete(':id')
     public delete(@Param('id', ParseIntPipe) id: number) {

@@ -10,7 +10,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { QualityControlService } from 'src/app/data-ingestion/services/quality-control.service';
+import { QCAssessmentsService } from 'src/app/quality-control/services/qc-assessments.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
@@ -41,7 +41,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
-    private qualityControlService: QualityControlService,
+    private qualityControlService: QCAssessmentsService,
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
