@@ -4,29 +4,8 @@
     </div>
     <div *ngIf="displayFilterControls" class="card-body p-0">
         <div>
-            <div>
-                <app-query-selection #querySelection [parentComponentName]="componentName" [displayFilterHeader]="false"
-                    (queryClick)="onQueryClick($event)" />
-            </div>
-            <hr />
-            <div>
-                <div>
-                    <div>Perform QC on: </div>
-                    <app-radio-buttons-input [inline]="true" [asButtons]="false" [groupName]="'qcRecordsStatus'"
-                        [groupItems]=" [
-                        { label:'All Records', checked: false },  
-                        { label:'Records with no QC tests', checked: true},
-                        { label:'Records that failed QC tests', checked: false},
-                        { label:'Records that passed QC tests', checked: false}
-                        ]" (checkedValueChange)="onRecordsSelectionChange($event)" />
-                </div>
-                <div class="d-flex justify-content-end mt-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
-                        [disabled]="!enablePerformQCButton " (click)="onPerformQCClick()">
-                        Perform QC
-                    </button>
-                </div>
-            </div>
+            <app-query-selection #querySelection [parentComponentName]="componentName" [displayFilterHeader]="false"
+                (queryClick)="onQueryClick($event)" />
         </div>
     </div>
 </div>

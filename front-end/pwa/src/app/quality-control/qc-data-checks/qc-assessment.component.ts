@@ -30,7 +30,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected enablePerformQCButton: boolean = true;
   protected allBoundariesIndices: number[] = [];
 
-  protected queryFilter!: ViewObservationQueryModel;
+  protected queryFilter: ViewObservationQueryModel = { qcStatus: QCStatusEnum.FAILED };
   private allMetadataLoaded: boolean = false;
   protected useUnstackedViewer: boolean = false;
   protected numOfChanges: number = 0;
@@ -41,7 +41,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
-    private qualityControlService: QCAssessmentsService,
+    private qcAssessmentsService: QCAssessmentsService,
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
@@ -50,7 +50,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      this.queryData();
     });
   }
 
@@ -73,44 +72,8 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     this.queryData();
   }
 
-  protected onPerformQCClick(qcSelection: ViewObservationQueryModel): void {
-    if (!qcSelection.fromDate) {
-      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'From date selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
-
-    if (!qcSelection.toDate) {
-      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'To date selection required', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
-
-    if (DateUtils.isMoreThanMaxCalendarYears(new Date(qcSelection.fromDate), new Date(qcSelection.toDate), 11)) {
-      this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Date range exceeds 10 years', type: ToastEventTypeEnum.ERROR });
-      return;
-    }
-
-    this.enablePerformQCButton = false;
-    this.qualityControlService.performQC(qcSelection).pipe(take(1)).subscribe({
-      next: data => {
-        this.enablePerformQCButton = true;
-
-        if (data.qcFails > 0) {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: `${data.qcFails} observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
-        } else {
-          // Note. The message here is deliberate because it could be there are observations that have failed qc but the new perform may have skipped
-          // them because of the selection criteria
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: `No observation failed qc tests`, type: ToastEventTypeEnum.SUCCESS });
-        }
-      }, error: err => {
-        this.enablePerformQCButton = true;
-        if (err instanceof HttpErrorResponse) {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: err.error.message, type: ToastEventTypeEnum.ERROR });
-        } else {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: 'Something bad happened', type: ToastEventTypeEnum.ERROR });
-        }
-
-      }
-    });
+  protected onQCPerformedClick(): void {
+    // TODO
   }
 
   private queryData(): void {
@@ -125,6 +88,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     this.enableSaveButton = false;
     this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
+    this.enableSaveButton = false;
     this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
@@ -140,6 +104,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
         },
         error: err => {
           this.enableQueryButton = true;
+          this.enableSaveButton = true;
           this.pagesDataService.showToast({ title: 'QC Data Checks', message: err, type: ToastEventTypeEnum.ERROR });
         },
       });
@@ -159,6 +124,8 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe({
       next: data => {
+        this.enableQueryButton = true;
+        this.enableSaveButton = true;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -187,12 +154,12 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
         });
 
         this.observationsEntries = observationsEntries;
-        this.enableQueryButton = true;
-        this.enableSaveButton = true;
+
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
+        this.enableSaveButton = true;
       },
 
     });
