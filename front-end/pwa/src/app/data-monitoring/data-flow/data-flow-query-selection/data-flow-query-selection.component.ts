@@ -61,9 +61,7 @@ export class DataFlowQuerySelectionComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-      if (!user) {
-        throw new Error('User not logged in');
-      }
+      if (!user) return;
 
       if (user.isSystemAdmin) {
         this.includeOnlyStationIds = [];
