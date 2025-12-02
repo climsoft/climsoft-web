@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
@@ -15,7 +15,8 @@ import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
-
+import { QuerySelectionComponent } from 'src/app/observations/query-selection/query-selection.component';
+import { PerformQCDialogComponent } from './perform-qc-dialog/perform-qc-dialog.component';
 
 @Component({
   selector: 'app-qc-assessment',
@@ -23,6 +24,9 @@ import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
   styleUrls: ['./qc-assessment.component.scss']
 })
 export class QCAssessmentComponent implements OnInit, OnDestroy {
+  @ViewChild('querySelection') querySelection!: QuerySelectionComponent;
+  @ViewChild('performQCDialog') performQCDialog!: PerformQCDialogComponent;
+
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   protected enableSaveButton: boolean = false;
@@ -68,12 +72,17 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = queryFilter;
+    this.queryFilter = this.querySelection.getFilter(); // TODO. Temporary
     this.queryData();
   }
 
+  protected onShowPerformQCDialog(): void {
+    this.queryFilter = this.querySelection.getFilter(); // TODO. Temporary
+    this.performQCDialog.showDialog(this.queryFilter)
+  }
+
   protected onQCPerformedClick(): void {
-    // TODO
+    this.queryData();
   }
 
   private queryData(): void {

@@ -43,7 +43,8 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   private utcOffset!: number;
 
   protected displayFilterControls: boolean = true;
-  private outputFilter!: ViewObservationQueryModel;// { deleted: false };
+
+  private outputFilter!: ViewObservationQueryModel;
 
   private destroy$ = new Subject<void>();
 
@@ -163,6 +164,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected onQueryClick(): void {
     // Always reset the filter
     this.outputFilter = this.outputFilter ? { deleted: this.outputFilter.deleted } : { deleted: false };
+
     // Get the data based on the selection filter 
     if (this.stationIds.length > 0) this.outputFilter.stationIds = this.stationIds;
     if (this.elementIds.length > 0) this.outputFilter.elementIds = this.elementIds;
@@ -171,7 +173,6 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     if (this.level !== null) this.outputFilter.level = this.level;
     if (this.sourceIds.length > 0) this.outputFilter.sourceIds = this.sourceIds;
     if (this.useEntryDate) this.outputFilter.useEntryDate = this.useEntryDate;
-
 
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
@@ -184,7 +185,29 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     this.queryClick.emit(this.outputFilter);
   }
 
+  // TODO.
+  // Temporary made public because of QC assessment. 
+  // After refactoring this componenent, ot can be changed back to protected.
+  public getFilter(): ViewObservationQueryModel {
+    const outputFilter: ViewObservationQueryModel = { deleted: false };
+    // Get the data based on the selection filter 
+    if (this.stationIds.length > 0) outputFilter.stationIds = this.stationIds;
+    if (this.elementIds.length > 0) outputFilter.elementIds = this.elementIds;
+    if (this.elementIds.length > 0) outputFilter.elementIds = this.elementIds;
+    if (this.intervals.length > 0) outputFilter.intervals = this.intervals;
+    if (this.level !== null) outputFilter.level = this.level;
+    if (this.sourceIds.length > 0) outputFilter.sourceIds = this.sourceIds;
+    if (this.useEntryDate) outputFilter.useEntryDate = this.useEntryDate;
 
+    // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+    // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
+    outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
+      `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
+    outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
+      `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
+
+    return outputFilter;
+  }
 
 
 

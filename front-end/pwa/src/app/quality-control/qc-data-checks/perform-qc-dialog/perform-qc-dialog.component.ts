@@ -24,6 +24,7 @@ export class PerformQCDialogComponent {
 
   public showDialog(qcSelection: ViewObservationQueryModel): void {
     this.qcSelection = qcSelection;
+    this.qcSelection.qcStatus = QCStatusEnum.NONE;
     this.open = true;
   }
 
@@ -67,7 +68,7 @@ export class PerformQCDialogComponent {
       next: data => {
         this.open = false;
         if (data.qcFails > 0) {
-          this.pagesDataService.showToast({ title: 'QC Assessment', message: `${data.qcFails} observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
+          this.pagesDataService.showToast({ title: 'QC Assessment', message: `Some observations failed qc tests`, type: ToastEventTypeEnum.WARNING });
         } else {
           this.pagesDataService.showToast({ title: 'QC Assessment', message: `No observation failed qc tests`, type: ToastEventTypeEnum.SUCCESS });
         }
