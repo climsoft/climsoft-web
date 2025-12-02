@@ -23,8 +23,7 @@ export class PerformQCDialogComponent {
     private qcAssessmentsService: QCAssessmentsService,) { }
 
   public showDialog(qcSelection: ViewObservationQueryModel): void {
-    this.qcSelection = qcSelection;
-    this.qcSelection.qcStatus = QCStatusEnum.NONE;
+    this.qcSelection = { ...qcSelection, qcStatus: QCStatusEnum.NONE };
     this.open = true;
   }
 

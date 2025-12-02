@@ -72,7 +72,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
   protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
-    this.queryFilter = this.querySelection.getFilter(); // TODO. Temporary
+    this.queryFilter = { ...this.querySelection.getFilter(), qcStatus: QCStatusEnum.FAILED }; // TODO. Temporary
     this.queryData();
   }
 
@@ -82,6 +82,8 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   }
 
   protected onQCPerformedClick(): void {
+    // Get the data based on the selection filter
+    this.queryFilter = { ...this.querySelection.getFilter(), qcStatus: QCStatusEnum.FAILED }; // TODO. Temporary
     this.queryData();
   }
 
