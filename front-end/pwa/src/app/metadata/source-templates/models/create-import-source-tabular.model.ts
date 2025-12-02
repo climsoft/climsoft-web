@@ -163,6 +163,25 @@ export class DateTimeDefinition {
         datetimeFormat: DateTimeFormatTypes;
     };
 
+    dateTimeInTwoColumns?: {
+        dateColumn: {
+            columnPosition: number;
+            dateFormat: DateFormatTypes;
+        };
+
+        hourDefinition: HourDefinition;
+
+    };
+
+    dateTimeInMultipleColumns?: {
+        yearColumnPosition: number;
+        monthColumnPosition: number;
+        dayColumnPosition: number;
+        hourDefinition: HourDefinition;
+    };
+
+
+    // TODO. Deprecate this
     dateTimeInMultipleColumn?: {
 
         dateInSingleColumn?: {
@@ -186,16 +205,20 @@ export class DateTimeDefinition {
 }
 
 /**
- * Either hourColumnPosition or defaultHour must be provided, but not both.
+ * Either time column or default hour must be provided, but not both.
  */
 export class HourDefinition {
-    /**
-     * If provided, then defaultHour will not be used.
-     */
-    columnPosition?: number;
 
     /**
-     * Should be provided when hourColumnPosition is not provided.
+    * If provided, then default hour will not be used.
+    */
+    timeColumn?: {
+        columnPosition: number;
+        timeFormat?: TimeFormatTypes; // Optional when the time is just a hour integer
+    };
+
+    /**
+     * Should be provided when time column is not provided.
      */
     defaultHour?: number;
 }
