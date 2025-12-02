@@ -1,0 +1,15 @@
+<app-dialog [(open)]="open" [title]="'Perform QC'" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+    (okClick)="onOkClick()">
+
+    <div *ngIf="open">
+        <app-radio-buttons-input [groupName]="'perform_qc_records_Status'" [inline]="false" [asButtons]="false"
+            [groupItems]=" [
+                        { label:'All Records', checked: false },  
+                        { label:'Records with no QC tests', checked: true},
+                        { label:'Records that failed QC tests', checked: false},
+                        { label:'Records that passed QC tests', checked: false}
+                        ]" (checkedValueChange)="onRecordsSelectionChange($event)" />
+
+    </div>
+
+</app-dialog>

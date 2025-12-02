@@ -49,21 +49,4 @@ export class QueryQCDataChecksComponent {
     this.filter = filter;
     this.queryQCClick.emit({ ...filter, qcStatus: QCStatusEnum.FAILED });
   }
-
-  protected onPerformQCClick(): void {
-    if (!this.filter) {
-      this.pagesDataService.showToast({ title: 'QC Data Checks', message: `Please query observations first`, type: ToastEventTypeEnum.WARNING });
-      return;
-    }
-    if (!this.filter.fromDate || !this.filter.toDate) {
-      this.pagesDataService.showToast({ title: 'QC Data Checks', message: `Date selections required`, type: ToastEventTypeEnum.ERROR });
-      return;
-    }
-
-    // TODO. Limit the date selection to 10 years at most
-
-    this.performQCClick.emit({ ...this.filter, qcStatus: this.qcStatus });
-  }
-
-
 }
