@@ -8,10 +8,8 @@ import { FlagDefinition } from 'src/app/metadata/source-templates/models/create-
   styleUrls: ['./import-source-flag-detail.component.scss']
 })
 export class ImportSourceFlagDetailComponent  implements OnChanges {
-  @Input()
-  public flagDefinition: FlagDefinition | undefined;
-  @Output()
-  flagDefinitionChange = new EventEmitter<FlagDefinition | undefined>();
+  @Input() public flagDefinition: FlagDefinition | undefined;
+  @Output() public flagDefinitionChange = new EventEmitter<FlagDefinition | undefined>();
 
   protected flagsToFetchHolder!: { sourceId: string, databaseId: FlagEnum }[];
 

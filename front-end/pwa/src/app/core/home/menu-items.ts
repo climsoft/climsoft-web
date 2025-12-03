@@ -41,13 +41,13 @@ export enum SubMenuNameEnum {
     SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
-    QC_TESTS = 'QC Tests',    
+    QC_TEST_PARAMETERS = 'QC Test Parameters',    
     ORGANISATIONS = 'Organisations',
     NETWORK_AFFILIATIONS = 'Network Affiliations',
     REGIONS = 'Regions',
     STATIONS = 'Stations',
-    SOURCE_TEMPLATES = 'Source Templates',
-    EXPORT_TEMPLATES = 'Export Templates',
+    SOURCE_SPECIFICATIONS = 'Source Specifications',
+    EXPORT_SPECIFICATIONS = 'Export Specifications',
     INTEGRATION_CONNECTORS = 'Integration Connectors',
 
     USER_GROUPS = 'User Groups',
@@ -187,15 +187,15 @@ export class MenuItemsUtil {
                     url: '/view-stations',
                 },
                  {
-                    name: SubMenuNameEnum.QC_TESTS,
+                    name: SubMenuNameEnum.QC_TEST_PARAMETERS,
                     url: '/view-qc-tests',
                 },
                 {
-                    name: SubMenuNameEnum.SOURCE_TEMPLATES,
+                    name: SubMenuNameEnum.SOURCE_SPECIFICATIONS,
                     url: '/view-sources',
                 },
                 {
-                    name: SubMenuNameEnum.EXPORT_TEMPLATES,
+                    name: SubMenuNameEnum.EXPORT_SPECIFICATIONS,
                     url: '/view-exports',
                 },
                 {

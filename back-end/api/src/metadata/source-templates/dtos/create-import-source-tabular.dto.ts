@@ -1,4 +1,4 @@
-import { IsInt, IsString } from "class-validator";
+import { IsInt, IsOptional, IsString } from "class-validator";
 import { FlagEnum } from "src/observation/enums/flag.enum";
 import { DataStructureValidity } from "./create-import-source.dto";
 
@@ -8,19 +8,22 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
     stationDefinition?: StationDefinition;
 
     /**elements and value definition*/
-    elementAndValueDefinition: ElementAndValueDefinition;
+    elementDefinition: ElementDefinition;
 
     /** Interval of the observation */
     intervalDefinition: IntervalDefinition;
 
-    /** Whether to fetch elevation and its column position */
+    /** Whether to fetch level and its column position */
     @IsInt()
     levelColumnPosition?: number;
 
     /** Date time columns and formats */
     datetimeDefinition: DateTimeDefinition;
 
-    @IsInt()
+    valueDefinition?: ValueDefinition;
+
+    @IsOptional()
+    @IsString()
     commentColumnPosition?: number;
 
     /**
@@ -32,6 +35,7 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
     /**
      * Applies to csv file formats onl e.g CSV, DAT, TSV.
      */
+    @IsOptional()
     @IsString()
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
 
@@ -40,6 +44,15 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
         return true;
     }
 
+}
+
+export class ValueDefinition {
+
+    /** Value column position. */
+    valueColumnPosition: number;
+
+    /** Flag column position. Optional */
+    flagDefinition?: FlagDefinition;
 }
 
 
@@ -70,7 +83,7 @@ export class StationDefinition {
  * Element and Value column specifications.
  * 
  */
-export class ElementAndValueDefinition {
+export class ElementDefinition {
 
     /**
     * Used when there are elements.
@@ -89,8 +102,6 @@ export class ElementAndValueDefinition {
              * It is optional, meaning fetch all as database element ids.
              */
             elementsToFetch?: { sourceId: string; databaseId: number; }[],
-            valueColumnPosition: number;
-            flagDefinition?: FlagDefinition;
         },
 
         /**
@@ -118,14 +129,6 @@ export class ElementAndValueDefinition {
          * The element id in the database. 
          */
         databaseId: number;
-
-        /**
-         * Value column position.
-         */
-        valueColumnPosition: number;
-
-        /** Flag column position. Optional */
-        flagDefinition?: FlagDefinition;
     };
 
 
@@ -161,56 +164,59 @@ export type DateTimeFormatTypes = '%Y-%m-%d %H:%M:%S' |
 
 export type DateFormatTypes = '%Y-%m-%d' | '%d-%m-%Y' | '%Y/%m/%d' | '%d/%m/%Y';
 
-export type TimeFormatTypes = '%H:%M:%S' | '%H:%M';
+export type TimeFormatTypes = '%H:%M:%S' | '%H:%M' | '%-H:%M' | '%H' | '%-H';
 
-/**
- * When dateTimeColumnPostion is not specified then  dateInMultipleColumn should be specified, that is,
- * either dateTimeColumnPostion or dateInMultipleColumn must be provided, but not both.
- */
-export class DateTimeDefinition {
+export interface DateTimeDefinition {
 
     /**
     * The date time column position
-    * Expected format: 'yyyy-mm-dd hh:mm:ss'
+    * Expected format example: 'yyyy-mm-dd hh:mm:ss'
     */
     dateTimeInSingleColumn?: {
         columnPosition: number;
         datetimeFormat: DateTimeFormatTypes;
     };
 
-    dateTimeInMultipleColumn?: {
-
-        dateInSingleColumn?: {
+    /**
+     * The date and time are in two separate columns.
+     */
+    dateTimeInTwoColumns?: {
+        dateColumn: {
             columnPosition: number;
             dateFormat: DateFormatTypes;
         };
-
-        timeInSingleColumn?: {
+        timeColumn: {
             columnPosition: number;
             timeFormat: TimeFormatTypes;
         };
+    };
 
-        dateInMultipleColumn?: {
-            yearColumnPosition: number;
-            monthColumnPosition: number;
-            dayColumnPosition: number;
-        };
-
+    /**
+     * The date and time are split across multiple columns (e.g., Year, Month, Day, Hour).
+     */
+    dateTimeInMultipleColumns?: {
+        yearColumnPosition: number;
+        monthColumnPosition: number;
+        dayColumnPosition: string; // For multiple columns format will be like columnPosX-columnPosY
         hourDefinition: HourDefinition;
     };
 }
 
 /**
- * Either hourColumnPosition or defaultHour must be provided, but not both.
+ * Either time column or default hour must be provided, but not both.
  */
-export class HourDefinition {
-    /**
-     * If provided, then defaultHour will not be used.
-     */
-    columnPosition?: number;
+export interface HourDefinition {
 
     /**
-     * Should be provided when hourColumnPosition is not provided.
+    * If provided, then default hour will not be used.
+    */
+    timeColumn?: {
+        columnPosition: number;
+        timeFormat: TimeFormatTypes; // Optional when the time is just a hour integer
+    };
+
+    /**
+     * Should be provided when time column is not provided.
      */
     defaultHour?: number;
 }

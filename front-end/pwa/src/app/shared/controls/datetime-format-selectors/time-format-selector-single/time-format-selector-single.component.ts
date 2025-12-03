@@ -21,6 +21,8 @@ export class TimeFormatSelectorSingleComponent implements OnChanges {
     this.options = [
       '%H:%M:%S',
       '%H:%M',
+      '%H',
+      '%-H'
     ];
   }
 

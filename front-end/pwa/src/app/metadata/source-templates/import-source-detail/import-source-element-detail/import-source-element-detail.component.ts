@@ -1,79 +1,78 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { ElementAndValueDefinition } from '../../models/create-import-source-tabular.model';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { ElementDefinition } from '../../models/create-import-source-tabular.model';
 
 @Component({
-  selector: 'app-import-source-element-and-value-detail',
-  templateUrl: './import-source-element-and-value-detail.component.html',
-  styleUrls: ['./import-source-element-and-value-detail.component.scss']
+  selector: 'app-import-source-element-detail',
+  templateUrl: './import-source-element-detail.component.html',
+  styleUrls: ['./import-source-element-detail.component.scss']
 })
-export class ImportSourceElementAndValueDetailComponent implements OnChanges {
-
-  @Input()
-  public elementAndValueDefinition!: ElementAndValueDefinition;
+export class ImportSourceElementDetailComponent implements OnChanges {
+  @Input() public elementDefinition!: ElementDefinition;
+  @Output() public elementDefinitionChange = new EventEmitter<ElementDefinition>();
 
   protected elementColumnsHolder!: { columnPosition: number, databaseId: number }[];
   protected elementToFetchsHolder!: { sourceId: string, databaseId: number }[];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.elementAndValueDefinition && this.elementAndValueDefinition.hasElement) {
-      if (this.elementAndValueDefinition.hasElement.multipleColumn) {
-        this.elementColumnsHolder = [... this.elementAndValueDefinition.hasElement.multipleColumn];
+    if (this.elementDefinition && this.elementDefinition.hasElement) {
+      if (this.elementDefinition.hasElement.multipleColumn) {
+        this.elementColumnsHolder = [... this.elementDefinition.hasElement.multipleColumn];
         //Add new placholder values
         this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
       }
 
-      if (this.elementAndValueDefinition.hasElement.singleColumn?.elementsToFetch) {
-        this.elementToFetchsHolder = [... this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch];
+      if (this.elementDefinition.hasElement.singleColumn?.elementsToFetch) {
+        this.elementToFetchsHolder = [... this.elementDefinition.hasElement.singleColumn.elementsToFetch];
         //Add new placholder values
         this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
       }
-
-
     }
   }
 
   protected onElementStatusSelection(elementSelectionStatus: string): void {
-    this.elementAndValueDefinition.noElement = undefined;
-    this.elementAndValueDefinition.hasElement = undefined;
+    this.elementDefinition.noElement = undefined;
+    this.elementDefinition.hasElement = undefined;
     if (elementSelectionStatus === 'Includes Elements') {
-      this.elementAndValueDefinition.hasElement = {}
+      this.elementDefinition.hasElement = {}
     } else if (elementSelectionStatus === 'Does Not Include Elements') {
-      this.elementAndValueDefinition.noElement = { databaseId: 0, valueColumnPosition: 0 };
+      this.elementDefinition.noElement = { databaseId: 0 };
     }
 
   }
 
   protected onElementColumnsSelection(elementColumnStatus: string): void {
-    if (!this.elementAndValueDefinition.hasElement) {
+    if (!this.elementDefinition.hasElement) {
       return
     }
 
-    this.elementAndValueDefinition.hasElement.singleColumn = undefined;
-    this.elementAndValueDefinition.hasElement.multipleColumn = undefined;
+    this.elementDefinition.hasElement.singleColumn = undefined;
+    this.elementDefinition.hasElement.multipleColumn = undefined;
     this.elementColumnsHolder = [{ columnPosition: 0, databaseId: 0 }];
 
     if (elementColumnStatus === 'In Single Column') {
-      this.elementAndValueDefinition.hasElement.singleColumn = { elementColumnPosition: 0, valueColumnPosition: 0 };
+      this.elementDefinition.hasElement.singleColumn = { elementColumnPosition: 0 };
     } else if (elementColumnStatus === 'In Multiple Columns') {
-      this.elementAndValueDefinition.hasElement.multipleColumn = [];
+      this.elementDefinition.hasElement.multipleColumn = [];
     }
+
+    this.elementDefinitionChange.emit(this.elementDefinition);
   }
 
   protected onSingleFetchElementsChange(fetch: boolean) {
 
-    if (!this.elementAndValueDefinition.hasElement?.singleColumn) {
+    if (!this.elementDefinition.hasElement?.singleColumn) {
       return;
     }
 
     // Add new placeholder for visibility of the entry controls if stations are specified
-    this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch = fetch ? [] : undefined;
+    this.elementDefinition.hasElement.singleColumn.elementsToFetch = fetch ? [] : undefined;
 
     this.elementToFetchsHolder = [{ sourceId: '', databaseId: 0 }];
   }
 
   protected onSingleElementsToFetchEntry(): void {
 
-    if (!this.elementAndValueDefinition.hasElement?.singleColumn?.elementsToFetch) {
+    if (!this.elementDefinition.hasElement?.singleColumn?.elementsToFetch) {
       return;
     }
 
@@ -82,16 +81,18 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
     if (last.sourceId !== '' && last.databaseId !== 0) {
 
       // Set the new valid values
-      this.elementAndValueDefinition.hasElement.singleColumn.elementsToFetch = [...this.elementToFetchsHolder];
+      this.elementDefinition.hasElement.singleColumn.elementsToFetch = [...this.elementToFetchsHolder];
 
       //Add new placholder values
       this.elementToFetchsHolder.push({ sourceId: '', databaseId: 0 });
     }
+
+    this.elementDefinitionChange.emit(this.elementDefinition);
   }
 
   protected onMultipleElementsEntry(): void {
 
-    if (!this.elementAndValueDefinition.hasElement?.multipleColumn) {
+    if (!this.elementDefinition.hasElement?.multipleColumn) {
       return;
     }
 
@@ -101,11 +102,13 @@ export class ImportSourceElementAndValueDetailComponent implements OnChanges {
 
       // Set the new valid values from the place holder
       //this.elementColumnsHolder = this.elementColumnsHolder.filter( item => item.columnPosition !== 0);
-      this.elementAndValueDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
+      this.elementDefinition.hasElement.multipleColumn = [...this.elementColumnsHolder];
 
       //Add new placholder values
       this.elementColumnsHolder.push({ columnPosition: 0, databaseId: 0 });
     }
+
+    this.elementDefinitionChange.emit(this.elementDefinition);
 
   }
 

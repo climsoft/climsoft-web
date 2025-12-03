@@ -1,0 +1,10 @@
+<div *ngIf="valueDefinition">
+    <div class="mt-2">
+        <app-number-input [label]="'Values Column Position'" [(numValue)]="valueDefinition.valueColumnPosition" />
+    </div>
+
+    <div class="mt-2">
+        <app-import-source-flag-detail [(flagDefinition)]="valueDefinition.flagDefinition" />
+    </div>
+
+</div>

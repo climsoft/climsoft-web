@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { DateTimeDefinition } from 'src/app/metadata/source-templates/models/create-import-source-tabular.model';
 
 @Component({
@@ -7,55 +7,70 @@ import { DateTimeDefinition } from 'src/app/metadata/source-templates/models/cre
   styleUrls: ['./import-source-date-detail.component.scss']
 })
 export class ImportSourceDateDetailComponent implements OnChanges {
-  @Input()
-  public datetimeDefinition!: DateTimeDefinition;
-
-  private cachedDatetimeDefinition!: DateTimeDefinition;
+  @Input() public datetimeDefinition!: DateTimeDefinition;
+  @Output() public datetimeDefinitionChange = new EventEmitter<DateTimeDefinition>();
 
   constructor() {
 
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.datetimeDefinition) {
-      this.cachedDatetimeDefinition = { ...this.datetimeDefinition };
-    }
-
   }
 
-  protected onDatetimeSelection(dateStatus: string): void {
+  protected onDatetimeSelection(selection: string): void {
+    // Reset all definitions first
     this.datetimeDefinition.dateTimeInSingleColumn = undefined;
-    this.datetimeDefinition.dateTimeInMultipleColumn = undefined;
+    this.datetimeDefinition.dateTimeInTwoColumns = undefined;
+    this.datetimeDefinition.dateTimeInMultipleColumns = undefined;
 
-    if (dateStatus === 'Date Time in Single Column') {
-      if (this.cachedDatetimeDefinition && this.cachedDatetimeDefinition.dateTimeInSingleColumn) {
-        this.datetimeDefinition.dateTimeInSingleColumn = this.cachedDatetimeDefinition.dateTimeInSingleColumn;
-      } else {
-        this.datetimeDefinition.dateTimeInSingleColumn = {
-          columnPosition: 1,
-          datetimeFormat: '%Y-%m-%d %H:%M',
-        };
-      }
-    } else if (dateStatus === 'Date Time in Multiple Columns') {
-      if (this.cachedDatetimeDefinition && this.cachedDatetimeDefinition.dateTimeInMultipleColumn) {
-        this.datetimeDefinition.dateTimeInMultipleColumn = this.cachedDatetimeDefinition.dateTimeInMultipleColumn;
-      } else {
-        this.datetimeDefinition.dateTimeInMultipleColumn = {
-          dateInSingleColumn: {
-            columnPosition: 1,
-            dateFormat: '%Y-%m-%d',
-          },
-          timeInSingleColumn:{
-            columnPosition: 1,
-            timeFormat: '%H:%M:%S',
-          },
-          dateInMultipleColumn: undefined,
-          hourDefinition: {},
-        };
-      }
+    if (selection === 'Date Time in Single Column') {
+      this.datetimeDefinition.dateTimeInSingleColumn = {
+        columnPosition: 0,
+        datetimeFormat: '%Y-%m-%d %H:%M:%S'
+      };
+    } else if (selection === 'Date Time in Two Columns') {
+      this.datetimeDefinition.dateTimeInTwoColumns = {
+        dateColumn: {
+          columnPosition: 0,
+          dateFormat: '%Y-%m-%d'
+        },
+        timeColumn: {
+          columnPosition: 0,
+          timeFormat: '%H:%M:%S'
+        }
+      };
+    } else if (selection === 'Date Time in Multiple Columns') {
+      this.datetimeDefinition.dateTimeInMultipleColumns = {
+        yearColumnPosition: 0,
+        monthColumnPosition: 0,
+        dayColumnPosition: '0',
+        hourDefinition: {
+          timeColumn: {
+            columnPosition: 0,
+            timeFormat: '%H:%M:%S'
+          }
+        }
+      };
     }
+
+    this.datetimeDefinitionChange.emit(this.datetimeDefinition);
   }
 
+  protected onHourDefinitionSelection(selection: string): void {
+    if (!this.datetimeDefinition.dateTimeInMultipleColumns) return;
 
+    // Reset hour definitions
+    this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.timeColumn = undefined;
+    this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.defaultHour = undefined;
+
+    if (selection === 'Time in Column') {
+      this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.timeColumn = {
+        columnPosition: 0,
+        timeFormat: '%H:%M:%S'
+      };
+    } else if (selection === 'Default Hour') {
+      this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.defaultHour = 0;
+    }
+  }
 
 }
