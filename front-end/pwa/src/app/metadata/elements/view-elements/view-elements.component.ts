@@ -60,13 +60,13 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onSearchInput(searchedIds: number[]): void {
     this.searchedIds = searchedIds;
-    this.elements = this.searchedIds && this.searchedIds.length > 0 ?
-      this.cachedMetadataService.elementsMetadata.filter(item => this.searchedIds.includes(item.id)) :
-      [...this.cachedMetadataService.elementsMetadata];
+    this.filterSearchedIds();
   }
 
   private filterSearchedIds(): void {
-
+    this.elements = this.searchedIds && this.searchedIds.length > 0 ?
+      this.cachedMetadataService.elementsMetadata.filter(item => this.searchedIds.includes(item.id)) :
+      [...this.cachedMetadataService.elementsMetadata];
   }
 
   protected onOptionsClick(option: OptionEnum): void {
