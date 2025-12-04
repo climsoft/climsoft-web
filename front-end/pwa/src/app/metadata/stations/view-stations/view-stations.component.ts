@@ -18,7 +18,7 @@ type tab = 'table' | 'geomap' | 'treemap';
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
   protected stations!: StationCacheModel[];
-  protected searchedIds!: string[];
+  protected searchedIds: string[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;

@@ -26,8 +26,8 @@ enum OptionEnum {
 export class ViewQCTestsComponent implements OnDestroy {
   @ViewChild('dlgQcEdit') appQCEditDialog!: QCTestParameterInputDialogComponent;
 
-  protected elementQCTestParams!: ElementQCTestView[];
-  protected searchedIds!: number[];
+  protected qCTestParams!: ElementQCTestView[];
+  protected searchedIds: number[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
@@ -59,10 +59,7 @@ export class ViewQCTestsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
-      this.elementQCTestParams = this.cachedMetadataService.qcTestsMetadata.map(qcTest => {
-        const element = this.cachedMetadataService.elementsMetadata.find(item => item.id === qcTest.elementId);
-        return { ...qcTest, elementName: element ? element.name : '' };
-      });
+      this.filterSearchedIds();
     });
 
   }
@@ -74,10 +71,14 @@ export class ViewQCTestsComponent implements OnDestroy {
 
   protected onSearchInput(searchedIds: number[]): void {
     this.searchedIds = searchedIds;
-    const qcTestsCache = this.searchedIds && this.searchedIds.length > 0 ?
-      this.cachedMetadataService.qcTestsMetadata.filter(item => this.searchedIds.includes(item.id)) : this.cachedMetadataService.qcTestsMetadata;
+    this.filterSearchedIds();
+  }
 
-    this.elementQCTestParams = qcTestsCache.map(qcTest => {
+  private filterSearchedIds(): void {
+    const qcTestsCache = this.searchedIds && this.searchedIds.length > 0 ?
+      this.cachedMetadataService.qcTestsMetadata.filter(item => this.searchedIds.includes(item.elementId)) : this.cachedMetadataService.qcTestsMetadata;
+
+    this.qCTestParams = qcTestsCache.map(qcTest => {
       const element = this.cachedMetadataService.elementsMetadata.find(item => item.id === qcTest.elementId);
       return { ...qcTest, elementName: element ? element.name : '' };
     });
@@ -86,16 +87,16 @@ export class ViewQCTestsComponent implements OnDestroy {
   protected onOptionsClicked(option: OptionEnum) {
     switch (option) {
       case OptionEnum.SORT_BY_QC_NAME:
-        this.elementQCTestParams.sort((a, b) => a.name.localeCompare(b.name));
+        this.qCTestParams.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case OptionEnum.SORT_BY_ELEMENT_ID:
-        this.elementQCTestParams.sort((a, b) => a.elementId - b.elementId);
+        this.qCTestParams.sort((a, b) => a.elementId - b.elementId);
         break;
       case OptionEnum.SORT_BY_ELEMENT_NAME:
-        this.elementQCTestParams.sort((a, b) => a.elementName.localeCompare(b.elementName));
+        this.qCTestParams.sort((a, b) => a.elementName.localeCompare(b.elementName));
         break;
       case OptionEnum.SORT_BY_QC_TYPE:
-        this.elementQCTestParams.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
+        this.qCTestParams.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
         break;
       case OptionEnum.DELETE_ALL:
         this.elementsQCTestsCacheService.deleteAll().pipe(

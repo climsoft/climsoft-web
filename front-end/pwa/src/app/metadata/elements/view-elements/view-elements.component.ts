@@ -14,7 +14,7 @@ import { OptionEnum } from 'src/app/shared/options.enum';
 })
 export class ViewElementsComponent implements OnDestroy {
   protected elements!: CreateViewElementModel[];
-  protected searchedIds!: number[];
+  protected searchedIds: number[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;

@@ -40,7 +40,7 @@ export class ViewSourcesComponent implements OnDestroy {
     // Get all sources 
     this.sourcesCacheService.cachedSources.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((sources) => {
+    ).subscribe(sources => {
 
       this.sources = sources.map(item => {
         return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType), assignedStations: 0 }
