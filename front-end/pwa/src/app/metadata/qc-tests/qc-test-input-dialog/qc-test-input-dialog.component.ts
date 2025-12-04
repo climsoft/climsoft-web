@@ -33,7 +33,7 @@ export class QCTestParameterInputDialogComponent {
 
   public showDialog(elementQCTestId?: number): void {
     this.open = true;
-    this.title = elementQCTestId ? 'Edit QC Test' : 'New QC Test';
+    this.title = elementQCTestId ? 'Edit QC Test Parameters' : 'New QC Test Parameters';
 
     if (elementQCTestId) {
       this.qcTestscacheService.findOne(elementQCTestId).pipe(

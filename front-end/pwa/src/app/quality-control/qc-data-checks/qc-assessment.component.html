@@ -10,7 +10,7 @@
                 (click)="onShowPerformQCDialog()">
                 Perform QC
             </button>
-            <app-perform-qc-dialog #performQCDialog  (ok)="onQCPerformedClick()" />
+            <app-perform-qc-dialog #performQCDialog (ok)="onQCPerformedClick()" />
         </div>
         <div class="card border-0 p-0 mt-2">
             <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
@@ -82,12 +82,13 @@
                                     </td>
                                     <td>
                                         <app-check-box-input [id]="i + '_confirm'" [value]="obsEntry.confirmAsCorrect"
-                                            [disabled]="obsEntry.delete" (valueChange)="onUserDeleteClick(obsEntry)" />
+                                            [disabled]="obsEntry.delete"
+                                            (valueChange)="onUserConfirmAsCorrectClick (obsEntry)" />
                                     </td>
                                     <td>
                                         <app-check-box-input [id]="i + '_delete'" [value]="obsEntry.delete"
                                             [disabled]="obsEntry.confirmAsCorrect"
-                                            (valueChange)="onUserConfirmAsCorrectClick(obsEntry)" />
+                                            (valueChange)="onUserDeleteClick(obsEntry)" />
                                     </td>
                                 </tr>
                             </tbody>

@@ -18,7 +18,7 @@ export class ViewExportTemplatesComponent  {
     private exportsService: ExportTemplatesService,
     private router: Router,
     private route: ActivatedRoute) {
-    this.pagesDataService.setPageHeader('Export Templates');
+    this.pagesDataService.setPageHeader('Export Specifications');
 
     this.exportsService.findAll().pipe(
      take(1),

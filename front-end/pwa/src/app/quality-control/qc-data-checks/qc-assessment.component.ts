@@ -215,7 +215,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   }
 
   protected onUserConfirmAsCorrectClick(observationEntry: ObservationEntry) {
-    observationEntry.delete = !observationEntry.delete;
+    observationEntry.confirmAsCorrect = !observationEntry.confirmAsCorrect;
     this.onUserInput();
   }
 

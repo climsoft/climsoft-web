@@ -41,7 +41,7 @@ export class ViewQCTestsComponent implements OnDestroy {
     private cachedMetadataService: CachedMetadataService,
     private elementsQCTestsCacheService: QCTestsCacheService,) {
 
-    this.pagesDataService.setPageHeader('QC Tests');
+    this.pagesDataService.setPageHeader('QC Test Parameters');
 
     // Check on allowed options
     this.appAuthService.user.pipe(

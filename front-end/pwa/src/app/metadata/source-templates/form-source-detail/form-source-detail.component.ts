@@ -56,7 +56,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Form Template');
+      this.pagesDataService.setPageHeader('Edit Form Specification');
       this.sourcesCacheService.findOne(+sourceId).pipe(
         takeUntil(this.destroy$),
       ).subscribe(data => {
@@ -66,7 +66,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.pagesDataService.setPageHeader('New Form Template');
+      this.pagesDataService.setPageHeader('New Form Specification');
       const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowStationSelection: false, allowDoubleDataEntry: false, isValid: () => true }
       this.viewSource = {
         id: 0,

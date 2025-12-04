@@ -34,7 +34,7 @@ export class ExportTemplateDetailComponent implements OnInit {
   ngOnInit(): void {
     const exportId = this.route.snapshot.params['id'];
     if (StringUtils.containsNumbersOnly(exportId)) {
-      this.pagesDataService.setPageHeader('Edit Export Template');
+      this.pagesDataService.setPageHeader('Edit Export Specification');
       this.exportTemplatesService.findOne(+exportId).pipe(
         take(1),
       ).subscribe(data => {
@@ -42,7 +42,7 @@ export class ExportTemplateDetailComponent implements OnInit {
         this.disableStackedDataOpetions = this.viewExportTemplate.parameters.unstackData ? true : false;
       });
     } else {
-      this.pagesDataService.setPageHeader('New Export Template');
+      this.pagesDataService.setPageHeader('New Export Specification');
       this.viewExportTemplate = {
         id: 0,
         name: '',
