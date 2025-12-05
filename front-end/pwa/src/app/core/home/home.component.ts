@@ -215,13 +215,13 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Remove admin related metadata
     const metadataMenuItems: MenuItem = MenuItemsUtil.METADATA_MENU_ITEMS;
     metadataMenuItems.children = metadataMenuItems.children.filter(item =>
-      item.name !== SubMenuNameEnum.SOURCE_TEMPLATES
-      && item.name !== SubMenuNameEnum.EXPORT_TEMPLATES
+      item.name !== SubMenuNameEnum.SOURCE_SPECIFICATIONS
+      && item.name !== SubMenuNameEnum.EXPORT_SPECIFICATIONS
       && item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
       && item.name !== SubMenuNameEnum.ORGANISATIONS
       && item.name !== SubMenuNameEnum.NETWORK_AFFILIATIONS
       && item.name !== SubMenuNameEnum.REGIONS
-      && item.name !== SubMenuNameEnum.QC_TESTS
+      && item.name !== SubMenuNameEnum.QC_TEST_PARAMETERS
     );
 
     this.featuresNavItems.push(metadataMenuItems);

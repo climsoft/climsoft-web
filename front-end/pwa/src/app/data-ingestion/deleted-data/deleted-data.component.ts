@@ -13,8 +13,6 @@ import { ObservationEntry } from 'src/app/observations/models/observation-entry.
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { HttpErrorResponse } from '@angular/common/http';
 
-
-
 @Component({
   selector: 'app-deleted-data',
   templateUrl: './deleted-data.component.html',
@@ -150,7 +148,6 @@ export class DeletedDataComponent implements OnDestroy {
     });
   }
 
-
   protected onOptionsSelected(optionSlected: 'Restore All' | 'Hard Delete All'): void {
     switch (optionSlected) {
       case 'Restore All':
@@ -189,7 +186,7 @@ export class DeletedDataComponent implements OnDestroy {
           interval: obsEntry.observation.interval
         });
       } else if (obsEntry.restore) {
-        deletedObs.push({
+        restoredObs.push({
           stationId: obsEntry.observation.stationId,
           elementId: obsEntry.observation.elementId,
           sourceId: obsEntry.observation.sourceId,
@@ -197,7 +194,7 @@ export class DeletedDataComponent implements OnDestroy {
           datetime: obsEntry.observation.datetime,
           interval: obsEntry.observation.interval
         });
-      } 
+      }
     }
 
     if (deletedObs.length > 0) {
@@ -212,7 +209,7 @@ export class DeletedDataComponent implements OnDestroy {
   private hardDeleteObservations(deletedObs: DeleteObservationModel[], changedObs: DeleteObservationModel[]): void {
     this.enableSaveButton = false;
     // Send to server for saving
-    this.observationService.softDelete(deletedObs).subscribe({
+    this.observationService.hardDelete(deletedObs).subscribe({
       next: () => {
         this.enableSaveButton = true;
         this.pagesDataService.showToast({
@@ -233,8 +230,6 @@ export class DeletedDataComponent implements OnDestroy {
   }
 
   private restoreObservations(restoredObs: DeleteObservationModel[]): void {
-
-
     this.enableSaveButton = false;
     // Send to server for saving
     this.observationService.restore(restoredObs).subscribe({

@@ -18,7 +18,7 @@ type tab = 'table' | 'geomap' | 'treemap';
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
   protected stations!: StationCacheModel[];
-  protected searchedIds!: string[];
+  protected searchedIds: string[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
@@ -49,7 +49,8 @@ export class ViewStationsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
-      this.stations = [...this.cachedMetadataService.stationsMetadata];
+      // Always call filtered seacrh ids because when the caches refreshes, the selected ids will not be the ones shown
+      this.filterSearchedIds();
     });
   }
 
@@ -64,6 +65,10 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onSearchInput(searchedIds: string[]): void {
     this.searchedIds = searchedIds;
+    this.filterSearchedIds();
+  }
+
+  private filterSearchedIds(): void {
     this.stations = this.searchedIds && this.searchedIds.length > 0 ?
       this.cachedMetadataService.stationsMetadata.filter(item => this.searchedIds.includes(item.id)) :
       [...this.cachedMetadataService.stationsMetadata];

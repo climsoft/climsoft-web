@@ -14,7 +14,7 @@ import { OptionEnum } from 'src/app/shared/options.enum';
 })
 export class ViewElementsComponent implements OnDestroy {
   protected elements!: CreateViewElementModel[];
-  protected searchedIds!: number[];
+  protected searchedIds: number[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
@@ -36,7 +36,7 @@ export class ViewElementsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems =  [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_ABBREVIATION, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD] 
+      this.dropDownItems = [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_ABBREVIATION, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD]
       if (this.isSystemAdmin) {
         this.dropDownItems.push(OptionEnum.DELETE_ALL);
       }
@@ -47,7 +47,8 @@ export class ViewElementsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
-      this.elements = [...this.cachedMetadataService.elementsMetadata];
+      // Always call filtered seacrh ids because when the caches refreshes, the selected ids will not be the ones shown
+      this.filterSearchedIds();
     });
 
   }
@@ -59,6 +60,10 @@ export class ViewElementsComponent implements OnDestroy {
 
   protected onSearchInput(searchedIds: number[]): void {
     this.searchedIds = searchedIds;
+    this.filterSearchedIds();
+  }
+
+  private filterSearchedIds(): void {
     this.elements = this.searchedIds && this.searchedIds.length > 0 ?
       this.cachedMetadataService.elementsMetadata.filter(item => this.searchedIds.includes(item.id)) :
       [...this.cachedMetadataService.elementsMetadata];

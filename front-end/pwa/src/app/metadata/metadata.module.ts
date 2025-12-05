@@ -14,7 +14,7 @@ import { EditStationDialogComponent } from './stations/edit-station-dialog/edit-
 import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component'; 
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';  
 import { ImportSourceStationDetailComponent } from './source-templates/import-source-detail/import-source-station-detail/import-source-station-detail.component';
-import { ImportSourceElementAndValueDetailComponent } from './source-templates/import-source-detail/import-source-element-and-value-detail/import-source-element-and-value-detail.component';
+import { ImportSourceElementDetailComponent } from './source-templates/import-source-detail/import-source-element-detail/import-source-element-detail.component';
 import { ImportSourceIntervalDetailComponent } from './source-templates/import-source-detail/import-source-interval-detail/import-source-interval-detail.component';
 import { ImportSourceDateDetailComponent } from './source-templates/import-source-detail/import-source-date-detail/import-source-date-detail.component';
 import { ImportSourceDelimeterDetailComponent } from './source-templates/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
@@ -68,6 +68,7 @@ import { StationStatusSelectorMultipleComponent } from './stations/station-statu
 import { StationObsProcessingSelectorMultipleComponent } from './stations/station-obs-method-selector/station-obs-processing-selector-multiple/station-obs-processing-selector-multiple.component';
 import { StationEnvironmentSelectorMultipleComponent } from './stations/station-environment-selector/station-environment-selector-multiple/station-environment-selector-multiple.component';
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
+import { ImportSourceValueDetailComponent } from './source-templates/import-source-detail/import-source-value-detail/import-source-value-detail.component';
 
 @NgModule({
   declarations: [ 
@@ -116,13 +117,15 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
     StationsSearchDialogComponent,
  
     ViewElementsComponent,  
+
     ImportSourceStationDetailComponent,
-    ImportSourceElementAndValueDetailComponent,
+    ImportSourceElementDetailComponent,
     ImportSourceIntervalDetailComponent,
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
     ImportSourceLevelDetailComponent,
     ImportSourceMissingFlagDetailComponent,
+    ImportSourceValueDetailComponent,
     ImportSourceFlagDetailComponent,
 
     EditElementDialogComponent, 

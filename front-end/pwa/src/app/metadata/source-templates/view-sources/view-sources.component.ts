@@ -35,12 +35,12 @@ export class ViewSourcesComponent implements OnDestroy {
     private router: Router,
     private route: ActivatedRoute) {
 
-    this.pagesDataService.setPageHeader('Source Templates');
+    this.pagesDataService.setPageHeader('Source Specifications');
 
     // Get all sources 
     this.sourcesCacheService.cachedSources.pipe(
       takeUntil(this.destroy$),
-    ).subscribe((sources) => {
+    ).subscribe(sources => {
 
       this.sources = sources.map(item => {
         return { ...item, sourceTypeName: StringUtils.formatEnumForDisplay(item.sourceType), assignedStations: 0 }
@@ -69,13 +69,13 @@ export class ViewSourcesComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onOptionsClicked(sourceTypeName: 'Add Form Source' | 'Add Import Source' | 'Delete All') {
+  protected onOptionsClicked(sourceTypeName: 'Add Form' | 'Add Import' | 'Delete All') {
     let routeName: string = '';
     switch (sourceTypeName) {
-      case 'Add Form Source':
+      case 'Add Form':
         routeName = 'form-source-detail';
         break;
-      case 'Add Import Source':
+      case 'Add Import':
         routeName = 'import-source-detail';
         break;
       case 'Delete All':

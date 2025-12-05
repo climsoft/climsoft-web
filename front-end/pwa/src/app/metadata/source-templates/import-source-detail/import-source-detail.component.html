@@ -47,15 +47,15 @@
 
             <!--Elements-->
             <div class="mb-3">
-                <app-import-source-element-and-value-detail
-                    [elementAndValueDefinition]="tabularImportSource .elementAndValueDefinition" />
+                <app-import-source-element-detail
+                    [elementDefinition]="tabularImportSource .elementDefinition" (elementDefinitionChange)="onElementOrDatetimeDefChanged()" />
             </div>
 
             <hr />
 
             <!--Date time-->
             <div class="mb-3">
-                <app-import-source-date-detail [datetimeDefinition]="tabularImportSource.datetimeDefinition" />
+                <app-import-source-date-detail [datetimeDefinition]="tabularImportSource.datetimeDefinition" (datetimeDefinitionChange)="onElementOrDatetimeDefChanged()" />
             </div>
 
             <hr />
@@ -70,6 +70,13 @@
             <!--level-->
             <div class="mb-3">
                 <app-import-source-level-detail [(levelColumnPosition)]="tabularImportSource.levelColumnPosition" />
+            </div>
+
+            <hr />
+
+            <!--value-->
+            <div class="mb-3">
+                <app-import-source-value-detail [(valueDefinition)]="tabularImportSource.valueDefinition"  />
             </div>
 
             <hr />
@@ -97,14 +104,15 @@
 
         <hr class="border border-secondary border-1">
         <div>
-            <div class="mb-2" >
-                 <app-check-box-input [label]="'Attach Template Script (SQL, Python or R )'" [(value)]="tempScript" />
+            <div class="mb-2">
+                <app-check-box-input [label]="'Attach Template Script (SQL or Python)'" [(value)]="tempScript" />
             </div>
             <div *ngIf="tempScript" class="d-flex flex-column align-items-center">
                 <div class="fw-bold">Scripts will be supported in the next version release</div>
                 <div class="text-info">
                     Scripts will enable import of odd file structures not supported by Climsoft
-                    <br /> The attached script will be executed to produce the the import template that you configure to import.
+                    <br /> The attached script will be executed to produce the the import template that you configure to
+                    import.
                 </div>
             </div>
         </div>

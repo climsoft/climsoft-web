@@ -16,8 +16,9 @@
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
-      <div *ngIf="elementQCTestParams" class="d-flex mx-2">
-        [{{ elementQCTestParams.length | number:'1.0-0' }}]
+      <div *ngIf="qCTestParams" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
+        (click)="onSearchInput([])">
+        [{{ qCTestParams.length | number:'1.0-0' }}]
       </div>
     </div>
   </div>
@@ -41,7 +42,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let qcTestParam of elementQCTestParams"
+          <tr class="app-cursor-pointer" *ngFor="let qcTestParam of qCTestParams"
             (click)="isSystemAdmin? dlgQcEdit.showDialog(qcTestParam.id): ''">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ qcTestParam.name }}</td>

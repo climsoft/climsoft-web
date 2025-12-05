@@ -291,6 +291,11 @@ export class StationsSearchDialogComponent implements OnDestroy {
       // If deselected and is in the selected list then remove it
       this.selectedIds.splice(index, 1);
     }
+
+    // TODO. 
+    // Investigate why map viewer doen't display stations on the map.
+    // Can the map viewer be made to to listen for changes in the elements of the array itself?
+     this.selectedIds =  [...this.selectedIds];
   }
 
   protected onEnterKeyPress(): void {

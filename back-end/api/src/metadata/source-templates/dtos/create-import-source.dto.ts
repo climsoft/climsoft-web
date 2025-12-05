@@ -6,8 +6,9 @@ export class CreateImportSourceDTO implements SourceParametersValidity {
     dataStructureParameters: DataStructureValidity;
 
     /**
-     * source values that represent missing.
+     * Source values that represent missing.
      * Applicable only when import of missing values is allowed.
+     * Multiple missing values should be separated by commas. This means commas are not supported.
      */
     sourceMissingValueFlags: string;
 

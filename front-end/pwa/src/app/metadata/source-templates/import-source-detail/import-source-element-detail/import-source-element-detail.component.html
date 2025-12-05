@@ -1,31 +1,31 @@
 <div>
     <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'elementStatus'" [groupItems]="[
-            { label:'Includes Elements', checked:  elementAndValueDefinition.hasElement !== undefined}, 
-            { label:'Does Not Include Elements', checked: elementAndValueDefinition.noElement !== undefined}]"
+            { label:'Includes Elements', checked:  elementDefinition.hasElement !== undefined}, 
+            { label:'Does Not Include Elements', checked: elementDefinition.noElement !== undefined}]"
         (checkedValueChange)="onElementStatusSelection($event)" />
 
     <div class="ms-4 mt-3">
         <!--includes elements-->
-        <div *ngIf="elementAndValueDefinition.hasElement">
+        <div *ngIf="elementDefinition.hasElement">
             
             <app-radio-buttons-input [inline]="true" [groupName]="'hasElementSelection'"
                 [groupItems]="[
-                { label:'In Single Column', checked: elementAndValueDefinition.hasElement.singleColumn  !== undefined}, 
-                { label:'In Multiple Columns', checked: elementAndValueDefinition.hasElement.multipleColumn  !== undefined}]" (checkedValueChange)="onElementColumnsSelection($event)" />
+                { label:'In Single Column', checked: elementDefinition.hasElement.singleColumn  !== undefined}, 
+                { label:'In Multiple Columns', checked: elementDefinition.hasElement.multipleColumn  !== undefined}]" (checkedValueChange)="onElementColumnsSelection($event)" />
 
 
             <!--single column elements-->
-            <div *ngIf="elementAndValueDefinition.hasElement.singleColumn" class="ms-4">
+            <div *ngIf="elementDefinition.hasElement.singleColumn" class="ms-4">
                 <div class="mt-2">
                     <app-number-input [label]="'Elements Column Position'"
-                        [(numValue)]="elementAndValueDefinition.hasElement.singleColumn.elementColumnPosition" />
+                        [(numValue)]="elementDefinition.hasElement.singleColumn.elementColumnPosition" />
 
                     <div class="mt-2">
                         <app-check-box-input [label]="'Fetch Specific Elements'"
-                            [value]="elementAndValueDefinition.hasElement.singleColumn.elementsToFetch !== undefined"
+                            [value]="elementDefinition.hasElement.singleColumn.elementsToFetch !== undefined"
                             (valueChange)="onSingleFetchElementsChange($event)" />
 
-                        <table *ngIf="elementAndValueDefinition.hasElement.singleColumn.elementsToFetch"
+                        <table *ngIf="elementDefinition.hasElement.singleColumn.elementsToFetch"
                             class="table table-sm ms-2">
                             <thead>
                                 <tr>
@@ -50,21 +50,10 @@
                     </div>
                 </div>
 
-                <div class="mt-2">
-                    <app-number-input [label]="'Values Column Position'"
-                        [(numValue)]="elementAndValueDefinition.hasElement.singleColumn.valueColumnPosition" />
-                </div>
-
-                <div class="mt-2">
-                    <app-import-source-flag-detail
-                        [(flagDefinition)]="elementAndValueDefinition.hasElement.singleColumn.flagDefinition" />
-                </div>
-
-
             </div>
 
             <!--multiple column elements-->
-            <table *ngIf="elementAndValueDefinition.hasElement.multipleColumn" class="table table-sm ms-2">
+            <table *ngIf="elementDefinition.hasElement.multipleColumn" class="table table-sm ms-2">
                 <thead>
                     <tr>
                         <th>Column Position</th>
@@ -74,7 +63,7 @@
                 <tbody class="table-group-divider">
                     <tr *ngFor="let item of elementColumnsHolder; let i = index;">
                         <td>
-                            <app-number-input [id]="i + 'multiple_element_column_position'"
+                            <app-number-input [id]="i + '_multiple_element_column_position'"
                                 [(numValue)]="item.columnPosition" />
                         </td>
                         <td>
@@ -90,17 +79,10 @@
         <!--------->
 
         <!-- no elements -->
-        <div *ngIf="elementAndValueDefinition.noElement">
+        <div *ngIf="elementDefinition.noElement">
             <div class="mt-2">
-                <app-element-selector-single [label]="'Element:'"
-                    [(selectedId)]="elementAndValueDefinition.noElement.databaseId" />
-            </div>
-            <div class="mt-2">
-                <app-number-input [label]="'Value Column Position'"
-                    [(numValue)]="elementAndValueDefinition.noElement.valueColumnPosition" />
-            </div>
-            <div class="mt-2">
-                <app-import-source-flag-detail [flagDefinition]="elementAndValueDefinition.noElement.flagDefinition" />
+                <app-element-selector-single [id]="'no_el_database_id'" [label]="'Element:'"
+                    [(selectedId)]="elementDefinition.noElement.databaseId" />
             </div>
         </div>
     </div>

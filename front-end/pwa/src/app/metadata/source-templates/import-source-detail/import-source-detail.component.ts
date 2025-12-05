@@ -33,10 +33,9 @@ export class ImportSourceDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const sourceId = this.route.snapshot.params['id'];
-    console.log('source id', sourceId)
 
     if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Import Template');
+      this.pagesDataService.setPageHeader('Edit Import Specification');
 
       // Todo. handle errors where the source is not found for the given id
       this.importSourcesService.findOne(+sourceId).pipe(
@@ -49,17 +48,16 @@ export class ImportSourceDetailComponent implements OnInit {
       });
 
     } else {
-      this.pagesDataService.setPageHeader('New Import Template');
+      this.pagesDataService.setPageHeader('New Import Specification');
 
       const defaultTabularDefs: ImportTabularSourceModel = {
         rowsToSkip: 1,
         delimiter: undefined,
         stationDefinition: undefined,
-        elementAndValueDefinition: {
+        elementDefinition: {
           hasElement: {
             singleColumn: {
-              elementColumnPosition: 1,
-              valueColumnPosition: 1
+              elementColumnPosition: 0,
             }
           }
         },
@@ -72,6 +70,9 @@ export class ImportSourceDetailComponent implements OnInit {
             columnPosition: 1,
             datetimeFormat: '%Y-%m-%d %H:%M',
           }
+        },
+        valueDefinition: {
+          valueColumnPosition: 0,
         },
         isValid: () => true
       }
@@ -113,6 +114,17 @@ export class ImportSourceDetailComponent implements OnInit {
     return this.importSource.dataStructureParameters as ImportTabularSourceModel;
   }
 
+  protected onElementOrDatetimeDefChanged(): void {
+    const sourceParameters = this.importSource.dataStructureParameters as ImportTabularSourceModel;
+    const oldValueDef = sourceParameters.valueDefinition;
+    if (sourceParameters.elementDefinition.hasElement?.multipleColumn ||
+      sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
+      sourceParameters.valueDefinition = undefined;
+    } else {
+      sourceParameters.valueDefinition = oldValueDef;
+    }
+  }
+
   protected onDataStructureTypeSelected(dataStructureType: DataStructureTypeEnum | null): void {
     if (dataStructureType !== null) {
       this.importSource.dataStructureType = dataStructureType;
@@ -152,11 +164,11 @@ export class ImportSourceDetailComponent implements OnInit {
       comment: this.viewSource.comment,
     };
 
-     console.log('saved', createUpdateSource)
+    console.log('saved', createUpdateSource)
 
     if (this.viewSource.id === 0) {
       this.importSourcesService.put(createUpdateSource).pipe(
-        take(1)
+        take(1),
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({
@@ -167,7 +179,7 @@ export class ImportSourceDetailComponent implements OnInit {
       });
     } else {
       this.importSourcesService.update(this.viewSource.id, createUpdateSource).pipe(
-        take(1)
+        take(1),
       ).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({

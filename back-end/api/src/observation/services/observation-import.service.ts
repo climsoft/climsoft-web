@@ -9,11 +9,12 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import * as path from 'node:path';
 import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-templates/dtos/create-import-source.dto';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO } from 'src/metadata/source-templates/dtos/create-import-source-tabular.dto';
+import { CreateImportTabularSourceDTO, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-templates/dtos/create-import-source-tabular.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { StringUtils } from 'src/shared/utils/string.utils';
 
 @Injectable()
 export class ObservationImportService {
@@ -93,11 +94,14 @@ export class ObservationImportService {
         alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
         alterSQLs = alterSQLs + this.getAlterLevelColumnSQL(tabularDef, tmpObsTableName);
         alterSQLs = alterSQLs + this.getAlterIntervalColumnSQL(tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
+
         alterSQLs = alterSQLs + this.getAlterCommentColumnSQL(tabularDef, tmpObsTableName);
-        // Note, it is important for the element and value alterations to be last because for multiple elements option, 
+        // Note, it is important for the element and date time alterations to be last because for multiple elements option, 
         // the column positions are changed when stacking the data into a single element column.
-        alterSQLs = alterSQLs + this.getAlterElementAndValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterElementColumnSQL(tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
+
+        alterSQLs = alterSQLs + this.getAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
 
         //console.log("alterSQLs: ", alterSQLs);
 
@@ -124,7 +128,10 @@ export class ObservationImportService {
         this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
 
         // Save the rows into the database
-        // TODO. Note, no need await. All current active ingestion processes will be tagged and show on the ingestion monitoring page
+        // Note, no need await. 
+        // All current active ingestion processes will be tagged and show on the ingestion monitoring page
+        // In future, data ingestion will be done through COPY in postgres. 
+        // Duckdb will simply write the file which then will prompt scheduling of importation
         this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
     }
 
@@ -147,107 +154,6 @@ export class ObservationImportService {
         } else {
             throw new Error("Station must be provided");
         }
-
-        return sql;
-    }
-
-    private getAlterElementAndValueColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
-        let sql: string = "";
-        if (tabularDef.elementAndValueDefinition.noElement) {
-            const noElement = tabularDef.elementAndValueDefinition.noElement
-
-            // Add the element id column with the default element
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${noElement.databaseId};`;
-
-            // Rename value column
-            sql = sql + `ALTER TABLE ${tableName} RENAME column${noElement.valueColumnPosition - 1} TO ${this.VALUE_PROPERTY_NAME};`;
-
-            // Add flag column
-            if (noElement.flagDefinition) {
-                const flagDefinition = noElement.flagDefinition;
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
-
-                if (flagDefinition.flagsToFetch) {
-                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
-                }
-
-            } else {
-                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
-            }
-        } else if (tabularDef.elementAndValueDefinition.hasElement) {
-            const hasElement = tabularDef.elementAndValueDefinition.hasElement;
-            if (hasElement.singleColumn) {
-                const singleColumn = hasElement.singleColumn;
-                //--------------------------
-                // Element column
-                sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
-                if (singleColumn.elementsToFetch) {
-                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
-                }
-                //--------------------------
-
-                //--------------------------
-                // Value column
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${singleColumn.valueColumnPosition - 1} TO ${this.VALUE_PROPERTY_NAME};`;
-                //--------------------------
-
-                //--------------------------
-                // Flag column
-                if (singleColumn.flagDefinition !== undefined) {
-                    const flagDefinition = singleColumn.flagDefinition;
-                    sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
-
-                    if (flagDefinition.flagsToFetch) {
-                        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
-                    }
-
-                } else {
-                    sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
-                }
-                //--------------------------
-            } else if (hasElement.multipleColumn) {
-                const multipleColumn = hasElement.multipleColumn;
-                const colNames: string[] = multipleColumn.map(item => (`column${item.columnPosition - 1}`));
-
-                // Stack the data from the multiple element columns. This will create a new table with 2 columns for elements and values
-                const tableNameStacked = `${tableName}_stacked`;
-                sql = sql + `CREATE OR REPLACE TABLE ${tableNameStacked} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
-
-                // Drop previous unstacked table table
-                sql = sql + `DROP TABLE ${tableName};`;
-
-                // Change the stacked table name to correct name
-                sql = sql + `ALTER TABLE ${tableNameStacked} RENAME TO ${tableName};`;
-
-                // Change the values of the element column
-                for (const element of multipleColumn) {
-                    sql = sql + `UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = 'column${element.columnPosition - 1}';`;
-                }
-
-                // Add flag column
-                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
-            }
-
-            // Ensure there are no null elements
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} SET NOT NULL;`;
-
-            // Convert the element contents to integers
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER;`;
-        }
-
-        if (sourceDef.allowMissingValue) {
-            // Set missing flag if missing are allowed to be imported.
-            sql = sql + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${importDef.sourceMissingValueFlags}';`;
-        } else {
-            // Delete all missing values if not allowed.
-            sql = sql + `DELETE FROM ${tableName} WHERE ${this.VALUE_PROPERTY_NAME} IS NULL OR ${this.VALUE_PROPERTY_NAME} = '${importDef.sourceMissingValueFlags}';`;
-        }
-
-        // Convert the value column to double. 
-        // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))       
-        // TODO. As 0f 22/04/2025. There seems to still be precision issues with DOUBLE when getting data via nodejs. 
-        // If this still persists try getting the value column as string when getting data via nodejs.
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
 
         return sql;
     }
@@ -276,10 +182,71 @@ export class ObservationImportService {
         return sql;
     }
 
+    private getAlterCommentColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string;
+        if (source.commentColumnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT_PROPERTY_NAME};`;
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT_PROPERTY_NAME} TYPE VARCHAR;`;
+        } else {
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
+        }
+        return sql;
+    }
+
+    private getAlterElementColumnSQL(tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = '';
+        if (tabularDef.elementDefinition.noElement) {
+            const noElement = tabularDef.elementDefinition.noElement
+
+            // Add the element id column with the default element
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} VARCHAR DEFAULT ${noElement.databaseId};`;
+
+        } else if (tabularDef.elementDefinition.hasElement) {
+            const hasElement = tabularDef.elementDefinition.hasElement;
+            if (hasElement.singleColumn) {
+                const singleColumn = hasElement.singleColumn;
+                //--------------------------
+                // Element column
+                sql = `ALTER TABLE ${tableName} RENAME column${singleColumn.elementColumnPosition - 1} TO ${this.ELEMENT_ID_PROPERTY_NAME};`;
+                if (singleColumn.elementsToFetch) {
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.ELEMENT_ID_PROPERTY_NAME, singleColumn.elementsToFetch, true);
+                }
+                //--------------------------
+            } else if (hasElement.multipleColumn) {
+                const multipleColumn = hasElement.multipleColumn;
+                const colNames: string[] = multipleColumn.map(item => (`column${item.columnPosition - 1}`));
+
+                // Stack the data from the multiple element columns. This will create a new table with 2 columns for elements and values
+                // Note. Nulls are included because they represent a missing value which a user may have allowed
+                const tempStackedTable = `${tableName}_element_stacked`;
+                sql = sql + `CREATE OR REPLACE TABLE ${tempStackedTable} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
+
+                // Drop the old table and rename the new one to correct name
+                sql = sql + `DROP TABLE ${tableName};`;
+                sql = sql + `ALTER TABLE ${tempStackedTable} RENAME TO ${tableName};`;
+
+                // Change the values of the element column
+                for (const element of multipleColumn) {
+                    sql = sql + `UPDATE ${tableName} SET ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.databaseId} WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = 'column${element.columnPosition - 1}';`;
+                }
+            }
+
+            // Ensure there are no null elements
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} SET NOT NULL;`;
+
+            // Convert the element contents to integers
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEMENT_ID_PROPERTY_NAME} TYPE INTEGER;`;
+        }
+
+        return sql;
+    }
+
+
     private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportTabularSourceDTO, tableName: string): string {
-        let sql: string = "";
-        if (importDef.datetimeDefinition.dateTimeInSingleColumn !== undefined) {
-            const dateTimeDef = importDef.datetimeDefinition.dateTimeInSingleColumn;
+        let sql: string = '';
+        const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
+        if (datetimeDefinition.dateTimeInSingleColumn !== undefined) {
+            const dateTimeDef = datetimeDefinition.dateTimeInSingleColumn;
             // Rename the date time column
             sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
@@ -288,40 +255,104 @@ export class ObservationImportService {
 
             // Convert all values to a valid sql timestamp using the format specified
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.datetimeFormat}');`;
-        } else if (importDef.datetimeDefinition.dateTimeInMultipleColumn) {
-            const dateTimeDef = importDef.datetimeDefinition.dateTimeInMultipleColumn;
-            if (dateTimeDef.dateInSingleColumn && dateTimeDef.timeInSingleColumn) {
+        } else if (datetimeDefinition.dateTimeInTwoColumns !== undefined) {
+            const dateTimeDef = datetimeDefinition.dateTimeInTwoColumns;
+            // Rename the date and time columns
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateColumn.columnPosition - 1} TO date_col;`;
+            sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeColumn.columnPosition - 1} TO time_col;`;
 
-                // Rename the date and time column
-                sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateInSingleColumn.columnPosition - 1} TO date_col;`;
+            // Combine the date and time columns and give the combined column the expected name
+            sql = sql + `ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR;`;
+            sql = sql + `UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col;`;
+            sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
-                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeInSingleColumn.columnPosition - 1} TO time_col;`;
+            // Make sure there are no null values on the date time column
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
 
-                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR;`;
+            // Convert all values to a valid sql timestamp using the format specified
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}');`;
 
-                sql = sql + `UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col;`;
+        } else if (datetimeDefinition.dateTimeInMultipleColumns !== undefined) {
+            const dateFormat: string = '%Y-%m-%d';
+            let timeFormat: string = '%H:%M:%S';
+            const dateTimeInMultiDef = datetimeDefinition.dateTimeInMultipleColumns;
 
-                // Rename the date time column
-                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
+            // Rename the date and time columns
+            sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeInMultiDef.yearColumnPosition - 1} TO year_col;`;
+            sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeInMultiDef.monthColumnPosition - 1} TO month_col;`;
 
-                // Make sure there are no null values on the column
-                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+            // ---------------------------------------------------------------
+            // Get the day columns
+            // ---------------------------------------------------------------
+            const dayColumns: string[] = dateTimeInMultiDef.dayColumnPosition.split('-');
+            if (dayColumns.length === 1) {
+                const dayColumnPosition: number = parseInt(dayColumns[0], 10);
+                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition - 1} TO day_col;`;
+                // Zero-pad the day values to ensure they are two digits (e.g., '1' becomes '01').
+                sql = sql + `UPDATE ${tableName} SET day_col = lpad(day_col, 2, '0');`;
+            } else {
+                const startCol: number = parseInt(dayColumns[0], 10) - 1;
+                const endCol: number = parseInt(dayColumns[1], 10) - 1;
+                const dayColumnNames: string[] = [];
+                for (let i = startCol; i <= endCol; i++) {
+                    dayColumnNames.push(`column${i}`);
+                }
 
-                // Convert all values to a valid sql timestamp using the format specified
-                sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateInSingleColumn.dateFormat} ${dateTimeDef.timeInSingleColumn.timeFormat}');`;
+                // Unpivot the day columns to create 'day_col' and a new 'value' column.
+                // Note. Nulls are not included because they represent a non-existsent day like Feb 31st which must be excluded.
+                const tempStackedTable = `${tableName}_day_stacked`;
+                sql = sql + `CREATE OR REPLACE TABLE ${tempStackedTable} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}));`;
 
+                // Drop the old table and rename the new one
+                sql = sql + `DROP TABLE ${tableName};`;
+                sql = sql + `ALTER TABLE ${tempStackedTable} RENAME TO ${tableName};`;
 
-            } else if (dateTimeDef.dateInMultipleColumn) { 
-
+                // Extract the numeric day part from the column name (e.g., 'column5' -> 5) and zero-pad it
+                sql = sql + `UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${startCol} + 1, 2, '0');`;
             }
+            // ---------------------------------------------------------------
 
-            if (dateTimeDef.hourDefinition.columnPosition !== undefined) {
+            // ---------------------------------------------------------------
+            // Get the `time_col`
+            // ---------------------------------------------------------------
+            const hourDefination: HourDefinition = dateTimeInMultiDef.hourDefinition;
+            if (hourDefination.timeColumn !== undefined) {
+                const timeColumn = hourDefination.timeColumn;
 
-            } else if (dateTimeDef.hourDefinition.defaultHour !== undefined) {
+                // Set the time format
+                timeFormat = timeColumn.timeFormat;
+
+                sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${timeColumn.columnPosition - 1} TO time_col;`;
+                // Then combine the previous date values with new time column
+                sql = sql + `UPDATE ${tableName} SET combined_date_time_col = combined_date_time_col || ' ' || time_col;`;
+
+            } else if (hourDefination.defaultHour) {
+                const strHour: string = `${StringUtils.addLeadingZero(hourDefination.defaultHour)}`;
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR;`;
+                sql = sql + `UPDATE ${tableName} SET time_col = '${strHour}:00:00';`;
             }
+            // ---------------------------------------------------------------
+
+            // ---------------------------------------------------------------
+            // Create a combined date time column to be used for combining the multiple date time columns
+            // Then combine the date and time columns and give the combined column the expected name
+            sql = sql + `ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR;`;
+            sql = sql + `UPDATE ${tableName} SET combined_date_time_col = year_col || '-' || month_col || '-' || day_col || ' ' || time_col;`;
+
+            // Rename the name of the column to the desired column name.
+            sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
+
+            // Make sure there are no null values on the date time column
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+
+            // Convert all values to a valid sql timestamp using the format specified
+            // TODO. Once duckdb is configured to just output file so that it can be sceduled for import
+            // this step will not be necessary.
+            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateFormat} ${timeFormat}');`;
+            // ---------------------------------------------------------------
         }
 
-        if (!sql) {
+        if (sql === '') {
             throw new Error("Date time interpretation not valid");
         }
 
@@ -334,22 +365,72 @@ export class ObservationImportService {
             sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = ${this.DATE_TIME_PROPERTY_NAME} + INTERVAL ${Math.abs(sourceDef.utcOffset)} HOUR;`;
         }
 
-        // change the date_time back to varchar while formating the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z` as expected by the dto
+        // Change the date_time back to varchar while formating the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z` as expected by the dto
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR USING strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 
         return sql;
     }
 
-    private getAlterCommentColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
-        let sql: string;
-        if (source.commentColumnPosition !== undefined) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT_PROPERTY_NAME};`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT_PROPERTY_NAME} TYPE VARCHAR;`;
+    private getAlterValueColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
+        let sql: string = '';
+
+        if (tabularDef.valueDefinition !== undefined) {
+            const valueDefinition: ValueDefinition = tabularDef.valueDefinition;
+            //--------------------------
+            // Value column
+            sql = sql + `ALTER TABLE ${tableName} RENAME column${valueDefinition.valueColumnPosition - 1} TO ${this.VALUE_PROPERTY_NAME};`;
+            //--------------------------
+
+            //--------------------------
+            // Flag column
+            if (valueDefinition.flagDefinition !== undefined) {
+                const flagDefinition = valueDefinition.flagDefinition;
+                sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition - 1} TO ${this.FLAG_PROPERTY_NAME};`;
+
+                if (flagDefinition.flagsToFetch) {
+                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                }
+
+            } else {
+                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
+            }
+            //--------------------------
+
+
+
+
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
+            // Just add the flag column because the value column should have been added when stacking elements of date columns
+            sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
         }
+
+
+        const sourceMissingValueFlags: string = importDef.sourceMissingValueFlags;
+        const missingValueFlags: string[] = sourceMissingValueFlags ? sourceMissingValueFlags.split(',').map(f => f.trim()).filter(f => f) : [];
+
+        let missingValueCondition = `${this.VALUE_PROPERTY_NAME} IS NULL`;
+        if (missingValueFlags.length > 0) {
+            const quotedFlags = missingValueFlags.map(f => `'${f}'`).join(',');
+            missingValueCondition = `${missingValueCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${quotedFlags})`;
+        }
+
+        if (sourceDef.allowMissingValue) {
+            // Set missing flag if missing are allowed to be imported.
+            sql = sql + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${missingValueCondition};`;
+        } else {
+            // Delete all missing values if not allowed.
+            sql = sql + `DELETE FROM ${tableName} WHERE ${missingValueCondition};`;
+        }
+
+        // Convert the value column to double. 
+        // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))       
+        // TODO. As 0f 22/04/2025. There seems to still be precision issues with DOUBLE when getting data via nodejs. 
+        // If this still persists try getting the value column as string when getting data via nodejs.
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
+
         return sql;
     }
+
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
         const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME} FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));
