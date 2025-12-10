@@ -500,7 +500,7 @@ export class ObservationsService {
                 throw new BadRequestException('Duration type not supported');
         }
 
-        // TODO. use parameterised queries
+        // TODO. Change this to use a postgres function and use parameterised values
         const sql = `
             SELECT station_id, COUNT(element_id) AS record_count, ${sqlExtract} FROM observations 
             WHERE ${sqlCondition} 
