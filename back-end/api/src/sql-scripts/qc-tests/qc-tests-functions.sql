@@ -1,17 +1,17 @@
 --- qc record function. Returns true when one qc tests fails and false when none fails or no qc was was done
 CREATE OR REPLACE FUNCTION func_execute_qc_tests(
-    observation_record RECORD,
+    observation_record RECORD, -- TODO. Use the row type of observations table
     user_id INT4
 ) RETURNS BOOL AS $$
 DECLARE
-    qc_test RECORD;
+    qc_test RECORD; -- TODO. Use the row type or qc_test_parameters table
     qc_test_log JSONB;
     all_qc_tests_log JSONB := '[]'::JSONB;
-    final_qc_status observations_qc_status_enum := 'passed';
+    final_qc_status observations_qc_status_enum := 'passed'; -- TODO. use the correct column type of observations table
 BEGIN
     -- Skip QC if value is NULL
     IF observation_record.value IS NULL THEN
-        RETURN TRUE; -- Return false when no update of the qc status
+        RETURN TRUE; -- TODO. Set the QC status of the record to 'none'. Conceptually speaking, NULL values can't pass QC tests because they don't exist!
     END IF;
 
     -- Loop through all relevant QC tests
@@ -58,7 +58,7 @@ BEGIN
 		all_qc_tests_log := NULL;
     END IF;
 
-    -- Update the observation record
+    -- Update the observation record. TODO. Use table alias
     UPDATE observations
     SET qc_status = final_qc_status,
         qc_test_log = all_qc_tests_log,
@@ -69,7 +69,7 @@ BEGIN
       AND interval = observation_record.interval
       AND source_id = observation_record.source_id
       AND date_time = observation_record.date_time;
-RETURN final_qc_status = 'failed'; -- Return true after successful update of the qc status
+RETURN final_qc_status = 'failed'; -- TODO. This function should eventually not return anything
 END;
 $$ LANGUAGE plpgsql;
 

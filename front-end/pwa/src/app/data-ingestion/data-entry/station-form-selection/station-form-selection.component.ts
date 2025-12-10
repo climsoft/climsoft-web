@@ -67,8 +67,7 @@ export class StationFormSelectionComponent implements OnDestroy {
   ngOnDestroy() {
     // Save the state before destroying
     AppDatabase.instance.userSettings.put({ name: UserAppStateEnum.DATA_ENTRY_STATION_SELECTION, parameters: this.userStationSelectionState });
-    console.log('saved: ', this.userStationSelectionState);
-
+  
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -102,7 +101,7 @@ export class StationFormSelectionComponent implements OnDestroy {
     if (savedUserStationSelectionState) {
       this.userStationSelectionState = savedUserStationSelectionState.parameters;
       const searchedStationIds = this.userStationSelectionState.searchedStationIds;
-      if (searchedStationIds) {
+      if (searchedStationIds && searchedStationIds.length > 0) {
         this.filteredStationViews = this.allStationViews.filter(item => searchedStationIds.includes(item.station.id));
       }
 

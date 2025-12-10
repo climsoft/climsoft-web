@@ -9,7 +9,8 @@
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
       </div>
       <div *ngIf="filteredStationViews" class="d-flex mx-2 app-cursor-pointer"
-        [class.text-success]="userStationSelectionState.searchedStationIds" (click)="onSearchInput([])">
+        [class.text-success]="userStationSelectionState.searchedStationIds && userStationSelectionState.searchedStationIds.length > 0"
+        (click)="onSearchInput([])">
         [{{ filteredStationViews.length | number:'1.0-0' }}]
       </div>
     </div>
