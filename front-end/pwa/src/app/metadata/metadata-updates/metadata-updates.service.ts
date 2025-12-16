@@ -93,8 +93,8 @@ export class MetadataUpdatesService {
                 return 'elements';
             case 'qcTests':
                 return 'qc-tests';
-            case 'sourceTemplates':
-                return 'source-templates';
+            case 'sourceTemplates': // TODO. Change to sourceSpecifications
+                return 'source-specifications';
             case 'generalSettings':
                 return 'general-settings';
             default:

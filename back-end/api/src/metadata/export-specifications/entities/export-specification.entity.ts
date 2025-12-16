@@ -3,9 +3,9 @@ import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { ExportTemplateParametersDto } from "../dtos/export-template-paramers.dto";
 import { ExportTypeEnum } from "../enums/export-type.enum";
 
-@Entity("export_templates")
-@Check("CHK_export_templates_name_not_empty", `"name" <> ''`)
-export class ExportTemplateEntity extends AppBaseEntity {
+@Entity("export_templates") // TODO. Rename to export_specifications
+@Check("CHK_export_templates_name_not_empty", `"name" <> ''`) // TODO Rename this too
+export class ExportSpecificationEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
 

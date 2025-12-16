@@ -2,14 +2,14 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
-import { ExportTemplateEntity } from '../entities/export-template.entity';
+import { ExportSpecificationEntity } from '../entities/export-specification.entity';
 import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
 
 @Injectable()
-export class ExportTemplatesService {
+export class ExportSpecificationsService {
 
     constructor(
-        @InjectRepository(ExportTemplateEntity) private exportsRepo: Repository<ExportTemplateEntity>,
+        @InjectRepository(ExportSpecificationEntity) private exportsRepo: Repository<ExportSpecificationEntity>,
     ) { }
 
 
@@ -18,7 +18,7 @@ export class ExportTemplatesService {
     }
 
     public async findAll(ids?: number[]): Promise<ViewTemplateExportDto[]> {
-        const findOptions: FindManyOptions<ExportTemplateEntity> = {
+        const findOptions: FindManyOptions<ExportSpecificationEntity> = {
             order: {
                 id: "ASC"
             }
@@ -38,7 +38,7 @@ export class ExportTemplatesService {
         return dtos;
     }
 
-    private async findEntity(id: number): Promise<ExportTemplateEntity> {
+    private async findEntity(id: number): Promise<ExportSpecificationEntity> {
         const entity = await this.exportsRepo.findOneBy({
             id: id,
         });
@@ -96,13 +96,13 @@ export class ExportTemplatesService {
     }
 
     public async deleteAll(): Promise<boolean> {
-        const entities: ExportTemplateEntity[] = await this.exportsRepo.find();
+        const entities: ExportSpecificationEntity[] = await this.exportsRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.exportsRepo.remove(entities);
         return true;
     }
 
-    private createViewDto(entity: ExportTemplateEntity): ViewTemplateExportDto {
+    private createViewDto(entity: ExportSpecificationEntity): ViewTemplateExportDto {
         const dto: ViewTemplateExportDto = {
             id: entity.id,
             name: entity.name, 

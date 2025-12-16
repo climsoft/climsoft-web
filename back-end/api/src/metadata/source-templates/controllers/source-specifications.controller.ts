@@ -1,15 +1,15 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { SourceTemplatesService } from '../services/source-templates.service';
+import { SourceSpecificationsService } from '../services/source-specifications.service';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 
-@Controller('source-templates')
-export class SourceTemplatesController {
+@Controller('source-specifications') // TODO. Change to source-specifications later
+export class SourceSpecificationsController {
 
-    constructor(private readonly sourcesService: SourceTemplatesService) { }
+    constructor(private readonly sourcesService: SourceSpecificationsService) { }
 
     @Get()
     public findAll() {

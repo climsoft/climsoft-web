@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from 'src/metadata/source-templates/services/source-specifications.service';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
@@ -32,7 +32,7 @@ export class ObservationImportService {
 
     constructor(
         private fileIOService: FileIOService,
-        private sourcesService: SourceTemplatesService,
+        private sourcesService: SourceSpecificationsService,
         private observationsService: ObservationsService,
         private elementsService: ElementsService,
     ) { }

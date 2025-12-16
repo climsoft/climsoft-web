@@ -4,7 +4,7 @@ import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
-import { SourceTemplateEntity } from "src/metadata/source-templates/entities/source-template.entity";
+import { SourceSpecificationEntity } from "src/metadata/source-templates/entities/source-specification.entity";
 
 // TODO. Investigate if a constraints check for interval to always be greater than 0 is necessary
 @Entity("observations")
@@ -50,9 +50,9 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   sourceId: number;
 
-  @ManyToOne(() => SourceTemplateEntity, { onDelete: "RESTRICT" })
+  @ManyToOne(() => SourceSpecificationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
-  source: SourceTemplateEntity;
+  source: SourceSpecificationEntity;
   //------------------
 
   @Column({ name: "value", type: "float", nullable: true })

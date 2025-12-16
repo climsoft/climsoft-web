@@ -1,9 +1,7 @@
 import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs/common';
-import { DataSource } from "typeorm"
-import { ExportTemplateParametersDto } from 'src/metadata/export-templates/dtos/export-template-paramers.dto';
-import { FileIOService } from 'src/shared/services/file-io.service';
-import { ViewTemplateExportDto } from 'src/metadata/export-templates/dtos/view-export-template.dto';
-import { ExportTemplatesService } from 'src/metadata/export-templates/services/export-templates.service';
+import { DataSource } from "typeorm" 
+import { FileIOService } from 'src/shared/services/file-io.service'; 
+import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
@@ -11,12 +9,14 @@ import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { ViewTemplateExportDto } from 'src/metadata/export-specifications/dtos/view-export-template.dto';
+import { ExportTemplateParametersDto } from 'src/metadata/export-specifications/dtos/export-template-paramers.dto';
 
 @Injectable()
 export class ExportObservationsService {
     private readonly logger = new Logger(ExportObservationsService.name);
     constructor(
-        private exportTemplatesService: ExportTemplatesService,
+        private exportTemplatesService: ExportSpecificationsService,
         private dataSource: DataSource,
         private fileIOService: FileIOService,
         private generalSettingsService: GeneralSettingsService,

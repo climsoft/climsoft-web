@@ -1,6 +1,6 @@
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { UserEntity } from "src/user/entities/user.entity";
-import { ExportTemplateEntity } from "./export-template.entity";
+import { ExportSpecificationEntity } from "./export-specification.entity";
 
 @Entity("export_audit_logs")
 export class ExportAuditLogEntity {
@@ -8,9 +8,9 @@ export class ExportAuditLogEntity {
     @Index()
     exportId: number;
 
-    @ManyToOne(() => ExportTemplateEntity, { nullable: false, onDelete: "RESTRICT" })
+    @ManyToOne(() => ExportSpecificationEntity, { nullable: false, onDelete: "RESTRICT" })
     @JoinColumn({ name: "export_id" }) // Configures the foreign key to be set to NULL upon deletion of the referenced User
-    export: ExportTemplateEntity;
+    export: ExportSpecificationEntity;
 
     @PrimaryColumn({ name: "user_id", type: "int" })
     @Index()

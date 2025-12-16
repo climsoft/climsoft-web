@@ -5,7 +5,7 @@ import { StationsService } from '../stations/services/stations.service';
 import { MetadataUpdatesQueryDto } from './dtos/metadata-updates-query.dto';
 import { StationObsEnvService } from '../stations/services/station-obs-env.service';
 import { StationObsFocusesService } from '../stations/services/station-obs-focuses.service';
-import { SourceTemplatesService } from '../source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from '../source-templates/services/source-specifications.service';
 import { ElementsService } from '../elements/services/elements.service';
 import { RegionsService } from '../regions/services/regions.service';
 import { ElementTypesService } from '../elements/services/element-types.service';
@@ -26,7 +26,7 @@ export class MetadataUpdatesController {
     private stationsService: StationsService,
     private stationObsEnvservice: StationObsEnvService,
     private stationObsFocuseservice: StationObsFocusesService,
-    private sourceTemplatesService: SourceTemplatesService,
+    private sourceTemplatesService: SourceSpecificationsService,
     private elementSubdomainsService: ElementSubdomainsService,
     private elementTypesService: ElementTypesService,
     private elementsService: ElementsService,
@@ -125,7 +125,7 @@ export class MetadataUpdatesController {
     return this.qcTestsService.checkUpdates(updatesQueryDto);
   }
 
-  @Get('source-templates')
+  @Get('source-specifications')
   async sourceTemplatesUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.sourceTemplatesService.checkUpdates(updatesQueryDto);

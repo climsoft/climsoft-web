@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from 'src/metadata/source-templates/services/source-specifications.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
@@ -34,7 +34,7 @@ export class DataEntryAndCorrectionCheckService {
     private sourceParameters: Map<number, EntryFormValidation> = new Map();
 
     constructor(
-        private sourceService: SourceTemplatesService,) {
+        private sourceService: SourceSpecificationsService,) {
         this.resetFormParameters();
     }
 

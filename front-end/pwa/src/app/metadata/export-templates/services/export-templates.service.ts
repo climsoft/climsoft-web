@@ -14,7 +14,7 @@ export class ExportTemplatesService {
     constructor(
         private appConfigService: AppConfigService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/export-templates`;
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/export-specifications`;
     }
 
     public findAll(): Observable<ViewExportTemplateModel[]> {

@@ -3,9 +3,9 @@ import { SourceTypeEnum } from "src/metadata/source-templates/enums/source-type.
 import { SourceParametersValidity } from "../dtos/create-update-source.dto";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
-@Entity("source_templates")
-@Check("CHK_source_templates_name_not_empty", `"name" <> ''`)
-export class SourceTemplateEntity extends AppBaseEntity {
+@Entity("source_templates") // TODO. change to source_specification later
+@Check("CHK_source_templates_name_not_empty", `"name" <> ''`)// TODO. rename this too
+export class SourceSpecificationEntity extends AppBaseEntity {
     @PrimaryGeneratedColumn({ name: "id", type: "int" })
     id: number;
 

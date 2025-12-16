@@ -4,16 +4,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
-import { SourceTemplateEntity } from '../entities/source-template.entity';
+import { SourceSpecificationEntity } from '../entities/source-specification.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
-export class SourceTemplatesService {
+export class SourceSpecificationsService {
 
     constructor(
-        @InjectRepository(SourceTemplateEntity) private sourceRepo: Repository<SourceTemplateEntity>,
+        @InjectRepository(SourceSpecificationEntity) private sourceRepo: Repository<SourceSpecificationEntity>,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -22,8 +22,8 @@ export class SourceTemplatesService {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<SourceTemplateEntity>): Promise<ViewSourceDto[]> {
-        const findOptions: FindManyOptions<SourceTemplateEntity> = {
+    public async findAll(selectOptions?: FindOptionsWhere<SourceSpecificationEntity>): Promise<ViewSourceDto[]> {
+        const findOptions: FindManyOptions<SourceSpecificationEntity> = {
             order: {
                 id: "ASC"
             }
@@ -42,20 +42,20 @@ export class SourceTemplatesService {
     }
 
     public async findSourcesByIds(ids: number[]): Promise<ViewSourceDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceTemplateEntity> = {
+        const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
             id: In(ids)
         };
         return this.findAll(findOptionsWhere);
     }
 
     public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceTemplateEntity> = {
+        const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
             sourceType: sourceType
         };
         return this.findAll(findOptionsWhere);
     }
 
-    private async findEntity(id: number): Promise<SourceTemplateEntity> {
+    private async findEntity(id: number): Promise<SourceSpecificationEntity> {
         const entity = await this.sourceRepo.findOneBy({
             id: id,
         });
@@ -132,14 +132,14 @@ export class SourceTemplatesService {
     }
 
     public async deleteAll(): Promise<boolean> {
-        const entities: SourceTemplateEntity[] = await this.sourceRepo.find();
+        const entities: SourceSpecificationEntity[] = await this.sourceRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.sourceRepo.remove(entities);
         this.eventEmitter.emit('source.deleted', {});
         return true;
     }
 
-    private createViewDto(entity: SourceTemplateEntity): ViewSourceDto {
+    private createViewDto(entity: SourceSpecificationEntity): ViewSourceDto {
         const dto: ViewSourceDto = {
             id: entity.id,
             name: entity.name,
@@ -165,7 +165,7 @@ export class SourceTemplatesService {
             // If number of records in server are not the same as those in the client then changes detected
             changesDetected = true;
         } else {
-            const whereOptions: FindOptionsWhere<SourceTemplateEntity> = {};
+            const whereOptions: FindOptionsWhere<SourceSpecificationEntity> = {};
 
             if (updatesQueryDto.lastModifiedDate) {
                 whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));

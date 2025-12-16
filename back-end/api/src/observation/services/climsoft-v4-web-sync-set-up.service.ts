@@ -8,11 +8,11 @@ import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/station-obs-processing-method.enum';
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { UsersService } from 'src/user/services/users.service';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from 'src/metadata/source-templates/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
 import { FindOptionsWhere } from 'typeorm';
-import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/source-template.entity';
+import { SourceSpecificationEntity } from 'src/metadata/source-templates/entities/source-specification.entity';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
@@ -69,7 +69,7 @@ export class ClimsoftV4WebSyncSetUpService {
         private elementsService: ElementsService,
         private qcTestsService: QCTestsService,
         private stationsService: StationsService,
-        private sourcesService: SourceTemplatesService,
+        private sourcesService: SourceSpecificationsService,
         private usersService: UsersService,
     ) {
     }
@@ -488,7 +488,7 @@ export class ClimsoftV4WebSyncSetUpService {
     }
 
     public async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
-        const selectOptions: FindOptionsWhere<SourceTemplateEntity> = {
+        const selectOptions: FindOptionsWhere<SourceSpecificationEntity> = {
             name: 'climsoft_v4',
         };
         await this.sourcesService.findAll(selectOptions);

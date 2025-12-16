@@ -2,14 +2,14 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } 
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { ExportTemplatesService } from '../services/export-templates.service';
-import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
+import { ExportSpecificationsService } from '../services/export-specifications.service'; 
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
+import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
 
-@Controller('export-templates')
-export class ExportTemplatesController {
+@Controller('export-specifications')
+export class ExportSpecificationsController {
 
-    constructor(private readonly exportTemplateService: ExportTemplatesService) { }
+    constructor(private readonly exportTemplateService: ExportSpecificationsService) { }
 
     @Get()
     public find() {
