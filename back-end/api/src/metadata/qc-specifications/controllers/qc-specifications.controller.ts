@@ -2,19 +2,19 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query,
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
-import { QCTestsService } from '../services/qc-tests.service';
-import { FindQCTestQueryDto } from '../dtos/find-qc-test-query.dto';
+import { QCSpecificationsService } from '../services/qc-specifications.service';
+import { FindQCSpecificationQueryDto } from '../dtos/find-qc-specification-query.dto';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
-import { CreateQCTestDto } from '../dtos/create-qc-test.dto';
+import { CreateQCSpecificationDto } from '../dtos/create-qc-specification.dto';
 
-@Controller('qc-tests')
-export class QCTestsController {
+@Controller('qc-specifications')
+export class QCSpecificationsController {
 
-    constructor(private qcTestsService: QCTestsService) {
+    constructor(private qcTestsService: QCSpecificationsService) {
     }
 
     @Get()
-    public find(@Query() findQCQuery: FindQCTestQueryDto) {
+    public find(@Query() findQCQuery: FindQCSpecificationQueryDto) {
         return this.qcTestsService.find(findQCQuery);
     }
 
@@ -37,7 +37,7 @@ export class QCTestsController {
     @Post()
     public add(
         @Req() request: Request,
-        @Body() createQcTestDto: CreateQCTestDto) {
+        @Body() createQcTestDto: CreateQCSpecificationDto) {
         return this.qcTestsService.create(createQcTestDto, AuthUtil.getLoggedInUserId(request));
     }
 
@@ -46,7 +46,7 @@ export class QCTestsController {
     public update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
-        @Body() createQcTestDto: CreateQCTestDto) {
+        @Body() createQcTestDto: CreateQCSpecificationDto) {
         return this.qcTestsService.update(id, createQcTestDto, AuthUtil.getLoggedInUserId(request));
     }
 

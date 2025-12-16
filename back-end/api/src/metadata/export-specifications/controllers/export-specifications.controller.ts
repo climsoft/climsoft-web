@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { ExportSpecificationsService } from '../services/export-specifications.service'; 
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
-import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
+import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
 
 @Controller('export-specifications')
 export class ExportSpecificationsController {
@@ -25,7 +25,7 @@ export class ExportSpecificationsController {
     @Post()
     public create(
         @Req() request: Request,
-        @Body() dto: CreateExportTemplateDto) {
+        @Body() dto: CreateExportSpecificationDto) {
         return this.exportTemplateService.create(dto, AuthUtil.getLoggedInUserId(request));
     }
 
@@ -34,7 +34,7 @@ export class ExportSpecificationsController {
     public update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: CreateExportTemplateDto) {
+        @Body() dto: CreateExportSpecificationDto) {
         return this.exportTemplateService.update(id, dto, AuthUtil.getLoggedInUserId(request));
     }
 

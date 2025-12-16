@@ -91,8 +91,8 @@ export class MetadataUpdatesService {
                 return 'element-types';
             case 'elements':
                 return 'elements';
-            case 'qcTests':
-                return 'qc-tests';
+            case 'qcTests': // TODO. Change to qcSpecifications
+                return 'qc-specifications';
             case 'sourceTemplates': // TODO. Change to sourceSpecifications
                 return 'source-specifications';
             case 'generalSettings':

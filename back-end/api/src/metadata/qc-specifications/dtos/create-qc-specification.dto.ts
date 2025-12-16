@@ -10,9 +10,9 @@ import { DiurnalQCTestParamsDto } from './qc-test-parameters/diurnal-qc-test-par
 import { RemoteSensingQCTestParamsDto } from './qc-test-parameters/remote-sensing-qc-test-params.dto';
 import { SpatialQCTestParamsDto } from './qc-test-parameters/spatial-qc-test-params.dto';
 import { FlatLineQCTestParamsDto } from './qc-test-parameters/flat-line-qc-test-params.dto';
-import { QCTestParameters } from '../entities/qc-test.entity';
+import { QCTestParameters } from '../entities/qc-specification.entity';
 
-export class CreateQCTestDto {
+export class CreateQCSpecificationDto {
     @IsString()
     name: string;
 

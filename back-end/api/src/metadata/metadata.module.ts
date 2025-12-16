@@ -23,7 +23,7 @@ import { ElementSubdomainsController } from './elements/controllers/elements-sub
 import { SourceSpecificationsService } from './source-templates/services/source-specifications.service';
 import { SourceSpecificationEntity } from './source-templates/entities/source-specification.entity';
 import { ElementsService } from './elements/services/elements.service';
-import { QCTestsService } from './qc-tests/services/qc-tests.service';
+import { QCSpecificationsService } from './qc-specifications/services/qc-specifications.service';
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
@@ -36,7 +36,7 @@ import { ElementTypesService } from './elements/services/element-types.service';
 import { ElementSubdomainsService } from './elements/services/element-subdomains.service';
 import { ElementsImportExportService } from './elements/services/elements-import-export.service';
 import { ExportSpecificationEntity } from './export-specifications/entities/export-specification.entity';
-import { ExportSpecificationsController } from './export-specifications/controllers/export-templates.controller';
+import { ExportSpecificationsController } from './export-specifications/controllers/export-specifications.controller';
 import { ExportSpecificationsService } from './export-specifications/services/export-specifications.service';
 import { OrganisationsController } from './organisations/controllers/organisations.controller';
 import { OrganisationsService } from './organisations/services/organisations.service';
@@ -46,8 +46,8 @@ import { NetworkAffiliationsService } from './network-affiliations/services/netw
 import { StationNetworkAffiliationsController } from './stations/controllers/station-network-affiliations.controller';
 import { StationNetworkAffiliationsService } from './stations/services/station-network-affiliations.service';
 import { SettingsModule } from 'src/settings/settings.module';
-import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
-import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
+import { QCSpecificationEntity } from './qc-specifications/entities/qc-specification.entity';
+import { QCSpecificationsController } from './qc-specifications/controllers/qc-specifications.controller';
 
 @Module({
     imports: [
@@ -55,7 +55,7 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
             ElementSubdomainEntity,
             ElementTypeEntity,
             ElementEntity,
-            QCTestEntity,
+            QCSpecificationEntity,
 
             OrganisationEntity,
             NetworkAffiliationEntity,
@@ -91,7 +91,7 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
         StationFormsController,
         StationNetworkAffiliationsController,
 
-        QCTestsController,
+        QCSpecificationsController,
 
         SourceSpecificationsController,
 
@@ -115,7 +115,7 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
 
         SourceSpecificationsService,
 
-        QCTestsService,
+        QCSpecificationsService,
         
         RegionsService,
         StationsImportExportService,
@@ -133,7 +133,7 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
         StationObsFocusesService,
         StationsService,
         StationFormsService,
-        QCTestsService,
+        QCSpecificationsService,
         RegionsService,
         ExportSpecificationsService,
 

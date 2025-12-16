@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewTemplateExportDto } from '../dtos/view-export-template.dto';
+import { ViewSpecificationExportDto } from '../dtos/view-export-specification.dto';
 import { ExportSpecificationEntity } from '../entities/export-specification.entity';
-import { CreateExportTemplateDto } from '../dtos/create-export-template.dto';
+import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
 
 @Injectable()
 export class ExportSpecificationsService {
@@ -13,11 +13,11 @@ export class ExportSpecificationsService {
     ) { }
 
 
-    public async find(id: number): Promise<ViewTemplateExportDto> {
+    public async find(id: number): Promise<ViewSpecificationExportDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(ids?: number[]): Promise<ViewTemplateExportDto[]> {
+    public async findAll(ids?: number[]): Promise<ViewSpecificationExportDto[]> {
         const findOptions: FindManyOptions<ExportSpecificationEntity> = {
             order: {
                 id: "ASC"
@@ -31,7 +31,7 @@ export class ExportSpecificationsService {
         }
 
         const sourceEntities = await this.exportsRepo.find(findOptions);
-        const dtos: ViewTemplateExportDto[] = [];
+        const dtos: ViewSpecificationExportDto[] = [];
         for (const entity of sourceEntities) {
             dtos.push(this.createViewDto(entity));
         }
@@ -49,7 +49,7 @@ export class ExportSpecificationsService {
         return entity;
     }
 
-    public async create(dto: CreateExportTemplateDto, userId: number): Promise<ViewTemplateExportDto> {
+    public async create(dto: CreateExportSpecificationDto, userId: number): Promise<ViewSpecificationExportDto> {
         // Export templates are required to have unique names
         let entity = await this.exportsRepo.findOneBy({
             name: dto.name,
@@ -76,7 +76,7 @@ export class ExportSpecificationsService {
 
     }
 
-    public async update(id: number, dto: CreateExportTemplateDto, userId: number) {
+    public async update(id: number, dto: CreateExportSpecificationDto, userId: number) {
         const entity = await this.findEntity(id);
         entity.name = dto.name;
         entity.description = dto.description; 
@@ -102,8 +102,8 @@ export class ExportSpecificationsService {
         return true;
     }
 
-    private createViewDto(entity: ExportSpecificationEntity): ViewTemplateExportDto {
-        const dto: ViewTemplateExportDto = {
+    private createViewDto(entity: ExportSpecificationEntity): ViewSpecificationExportDto {
+        const dto: ViewSpecificationExportDto = {
             id: entity.id,
             name: entity.name, 
             description: entity.description,

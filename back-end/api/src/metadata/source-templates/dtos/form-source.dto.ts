@@ -1,12 +1,11 @@
 import { Transform } from "class-transformer";
 import { IsBoolean, IsInt } from "class-validator";
-import { StringUtils } from "src/shared/utils/string.utils";
-import { SourceParametersValidity } from "./create-update-source.dto";
+import { StringUtils } from "src/shared/utils/string.utils"; 
 
 export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR';
 export type LayoutType = 'LINEAR' | 'GRID';
 
-export class CreateEntryFormDTO implements SourceParametersValidity {
+export class FormSourceDTO {
 
   /** Defines the extra entry selectors used by the form to get data */
   // TODO. Do validations
@@ -48,8 +47,4 @@ export class CreateEntryFormDTO implements SourceParametersValidity {
 
   @IsBoolean()
   allowDoubleDataEntry: boolean;
-
-  isValid(): boolean {
-    return true;
-  }
 }

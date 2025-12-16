@@ -1,8 +1,7 @@
 import { IsInt, IsOptional, IsString } from "class-validator";
-import { FlagEnum } from "src/observation/enums/flag.enum";
-import { DataStructureValidity } from "./create-import-source.dto";
+import { FlagEnum } from "src/observation/enums/flag.enum"; 
 
-export class CreateImportTabularSourceDTO implements DataStructureValidity {
+export class ImportSourceTabularParamsDTO  {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -38,12 +37,6 @@ export class CreateImportTabularSourceDTO implements DataStructureValidity {
     @IsOptional()
     @IsString()
     delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
-
-    isValid(): boolean {
-        // TODO
-        return true;
-    }
-
 }
 
 export class ValueDefinition {

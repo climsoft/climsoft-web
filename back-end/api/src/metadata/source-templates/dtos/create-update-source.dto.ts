@@ -2,6 +2,8 @@ import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { SourceParameters } from '../entities/source-specification.entity';
+
 
 export class CreateUpdateSourceDto {
   @IsString()
@@ -13,10 +15,11 @@ export class CreateUpdateSourceDto {
   @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
   sourceType: SourceTypeEnum;
 
-  //@ValidateNested()
-  //@Type(function () { return this._type(); }) 
-  @IsOptional() // TODO. Temporary until we implement validate nested
-  parameters: SourceParametersValidity; //TODO. Implement validations
+  
+  // TODO LEFT HERE
+  
+  @IsOptional()  
+  parameters: SourceParameters; //TODO. Implement validations
 
   /** 
 * Determines whether entry date time should be converted to UTC or not. 
@@ -57,8 +60,4 @@ export class CreateUpdateSourceDto {
   @IsOptional()
   @IsString()
   comment?: string | null;
-}
-
-export interface SourceParametersValidity {
-  isValid(): boolean;
 }

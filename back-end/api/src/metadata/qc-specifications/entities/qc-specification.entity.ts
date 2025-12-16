@@ -13,9 +13,9 @@ import { FlatLineQCTestParamsDto } from "../dtos/qc-test-parameters/flat-line-qc
 
 export type QCTestParameters = RangeThresholdQCTestParamsDto | FlatLineQCTestParamsDto | SpikeQCTestParamsDto | RelationalQCTestParamsDto | DiurnalQCTestParamsDto | ContextualQCTestParamsDto | RemoteSensingQCTestParamsDto | SpatialQCTestParamsDto;
 
-@Entity("qc_tests")
-@Check("CHK_qc_tests_name_not_empty", `"name" <> ''`)
-export class QCTestEntity extends AppBaseEntity {
+@Entity("qc_tests") // TODO. Rename this to qc_specifications  
+@Check("CHK_qc_tests_name_not_empty", `"name" <> ''`)// TODO. rename this also 
+export class QCSpecificationEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 

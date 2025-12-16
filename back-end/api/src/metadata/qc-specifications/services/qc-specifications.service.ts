@@ -1,23 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Equal, FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { QCTestEntity } from '../entities/qc-test.entity';
+import { QCSpecificationEntity } from '../entities/qc-specification.entity';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
-import { CreateQCTestDto } from '../dtos/create-qc-test.dto';
-import { FindQCTestQueryDto } from '../dtos/find-qc-test-query.dto';
+import { CreateQCSpecificationDto } from '../dtos/create-qc-specification.dto';
+import { FindQCSpecificationQueryDto } from '../dtos/find-qc-specification-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
-import { ViewQCTestDto } from '../dtos/view-qc-test.dto';
+import { ViewQCSpecificationDto } from '../dtos/view-qc-specification.dto';
 
 // TODO refactor this service later
 
 @Injectable()
-export class QCTestsService {
+export class QCSpecificationsService {
 
-    constructor(@InjectRepository(QCTestEntity) private readonly qcTestsRepo: Repository<QCTestEntity>) { }
+    constructor(@InjectRepository(QCSpecificationEntity) private readonly qcTestsRepo: Repository<QCSpecificationEntity>) { }
 
-    public async find(findQCQuery?: FindQCTestQueryDto): Promise<ViewQCTestDto[]> {
-        const selectOptions: FindOptionsWhere<QCTestEntity> = {};
+    public async find(findQCQuery?: FindQCSpecificationQueryDto): Promise<ViewQCSpecificationDto[]> {
+        const selectOptions: FindOptionsWhere<QCSpecificationEntity> = {};
 
         if (findQCQuery) {
             if (findQCQuery.observationInterval) {
@@ -35,25 +35,25 @@ export class QCTestsService {
         return this.findInternal(selectOptions);
     }
 
-    public async findById(id: number): Promise<ViewQCTestDto> {
+    public async findById(id: number): Promise<ViewQCSpecificationDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<ViewQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCTestEntity> = {
+    public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<ViewQCSpecificationDto[]> {
+        const findOptionsWhere: FindOptionsWhere<QCSpecificationEntity> = {
             qcTestType: qcTestType
         };
         return this.findInternal(findOptionsWhere);
     }
 
-    public async findQCTestByElement(elementId: number): Promise<ViewQCTestDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCTestEntity> = {
+    public async findQCTestByElement(elementId: number): Promise<ViewQCSpecificationDto[]> {
+        const findOptionsWhere: FindOptionsWhere<QCSpecificationEntity> = {
             elementId: elementId
         };
         return this.findInternal(findOptionsWhere);
     }
 
-    private async findEntity(id: number): Promise<QCTestEntity> {
+    private async findEntity(id: number): Promise<QCSpecificationEntity> {
         const entity = await this.qcTestsRepo.findOneBy({
             id: id,
         });
@@ -64,8 +64,8 @@ export class QCTestsService {
         return entity;
     }
 
-    private async findInternal(selectOptions?: FindOptionsWhere<QCTestEntity>): Promise<ViewQCTestDto[]> {
-        const findOptions: FindManyOptions<QCTestEntity> = {
+    private async findInternal(selectOptions?: FindOptionsWhere<QCSpecificationEntity>): Promise<ViewQCSpecificationDto[]> {
+        const findOptions: FindManyOptions<QCSpecificationEntity> = {
             order: {
                 id: "ASC"
             }
@@ -76,14 +76,14 @@ export class QCTestsService {
         }
 
         const sourceEntities = await this.qcTestsRepo.find(findOptions);
-        const dtos: ViewQCTestDto[] = [];
+        const dtos: ViewQCSpecificationDto[] = [];
         for (const entity of sourceEntities) {
             dtos.push(await this.createViewDto(entity));
         }
         return dtos;
     }
 
-    public async create(dto: CreateQCTestDto, userId: number): Promise<ViewQCTestDto> {
+    public async create(dto: CreateQCSpecificationDto, userId: number): Promise<ViewQCSpecificationDto> {
         //source entity will be created with an auto incremented id
         const entity = this.qcTestsRepo.create({
             name: dto.name,
@@ -104,7 +104,7 @@ export class QCTestsService {
 
     }
 
-    public async update(id: number, dto: CreateQCTestDto, userId: number) {
+    public async update(id: number, dto: CreateQCSpecificationDto, userId: number) {
         const qctest = await this.findEntity(id);
         qctest.name = dto.name;
         qctest.description = dto.description ? dto.description : null;
@@ -130,7 +130,7 @@ export class QCTestsService {
         await this.qcTestsRepo.remove(await this.qcTestsRepo.find());
     }
 
-    private async createViewDto(entity: QCTestEntity): Promise<ViewQCTestDto> {
+    private async createViewDto(entity: QCSpecificationEntity): Promise<ViewQCSpecificationDto> {
         return {
             id: entity.id,
             name: entity.name,
@@ -154,7 +154,7 @@ export class QCTestsService {
             // If number of records in server are not the same as those in the client then changes detected
             changesDetected = true;
         } else {
-            const whereOptions: FindOptionsWhere<QCTestEntity> = {};
+            const whereOptions: FindOptionsWhere<QCSpecificationEntity> = {};
 
             if (updatesQueryDto.lastModifiedDate) {
                 whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));

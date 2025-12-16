@@ -1,7 +1,11 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "src/metadata/source-templates/enums/source-type.enum";
-import { SourceParametersValidity } from "../dtos/create-update-source.dto";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
+import { ImportSourceDTO } from "../dtos/import-source.dto";
+import { FormSourceDTO } from "../dtos/form-source.dto";
+import { ClimsoftV4ImportParametersDto } from "src/observation/dtos/climsoft-v4-import-parameters.dto";
+
+export type SourceParameters = FormSourceDTO | ImportSourceDTO | ClimsoftV4ImportParametersDto;
 
 @Entity("source_templates") // TODO. change to source_specification later
 @Check("CHK_source_templates_name_not_empty", `"name" <> ''`)// TODO. rename this too
@@ -25,14 +29,14 @@ export class SourceSpecificationEntity extends AppBaseEntity {
     @Column({ name: "allow_missing_value", type: "boolean", default: false })
     allowMissingValue: boolean;
 
-    @Column({ name: "scale_values", type: "boolean" , default: false})
+    @Column({ name: "scale_values", type: "boolean", default: false })
     scaleValues: boolean;
 
     @Column({ name: "sample_image", type: "varchar", nullable: true })
     sampleImage: string | null;
 
     @Column({ name: "parameters", type: "jsonb" })
-    parameters: SourceParametersValidity;
+    parameters: SourceParameters;
 
     @Column({ name: "order_number", type: "int", nullable: true })
     @Index()

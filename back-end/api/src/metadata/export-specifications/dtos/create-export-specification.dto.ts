@@ -1,8 +1,8 @@
 import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import { ExportTemplateParametersDto } from './export-template-paramers.dto';
+import { ExportSpecificationParametersDto } from './export-specification-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
 
-export class CreateExportTemplateDto {
+export class CreateExportSpecificationDto {
   @IsString()
   name: string;
 
@@ -15,7 +15,7 @@ export class CreateExportTemplateDto {
   //@ValidateNested()
   //@Type(function () { return this._type(); }) 
   @IsOptional() // TODO. Temporary until we implement validate nested
-  parameters: ExportTemplateParametersDto; //TODO. Implement validations
+  parameters: ExportSpecificationParametersDto; //TODO. Implement validations
 
   @IsBoolean()
   disabled: boolean;

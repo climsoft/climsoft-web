@@ -1,6 +1,6 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { ExportTemplateParametersDto } from "../dtos/export-template-paramers.dto";
+import { ExportSpecificationParametersDto } from "../dtos/export-specification-parameters.dto";
 import { ExportTypeEnum } from "../enums/export-type.enum";
 
 @Entity("export_templates") // TODO. Rename to export_specifications
@@ -20,7 +20,7 @@ export class ExportSpecificationEntity extends AppBaseEntity {
     exportType: ExportTypeEnum;
 
     @Column({ name: "parameters", type: "jsonb" })
-    parameters: ExportTemplateParametersDto;
+    parameters: ExportSpecificationParametersDto;
 
     @Column({ type: "boolean", default: false })
     @Index()

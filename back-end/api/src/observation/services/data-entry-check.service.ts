@@ -3,24 +3,24 @@ import { SourceSpecificationsService } from 'src/metadata/source-templates/servi
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
-import { CreateEntryFormDTO } from 'src/metadata/source-templates/dtos/create-entry-form.dto';
+import { FormSourceDTO } from 'src/metadata/source-templates/dtos/form-source.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { DateUtils } from 'src/shared/utils/date.utils';
-import { CreateImportSourceDTO } from 'src/metadata/source-templates/dtos/create-import-source.dto';
+import { ImportSourceDTO } from 'src/metadata/source-templates/dtos/import-source.dto';
 import { ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 
 // TODO. Later convert this service to a guard??
 
 interface FormParams {
-    form: CreateEntryFormDTO;
+    form: FormSourceDTO;
     utcAdjustedHours: number[];
 }
 
 interface EntryFormValidation {
     sourceType: SourceTypeEnum;
-    settings: FormParams | CreateImportSourceDTO;
+    settings: FormParams | ImportSourceDTO;
 }
 
 interface ValidationErrorMessage {
@@ -61,7 +61,7 @@ export class DataEntryAndCorrectionCheckService {
         const sourceTemplates: ViewSourceDto[] = await this.sourceService.findAll();
         for (const source of sourceTemplates) {
             if (source.sourceType === SourceTypeEnum.FORM) {
-                const form = source.parameters as CreateEntryFormDTO;
+                const form = source.parameters as FormSourceDTO;
                 // If the form utc setting is not 0, then use the utc setting to adjust the hours to utc.
                 // data sent from the form is converted to utc based on the form utc setting, so the hours on the form could be in say localtime
                 const utcAdjustedHours: number[] = source.utcOffset === 0 ?
@@ -75,7 +75,7 @@ export class DataEntryAndCorrectionCheckService {
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.IMPORT,
-                    settings: source.parameters as CreateImportSourceDTO
+                    settings: source.parameters as ImportSourceDTO
                 });
             } else {
                 throw new Error('Developer error: Source type not recognised')

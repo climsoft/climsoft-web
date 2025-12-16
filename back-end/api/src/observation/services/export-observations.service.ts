@@ -9,8 +9,8 @@ import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
-import { ViewTemplateExportDto } from 'src/metadata/export-specifications/dtos/view-export-template.dto';
-import { ExportTemplateParametersDto } from 'src/metadata/export-specifications/dtos/export-template-paramers.dto';
+import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
+import { ExportSpecificationParametersDto } from 'src/metadata/export-specifications/dtos/export-specification-parameters.dto';
 
 @Injectable()
 export class ExportObservationsService {
@@ -36,7 +36,7 @@ export class ExportObservationsService {
             }
         }
 
-        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId);
+        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportTemplateId);
 
         // If export is disabled then don't generate it
         if (viewTemplateExportDto.disabled) {
@@ -44,7 +44,7 @@ export class ExportObservationsService {
         }
 
         const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
-        const exportParams: ExportTemplateParametersDto = viewTemplateExportDto.parameters;
+        const exportParams: ExportSpecificationParametersDto = viewTemplateExportDto.parameters;
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -301,7 +301,7 @@ export class ExportObservationsService {
     }
 
     public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {
-        const viewTemplateExportDto: ViewTemplateExportDto = await this.exportTemplatesService.find(exportTemplateId);
+        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportTemplateId);
 
         // If export is disabled then don't generate it
         if (viewTemplateExportDto.disabled) {

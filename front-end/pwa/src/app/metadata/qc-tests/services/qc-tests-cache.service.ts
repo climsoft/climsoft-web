@@ -45,7 +45,7 @@ export class QCTestsCacheService {
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/qc-tests`;
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/qc-specifications`;
         this.loadElementsQcTests();
     }
 
