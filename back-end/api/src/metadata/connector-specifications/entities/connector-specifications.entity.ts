@@ -1,8 +1,8 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity("integration_connectors")
-@Check("CHK_integration_connectors_name_not_empty", `"name" <> ''`)
+@Entity("connector_specifications")
+@Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
 export class IntegrationConnectors extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   id: number;
@@ -52,7 +52,7 @@ export class IntegrationConnectors extends AppBaseEntity {
 
   @Column({ name: 'specification_id', type: 'int' })  
   @Index()
-  pecification_id: number;
+  specification_id: number;
 
   @Column({ name: "extra_metadata", type: 'jsonb', nullable: true })
   extraMetadata: any | null;

@@ -1,9 +1,9 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { MessageQueueStatusEnum } from "../enums/message-queue-status.enum";
+import { MessageQueueStatusEnum } from "../../metadata/connector-specifications/enums/message-queue-status.enum";
 
-@Entity('message_queue')
-export class MessageQueue extends AppBaseEntity {
+@Entity('message_queues')
+export class MessageQueueEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" }) // TODO. Change SERIAL PRIMARY KEY
   id: string;
 
@@ -12,7 +12,7 @@ export class MessageQueue extends AppBaseEntity {
   name: string;
 
   @Column({ name: "payload", type: 'jsonb', })
-  payload: string | null; // TODO.
+  payload: string | null;
 
   @Column({ name: "created_at", type: 'timestamptz' })
   @Index()
