@@ -1,19 +1,19 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 //import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { CreateImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-templates/dtos/create-import-source.dto';
-import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
-import { CreateImportTabularSourceDTO, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-templates/dtos/create-import-source-tabular.dto';
+import { ImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { ImportSourceTabularParamsDTO, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 
 @Injectable()
@@ -32,7 +32,7 @@ export class ObservationImportService {
 
     constructor(
         private fileIOService: FileIOService,
-        private sourcesService: SourceTemplatesService,
+        private sourcesService: SourceSpecificationsService,
         private observationsService: ObservationsService,
         private elementsService: ElementsService,
     ) { }
@@ -52,7 +52,7 @@ export class ObservationImportService {
                 throw new BadRequestException("Error: Source is not an import source");
             }
 
-            const importSourceDef = sourceDef.parameters as CreateImportSourceDTO;
+            const importSourceDef = sourceDef.parameters as ImportSourceDTO;
 
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
                 await this.importTabularSource(sourceDef, tmpFilePathName, userId, username, stationId);
@@ -70,8 +70,8 @@ export class ObservationImportService {
 
     private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, username: string, stationId?: string) {
         const sourceId: number = sourceDef.id;
-        const importDef: CreateImportSourceDTO = sourceDef.parameters as CreateImportSourceDTO;
-        const tabularDef: CreateImportTabularSourceDTO = importDef.dataStructureParameters as CreateImportTabularSourceDTO;
+        const importDef: ImportSourceDTO = sourceDef.parameters as ImportSourceDTO;
+        const tabularDef: ImportSourceTabularParamsDTO = importDef.dataStructureParameters as ImportSourceTabularParamsDTO;
 
         const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
         // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
@@ -135,7 +135,7 @@ export class ObservationImportService {
         this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
     }
 
-    private getAlterStationColumnSQL(source: CreateImportTabularSourceDTO, tableName: string, stationId?: string): string {
+    private getAlterStationColumnSQL(source: ImportSourceTabularParamsDTO, tableName: string, stationId?: string): string {
         let sql: string;
         if (source.stationDefinition) {
             const stationDefinition = source.stationDefinition;
@@ -158,7 +158,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterIntervalColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterIntervalColumnSQL(source: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string;
         if (source.intervalDefinition.columnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.intervalDefinition.columnPosition - 1} TO ${this.INTERVAL_PROPERTY_NAME};`
@@ -170,7 +170,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterLevelColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterLevelColumnSQL(source: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string;
         if (source.levelColumnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.levelColumnPosition - 1} TO ${this.level};`;
@@ -182,7 +182,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterCommentColumnSQL(source: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterCommentColumnSQL(source: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string;
         if (source.commentColumnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT_PROPERTY_NAME};`;
@@ -193,7 +193,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterElementColumnSQL(tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterElementColumnSQL(tabularDef: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string = '';
         if (tabularDef.elementDefinition.noElement) {
             const noElement = tabularDef.elementDefinition.noElement
@@ -242,7 +242,7 @@ export class ObservationImportService {
     }
 
 
-    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string = '';
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
         if (datetimeDefinition.dateTimeInSingleColumn !== undefined) {
@@ -371,7 +371,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterValueColumnSQL(sourceDef: ViewSourceDto, importDef: CreateImportSourceDTO, tabularDef: CreateImportTabularSourceDTO, tableName: string): string {
+    private getAlterValueColumnSQL(sourceDef: ViewSourceDto, importDef: ImportSourceDTO, tabularDef: ImportSourceTabularParamsDTO, tableName: string): string {
         let sql: string = '';
 
         if (tabularDef.valueDefinition !== undefined) {

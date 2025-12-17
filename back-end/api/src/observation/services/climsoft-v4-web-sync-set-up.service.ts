@@ -8,19 +8,19 @@ import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/station-obs-processing-method.enum';
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
 import { UsersService } from 'src/user/services/users.service';
-import { SourceTemplatesService } from 'src/metadata/source-templates/services/source-templates.service';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
-import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
+import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { FindOptionsWhere } from 'typeorm';
-import { SourceTemplateEntity } from 'src/metadata/source-templates/entities/source-template.entity';
+import { SourceSpecificationEntity } from 'src/metadata/source-specifications/entities/source-specification.entity';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
-import { CreateUpdateSourceDto } from 'src/metadata/source-templates/dtos/create-update-source.dto';
-import { QCTestsService } from 'src/metadata/qc-tests/services/qc-tests.service';
-import { CreateQCTestDto } from 'src/metadata/qc-tests/dtos/create-qc-test.dto';
-import { ViewQCTestDto } from 'src/metadata/qc-tests/dtos/view-qc-test.dto';
-import { QCTestTypeEnum } from 'src/metadata/qc-tests/entities/qc-test-type.enum';
-import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-tests/dtos/qc-test-parameters/range-qc-test-params.dto';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
+import { CreateUpdateSourceDto } from 'src/metadata/source-specifications/dtos/create-update-source.dto';
+import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
+import { CreateQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/create-qc-specification.dto';
+import { ViewQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/view-qc-specification.dto';
+import { QCTestTypeEnum } from 'src/metadata/qc-specifications/entities/qc-test-type.enum';
+import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-specifications/dtos/qc-test-parameters/range-qc-test-params.dto';
 
 export interface V4ElementModel {
     elementId: number;
@@ -67,9 +67,9 @@ export class ClimsoftV4WebSyncSetUpService {
 
     constructor(
         private elementsService: ElementsService,
-        private qcTestsService: QCTestsService,
+        private qcTestsService: QCSpecificationsService,
         private stationsService: StationsService,
-        private sourcesService: SourceTemplatesService,
+        private sourcesService: SourceSpecificationsService,
         private usersService: UsersService,
     ) {
     }
@@ -284,7 +284,7 @@ export class ClimsoftV4WebSyncSetUpService {
             return false;
         }
 
-        const currentV5QCTests: ViewQCTestDto[] = await this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
+        const currentV5QCTests: ViewQCSpecificationDto[] = await this.qcTestsService.findQCTestByType(QCTestTypeEnum.RANGE_THRESHOLD);
         const v4Elements: V4ElementModel[] = await this.getV4Elements();
         for (let i = 0; i < v4Elements.length; i++) {
             const v4Element: V4ElementModel = v4Elements[i];
@@ -317,7 +317,7 @@ export class ClimsoftV4WebSyncSetUpService {
             }
 
             const params: RangeThresholdQCTestParamsDto = { allRangeThreshold: { lowerThreshold: lowerThreshold, upperThreshold: upperThreshold } };
-            
+
             // Make sure abbreviation is not empty
             if (StringUtils.isNullOrEmpty(v4Element.abbreviation, true)) {
                 v4Element.abbreviation = `Empty_${i + 1}`;
@@ -328,14 +328,14 @@ export class ClimsoftV4WebSyncSetUpService {
             const currentV5QCTest = currentV5QCTests.find(
                 item => item.name === qcName || (item.elementId === v4Element.elementId && item.observationLevel === 0 && item.observationInterval === interval && item.comment === 'pulled from v4 model')
             );
-           
+
             if (currentV5QCTest) {
                 currentV5QCTest.parameters = params;
                 await this.qcTestsService.update(currentV5QCTest.id, currentV5QCTest, userId);
                 this.logger.log(`V4 QC ${currentV5QCTest.name} updated`);
             } else {
 
-                const dto: CreateQCTestDto = {
+                const dto: CreateQCSpecificationDto = {
                     name: qcName,
                     description: 'QC range threshold',
                     elementId: v4Element.elementId,
@@ -488,7 +488,7 @@ export class ClimsoftV4WebSyncSetUpService {
     }
 
     public async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
-        const selectOptions: FindOptionsWhere<SourceTemplateEntity> = {
+        const selectOptions: FindOptionsWhere<SourceSpecificationEntity> = {
             name: 'climsoft_v4',
         };
         await this.sourcesService.findAll(selectOptions);

@@ -35,10 +35,5 @@ export class ClimsoftV4ImportParametersDto {
     @IsOptional()
     @IsString()
     lastObservationFinalDataId: string;// this is always set by the system
-
-    isValid(): boolean {
-        return true;
-    }
-
 }
 

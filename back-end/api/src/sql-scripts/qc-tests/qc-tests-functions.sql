@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION func_execute_qc_tests(
     user_id INT4
 ) RETURNS BOOL AS $$
 DECLARE
-    qc_test RECORD; -- TODO. Use the row type or qc_test_parameters table
+    qc_test RECORD; -- TODO. Use the row type of qc_test_specifications table
     qc_test_log JSONB;
     all_qc_tests_log JSONB := '[]'::JSONB;
     final_qc_status observations_qc_status_enum := 'passed'; -- TODO. use the correct column type of observations table

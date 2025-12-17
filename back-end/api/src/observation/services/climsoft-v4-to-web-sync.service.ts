@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../dtos/climsoft-v4-import-parameters.dto';
-import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
+import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';

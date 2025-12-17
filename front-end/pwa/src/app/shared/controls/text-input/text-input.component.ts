@@ -26,6 +26,7 @@ export class TextInputComponent {
   @Input() public id!: string | number;
   @Input() public label!: string;
   @Input() public labelSuperScript!: string | undefined;
+  @Input() public displaylabelFullColon: boolean = true;
   @Input() public placeholder!: string;
   @Input() public borderSize: number = 1;
   @Input() public disabled: boolean = false;

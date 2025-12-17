@@ -5,7 +5,7 @@ import { StationsController } from './stations/controllers/stations.controller';
 import { StationsService } from './stations/services/stations.service';
 import { ElementsController } from './elements/controllers/elements.controller';
 import { ElementEntity } from './elements/entities/element.entity';
-import { SourceTemplatesController } from 'src/metadata/source-templates/controllers/source-templates.controller';
+import { SourceSpecificationsController } from 'src/metadata/source-specifications/controllers/source-specifications.controller';
 import { StationFormEntity } from './stations/entities/station-form.entity';
 import { ElementSubdomainEntity } from './elements/entities/element-subdomain.entity';
 import { ElementTypeEntity } from './elements/entities/element-type.entity';
@@ -20,10 +20,10 @@ import { StationObsFocusesService } from './stations/services/station-obs-focuse
 import { StationObsFocusesController } from './stations/controllers/station-obs-focuses.controller';
 import { ElementTypesController } from './elements/controllers/elements-types.controller';
 import { ElementSubdomainsController } from './elements/controllers/elements-subdomains.controller';
-import { SourceTemplatesService } from './source-templates/services/source-templates.service';
-import { SourceTemplateEntity } from './source-templates/entities/source-template.entity';
+import { SourceSpecificationsService } from './source-specifications/services/source-specifications.service';
+import { SourceSpecificationEntity } from './source-specifications/entities/source-specification.entity';
 import { ElementsService } from './elements/services/elements.service';
-import { QCTestsService } from './qc-tests/services/qc-tests.service';
+import { QCSpecificationsService } from './qc-specifications/services/qc-specifications.service';
 import { RegionsController } from './regions/controllers/regions.controller';
 import { RegionsService } from './regions/services/regions.service';
 import { SharedModule } from 'src/shared/shared.module';
@@ -35,9 +35,9 @@ import { MetadataUpdatesController } from './metadata-updates/metadata-updates.c
 import { ElementTypesService } from './elements/services/element-types.service';
 import { ElementSubdomainsService } from './elements/services/element-subdomains.service';
 import { ElementsImportExportService } from './elements/services/elements-import-export.service';
-import { ExportTemplateEntity } from './export-templates/entities/export-template.entity';
-import { ExportTemplatesController } from './export-templates/controllers/export-templates.controller';
-import { ExportTemplatesService } from './export-templates/services/export-templates.service';
+import { ExportSpecificationEntity } from './export-specifications/entities/export-specification.entity';
+import { ExportSpecificationsController } from './export-specifications/controllers/export-specifications.controller';
+import { ExportSpecificationsService } from './export-specifications/services/export-specifications.service';
 import { OrganisationsController } from './organisations/controllers/organisations.controller';
 import { OrganisationsService } from './organisations/services/organisations.service';
 import { RegionEntity } from './regions/entities/region.entity';
@@ -46,8 +46,8 @@ import { NetworkAffiliationsService } from './network-affiliations/services/netw
 import { StationNetworkAffiliationsController } from './stations/controllers/station-network-affiliations.controller';
 import { StationNetworkAffiliationsService } from './stations/services/station-network-affiliations.service';
 import { SettingsModule } from 'src/settings/settings.module';
-import { QCTestEntity } from './qc-tests/entities/qc-test.entity';
-import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
+import { QCSpecificationEntity } from './qc-specifications/entities/qc-specification.entity';
+import { QCSpecificationsController } from './qc-specifications/controllers/qc-specifications.controller';
 
 @Module({
     imports: [
@@ -55,7 +55,7 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
             ElementSubdomainEntity,
             ElementTypeEntity,
             ElementEntity,
-            QCTestEntity,
+            QCSpecificationEntity,
 
             OrganisationEntity,
             NetworkAffiliationEntity,
@@ -69,9 +69,9 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
             //InstrumentTypeEntity, // TODO add later
             //InstrumentEntity, // TODO add later
 
-            SourceTemplateEntity,
+            SourceSpecificationEntity,
 
-            ExportTemplateEntity,
+            ExportSpecificationEntity,
         ]),
         SharedModule,
         UserModule,
@@ -91,11 +91,11 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
         StationFormsController,
         StationNetworkAffiliationsController,
 
-        QCTestsController,
+        QCSpecificationsController,
 
-        SourceTemplatesController,
+        SourceSpecificationsController,
 
-        ExportTemplatesController,
+        ExportSpecificationsController,
 
         MetadataUpdatesController,
     ],
@@ -113,14 +113,14 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
         StationFormsService,
         StationNetworkAffiliationsService,
 
-        SourceTemplatesService,
+        SourceSpecificationsService,
 
-        QCTestsService,
+        QCSpecificationsService,
         
         RegionsService,
         StationsImportExportService,
         ElementsImportExportService,
-        ExportTemplatesService,
+        ExportSpecificationsService,
     ],
 
     exports: [
@@ -128,14 +128,14 @@ import { QCTestsController } from './qc-tests/controllers/qc-tests.controller';
         ElementTypesService,
         ElementsService,
         OrganisationsService,
-        SourceTemplatesService,
+        SourceSpecificationsService,
         StationObsEnvService,
         StationObsFocusesService,
         StationsService,
         StationFormsService,
-        QCTestsService,
+        QCSpecificationsService,
         RegionsService,
-        ExportTemplatesService,
+        ExportSpecificationsService,
 
     ]
 })

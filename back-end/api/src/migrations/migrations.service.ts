@@ -11,9 +11,9 @@ import { MetadataDefaults } from './metadata-defaults';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { GeneralSettingsDefaults } from './general-settings-defaults';
 import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.service';
-import { QCTestsService } from 'src/metadata/qc-tests/services/qc-tests.service';
-import { QCTestTypeEnum } from 'src/metadata/qc-tests/entities/qc-test-type.enum';
-import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-tests/dtos/qc-test-parameters/range-qc-test-params.dto';
+import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
+import { QCTestTypeEnum } from 'src/metadata/qc-specifications/entities/qc-test-type.enum';
+import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-specifications/dtos/qc-test-parameters/range-qc-test-params.dto';
 
 @Injectable()
 export class MigrationsService {
@@ -29,7 +29,7 @@ export class MigrationsService {
     private stationObsEnvService: StationObsEnvService,
     private stationObsFocusesService: StationObsFocusesService,
     private generalSettingsService: GeneralSettingsService,
-    private qcTestsService: QCTestsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
+    private qcTestsService: QCSpecificationsService, // TODO. Temporary. After all met services have version preview 2.0.5. Remove this. New installations won't need it
 
   ) { }
 

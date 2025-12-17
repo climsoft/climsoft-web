@@ -3,7 +3,7 @@
     <div *ngIf="label" class="fw-bold">
       <label [for]="id? id:label">{{ label }} </label>
       <span *ngIf="labelSuperScript" class="app-label-super-script">{{ labelSuperScript }}</span>
-      <span>:</span>
+      <span *ngIf="displaylabelFullColon">:</span>
     </div>
     <div
       [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">

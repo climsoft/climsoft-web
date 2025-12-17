@@ -20,7 +20,7 @@ export class SourceTemplatesCacheService {
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
         private http: HttpClient) {
-        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/source-templates`;
+        this.endPointUrl = `${this.appConfigService.apiBaseUrl}/source-specifications`;
         this.loadSources();
     }
 

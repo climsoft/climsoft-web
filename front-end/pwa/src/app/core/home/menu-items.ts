@@ -26,7 +26,6 @@ export enum SubMenuNameEnum {
     SCHEDULED_IMPORT = 'Scheduled Import',
     DATA_CORRECTION = 'Data Correction',
     DELETED_DATA = 'Deleted Data',
-    //MISSING_DATA = 'Missing Data',
 
     STATION_STATUS = 'Station Status',
     DATA_FLOW = 'Data Flow',
@@ -41,14 +40,14 @@ export enum SubMenuNameEnum {
     SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
-    QC_TEST_PARAMETERS = 'QC Test Parameters',    
     ORGANISATIONS = 'Organisations',
     NETWORK_AFFILIATIONS = 'Network Affiliations',
     REGIONS = 'Regions',
     STATIONS = 'Stations',
+    QC_SPECIFICATIONS = 'QC Specifications',
     SOURCE_SPECIFICATIONS = 'Source Specifications',
     EXPORT_SPECIFICATIONS = 'Export Specifications',
-    INTEGRATION_CONNECTORS = 'Integration Connectors',
+    CONNECTOR_SPECIFICATIONS = 'Connector Specifications',
 
     USER_GROUPS = 'User Groups',
     USERS = 'Users',
@@ -186,8 +185,8 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.STATIONS,
                     url: '/view-stations',
                 },
-                 {
-                    name: SubMenuNameEnum.QC_TEST_PARAMETERS,
+                {
+                    name: SubMenuNameEnum.QC_SPECIFICATIONS,
                     url: '/view-qc-tests',
                 },
                 {
@@ -199,7 +198,7 @@ export class MenuItemsUtil {
                     url: '/view-exports',
                 },
                 {
-                    name: SubMenuNameEnum.INTEGRATION_CONNECTORS,
+                    name: SubMenuNameEnum.CONNECTOR_SPECIFICATIONS,
                     url: '/view-connectors',
                 },
             ]

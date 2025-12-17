@@ -10,6 +10,7 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  //------------------------------------------------------
   // TODO. Code below is meant to be an implementation of allowed origins for enforcing CORS security measures 
   // const allowedOrigins: string[] = [];
   // if (process.env.WEB_APP_ALLOWED_ORIGINS) {
@@ -22,7 +23,7 @@ async function bootstrap() {
   app.enableCors({
     // TODO. Investigate how CORS should be correctly set up to ensure support for different deployment options and security.
     // origin:  process.env.WEB_APP_BASE_URLs ? process.env.WEB_APP_BASE_URLs : 'http://localhost:4200' , 
-    origin: (origin, callback) => {
+    origin: (origin: any, callback: any) => {
       //console.log(`Client Origin - ${origin}`); 
 
       // TODO. In future implement CORs security feature to enable users to determine origin setting based on their security requirements.
@@ -41,6 +42,7 @@ async function bootstrap() {
     },
     credentials: true
   });
+  //------------------------------------------------------
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
