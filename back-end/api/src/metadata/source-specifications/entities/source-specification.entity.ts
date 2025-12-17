@@ -1,5 +1,5 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { SourceTypeEnum } from "src/metadata/source-templates/enums/source-type.enum";
+import { SourceTypeEnum } from "src/metadata/source-specifications/enums/source-type.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { ImportSourceDTO } from "../dtos/import-source.dto";
 import { FormSourceDTO } from "../dtos/form-source.dto";

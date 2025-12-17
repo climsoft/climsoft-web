@@ -3,7 +3,7 @@ import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typ
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { SourceSpecificationEntity } from '../entities/source-specification.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';

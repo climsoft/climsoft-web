@@ -2,8 +2,8 @@ import { Repository } from "typeorm";
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { StationFormEntity } from "../entities/station-form.entity";
-import { SourceSpecificationsService } from "src/metadata/source-templates/services/source-specifications.service";
-import { ViewSourceDto } from "src/metadata/source-templates/dtos/view-source.dto";
+import { SourceSpecificationsService } from "src/metadata/source-specifications/services/source-specifications.service";
+import { ViewSourceDto } from "src/metadata/source-specifications/dtos/view-source.dto";
 
 @Injectable()
 export class StationFormsService {

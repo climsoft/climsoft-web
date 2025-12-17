@@ -1,19 +1,19 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ObservationsService } from './observations.service';
-import { SourceSpecificationsService } from 'src/metadata/source-templates/services/source-specifications.service';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 //import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { ImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-templates/dtos/import-source.dto';
-import { ViewSourceDto } from 'src/metadata/source-templates/dtos/view-source.dto';
-import { ImportSourceTabularParamsDTO, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-templates/dtos/import-source-tabular-params.dto';
+import { ImportSourceDTO, DataStructureTypeEnum } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { ImportSourceTabularParamsDTO, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 
 @Injectable()

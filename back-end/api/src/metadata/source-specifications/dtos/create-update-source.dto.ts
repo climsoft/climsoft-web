@@ -1,6 +1,6 @@
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { SourceParameters } from '../entities/source-specification.entity';
 

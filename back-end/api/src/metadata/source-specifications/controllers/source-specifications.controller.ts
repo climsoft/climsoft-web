@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { SourceSpecificationsService } from '../services/source-specifications.service';
-import { SourceTypeEnum } from 'src/metadata/source-templates/enums/source-type.enum';
+import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';

@@ -4,7 +4,7 @@ import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
-import { SourceSpecificationEntity } from "src/metadata/source-templates/entities/source-specification.entity";
+import { SourceSpecificationEntity } from "src/metadata/source-specifications/entities/source-specification.entity";
 
 // TODO. Investigate if a constraints check for interval to always be greater than 0 is necessary
 @Entity("observations")
