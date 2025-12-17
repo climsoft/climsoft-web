@@ -217,7 +217,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     metadataMenuItems.children = metadataMenuItems.children.filter(item =>
       item.name !== SubMenuNameEnum.SOURCE_SPECIFICATIONS
       && item.name !== SubMenuNameEnum.EXPORT_SPECIFICATIONS
-      && item.name !== SubMenuNameEnum.INTEGRATION_CONNECTORS
+      && item.name !== SubMenuNameEnum.CONNECTOR_SPECIFICATIONS
       && item.name !== SubMenuNameEnum.ORGANISATIONS
       && item.name !== SubMenuNameEnum.NETWORK_AFFILIATIONS
       && item.name !== SubMenuNameEnum.REGIONS
