@@ -146,12 +146,13 @@
             <div class="mt-2">
               <div>Quality Control Status:</div>
               <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'qcs_export_permissions'" [groupItems]="[
-                                { label:'All', checked: userPermissions.exportPermissions.qcStatus === undefined }, 
-                                { label:'Select', checked: userPermissions.exportPermissions.qcStatus !== undefined }
+                                { label:'All', checked: userPermissions.exportPermissions.qcStatuses === undefined }, 
+                                { label:'Select', checked: userPermissions.exportPermissions.qcStatuses !== undefined }
                                 ]" (checkedValueChange)="onExportQcSelection($event)" />
-              <div *ngIf="userPermissions.exportPermissions.qcStatus">
-                <app-qc-status-selector-single [id]="'qc'"
-                  [(selectedId)]="userPermissions.exportPermissions.qcStatus" />
+              <div *ngIf="userPermissions.exportPermissions.qcStatuses">
+                <!-- TODO. Use a multiple selector -->
+                <!-- <app-qc-status-selector-single [id]="'qc'"
+                  [(selectedId)]="userPermissions.exportPermissions.qcStatuses" /> -->
               </div>
             </div>
 

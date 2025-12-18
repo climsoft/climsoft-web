@@ -1,6 +1,6 @@
 import { Check, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { UserPermissionDto } from "../dtos/user-permission.dto";
+import { UserPermissionDto } from "../dtos/permissions/user-permission.dto";
 
 @Entity("user_groups")
 @Check("CHK_user_groups_name_not_empty", `"name" <> ''`)

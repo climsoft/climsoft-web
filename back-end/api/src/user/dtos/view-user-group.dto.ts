@@ -1,5 +1,5 @@
 
-import { UserPermissionDto } from "./user-permission.dto";
+import { UserPermissionDto } from "./permissions/user-permission.dto";
 
 export class ViewUserGroupDto {
     id: number;

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
-import { ObservationPeriodPermissionsModel } from '../../models/user-permission.model';
+import { ObservationPeriodPermissionsModel } from '../../models/permissions/user-permission.model';
 import { Subject, takeUntil } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';

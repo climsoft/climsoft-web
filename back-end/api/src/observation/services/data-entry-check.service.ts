@@ -8,7 +8,7 @@ import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { ImportSourceDTO } from 'src/metadata/source-specifications/dtos/import-source.dto';
-import { ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 
 // TODO. Later convert this service to a guard??

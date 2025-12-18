@@ -7,7 +7,7 @@ import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-ob
 import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 import { CreateObservationDto } from 'src/observation/dtos/create-observation.dto';
 import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto'; 
-import { UserPermissionDto } from '../dtos/user-permission.dto';
+import { UserPermissionDto } from '../dtos/permissions/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
 import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
 import { DataFlowQueryDto } from 'src/observation/dtos/data-flow-query.dto';

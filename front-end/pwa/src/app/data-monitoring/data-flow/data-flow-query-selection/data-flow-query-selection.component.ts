@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
+import { UserPermissionModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';

@@ -4,7 +4,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
-import { ExportTemplatePermissionsModel } from 'src/app/admin/users/models/user-permission.model';
+import { ExportTemplatePermissionsModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';

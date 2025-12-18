@@ -34,7 +34,7 @@ export interface ExportTemplatePermissionsModel {
     elementIds?: number[];
     intervals?: number[];
     observationPeriod?: ObservationPeriodPermissionsModel;
-    qcStatus?: QCStatusEnum;
+    qcStatuses?: QCStatusEnum[];
     exportTemplateIds?: number[];
 
 }

@@ -23,7 +23,7 @@ export class IntegrationConnectors extends AppBaseEntity {
 
   @Column({ name: 'protocol', type: 'varchar' })
   @Index()
-  protocol: 'http' | 'https' | 'ftp' | 'sftp'; // Note. All supported protocols assume that they are working with files
+  protocol: 'http' | 'https' | 'ftp' | 'ftps' | 'sftp'; // Note. All supported protocols assume that they are working with files
 
   @Column({ name: "port", type: 'int' })
   @Index()

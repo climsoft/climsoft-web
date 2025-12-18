@@ -1,4 +1,4 @@
-import { UserPermissionModel } from "./user-permission.model";
+import { UserPermissionModel } from "./permissions/user-permission.model";
 
 export interface CreateUserGroupModel {
     name: string;

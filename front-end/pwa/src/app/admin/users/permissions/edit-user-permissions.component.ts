@@ -1,5 +1,5 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { UserPermissionModel } from '../models/user-permission.model';
+import { UserPermissionModel } from '../models/permissions/user-permission.model';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { Subject, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
@@ -22,10 +22,10 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$)
     ).subscribe(allMetadataLoaded => {
-      if(!allMetadataLoaded) return;
+      if (!allMetadataLoaded) return;
       // Note. Don't filter out disabled imports. 
       // Admin should be able to allocate even disabled imports because they may want to occassion enable or disable large imports.
-      this.onlyIncludeImportIds =  this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
+      this.onlyIncludeImportIds = this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
     });
   }
 
@@ -157,7 +157,7 @@ export class EditUserPermissionsComponent implements OnDestroy {
   protected onExportQcSelection(option: string): void {
     if (!this.userPermissions.exportPermissions) return;
 
-    this.userPermissions.exportPermissions.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
+    this.userPermissions.exportPermissions.qcStatuses = option === 'All' ? undefined : [QCStatusEnum.NONE, QCStatusEnum.PASSED];
   }
 
   protected onExportTemplateSelection(selectionType: string): void {

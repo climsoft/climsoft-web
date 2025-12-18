@@ -8,7 +8,7 @@ import { GeneralSettingsService } from 'src/settings/services/general-settings.s
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
-import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { ExportSpecificationParametersDto } from 'src/metadata/export-specifications/dtos/export-specification-parameters.dto';
 
@@ -83,8 +83,8 @@ export class ExportObservationsService {
             }
         }
 
-        if (exportPermissions.qcStatus) {
-            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportPermissions.qcStatus}'`;
+        if (exportPermissions.qcStatuses) {
+            sqlCondition = sqlCondition + ` AND ob.qc_status = '${exportPermissions.qcStatuses}'`;
         }
         //------------------------------------------------------------------------------------------------
 

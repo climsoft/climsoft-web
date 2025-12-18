@@ -32,7 +32,7 @@ export class ExportTemplatePermissionsDto {
     observationPeriod?: ObservationPeriodPermissionsDto;
 
     @IsOptional()
-    qcStatus?: QCStatusEnum;
+    qcStatuses?: QCStatusEnum[];
 
     @IsOptional()
     exportTemplateIds?: number[];
