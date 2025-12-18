@@ -1,8 +1,12 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { ClimsoftV4ImportParametersDto } from 'src/observation/dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { SourceParameters } from '../entities/source-specification.entity';
+import { FormSourceDTO } from './form-source.dto';
+import { ImportSourceDTO } from './import-source.dto';
+import { BadRequestException } from '@nestjs/common';
 
 
 export class CreateUpdateSourceDto {
@@ -15,11 +19,29 @@ export class CreateUpdateSourceDto {
   @IsEnum(SourceTypeEnum, { message: 'Source type must be a valid value' })
   sourceType: SourceTypeEnum;
 
-  
-  // TODO LEFT HERE
-  
-  @IsOptional()  
-  parameters: SourceParameters; //TODO. Implement validations
+  @ValidateNested()
+  @Type((options) => {
+    // The 'options.object' gives access to the parent DTO,
+    // allowing us to dynamically select the correct validation class
+    // for the 'parameters' property based on the 'sourceType'.
+
+    const object = options?.object;
+    if (!object?.sourceType) {
+      throw new BadRequestException('source type is required for determining parameters type');
+    }
+
+    const { sourceType } = object as CreateUpdateSourceDto;
+
+    switch (sourceType) {
+      case SourceTypeEnum.FORM:
+        return FormSourceDTO;
+      case SourceTypeEnum.IMPORT:
+        return FormSourceDTO;
+      default:
+        throw new BadRequestException('source type is not recognised');
+    }
+  })
+  parameters: SourceParameters;
 
   /** 
 * Determines whether entry date time should be converted to UTC or not. 
