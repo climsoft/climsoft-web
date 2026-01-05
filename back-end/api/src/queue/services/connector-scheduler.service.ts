@@ -2,10 +2,10 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import { QueueService } from './queue.service';
+import { JobQueueService } from './job-queue.service';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { MessageQueueEntity } from '../entity/message-queue.entity';
+import { OnEvent } from '@nestjs/event-emitter';
+import { JobQueueEntity } from '../entity/job-queue.entity';
 
 @Injectable()
 export class ConnectorSchedulerService implements OnModuleInit {
@@ -13,9 +13,8 @@ export class ConnectorSchedulerService implements OnModuleInit {
 
     constructor(
         private schedulerRegistry: SchedulerRegistry,
-        private connectorService: ConnectorSpecificationsService,
-        private queueService: QueueService,
-        private eventEmitter: EventEmitter2,
+        private connectorSpecificationService: ConnectorSpecificationsService,
+        private jobQueueService: JobQueueService,
     ) { }
 
     /**
@@ -31,7 +30,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async initializeAllSchedules() {
         try {
-            const connectors = await this.connectorService.findActiveConnectors();
+            const connectors = await this.connectorSpecificationService.findActiveConnectors();
 
             for (const connector of connectors) {
                 await this.addConnectorSchedule(connector.id, connector.cronSchedule);
@@ -46,7 +45,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Add a new connector schedule
      */
-    public async addConnectorSchedule(connectorId: number, cronSchedule: string, timezone: string = 'UTC') {
+    public async addConnectorSchedule(connectorId: number, cronSchedule: string) {
         const jobName = `connector-${connectorId}`;
 
         // Remove existing job if it exists
@@ -62,11 +61,11 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 },
                 null,
                 true,
-                timezone // TODO. Check if still needed
+                'UTC' // TODO. Check if needed
             );
 
             this.schedulerRegistry.addCronJob(jobName, job);
-            this.logger.log(`Scheduled connector ${connectorId} with cron: ${cronSchedule} (${timezone})`);
+            this.logger.log(`Scheduled connector ${connectorId} with cron: ${cronSchedule}`);
 
         } catch (error) {
             this.logger.error(`Failed to schedule connector ${connectorId}`, error);
@@ -90,7 +89,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async scheduleConnectorJob(connectorId: number) {
         try {
-            const connector = await this.connectorService.find(connectorId, true);
+            const connector = await this.connectorSpecificationService.find(connectorId, true);
 
             if (connector.disabled) {
                 this.logger.warn(`Connector ${connectorId} is disabled, skipping`);
@@ -101,13 +100,14 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 connectorId: connector.id,
                 connectorType: connector.connectorType,
                 specificationIds: connector.specificationIds,
-                triggeredBy: 'schedule',
+                maxRetries: connector.maximumRetries,
+                triggeredBy: 'schedule'
             };
 
             const jobName = `connector.${connector.connectorType}`;
 
             // Create queue job to be processed
-            await this.queueService.createJob(
+            await this.jobQueueService.createJob(
                 jobName,
                 payload,
                 new Date(), // Schedule immediately
@@ -124,19 +124,20 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Manually trigger a connector job
      */
-    public async triggerConnectorManually(connectorId: number, userId: number): Promise<MessageQueueEntity> {
-        const connector = await this.connectorService.find(connectorId, true);
+    public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
+        const connector = await this.connectorSpecificationService.find(connectorId, true);
 
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,
             connectorType: connector.connectorType,
             specificationIds: connector.specificationIds,
+            maxRetries: connector.maximumRetries,
             triggeredBy: 'manual'
         };
 
         const jobName = `connector.${connector.connectorType}`;
 
-        const job = await this.queueService.createJob(
+        const job = await this.jobQueueService.createJob(
             jobName,
             payload,
             new Date(),
@@ -155,7 +156,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
     async handleConnectorCreated(event: any) {
         const { viewDto } = event;
         if (!viewDto.disabled) {
-            await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule, viewDto.timezone);
+            await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule);
         }
     }
 
@@ -167,7 +168,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
         const { id, viewDto } = event;
         this.removeConnectorSchedule(id);
         if (!viewDto.disabled) {
-            await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule, viewDto.timezone);
+            await this.addConnectorSchedule(viewDto.id, viewDto.cronSchedule);
         }
     }
 

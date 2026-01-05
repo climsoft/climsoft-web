@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { QueueService } from './queue.service';
-import { MessageQueueEntity } from '../entity/message-queue.entity';
+import { JobQueueService } from './job-queue.service';
+import { JobQueueEntity } from '../entity/job-queue.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
-export class QueueProcessorService {
-    private readonly logger = new Logger(QueueProcessorService.name);
+export class JobQueueProcessorService {
+    private readonly logger = new Logger(JobQueueProcessorService.name);
     private isProcessing = false;
 
     constructor(
-        private queueService: QueueService,
+        private queueService: JobQueueService,
         private eventEmitter: EventEmitter2,
     ) { }
 
@@ -27,7 +27,7 @@ export class QueueProcessorService {
         this.isProcessing = true;
 
         try {
-            const pendingJobs = await this.queueService.getPendingJobs(10);
+            const pendingJobs = await this.queueService.getPendingJobs();
 
             if (pendingJobs.length > 0) {
                 this.logger.log(`Processing ${pendingJobs.length} pending jobs`);
@@ -56,14 +56,14 @@ export class QueueProcessorService {
     /**
      * Process a single job
      */
-    private async processJob(job: MessageQueueEntity): Promise<void> {
+    private async processJob(job: JobQueueEntity): Promise<void> {
         this.logger.log(`Processing job ${job.id}: ${job.name}`);
 
         try {
             await this.queueService.markAsProcessing(job.id);
 
             // Emit event for job processors to handle
-            await this.eventEmitter.emitAsync(`queue.${job.name}`, job);
+            await this.eventEmitter.emitAsync(`${job.name}`, job);
 
             await this.queueService.markAsFinished(job.id);
             this.logger.log(`Job ${job.id} completed successfully`);
@@ -75,7 +75,7 @@ export class QueueProcessorService {
 
             // Try to retry the job if it hasn't exceeded max retries
             // Get the retries from connector spec if available, otherwise default to 3
-            const maxRetries = 3; // TODO: Get from connector specification
+            const maxRetries = 2; // TODO: Get from payload specification. They should all implement `maximumRetries` property.
             await this.queueService.retryJob(job.id, maxRetries);
         }
     }

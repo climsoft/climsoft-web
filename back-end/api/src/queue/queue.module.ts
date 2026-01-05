@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MessageQueueEntity } from './entity/message-queue.entity';
+import { JobQueueEntity } from './entity/job-queue.entity';
 import { SharedModule } from 'src/shared/shared.module';
 import { UserModule } from 'src/user/user.module';
-import { QueueService } from './services/queue.service';
-import { QueueProcessorService } from './services/queue-processor.service';
+import { JobQueueService } from './services/job-queue.service';
+import { JobQueueProcessorService } from './services/job-queue-processor.service';
 import { ConnectorSchedulerService } from './services/connector-scheduler.service';
 import { ConnectorImportProcessorService } from './services/connector-import-processor.service';
 import { ConnectorExportProcessorService } from './services/connector-export-processor.service';
@@ -15,7 +15,7 @@ import { ObservationModule } from 'src/observation/observation.module';
 @Module({
     imports: [
         TypeOrmModule.forFeature([
-            MessageQueueEntity,
+            JobQueueEntity,
         ]),
         SharedModule,
         UserModule,
@@ -25,14 +25,14 @@ import { ObservationModule } from 'src/observation/observation.module';
     ],
     controllers: [],
     providers: [
-        QueueService,
-        QueueProcessorService,
+        JobQueueService,
+        JobQueueProcessorService,
         ConnectorSchedulerService,
         ConnectorImportProcessorService,
         ConnectorExportProcessorService,
     ],
     exports: [
-        QueueService,
+        JobQueueService,
         ConnectorSchedulerService,
     ],
 })

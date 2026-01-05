@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { MessageQueueEntity } from '../entity/message-queue.entity';
+import { JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
@@ -24,8 +24,15 @@ export class ConnectorExportProcessorService {
     /**
      * Handle connector export jobs
      */
-    @OnEvent('queue.connector.export')
-    async handleExportJob(job: MessageQueueEntity) {
+    @OnEvent('connector.export')
+    async handleExportJob(job: JobQueueEntity) {
+
+        if (1 === 1) {
+            // TODO. Delete this block.
+            this.logger.log(`Export of ${job.name}, done`);
+            return;
+        }
+
         const payload = job.payload as ConnectorJobPayloadDto;
         this.logger.log(`Processing export job for connector ${payload.connectorId}`);
 

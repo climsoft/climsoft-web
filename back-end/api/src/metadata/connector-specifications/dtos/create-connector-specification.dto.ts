@@ -38,14 +38,10 @@ export class CreateConnectorSpecificationDto {
 
     @IsInt()
     @Min(0)
-    retries: number;
+    maximumRetries: number;
 
     @IsString()
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
-
-    @IsOptional()
-    @IsString()
-    timezone?: string; // IANA timezone (e.g., 'Africa/Nairobi', 'UTC')
 
     @Transform(({ value }) => value ? StringUtils.mapCommaSeparatedStringToIntArray(value.toString()) : [])
     @IsArray()

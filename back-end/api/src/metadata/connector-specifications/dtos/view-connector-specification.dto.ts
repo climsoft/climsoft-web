@@ -12,7 +12,7 @@ export class ViewConnectorSpecificationDto {
     username: string;
     password: string; // TODO: Consider excluding password in view DTO for security
     timeout: number;
-    retries: number;
+    maximumRetries: number;
     cronSchedule: string; 
     specificationIds: number[];
     extraMetadata: any | null;

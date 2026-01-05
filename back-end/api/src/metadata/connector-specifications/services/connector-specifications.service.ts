@@ -17,7 +17,7 @@ export class ConnectorSpecificationsService {
         private eventEmitter: EventEmitter2,
     ) { }
 
-    public async find(id: number,  decryptPassword: boolean): Promise<ViewConnectorSpecificationDto> {
+    public async find(id: number, decryptPassword: boolean): Promise<ViewConnectorSpecificationDto> {
         const entity = await this.findEntity(id);
         return this.createViewDto(entity, decryptPassword);
     }
@@ -79,7 +79,7 @@ export class ConnectorSpecificationsService {
         entity.password = await EncryptionUtils.encrypt(dto.password);
 
         entity.timeout = dto.timeout;
-        entity.retries = dto.retries;
+        entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
         entity.specificationIds = dto.specificationIds;
         entity.extraMetadata = dto.extraMetadata || null;
@@ -115,7 +115,7 @@ export class ConnectorSpecificationsService {
         }
 
         entity.timeout = dto.timeout;
-        entity.retries = dto.retries;
+        entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
         entity.specificationIds = dto.specificationIds;
         entity.extraMetadata = dto.extraMetadata || null;
@@ -181,7 +181,7 @@ export class ConnectorSpecificationsService {
             username: entity.username,
             password: password,
             timeout: entity.timeout,
-            retries: entity.retries,
+            maximumRetries: entity.maximumRetries,
             cronSchedule: entity.cronSchedule,
             specificationIds: entity.specificationIds,
             extraMetadata: entity.extraMetadata,

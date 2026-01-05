@@ -1,4 +1,4 @@
-export enum MessageQueueStatusEnum {
+export enum JobQueueStatusEnum {
     PENDING = 'pending',
     PROCESSING = 'processing',
     FINISHED = 'finished',

@@ -27,28 +27,22 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Index()
   protocol: ProtocolEnum;
 
-  @Column({ name: "port", type: 'int' })
-  @Index()
+  @Column({ name: "port", type: 'int' }) 
   port: number;
 
-  @Column({ name: "username", type: 'varchar' })
-  @Index()
+  @Column({ name: "username", type: 'varchar' }) 
   username: string;
 
-  @Column({ name: "password", type: 'varchar' })
-  @Index()
+  @Column({ name: "password", type: 'varchar' }) 
   password: string;
 
-  @Column({ name: 'timeout', type: 'int' })
-  @Index()
+  @Column({ name: 'timeout', type: 'int' }) 
   timeout: number; // in seconds
 
-  @Column({ name: "retries", type: "int" })
-  @Index()
-  retries: number;
+  @Column({ name: "maximum_retries", type: "int" })
+  maximumRetries: number;
 
-  @Column({ name: 'cron_schedule', type: 'varchar' })
-  @Index()
+  @Column({ name: 'cron_schedule', type: 'varchar' }) 
   cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
   @Column({ name: 'specification_ids', type: 'int', array: true })

@@ -5,5 +5,5 @@ export interface ConnectorJobPayloadDto {
     connectorType: ConnectorTypeEnum;
     specificationIds: number[];
     triggeredBy: 'schedule' | 'manual';
-    //userId?: number; // For manual triggers
+    maxRetries: number;
 }

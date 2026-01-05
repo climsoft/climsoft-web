@@ -1,9 +1,9 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { MessageQueueStatusEnum } from "../enums/message-queue-status.enum";
+import { JobQueueStatusEnum } from "../enums/job-queue-status.enum";
 
-@Entity('message_queues')
-export class MessageQueueEntity extends AppBaseEntity {
+@Entity('job_queues')
+export class JobQueueEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   id: number;
 
@@ -22,9 +22,9 @@ export class MessageQueueEntity extends AppBaseEntity {
   @Index()
   processedAt: Date | null;
 
-  @Column({ name: "status", type: "enum", enum: MessageQueueStatusEnum, default: MessageQueueStatusEnum.PENDING })
+  @Column({ name: "status", type: "enum", enum: JobQueueStatusEnum, default: JobQueueStatusEnum.PENDING })
   @Index()
-  status: MessageQueueStatusEnum;
+  status: JobQueueStatusEnum;
 
   @Column({ name: "attempts", type: 'int', default: 0 })
   @Index()

@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
-import { MessageQueueEntity } from '../entity/message-queue.entity';
-import { MessageQueueStatusEnum } from '../enums/message-queue-status.enum';
+import { JobQueueEntity } from '../entity/job-queue.entity';
+import { JobQueueStatusEnum } from '../enums/job-queue-status.enum';
 
 @Injectable()
-export class QueueService {
-    private readonly logger = new Logger(QueueService.name);
+export class JobQueueService {
+    private readonly logger = new Logger(JobQueueService.name);
 
     constructor(
-        @InjectRepository(MessageQueueEntity)
-        private queueRepo: Repository<MessageQueueEntity>,
+        @InjectRepository(JobQueueEntity)
+        private jobQueueRepo: Repository<JobQueueEntity>,
     ) { }
 
     /**
@@ -21,26 +21,26 @@ export class QueueService {
         payload: any,
         scheduledAt: Date,
         userId: number
-    ): Promise<MessageQueueEntity> {
-        const job = this.queueRepo.create({
+    ): Promise<JobQueueEntity> {
+        const job = this.jobQueueRepo.create({
             name,
             payload,
             scheduledAt,
-            status: MessageQueueStatusEnum.PENDING,
+            status: JobQueueStatusEnum.PENDING,
             attempts: 0,
             entryUserId: userId,
         });
 
-        return this.queueRepo.save(job);
+        return this.jobQueueRepo.save(job);
     }
 
     /**
      * Get pending jobs that are due to be processed
      */
-    public async getPendingJobs(limit: number = 10): Promise<MessageQueueEntity[]> {
-        return this.queueRepo.find({
+    public async getPendingJobs(limit: number = 10): Promise<JobQueueEntity[]> {
+        return this.jobQueueRepo.find({
             where: {
-                status: MessageQueueStatusEnum.PENDING,
+                status: JobQueueStatusEnum.PENDING,
                 scheduledAt: LessThan(new Date()),
             },
             take: limit,
@@ -54,8 +54,8 @@ export class QueueService {
      * Mark a job as processing
      */
     public async markAsProcessing(jobId: number): Promise<void> {
-        await this.queueRepo.update(jobId, {
-            status: MessageQueueStatusEnum.PROCESSING,
+        await this.jobQueueRepo.update(jobId, {
+            status: JobQueueStatusEnum.PROCESSING,
         });
     }
 
@@ -63,9 +63,10 @@ export class QueueService {
      * Mark a job as finished
      */
     public async markAsFinished(jobId: number): Promise<void> {
-        await this.queueRepo.update(jobId, {
-            status: MessageQueueStatusEnum.FINISHED,
+        await this.jobQueueRepo.update(jobId, {
+            status: JobQueueStatusEnum.FINISHED,
             processedAt: new Date(),
+            // attempts: job.attempts + 1, TODO.
         });
     }
 
@@ -73,11 +74,11 @@ export class QueueService {
      * Mark a job as failed
      */
     public async markAsFailed(jobId: number, errorMessage: string): Promise<void> {
-        const job = await this.queueRepo.findOneBy({ id: jobId });
+        const job = await this.jobQueueRepo.findOneBy({ id: jobId });
 
         if (job) {
-            await this.queueRepo.update(jobId, {
-                status: MessageQueueStatusEnum.FAILED,
+            await this.jobQueueRepo.update(jobId, {
+                status: JobQueueStatusEnum.FAILED,
                 processedAt: new Date(),
                 attempts: job.attempts + 1,
                 errorMessage,
@@ -89,7 +90,7 @@ export class QueueService {
      * Retry a failed job
      */
     public async retryJob(jobId: number, maxRetries: number): Promise<boolean> {
-        const job = await this.queueRepo.findOneBy({ id: jobId });
+        const job = await this.jobQueueRepo.findOneBy({ id: jobId });
 
         if (!job) {
             this.logger.warn(`Job ${jobId} not found for retry`);
@@ -101,8 +102,8 @@ export class QueueService {
             return false;
         }
 
-        await this.queueRepo.update(jobId, {
-            status: MessageQueueStatusEnum.PENDING,
+        await this.jobQueueRepo.update(jobId, {
+            status: JobQueueStatusEnum.PENDING,
             scheduledAt: new Date(Date.now() + 60000), // Retry in 1 minute
         });
 
@@ -113,8 +114,8 @@ export class QueueService {
      * Cancel a job
      */
     public async cancelJob(jobId: number): Promise<void> {
-        await this.queueRepo.update(jobId, {
-            status: MessageQueueStatusEnum.CANCELLED,
+        await this.jobQueueRepo.update(jobId, {
+            status: JobQueueStatusEnum.CANCELLED,
             processedAt: new Date(),
         });
     }
@@ -122,8 +123,8 @@ export class QueueService {
     /**
      * Get job by ID
      */
-    public async getJob(jobId: number): Promise<MessageQueueEntity | null> {
-        return this.queueRepo.findOneBy({ id: jobId });
+    public async getJob(jobId: number): Promise<JobQueueEntity | null> {
+        return this.jobQueueRepo.findOneBy({ id: jobId });
     }
 
     /**
@@ -133,8 +134,8 @@ export class QueueService {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-        const result = await this.queueRepo.delete({
-            status: MessageQueueStatusEnum.FINISHED,
+        const result = await this.jobQueueRepo.delete({
+            status: JobQueueStatusEnum.FINISHED,
             processedAt: LessThan(cutoffDate),
         });
 

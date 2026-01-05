@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { MessageQueueEntity } from '../entity/message-queue.entity';
+import { JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
@@ -27,8 +27,15 @@ export class ConnectorImportProcessorService {
     /**
      * Handle connector import jobs
      */
-    @OnEvent('queue.connector.import')
-    public async handleImportJob(job: MessageQueueEntity) {
+    @OnEvent('connector.import')
+    public async handleImportJob(job: JobQueueEntity) {
+
+        if (1 === 1) {
+            // TODO. Delete this block.
+            this.logger.log(`Import of ${job.name}, done`);
+            return;
+        }
+
         const payload = job.payload as ConnectorJobPayloadDto;
         this.logger.log(`Processing import job for connector ${payload.connectorId}`);
 
@@ -70,7 +77,7 @@ export class ConnectorImportProcessorService {
             default:
                 throw new Error(`Unsupported protocol: ${connector.protocol}`);
         }
-        
+
         try {
             // Process the downloaded file using ObservationImportService
             const file: Express.Multer.File = {
