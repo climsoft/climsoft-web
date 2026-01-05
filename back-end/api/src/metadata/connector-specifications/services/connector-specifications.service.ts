@@ -1,21 +1,25 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
 import { CreateConnectorSpecificationDto } from '../dtos/create-connector-specification.dto';
 import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 
 @Injectable()
 export class ConnectorSpecificationsService {
+    private readonly logger = new Logger(ConnectorSpecificationsService.name);
+
     constructor(
         @InjectRepository(ConnectorSpecificationEntity)
         private connectorRepo: Repository<ConnectorSpecificationEntity>,
         private eventEmitter: EventEmitter2,
     ) { }
 
-    public async find(id: number): Promise<ViewConnectorSpecificationDto> {
-        return this.createViewDto(await this.findEntity(id));
+    public async find(id: number,  decryptPassword: boolean): Promise<ViewConnectorSpecificationDto> {
+        const entity = await this.findEntity(id);
+        return this.createViewDto(entity, decryptPassword);
     }
 
     public async findAll(selectOptions?: FindOptionsWhere<ConnectorSpecificationEntity>): Promise<ViewConnectorSpecificationDto[]> {
@@ -32,7 +36,7 @@ export class ConnectorSpecificationsService {
         const entities = await this.connectorRepo.find(findOptions);
         const dtos: ViewConnectorSpecificationDto[] = [];
         for (const entity of entities) {
-            dtos.push(this.createViewDto(entity));
+            dtos.push(await this.createViewDto(entity, false)); // Don't decrypt for list view
         }
         return dtos;
     }
@@ -70,10 +74,13 @@ export class ConnectorSpecificationsService {
         entity.protocol = dto.protocol;
         entity.port = dto.port;
         entity.username = dto.username;
-        entity.password = dto.password; // TODO: Encrypt password before storing
+
+        // Encrypt password before storing
+        entity.password = await EncryptionUtils.encrypt(dto.password);
+
         entity.timeout = dto.timeout;
         entity.retries = dto.retries;
-        entity.cronSchedule = dto.cronSchedule; 
+        entity.cronSchedule = dto.cronSchedule;
         entity.specificationIds = dto.specificationIds;
         entity.extraMetadata = dto.extraMetadata || null;
         entity.disabled = dto.disabled ? true : false;
@@ -82,7 +89,7 @@ export class ConnectorSpecificationsService {
 
         await this.connectorRepo.save(entity);
 
-        const viewDto = this.createViewDto(entity);
+        const viewDto = await this.createViewDto(entity, false);
 
         this.eventEmitter.emit('connector.created', { id: entity.id, viewDto });
 
@@ -99,10 +106,17 @@ export class ConnectorSpecificationsService {
         entity.protocol = dto.protocol;
         entity.port = dto.port;
         entity.username = dto.username;
-        entity.password = dto.password; // TODO: Encrypt password before storing
+
+        // Only encrypt if password has changed (not already encrypted)
+        if (!EncryptionUtils.isEncrypted(dto.password)) {
+            entity.password = await EncryptionUtils.encrypt(dto.password);
+        } else {
+            entity.password = dto.password; // Keep existing encrypted password
+        }
+
         entity.timeout = dto.timeout;
         entity.retries = dto.retries;
-        entity.cronSchedule = dto.cronSchedule; 
+        entity.cronSchedule = dto.cronSchedule;
         entity.specificationIds = dto.specificationIds;
         entity.extraMetadata = dto.extraMetadata || null;
         entity.disabled = dto.disabled ? true : false;
@@ -111,7 +125,7 @@ export class ConnectorSpecificationsService {
 
         await this.connectorRepo.save(entity);
 
-        const viewDto = this.createViewDto(entity);
+        const viewDto = await this.createViewDto(entity, false);
 
         this.eventEmitter.emit('connector.updated', { id, viewDto });
 
@@ -132,7 +146,30 @@ export class ConnectorSpecificationsService {
         return true;
     }
 
-    private createViewDto(entity: ConnectorSpecificationEntity): ViewConnectorSpecificationDto {
+    /**
+     * Create view DTO from entity
+     * @param entity - The connector entity
+     * @param decryptPassword - Whether to decrypt the password (true for usage, false for API responses)
+     */
+    private async createViewDto(
+        entity: ConnectorSpecificationEntity,
+        decryptPassword: boolean = false
+    ): Promise<ViewConnectorSpecificationDto> {
+        let password = entity.password;
+
+        if (decryptPassword) {
+            try {
+                // Decrypt password for actual usage (connecting to servers)
+                password = await EncryptionUtils.decrypt(entity.password);
+            } catch (error) {
+                this.logger.error(`Failed to decrypt password for connector ${entity.id}`, error);
+                throw new BadRequestException('Failed to decrypt connector password');
+            }
+        } else {
+            // Mask password for API responses
+            password = '***ENCRYPTED***';
+        }
+
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
             name: entity.name,
@@ -142,7 +179,7 @@ export class ConnectorSpecificationsService {
             protocol: entity.protocol,
             port: entity.port,
             username: entity.username,
-            password: entity.password, // TODO: Consider excluding password in view DTO
+            password: password,
             timeout: entity.timeout,
             retries: entity.retries,
             cronSchedule: entity.cronSchedule,

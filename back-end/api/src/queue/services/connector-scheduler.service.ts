@@ -5,6 +5,7 @@ import { ConnectorSpecificationsService } from 'src/metadata/connector-specifica
 import { QueueService } from './queue.service';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { MessageQueueEntity } from '../entity/message-queue.entity';
 
 @Injectable()
 export class ConnectorSchedulerService implements OnModuleInit {
@@ -89,7 +90,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async scheduleConnectorJob(connectorId: number) {
         try {
-            const connector = await this.connectorService.find(connectorId);
+            const connector = await this.connectorService.find(connectorId, true);
 
             if (connector.disabled) {
                 this.logger.warn(`Connector ${connectorId} is disabled, skipping`);
@@ -123,15 +124,14 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Manually trigger a connector job
      */
-    async triggerConnectorManually(connectorId: number, userId: number) {
-        const connector = await this.connectorService.find(connectorId);
+    public async triggerConnectorManually(connectorId: number, userId: number): Promise<MessageQueueEntity> {
+        const connector = await this.connectorService.find(connectorId, true);
 
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,
             connectorType: connector.connectorType,
             specificationIds: connector.specificationIds,
-            triggeredBy: 'manual',
-            //userId,
+            triggeredBy: 'manual'
         };
 
         const jobName = `connector.${connector.connectorType}`;
