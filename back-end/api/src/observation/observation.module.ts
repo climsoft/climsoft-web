@@ -40,5 +40,9 @@ import { DataEntryAndCorrectionCheckService } from './services/data-entry-check.
     ClimsoftWebToV4SyncService,
     ClimsoftV4ToWebSyncService,
   ],
+  exports: [
+    ObservationImportService,
+    ExportObservationsService,
+  ]
 })
 export class ObservationModule { }

@@ -37,7 +37,7 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-    public async processFile(sourceId: number, file: Express.Multer.File, userId: number, username: string, stationId?: string) {
+    public async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
         const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
@@ -55,7 +55,7 @@ export class ObservationImportService {
             const importSourceDef = sourceDef.parameters as ImportSourceDTO;
 
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-                await this.importTabularSource(sourceDef, tmpFilePathName, userId, username, stationId);
+                await this.importTabularSource(sourceDef, tmpFilePathName, userId, stationId);
             } else {
                 throw new BadRequestException("Error: Source not supported yet");
             }
@@ -68,7 +68,7 @@ export class ObservationImportService {
         }
     }
 
-    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, username: string, stationId?: string) {
+    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDTO = sourceDef.parameters as ImportSourceDTO;
         const tabularDef: ImportSourceTabularParamsDTO = importDef.dataStructureParameters as ImportSourceTabularParamsDTO;

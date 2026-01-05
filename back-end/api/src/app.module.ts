@@ -7,18 +7,21 @@ import { MetadataModule } from './metadata/metadata.module';
 import { UserModule } from './user/user.module';
 import { SettingsModule } from './settings/settings.module';
 import { MigrationsModule } from './migrations/migrations.module';
+import { QueueModule } from './queue/queue.module';
 import { AppConfig } from './app.config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     EventEmitterModule.forRoot(),
+    ScheduleModule.forRoot(),
     UserModule,
     MetadataModule,
     ObservationModule,
     SettingsModule,
     MigrationsModule,
-    MetadataModule,
+    QueueModule,
     TypeOrmModule.forRoot({
       type: "postgres",
       host: AppConfig.dbCredentials.host,

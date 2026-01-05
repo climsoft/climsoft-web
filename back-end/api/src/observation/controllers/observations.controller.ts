@@ -171,7 +171,7 @@ export class ObservationsController {
 
     try {
       const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.processFile(sourceId, file, user.id, user.username, stationId);
+      await this.observationImportService.processFile(sourceId, file, user.id, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -191,8 +191,8 @@ export class ObservationsController {
   async softDelete(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
-         const user = AuthUtil.getLoggedInUser(request);
-      // Validate form data. If any invalid bad request will be thrown
+    const user = AuthUtil.getLoggedInUser(request);
+    // Validate form data. If any invalid bad request will be thrown
     await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
 
     return this.observationsService.softDelete(observationDtos, user.id);
