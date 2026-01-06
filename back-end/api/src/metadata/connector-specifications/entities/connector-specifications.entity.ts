@@ -1,7 +1,8 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { ConnectorTypeEnum } from "../enums/connector-type.enum";
-import { ProtocolEnum } from "../enums/protocol.enum";
+import { ConnectorProtocolEnum } from "../enums/connector-protocol.enum";
+import { ConnectorParameters } from "../dtos/create-connector-specification.dto";
 
 @Entity("connector_specifications")
 @Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
@@ -19,38 +20,21 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Index()
   connectorType: ConnectorTypeEnum;
 
-  @Column({ name: "server_ip_address", type: 'varchar' })
+  @Column({ name: 'protocol', type: 'enum', enum: ConnectorProtocolEnum })
   @Index()
-  serverIPAddress: string;
+  protocol: ConnectorProtocolEnum;
 
-  @Column({ name: 'protocol', type: 'enum', enum: ProtocolEnum })
-  @Index()
-  protocol: ProtocolEnum;
-
-  @Column({ name: "port", type: 'int' }) 
-  port: number;
-
-  @Column({ name: "username", type: 'varchar' }) 
-  username: string;
-
-  @Column({ name: "password", type: 'varchar' }) 
-  password: string;
-
-  @Column({ name: 'timeout', type: 'int' }) 
+  @Column({ name: 'timeout', type: 'int' })
   timeout: number; // in seconds
 
   @Column({ name: "maximum_retries", type: "int" })
   maximumRetries: number;
 
-  @Column({ name: 'cron_schedule', type: 'varchar' }) 
+  @Column({ name: 'cron_schedule', type: 'varchar' })
   cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
-  @Column({ name: 'specification_ids', type: 'int', array: true })
-  @Index()
-  specificationIds: number[]; // Array of source_specification or export_specification IDs
-
-  @Column({ name: "extra_metadata", type: 'jsonb', nullable: true })
-  extraMetadata: any | null;
+  @Column({ name: "parameters", type: 'jsonb' })
+  parameters: ConnectorParameters;
 
   @Column({ name: 'disabled', type: 'bool', default: false })
   @Index()

@@ -1,8 +1,9 @@
-import { ConnectorTypeEnum } from "../enums/connector-type.enum";
-import { ConnectorProtocolEnum } from "../enums/connector-protocol.enum";
-import { ConnectorParameters } from "./create-connector-specification.dto";
 
-export class ViewConnectorSpecificationDto {
+import { ConnectorTypeEnum } from "./connector-type.enum";
+import { ConnectorParameters } from "./create-connector-specification.model";
+import { ConnectorProtocolEnum } from "./connector-protocol.enum";
+
+export interface ViewConnectorSpecificationModel {
     id: number;
     name: string;
     description: string | null;

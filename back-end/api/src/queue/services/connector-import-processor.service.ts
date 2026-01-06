@@ -11,8 +11,9 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { ProtocolEnum } from 'src/metadata/connector-specifications/enums/protocol.enum';
+import { ConnectorProtocolEnum } from 'src/metadata/connector-specifications/enums/connector-protocol.enum';
 import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { FTPMetadataDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ConnectorImportProcessorService {
@@ -41,14 +42,13 @@ export class ConnectorImportProcessorService {
 
         const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId, true);
 
-        for (const specId of connector.specificationIds) {
-            try {
-                await this.processImportSpecification(connector, specId, job.entryUserId);
-            } catch (error) {
-                this.logger.error(`Failed to process specification ${specId}`, error);
-                throw error; // Re-throw to mark job as failed
-            }
+        try {
+            //await this.processImportSpecification(connector, connector.specificationId, job.entryUserId);
+        } catch (error) {
+           // this.logger.error(`Failed to process specification ${connector.specificationId}`, error);
+            throw error; // Re-throw to mark job as failed
         }
+
     }
 
     /**
@@ -61,17 +61,17 @@ export class ConnectorImportProcessorService {
         const sourceSpec: ViewSourceDto = await this.sourceService.find(specId);
 
         // Download file based on protocol
-        let localFilePath: string;
+        let localFilePath: string; // TODO. Can be a set of files
         switch (connector.protocol) {
-            case ProtocolEnum.FTP:
-            case ProtocolEnum.FTPS:
+            case ConnectorProtocolEnum.FTP:
+            case ConnectorProtocolEnum.FTPS:
                 localFilePath = await this.downloadFileFtp(connector);
                 break;
-            case ProtocolEnum.SFTP:
+            case ConnectorProtocolEnum.SFTP:
                 localFilePath = await this.downloadFileSftp(connector);
                 break;
-            case ProtocolEnum.HTTP:
-            case ProtocolEnum.HTTPS:
+            case ConnectorProtocolEnum.HTTP:
+            case ConnectorProtocolEnum.HTTPS:
                 localFilePath = await this.downloadFileHttp(connector);
                 break;
             default:
@@ -114,25 +114,26 @@ export class ConnectorImportProcessorService {
      */
     private async downloadFileFtp(connector: ViewConnectorSpecificationDto): Promise<string> {
         const client = new FtpClient();
+
+        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
         // TODO. Check how to timeout via the library
         // client.ftp.timeout = connector.timeout * 1000;
-
-        const remotePath = connector.extraMetadata?.remotePath || '/';
-        const filePattern = connector.extraMetadata?.filePattern || '*';
+        const remotePath = connectExtraMetadata.remotePath || '/';
+        const filePattern = connectExtraMetadata.specifications[0].filePattern || '*';
         const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
         await fs.mkdir(tmpDir, { recursive: true });
 
         try {
             // Connect to FTP server
             await client.access({
-                host: connector.serverIPAddress,
-                port: connector.port,
-                user: connector.username,
-                password: connector.password,
-                secure: connector.protocol === ProtocolEnum.FTPS,
+                host: '',// connector.serverIPAddress,
+                port: 0,//connector.port,
+                user: '',// connector.username,
+                password: '',// connector.password,
+                secure: connector.protocol === ConnectorProtocolEnum.FTPS,
             });
 
-            this.logger.log(`Connected to FTP server ${connector.serverIPAddress}`);
+            this.logger.log(`Connected to FTP server ${connectExtraMetadata.serverIPAddress}`);
 
             // List files in remote directory
             await client.cd(remotePath);
@@ -167,22 +168,23 @@ export class ConnectorImportProcessorService {
     private async downloadFileSftp(connector: ViewConnectorSpecificationDto): Promise<string> {
         const client = new SftpClient();
 
-        const remotePath = connector.extraMetadata?.remotePath || '/';
-        const filePattern = connector.extraMetadata?.filePattern || '*';
+         const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        const remotePath = connectExtraMetadata.remotePath || '/';
+        const filePattern = connectExtraMetadata.specifications[0].filePattern || '*';
         const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
         await fs.mkdir(tmpDir, { recursive: true });
 
         try {
             // Connect to SFTP server
             await client.connect({
-                host: connector.serverIPAddress,
-                port: connector.port,
-                username: connector.username,
-                password: connector.password,
+                host: connectExtraMetadata.serverIPAddress,
+                port: connectExtraMetadata.port,
+                username: connectExtraMetadata.username,
+                password: connectExtraMetadata.password,
                 readyTimeout: connector.timeout * 1000,
             });
 
-            this.logger.log(`Connected to SFTP server ${connector.serverIPAddress}`);
+            this.logger.log(`Connected to SFTP server ${connectExtraMetadata.serverIPAddress}`);
 
             // List files in remote directory
             const fileList = await client.list(remotePath);
@@ -214,7 +216,7 @@ export class ConnectorImportProcessorService {
      * Download file via HTTP/HTTPS
      */
     private async downloadFileHttp(connector: ViewConnectorSpecificationDto): Promise<string> {
-        const url = `${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
+        const url = ''; //`${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
         const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
         await fs.mkdir(tmpDir, { recursive: true });
 
@@ -225,8 +227,8 @@ export class ConnectorImportProcessorService {
         const response = await axios.get(url, {
             timeout: connector.timeout * 1000,
             auth: {
-                username: connector.username,
-                password: connector.password,
+                username: '', //connector.username,
+                password: '' //connector.password,
             },
             responseType: 'stream',
         });

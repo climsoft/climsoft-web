@@ -40,7 +40,7 @@ import { StationSelectorSingleComponent } from './stations/station-selector/stat
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
 import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
 import { ExportTemplateDetailComponent } from './export-templates/export-template-detail/export-template-detail.component';
-import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
+import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ExportTemplateSelectorSingleComponent } from './export-templates/export-template-selector/export-template-selector-single/export-template-selector-single.component';
 import { ExportTemplateSelectorMultipleComponent } from './export-templates/export-template-selector/export-template-selector-multiple/export-template-selector-multiple.component';
 import { SourceSelectorSingleComponent } from './source-templates/source-selector/source-single-input/source-selector-single.component';
@@ -69,6 +69,9 @@ import { StationObsProcessingSelectorMultipleComponent } from './stations/statio
 import { StationEnvironmentSelectorMultipleComponent } from './stations/station-environment-selector/station-environment-selector-multiple/station-environment-selector-multiple.component';
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
 import { ImportSourceValueDetailComponent } from './source-templates/import-source-detail/import-source-value-detail/import-source-value-detail.component';
+import { ImportConnectorInputDialogComponent } from './connector-specifications/import-connector-input-dialog/import-connector-input-dialog.component';
+import { ConnectorProtocolSelectorSingleComponent } from './connector-specifications/connector-protocol-selector/connector-protocol-selector-single/connector-protocol-selector-single.component';
+import { FTPParametersInputComponent } from './connector-specifications/import-connector-input-dialog/ftp-parameters-input/ftp-parameters-input.component';
 
 @NgModule({
   declarations: [ 
@@ -159,7 +162,10 @@ import { ImportSourceValueDetailComponent } from './source-templates/import-sour
     ExportTemplateSelectorSingleComponent,
     ExportTemplateSelectorMultipleComponent,
 
-    ViewConnectorsComponent,
+    ViewConnectorSpecificationsComponent,
+    ImportConnectorInputDialogComponent,
+    ConnectorProtocolSelectorSingleComponent,
+    FTPParametersInputComponent,
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,

@@ -8,7 +8,7 @@ import { ImportSourceDetailComponent } from './source-templates/import-source-de
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ViewExportTemplatesComponent } from './export-templates/view-export-templates/view-export-templates.component';
 import { ExportTemplateDetailComponent } from './export-templates/export-template-detail/export-template-detail.component';
-import { ViewConnectorsComponent } from './connectors/view-connectors/view-connectors.component';
+import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
@@ -30,10 +30,6 @@ const routes: Routes = [
       {
         path: 'view-elements',
         component: ViewElementsComponent,
-      },
-      {
-        path: 'view-sources',
-        component: ViewSourcesComponent,
       },
       {
         path: 'form-source-detail/:id',
@@ -67,12 +63,16 @@ const routes: Routes = [
         path: 'view-stations',
         component: ViewStationsComponent,
       }, 
-      {
-        path: 'view-qc-tests',
+        {
+        path: 'view-qc-test-specifications',
         component: ViewQCTestsComponent
       },
+        {
+        path: 'view-source-specifications',
+        component: ViewSourcesComponent,
+      },    
       {
-        path: 'view-exports',
+        path: 'view-export-specifications',
         component: ViewExportTemplatesComponent
       },
       {
@@ -80,8 +80,8 @@ const routes: Routes = [
         component: ExportTemplateDetailComponent
       },
       {
-        path: 'view-connectors',
-        component: ViewConnectorsComponent
+        path: 'view-connector-specifications',
+        component: ViewConnectorSpecificationsComponent
       },
     ]
   }

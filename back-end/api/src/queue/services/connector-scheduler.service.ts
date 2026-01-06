@@ -6,6 +6,7 @@ import { JobQueueService } from './job-queue.service';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { JobQueueEntity } from '../entity/job-queue.entity';
+import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
 
 @Injectable()
 export class ConnectorSchedulerService implements OnModuleInit {
@@ -99,7 +100,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
             const payload: ConnectorJobPayloadDto = {
                 connectorId: connector.id,
                 connectorType: connector.connectorType,
-                specificationIds: connector.specificationIds,
+                extraMetadata: connector.parameters,
                 maxRetries: connector.maximumRetries,
                 triggeredBy: 'schedule'
             };
@@ -125,12 +126,12 @@ export class ConnectorSchedulerService implements OnModuleInit {
      * Manually trigger a connector job
      */
     public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
-        const connector = await this.connectorSpecificationService.find(connectorId, true);
+        const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId, true);
 
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,
             connectorType: connector.connectorType,
-            specificationIds: connector.specificationIds,
+            extraMetadata: connector.parameters,
             maxRetries: connector.maximumRetries,
             triggeredBy: 'manual'
         };

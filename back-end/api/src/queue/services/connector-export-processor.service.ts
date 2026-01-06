@@ -10,7 +10,8 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { ProtocolEnum } from 'src/metadata/connector-specifications/enums/protocol.enum';
+import { ConnectorProtocolEnum } from 'src/metadata/connector-specifications/enums/connector-protocol.enum';
+import { FTPMetadataDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ConnectorExportProcessorService {
@@ -38,14 +39,13 @@ export class ConnectorExportProcessorService {
 
         const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId, true);
 
-        for (const specId of connector.specificationIds) {
-            try {
-                await this.processExportSpecification(connector, specId, job.entryUserId);
-            } catch (error) {
-                this.logger.error(`Failed to process export specification ${specId}`, error);
-                throw error; // Re-throw to mark job as failed
-            }
+        try {
+            //await this.processExportSpecification(connector, connector.specificationId, job.entryUserId);
+        } catch (error) {
+           // this.logger.error(`Failed to process export specification ${connector.specificationId}`, error);
+            throw error; // Re-throw to mark job as failed
         }
+
     }
 
     /**
@@ -73,15 +73,15 @@ export class ConnectorExportProcessorService {
         try {
             // Upload file based on protocol
             switch (connector.protocol) {
-                case ProtocolEnum.FTP:
-                case ProtocolEnum.FTPS:
+                case ConnectorProtocolEnum.FTP:
+                case ConnectorProtocolEnum.FTPS:
                     await this.uploadFileFtp(connector, localFilePath);
                     break;
-                case ProtocolEnum.SFTP:
+                case ConnectorProtocolEnum.SFTP:
                     await this.uploadFileSftp(connector, localFilePath);
                     break;
-                case ProtocolEnum.HTTP:
-                case ProtocolEnum.HTTPS:
+                case ConnectorProtocolEnum.HTTP:
+                case ConnectorProtocolEnum.HTTPS:
                     await this.uploadFileHttp(connector, localFilePath);
                     break;
                 default:
@@ -103,24 +103,26 @@ export class ConnectorExportProcessorService {
      */
     private async uploadFileFtp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new FtpClient();
+
+            const connectExtraMetadata = connector.parameters as FTPMetadataDto;
         // TODO. Check how to timeout via the library
         // client.ftp.timeout = connector.timeout * 1000;
 
-        const remotePath = connector.extraMetadata?.uploadPath || '/';
-        const fileNaming = connector.extraMetadata?.fileNaming || path.basename(localFilePath);
+        const remotePath = ''; // connector.extraMetadata?.uploadPath || '/';
+        const fileNaming = ''; //connector.extraMetadata?.fileNaming || path.basename(localFilePath);
         const remoteFileName = fileNaming.replace('{timestamp}', Date.now().toString());
 
         try {
             // Connect to FTP server
             await client.access({
-                host: connector.serverIPAddress,
-                port: connector.port,
-                user: connector.username,
-                password: connector.password,
-                secure: connector.protocol === ProtocolEnum.FTPS,
+                host: connectExtraMetadata.serverIPAddress,
+                port: connectExtraMetadata.port,
+                user: connectExtraMetadata.username,
+                password: connectExtraMetadata.password,
+                secure: connector.protocol === ConnectorProtocolEnum.FTPS,
             });
 
-            this.logger.log(`Connected to FTP server ${connector.serverIPAddress}`);
+            this.logger.log(`Connected to FTP server ${connectExtraMetadata.serverIPAddress}`);
 
             // Change to upload directory
             await client.cd(remotePath);
@@ -140,21 +142,22 @@ export class ConnectorExportProcessorService {
     private async uploadFileSftp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new SftpClient();
 
-        const remotePath = connector.extraMetadata?.uploadPath || '/';
-        const fileNaming = connector.extraMetadata?.fileNaming || path.basename(localFilePath);
+        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        const remotePath = ''; //connectExtraMetadata.uploadPath || '/';
+        const fileNaming = ''; // connectExtraMetadata.fileNaming || path.basename(localFilePath);
         const remoteFileName = fileNaming.replace('{timestamp}', Date.now().toString());
 
         try {
             // Connect to SFTP server
             await client.connect({
-                host: connector.serverIPAddress,
-                port: connector.port,
-                username: connector.username,
-                password: connector.password,
+                host: connectExtraMetadata.serverIPAddress,
+                port: connectExtraMetadata.port,
+                username: connectExtraMetadata.username,
+                password: connectExtraMetadata.password,
                 readyTimeout: connector.timeout * 1000,
             });
 
-            this.logger.log(`Connected to SFTP server ${connector.serverIPAddress}`);
+            this.logger.log(`Connected to SFTP server ${connectExtraMetadata.serverIPAddress}`);
 
             // Upload file
             const remoteFilePath = path.posix.join(remotePath, remoteFileName);
@@ -170,7 +173,7 @@ export class ConnectorExportProcessorService {
      * Upload file via HTTP/HTTPS
      */
     private async uploadFileHttp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
-        const url = `${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
+        const url = '';// `${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
 
         this.logger.log(`Uploading to ${url}`);
 
@@ -184,8 +187,8 @@ export class ConnectorExportProcessorService {
         await axios.post(url, formData, {
             timeout: connector.timeout * 1000,
             auth: {
-                username: connector.username,
-                password: connector.password,
+                username: '',// connector.username,
+                password: '', // connector.password,
             },
             headers: formData.getHeaders(),
         });

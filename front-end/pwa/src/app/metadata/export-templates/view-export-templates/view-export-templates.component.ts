@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
-import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service'; 
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ExportTemplatesService } from '../services/export-templates.service';
 import { ViewExportTemplateModel } from '../models/view-export-template.model';
 
@@ -10,7 +10,7 @@ import { ViewExportTemplateModel } from '../models/view-export-template.model';
   templateUrl: './view-export-templates.component.html',
   styleUrls: ['./view-export-templates.component.scss']
 })
-export class ViewExportTemplatesComponent  {
+export class ViewExportTemplatesComponent {
   protected exports!: ViewExportTemplateModel[];
 
   constructor(
@@ -19,25 +19,28 @@ export class ViewExportTemplatesComponent  {
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Export Specifications');
-
-    this.exportsService.findAll().pipe(
-     take(1),
-    ).subscribe((data) => {
-      this.exports = data ;
-    });
-
+    this.loadExportSpecifications();
   }
 
-  protected onOptionsClicked(option: 'Add' |'Delete All') {
+  private loadExportSpecifications(): void {
+    this.exportsService.findAll().pipe(
+      take(1),
+    ).subscribe((data) => {
+      this.exports = data;
+    });
+  }
+
+  protected onOptionsClicked(option: 'Add' | 'Delete All') {
     switch (option) {
-      case 'Add':        
+      case 'Add':
         this.router.navigate(['export-detail', 'new'], { relativeTo: this.route.parent });
-        break; 
+        break;
       case 'Delete All':
         this.exportsService.deleteAll().pipe(
-          take(1)
-        ).subscribe(data => {
+          take(1),
+        ).subscribe(() => {
           this.pagesDataService.showToast({ title: "Exports Deleted", message: `All exports deleted`, type: ToastEventTypeEnum.SUCCESS });
+          this.loadExportSpecifications();
         });
         break;
       default:

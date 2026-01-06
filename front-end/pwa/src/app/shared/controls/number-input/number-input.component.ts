@@ -12,6 +12,7 @@ export class NumberInputComponent implements OnChanges {
   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
   @Input() public id!: string | number;
   @Input() public label!: string;
+  @Input() public labelSuperScript!: string;
   @Input() public disabled!: boolean;
   @Input() public borderSize!: number;
   @Input() public hintMessage!: string;

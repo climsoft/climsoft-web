@@ -1,0 +1,148 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
+    [displayDeleteOption]="connector && connector.id > 0" [closeOnOkClick]="false" (okClick)="onOkClick()"
+    (deleteClick)="onDeleteClick()">
+
+    <div *ngIf="open && connector">
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="connector.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="connector.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-connector-protocol-selector-single [label]="'Protocol'" [selectedId]="connector.protocol"
+                (selectedIdChange)="onConnectorProtocolSelected($event)" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-number-input [label]="'Timeout'" [labelSuperScript]="'Seconds'" [(numValue)]="connector.timeout" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-number-input [label]="'Maximum Retries'" [(numValue)]="connector.maximumRetries" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Cron Schedule'" [(value)]="connector.cronSchedule" />
+        </div>
+
+
+
+
+        <hr />
+
+        <div class="card">
+            <div class="card-header">Parameters</div>
+            <div class="card-body">
+                <!-- 
+                TODO. 
+                In future the parameters displayed here will depend on the connector protocol selected in a similar way to QC parameters. 
+                For now, just assume it is always FTP
+                -->
+
+                <div>
+                    <app-text-input [label]="'Server IP Address'" [(value)]="connector.parameters.serverIPAddress" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-number-input [label]="'Port'" [(numValue)]="connector.parameters.port" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Username'" [(value)]="connector.parameters.username" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Password'" [(value)]="connector.parameters.password" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Confirm Password'" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <app-text-input [label]="'Remote Path'" [(value)]="connector.parameters.remotePath" />
+                </div>
+
+                <hr />
+
+                <div>
+                    <div>Source Specifications:</div>
+                    <div>
+                        <table class="table table-sm ms-2">
+                            <thead>
+                                <tr>
+                                    <th>File Source Pattern</th>
+                                    <th>Database Source</th>
+                                     <th>Station</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let item of connector.parameters.specifications; let i = index;">
+                                     <td>
+                                        <app-text-input [id]="i + '_file_source_pattern_specification'"
+                                            [(value)]="item.filePattern" />
+                                    </td>
+                                    <td>
+                                        Database import source selector
+                                    </td>
+
+                                    <td>
+                                        <app-station-selector-single [id]="i + '_station_id_specification'"
+                                             />
+                                    </td>
+                                   
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            >
+                                            Remove
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Disable'" [(value)]="connector.disabled" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="connector.comment" />
+        </div>
+
+    </div>
+
+</app-dialog>

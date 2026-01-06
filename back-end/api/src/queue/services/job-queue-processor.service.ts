@@ -65,7 +65,7 @@ export class JobQueueProcessorService {
             // Emit event for job processors to handle
             await this.eventEmitter.emitAsync(`${job.name}`, job);
 
-            await this.queueService.markAsFinished(job.id);
+            await this.queueService.markAsFinished(job.id); // TODO. This can be done as a prompt(event emitted) from individual processors after they finish the task. Will help with doing the tasks in parallel
             this.logger.log(`Job ${job.id} completed successfully`);
 
         } catch (error) {

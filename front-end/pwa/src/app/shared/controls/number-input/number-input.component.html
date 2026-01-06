@@ -1,4 +1,5 @@
-<app-text-input #appTextInput [type]="'number'" [id]="id" [label]="label" [disabled]="disabled"
-  [borderSize]="borderSize" [value]="value" [errorMessage]="errorMessage" [hintMessage]="hintMessage" [min]="min"
-  [max]="max" [simulateTabOnEnter]="simulateTabOnEnter" (valueChange)="onValueChange($event)"
-  (inputClick)="onInputClick()" (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()"></app-text-input>
+<app-text-input #appTextInput [type]="'number'" [id]="id" [label]="label" [labelSuperScript]="labelSuperScript"
+  [disabled]="disabled" [borderSize]="borderSize" [value]="value" [errorMessage]="errorMessage"
+  [hintMessage]="hintMessage" [min]="min" [max]="max" [simulateTabOnEnter]="simulateTabOnEnter"
+  (valueChange)="onValueChange($event)" (inputClick)="onInputClick()" (inputEnterKeyPress)="onEnterKeyPressed()"
+  (inputBlur)="onInputBlur()"></app-text-input>

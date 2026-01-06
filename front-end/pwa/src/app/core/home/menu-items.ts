@@ -187,19 +187,19 @@ export class MenuItemsUtil {
                 },
                 {
                     name: SubMenuNameEnum.QC_SPECIFICATIONS,
-                    url: '/view-qc-tests',
+                    url: '/view-qc-test-specifications',
                 },
                 {
                     name: SubMenuNameEnum.SOURCE_SPECIFICATIONS,
-                    url: '/view-sources',
+                    url: '/view-source-specifications',
                 },
                 {
                     name: SubMenuNameEnum.EXPORT_SPECIFICATIONS,
-                    url: '/view-exports',
+                    url: '/view-export-specifications',
                 },
                 {
                     name: SubMenuNameEnum.CONNECTOR_SPECIFICATIONS,
-                    url: '/view-connectors',
+                    url: '/view-connector-specifications',
                 },
             ]
         }

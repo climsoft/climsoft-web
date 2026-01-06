@@ -1,0 +1,54 @@
+<div class="card border-0">
+   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+      <div class="d-flex align-items-center">
+         <button type="button" class="btn btn-outline-secondary btn-sm"
+            (click)="onOptionsClicked('Add Import Connector')">
+            Add Import Connector
+         </button>
+         <button type="button" class="btn btn-outline-secondary btn-sm ms-2"
+            (click)="onOptionsClicked('Add Export Connector')">
+            Add Export Connector
+         </button>
+         <div class="ms-2">
+            <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
+               (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+         </div>
+         <div *ngIf="connectors" class="d-flex mx-2">
+            [{{ connectors.length | number:'1.0-0' }}]
+         </div>
+      </div>
+   </div>
+
+   <div class="card-body px-0">
+      <div class="app-table-container" style="height: 80vh;">
+         <table class="table table-hover table-sm">
+            <colgroup>
+               <col style="width: 2%;" />
+               <col style="width: 16%;" />
+               <col style="width: 6%;" />
+               <col style="width: 61%;" />
+               <col style="width: 5%;" />
+            </colgroup>
+            <thead>
+               <tr>
+                  <th></th>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Description</th>
+                  <th>Disabled</th>
+               </tr>
+            </thead>
+            <tbody>
+               <tr class="app-cursor-pointer" *ngFor="let source of connectors" (click)="onEditConnector(source)">
+                  <td><i class="bi bi-arrow-right-short"></i></td>
+                  <td>{{ source.name }}</td>
+                  <td>{{ source.connectorType }}</td>
+                  <td>{{ source.description }}</td>
+                  <td>{{ source.disabled? 'Yes': 'No' }}</td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+      <app-connector-specification-input-dialog #dlgImportConnectorInput (ok)="onConnectorInput()" />
+   </div>
+</div>
