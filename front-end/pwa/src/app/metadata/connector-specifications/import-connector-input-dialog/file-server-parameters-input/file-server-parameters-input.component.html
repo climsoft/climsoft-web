@@ -18,13 +18,15 @@
     <hr />
 
     <div>
-        <app-text-input [label]="'Password'" [(value)]="ftpMetadata.password" />
-    </div>
-
-    <hr />
-
-    <div>
-        <app-text-input [label]="'Confirm Password'" />
+        <div>
+            <app-text-input [type]="'password'" [label]="'Password'" [(value)]="newPassword"
+                (valueChange)="onPasswordChange()" />
+        </div>
+        <div>
+            <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="ftpMetadata.password"
+                (valueChange)="onPasswordChange()" />
+        </div>
+        <div class="text-danger" *ngIf="newPassword !== confirmPassword ">Passwords should match</div>
     </div>
 
     <hr />

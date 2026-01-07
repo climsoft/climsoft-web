@@ -27,13 +27,12 @@ export class PasswordChangeComponent {
   }
 
   protected onOkClick(): void {
-
-    if (this.newPassword === "") {
+    if (this.newPassword === '') {
       this.pagesDataService.showToast({ title: "Password Change", message: `Empty passwords not allowed`, type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-    if (this.confirmPassword === "") {
+    if (this.confirmPassword === '') {
       this.pagesDataService.showToast({ title: "Password Change", message: `Password NOT confirmed`, type: ToastEventTypeEnum.ERROR });
       return;
     }

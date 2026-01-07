@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { FTPMetadataModel } from '../../models/create-connector-specification.model';
 
@@ -32,18 +32,25 @@ export class FileServerParametersInputComponent implements OnChanges {
   /** FTP metadata model bound from parent component */
   @Input() public ftpMetadata!: FTPMetadataModel;
 
+  /** Event emitted when validation errors occur */
+  @Output() public validationError = new EventEmitter<string>();
+
   /** Source type filter for import source selector */
   protected importSourceTypeEnum: SourceTypeEnum = SourceTypeEnum.IMPORT;
 
   /** Internal array for managing specification rows in the UI */
   protected ftpSpecifications: ViewModel[] = [];
 
+  protected newPassword: string = '';
+  protected confirmPassword: string = '';
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.ftpMetadata) {
+      this.newPassword = this.ftpMetadata.password;
+      this.confirmPassword = this.ftpMetadata.password;
       this.ftpSpecifications = [];
       for (const spec of this.ftpMetadata.specifications) {
         this.ftpSpecifications.push({ filePattern: spec.filePattern, specificationId: spec.specificationId, stationId: spec.stationId ? spec.stationId : null });
@@ -54,6 +61,31 @@ export class FileServerParametersInputComponent implements OnChanges {
         this.ftpSpecifications.push({ filePattern: '', specificationId: null, stationId: null });
       }
     }
+  }
+
+  /**
+   * Handles password change validation.
+   * Validates that both password fields are filled and match.
+   * Emits validation errors to parent component for display.
+   */
+  protected onPasswordChange(): void {
+    if (this.newPassword === '') {
+      this.validationError.emit('Empty passwords not allowed');
+      return;
+    }
+
+    if (this.confirmPassword === '') {
+      this.validationError.emit('Password NOT confirmed');
+      return;
+    }
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.validationError.emit('Passwords DO NOT match');
+      return;
+    }
+
+    // Passwords match - update the metadata
+    this.ftpMetadata.password = this.newPassword;
   }
 
   /**

@@ -49,7 +49,7 @@
             <div class="card-header">End Point Parameters</div>
             <div class="card-body">
                 <div *ngIf="connector.endPointType === 'file_server'">
-                    <app-file-server-parameters-input [ftpMetadata]="connector.parameters" />
+                    <app-file-server-parameters-input [ftpMetadata]="connector.parameters" (validationError)="onValidationError($event)" />
                 </div>
                 <div *ngIf="connector.endPointType === 'web_server'" class="text-info">
                     Web Server end points will be supported in the next version release

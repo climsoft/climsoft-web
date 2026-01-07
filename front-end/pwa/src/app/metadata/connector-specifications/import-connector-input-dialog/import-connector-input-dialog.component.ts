@@ -115,4 +115,12 @@ export class ImportConnectorInputDialogComponent {
     });
   }
 
+  protected onValidationError(errorMessage: string): void {
+    this.pagesDataService.showToast({
+      title: "Password Validation",
+      message: errorMessage,
+      type: ToastEventTypeEnum.ERROR
+    });
+  }
+
 }
