@@ -1,4 +1,4 @@
-import { Component, Input, Output } from '@angular/core';
+import { Component, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { FTPMetadataModel } from '../../models/create-connector-specification.model';
 
@@ -27,7 +27,7 @@ interface ViewModel {
   templateUrl: './file-server-parameters-input.component.html',
   styleUrls: ['./file-server-parameters-input.component.scss']
 })
-export class FileServerParametersInputComponent {
+export class FileServerParametersInputComponent implements OnChanges {
 
   /** FTP metadata model bound from parent component */
   @Input() public ftpMetadata!: FTPMetadataModel;
@@ -38,12 +38,21 @@ export class FileServerParametersInputComponent {
   /** Internal array for managing specification rows in the UI */
   protected ftpSpecifications: ViewModel[] = [];
 
-  /**
-   * Initializes component with 2 empty specification rows.
-   */
+
   constructor() {
-    for (let i = 1; i <= 2; i++) {
-      this.ftpSpecifications.push({ filePattern: '', specificationId: null, stationId: null });
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.ftpMetadata) {
+      this.ftpSpecifications = [];
+      for (const spec of this.ftpMetadata.specifications) {
+        this.ftpSpecifications.push({ filePattern: spec.filePattern, specificationId: spec.specificationId, stationId: spec.stationId ? spec.stationId : null });
+      }
+
+      // always initialise the array with 2 empty specification rows.
+      for (let i = 1; i <= 2; i++) {
+        this.ftpSpecifications.push({ filePattern: '', specificationId: null, stationId: null });
+      }
     }
   }
 
