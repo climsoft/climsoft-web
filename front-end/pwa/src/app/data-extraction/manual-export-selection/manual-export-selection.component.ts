@@ -4,8 +4,8 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
-import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
+import { ViewExportTemplateModel } from 'src/app/metadata/export-specifications/models/view-export-template.model';
+import { ExportTemplatesService } from 'src/app/metadata/export-specifications/services/export-templates.service';
 
 @Component({
   selector: 'app-manual-export-selection',

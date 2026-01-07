@@ -22,6 +22,8 @@ DECLARE
         'regions',
         'source_templates', 
         'export_templates',
+        'connector_specifications',
+        'job_queues',
         'station_forms',
         'station_network_affiliations',
         'station_observation_environments',

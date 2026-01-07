@@ -70,23 +70,20 @@ export class ConnectorSpecificationsService {
 
         entity.description = dto.description || null;
         entity.connectorType = dto.connectorType;
-       // entity.serverIPAddress = dto.serverIPAddress;
-        entity.protocol = dto.protocol;
-       // entity.port = dto.port;
-       // entity.username = dto.username;
-
-        // Encrypt password before storing
-        //entity.password = await EncryptionUtils.encrypt(dto.password);
-
+        entity.endPointType = dto.endPointType;
+        entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
         entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
-       // entity.specificationId = dto.specificationId;
-        entity.parameters = dto.parameters || null;
+
+        // Encrypt password before storing
+        dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
+
+        entity.parameters = dto.parameters;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
-
+        
         await this.connectorRepo.save(entity);
 
         const viewDto = await this.createViewDto(entity, false);
@@ -102,23 +99,20 @@ export class ConnectorSpecificationsService {
         entity.name = dto.name;
         entity.description = dto.description || null;
         entity.connectorType = dto.connectorType;
-        //entity.serverIPAddress = dto.serverIPAddress;
-        entity.protocol = dto.protocol;
-       // entity.port = dto.port;
-       // entity.username = dto.username;
+        entity.endPointType = dto.endPointType;
+        entity.hostName = dto.hostName;
 
-        // Only encrypt if password has changed (not already encrypted)
-      //  if (!EncryptionUtils.isEncrypted(dto.password)) {
-       //     entity.password = await EncryptionUtils.encrypt(dto.password);
-       // } else {
-       //     entity.password = dto.password; // Keep existing encrypted password
-       // }
+        //Only encrypt if password has changed (not already encrypted)
+        if (!EncryptionUtils.isEncrypted(dto.parameters.password)) {
+            entity.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
+        } else {
+            entity.parameters.password = dto.parameters.password; // Keep existing encrypted password
+        }
 
         entity.timeout = dto.timeout;
         entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
-        //entity.specificationId = dto.specificationId;
-        entity.parameters = dto.parameters || null;
+        entity.parameters = dto.parameters;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
@@ -155,30 +149,33 @@ export class ConnectorSpecificationsService {
         entity: ConnectorSpecificationEntity,
         decryptPassword: boolean = false
     ): Promise<ViewConnectorSpecificationDto> {
-        //let password = entity.password;
+        let password = entity.parameters.password;
 
         if (decryptPassword) {
             try {
                 // Decrypt password for actual usage (connecting to servers)
-                //password = await EncryptionUtils.decrypt(entity.password);
+                password = await EncryptionUtils.decrypt(entity.parameters.password);
             } catch (error) {
                 this.logger.error(`Failed to decrypt password for connector ${entity.id}`, error);
                 throw new BadRequestException('Failed to decrypt connector password');
             }
         } else {
             // Mask password for API responses
-            //password = '***ENCRYPTED***';
+            password = '***ENCRYPTED***';
         }
+
+        entity.parameters.password = password;
 
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
             name: entity.name,
             description: entity.description,
-            connectorType: entity.connectorType, 
-            protocol: entity.protocol,
+            connectorType: entity.connectorType,
+            endPointType: entity.endPointType,
+            hostName: entity.hostName,
             timeout: entity.timeout,
             maximumRetries: entity.maximumRetries,
-            cronSchedule: entity.cronSchedule, 
+            cronSchedule: entity.cronSchedule,
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment,

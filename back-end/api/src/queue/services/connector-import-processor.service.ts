@@ -11,7 +11,6 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { ConnectorProtocolEnum } from 'src/metadata/connector-specifications/enums/connector-protocol.enum';
 import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { FTPMetadataDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
@@ -45,7 +44,7 @@ export class ConnectorImportProcessorService {
         try {
             //await this.processImportSpecification(connector, connector.specificationId, job.entryUserId);
         } catch (error) {
-           // this.logger.error(`Failed to process specification ${connector.specificationId}`, error);
+            // this.logger.error(`Failed to process specification ${connector.specificationId}`, error);
             throw error; // Re-throw to mark job as failed
         }
 
@@ -62,51 +61,51 @@ export class ConnectorImportProcessorService {
 
         // Download file based on protocol
         let localFilePath: string; // TODO. Can be a set of files
-        switch (connector.protocol) {
-            case ConnectorProtocolEnum.FTP:
-            case ConnectorProtocolEnum.FTPS:
-                localFilePath = await this.downloadFileFtp(connector);
-                break;
-            case ConnectorProtocolEnum.SFTP:
-                localFilePath = await this.downloadFileSftp(connector);
-                break;
-            case ConnectorProtocolEnum.HTTP:
-            case ConnectorProtocolEnum.HTTPS:
-                localFilePath = await this.downloadFileHttp(connector);
-                break;
-            default:
-                throw new Error(`Unsupported protocol: ${connector.protocol}`);
-        }
+        // switch (connector.protocol) {
+        //     case ConnectorProtocolEnum.FTP:
+        //     case ConnectorProtocolEnum.FTPS:
+        //         localFilePath = await this.downloadFileFtp(connector);
+        //         break;
+        //     case ConnectorProtocolEnum.SFTP:
+        //         localFilePath = await this.downloadFileSftp(connector);
+        //         break;
+        //     case ConnectorProtocolEnum.HTTP:
+        //     case ConnectorProtocolEnum.HTTPS:
+        //         localFilePath = await this.downloadFileHttp(connector);
+        //         break;
+        //     default:
+        //         throw new Error(`Unsupported protocol: ${connector.protocol}`);
+        // }
 
-        try {
-            // Process the downloaded file using ObservationImportService
-            const file: Express.Multer.File = {
-                fieldname: 'file',
-                originalname: path.basename(localFilePath),
-                encoding: '7bit',
-                mimetype: 'text/csv',
-                size: (await fs.stat(localFilePath)).size,
-                buffer: await fs.readFile(localFilePath),
-                destination: '',
-                filename: path.basename(localFilePath),
-                path: localFilePath,
-                stream: null as any,
-            };
+        // try {
+        //     // Process the downloaded file using ObservationImportService
+        //     const file: Express.Multer.File = {
+        //         fieldname: 'file',
+        //         originalname: path.basename(localFilePath),
+        //         encoding: '7bit',
+        //         mimetype: 'text/csv',
+        //         size: (await fs.stat(localFilePath)).size,
+        //         buffer: await fs.readFile(localFilePath),
+        //         destination: '',
+        //         filename: path.basename(localFilePath),
+        //         path: localFilePath,
+        //         stream: null as any,
+        //     };
 
-            await this.observationImportService.processFile(
-                sourceSpec.id,
-                file,
-                userId,
-            );
+        //     await this.observationImportService.processFile(
+        //         sourceSpec.id,
+        //         file,
+        //         userId,
+        //     );
 
-            this.logger.log(`Successfully imported data from specification ${specId}`);
+        //     this.logger.log(`Successfully imported data from specification ${specId}`);
 
-        } finally {
-            // Clean up temporary file
-            await fs.unlink(localFilePath).catch(err =>
-                this.logger.warn(`Failed to delete temporary file ${localFilePath}`, err)
-            );
-        }
+        // } finally {
+        //     // Clean up temporary file
+        //     await fs.unlink(localFilePath).catch(err =>
+        //         this.logger.warn(`Failed to delete temporary file ${localFilePath}`, err)
+        //     );
+        // }
     }
 
     /**
@@ -130,10 +129,10 @@ export class ConnectorImportProcessorService {
                 port: 0,//connector.port,
                 user: '',// connector.username,
                 password: '',// connector.password,
-                secure: connector.protocol === ConnectorProtocolEnum.FTPS,
+                //secure: connector.protocol === ConnectorProtocolEnum.FTPS,
             });
 
-            this.logger.log(`Connected to FTP server ${connectExtraMetadata.serverIPAddress}`);
+            //this.logger.log(`Connected to FTP server ${connectExtraMetadata.hostName}`);
 
             // List files in remote directory
             await client.cd(remotePath);
@@ -168,7 +167,7 @@ export class ConnectorImportProcessorService {
     private async downloadFileSftp(connector: ViewConnectorSpecificationDto): Promise<string> {
         const client = new SftpClient();
 
-         const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
         const remotePath = connectExtraMetadata.remotePath || '/';
         const filePattern = connectExtraMetadata.specifications[0].filePattern || '*';
         const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
@@ -177,14 +176,14 @@ export class ConnectorImportProcessorService {
         try {
             // Connect to SFTP server
             await client.connect({
-                host: connectExtraMetadata.serverIPAddress,
+                //host: connectExtraMetadata.hostName,
                 port: connectExtraMetadata.port,
                 username: connectExtraMetadata.username,
                 password: connectExtraMetadata.password,
                 readyTimeout: connector.timeout * 1000,
             });
 
-            this.logger.log(`Connected to SFTP server ${connectExtraMetadata.serverIPAddress}`);
+            //this.logger.log(`Connected to SFTP server ${connectExtraMetadata.hostName}`);
 
             // List files in remote directory
             const fileList = await client.list(remotePath);

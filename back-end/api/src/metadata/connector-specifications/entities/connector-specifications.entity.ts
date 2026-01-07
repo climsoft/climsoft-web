@@ -1,8 +1,6 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { ConnectorTypeEnum } from "../enums/connector-type.enum";
-import { ConnectorProtocolEnum } from "../enums/connector-protocol.enum";
-import { ConnectorParameters } from "../dtos/create-connector-specification.dto";
+import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "../dtos/create-connector-specification.dto";
 
 @Entity("connector_specifications")
 @Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
@@ -20,9 +18,12 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Index()
   connectorType: ConnectorTypeEnum;
 
-  @Column({ name: 'protocol', type: 'enum', enum: ConnectorProtocolEnum })
+  @Column({ name: 'protocol', type: 'enum', enum: EndPointTypeEnum })
   @Index()
-  protocol: ConnectorProtocolEnum;
+  endPointType: EndPointTypeEnum;
+
+  @Column({ name: 'host_name', type: 'varchar' })
+  hostName: string;
 
   @Column({ name: 'timeout', type: 'int' })
   timeout: number; // in seconds
@@ -46,4 +47,3 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Column({ name: "log", type: 'jsonb', nullable: true })
   log: BaseLogVo[] | null;
 }
-

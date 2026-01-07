@@ -1,5 +1,4 @@
 import { ConnectorTypeEnum } from "./connector-type.enum";
-import { ConnectorProtocolEnum } from "./connector-protocol.enum";
 
 export type ConnectorParameters = FTPMetadataModel; // TODO. In future add other connector metadata types | HTTPMetadata ;
 
@@ -7,7 +6,8 @@ export interface CreateConnectorSpecificationModel {
     name: string;
     description?: string;
     connectorType: ConnectorTypeEnum;
-    protocol: ConnectorProtocolEnum;
+    endPointType: EndPointTypeEnum;
+    hostName: string;
     timeout: number; // in seconds
     maximumRetries: number;
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
@@ -17,19 +17,34 @@ export interface CreateConnectorSpecificationModel {
 }
 
 export interface FTPMetadataModel {
-    serverIPAddress: string;
+    protocol: FileServerProtocolEnum;
     port: number;
     username: string;
     password: string;
     remotePath: string
-    specifications: FTPSpecificationModel[];
+    specifications: FileServerSpecificationModel[];
 }
 
-export interface FTPSpecificationModel {
+export enum EndPointTypeEnum {
+    FILE_SERVER = 'file_server',
+    WEB_SERVER = 'web_server',
+    // MQTT_BROKER = 'mqtt_broker',
+    // We can have other custom end points here like; wis2box, adcon_database, climsoft_web_server etc.
+}
+
+export enum FileServerProtocolEnum {
+    SFTP = 'sftp',
+    FTP = 'ftp',
+    FTPS = 'ftps',
+}
+
+export interface FileServerSpecificationModel {
     filePattern: string; // Will be used to check both single files and multiple files
     specificationId: number;
     stationId?: string; // Used by import only
 }
+
+
 
 
 

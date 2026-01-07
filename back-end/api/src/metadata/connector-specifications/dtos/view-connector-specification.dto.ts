@@ -1,13 +1,13 @@
-import { ConnectorTypeEnum } from "../enums/connector-type.enum";
-import { ConnectorProtocolEnum } from "../enums/connector-protocol.enum";
-import { ConnectorParameters } from "./create-connector-specification.dto";
+
+import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "./create-connector-specification.dto";
 
 export class ViewConnectorSpecificationDto {
     id: number;
     name: string;
     description: string | null;
     connectorType: ConnectorTypeEnum; 
-    protocol: ConnectorProtocolEnum;
+    endPointType: EndPointTypeEnum;
+    hostName: string;
     timeout: number;
     maximumRetries: number;
     cronSchedule: string;

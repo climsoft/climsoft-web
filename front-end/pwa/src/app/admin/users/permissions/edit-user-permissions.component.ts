@@ -1,8 +1,7 @@
 import { Component, Input, OnDestroy } from '@angular/core';
 import { UserPermissionModel } from '../models/permissions/user-permission.model';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
 import { Subject, takeUntil } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';

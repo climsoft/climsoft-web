@@ -2,12 +2,12 @@ import { Component, ElementRef, OnDestroy, QueryList, ViewChildren } from '@angu
 import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { StationFormsService } from 'src/app/metadata/stations/services/station-forms.service';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { Subject, takeUntil } from 'rxjs';
 import { StationCacheModel } from 'src/app/metadata/stations/services/stations-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { ObservationsService } from '../../services/observations.service';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { AppDatabase, AppComponentState, UserAppStateEnum } from 'src/app/app-database';

@@ -1,6 +1,6 @@
 import Dexie, { Table } from "dexie";
 import { ViewRegionModel } from "./metadata/regions/models/view-region.model";
-import { ViewSourceModel } from "./metadata/source-templates/models/view-source.model";
+import { ViewSourceModel } from "./metadata/source-specifications/models/view-source.model";
 import { ViewStationObsEnvModel } from "./metadata/stations/models/view-station-obs-env.model";
 import { ViewStationObsFocusModel } from "./metadata/stations/models/view-station-obs-focus.model"; 
 import { CreateViewElementModel } from "./metadata/elements/models/create-view-element.model";

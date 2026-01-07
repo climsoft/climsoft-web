@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { DateTimeDefinition } from 'src/app/metadata/source-templates/models/create-import-source-tabular.model';
+import { DateTimeDefinition } from 'src/app/metadata/source-specifications/models/create-import-source-tabular.model';
 
 @Component({
   selector: 'app-import-source-date-detail',

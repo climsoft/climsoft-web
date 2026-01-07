@@ -1,8 +1,30 @@
 import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { ConnectorTypeEnum } from '../enums/connector-type.enum';
-import { ConnectorProtocolEnum } from '../enums/connector-protocol.enum';
+
+
+export enum ConnectorTypeEnum {
+    IMPORT = 'import',
+    EXPORT = 'export'
+}
+
+export enum EndPointTypeEnum {
+    FILE_SERVER = 'file_server',
+    WEB_SERVER = 'web_server',
+    // MQTT_BROKER = 'mqtt_broker',
+    // We can have other custom end points here like; wis2box, adcon_database, climsoft_web_server etc.
+}
+
+export enum FileServerProtocolEnum {
+    SFTP = 'sftp',
+    FTP = 'ftp',
+    FTPS = 'ftps',
+}
+
+export enum WebServerProtocolEnum {
+    HTTP = 'http',
+    HTTPS = 'https',
+}
 
 export type ConnectorParameters = FTPMetadataDto; // TODO. In future add other connector metadata types | HTTPMetadata ;
 
@@ -17,8 +39,11 @@ export class CreateConnectorSpecificationDto {
     @IsEnum(ConnectorTypeEnum, { message: 'Connector type must be either import or export' })
     connectorType: ConnectorTypeEnum;
 
-    @IsEnum(ConnectorProtocolEnum, { message: 'Protocol must be a valid value' })
-    protocol: ConnectorProtocolEnum;
+    @IsEnum(EndPointTypeEnum, { message: 'End point type must be a valid value' })
+    endPointType: EndPointTypeEnum;
+
+    @IsString()
+    hostName: string;
 
     @IsInt()
     @Min(1)
@@ -46,9 +71,11 @@ export class CreateConnectorSpecificationDto {
     comment?: string;
 }
 
+
+
 export class FTPMetadataDto {
-    @IsString()
-    serverIPAddress: string;
+    @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
+    protocol: FileServerProtocolEnum;
 
     @IsInt()
     @Min(1)
@@ -70,6 +97,7 @@ export class FTPMetadataDto {
     specifications: FTPSpecificationDto[];
 }
 
+
 export class FTPSpecificationDto {
     @IsString()
     filePattern: string; // Will be used to check both single files and multiple files
@@ -82,19 +110,16 @@ export class FTPSpecificationDto {
 
 }
 
-// export class HTTPMetadata {
-//     @IsString()
-//     url: string;
+export class HTTPMetadataDto {
+    @IsEnum(WebServerProtocolEnum, { message: 'Web server protocol must be a valid value' })
+    protocol: WebServerProtocolEnum;
 
-//     @IsOptional()
-//     @IsString()
-//     token?: string;
+    @IsOptional()
+    @IsString()
+    token?: string;
 
-//     specifications: {
-//         specificationId: number;
-//         stationId?: string;
-//     };
-// }
-
-
-
+    specifications: {
+        specificationId: number;
+        stationId?: string;
+    };
+}

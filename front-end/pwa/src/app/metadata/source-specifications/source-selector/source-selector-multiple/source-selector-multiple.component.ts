@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs'; 
 import { ViewSourceModel } from '../../models/view-source.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -8,7 +8,7 @@ import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-
   templateUrl: './source-selector-multiple.component.html',
   styleUrls: ['./source-selector-multiple.component.scss']
 })
-export class SourceSelectorMultipleComponent implements OnChanges {
+export class SourceSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public placeholder!: string;

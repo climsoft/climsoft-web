@@ -25,7 +25,7 @@ export class ConnectorSpecificationsService {
         return this.http.get<ViewConnectorSpecificationModel>(`${this.endPointUrl}/${id}`);
     }
 
-    public put(createDto: CreateConnectorSpecificationModel): Observable<ViewConnectorSpecificationModel> {
+    public add(createDto: CreateConnectorSpecificationModel): Observable<ViewConnectorSpecificationModel> {
         return this.http.post<ViewConnectorSpecificationModel>(`${this.endPointUrl}`, createDto);
     }
 

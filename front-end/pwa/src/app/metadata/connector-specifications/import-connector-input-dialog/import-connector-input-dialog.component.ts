@@ -4,8 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
-import { CreateConnectorSpecificationModel, FTPMetadataModel } from '../models/create-connector-specification.model';
-import { ConnectorProtocolEnum } from '../models/connector-protocol.enum';
+import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, FTPMetadataModel } from '../models/create-connector-specification.model';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -35,13 +34,14 @@ export class ImportConnectorInputDialogComponent {
         this.connector = data;
       });
     } else {
-      const ftpMetadata: FTPMetadataModel = { serverIPAddress: '', port: 0, username: '', password: '', remotePath: '', specifications: [] };
+      const ftpMetadata: FTPMetadataModel = { protocol: FileServerProtocolEnum.FTP, port: 0, username: '', password: '', remotePath: '', specifications: [] };
       this.connector = {
         id: 0,
         name: '',
         description: '',
         connectorType: ConnectorTypeEnum.IMPORT,
-        protocol: ConnectorProtocolEnum.FTP,
+        endPointType: EndPointTypeEnum.FILE_SERVER,
+        hostName: '',
         timeout: 5,
         maximumRetries: 1,
         cronSchedule: '',
@@ -58,6 +58,11 @@ export class ImportConnectorInputDialogComponent {
       this.pagesDataService.showToast({ title: "QC Tests", message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
+    if (!this.connector.hostName) {
+      this.pagesDataService.showToast({ title: "QC Tests", message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
     if (!this.connector.cronSchedule) {
       this.pagesDataService.showToast({ title: "QC Tests", message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
       return;
@@ -67,7 +72,8 @@ export class ImportConnectorInputDialogComponent {
       name: this.connector.name,
       description: this.connector.description ? this.connector.description : undefined,
       connectorType: this.connector.connectorType,
-      protocol: this.connector.protocol,
+      endPointType: this.connector.endPointType,
+      hostName: this.connector.hostName,
       timeout: this.connector.timeout,
       maximumRetries: this.connector.maximumRetries,
       cronSchedule: this.connector.cronSchedule,
@@ -80,7 +86,7 @@ export class ImportConnectorInputDialogComponent {
     if (this.connector.id > 0) {
       saveSubscription = this.connectorSpecificationsService.update(this.connector.id, createConnector);
     } else {
-      saveSubscription = this.connectorSpecificationsService.put(createConnector);
+      saveSubscription = this.connectorSpecificationsService.add(createConnector);
     }
 
     saveSubscription.pipe(
@@ -88,21 +94,15 @@ export class ImportConnectorInputDialogComponent {
     ).subscribe({
       next: () => {
         this.open = false;
-        this.pagesDataService.showToast({ title: "QC Tests", message: this.connector.id > 0 ? `QC test updated` : `QC test created`, type: ToastEventTypeEnum.SUCCESS });
+        this.pagesDataService.showToast({ title: 'Import Connector', message: this.connector.id > 0 ? `Import connector updated` : `Import connector created`, type: ToastEventTypeEnum.SUCCESS });
         this.ok.emit();
       },
       error: err => {
         this.open = false;
-        this.pagesDataService.showToast({ title: "QC Tests", message: `Error in saving qc test - ${err}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        console.log('error: ', err);
+        this.pagesDataService.showToast({ title: 'Import Connector', message: `Error in saving import connector - ${err.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
-  }
-
-  protected onConnectorProtocolSelected(connectorProtocol : ConnectorProtocolEnum | null ): void{
-    if(connectorProtocol){
-      this.connector.protocol = connectorProtocol;
-    }
-
   }
 
   protected onDeleteClick(): void {

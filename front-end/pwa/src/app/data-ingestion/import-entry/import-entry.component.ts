@@ -2,11 +2,11 @@ import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, Subject, take, takeUntil, throwError } from 'rxjs';
-import { ImportTabularSourceModel } from 'src/app/metadata/source-templates/models/create-import-source-tabular.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-templates/models/create-import-source.model';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { ImportTabularSourceModel } from 'src/app/metadata/source-specifications/models/create-import-source-tabular.model';
+import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/create-import-source.model';
+import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
+import { SourceTemplatesCacheService } from 'src/app/metadata/source-specifications/services/source-templates-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 

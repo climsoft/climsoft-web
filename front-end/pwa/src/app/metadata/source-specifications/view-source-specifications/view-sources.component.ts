@@ -1,8 +1,8 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
+import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';

@@ -1,7 +1,7 @@
-import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
+import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-specifications/models/create-entry-form.model";
 import { DateUtils } from "src/app/shared/utils/date.utils"; 
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
+import { ViewSourceModel } from "src/app/metadata/source-specifications/models/view-source.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../../models/entry-form-observation-query.model";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";

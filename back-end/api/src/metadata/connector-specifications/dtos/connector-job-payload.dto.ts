@@ -1,5 +1,5 @@
-import { ConnectorTypeEnum } from "../enums/connector-type.enum";
-import { ConnectorParameters } from "./create-connector-specification.dto";
+
+import { ConnectorParameters, ConnectorTypeEnum } from "./create-connector-specification.dto";
 
 export interface ConnectorJobPayloadDto {
     connectorId: number;

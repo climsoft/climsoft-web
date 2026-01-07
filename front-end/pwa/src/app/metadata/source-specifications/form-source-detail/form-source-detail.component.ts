@@ -5,9 +5,9 @@ import { CreateUpdateSourceModel } from '../models/create-update-source.model';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 
 // TODO. Try using angular forms?

@@ -12,7 +12,7 @@ import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-chec
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
-  selector: 'app-query-selection',
+  selector: 'app-query-selection', 
   templateUrl: './query-selection.component.html',
   styleUrls: ['./query-selection.component.scss']
 })

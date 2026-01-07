@@ -7,9 +7,7 @@ import { ActivatedRoute } from '@angular/router';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Location } from '@angular/common';
 import { CreateExportTemplateModel } from '../models/create-export-template.model';
-import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { ExportTypeEnum } from '../models/export-type.enum';
-import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 // TODO. Try using angular forms?
 

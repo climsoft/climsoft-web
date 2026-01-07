@@ -10,7 +10,6 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { ConnectorProtocolEnum } from 'src/metadata/connector-specifications/enums/connector-protocol.enum';
 import { FTPMetadataDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
@@ -42,7 +41,7 @@ export class ConnectorExportProcessorService {
         try {
             //await this.processExportSpecification(connector, connector.specificationId, job.entryUserId);
         } catch (error) {
-           // this.logger.error(`Failed to process export specification ${connector.specificationId}`, error);
+            // this.logger.error(`Failed to process export specification ${connector.specificationId}`, error);
             throw error; // Re-throw to mark job as failed
         }
 
@@ -70,32 +69,32 @@ export class ConnectorExportProcessorService {
         // For now, create a placeholder file
         await fs.writeFile(localFilePath, 'Placeholder export data\n');
 
-        try {
-            // Upload file based on protocol
-            switch (connector.protocol) {
-                case ConnectorProtocolEnum.FTP:
-                case ConnectorProtocolEnum.FTPS:
-                    await this.uploadFileFtp(connector, localFilePath);
-                    break;
-                case ConnectorProtocolEnum.SFTP:
-                    await this.uploadFileSftp(connector, localFilePath);
-                    break;
-                case ConnectorProtocolEnum.HTTP:
-                case ConnectorProtocolEnum.HTTPS:
-                    await this.uploadFileHttp(connector, localFilePath);
-                    break;
-                default:
-                    throw new Error(`Unsupported protocol: ${connector.protocol}`);
-            }
+        // try {
+        //     // Upload file based on protocol
+        //     switch (connector.protocol) {
+        //         case ConnectorProtocolEnum.FTP:
+        //         case ConnectorProtocolEnum.FTPS:
+        //             await this.uploadFileFtp(connector, localFilePath);
+        //             break;
+        //         case ConnectorProtocolEnum.SFTP:
+        //             await this.uploadFileSftp(connector, localFilePath);
+        //             break;
+        //         case ConnectorProtocolEnum.HTTP:
+        //         case ConnectorProtocolEnum.HTTPS:
+        //             await this.uploadFileHttp(connector, localFilePath);
+        //             break;
+        //         default:
+        //             throw new Error(`Unsupported protocol: ${connector.protocol}`);
+        //     }
 
-            this.logger.log(`Successfully exported data for specification ${specId}`);
+        //     this.logger.log(`Successfully exported data for specification ${specId}`);
 
-        } finally {
-            // Clean up temporary file
-            await fs.unlink(localFilePath).catch(err =>
-                this.logger.warn(`Failed to delete temporary file ${localFilePath}`, err)
-            );
-        }
+        // } finally {
+        //     // Clean up temporary file
+        //     await fs.unlink(localFilePath).catch(err =>
+        //         this.logger.warn(`Failed to delete temporary file ${localFilePath}`, err)
+        //     );
+        // }
     }
 
     /**
@@ -104,7 +103,7 @@ export class ConnectorExportProcessorService {
     private async uploadFileFtp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new FtpClient();
 
-            const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
         // TODO. Check how to timeout via the library
         // client.ftp.timeout = connector.timeout * 1000;
 
@@ -112,28 +111,28 @@ export class ConnectorExportProcessorService {
         const fileNaming = ''; //connector.extraMetadata?.fileNaming || path.basename(localFilePath);
         const remoteFileName = fileNaming.replace('{timestamp}', Date.now().toString());
 
-        try {
-            // Connect to FTP server
-            await client.access({
-                host: connectExtraMetadata.serverIPAddress,
-                port: connectExtraMetadata.port,
-                user: connectExtraMetadata.username,
-                password: connectExtraMetadata.password,
-                secure: connector.protocol === ConnectorProtocolEnum.FTPS,
-            });
+        // try {
+        //     // Connect to FTP server
+        //     await client.access({
+        //         host: connectExtraMetadata.hostName,
+        //         port: connectExtraMetadata.port,
+        //         user: connectExtraMetadata.username,
+        //         password: connectExtraMetadata.password,
+        //         secure: connector.protocol === ConnectorProtocolEnum.FTPS,
+        //     });
 
-            this.logger.log(`Connected to FTP server ${connectExtraMetadata.serverIPAddress}`);
+        //     this.logger.log(`Connected to FTP server ${connectExtraMetadata.hostName}`);
 
-            // Change to upload directory
-            await client.cd(remotePath);
+        //     // Change to upload directory
+        //     await client.cd(remotePath);
 
-            // Upload file
-            await client.uploadFrom(localFilePath, remoteFileName);
-            this.logger.log(`Uploaded file to ${remotePath}/${remoteFileName}`);
+        //     // Upload file
+        //     await client.uploadFrom(localFilePath, remoteFileName);
+        //     this.logger.log(`Uploaded file to ${remotePath}/${remoteFileName}`);
 
-        } finally {
-            client.close();
-        }
+        // } finally {
+        //     client.close();
+        // }
     }
 
     /**
@@ -142,31 +141,31 @@ export class ConnectorExportProcessorService {
     private async uploadFileSftp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new SftpClient();
 
-        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
-        const remotePath = ''; //connectExtraMetadata.uploadPath || '/';
-        const fileNaming = ''; // connectExtraMetadata.fileNaming || path.basename(localFilePath);
-        const remoteFileName = fileNaming.replace('{timestamp}', Date.now().toString());
+        // const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        // const remotePath = ''; //connectExtraMetadata.uploadPath || '/';
+        // const fileNaming = ''; // connectExtraMetadata.fileNaming || path.basename(localFilePath);
+        // const remoteFileName = fileNaming.replace('{timestamp}', Date.now().toString());
 
-        try {
-            // Connect to SFTP server
-            await client.connect({
-                host: connectExtraMetadata.serverIPAddress,
-                port: connectExtraMetadata.port,
-                username: connectExtraMetadata.username,
-                password: connectExtraMetadata.password,
-                readyTimeout: connector.timeout * 1000,
-            });
+        // try {
+        //     // Connect to SFTP server
+        //     await client.connect({
+        //         host: connectExtraMetadata.hostName,
+        //         port: connectExtraMetadata.port,
+        //         username: connectExtraMetadata.username,
+        //         password: connectExtraMetadata.password,
+        //         readyTimeout: connector.timeout * 1000,
+        //     });
 
-            this.logger.log(`Connected to SFTP server ${connectExtraMetadata.serverIPAddress}`);
+        //     this.logger.log(`Connected to SFTP server ${connectExtraMetadata.hostName}`);
 
-            // Upload file
-            const remoteFilePath = path.posix.join(remotePath, remoteFileName);
-            await client.put(localFilePath, remoteFilePath);
-            this.logger.log(`Uploaded file to ${remoteFilePath}`);
+        //     // Upload file
+        //     const remoteFilePath = path.posix.join(remotePath, remoteFileName);
+        //     await client.put(localFilePath, remoteFilePath);
+        //     this.logger.log(`Uploaded file to ${remoteFilePath}`);
 
-        } finally {
-            await client.end();
-        }
+        // } finally {
+        //     await client.end();
+        // }
     }
 
     /**
