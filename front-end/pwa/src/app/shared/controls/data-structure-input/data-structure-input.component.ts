@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { StringUtils } from '../../utils/string.utils';
-import { DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/create-import-source.model';
+import { DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 
 @Component({
   selector: 'app-data-structure-input',

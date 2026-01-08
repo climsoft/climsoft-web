@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { FlagEnum } from 'src/app/data-ingestion/models/flag.enum';
-import { FlagDefinition } from 'src/app/metadata/source-specifications/models/create-import-source-tabular.model';
+import { FlagDefinition } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-import-source-flag-detail',

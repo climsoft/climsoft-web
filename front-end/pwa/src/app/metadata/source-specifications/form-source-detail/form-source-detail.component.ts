@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ExtraSelectorControlType, CreateEntryFormModel, LayoutType, } from '../models/create-entry-form.model';
-import { CreateUpdateSourceModel } from '../models/create-update-source.model';
+import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
+import { CreateSourceModel } from '../models/create-source.model';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -21,12 +21,12 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   protected viewSource!: ViewSourceModel;
 
-  protected possibleSelectors: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
-  protected possibleFields: ExtraSelectorControlType[] = ['ELEMENT', 'DAY', 'HOUR'];
+  protected possibleSelectors: SelectorFieldControlType[] = [SelectorFieldControlType.ELEMENT, SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR];
+  protected possibleFields: SelectorFieldControlType[] = [SelectorFieldControlType.ELEMENT, SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR];
 
-  protected selectedSelectors: ExtraSelectorControlType[] = [];
-  protected selectedFields: ExtraSelectorControlType[] = [];
-  protected selectedLayout: LayoutType = 'LINEAR';
+  protected selectedSelectors: SelectorFieldControlType[] = [];
+  protected selectedFields: SelectorFieldControlType[] = [];
+  protected selectedLayout: LayoutType = LayoutType.LINEAR;
   protected selectedElementIds: number[] = [];
   protected possibleHourIds: number[] = [];
   protected selectedHourIds: number[] = [];
@@ -62,12 +62,23 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       ).subscribe(data => {
         if (data) {
           this.viewSource = data;
-          this.setControlValues(this.viewSource.parameters as CreateEntryFormModel);
+          this.setControlValues(this.viewSource.parameters as FormSourceModel);
         }
       });
     } else {
       this.pagesDataService.setPageHeader('New Form Specification');
-      const entryForm: CreateEntryFormModel = { selectors: ['DAY', 'HOUR'], fields: ['ELEMENT'], layout: 'LINEAR', elementIds: [], hours: [], interval: 1440, requireTotalInput: false, allowEntryAtStationOnly: false, allowStationSelection: false, allowDoubleDataEntry: false, isValid: () => true }
+      const entryForm: FormSourceModel = {
+        selectors: [SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR],
+        fields: [SelectorFieldControlType.ELEMENT],
+        layout: LayoutType.LINEAR,
+        elementIds: [],
+        hours: [],
+        interval: 1440,
+        requireTotalInput: false,
+        allowEntryAtStationOnly: false,
+        allowStationSelection: false,
+        allowDoubleDataEntry: false,
+      }
       this.viewSource = {
         id: 0,
         name: '',
@@ -89,10 +100,10 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setControlValues(entryForm: CreateEntryFormModel): void {
-    const selectedSelectors: ExtraSelectorControlType[] = [];
-    const possibleFields: ExtraSelectorControlType[] = [];
-    const selectedFields: ExtraSelectorControlType[] = [];
+  private setControlValues(entryForm: FormSourceModel): void {
+    const selectedSelectors: SelectorFieldControlType[] = [];
+    const possibleFields: SelectorFieldControlType[] = [];
+    const selectedFields: SelectorFieldControlType[] = [];
 
     for (const s of entryForm.selectors) {
       if (s) {
@@ -116,13 +127,13 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedIntervalId = entryForm.interval;
     this.utcOffset = this.viewSource.utcOffset;
     this.allowMissingValue = this.viewSource.allowMissingValue;
-    this.requireTotalInput = entryForm.requireTotalInput;
-    this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly;
-    this.allowStationSelection = entryForm.allowStationSelection;
-    this.allowDoubleDataEntry = entryForm.allowDoubleDataEntry;
+    this.requireTotalInput = entryForm.requireTotalInput ? true : false;
+    this.allowEntryAtStationOnly = entryForm.allowEntryAtStationOnly ? true : false;
+    this.allowStationSelection = entryForm.allowStationSelection ? true : false;
+    this.allowDoubleDataEntry = entryForm.allowDoubleDataEntry ? true : false;
   }
 
-  public onSelectorsSelected(selectedSelectors: ExtraSelectorControlType[]): void {
+  public onSelectorsSelected(selectedSelectors: SelectorFieldControlType[]): void {
 
     if (!this.validSelectors(selectedSelectors)) {
       return;
@@ -136,7 +147,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedLayout = this.getLayout(this.selectedFields);
   }
 
-  public onFieldsSelected(selectedFields: ExtraSelectorControlType[]): void {
+  public onFieldsSelected(selectedFields: SelectorFieldControlType[]): void {
 
     if (!this.validFields(this.selectedSelectors, selectedFields)) {
       return;
@@ -146,8 +157,8 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.selectedLayout = this.getLayout(this.selectedFields);
   }
 
-  private getLayout(fields: ExtraSelectorControlType[]): LayoutType {
-    return fields.length === 2 ? 'GRID' : 'LINEAR';
+  private getLayout(fields: SelectorFieldControlType[]): LayoutType {
+    return fields.length === 2 ? LayoutType.GRID : LayoutType.LINEAR;
   }
 
   protected onIntervalSelected(intervalId: number | null) {
@@ -227,7 +238,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const entryForm: CreateEntryFormModel = {
+    const entryForm: FormSourceModel = {
       selectors: this.selectedSelectors.length === 1 ? [this.selectedSelectors[0]] : [this.selectedSelectors[0], this.selectedSelectors[1]],
       fields: this.selectedFields.length === 1 ? [this.selectedFields[0]] : [this.selectedFields[0], this.selectedFields[1]],
       layout: this.selectedLayout,
@@ -238,10 +249,9 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       allowEntryAtStationOnly: this.allowEntryAtStationOnly,
       allowStationSelection: this.allowStationSelection,
       allowDoubleDataEntry: this.allowDoubleDataEntry,
-      isValid: () => true
     };
 
-    const createUpdateSource: CreateUpdateSourceModel = {
+    const createUpdateSource: CreateSourceModel = {
       name: this.viewSource.name,
       description: this.viewSource.description,
       sourceType: SourceTypeEnum.FORM,
@@ -255,7 +265,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     }
 
     if (this.viewSource.id === 0) {
-      this.sourcesCacheService.put(createUpdateSource).pipe(
+      this.sourcesCacheService.add(createUpdateSource).pipe(
         take(1)
       ).subscribe((data) => {
         if (data) {
@@ -292,7 +302,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     this.location.back();
   }
 
-  private validSelectors(selectors: ExtraSelectorControlType[]): boolean {
+  private validSelectors(selectors: SelectorFieldControlType[]): boolean {
     this.selectorsErrorMessage = '';
     if (selectors.length === 0) {
       this.selectorsErrorMessage = 'Selector(s) required';
@@ -303,7 +313,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
     return this.selectorsErrorMessage === '';
   }
 
-  private validFields(selectors: ExtraSelectorControlType[], fields: ExtraSelectorControlType[]): boolean {
+  private validFields(selectors: SelectorFieldControlType[], fields: SelectorFieldControlType[]): boolean {
     this.fieldsErrorMessage = '';
 
     if (!this.validSelectors(selectors)) {

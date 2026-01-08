@@ -1,10 +1,14 @@
+import { ImportSourceModel } from "./import-source.model";
+import { FormSourceModel } from "./form-source.model";
 import { SourceTypeEnum } from "./source-type.enum";
 
-export interface CreateUpdateSourceModel {
+export type SourceParameters = FormSourceModel | ImportSourceModel;
+
+export interface CreateSourceModel {
   name: string;
   description: string;
   sourceType: SourceTypeEnum;
-  parameters: SourceParametersValidity; //json
+  parameters: SourceParameters; //json
 
   /** 
  * Determines whether entry date time should be converted to UTC or not. 

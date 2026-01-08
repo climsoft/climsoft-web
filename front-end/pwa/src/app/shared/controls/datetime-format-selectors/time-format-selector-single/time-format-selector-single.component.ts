@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
-import { TimeFormatTypes } from 'src/app/metadata/source-specifications/models/create-import-source-tabular.model';
+import { TimeFormatTypes } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-time-format-selector-single',

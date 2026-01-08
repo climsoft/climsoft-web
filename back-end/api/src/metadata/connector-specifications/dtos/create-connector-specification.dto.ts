@@ -74,8 +74,6 @@ export class CreateConnectorSpecificationDto {
     comment?: string;
 }
 
-
-
 export class FTPMetadataDto {
     @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
     protocol: FileServerProtocolEnum;
@@ -103,7 +101,6 @@ export class FTPMetadataDto {
     specifications: FTPSpecificationDto[];
 }
 
-
 export class FTPSpecificationDto {
     @IsString()
     filePattern: string; // Will be used to check both single files and multiple files
@@ -115,7 +112,6 @@ export class FTPSpecificationDto {
     @IsOptional()
     @IsString()
     stationId?: string; // Used by import only
-
 }
 
 export class HTTPMetadataDto {

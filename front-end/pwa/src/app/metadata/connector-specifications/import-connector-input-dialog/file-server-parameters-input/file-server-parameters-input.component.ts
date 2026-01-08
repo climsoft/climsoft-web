@@ -75,23 +75,18 @@ export class FileServerParametersInputComponent implements OnChanges {
 
     if (this.newPassword === '') {
       this.passwordErrormessage = 'Empty passwords not allowed';
-      return;
-    }else if (this.confirmPassword === '') {
+    } else if (this.confirmPassword === '') {
       this.passwordErrormessage = 'Password NOT confirmed';
-      return;
-    }else  if (this.newPassword !== this.confirmPassword) {
+    } else if (this.newPassword !== this.confirmPassword) {
       this.passwordErrormessage = 'Passwords DO NOT match';
-      return;
-    } 
-
-    if(this.passwordErrormessage === '' ){
-     // Passwords match - update the metadata
-    this.ftpMetadata.password = this.newPassword;
-    }else{
-      this.validationError.emit(this.passwordErrormessage);
     }
 
-    
+    if (this.passwordErrormessage === '') {
+      // Passwords match - update the metadata
+      this.ftpMetadata.password = this.newPassword;
+    }
+
+    this.validationError.emit(this.passwordErrormessage);
   }
 
   /**

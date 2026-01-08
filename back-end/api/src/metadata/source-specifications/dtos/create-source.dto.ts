@@ -1,16 +1,18 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
-import { ClimsoftV4ImportParametersDto } from 'src/observation/dtos/climsoft-v4-import-parameters.dto';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
-import { StringUtils } from 'src/shared/utils/string.utils';
-import { SourceParameters } from '../entities/source-specification.entity';
-import { FormSourceDTO } from './form-source.dto';
-import { ImportSourceDTO } from './import-source.dto';
+import { StringUtils } from 'src/shared/utils/string.utils'; 
+import { FormSourceDTO as FormSourceDto } from './form-source.dto';
 import { BadRequestException } from '@nestjs/common';
+import { ClimsoftV4ImportParametersDto } from 'src/observation/dtos/climsoft-v4-import-parameters.dto';  
+import { ImportSourceDto } from './import-source.dto';
 
+// Note, the `ClimsoftV4ImportParametersDto` will be deprecated after full migration to the Climsoft Web
+export type SourceParameters = FormSourceDto | ImportSourceDto | ClimsoftV4ImportParametersDto; 
 
-export class CreateUpdateSourceDto {
+export class CreateSourceDto {
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -30,13 +32,13 @@ export class CreateUpdateSourceDto {
       throw new BadRequestException('source type is required for determining parameters type');
     }
 
-    const { sourceType } = object as CreateUpdateSourceDto;
+    const { sourceType } = object as CreateSourceDto;
 
     switch (sourceType) {
       case SourceTypeEnum.FORM:
-        return FormSourceDTO;
+        return FormSourceDto;
       case SourceTypeEnum.IMPORT:
-        return FormSourceDTO;
+        return ImportSourceDto;
       default:
         throw new BadRequestException('source type is not recognised');
     }

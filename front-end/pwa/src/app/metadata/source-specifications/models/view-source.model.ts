@@ -1,5 +1,5 @@
-import { CreateUpdateSourceModel } from "./create-update-source.model";
+import { CreateSourceModel } from "./create-source.model";
 
-export interface ViewSourceModel extends CreateUpdateSourceModel  {
+export interface ViewSourceModel extends CreateSourceModel  {
     id: number;
 }

@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
-import { ImportTabularSourceModel } from '../models/create-import-source-tabular.model';
+import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ActivatedRoute } from '@angular/router';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
-import { CreateUpdateSourceModel } from 'src/app/metadata/source-specifications/models/create-update-source.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/create-import-source.model';
+import { CreateSourceModel } from 'src/app/metadata/source-specifications/models/create-source.model';
+import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-import-source-detail',
@@ -50,7 +51,7 @@ export class ImportSourceDetailComponent implements OnInit {
     } else {
       this.pagesDataService.setPageHeader('New Import Specification');
 
-      const defaultTabularDefs: ImportTabularSourceModel = {
+      const defaultTabularDefs: ImportSourceTabularParamsModel = {
         rowsToSkip: 1,
         delimiter: undefined,
         stationDefinition: undefined,
@@ -74,10 +75,9 @@ export class ImportSourceDetailComponent implements OnInit {
         valueDefinition: {
           valueColumnPosition: 0,
         },
-        isValid: () => true
       }
 
-      const defaultImportSourceDefs: CreateImportSourceModel = {
+      const defaultImportSourceDefs: ImportSourceModel = {
         dataStructureType: DataStructureTypeEnum.TABULAR,
         sourceMissingValueFlags: '',
         dataStructureParameters: defaultTabularDefs,
@@ -106,16 +106,16 @@ export class ImportSourceDetailComponent implements OnInit {
     this.destroy$.complete();
   }
 
-  protected get importSource(): CreateImportSourceModel {
-    return this.viewSource.parameters as CreateImportSourceModel;
+  protected get importSource(): ImportSourceModel {
+    return this.viewSource.parameters as ImportSourceModel;
   }
 
-  protected get tabularImportSource(): ImportTabularSourceModel {
-    return this.importSource.dataStructureParameters as ImportTabularSourceModel;
+  protected get tabularImportSource(): ImportSourceTabularParamsModel {
+    return this.importSource.dataStructureParameters as ImportSourceTabularParamsModel;
   }
 
   protected onElementOrDatetimeDefChanged(): void {
-    const sourceParameters = this.importSource.dataStructureParameters as ImportTabularSourceModel;
+    const sourceParameters = this.importSource.dataStructureParameters as ImportSourceTabularParamsModel;
     const oldValueDef = sourceParameters.valueDefinition;
     if (sourceParameters.elementDefinition.hasElement?.multipleColumn ||
       sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
@@ -151,7 +151,7 @@ export class ImportSourceDetailComponent implements OnInit {
 
     // TODO. Validate the definitions, for instance, making sure column positions are unique.
 
-    const createUpdateSource: CreateUpdateSourceModel = {
+    const createUpdateSource: CreateSourceModel = {
       name: this.viewSource.name,
       description: this.viewSource.description,
       sourceType: SourceTypeEnum.IMPORT,
@@ -166,39 +166,41 @@ export class ImportSourceDetailComponent implements OnInit {
 
     console.log('saved', createUpdateSource)
 
-    if (this.viewSource.id === 0) {
-      this.importSourcesService.put(createUpdateSource).pipe(
-        take(1),
-      ).subscribe((data) => {
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Import Template', message: `Import ${this.viewSource.name} template saved`, type: ToastEventTypeEnum.SUCCESS
-          });
-          this.location.back();
-        }
-      });
+
+    let saveSubscription: Observable<ViewSourceModel>;
+    if (this.viewSource.id > 0) {
+      saveSubscription = this.importSourcesService.update(this.viewSource.id, createUpdateSource);
     } else {
-      this.importSourcesService.update(this.viewSource.id, createUpdateSource).pipe(
-        take(1),
-      ).subscribe((data) => {
-        if (data) {
-          this.pagesDataService.showToast({
-            title: 'Import Template', message: `Import ${this.viewSource.name} template updated`, type: ToastEventTypeEnum.SUCCESS
-          });
-          this.location.back();
-        }
-      });
+      saveSubscription = this.importSourcesService.add(createUpdateSource);
     }
+
+    saveSubscription.pipe(
+      take(1)
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({ title: 'Import Template', message: this.viewSource.id > 0 ? `Import template updated` : `Import template created`, type: ToastEventTypeEnum.SUCCESS });
+        this.location.back();
+      },
+      error: err => {
+        console.log('error: ', err);
+        console.log('error message: ', err.message);
+        if (err instanceof HttpErrorResponse) {
+          this.pagesDataService.showToast({ title: 'Import Template', message: `Error in saving import template - ${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        }
+      }
+    });
 
   }
 
   protected onDelete(): void {
-    //todo. prompt for confirmation first
-    this.importSourcesService.delete(this.viewSource.id).subscribe((data) => {
-      if (data) {
+    //TODO. Prompt for confirmation first
+    this.importSourcesService.delete(this.viewSource.id).subscribe({
+      next: () => {
         this.location.back();
-      } else {
-        // TODO. show not deleted
+      },
+      error: err => {
+        console.log('error: ', err);
+        this.pagesDataService.showToast({ title: 'Import Template', message: `Error in deleting import template - ${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }

@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceDto } from '../dtos/view-source.dto';
-import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
+import { CreateSourceDto } from '../dtos/create-source.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { SourceSpecificationEntity } from '../entities/source-specification.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
@@ -66,7 +66,7 @@ export class SourceSpecificationsService {
         return entity;
     }
 
-    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+    public async create(dto: CreateSourceDto, userId: number): Promise<ViewSourceDto> {
         // Source templates are required to have unique names
         let entity = await this.sourceRepo.findOneBy({
             name: dto.name,
@@ -101,7 +101,7 @@ export class SourceSpecificationsService {
 
     }
 
-    public async update(id: number, dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+    public async update(id: number, dto: CreateSourceDto, userId: number): Promise<ViewSourceDto> {
         const entity = await this.findEntity(id);
         entity.name = dto.name;
         entity.description = dto.description;

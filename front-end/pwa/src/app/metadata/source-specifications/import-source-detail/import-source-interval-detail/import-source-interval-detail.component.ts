@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { IntervalDefinition } from '../../models/create-import-source-tabular.model';
+import { IntervalDefinition } from '../../models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-import-source-interval-detail',

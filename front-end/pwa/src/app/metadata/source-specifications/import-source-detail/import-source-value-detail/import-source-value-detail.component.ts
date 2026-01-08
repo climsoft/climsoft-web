@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { ElementDefinition, ValueDefinition } from '../../models/create-import-source-tabular.model';
+import { ElementDefinition, ValueDefinition } from '../../models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-import-source-value-detail',

@@ -1,11 +1,7 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "src/metadata/source-specifications/enums/source-type.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { ImportSourceDTO } from "../dtos/import-source.dto";
-import { FormSourceDTO } from "../dtos/form-source.dto";
-import { ClimsoftV4ImportParametersDto } from "src/observation/dtos/climsoft-v4-import-parameters.dto";
-
-export type SourceParameters = FormSourceDTO | ImportSourceDTO | ClimsoftV4ImportParametersDto;
+import { SourceParameters } from "../dtos/create-source.dto";
 
 @Entity("source_templates") // TODO. change to source_specification later
 @Check("CHK_source_templates_name_not_empty", `"name" <> ''`)// TODO. rename this too

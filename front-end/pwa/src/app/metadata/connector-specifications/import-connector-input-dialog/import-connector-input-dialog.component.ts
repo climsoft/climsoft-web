@@ -18,6 +18,7 @@ export class ImportConnectorInputDialogComponent {
   protected open: boolean = false;
   protected title: string = '';
   protected connector!: ViewConnectorSpecificationModel;
+  protected parametersErrormMessage: string ='';
 
   constructor(
     private connectorSpecificationsService: ConnectorSpecificationsService,
@@ -73,6 +74,11 @@ export class ImportConnectorInputDialogComponent {
       return;
     }
 
+     if (this.parametersErrormMessage) {
+      this.pagesDataService.showToast({ title: 'Import Connector', message: this.parametersErrormMessage, type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
     const createConnector: CreateConnectorSpecificationModel = {
       name: this.connector.name,
       description: this.connector.description ? this.connector.description : undefined,
@@ -121,14 +127,7 @@ export class ImportConnectorInputDialogComponent {
   }
 
   protected onValidationError(errorMessage: string): void {
-    // LEFT here. Instead of a toast. Simply coordinate the errors
-    
-    
-    this.pagesDataService.showToast({
-      title: "Password Validation",
-      message: errorMessage,
-      type: ToastEventTypeEnum.ERROR
-    });
+    this.parametersErrormMessage = errorMessage;
   }
 
 }

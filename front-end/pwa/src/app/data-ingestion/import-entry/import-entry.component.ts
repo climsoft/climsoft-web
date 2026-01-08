@@ -2,8 +2,8 @@ import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, Subject, take, takeUntil, throwError } from 'rxjs';
-import { ImportTabularSourceModel } from 'src/app/metadata/source-specifications/models/create-import-source-tabular.model';
-import { CreateImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/create-import-source.model';
+import { ImportSourceTabularParamsModel } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
+import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourceTemplatesCacheService } from 'src/app/metadata/source-specifications/services/source-templates-cache.service';
@@ -70,10 +70,10 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
       }
       this.viewSource = data;
       this.pagesDataService.setPageHeader(`Import Data From ${this.viewSource.name}`);
-      const importSource: CreateImportSourceModel = this.viewSource.parameters as CreateImportSourceModel;
+      const importSource: ImportSourceModel = this.viewSource.parameters as ImportSourceModel;
 
       if (importSource.dataStructureType === DataStructureTypeEnum.TABULAR) {
-        const tabularSource: ImportTabularSourceModel = importSource.dataStructureParameters as ImportTabularSourceModel;
+        const tabularSource: ImportSourceTabularParamsModel = importSource.dataStructureParameters as ImportSourceTabularParamsModel;
         this.showStationSelection = !tabularSource.stationDefinition;
       }
     });

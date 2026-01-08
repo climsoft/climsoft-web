@@ -1,7 +1,6 @@
-import { FlagEnum } from "../../../data-ingestion/models/flag.enum";
-import { DataStructureValidity } from "./create-import-source.model";
+import { FlagEnum } from "../../../data-ingestion/models/flag.enum"; 
 
-export interface ImportTabularSourceModel extends DataStructureValidity {
+export interface ImportSourceTabularParamsModel {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;

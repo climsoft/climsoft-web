@@ -1,6 +1,6 @@
 
-import { CreateUpdateSourceDto } from "./create-update-source.dto";
+import { CreateSourceDto } from "./create-source.dto";
 
-export class ViewSourceDto extends CreateUpdateSourceDto {
+export class ViewSourceDto extends CreateSourceDto {
     id: number; 
 }

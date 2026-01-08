@@ -96,18 +96,18 @@ export class ConnectorSpecificationsService {
     public async update(id: number, dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationDto> {
         const entity = await this.findEntity(id);
 
+        // Only encrypt if password has changed or not already encrypted 
+        if (entity.parameters.password !== dto.parameters.password || !EncryptionUtils.isEncrypted(dto.parameters.password)) {
+            dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
+        }else{
+             dto.parameters.password =  entity.parameters.password; // Keep existing encrypted password
+        }
+
         entity.name = dto.name;
         entity.description = dto.description || null;
         entity.connectorType = dto.connectorType;
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
-
-        // Only encrypt if password has changed or not already encrypted
-        // Otherwise keep existing encrypted password
-        if (entity.parameters.password !== dto.parameters.password || !EncryptionUtils.isEncrypted(dto.parameters.password)) {
-            entity.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
-        }
-
         entity.timeout = dto.timeout;
         entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
@@ -161,6 +161,8 @@ export class ConnectorSpecificationsService {
         // }
 
         // entity.parameters.password = password;
+
+        console.log('retrieved password: ', entity.parameters.password)
 
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,

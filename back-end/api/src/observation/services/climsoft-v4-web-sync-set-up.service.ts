@@ -15,7 +15,7 @@ import { FindOptionsWhere } from 'typeorm';
 import { SourceSpecificationEntity } from 'src/metadata/source-specifications/entities/source-specification.entity';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
-import { CreateUpdateSourceDto } from 'src/metadata/source-specifications/dtos/create-update-source.dto';
+import { CreateSourceDto } from 'src/metadata/source-specifications/dtos/create-source.dto';
 import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
 import { CreateQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/create-qc-specification.dto';
 import { ViewQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/view-qc-specification.dto';
@@ -502,7 +502,7 @@ export class ClimsoftV4WebSyncSetUpService {
             existingClimsoftV4Source.parameters = importParameters;
             return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);
         } else {
-            const newClismoftSource: CreateUpdateSourceDto = {
+            const newClismoftSource: CreateSourceDto = {
                 name: 'climsoft_v4',
                 description: 'Import from Climsoft version 4 database',
                 sourceType: SourceTypeEnum.IMPORT,

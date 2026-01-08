@@ -6,10 +6,10 @@ import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
-import { DateUtils } from 'src/shared/utils/date.utils';
-import { ImportSourceDTO } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { DateUtils } from 'src/shared/utils/date.utils'; 
 import { ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
+import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 
 // TODO. Later convert this service to a guard??
 
@@ -20,7 +20,7 @@ interface FormParams {
 
 interface EntryFormValidation {
     sourceType: SourceTypeEnum;
-    settings: FormParams | ImportSourceDTO;
+    settings: FormParams | ImportSourceDto;
 }
 
 interface ValidationErrorMessage {
@@ -75,7 +75,7 @@ export class DataEntryAndCorrectionCheckService {
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.IMPORT,
-                    settings: source.parameters as ImportSourceDTO
+                    settings: source.parameters as ImportSourceDto
                 });
             } else {
                 throw new Error('Developer error: Source type not recognised')

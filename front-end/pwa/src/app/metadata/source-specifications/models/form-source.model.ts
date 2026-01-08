@@ -1,15 +1,21 @@
-import { CreateUpdateSourceModel, SourceParametersValidity } from "./create-update-source.model";
 
-export type ExtraSelectorControlType = 'ELEMENT' | 'DAY' | 'HOUR';
-export type FieldType = 'ELEMENT' | 'DAY' | 'HOUR';
-export type LayoutType = 'LINEAR' | 'GRID';
+export enum SelectorFieldControlType {
+  ELEMENT = 'ELEMENT',
+  DAY = 'DAY',
+  HOUR = 'HOUR'
+}
 
-export interface CreateEntryFormModel extends SourceParametersValidity {
+export enum LayoutType {
+  LINEAR = 'LINEAR',
+  GRID = 'GRID'
+}
+
+export interface FormSourceModel {
     /** Defines the extra entry selectors used by the form to get data */
-    selectors: [ExtraSelectorControlType, ExtraSelectorControlType?];
+    selectors: [SelectorFieldControlType, SelectorFieldControlType?];
 
     /** Defines the entry fields used by the form to display and enter data */
-    fields: [FieldType, FieldType?];
+    fields: [SelectorFieldControlType, SelectorFieldControlType?];
 
     /** Layout used by entry fields */
     layout: LayoutType;
@@ -27,12 +33,12 @@ export interface CreateEntryFormModel extends SourceParametersValidity {
      * Determines whether user is required to type in observation total or not.
      * Note, this is only enforced on the front end.
      */
-    requireTotalInput: boolean;
+    requireTotalInput?: boolean;
 
-    allowEntryAtStationOnly: boolean;
+    allowEntryAtStationOnly?: boolean;
 
-    allowStationSelection: boolean;
+    allowStationSelection?: boolean;
 
-    allowDoubleDataEntry: boolean;
+    allowDoubleDataEntry?: boolean;
 
 }

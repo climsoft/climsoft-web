@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { StationDefinition } from '../../models/create-import-source-tabular.model';
+import { StationDefinition } from '../../models/import-source-tabular-params.model';
 
 @Component({
   selector: 'app-import-source-station-detail',
