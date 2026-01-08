@@ -23,10 +23,10 @@
                 (valueChange)="onPasswordChange()" />
         </div>
         <div>
-            <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="ftpMetadata.password"
+            <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="confirmPassword"
                 (valueChange)="onPasswordChange()" />
         </div>
-        <div class="text-danger" *ngIf="newPassword !== confirmPassword ">Passwords should match</div>
+        <div class="text-danger" *ngIf="passwordErrormessage">{{ passwordErrormessage }}</div>
     </div>
 
     <hr />

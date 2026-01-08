@@ -55,16 +55,21 @@ export class ImportConnectorInputDialogComponent {
 
   protected onOkClick(): void {
     if (!this.connector.name) {
-      this.pagesDataService.showToast({ title: "QC Tests", message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
     if (!this.connector.hostName) {
-      this.pagesDataService.showToast({ title: "QC Tests", message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.connector.cronSchedule) {
-      this.pagesDataService.showToast({ title: "QC Tests", message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
+     if (!this.connector.parameters.password) {
+      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Password required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
@@ -116,6 +121,9 @@ export class ImportConnectorInputDialogComponent {
   }
 
   protected onValidationError(errorMessage: string): void {
+    // LEFT here. Instead of a toast. Simply coordinate the errors
+    
+    
     this.pagesDataService.showToast({
       title: "Password Validation",
       message: errorMessage,

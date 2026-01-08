@@ -90,7 +90,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      */
     private async scheduleConnectorJob(connectorId: number) {
         try {
-            const connector = await this.connectorSpecificationService.find(connectorId, true);
+            const connector = await this.connectorSpecificationService.find(connectorId);
 
             if (connector.disabled) {
                 this.logger.warn(`Connector ${connectorId} is disabled, skipping`);
@@ -126,7 +126,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
      * Manually trigger a connector job
      */
     public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
-        const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId, true);
+        const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId);
 
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,

@@ -36,7 +36,7 @@ export class ConnectorExportProcessorService {
         const payload = job.payload as ConnectorJobPayloadDto;
         this.logger.log(`Processing export job for connector ${payload.connectorId}`);
 
-        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId, true);
+        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
 
         try {
             //await this.processExportSpecification(connector, connector.specificationId, job.entryUserId);

@@ -43,6 +43,7 @@ export class FileServerParametersInputComponent implements OnChanges {
 
   protected newPassword: string = '';
   protected confirmPassword: string = '';
+  protected passwordErrormessage: string = '';
 
   constructor() {
   }
@@ -69,23 +70,28 @@ export class FileServerParametersInputComponent implements OnChanges {
    * Emits validation errors to parent component for display.
    */
   protected onPasswordChange(): void {
+    this.passwordErrormessage = '';
+    this.ftpMetadata.password = ''; // Reset passowrd
+
     if (this.newPassword === '') {
-      this.validationError.emit('Empty passwords not allowed');
+      this.passwordErrormessage = 'Empty passwords not allowed';
       return;
-    }
-
-    if (this.confirmPassword === '') {
-      this.validationError.emit('Password NOT confirmed');
+    }else if (this.confirmPassword === '') {
+      this.passwordErrormessage = 'Password NOT confirmed';
       return;
-    }
-
-    if (this.newPassword !== this.confirmPassword) {
-      this.validationError.emit('Passwords DO NOT match');
+    }else  if (this.newPassword !== this.confirmPassword) {
+      this.passwordErrormessage = 'Passwords DO NOT match';
       return;
-    }
+    } 
 
-    // Passwords match - update the metadata
+    if(this.passwordErrormessage === '' ){
+     // Passwords match - update the metadata
     this.ftpMetadata.password = this.newPassword;
+    }else{
+      this.validationError.emit(this.passwordErrormessage);
+    }
+
+    
   }
 
   /**

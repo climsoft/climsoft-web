@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
-import { CreateConnectorSpecificationDto } from '../dtos/create-connector-specification.dto';
+import { CreateConnectorSpecificationDto, FTPMetadataDto } from '../dtos/create-connector-specification.dto';
 import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
@@ -17,9 +17,9 @@ export class ConnectorSpecificationsService {
         private eventEmitter: EventEmitter2,
     ) { }
 
-    public async find(id: number, decryptPassword: boolean): Promise<ViewConnectorSpecificationDto> {
+    public async find(id: number): Promise<ViewConnectorSpecificationDto> {
         const entity = await this.findEntity(id);
-        return this.createViewDto(entity, decryptPassword);
+        return this.createViewDto(entity);
     }
 
     public async findAll(selectOptions?: FindOptionsWhere<ConnectorSpecificationEntity>): Promise<ViewConnectorSpecificationDto[]> {
@@ -36,7 +36,7 @@ export class ConnectorSpecificationsService {
         const entities = await this.connectorRepo.find(findOptions);
         const dtos: ViewConnectorSpecificationDto[] = [];
         for (const entity of entities) {
-            dtos.push(await this.createViewDto(entity, false)); // Don't decrypt for list view
+            dtos.push(await this.createViewDto(entity)); // Don't decrypt for list view
         }
         return dtos;
     }
@@ -83,10 +83,10 @@ export class ConnectorSpecificationsService {
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
-        
+
         await this.connectorRepo.save(entity);
 
-        const viewDto = await this.createViewDto(entity, false);
+        const viewDto = await this.createViewDto(entity);
 
         this.eventEmitter.emit('connector.created', { id: entity.id, viewDto });
 
@@ -102,11 +102,10 @@ export class ConnectorSpecificationsService {
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
 
-        //Only encrypt if password has changed (not already encrypted)
-        if (!EncryptionUtils.isEncrypted(dto.parameters.password)) {
+        // Only encrypt if password has changed or not already encrypted
+        // Otherwise keep existing encrypted password
+        if (entity.parameters.password !== dto.parameters.password || !EncryptionUtils.isEncrypted(dto.parameters.password)) {
             entity.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
-        } else {
-            entity.parameters.password = dto.parameters.password; // Keep existing encrypted password
         }
 
         entity.timeout = dto.timeout;
@@ -119,7 +118,7 @@ export class ConnectorSpecificationsService {
 
         await this.connectorRepo.save(entity);
 
-        const viewDto = await this.createViewDto(entity, false);
+        const viewDto = await this.createViewDto(entity);
 
         this.eventEmitter.emit('connector.updated', { id, viewDto });
 
@@ -145,26 +144,23 @@ export class ConnectorSpecificationsService {
      * @param entity - The connector entity
      * @param decryptPassword - Whether to decrypt the password (true for usage, false for API responses)
      */
-    private async createViewDto(
-        entity: ConnectorSpecificationEntity,
-        decryptPassword: boolean = false
-    ): Promise<ViewConnectorSpecificationDto> {
-        let password = entity.parameters.password;
+    private async createViewDto(entity: ConnectorSpecificationEntity): Promise<ViewConnectorSpecificationDto> {
+        // const parameters : FTPMetadataDto= entity.parameters;
 
-        if (decryptPassword) {
-            try {
-                // Decrypt password for actual usage (connecting to servers)
-                password = await EncryptionUtils.decrypt(entity.parameters.password);
-            } catch (error) {
-                this.logger.error(`Failed to decrypt password for connector ${entity.id}`, error);
-                throw new BadRequestException('Failed to decrypt connector password');
-            }
-        } else {
-            // Mask password for API responses
-            password = '***ENCRYPTED***';
-        }
+        // if (decryptPassword) {
+        //     try {
+        //         // Decrypt password for actual usage (connecting to servers)
+        //         password = await EncryptionUtils.decrypt(entity.parameters.password);
+        //     } catch (error) {
+        //         this.logger.error(`Failed to decrypt password for connector ${entity.id}`, error);
+        //         throw new BadRequestException('Failed to decrypt connector password');
+        //     }
+        // } else {
+        //     // Mask password for API responses
+        //     password = '***ENCRYPTED***';
+        // }
 
-        entity.parameters.password = password;
+        // entity.parameters.password = password;
 
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
@@ -182,4 +178,5 @@ export class ConnectorSpecificationsService {
         };
         return dto;
     }
+
 }

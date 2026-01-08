@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
+import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
 
 
@@ -30,6 +30,7 @@ export type ConnectorParameters = FTPMetadataDto; // TODO. In future add other c
 
 export class CreateConnectorSpecificationDto {
     @IsString()
+    @IsNotEmpty()
     name: string;
 
     @IsOptional()
@@ -43,6 +44,7 @@ export class CreateConnectorSpecificationDto {
     endPointType: EndPointTypeEnum;
 
     @IsString()
+    @IsNotEmpty()
     hostName: string;
 
     @IsInt()
@@ -54,6 +56,7 @@ export class CreateConnectorSpecificationDto {
     maximumRetries: number;
 
     @IsString()
+    @IsNotEmpty()
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
     @ValidateNested()
@@ -83,12 +86,15 @@ export class FTPMetadataDto {
     port: number;
 
     @IsString()
+    @IsNotEmpty()
     username: string;
 
     @IsString()
+    @IsNotEmpty()
     password: string;
 
     @IsString()
+    @IsNotEmpty()
     remotePath: string
 
     @IsArray()
@@ -103,9 +109,11 @@ export class FTPSpecificationDto {
     filePattern: string; // Will be used to check both single files and multiple files
 
     @IsInt()
+    @Min(1)
     specificationId: number;
 
     @IsOptional()
+    @IsString()
     stationId?: string; // Used by import only
 
 }

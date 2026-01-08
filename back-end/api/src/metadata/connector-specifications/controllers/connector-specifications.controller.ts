@@ -23,7 +23,7 @@ export class ConnectorSpecificationsController {
 
     @Get(':id')
     public findOne(@Param('id', ParseIntPipe) id: number) {
-        return this.connectorSpecificationsService.find(id, false);
+        return this.connectorSpecificationsService.find(id);
     }
 
     @Admin()
