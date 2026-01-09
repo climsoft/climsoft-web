@@ -1,5 +1,5 @@
 import { Transform, Type } from "class-transformer";
-import { IsArray, IsEnum, IsInt, IsOptional, Min } from "class-validator";
+import { IsEnum, IsInt, IsOptional, Min } from "class-validator";
 import { StringUtils } from "src/shared/utils/string.utils";
 
 export enum SelectorFieldControlType {
@@ -15,12 +15,10 @@ export enum LayoutType {
 
 export class FormSourceDTO {
   /** Defines the extra entry selectors used by the form to get data */
-  @IsArray()
   @IsEnum(SelectorFieldControlType, { each: true, message: 'Each selector must be ELEMENT, DAY, or HOUR' })
   selectors: [SelectorFieldControlType, SelectorFieldControlType?];
 
   /** Defines the entry fields used by the form to display and enter data */
-  @IsArray()
   @IsEnum(SelectorFieldControlType, { each: true, message: 'Each field must be ELEMENT, DAY, or HOUR' })
   fields: [SelectorFieldControlType, SelectorFieldControlType?];
 

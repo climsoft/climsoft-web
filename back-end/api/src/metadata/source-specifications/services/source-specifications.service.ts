@@ -73,7 +73,7 @@ export class SourceSpecificationsService {
         });
 
         if (entity) {
-            throw new BadRequestException(`Source template with name ${dto.name} found`);
+            throw new BadRequestException(`Source specification with name ${dto.name} already exists`);
         }
 
         entity = this.sourceRepo.create({

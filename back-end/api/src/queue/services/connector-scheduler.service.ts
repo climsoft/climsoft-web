@@ -46,7 +46,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Add a new connector schedule
      */
-    public async addConnectorSchedule(connectorId: number, cronSchedule: string) {
+    private async addConnectorSchedule(connectorId: number, cronSchedule: string) {
         const jobName = `connector-${connectorId}`;
 
         // Remove existing job if it exists
@@ -62,7 +62,6 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 },
                 null,
                 true,
-                'UTC' // TODO. Check if needed
             );
 
             this.schedulerRegistry.addCronJob(jobName, job);
@@ -76,7 +75,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Remove a connector schedule
      */
-    public removeConnectorSchedule(connectorId: number) {
+    private removeConnectorSchedule(connectorId: number) {
         const jobName = `connector-${connectorId}`;
 
         if (this.schedulerRegistry.doesExist('cron', jobName)) {

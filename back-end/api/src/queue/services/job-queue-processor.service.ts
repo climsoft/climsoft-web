@@ -17,7 +17,7 @@ export class JobQueueProcessorService {
     /**
      * Process pending queue jobs every minute
      */
-    @Cron(CronExpression.EVERY_MINUTE)
+    @Cron(CronExpression.EVERY_MINUTE, {name: 'process-jobs'})
     public async processPendingJobs() {
         if (this.isProcessing) {
             this.logger.debug('Already processing jobs, skipping this cycle');
@@ -46,12 +46,12 @@ export class JobQueueProcessorService {
     /**
      * Clean up old finished jobs daily at 3 AM
      */
-    @Cron('0 3 * * *')
-    public async cleanupOldJobs() {
-        this.logger.log('Running cleanup of old finished jobs');
-        const deletedCount = await this.queueService.cleanupOldJobs(30);
-        this.logger.log(`Cleaned up ${deletedCount} old jobs`);
-    }
+    // @Cron('0 3 * * *',{name: 'clean-jobs-table'})
+    // public async cleanupOldJobs() {
+    //     this.logger.log('Running cleanup of old finished jobs');
+    //     const deletedCount = await this.queueService.cleanupOldJobs(30);
+    //     this.logger.log(`Cleaned up ${deletedCount} old jobs`);
+    // }
 
     /**
      * Process a single job
@@ -65,7 +65,9 @@ export class JobQueueProcessorService {
             // Emit event for job processors to handle
             await this.eventEmitter.emitAsync(`${job.name}`, job);
 
-            await this.queueService.markAsFinished(job.id); // TODO. This can be done as a prompt(event emitted) from individual processors after they finish the task. Will help with doing the tasks in parallel
+            // TODO. This can be done as a prompt(event emitted) from individual processors after they finish the task. 
+            // Will help with doing the tasks in parallel
+            await this.queueService.markAsFinished(job.id); 
             this.logger.log(`Job ${job.id} completed successfully`);
 
         } catch (error) {

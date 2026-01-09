@@ -63,11 +63,15 @@ export class JobQueueService {
      * Mark a job as finished
      */
     public async markAsFinished(jobId: number): Promise<void> {
-        await this.jobQueueRepo.update(jobId, {
-            status: JobQueueStatusEnum.FINISHED,
-            processedAt: new Date(),
-            // attempts: job.attempts + 1, TODO.
-        });
+        const job = await this.jobQueueRepo.findOneBy({ id: jobId });
+
+        if (job) {
+            await this.jobQueueRepo.update(jobId, {
+                status: JobQueueStatusEnum.FINISHED,
+                processedAt: new Date(),
+                attempts: job.attempts + 1,
+            });
+        }
     }
 
     /**
