@@ -4,7 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
-import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, FTPMetadataModel } from '../models/create-connector-specification.model';
+import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, FileServerParametersModel } from '../models/create-connector-specification.model';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -35,7 +35,7 @@ export class ImportConnectorInputDialogComponent {
         this.connector = data;
       });
     } else {
-      const ftpMetadata: FTPMetadataModel = { protocol: FileServerProtocolEnum.FTP, port: 0, username: '', password: '', remotePath: '', specifications: [] };
+      const ftpMetadata: FileServerParametersModel = { protocol: FileServerProtocolEnum.FTP, port: 0, username: '', password: '', remotePath: '', specifications: [] };
       this.connector = {
         id: 0,
         name: '',

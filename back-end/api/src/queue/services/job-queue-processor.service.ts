@@ -46,12 +46,12 @@ export class JobQueueProcessorService {
     /**
      * Clean up old finished jobs daily at 3 AM
      */
-    // @Cron('0 3 * * *',{name: 'clean-jobs-table'})
-    // public async cleanupOldJobs() {
-    //     this.logger.log('Running cleanup of old finished jobs');
-    //     const deletedCount = await this.queueService.cleanupOldJobs(30);
-    //     this.logger.log(`Cleaned up ${deletedCount} old jobs`);
-    // }
+    @Cron('0 3 * * *',{name: 'prune-jobs-table'})
+    public async cleanupOldJobs() {
+        this.logger.log('Running cleanup of old finished jobs');
+        const deletedCount = await this.queueService.cleanupOldJobs(30);
+        this.logger.log(`Cleaned up ${deletedCount} old jobs`);
+    }
 
     /**
      * Process a single job
@@ -76,9 +76,12 @@ export class JobQueueProcessorService {
             await this.queueService.markAsFailed(job.id, errorMessage);
 
             // Try to retry the job if it hasn't exceeded max retries
-            // Get the retries from connector spec if available, otherwise default to 3
-            const maxRetries = 2; // TODO: Get from payload specification. They should all implement `maximumRetries` property.
-            await this.queueService.retryJob(job.id, maxRetries);
+            // Get the retries from payload if available
+            // They should all implement `maximumRetries` property.
+            if(job.payload.maximumRetries){
+                await this.queueService.retryJob(job.id, job.payload.maximumRetries); 
+            }
+           
         }
     }
 }

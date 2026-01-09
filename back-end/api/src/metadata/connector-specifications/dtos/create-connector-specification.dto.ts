@@ -26,7 +26,7 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
-export type ConnectorParameters = FTPMetadataDto; // TODO. In future add other connector metadata types | HTTPMetadata ;
+export type ConnectorParameters = FileServerParametersDto; // TODO. In future add other connector metadata types | HTTPMetadata ;
 
 export class CreateConnectorSpecificationDto {
     @IsString()
@@ -60,7 +60,7 @@ export class CreateConnectorSpecificationDto {
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
     @ValidateNested()
-    @Type(() => FTPMetadataDto)
+    @Type(() => FileServerParametersDto)
     parameters: ConnectorParameters;
 
     @IsOptional()
@@ -74,7 +74,7 @@ export class CreateConnectorSpecificationDto {
     comment?: string;
 }
 
-export class FTPMetadataDto {
+export class FileServerParametersDto {
     @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
     protocol: FileServerProtocolEnum;
 
@@ -97,11 +97,11 @@ export class FTPMetadataDto {
 
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => FTPSpecificationDto)
-    specifications: FTPSpecificationDto[];
+    @Type(() => FileServerSpecificationDto)
+    specifications: FileServerSpecificationDto[];
 }
 
-export class FTPSpecificationDto {
+export class FileServerSpecificationDto {
     @IsString()
     filePattern: string; // Will be used to check both single files and multiple files
 
@@ -114,7 +114,7 @@ export class FTPSpecificationDto {
     stationId?: string; // Used by import only
 }
 
-export class HTTPMetadataDto {
+export class WebServerMetadataDto {
     @IsEnum(WebServerProtocolEnum, { message: 'Web server protocol must be a valid value' })
     protocol: WebServerProtocolEnum;
 

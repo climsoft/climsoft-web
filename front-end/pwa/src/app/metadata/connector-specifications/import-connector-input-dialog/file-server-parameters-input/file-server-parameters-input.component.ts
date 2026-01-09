@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { FTPMetadataModel } from '../../models/create-connector-specification.model';
+import { FileServerParametersModel } from '../../models/create-connector-specification.model';
 
 /**
  * View model for internal UI state management of FTP specifications.
@@ -30,7 +30,7 @@ interface ViewModel {
 export class FileServerParametersInputComponent implements OnChanges {
 
   /** FTP metadata model bound from parent component */
-  @Input() public ftpMetadata!: FTPMetadataModel;
+  @Input() public ftpMetadata!: FileServerParametersModel;
 
   /** Event emitted when validation errors occur */
   @Output() public validationError = new EventEmitter<string>();

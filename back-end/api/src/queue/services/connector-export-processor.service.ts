@@ -10,7 +10,7 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { FTPMetadataDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { FileServerParametersDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ConnectorExportProcessorService {
@@ -103,7 +103,7 @@ export class ConnectorExportProcessorService {
     private async uploadFileFtp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new FtpClient();
 
-        const connectExtraMetadata = connector.parameters as FTPMetadataDto;
+        const connectExtraMetadata = connector.parameters as FileServerParametersDto;
         // TODO. Check how to timeout via the library
         // client.ftp.timeout = connector.timeout * 1000;
 

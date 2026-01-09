@@ -1,6 +1,6 @@
 import { ConnectorTypeEnum } from "./connector-type.enum";
 
-export type ConnectorParameters = FTPMetadataModel; // TODO. In future add other connector metadata types | HTTPMetadata ;
+export type ConnectorParameters = FileServerParametersModel; // TODO. In future add other connector metadata types | HTTPMetadata ;
 
 export interface CreateConnectorSpecificationModel {
     name: string;
@@ -16,7 +16,7 @@ export interface CreateConnectorSpecificationModel {
     comment?: string;
 }
 
-export interface FTPMetadataModel {
+export interface FileServerParametersModel {
     protocol: FileServerProtocolEnum;
     port: number;
     username: string;

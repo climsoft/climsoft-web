@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
-import { CreateConnectorSpecificationDto, FTPMetadataDto } from '../dtos/create-connector-specification.dto';
+import { CreateConnectorSpecificationDto, FileServerParametersDto } from '../dtos/create-connector-specification.dto';
 import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
@@ -162,8 +162,6 @@ export class ConnectorSpecificationsService {
 
         // entity.parameters.password = password;
 
-        console.log('retrieved password: ', entity.parameters.password)
-
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
             name: entity.name,
@@ -177,6 +175,7 @@ export class ConnectorSpecificationsService {
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment,
+            entryUserId: entity.entryUserId,
         };
         return dto;
     }

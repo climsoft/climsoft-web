@@ -46,7 +46,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
     /**
      * Add a new connector schedule
      */
-    private async addConnectorSchedule(connectorId: number, cronSchedule: string) {
+    private async addConnectorSchedule(connectorId: number, connectorCronSchedule: string) {
         const jobName = `connector-${connectorId}`;
 
         // Remove existing job if it exists
@@ -56,16 +56,17 @@ export class ConnectorSchedulerService implements OnModuleInit {
 
         try {
             const job = new CronJob(
-                cronSchedule,
+                connectorCronSchedule,
                 async () => {
                     await this.scheduleConnectorJob(connectorId);
                 },
-                null,
-                true,
+                null, // on complete
+                true, // Start immediately
+                'UTC', // Timezone
             );
 
             this.schedulerRegistry.addCronJob(jobName, job);
-            this.logger.log(`Scheduled connector ${connectorId} with cron: ${cronSchedule}`);
+            this.logger.log(`Scheduled connector ${connectorId} with cron: ${connectorCronSchedule}`);
 
         } catch (error) {
             this.logger.error(`Failed to schedule connector ${connectorId}`, error);
@@ -99,9 +100,9 @@ export class ConnectorSchedulerService implements OnModuleInit {
             const payload: ConnectorJobPayloadDto = {
                 connectorId: connector.id,
                 connectorType: connector.connectorType,
-                extraMetadata: connector.parameters,
-                maxRetries: connector.maximumRetries,
-                triggeredBy: 'schedule'
+                parameters: connector.parameters,
+                maximumRetries: connector.maximumRetries,
+                triggeredBy: 'schedule',
             };
 
             const jobName = `connector.${connector.connectorType}`;
@@ -111,7 +112,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 jobName,
                 payload,
                 new Date(), // Schedule immediately
-                1 // System user ID
+                connector.entryUserId, // User who created it
             );
 
             this.logger.log(`Created ${connector.connectorType} job for connector ${connectorId}`);
@@ -130,8 +131,8 @@ export class ConnectorSchedulerService implements OnModuleInit {
         const payload: ConnectorJobPayloadDto = {
             connectorId: connector.id,
             connectorType: connector.connectorType,
-            extraMetadata: connector.parameters,
-            maxRetries: connector.maximumRetries,
+            parameters: connector.parameters,
+            maximumRetries: connector.maximumRetries,
             triggeredBy: 'manual'
         };
 

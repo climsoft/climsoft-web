@@ -14,4 +14,5 @@ export class ViewConnectorSpecificationDto {
     parameters: ConnectorParameters;
     disabled: boolean;
     comment: string | null;
+    entryUserId: number;
 }

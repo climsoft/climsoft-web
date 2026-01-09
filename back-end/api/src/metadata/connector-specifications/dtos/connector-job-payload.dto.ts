@@ -4,7 +4,7 @@ import { ConnectorParameters, ConnectorTypeEnum } from "./create-connector-speci
 export interface ConnectorJobPayloadDto {
     connectorId: number;
     connectorType: ConnectorTypeEnum;
-    extraMetadata: ConnectorParameters;
+    parameters: ConnectorParameters;
     triggeredBy: 'schedule' | 'manual';
-    maxRetries: number;
+    maximumRetries: number;
 }
