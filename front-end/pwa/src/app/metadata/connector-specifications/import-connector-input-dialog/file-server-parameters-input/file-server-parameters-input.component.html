@@ -1,6 +1,7 @@
 <div *ngIf="ftpMetadata">
     <div>
-        <app-file-server-protocol-selector-single [label]="'Protocol'" [selectedId]="ftpMetadata.protocol" />
+        <app-file-server-protocol-selector-single [label]="'Protocol'" [selectedId]="ftpMetadata.protocol"
+            (selectedIdChange)="onFileProtocolSelection($event)" />
     </div>
 
     <hr />

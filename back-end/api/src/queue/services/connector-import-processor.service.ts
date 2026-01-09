@@ -171,9 +171,12 @@ export class ConnectorImportProcessorService {
                 sourceFiles.set(spec.specificationId, matchingFiles);
             }
 
-            // Download all matching files for each specification
+            // Step 1: Download all matching files for each specification
+            const downloadedFiles: Map<number, string[]> = new Map<number, string[]>();
+
             for (const [specificationId, files] of sourceFiles.entries()) {
-                this.logger.log(`Processing ${files.length} file(s) for specification ${specificationId}`);
+                this.logger.log(`Downloading ${files.length} file(s) for specification ${specificationId}`);
+                const localPaths: string[] = [];
 
                 for (const remoteFile of files) {
                     const localPath = path.join(tmpDir, `connector_${connector.id}_spec_${specificationId}_${remoteFile.name}`);
@@ -181,16 +184,38 @@ export class ConnectorImportProcessorService {
                     try {
                         await client.downloadTo(localPath, remoteFile.name);
                         this.logger.log(`Downloaded file ${remoteFile.name} to ${localPath}`);
+                        localPaths.push(localPath);
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        throw new Error(`Failed to download file ${remoteFile.name} for specification ${specificationId}: ${errorMessage}`);
+                    }
+                }
+
+                downloadedFiles.set(specificationId, localPaths);
+            }
+
+            // Step 2: Process all downloaded files
+            for (const [specificationId, localPaths] of downloadedFiles.entries()) {
+                this.logger.log(`Processing ${localPaths.length} downloaded file(s) for specification ${specificationId}`);
+
+                for (const localPath of localPaths) {
+                    try {
+
+                        // TODO. Left here. process file and outpout ingestable file for every specification
+                        // important not ingest at this point but rather later.
+
 
                         // TODO: Process the file using ObservationImportService
-                        // await this.observationImportService.processFile(specificationId, file, userId);
+                        //await this.observationImportService.processFile(specificationId, file, userId);
+
+                        this.logger.log(`Successfully processed file ${path.basename(localPath)}`);
 
                         // Clean up the downloaded file after processing
                         await fs.unlink(localPath).catch(err =>
                             this.logger.warn(`Failed to delete temporary file ${localPath}`, err)
                         );
                     } catch (error) {
-                        this.logger.error(`Failed to download/process file ${remoteFile.name} for specification ${specificationId}`, error);
+                        this.logger.error(`Failed to process file ${path.basename(localPath)} for specification ${specificationId}`, error);
                         // Continue with next file instead of failing entire job
                     }
                 }

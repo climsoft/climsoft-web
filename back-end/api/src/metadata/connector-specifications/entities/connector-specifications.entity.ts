@@ -37,6 +37,10 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Column({ name: "parameters", type: 'jsonb' })
   parameters: ConnectorParameters;
 
+  @Column({ name: "order_number", type: "int", nullable: true })
+  @Index()
+  orderNumber: number | null;
+
   @Column({ name: 'disabled', type: 'bool', default: false })
   @Index()
   disabled: boolean;

@@ -26,8 +26,11 @@
                <col style="width: 2%;" />
                <col style="width: 16%;" />
                <col style="width: 6%;" />
-               <col style="width: 53%;" />
-                <col style="width: 18%;" />
+               <col style="width: 10%;" />
+               <col style="width: 8%;" />
+               <col style="width: 8%;" />
+               <col style="width: 5%;" />
+               <col style="width: 48%;" />
                <col style="width: 5%;" />
             </colgroup>
             <thead>
@@ -35,8 +38,10 @@
                   <th></th>
                   <th>Name</th>
                   <th>Type</th>
+                  <th>Host</th>
+                  <th>Schedule</th>
+                  <th>Order</th>
                   <th>Description</th>
-                   <th>Schedule</th>
                   <th>Disabled</th>
                </tr>
             </thead>
@@ -45,8 +50,10 @@
                   <td><i class="bi bi-arrow-right-short"></i></td>
                   <td>{{ source.name }}</td>
                   <td>{{ source.connectorType }}</td>
+                  <td>{{ source.hostName }}</td>
+                  <td>{{ source.cronSchedule }}</td>
+                  <td>{{ source.orderNumber }}</td>
                   <td>{{ source.description }}</td>
-                    <td>{{ source.cronSchedule }}</td>
                   <td>{{ source.disabled? 'Yes': 'No' }}</td>
                </tr>
             </tbody>

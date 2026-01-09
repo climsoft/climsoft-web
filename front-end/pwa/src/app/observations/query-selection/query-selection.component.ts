@@ -12,7 +12,7 @@ import { QueryQCDataChecksComponent } from 'src/app/quality-control/qc-data-chec
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
-  selector: 'app-query-selection', 
+  selector: 'app-query-selection',
   templateUrl: './query-selection.component.html',
   styleUrls: ['./query-selection.component.scss']
 })
@@ -35,7 +35,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected sourceIds: number[] = [];
   protected elementIds: number[] = [];
   protected intervals: number[] = [];
-  protected level: number | null = 0;
+  protected level: number | null | undefined = 0;
   protected dateRange: DateRange;
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;

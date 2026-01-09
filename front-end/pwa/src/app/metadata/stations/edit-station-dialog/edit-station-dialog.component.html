@@ -62,7 +62,8 @@
         <hr />
 
         <div>
-            <app-station-focus-selector-single [label]="'Observation Focus'" [(selectedId)]="station.stationObsFocusId" />
+            <app-station-focus-selector-single [label]="'Observation Focus'"
+                [(selectedId)]="station.stationObsFocusId" />
         </div>
 
         <hr />
@@ -92,7 +93,8 @@
         <hr />
 
         <div>
-            <app-station-status-selector-single [label]="'Operational Status'" [(selectedId)]="station.status" (selectedIdChange)="onStationStatusChange($event)" />
+            <app-station-status-selector-single [label]="'Operational Status'" [(selectedId)]="station.status"
+                (selectedIdChange)="onStationStatusChange($event)" />
         </div>
 
         <hr />

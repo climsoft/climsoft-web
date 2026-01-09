@@ -35,7 +35,7 @@ export class TextInputComponent {
   @Input() public hintMessage!: string;
   @Input() public errorMessage!: string;
   @Input() public warningMessage!: string;
-  @Input() public value: string | number | null = '';
+  @Input() public value: string | number | null | undefined = '';
   @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();

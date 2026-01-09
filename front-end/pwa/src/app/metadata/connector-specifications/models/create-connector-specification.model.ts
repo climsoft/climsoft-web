@@ -11,6 +11,7 @@ export interface CreateConnectorSpecificationModel {
     timeout: number; // in seconds
     maximumRetries: number;
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
+    orderNumber?: number | null;
     parameters: ConnectorParameters;
     disabled?: boolean;
     comment?: string;

@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { FileServerParametersModel } from '../../models/create-connector-specification.model';
+import { FileServerParametersModel, FileServerProtocolEnum } from '../../models/create-connector-specification.model';
 
 /**
  * View model for internal UI state management of FTP specifications.
@@ -87,6 +87,24 @@ export class FileServerParametersInputComponent implements OnChanges {
     }
 
     this.validationError.emit(this.passwordErrormessage);
+  }
+
+  protected onFileProtocolSelection(protocol: FileServerProtocolEnum): void {
+    this.ftpMetadata.protocol = protocol;
+
+    switch (this.ftpMetadata.protocol) {
+      case FileServerProtocolEnum.FTP:
+        this.ftpMetadata.port = 21;
+        break;
+      case FileServerProtocolEnum.FTPS:
+        this.ftpMetadata.port = 990;
+        break;
+      case FileServerProtocolEnum.SFTP:
+        this.ftpMetadata.port = 22;
+        break;
+      default:
+        break;
+    }
   }
 
   /**

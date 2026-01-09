@@ -11,7 +11,7 @@ export class StationStatusSelectorSingleComponent implements OnChanges {
   @Input() public label: string = 'Status';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: StationStatusEnum[];
-  @Input() public selectedId!: StationStatusEnum | null;
+  @Input() public selectedId!: StationStatusEnum | null| undefined;
   @Output() public selectedIdChange = new EventEmitter<StationStatusEnum | null>();
 
   protected options!: StationStatusEnum[];

@@ -59,6 +59,11 @@ export class CreateConnectorSpecificationDto {
     @IsNotEmpty()
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
+    @IsOptional()
+    @IsInt()
+    @Min(1)
+    orderNumber?: number; // Auto-generated if not provided
+
     @ValidateNested()
     @Type(() => FileServerParametersDto)
     parameters: ConnectorParameters;

@@ -15,7 +15,7 @@ export class DateInputComponent implements OnChanges {
   @Input() public errorMessage!: string;
   @Input() public maxDate!: string;
   @Input() public minDate!: string;
-  @Input() public value!: string | null;
+  @Input() public value!: string | null | undefined;
   @Output() public valueChange = new EventEmitter<string>();
   @Output() public inputClick = new EventEmitter<string>();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();

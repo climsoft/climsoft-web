@@ -18,7 +18,7 @@ export class ImportConnectorInputDialogComponent {
   protected open: boolean = false;
   protected title: string = '';
   protected connector!: ViewConnectorSpecificationModel;
-  protected parametersErrormMessage: string ='';
+  protected parametersErrormMessage: string = '';
 
   constructor(
     private connectorSpecificationsService: ConnectorSpecificationsService,
@@ -35,7 +35,15 @@ export class ImportConnectorInputDialogComponent {
         this.connector = data;
       });
     } else {
-      const ftpMetadata: FileServerParametersModel = { protocol: FileServerProtocolEnum.FTP, port: 0, username: '', password: '', remotePath: '', specifications: [] };
+      const ftpMetadata: FileServerParametersModel = {
+        protocol: FileServerProtocolEnum.FTP,
+        port: 21,
+        username: '',
+        password: '',
+        remotePath: '/',
+        specifications: [],
+      };
+
       this.connector = {
         id: 0,
         name: '',
@@ -46,9 +54,10 @@ export class ImportConnectorInputDialogComponent {
         timeout: 5,
         maximumRetries: 1,
         cronSchedule: '',
+        orderNumber: 0,
         parameters: ftpMetadata,
         disabled: false,
-        comment: null
+        comment: undefined,
       };
 
     }
@@ -69,12 +78,12 @@ export class ImportConnectorInputDialogComponent {
       return;
     }
 
-     if (!this.connector.parameters.password) {
+    if (!this.connector.parameters.password) {
       this.pagesDataService.showToast({ title: 'Import Connector', message: 'Password required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
-     if (this.parametersErrormMessage) {
+    if (this.parametersErrormMessage) {
       this.pagesDataService.showToast({ title: 'Import Connector', message: this.parametersErrormMessage, type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -88,6 +97,7 @@ export class ImportConnectorInputDialogComponent {
       timeout: this.connector.timeout,
       maximumRetries: this.connector.maximumRetries,
       cronSchedule: this.connector.cronSchedule,
+      orderNumber: this.connector.orderNumber? this.connector.orderNumber: undefined,
       parameters: this.connector.parameters,
       disabled: this.connector.disabled,
       comment: this.connector.comment ? this.connector.comment : undefined,

@@ -80,6 +80,7 @@ export class ConnectorSpecificationsService {
         dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
 
         entity.parameters = dto.parameters;
+        dto.orderNumber? entity.orderNumber = dto.orderNumber: null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
@@ -99,8 +100,8 @@ export class ConnectorSpecificationsService {
         // Only encrypt if password has changed or not already encrypted 
         if (entity.parameters.password !== dto.parameters.password || !EncryptionUtils.isEncrypted(dto.parameters.password)) {
             dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
-        }else{
-             dto.parameters.password =  entity.parameters.password; // Keep existing encrypted password
+        } else {
+            dto.parameters.password = entity.parameters.password; // Keep existing encrypted password
         }
 
         entity.name = dto.name;
@@ -112,6 +113,7 @@ export class ConnectorSpecificationsService {
         entity.maximumRetries = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
+        dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
@@ -165,16 +167,17 @@ export class ConnectorSpecificationsService {
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
             name: entity.name,
-            description: entity.description,
+            description: entity.description ? entity.description : '',
             connectorType: entity.connectorType,
             endPointType: entity.endPointType,
             hostName: entity.hostName,
             timeout: entity.timeout,
             maximumRetries: entity.maximumRetries,
             cronSchedule: entity.cronSchedule,
+            orderNumber: entity.orderNumber ? entity.orderNumber : undefined,
             parameters: entity.parameters,
             disabled: entity.disabled,
-            comment: entity.comment,
+            comment: entity.comment ? entity.comment : '',
             entryUserId: entity.entryUserId,
         };
         return dto;
