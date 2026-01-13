@@ -118,17 +118,17 @@ export class ConnectorImportProcessorService {
             const processedFiles: string[] = connectorImport.files.map(file => file.processedFile);
             await this.observationImportService.importProcessedFilesToDatabase(processedFiles);
 
-            for (const filePaths of connectorImport.files) {
-                // Clean up the processed file after successful import
-                fs.unlink(filePaths.processedFile).catch(err =>
-                    this.logger.warn(`Failed to delete processed file ${filePaths.processedFile}`, err)
-                );
+            // for (const filePaths of connectorImport.files) {
+            //     // Clean up the processed file after successful import
+            //     fs.unlink(filePaths.processedFile).catch(err =>
+            //         this.logger.warn(`Failed to delete processed file ${filePaths.processedFile}`, err)
+            //     );
 
-                // Clean up the downloaded file
-                fs.unlink(filePaths.downloadedFile).catch(err =>
-                    this.logger.warn(`Failed to delete downloaded file ${filePaths.downloadedFile}`, err)
-                );
-            }
+            //     // Clean up the downloaded file
+            //     fs.unlink(filePaths.downloadedFile).catch(err =>
+            //         this.logger.warn(`Failed to delete downloaded file ${filePaths.downloadedFile}`, err)
+            //     );
+            // }
         }
 
         this.logger.log(`Completed bulk import for connector ${connector.id}`);

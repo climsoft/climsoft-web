@@ -147,8 +147,9 @@ export class ObservationImportService {
         alterSQLs = alterSQLs + this.getAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
         alterSQLs = alterSQLs + this.getAlterEntryUserIdColumnSQL(tmpObsTableName, userId)
 
-        // TODO. Generate sql for removing duplicate values using statioon_id, element_id, level, date_time, interval and source_id
-        // From the table.
+        // Remove duplicate values based on composite primary key (station_id, element_id, level, date_time, interval, source_id)
+        // Keep the last occurrence of each duplicate
+        alterSQLs = alterSQLs + this.getRemoveDuplicatesSQL(tmpObsTableName);
 
         console.log("alterSQLs: ", alterSQLs);
 
@@ -486,12 +487,27 @@ export class ObservationImportService {
         const elements: CreateViewElementDto[] = await this.elementsService.find({ elementIds: elementIdsToScale });
         let scalingSQLs: string = '';
         for (const element of elements) {
-            // Only scale elements that have a scaling factor > 0 
+            // Only scale elements that have a scaling factor > 0
             if (element.entryScaleFactor) {
                 scalingSQLs = scalingSQLs + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = (${this.VALUE_PROPERTY_NAME} / ${element.entryScaleFactor}) WHERE ${this.ELEMENT_ID_PROPERTY_NAME} = ${element.id} AND ${this.VALUE_PROPERTY_NAME} IS NOT NULL;`;
             }
         }
         return scalingSQLs;
+    }
+
+    private getRemoveDuplicatesSQL(tableName: string): string {
+        // Remove duplicates based on the composite primary key (station_id, element_id, level, date_time, interval, source_id)
+        // Keep the last occurrence by using row_number() ordered by rowid in descending order
+        // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids
+        return `DELETE FROM ${tableName} WHERE rowid IN (
+            SELECT rowid FROM (
+                SELECT rowid, ROW_NUMBER() OVER (
+                    PARTITION BY ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}
+                    ORDER BY rowid DESC
+                ) as rn
+                FROM ${tableName}
+            ) WHERE rn > 1
+        );`;
     }
 
 }
