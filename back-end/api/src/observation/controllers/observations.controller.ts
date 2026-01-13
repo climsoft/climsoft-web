@@ -147,7 +147,7 @@ export class ObservationsController {
     ) file: Express.Multer.File) {
     try {
       const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.processFile(sourceId, file, user.id, user.username);
+      await this.observationImportService.deprecatedProcessFile(sourceId, file, user.id, user.username);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -171,7 +171,7 @@ export class ObservationsController {
 
     try {
       const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.processFile(sourceId, file, user.id, stationId);
+      await this.observationImportService.deprecatedProcessFile(sourceId, file, user.id, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };

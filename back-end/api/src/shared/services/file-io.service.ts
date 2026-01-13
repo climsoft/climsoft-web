@@ -27,7 +27,7 @@ export class FileIOService {
     }
 
     private async setupTempFolder(): Promise<void> {
-        this._tempFilesFolderPath = path.resolve('./tmp');
+        this._tempFilesFolderPath = path.resolve('./temp');
         // For windows platform, replace the backslashes with forward slashes.
         this._tempFilesFolderPath = this._tempFilesFolderPath.replaceAll("\\", "\/");
         // Check if the temporary directory exist. 

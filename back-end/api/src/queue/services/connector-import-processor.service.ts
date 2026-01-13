@@ -14,6 +14,16 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { ConnectorTypeEnum, EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { map } from 'rxjs';
+import { FileIOService } from 'src/shared/services/file-io.service';
+
+interface ConnectorImports {
+    specificationId: number;
+    files: {
+        sourceFile: string;
+        processedFile: string;
+    };
+
+}
 
 @Injectable()
 export class ConnectorImportProcessorService {
@@ -66,7 +76,7 @@ export class ConnectorImportProcessorService {
         let localFilePath: string; // TODO. Can be a set of files
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
-                await this.downloadAndprocessFromFileServer(connector);
+                await this.downloadAndprocessFromFileServer(connector, userId);
                 break;
             case EndPointTypeEnum.WEB_SERVER:
                 // TODO
@@ -106,13 +116,13 @@ export class ConnectorImportProcessorService {
         // }
     }
 
-    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto): Promise<string> {
+    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<string> {
         const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
 
         switch (connectorParams.protocol) {
             case FileServerProtocolEnum.FTP:
             case FileServerProtocolEnum.FTPS:
-                await this.downloadFileFtp(connector);
+                await this.downloadFileFtp(connector, userId);
                 break;
             case FileServerProtocolEnum.SFTP:
                 await this.downloadFileSftp(connector);
@@ -124,18 +134,23 @@ export class ConnectorImportProcessorService {
         return '';
     }
 
+
+
+
     /**
      * Download file via FTP
      */
-    private async downloadFileFtp(connector: ViewConnectorSpecificationDto): Promise<void> {
+    private async downloadFileFtp(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
         const client = new FtpClient(connector.timeout * 1000);
 
         const connectorParams = connector.parameters as FileServerParametersDto;
         const remotePath = connectorParams.remotePath;
 
         const filePattern = connectorParams.specifications[0].filePattern || '*';
-        const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
-        await fs.mkdir(tmpDir, { recursive: true });
+        const tmpDownloadsDir = path.join(process.cwd(), 'temp', 'connector-downloads');
+        const tmpPocessedsDir = path.join(process.cwd(), 'temp', 'connector-imports');
+        await fs.mkdir(tmpDownloadsDir, { recursive: true });
+        await fs.mkdir(tmpPocessedsDir, { recursive: true });
 
         try {
             // Connect to FTP server
@@ -148,11 +163,11 @@ export class ConnectorImportProcessorService {
             });
 
             this.logger.log(`Connected to FTP server ${connector.hostName}`);
-           
+
             // Set the working directory
             await client.cd(remotePath);
 
-             // Get the list of files in remote directory and set the corresponding source
+            // Get the list of files in remote directory and set the corresponding source
             const fileList: FileInfo[] = await client.list();
 
             // Holds sepcification id, remote file name and local file name
@@ -176,50 +191,54 @@ export class ConnectorImportProcessorService {
 
             for (const [specificationId, files] of sourceFiles.entries()) {
                 this.logger.log(`Downloading ${files.length} file(s) for specification ${specificationId}`);
-                const localPaths: string[] = [];
+                const localDownloadPaths: string[] = [];
 
                 for (const remoteFile of files) {
-                    const localPath = path.join(tmpDir, `connector_${connector.id}_spec_${specificationId}_${remoteFile.name}`);
+                    const localDownloadPath = path.join(tmpDownloadsDir, `connector_${connector.id}_spec_${specificationId}_${remoteFile.name}`);
 
                     try {
-                        await client.downloadTo(localPath, remoteFile.name);
-                        this.logger.log(`Downloaded file ${remoteFile.name} to ${localPath}`);
-                        localPaths.push(localPath);
+                        await client.downloadTo(localDownloadPath, remoteFile.name);
+                        this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}`);
+                        localDownloadPaths.push(localDownloadPath);
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);
                         throw new Error(`Failed to download file ${remoteFile.name} for specification ${specificationId}: ${errorMessage}`);
                     }
                 }
 
-                downloadedFiles.set(specificationId, localPaths);
+                downloadedFiles.set(specificationId, localDownloadPaths);
             }
 
             // Step 2: Process all downloaded files
-            for (const [specificationId, localPaths] of downloadedFiles.entries()) {
-                this.logger.log(`Processing ${localPaths.length} downloaded file(s) for specification ${specificationId}`);
+            const processedFiles: Map<number, string[]> = new Map<number, string[]>();
 
-                for (const localPath of localPaths) {
+            for (const [specificationId, localDownloadPaths] of downloadedFiles.entries()) {
+                this.logger.log(`Processing ${localDownloadPaths.length} downloaded file(s) for specification ${specificationId}`);
+                const localProcessedPaths: string[] = [];
+
+                for (const localDownloadPath of localDownloadPaths) {
+                    const localProcessedPath = path.join(tmpPocessedsDir, `connector_${connector.id}_spec_${specificationId}_.csv`);
                     try {
 
-                        // TODO. Left here. process file and outpout ingestable file for every specification
-                        // important not ingest at this point but rather later.
+                        await this.observationImportService.processFileForImport(specificationId, localDownloadPath, localProcessedPath, userId);
+                        this.logger.log(`Successfully processed file ${path.basename(localDownloadPath)} into ${path.basename(localProcessedPath)}`);
+                        localProcessedPaths.push(localProcessedPath);
 
-
-                        // TODO: Process the file using ObservationImportService
-                        //await this.observationImportService.processFile(specificationId, file, userId);
-
-                        this.logger.log(`Successfully processed file ${path.basename(localPath)}`);
-
-                        // Clean up the downloaded file after processing
-                        await fs.unlink(localPath).catch(err =>
-                            this.logger.warn(`Failed to delete temporary file ${localPath}`, err)
-                        );
                     } catch (error) {
-                        this.logger.error(`Failed to process file ${path.basename(localPath)} for specification ${specificationId}`, error);
-                        // Continue with next file instead of failing entire job
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        throw new Error(`Failed to process file ${path.basename(localDownloadPath)} for specification ${specificationId}: ${errorMessage}`);
                     }
                 }
+
+                processedFiles.set(specificationId, localProcessedPaths);
             }
+
+            // TODO. Initiate import of processed files
+
+            // Clean up all the downloaded files after processing
+            // await fs.unlink(localPath).catch(err =>
+            //     this.logger.warn(`Failed to delete temporary file ${localPath}`, err)
+            // );
 
         } finally {
             client.close();

@@ -6,7 +6,7 @@ import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 
 //import * as fs from 'node:fs/promises';
-import * as path from 'node:path'; 
+import * as path from 'node:path';
 import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
@@ -37,8 +37,25 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-    public async processFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
-        // TODO. Temporarily added the time as part of file name because of deleting the file throgh fs.unlink() throw a bug
+    public async processFileForImport(sourceId: number, importFilePathName: string,  exportFilePathName: string, userId: number, stationId?: string) {
+        // Get the source definition using the source id
+        const sourceDef = await this.sourcesService.find(sourceId);
+
+        if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
+            throw new Error('Source is not an import source');
+        }
+
+        const importSourceDef = sourceDef.parameters as ImportSourceDto;
+
+        if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
+            await this.processTabularSource(sourceDef, importFilePathName, exportFilePathName, userId, stationId);
+        } else {
+            throw new Error('Source structure not supported yet');
+        }
+    }
+
+    public async deprecatedProcessFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
+        // TODO. Temporarily added the time as part of file name because of deleting the file through fs.unlink() throws a bug
         const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
 
         // Save the file to the temporary directory
@@ -55,7 +72,7 @@ export class ObservationImportService {
             const importSourceDef = sourceDef.parameters as ImportSourceDto;
 
             if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-                await this.importTabularSource(sourceDef, tmpFilePathName, userId, stationId);
+                await this.processTabularSource(sourceDef, tmpFilePathName, '', userId, stationId);
             } else {
                 throw new BadRequestException("Error: Source not supported yet");
             }
@@ -68,12 +85,12 @@ export class ObservationImportService {
         }
     }
 
-    private async importTabularSource(sourceDef: ViewSourceDto, fileName: string, userId: number, stationId?: string) {
+    private async processTabularSource(sourceDef: ViewSourceDto, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string): Promise<void> {
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
-        const tmpObsTableName: string = path.basename(fileName, path.extname(fileName));
+        const tmpObsTableName: string = path.basename(importFilePathName, path.extname(importFilePathName));
         // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
         const importParams: string[] = ['header = false', `skip = ${tabularDef.rowsToSkip}`, 'all_varchar = true'];
         if (tabularDef.delimiter) {
@@ -81,7 +98,7 @@ export class ObservationImportService {
         }
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${fileName}',  ${importParams.join(",")});`);
+        await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}',  ${importParams.join(",")});`);
 
         let alterSQLs: string;
         // Rename all columns to use the expected suffix column indices
@@ -119,20 +136,33 @@ export class ObservationImportService {
 
         // Get the rows of the columns that match the dto properties
         startTime = new Date().getTime();
-        const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
-        this.logger.log(`DuckDB fetch rows took ${new Date().getTime() - startTime} milliseconds`);
+        if (exportFilePathName === '') {
+            // TODO. Deprecate this block
 
-        // Delete the table 
-        startTime = new Date().getTime();
-        await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
-        this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
+            const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
+            this.logger.log(`DuckDB fetch rows took ${new Date().getTime() - startTime} milliseconds`);
 
-        // Save the rows into the database
-        // Note, no need await. 
-        // All current active ingestion processes will be tagged and show on the ingestion monitoring page
-        // In future, data ingestion will be done through COPY in postgres. 
-        // Duckdb will simply write the file which then will prompt scheduling of importation
-        this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
+            // Delete the table 
+            startTime = new Date().getTime();
+            await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
+            this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
+
+            // Save the rows into the database
+            // Note, no need await. 
+            // All current active ingestion processes will be tagged and show on the ingestion monitoring page
+            // In future, data ingestion will be done through COPY in postgres. 
+            // Duckdb will simply write the file which then will prompt scheduling of importation
+            this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
+        } else {
+
+            await this.fileIOService.duckDb.exec(`COPY ${tmpObsTableName} TO '${exportFilePathName}';`);
+            this.logger.log(`DuckDB copy table took ${new Date().getTime() - startTime} milliseconds`);
+
+            startTime = new Date().getTime();
+            await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
+            this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
+        }
+
     }
 
     private getAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId?: string): string {
