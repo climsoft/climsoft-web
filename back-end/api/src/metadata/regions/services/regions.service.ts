@@ -73,7 +73,7 @@ export class RegionsService {
     }
 
     public async extractAndsaveRegions(regionType: RegionTypeEnum, file: Express.Multer.File, userId: number) {
-        const filePathName: string = `${this.fileUploadService.tempFilesFolderPath}/user_${userId}_regions_upload_${new Date().getTime()}.json`;
+        const filePathName: string = `${this.fileUploadService.apiImportsDir}/user_${userId}_regions_upload_${new Date().getTime()}.json`;
 
         // Save the file to the temporary directory
         await this.fileUploadService.saveFile(file, filePathName);

@@ -15,27 +15,51 @@ import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ObservationImportService {
     private readonly logger = new Logger(ObservationImportService.name);
-    // Enforce these fields to always match CreateObservationDto properties naming. Important to ensure objects returned by duckdb matches the dto structure. 
-    private readonly STATION_ID_PROPERTY_NAME: keyof CreateObservationDto = "stationId";
-    private readonly ELEMENT_ID_PROPERTY_NAME: keyof CreateObservationDto = "elementId";
-    private readonly SOURCE_ID_PROPERTY_NAME: keyof CreateObservationDto = "sourceId";
-    private readonly level: keyof CreateObservationDto = "level";
-    private readonly DATE_TIME_PROPERTY_NAME: keyof CreateObservationDto = "datetime";
-    private readonly INTERVAL_PROPERTY_NAME: keyof CreateObservationDto = "interval";
-    private readonly VALUE_PROPERTY_NAME: keyof CreateObservationDto = "value";
-    private readonly FLAG_PROPERTY_NAME: keyof CreateObservationDto = "flag";
-    private readonly COMMENT_PROPERTY_NAME: keyof CreateObservationDto = "comment";
+
+    private readonly STATION_ID_PROPERTY_NAME: string = "station_id";
+    private readonly ELEMENT_ID_PROPERTY_NAME: string = "element_id";
+    private readonly level: string = "level";
+    private readonly DATE_TIME_PROPERTY_NAME: string = "date_time";
+    private readonly INTERVAL_PROPERTY_NAME: string = "interval";
+    private readonly SOURCE_ID_PROPERTY_NAME: string = "source_id";
+    private readonly VALUE_PROPERTY_NAME: string = "value";
+    private readonly FLAG_PROPERTY_NAME: string = "flag";
+    private readonly COMMENT_PROPERTY_NAME: string = "comment";
+    private readonly ENTRY_USER_ID_PROPERTY_NAME: string = "entry_user_id";
 
     constructor(
         private fileIOService: FileIOService,
+        private dataSource: DataSource,
         private sourcesService: SourceSpecificationsService,
-        private observationsService: ObservationsService,
         private elementsService: ElementsService,
     ) { }
+
+
+    public async processFileForImportAndSave(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
+
+        try {
+
+            // TODO. Temporarily added the time as part of file name because of deleting the file through fs.unlink() throws a bug
+            const importFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
+            const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_processed_${new Date().getTime()}.csv`;
+
+            // Save the file to the temporary directory
+            await this.fileIOService.saveFile(file, importFilePathName);
+
+            // TODO. Should be sent to a queue
+            await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
+            this.importProcessedFilesToDatabase([exportFilePathName]);
+
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new BadRequestException(`Failed to import file: ${errorMessage}`);
+        }
+    }
 
     public async processFileForImport(sourceId: number, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string) {
         // Get the source definition using the source id
@@ -54,36 +78,36 @@ export class ObservationImportService {
         }
     }
 
-    public async deprecatedProcessFile(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
-        // TODO. Temporarily added the time as part of file name because of deleting the file through fs.unlink() throws a bug
-        const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
+    /**
+     * Import processed CSV files to database using PostgreSQL COPY command
+     */
+    public async importProcessedFilesToDatabase(processedFiles: string[]): Promise<void> {
+        for (const filePathName of processedFiles) {
+            try {
+                this.logger.log(`Imported  file${filePathName} into database`);
+                const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replace(/\\/g, '/');
+                console.log('dbFilePathName: ', dbFilePathName)
 
-        // Save the file to the temporary directory
-        await this.fileIOService.saveFile(file, tmpFilePathName);
+                // Use PostgreSQL COPY command to bulk import CSV data
+                // The CSV file should have columns: station_id, element_id, source_id, level, datetime, interval, value, flag, comment
+                const copyQuery = `
+                            COPY observations (${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME}, ${this.ENTRY_USER_ID_PROPERTY_NAME})
+                            FROM '${dbFilePathName}'
+                            WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+                        `;
 
-        try {
-            // Get the source definition using the source id
-            const sourceDef = await this.sourcesService.find(sourceId);
+                await this.dataSource.query(copyQuery);
 
-            if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
-                throw new BadRequestException("Error: Source is not an import source");
+                this.logger.log(`Successfully imported ${filePathName} into database`);
+
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                this.logger.error(`Failed to import file ${filePathName}: ${errorMessage}`);
+                throw new Error(`Database import failed for ${path.basename(filePathName)}: ${errorMessage}`);
             }
-
-            const importSourceDef = sourceDef.parameters as ImportSourceDto;
-
-            if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-                await this.processTabularSource(sourceDef, tmpFilePathName, '', userId, stationId);
-            } else {
-                throw new BadRequestException("Error: Source not supported yet");
-            }
-
-        } catch (error) {
-            console.error("File Import Failed: ", error)
-            throw new BadRequestException("Error: File Import Failed: " + error);
-        } finally {
-            this.fileIOService.deleteFile(tmpFilePathName);
         }
     }
+
 
     private async processTabularSource(sourceDef: ViewSourceDto, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string): Promise<void> {
         const sourceId: number = sourceDef.id;
@@ -121,6 +145,7 @@ export class ObservationImportService {
         alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
 
         alterSQLs = alterSQLs + this.getAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
+        alterSQLs = alterSQLs + this.getAlterEntryUserIdColumnSQL(tmpObsTableName, userId)
 
         console.log("alterSQLs: ", alterSQLs);
 
@@ -138,32 +163,12 @@ export class ObservationImportService {
 
         // Get the rows of the columns that match the dto properties
         startTime = new Date().getTime();
-        if (exportFilePathName === '') {
-            // TODO. Deprecate this block
+        await this.fileIOService.duckDb.exec(`COPY ${tmpObsTableName} TO '${exportFilePathName}';`);
+        this.logger.log(`DuckDB copy table took ${new Date().getTime() - startTime} milliseconds`);
 
-            const rows = await this.fileIOService.duckDb.all(`SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.level}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME} FROM ${tmpObsTableName};`);
-            this.logger.log(`DuckDB fetch rows took ${new Date().getTime() - startTime} milliseconds`);
-
-            // Delete the table 
-            startTime = new Date().getTime();
-            await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
-            this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
-
-            // Save the rows into the database 
-            // Note, no need await. 
-            // All current active ingestion processes will be tagged and show on the ingestion monitoring page
-            // In future, data ingestion will be done through COPY in postgres. 
-            // Duckdb will simply write the file which then will prompt scheduling of importation
-            this.observationsService.bulkPut(rows as CreateObservationDto[], userId);
-        } else {
-
-            await this.fileIOService.duckDb.exec(`COPY ${tmpObsTableName} TO '${exportFilePathName}';`);
-            this.logger.log(`DuckDB copy table took ${new Date().getTime() - startTime} milliseconds`);
-
-            startTime = new Date().getTime();
-            await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
-            this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
-        }
+        startTime = new Date().getTime();
+        await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
+        this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
 
     }
 
@@ -460,6 +465,10 @@ export class ObservationImportService {
         return sql;
     }
 
+
+    private getAlterEntryUserIdColumnSQL(tableName: string, userId: number): string {
+        return `ALTER TABLE ${tableName} ADD COLUMN ${this.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId};`;
+    }
 
     private async getScaleValueSQL(tableName: string): Promise<string> {
         const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${this.ELEMENT_ID_PROPERTY_NAME} FROM ${tableName};`)).map(item => (item[this.ELEMENT_ID_PROPERTY_NAME]));

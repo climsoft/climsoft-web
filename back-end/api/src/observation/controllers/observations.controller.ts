@@ -3,14 +3,14 @@ import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ObservationImportService } from '../services/observation-import.service';
+import { ObservationImportService } from '../services/observations-import.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { ExportObservationsService } from '../services/export-observations.service';
+import { ObservationsExportService } from '../services/observations-export.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
@@ -26,7 +26,7 @@ export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
     private observationImportService: ObservationImportService,
-    private exportObservationsService: ExportObservationsService,
+    private exportObservationsService: ObservationsExportService,
     private dataEntryCheckService: DataEntryAndCorrectionCheckService,
   ) { }
 
@@ -141,13 +141,12 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
-        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/ }),
+        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
     try {
-      const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.deprecatedProcessFile(sourceId, file, user.id, user.username);
+      await this.observationImportService.processFileForImportAndSave(sourceId, file, AuthUtil.getLoggedInUser(request).id);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -170,8 +169,7 @@ export class ObservationsController {
     ) file: Express.Multer.File) {
 
     try {
-      const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.deprecatedProcessFile(sourceId, file, user.id, stationId);
+      await this.observationImportService.processFileForImportAndSave(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };

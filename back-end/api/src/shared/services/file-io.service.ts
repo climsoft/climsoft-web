@@ -3,52 +3,86 @@ import os from "os";
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { Database } from "duckdb-async";
+import { AppConfig } from 'src/app.config';
 
 @Injectable()
 export class FileIOService {
-    private _tempFilesFolderPath: string;
+
     private _duckDb: Database;
 
+
+    private _tempDir: string;
+    private _importsDir: string;
+    private _exportsDir: string;
+
     constructor() {
-        this.setupFileIO();
+        this.createWorkingDirs();
     }
 
-    public get tempFilesFolderPath(): string {
-        return this._tempFilesFolderPath;
+    private async createWorkingDirs() {
+        this._tempDir = path.join(process.cwd(), 'temp');
+        this._importsDir = path.join(process.cwd(), 'temp', 'imports');
+        this._exportsDir = path.join(process.cwd(), 'temp', 'exports');
+
+        await fs.promises.mkdir(this._tempDir, { recursive: true });
+        await fs.promises.mkdir(this._importsDir, { recursive: true });
+        await fs.promises.mkdir(this._exportsDir, { recursive: true });
+
+        await this.setupDuckDB();
     }
+
+
+
+    // public get tempDir(): string {
+    //     return this._tempDir;
+    // }
+
+    public get apiImportsDir(): string {
+        return AppConfig.devMode ? this._importsDir : '/app/imports';
+    }
+
+    public get apiExportsDir(): string {
+        return AppConfig.devMode ? this._exportsDir : '/app/exports';
+    }
+
+    public get dbImportsDir(): string {
+        return '/var/lib/postgresql/imports';
+    }
+
+    public get dbExportsDir(): string {
+        return '/var/lib/postgresql/exports';
+    }
+
+
+
+    // TODO. Deprecate below
 
     public get duckDb(): Database {
         return this._duckDb;
     }
 
-    private async setupFileIO() {
-        await this.setupTempFolder();
-        await this.setupDuckDB();
-    }
-
     private async setupTempFolder(): Promise<void> {
-        this._tempFilesFolderPath = path.resolve('./temp');
+        this._tempDir = path.resolve('./temp');
         // For windows platform, replace the backslashes with forward slashes.
-        this._tempFilesFolderPath = this._tempFilesFolderPath.replaceAll("\\", "\/");
+        this._tempDir = this._tempDir.replaceAll("\\", "\/");
         // Check if the temporary directory exist. 
         try {
-            await fs.promises.access(this._tempFilesFolderPath, fs.promises.constants.F_OK)
+            await fs.promises.access(this._tempDir, fs.promises.constants.F_OK)
         } catch (err1) {
             // If it doesn't create the directory.
             try {
-                await fs.promises.mkdir(this._tempFilesFolderPath);
+                await fs.promises.mkdir(this._tempDir);
             } catch (err2) {
                 console.error("Could not create temporary folder: ", err2);
                 // TODO. Throw appropriiate error.
                 throw new Error("Could not create temporary folder: " + err2);
             }
-
         }
     }
 
     private async setupDuckDB() {
         // Initialise DuckDB with the specified file path
-        this._duckDb = await Database.create(`${this._tempFilesFolderPath}/duckdb_io.db`);
+        this._duckDb = await Database.create(`${this.apiImportsDir}/duckdb_io.db`);
     }
 
     public createStreamableFile(filePathName: string) {

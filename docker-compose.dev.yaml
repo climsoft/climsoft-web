@@ -10,7 +10,8 @@ services:
       - "5432:5432"
     volumes:
       - climsoft_dev_data:/var/lib/postgresql/data
-      - ./back-end/api/tmp:/var/lib/postgresql/exports  # Mount host directory
+      - ./back-end/api/temp/imports:/var/lib/postgresql/imports  # Mount host directory
+      - ./back-end/api/temp/exports:/var/lib/postgresql/exports  # Mount host directory
 
 volumes:
   climsoft_dev_data:

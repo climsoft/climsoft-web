@@ -19,5 +19,15 @@ export class ImportSourceMissingFlagDetailComponent {
   @Output()
   public sourceMissingValueFlagsChange = new EventEmitter<string>();
 
+  protected onAllowMissingValueChange(value: boolean): void {
+    this.allowMissingValue = value;
+    this.allowMissingValueChange.emit(value);
+  }
+
+  protected onSourceMissingValueFlagsChange(value: string): void {
+    this.sourceMissingValueFlags = value;
+    this.sourceMissingValueFlagsChange.emit(value);
+  }
+
 
 }

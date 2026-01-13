@@ -51,6 +51,7 @@ services:
       climsoft_db:
         condition: service_healthy # Wait until climsoft_db is healthy as indicate by healthcheck
     volumes:
+      - climsoft_imports:/app/imports
       - climsoft_exports:/app/exports
     networks:
       - climsoft_network
@@ -67,6 +68,7 @@ services:
       - "5432:5432" # Expose to both external and internal network.
     volumes:
       - climsoft_database:/var/lib/postgresql/data
+      - climsoft_imports:/var/lib/postgresql/imports
       - climsoft_exports:/var/lib/postgresql/exports
     networks:
       - climsoft_network
@@ -83,6 +85,7 @@ services:
 
 volumes:
   climsoft_database:
+  climsoft_imports:
   climsoft_exports:
 
 networks:

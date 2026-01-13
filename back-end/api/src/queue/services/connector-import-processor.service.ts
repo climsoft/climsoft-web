@@ -3,26 +3,25 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
-import { ObservationImportService } from 'src/observation/services/observation-import.service';
+import { ObservationImportService } from 'src/observation/services/observations-import.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { FileInfo, Client as FtpClient } from 'basic-ftp';
+import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
-import { ConnectorTypeEnum, EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
-import { map } from 'rxjs';
-import { FileIOService } from 'src/shared/services/file-io.service';
+import { EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
+import { DataSource } from 'typeorm';
+import { FileIOService } from 'src/shared/services/file-io.service';
 
-interface ConnectorImports {
+interface ConnectorImport {
     specificationId: number;
     files: {
-        sourceFile: string;
+        downloadedFile: string;
         processedFile: string;
-    };
+    }[];
+    stationId?: string;
 
 }
 
@@ -31,8 +30,8 @@ export class ConnectorImportProcessorService {
     private readonly logger = new Logger(ConnectorImportProcessorService.name);
 
     constructor(
+        private fileIOService: FileIOService,
         private connectorService: ConnectorSpecificationsService,
-        private sourceService: SourceSpecificationsService,
         private observationImportService: ObservationImportService,
     ) { }
 
@@ -75,51 +74,86 @@ export class ConnectorImportProcessorService {
         }
     }
 
-    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<string> {
+    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
         const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
-
+        let connectorImports: ConnectorImport[] = [];
         switch (connectorParams.protocol) {
             case FileServerProtocolEnum.FTP:
             case FileServerProtocolEnum.FTPS:
-                await this.downloadFileFtp(connector, userId);
+                connectorImports = await this.downloadFileOverFtp(connector);
                 break;
             case FileServerProtocolEnum.SFTP:
-                await this.downloadFileSftp(connector);
+                connectorImports = await this.downloadFileOverSftp(connector);
                 break;
             default:
                 throw new Error(`Unsupported end point type: ${connector.endPointType}`);
         }
 
-        return '';
+
+        // Process dowloaded files and save them as processed files
+        for (const connectorImport of connectorImports) {
+            this.logger.log(`Processing ${connectorImport.files.length} downloaded file(s) for specification ${connectorImport.specificationId}`);
+            for (const filePaths of connectorImport.files) {
+                filePaths.processedFile = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${connectorImport.specificationId}_processed.csv`);
+                try {
+                    await this.observationImportService.processFileForImport(
+                        connectorImport.specificationId,
+                        filePaths.downloadedFile,
+                        filePaths.processedFile,
+                        userId,
+                        connectorImport.stationId);
+                    this.logger.log(`Successfully processed file ${path.basename(filePaths.downloadedFile)} into ${path.basename(filePaths.processedFile)}`);
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    throw new Error(`Failed to process file ${path.basename(filePaths.downloadedFile)} for specification ${connectorImport.specificationId}: ${errorMessage}`);
+                }
+            }
+        }
+
+        // Import all processed files into database
+         this.logger.log(`Starting bulk import of ${connectorImports.length} connector import(s) for connector ${connector.id}`);
+
+        for (const connectorImport of connectorImports) {
+
+            const processedFiles: string[] = connectorImport.files.map(file => file.processedFile);
+            await this.observationImportService.importProcessedFilesToDatabase(processedFiles);
+
+            for (const filePaths of connectorImport.files) {
+                // Clean up the processed file after successful import
+                fs.unlink(filePaths.processedFile).catch(err =>
+                    this.logger.warn(`Failed to delete processed file ${filePaths.processedFile}`, err)
+                );
+
+                // Clean up the downloaded file
+                fs.unlink(filePaths.downloadedFile).catch(err =>
+                    this.logger.warn(`Failed to delete downloaded file ${filePaths.downloadedFile}`, err)
+                );
+            }
+        }
+
+        this.logger.log(`Completed bulk import for connector ${connector.id}`);
     }
 
+
     /**
-     * Download file via FTP
-     */
-    private async downloadFileFtp(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
-        //const client = new FtpClient(connector.timeout * 1000);
-        const client = new FtpClient();
+    * Download file via FTP
+    */
+    private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto): Promise<ConnectorImport[]> {
+        const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
         try {
 
-            // Create the temporary working  directories
-            const tmpDownloadsDir = path.join(process.cwd(), 'temp', 'connector-downloads');
-            const tmpPocessedsDir = path.join(process.cwd(), 'temp', 'connector-imports');
-            await fs.mkdir(tmpDownloadsDir, { recursive: true });
-            await fs.mkdir(tmpPocessedsDir, { recursive: true });
-
             const connectorParams = connector.parameters as FileServerParametersDto;
-            const decryptedPassword: string = await EncryptionUtils.decrypt(connector.parameters.password);
 
             // Configure FTP client for better compatibility
             //client.ftp.verbose = true; // Enable verbose logging for debugging
 
 
-            // Connect to FTP server with custom IP override for localhost
+            // Step 1: Connect to FTP server
             await client.access({
                 host: connector.hostName,
                 port: connector.parameters.port,
                 user: connector.parameters.username,
-                password: decryptedPassword,
+                password: await EncryptionUtils.decrypt(connector.parameters.password), // Decrypt password
                 secure: connectorParams.protocol === FileServerProtocolEnum.FTPS,
                 secureOptions: connectorParams.protocol === FileServerProtocolEnum.FTPS
                     ? { rejectUnauthorized: false } // Allow self-signed certificates
@@ -129,134 +163,122 @@ export class ConnectorImportProcessorService {
             this.logger.log(`Connected to FTP server ${connector.name}`);
 
             // Set the working directory
-            await client.cd(connectorParams.remotePath); 
+            await client.cd(connectorParams.remotePath);
 
-            this.logger.log(`Remote path for FTP server ${connector.name} successfully set`);
+            // Step 2: Get the list of files in remote directory and set the corresponding source
+            const fileList = await client.list();;
 
-            // Get the list of files in remote directory and set the corresponding source
-            const fileList: FileInfo[] =  await client.list();;
-            
             this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
-            // Holds sepcification id, remote file name and local file name
-            const sourceFiles: Map<number, FileInfo[]> = new Map<number, FileInfo[]>();
+            // Holds sepcification id, remote file name and local file name 
+            const connectorImports: ConnectorImport[] = [];
 
             for (const spec of connectorParams.specifications) {
-                // Find matching files
-                const matchingFiles: FileInfo[] = fileList.filter(file =>
-                    file.name.match(new RegExp(spec.filePattern.replace('*', '.*')))
+
+                // Step 3: Find matching files
+                const matchingFiles = fileList.filter(file =>
+                    file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
                 );
 
                 if (matchingFiles.length === 0) {
                     throw new Error(`No files found matching pattern ${spec.filePattern}`);
                 }
 
-                sourceFiles.set(spec.specificationId, matchingFiles);
-            }
+                const connectorImport: ConnectorImport = {
+                    specificationId: spec.specificationId,
+                    stationId: spec.stationId,
+                    files: []
+                };
 
-            // Step 1: Download all matching files for each specification
-            const downloadedFiles: Map<number, string[]> = new Map<number, string[]>();
-
-            for (const [specificationId, files] of sourceFiles.entries()) {
-                this.logger.log(`Downloading ${files.length} file(s) for specification ${specificationId}`);
-                const localDownloadPaths: string[] = [];
-
-                for (const remoteFile of files) {
-                    const localDownloadPath = path.join(tmpDownloadsDir, `connector_${connector.id}_spec_${specificationId}_${remoteFile.name}`);
-
+                // Step 4: Download all matching files for each specification
+                this.logger.log(`Downloading ${matchingFiles.length} file(s) for specification ${spec.specificationId}`);
+                for (const remoteFile of matchingFiles) {
+                    const localDownloadPath = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
                     try {
                         await client.downloadTo(localDownloadPath, remoteFile.name);
                         this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}`);
-                        localDownloadPaths.push(localDownloadPath);
+                        connectorImport.files.push({ downloadedFile: localDownloadPath, processedFile: '' });
                     } catch (error) {
                         const errorMessage = error instanceof Error ? error.message : String(error);
-                        throw new Error(`Failed to download file ${remoteFile.name} for specification ${specificationId}: ${errorMessage}`);
+                        throw new Error(`Failed to download file ${remoteFile.name} for specification ${spec.specificationId}: ${errorMessage}`);
                     }
                 }
 
-                downloadedFiles.set(specificationId, localDownloadPaths);
+                connectorImports.push(connectorImport);
             }
 
-            // Step 2: Process all downloaded files
-            const processedFiles: Map<number, string[]> = new Map<number, string[]>();
-
-            for (const [specificationId, localDownloadPaths] of downloadedFiles.entries()) {
-                this.logger.log(`Processing ${localDownloadPaths.length} downloaded file(s) for specification ${specificationId}`);
-                const localProcessedPaths: string[] = [];
-
-                for (const localDownloadPath of localDownloadPaths) {
-                    const localProcessedPath = path.join(tmpPocessedsDir, `connector_${connector.id}_spec_${specificationId}_.csv`);
-                    try {
-
-                        //await this.observationImportService.processFileForImport(specificationId, localDownloadPath, localProcessedPath, userId);
-                        this.logger.log(`Successfully processed file ${path.basename(localDownloadPath)} into ${path.basename(localProcessedPath)}`);
-                        localProcessedPaths.push(localProcessedPath);
-
-                    } catch (error) {
-                        const errorMessage = error instanceof Error ? error.message : String(error);
-                        throw new Error(`Failed to process file ${path.basename(localDownloadPath)} for specification ${specificationId}: ${errorMessage}`);
-                    }
-                }
-
-                processedFiles.set(specificationId, localProcessedPaths);
-            }
-
-            // TODO. Initiate import of processed files
-
-            // Clean up all the downloaded files after processing
-            // await fs.unlink(localPath).catch(err =>
-            //     this.logger.warn(`Failed to delete temporary file ${localPath}`, err)
-            // );
+            return connectorImports;
 
         } finally {
             client.close();
         }
     }
 
+
     /**
      * Download file via SFTP
      */
-    private async downloadFileSftp(connector: ViewConnectorSpecificationDto): Promise<string> {
+    private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto): Promise<ConnectorImport[]> {
         const client = new SftpClient();
-
-        const connectExtraMetadata = connector.parameters as FileServerParametersDto;
-        const remotePath = connectExtraMetadata.remotePath || '/';
-        const filePattern = connectExtraMetadata.specifications[0].filePattern || '*';
-        const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
-        await fs.mkdir(tmpDir, { recursive: true });
-
         try {
-            // Connect to SFTP server
+            const connectorParams = connector.parameters as FileServerParametersDto;
+
+            // Step 1: Connect to SFTP server
             await client.connect({
-                //host: connectExtraMetadata.hostName,
-                port: connectExtraMetadata.port,
-                username: connectExtraMetadata.username,
-                password: connectExtraMetadata.password,
+                host: connector.hostName,
+                port: connector.parameters.port,
+                username: connector.parameters.username,
+                password: await EncryptionUtils.decrypt(connector.parameters.password), // Decrypt password
                 readyTimeout: connector.timeout * 1000,
             });
 
-            //this.logger.log(`Connected to SFTP server ${connectExtraMetadata.hostName}`);
+            this.logger.log(`Connected to SFTP server ${connector.name}`);
 
-            // List files in remote directory
-            const fileList = await client.list(remotePath);
+            // Step 2: Get the list of files in remote directory
+            const fileList = await client.list(connectorParams.remotePath);
 
-            // Find matching files
-            const regex = new RegExp(filePattern.replace('*', '.*'));
-            const matchingFiles = fileList.filter((file: any) => file.name.match(regex));
+            this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
-            if (matchingFiles.length === 0) {
-                throw new Error(`No files found matching pattern ${filePattern}`);
+            // Holds specification id, remote file name and local file name
+            const connectorImports: ConnectorImport[] = [];
+
+            for (const spec of connectorParams.specifications) {
+
+                // Step 3: Find matching files
+                const matchingFiles = fileList.filter((file: any) =>
+                    file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
+                );
+
+                if (matchingFiles.length === 0) {
+                    throw new Error(`No files found matching pattern ${spec.filePattern}`);
+                }
+
+                const connectorImport: ConnectorImport = {
+                    specificationId: spec.specificationId,
+                    stationId: spec.stationId,
+                    files: []
+                };
+
+                // Step 4: Download all matching files for each specification
+                this.logger.log(`Downloading ${matchingFiles.length} file(s) for specification ${spec.specificationId}`);
+                for (const remoteFile of matchingFiles) {
+                    const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFile.name);
+                    const localDownloadPath = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
+
+                    try {
+                        await client.get(remoteFilePath, localDownloadPath);
+                        this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}`);
+                        connectorImport.files.push({ downloadedFile: localDownloadPath, processedFile: '' });
+                    } catch (error) {
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+                        throw new Error(`Failed to download file ${remoteFile.name} for specification ${spec.specificationId}: ${errorMessage}`);
+                    }
+                }
+
+                connectorImports.push(connectorImport);
             }
 
-            // Download the first matching file
-            const remoteFile = matchingFiles[0];
-            const remoteFilePath = path.posix.join(remotePath, remoteFile.name);
-            const localPath = path.join(tmpDir, `connector_${connector.id}_${remoteFile.name}`);
-
-            await client.get(remoteFilePath, localPath);
-            this.logger.log(`Downloaded file ${remoteFile.name} to ${localPath}`);
-
-            return localPath;
+            return connectorImports;
 
         } finally {
             await client.end();
@@ -266,33 +288,47 @@ export class ConnectorImportProcessorService {
     /**
      * Download file via HTTP/HTTPS
      */
-    private async downloadFileHttp(connector: ViewConnectorSpecificationDto): Promise<string> {
-        const url = ''; //`${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
-        const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
-        await fs.mkdir(tmpDir, { recursive: true });
+    private async downloadFileHttp(connector: ViewConnectorSpecificationDto): Promise<ConnectorImport[]> {
 
-        const localPath = path.join(tmpDir, `connector_${connector.id}_${Date.now()}.csv`);
+        // TODO. Implement similar functionality to `downloadFileOverFtp` but using the `axios` package
 
-        this.logger.log(`Downloading from ${url}`);
 
-        const response = await axios.get(url, {
-            timeout: connector.timeout * 1000,
-            auth: {
-                username: '', //connector.username,
-                password: '' //connector.password,
-            },
-            responseType: 'stream',
-        });
+        // const url = ''; //`${connector.protocol}://${connector.serverIPAddress}:${connector.port}${connector.extraMetadata?.apiEndpoint || '/'}`;
+        // const tmpDir = path.join(process.cwd(), 'temp', 'connector-imports');
+        // await fs.mkdir(tmpDir, { recursive: true });
 
-        const writer = require('fs').createWriteStream(localPath);
-        response.data.pipe(writer);
+        // const localPath = path.join(tmpDir, `connector_${connector.id}_${Date.now()}.csv`);
 
-        return new Promise((resolve, reject) => {
-            writer.on('finish', () => {
-                this.logger.log(`Downloaded file to ${localPath}`);
-                resolve(localPath);
-            });
-            writer.on('error', reject);
-        });
+        // this.logger.log(`Downloading from ${url}`);
+
+        // const response = await axios.get(url, {
+        //     timeout: connector.timeout * 1000,
+        //     auth: {
+        //         username: '', //connector.username,
+        //         password: '' //connector.password,
+        //     },
+        //     responseType: 'stream',
+        // });
+
+        // const writer = require('fs').createWriteStream(localPath);
+        // response.data.pipe(writer);
+
+        // return new Promise((resolve, reject) => {
+        //     writer.on('finish', () => {
+        //         this.logger.log(`Downloaded file to ${localPath}`);
+        //         resolve(localPath);
+        //     });
+        //     writer.on('error', reject);
+        // });
+
+        return [];
+    }
+
+
+    /**
+  * Import processed CSV files to database using PostgreSQL COPY command
+  */
+    private async importProcessedFilesToDatabase1(connectorImports: ConnectorImport[], connectorId: number): Promise<void> {
+       
     }
 }

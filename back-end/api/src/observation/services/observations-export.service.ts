@@ -13,8 +13,8 @@ import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/d
 import { ExportSpecificationParametersDto } from 'src/metadata/export-specifications/dtos/export-specification-parameters.dto';
 
 @Injectable()
-export class ExportObservationsService {
-    private readonly logger = new Logger(ExportObservationsService.name);
+export class ObservationsExportService {
+    private readonly logger = new Logger(ObservationsExportService.name);
     constructor(
         private exportTemplatesService: ExportSpecificationsService,
         private dataSource: DataSource,
@@ -189,7 +189,7 @@ export class ExportObservationsService {
 
         }
         //------------------------------------------------------------------------------------------------
-        const outputPath: string = `/var/lib/postgresql/exports/${user.id}_${exportTemplateId}.csv`;
+        const outputPath: string = `${this.fileIOService.dbExportsDir}/${user.id}_${exportTemplateId}.csv`;
         const sql: string = `
             COPY (
                 SELECT 
@@ -308,8 +308,7 @@ export class ExportObservationsService {
             throw new BadRequestException('Export disabled');
         }
 
-        let outputPath: string = AppConfig.devMode ? this.fileIOService.tempFilesFolderPath : '/app/exports';
-        outputPath = `${outputPath}/${userId}_${exportTemplateId}.csv`;
+        const  outputPath: string = `${this.fileIOService.apiExportsDir}/${userId}_${exportTemplateId}.csv`;
         //console.log('Downloading from: ', outputPath);
 
         // TODO log the export
