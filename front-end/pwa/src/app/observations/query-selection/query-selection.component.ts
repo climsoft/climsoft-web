@@ -177,9 +177,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
     this.outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.fromDate}T00:00:00.000Z`, this.utcOffset, 'subtract') : undefined;
     this.outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.toDate}T23:59:00.000Z`, this.utcOffset, 'subtract') : undefined;
 
     // Emit the new filter parameters
     this.queryClick.emit(this.outputFilter);
@@ -202,9 +202,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
     outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.fromDate}T00:00:00.000Z`, this.utcOffset, 'subtract') : undefined;
     outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.toDate}T23:59:00.000Z`, this.utcOffset, 'subtract') : undefined;
 
     return outputFilter;
   }

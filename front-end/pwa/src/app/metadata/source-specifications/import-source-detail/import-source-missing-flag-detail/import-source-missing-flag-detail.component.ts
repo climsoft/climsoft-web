@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 
 @Component({
@@ -10,8 +10,14 @@ export class ImportSourceMissingFlagDetailComponent {
   @Input()
   public allowMissingValue!: boolean;
 
+  @Output()
+  public allowMissingValueChange = new EventEmitter<boolean>();
+
   @Input()
   public sourceMissingValueFlags!: string;
 
- 
+  @Output()
+  public sourceMissingValueFlagsChange = new EventEmitter<string>();
+
+
 }

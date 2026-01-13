@@ -37,7 +37,7 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-    public async processFileForImport(sourceId: number, importFilePathName: string,  exportFilePathName: string, userId: number, stationId?: string) {
+    public async processFileForImport(sourceId: number, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string) {
         // Get the source definition using the source id
         const sourceDef = await this.sourcesService.find(sourceId);
 
@@ -98,7 +98,9 @@ export class ObservationImportService {
         }
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}',  ${importParams.join(",")});`);
+        const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}',  ${importParams.join(",")});`;
+        console.log("createSQL: ", createSQL);
+        await this.fileIOService.duckDb.run(createSQL);
 
         let alterSQLs: string;
         // Rename all columns to use the expected suffix column indices
@@ -120,7 +122,7 @@ export class ObservationImportService {
 
         alterSQLs = alterSQLs + this.getAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
 
-        //console.log("alterSQLs: ", alterSQLs);
+        console.log("alterSQLs: ", alterSQLs);
 
         // Execute the duckdb DDL SQL commands
         let startTime = new Date().getTime();
@@ -147,7 +149,7 @@ export class ObservationImportService {
             await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
             this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
 
-            // Save the rows into the database
+            // Save the rows into the database 
             // Note, no need await. 
             // All current active ingestion processes will be tagged and show on the ingestion monitoring page
             // In future, data ingestion will be done through COPY in postgres. 
@@ -425,9 +427,6 @@ export class ObservationImportService {
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
             }
             //--------------------------
-
-
-
 
         } else {
             // Just add the flag column because the value column should have been added when stacking elements of date columns

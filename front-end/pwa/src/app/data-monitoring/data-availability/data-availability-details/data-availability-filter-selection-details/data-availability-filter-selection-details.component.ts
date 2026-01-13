@@ -58,7 +58,7 @@ export class DataAvailabilityFilterSelectionDetailsComponent implements OnChange
 
       let dateOnly = generalFilter.fromDate.split('T')[0];
       const fromDate = DateUtils.getDatetimesBasedOnUTCOffset(
-        `${dateOnly}T${StringUtils.addLeadingZero(this.startingHour)}:00:00Z`,
+        `${dateOnly}T${StringUtils.addLeadingZero(this.startingHour)}:00:00.000Z`,
         this.cachedMetadataService.utcOffSet, 'subtract')
 
       const f: DataAvailabilityDetailsQueryModel = {

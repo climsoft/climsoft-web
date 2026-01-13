@@ -144,13 +144,13 @@ export class ManualExportDownloadComponent implements OnInit {
     if (this.dateRange.fromDate) {
       // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
+      observationFilter.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00.000Z`, this.cachedMetadataService.utcOffSet, 'subtract');
     }
 
     if (this.dateRange.toDate) {
       // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
       // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
+      observationFilter.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00.000Z`, this.cachedMetadataService.utcOffSet, 'subtract');
     }
 
     this.hidePreparingExport = false;

@@ -114,12 +114,12 @@ export class FormEntryDefinition {
 
         // If day value is defined then just define a single day range (24 hours) else define all date times for the entire month
         if (this.daySelectorValue) {
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.00Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.00Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.000Z`;
         } else {
             const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.00Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.00Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.000Z`;
         }
 
         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus

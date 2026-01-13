@@ -9,7 +9,7 @@
         File to Upload
       </div>
       <div>
-        <input #fileUpload type="file" style="display: none;" [accept]="'text/csv'" (change)="onFileSelected($event)">
+        <input #fileUpload type="file" style="display: none;" [accept]="'.csv,.dat,.tsv,.txt'" (change)="onFileSelected($event)">
         <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
           (click)="fileUpload.click()">
           Upload File

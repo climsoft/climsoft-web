@@ -141,7 +141,7 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
-        new FileTypeValidator({ fileType: 'text/csv' }),
+        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/ }),
       ]
     })
     ) file: Express.Multer.File) {
@@ -164,7 +164,7 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }), // 1GB
-        new FileTypeValidator({ fileType: 'text/csv' }),
+        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
