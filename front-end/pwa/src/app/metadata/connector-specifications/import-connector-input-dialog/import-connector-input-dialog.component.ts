@@ -51,7 +51,7 @@ export class ImportConnectorInputDialogComponent {
         connectorType: ConnectorTypeEnum.IMPORT,
         endPointType: EndPointTypeEnum.FILE_SERVER,
         hostName: '',
-        timeout: 5,
+        timeout: 300,
         maximumRetries: 1,
         cronSchedule: '',
         orderNumber: 0,

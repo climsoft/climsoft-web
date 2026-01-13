@@ -97,8 +97,8 @@ export class ConnectorImportProcessorService {
      * Download file via FTP
      */
     private async downloadFileFtp(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
-        const client = new FtpClient(connector.timeout * 1000);
-
+        //const client = new FtpClient(connector.timeout * 1000);
+        const client = new FtpClient();
         try {
 
             // Create the temporary working  directories
@@ -110,26 +110,33 @@ export class ConnectorImportProcessorService {
             const connectorParams = connector.parameters as FileServerParametersDto;
             const decryptedPassword: string = await EncryptionUtils.decrypt(connector.parameters.password);
 
-            // Connect to FTP server
+            // Configure FTP client for better compatibility
+            //client.ftp.verbose = true; // Enable verbose logging for debugging
+
+
+            // Connect to FTP server with custom IP override for localhost
             await client.access({
                 host: connector.hostName,
                 port: connector.parameters.port,
                 user: connector.parameters.username,
                 password: decryptedPassword,
                 secure: connectorParams.protocol === FileServerProtocolEnum.FTPS,
+                secureOptions: connectorParams.protocol === FileServerProtocolEnum.FTPS
+                    ? { rejectUnauthorized: false } // Allow self-signed certificates
+                    : undefined,
             });
 
             this.logger.log(`Connected to FTP server ${connector.name}`);
 
             // Set the working directory
-            await client.cd(connectorParams.remotePath);
+            await client.cd(connectorParams.remotePath); 
 
             this.logger.log(`Remote path for FTP server ${connector.name} successfully set`);
 
             // Get the list of files in remote directory and set the corresponding source
-            const fileList: FileInfo[] = await client.list();
-
-            this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved`);
+            const fileList: FileInfo[] =  await client.list();;
+            
+            this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
             // Holds sepcification id, remote file name and local file name
             const sourceFiles: Map<number, FileInfo[]> = new Map<number, FileInfo[]>();
