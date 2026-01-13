@@ -15,6 +15,7 @@ import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-sour
 import { ConnectorTypeEnum, EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { map } from 'rxjs';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 
 interface ConnectorImports {
     specificationId: number;
@@ -40,12 +41,6 @@ export class ConnectorImportProcessorService {
      */
     @OnEvent('connector.import')
     public async handleImportJob(job: JobQueueEntity) {
-
-        if (1 == 1) {
-            this.logger.log(`import done successfully`);
-            return;
-        }
-
         const payload = job.payload as ConnectorJobPayloadDto;
 
         this.logger.log(`Processing import job for connector ${payload.connectorId}`);
@@ -68,12 +63,6 @@ export class ConnectorImportProcessorService {
 
         //this.logger.log(`Processing import specification ${specId} for connector ${connector.id}`);
 
-
-        // Get source specification
-        //const sourceSpec: ViewSourceDto = await this.sourceService.find(specId);
-
-        // Download file based on protocol
-        let localFilePath: string; // TODO. Can be a set of files
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
                 await this.downloadAndprocessFromFileServer(connector, userId);
@@ -84,36 +73,6 @@ export class ConnectorImportProcessorService {
             default:
                 throw new Error(`Unsupported end point type: ${connector.endPointType}`);
         }
-
-        // try {
-        //     // Process the downloaded file using ObservationImportService
-        //     const file: Express.Multer.File = {
-        //         fieldname: 'file',
-        //         originalname: path.basename(localFilePath),
-        //         encoding: '7bit',
-        //         mimetype: 'text/csv',
-        //         size: (await fs.stat(localFilePath)).size,
-        //         buffer: await fs.readFile(localFilePath),
-        //         destination: '',
-        //         filename: path.basename(localFilePath),
-        //         path: localFilePath,
-        //         stream: null as any,
-        //     };
-
-        //     await this.observationImportService.processFile(
-        //         sourceSpec.id,
-        //         file,
-        //         userId,
-        //     );
-
-        //     this.logger.log(`Successfully imported data from specification ${specId}`);
-
-        // } finally {
-        //     // Clean up temporary file
-        //     await fs.unlink(localFilePath).catch(err =>
-        //         this.logger.warn(`Failed to delete temporary file ${localFilePath}`, err)
-        //     );
-        // }
     }
 
     private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<string> {
@@ -134,41 +93,43 @@ export class ConnectorImportProcessorService {
         return '';
     }
 
-
-
-
     /**
      * Download file via FTP
      */
     private async downloadFileFtp(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
         const client = new FtpClient(connector.timeout * 1000);
 
-        const connectorParams = connector.parameters as FileServerParametersDto;
-        const remotePath = connectorParams.remotePath;
-
-        const filePattern = connectorParams.specifications[0].filePattern || '*';
-        const tmpDownloadsDir = path.join(process.cwd(), 'temp', 'connector-downloads');
-        const tmpPocessedsDir = path.join(process.cwd(), 'temp', 'connector-imports');
-        await fs.mkdir(tmpDownloadsDir, { recursive: true });
-        await fs.mkdir(tmpPocessedsDir, { recursive: true });
-
         try {
+
+            // Create the temporary working  directories
+            const tmpDownloadsDir = path.join(process.cwd(), 'temp', 'connector-downloads');
+            const tmpPocessedsDir = path.join(process.cwd(), 'temp', 'connector-imports');
+            await fs.mkdir(tmpDownloadsDir, { recursive: true });
+            await fs.mkdir(tmpPocessedsDir, { recursive: true });
+
+            const connectorParams = connector.parameters as FileServerParametersDto;
+            const decryptedPassword: string = await EncryptionUtils.decrypt(connector.parameters.password);
+
             // Connect to FTP server
             await client.access({
                 host: connector.hostName,
                 port: connector.parameters.port,
                 user: connector.parameters.username,
-                password: connector.parameters.password,
+                password: decryptedPassword,
                 secure: connectorParams.protocol === FileServerProtocolEnum.FTPS,
             });
 
-            this.logger.log(`Connected to FTP server ${connector.hostName}`);
+            this.logger.log(`Connected to FTP server ${connector.name}`);
 
             // Set the working directory
-            await client.cd(remotePath);
+            await client.cd(connectorParams.remotePath);
+
+            this.logger.log(`Remote path for FTP server ${connector.name} successfully set`);
 
             // Get the list of files in remote directory and set the corresponding source
             const fileList: FileInfo[] = await client.list();
+
+            this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved`);
 
             // Holds sepcification id, remote file name and local file name
             const sourceFiles: Map<number, FileInfo[]> = new Map<number, FileInfo[]>();
@@ -180,7 +141,7 @@ export class ConnectorImportProcessorService {
                 );
 
                 if (matchingFiles.length === 0) {
-                    throw new Error(`No files found matching pattern ${filePattern}`);
+                    throw new Error(`No files found matching pattern ${spec.filePattern}`);
                 }
 
                 sourceFiles.set(spec.specificationId, matchingFiles);
@@ -220,7 +181,7 @@ export class ConnectorImportProcessorService {
                     const localProcessedPath = path.join(tmpPocessedsDir, `connector_${connector.id}_spec_${specificationId}_.csv`);
                     try {
 
-                        await this.observationImportService.processFileForImport(specificationId, localDownloadPath, localProcessedPath, userId);
+                        //await this.observationImportService.processFileForImport(specificationId, localDownloadPath, localProcessedPath, userId);
                         this.logger.log(`Successfully processed file ${path.basename(localDownloadPath)} into ${path.basename(localProcessedPath)}`);
                         localProcessedPaths.push(localProcessedPath);
 

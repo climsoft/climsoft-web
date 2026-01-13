@@ -104,7 +104,7 @@ export class ImportConnectorInputDialogComponent {
     };
 
     let saveSubscription: Observable<ViewConnectorSpecificationModel>;
-    if (this.connector.id > 0) {
+    if (this.connector.id > 0) { 
       saveSubscription = this.connectorSpecificationsService.update(this.connector.id, createConnector);
     } else {
       saveSubscription = this.connectorSpecificationsService.add(createConnector);
