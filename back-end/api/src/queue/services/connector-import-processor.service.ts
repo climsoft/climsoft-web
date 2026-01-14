@@ -47,7 +47,7 @@ export class ConnectorImportProcessorService {
         const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
 
         try {
-            await this.processImportSpecification(connector, job.entryUserId);
+            await this.processImportSpecifications(connector, job.entryUserId);
         } catch (error) {
             this.logger.error(`Failed to process import job for connector ${payload.connectorId}`, error);
             throw error; // Re-throw to mark job as failed
@@ -56,15 +56,15 @@ export class ConnectorImportProcessorService {
     }
 
     /**
-     * Process a single import specification
+     * Process a single connector import specification
      */
-    private async processImportSpecification(connector: ViewConnectorSpecificationDto, userId: number) {
-
-        //this.logger.log(`Processing import specification ${specId} for connector ${connector.id}`);
+    private async processImportSpecifications(connector: ViewConnectorSpecificationDto, userId: number) {
         let connectorImports: ConnectorImport[] = [];
+
+        // Download the files
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
-                await this.downloadAndprocessFromFileServer(connector, userId);
+                await this.downloadFromFileServer(connector);
                 break;
             case EndPointTypeEnum.WEB_SERVER:
                 // TODO
@@ -73,7 +73,7 @@ export class ConnectorImportProcessorService {
                 throw new Error(`Unsupported end point type: ${connector.endPointType}`);
         }
 
-         // Process dowloaded files and save them as processed files
+         // Process downloaded files and save them as processed files
         for (const connectorImport of connectorImports) {          
             for (const filePaths of connectorImport.files) {
                 filePaths.processedFile = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${connectorImport.specificationId}_processed.csv`);
@@ -96,7 +96,6 @@ export class ConnectorImportProcessorService {
         // Import all processed files into database
          this.logger.log(`Starting bulk import of ${connectorImports.length} connector import(s) for connector ${connector.id}`);
         for (const connectorImport of connectorImports) {
-
             const processedFiles: string[] = connectorImport.files.map(file => file.processedFile);
             await this.observationImportService.importProcessedFilesToDatabase(processedFiles);
 
@@ -112,11 +111,10 @@ export class ConnectorImportProcessorService {
             //     );
             // }
         }
-
         this.logger.log(`Completed bulk import for connector ${connector.id}`);
     }
 
-    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<ConnectorImport[]> {
+    private async downloadFromFileServer(connector: ViewConnectorSpecificationDto): Promise<ConnectorImport[]> {
         const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
         switch (connectorParams.protocol) {
             case FileServerProtocolEnum.FTP:
@@ -317,13 +315,5 @@ export class ConnectorImportProcessorService {
         // });
 
         return [];
-    }
-
-
-    /**
-  * Import processed CSV files to database using PostgreSQL COPY command
-  */
-    private async importProcessedFilesToDatabase1(connectorImports: ConnectorImport[], connectorId: number): Promise<void> {
-       
     }
 }

@@ -91,6 +91,7 @@ export class FileIOService {
         }
     }
 
+    // Move to a duckdb service under a different NodeJS process that manages duckdb. Helps with any duckdb crushes
     private async setupDuckDB() {
         // Initialise DuckDB with the specified file path
         this._duckDb = await Database.create(`${this.apiImportsDir}/duckdb_io.db`);
