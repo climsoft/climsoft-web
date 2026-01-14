@@ -36,24 +36,18 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-
- 
-
     public async processFileForImportAndSave(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
-
-            // TODO. Temporarily added the time as part of file name because of deleting the file through fs.unlink() throws a bug
             const importFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
             const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_${new Date().getTime()}_processed.csv`;
 
-            console.log('File mime type: ', file.mimetype)
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
 
             // Then process the import using duckdb
              await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
 
-            //await this.importProcessedFilesToDatabase([exportFilePathName]);
+            await this.importProcessedFilesToDatabase([exportFilePathName]);
 
         } catch (error) {
             console.error('Manual import fail: ', error)
@@ -167,7 +161,9 @@ export class ObservationImportService {
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
         const tmpObsTableName: string = path.basename(importFilePathName, path.extname(importFilePathName));
-        // Note, 'header = false' is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
+        // Note.
+        // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
+        // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
         const importParams: string[] = ['header = false', `skip = ${tabularDef.rowsToSkip}`, 'all_varchar = true', 'strict_mode = false'];
         if (tabularDef.delimiter) {
             importParams.push(`delim = '${tabularDef.delimiter}'`);
@@ -176,7 +172,7 @@ export class ObservationImportService {
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
         const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}', ${importParams.join(', ')});`;
 
-        console.log("createSQL: ", createSQL);
+        //console.log("createSQL: ", createSQL);
 
         await this.fileIOService.duckDb.run(createSQL);
 
