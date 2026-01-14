@@ -61,7 +61,7 @@ export class ConnectorImportProcessorService {
     private async processImportSpecification(connector: ViewConnectorSpecificationDto, userId: number) {
 
         //this.logger.log(`Processing import specification ${specId} for connector ${connector.id}`);
-
+        let connectorImports: ConnectorImport[] = [];
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
                 await this.downloadAndprocessFromFileServer(connector, userId);
@@ -72,30 +72,13 @@ export class ConnectorImportProcessorService {
             default:
                 throw new Error(`Unsupported end point type: ${connector.endPointType}`);
         }
-    }
 
-    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<void> {
-        const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
-        let connectorImports: ConnectorImport[] = [];
-        switch (connectorParams.protocol) {
-            case FileServerProtocolEnum.FTP:
-            case FileServerProtocolEnum.FTPS:
-                connectorImports = await this.downloadFileOverFtp(connector);
-                break;
-            case FileServerProtocolEnum.SFTP:
-                connectorImports = await this.downloadFileOverSftp(connector);
-                break;
-            default:
-                throw new Error(`Unsupported end point type: ${connector.endPointType}`);
-        }
-
-
-        // Process dowloaded files and save them as processed files
-        for (const connectorImport of connectorImports) {
-            this.logger.log(`Processing ${connectorImport.files.length} downloaded file(s) for specification ${connectorImport.specificationId}`);
+         // Process dowloaded files and save them as processed files
+        for (const connectorImport of connectorImports) {          
             for (const filePaths of connectorImport.files) {
                 filePaths.processedFile = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${connectorImport.specificationId}_processed.csv`);
                 try {
+                      this.logger.log(`Processing file ${path.basename(filePaths.downloadedFile)} into ${path.basename(filePaths.processedFile)}`);
                     await this.observationImportService.processFileForImport(
                         connectorImport.specificationId,
                         filePaths.downloadedFile,
@@ -112,7 +95,6 @@ export class ConnectorImportProcessorService {
 
         // Import all processed files into database
          this.logger.log(`Starting bulk import of ${connectorImports.length} connector import(s) for connector ${connector.id}`);
-
         for (const connectorImport of connectorImports) {
 
             const processedFiles: string[] = connectorImport.files.map(file => file.processedFile);
@@ -132,6 +114,19 @@ export class ConnectorImportProcessorService {
         }
 
         this.logger.log(`Completed bulk import for connector ${connector.id}`);
+    }
+
+    private async downloadAndprocessFromFileServer(connector: ViewConnectorSpecificationDto, userId: number): Promise<ConnectorImport[]> {
+        const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
+        switch (connectorParams.protocol) {
+            case FileServerProtocolEnum.FTP:
+            case FileServerProtocolEnum.FTPS:
+                return await this.downloadFileOverFtp(connector); ;
+            case FileServerProtocolEnum.SFTP:
+                return await this.downloadFileOverSftp(connector); 
+            default:
+                throw new Error(`Unsupported end point type: ${connector.endPointType}`);
+        }  
     }
 
 

@@ -174,7 +174,9 @@ export class ObservationImportService {
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
         const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}',  ${importParams.join(",")});`;
-        console.log("createSQL: ", createSQL);
+       
+        //console.log("createSQL: ", createSQL);
+       
         await this.fileIOService.duckDb.run(createSQL);
 
         let alterSQLs: string;
@@ -202,7 +204,7 @@ export class ObservationImportService {
         // Keep the last occurrence of each duplicate
         alterSQLs = alterSQLs + this.getRemoveDuplicatesSQL(tmpObsTableName);
 
-        console.log("alterSQLs: ", alterSQLs);
+        //console.log("alterSQLs: ", alterSQLs);
 
         // Execute the duckdb DDL SQL commands
         let startTime = new Date().getTime();
