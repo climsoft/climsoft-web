@@ -24,6 +24,17 @@ export class FileIOService {
         this._importsDir = path.join(process.cwd(), 'temp', 'imports');
         this._exportsDir = path.join(process.cwd(), 'temp', 'exports');
 
+        // Delete the 'temp' directory first if it exists in development mode
+        // This prevents DuckDB WAL file corruption issues after NestJS hot reloads
+        if (AppConfig.devMode) {
+            try {
+                await fs.promises.rm(this._tempDir, { recursive: true, force: true });
+            } catch (err) {
+                // Ignore errors if directory doesn't exist or can't be deleted
+                console.warn('Could not delete temp directory:', err);
+            }
+        }
+
         await fs.promises.mkdir(this._tempDir, { recursive: true });
         await fs.promises.mkdir(this._importsDir, { recursive: true });
         await fs.promises.mkdir(this._exportsDir, { recursive: true });
