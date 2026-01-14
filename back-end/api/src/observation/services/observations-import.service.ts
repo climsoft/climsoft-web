@@ -18,16 +18,16 @@ import { DataSource } from 'typeorm';
 export class ObservationImportService {
     private readonly logger = new Logger(ObservationImportService.name);
 
-    private readonly STATION_ID_PROPERTY_NAME: string = "station_id";
-    private readonly ELEMENT_ID_PROPERTY_NAME: string = "element_id";
-    private readonly LEVEL_PROPERTY_NAME: string = "level";
-    private readonly DATE_TIME_PROPERTY_NAME: string = "date_time";
-    private readonly INTERVAL_PROPERTY_NAME: string = "interval";
-    private readonly SOURCE_ID_PROPERTY_NAME: string = "source_id";
-    private readonly VALUE_PROPERTY_NAME: string = "value";
-    private readonly FLAG_PROPERTY_NAME: string = "flag";
-    private readonly COMMENT_PROPERTY_NAME: string = "comment";
-    private readonly ENTRY_USER_ID_PROPERTY_NAME: string = "entry_user_id";
+    private readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
+    private readonly ELEMENT_ID_PROPERTY_NAME: string = 'element_id';
+    private readonly LEVEL_PROPERTY_NAME: string = 'level';
+    private readonly DATE_TIME_PROPERTY_NAME: string = 'date_time';
+    private readonly INTERVAL_PROPERTY_NAME: string = 'interval';
+    private readonly SOURCE_ID_PROPERTY_NAME: string = 'source_id';
+    private readonly VALUE_PROPERTY_NAME: string = 'value';
+    private readonly FLAG_PROPERTY_NAME: string = 'flag';
+    private readonly COMMENT_PROPERTY_NAME: string = 'comment';
+    private readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
     constructor(
         private fileIOService: FileIOService,

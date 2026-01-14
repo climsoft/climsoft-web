@@ -134,12 +134,11 @@ export class ConnectorImportProcessorService {
     private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto): Promise<ConnectorImport[]> {
         const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
         try {
-
+            
             const connectorParams = connector.parameters as FileServerParametersDto;
 
             // Configure FTP client for better compatibility
             //client.ftp.verbose = true; // Enable verbose logging for debugging
-
 
             // Step 1: Connect to FTP server
             await client.access({
