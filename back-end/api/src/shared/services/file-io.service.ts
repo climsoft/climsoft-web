@@ -20,9 +20,9 @@ export class FileIOService {
     }
 
     private async createWorkingDirs() {
-        this._tempDir = path.join(process.cwd(), 'temp');
-        this._importsDir = path.join(process.cwd(), 'temp', 'imports');
-        this._exportsDir = path.join(process.cwd(), 'temp', 'exports');
+        this._tempDir = path.join(process.cwd(), 'temp').replaceAll('\\', '\/');
+        this._importsDir = path.join(process.cwd(), 'temp', 'imports').replaceAll('\\', '\/');
+        this._exportsDir = path.join(process.cwd(), 'temp', 'exports').replaceAll('\\', '\/');
 
         // Delete the 'temp' directory first if it exists in development mode
         // This prevents DuckDB WAL file corruption issues after NestJS hot reloads

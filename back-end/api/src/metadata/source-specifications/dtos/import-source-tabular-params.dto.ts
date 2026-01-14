@@ -205,7 +205,7 @@ export interface HourDefinition {
     */
     timeColumn?: {
         columnPosition: number;
-        timeFormat: TimeFormatTypes; // Optional when the time is just a hour integer
+        timeFormat: TimeFormatTypes;
     };
 
     /**

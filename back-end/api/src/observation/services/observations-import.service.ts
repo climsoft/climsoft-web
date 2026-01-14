@@ -1,11 +1,8 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { CreateObservationDto } from '../dtos/create-observation.dto';
-import { ObservationsService } from './observations.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
-
-//import * as fs from 'node:fs/promises';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
@@ -15,7 +12,7 @@ import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
-import { DataSource } from 'typeorm';
+import { DataSource } from 'typeorm'; 
 
 @Injectable()
 export class ObservationImportService {
@@ -41,19 +38,19 @@ export class ObservationImportService {
 
 
     public async processFileForImportAndSave(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
-
         try {
 
             // TODO. Temporarily added the time as part of file name because of deleting the file through fs.unlink() throws a bug
             const importFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
-            const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_processed_${new Date().getTime()}.csv`;
+            const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_${new Date().getTime()}_processed.csv`;
 
-            // Save the file to the temporary directory
-            await this.fileIOService.saveFile(file, importFilePathName);
+            // Save file from memory
+            await fs.promises.writeFile(importFilePathName, file.buffer);
 
-            // TODO. Should be sent to a queue
-            await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
-            this.importProcessedFilesToDatabase([exportFilePathName]);
+            // Then process the import using duckdb
+             await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
+
+            //await this.importProcessedFilesToDatabase([exportFilePathName]);
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -90,7 +87,7 @@ export class ObservationImportService {
 
             try {
                 this.logger.log(`Importing file ${filePathName} into database`);
-                const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replace(/\\/g, '/');
+                const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replaceAll('\\', '\/');
 
                 // Generate a unique staging table name using timestamp
                 const stagingTableName = `obs_staging_${Date.now()}`;
@@ -174,17 +171,14 @@ export class ObservationImportService {
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
         const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}',  ${importParams.join(",")});`;
-       
-        //console.log("createSQL: ", createSQL);
-       
+
+        console.log("createSQL: ", createSQL);
+
         await this.fileIOService.duckDb.run(createSQL);
 
         let alterSQLs: string;
         // Rename all columns to use the expected suffix column indices
         alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpObsTableName);
-
-        // Add source column
-        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
 
         // Add the rest of the columns
         alterSQLs = alterSQLs + this.getAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
@@ -196,9 +190,11 @@ export class ObservationImportService {
         // the column positions are changed when stacking the data into a single element column.
         alterSQLs = alterSQLs + this.getAlterElementColumnSQL(tabularDef, tmpObsTableName);
         alterSQLs = alterSQLs + this.getAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
-
         alterSQLs = alterSQLs + this.getAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + this.getAlterEntryUserIdColumnSQL(tmpObsTableName, userId)
+
+        // Add source and user column
+        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
+        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${this.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId};`;
 
         // Remove duplicate values based on composite primary key (station_id, element_id, level, date_time, interval, source_id)
         // Keep the last occurrence of each duplicate
@@ -288,7 +284,6 @@ export class ObservationImportService {
         let sql: string;
         if (source.commentColumnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.commentColumnPosition - 1} TO ${this.COMMENT_PROPERTY_NAME};`;
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.COMMENT_PROPERTY_NAME} TYPE VARCHAR;`;
         } else {
             sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
         }
@@ -319,13 +314,8 @@ export class ObservationImportService {
                 const colNames: string[] = multipleColumn.map(item => (`column${item.columnPosition - 1}`));
 
                 // Stack the data from the multiple element columns. This will create a new table with 2 columns for elements and values
-                // Note. Nulls are included because they represent a missing value which a user may have allowed
-                const tempStackedTable = `${tableName}_element_stacked`;
-                sql = sql + `CREATE OR REPLACE TABLE ${tempStackedTable} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
-
-                // Drop the old table and rename the new one to correct name
-                sql = sql + `DROP TABLE ${tableName};`;
-                sql = sql + `ALTER TABLE ${tempStackedTable} RENAME TO ${tableName};`;
+                // Note. Nulls are included because they represent a missing value which a user may have allowed 
+                sql = sql + `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT INCLUDE NULLS ( ${this.VALUE_PROPERTY_NAME} FOR ${this.ELEMENT_ID_PROPERTY_NAME} IN (${colNames.join(', ')}) );`;
 
                 // Change the values of the element column
                 for (const element of multipleColumn) {
@@ -346,17 +336,15 @@ export class ObservationImportService {
 
     private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
+        let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
         if (datetimeDefinition.dateTimeInSingleColumn !== undefined) {
             const dateTimeDef = datetimeDefinition.dateTimeInSingleColumn;
             // Rename the date time column
             sql = `ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition - 1} TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
-            // Make sure there are no null values on the column
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+            expectedDatetimeFormat = dateTimeDef.datetimeFormat;
 
-            // Convert all values to a valid sql timestamp using the format specified
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.datetimeFormat}');`;
         } else if (datetimeDefinition.dateTimeInTwoColumns !== undefined) {
             const dateTimeDef = datetimeDefinition.dateTimeInTwoColumns;
             // Rename the date and time columns
@@ -368,11 +356,7 @@ export class ObservationImportService {
             sql = sql + `UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col;`;
             sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
-            // Make sure there are no null values on the date time column
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
-
-            // Convert all values to a valid sql timestamp using the format specified
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}');`;
+            expectedDatetimeFormat = `${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}`;
 
         } else if (datetimeDefinition.dateTimeInMultipleColumns !== undefined) {
             const dateFormat: string = '%Y-%m-%d';
@@ -401,13 +385,8 @@ export class ObservationImportService {
                 }
 
                 // Unpivot the day columns to create 'day_col' and a new 'value' column.
-                // Note. Nulls are not included because they represent a non-existsent day like Feb 31st which must be excluded.
-                const tempStackedTable = `${tableName}_day_stacked`;
-                sql = sql + `CREATE OR REPLACE TABLE ${tempStackedTable} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}));`;
-
-                // Drop the old table and rename the new one
-                sql = sql + `DROP TABLE ${tableName};`;
-                sql = sql + `ALTER TABLE ${tempStackedTable} RENAME TO ${tableName};`;
+                // Note. Nulls are not included because they represent a non-existsent day like Feb 31st which must be excluded. 
+                sql = sql + `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}));`;
 
                 // Extract the numeric day part from the column name (e.g., 'column5' -> 5) and zero-pad it
                 sql = sql + `UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${startCol} + 1, 2, '0');`;
@@ -420,14 +399,9 @@ export class ObservationImportService {
             const hourDefination: HourDefinition = dateTimeInMultiDef.hourDefinition;
             if (hourDefination.timeColumn !== undefined) {
                 const timeColumn = hourDefination.timeColumn;
-
                 // Set the time format
                 timeFormat = timeColumn.timeFormat;
-
                 sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${timeColumn.columnPosition - 1} TO time_col;`;
-                // Then combine the previous date values with new time column
-                sql = sql + `UPDATE ${tableName} SET combined_date_time_col = combined_date_time_col || ' ' || time_col;`;
-
             } else if (hourDefination.defaultHour) {
                 const strHour: string = `${StringUtils.addLeadingZero(hourDefination.defaultHour)}`;
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR;`;
@@ -444,19 +418,20 @@ export class ObservationImportService {
             // Rename the name of the column to the desired column name.
             sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME};`;
 
-            // Make sure there are no null values on the date time column
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+            expectedDatetimeFormat = `${dateFormat} ${timeFormat}`;
 
-            // Convert all values to a valid sql timestamp using the format specified
-            // TODO. Once duckdb is configured to just output file so that it can be sceduled for import
-            // this step will not be necessary.
-            sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${dateFormat} ${timeFormat}');`;
             // ---------------------------------------------------------------
-        }
-
-        if (sql === '') {
+        } else {
             throw new Error("Date time interpretation not valid");
         }
+
+        // Convert all values to a valid sql timestamp using the format specified 
+        // Note, some files can be messy and can hang duckdb when `strptime` is used directly. So always use `try_strptime` to sanitise the file first
+        sql = sql + `UPDATE ${tableName} SET ${this.DATE_TIME_PROPERTY_NAME} = try_strptime(${this.DATE_TIME_PROPERTY_NAME}, '${expectedDatetimeFormat}');`;
+        sql = sql + `DELETE FROM ${tableName} WHERE ${this.DATE_TIME_PROPERTY_NAME} IS NULL;`;
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} SET NOT NULL;`;
+        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE TIMESTAMP USING strptime(${this.DATE_TIME_PROPERTY_NAME}, '${expectedDatetimeFormat}');`;
+
 
         // If date times are not in UTC then convert them to utc
         if (sourceDef.utcOffset > 0) {
@@ -468,7 +443,7 @@ export class ObservationImportService {
         }
 
         // Change the date_time back to varchar while formating the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z` as expected by the dto
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR USING strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
+        //sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.DATE_TIME_PROPERTY_NAME} TYPE VARCHAR USING strftime(${this.DATE_TIME_PROPERTY_NAME}::TIMESTAMP, '%Y-%m-%dT%H:%M:%S.%g') || 'Z';`;
 
         return sql;
     }
@@ -528,11 +503,6 @@ export class ObservationImportService {
         sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
 
         return sql;
-    }
-
-
-    private getAlterEntryUserIdColumnSQL(tableName: string, userId: number): string {
-        return `ALTER TABLE ${tableName} ADD COLUMN ${this.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId};`;
     }
 
     private async getScaleValueSQL(tableName: string): Promise<string> {

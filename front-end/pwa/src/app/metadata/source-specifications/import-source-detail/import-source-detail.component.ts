@@ -68,7 +68,7 @@ export class ImportSourceDetailComponent implements OnInit {
         levelColumnPosition: undefined,
         datetimeDefinition: {
           dateTimeInSingleColumn: {
-            columnPosition: 1,
+            columnPosition: 0,
             datetimeFormat: '%Y-%m-%d %H:%M',
           }
         },
@@ -116,12 +116,18 @@ export class ImportSourceDetailComponent implements OnInit {
 
   protected onElementOrDatetimeDefChanged(): void {
     const sourceParameters = this.importSource.dataStructureParameters as ImportSourceTabularParamsModel;
-    const oldValueDef = sourceParameters.valueDefinition;
-    if (sourceParameters.elementDefinition.hasElement?.multipleColumn ||
-      sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
+    if (sourceParameters.elementDefinition.hasElement && sourceParameters.elementDefinition.hasElement.multipleColumn) {
       sourceParameters.valueDefinition = undefined;
+    } else if (sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
+      const dateTimeInMultiDef = sourceParameters.datetimeDefinition.dateTimeInMultipleColumns;
+      const dayColumns: string[] = dateTimeInMultiDef.dayColumnPosition.split('-');
+      if (dayColumns.length > 1) {
+        sourceParameters.valueDefinition = undefined;
+      }
     } else {
-      sourceParameters.valueDefinition = oldValueDef;
+      sourceParameters.valueDefinition = {
+        valueColumnPosition: 0,
+      }
     }
   }
 
