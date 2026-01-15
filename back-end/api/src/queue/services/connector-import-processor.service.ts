@@ -11,7 +11,7 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { ExecutionActivity, FileMetadataVo, FileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
+import { ExecutionActivity, FileProcessingResultVo, FileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 import { last } from 'rxjs';
 
@@ -58,7 +58,6 @@ export class ConnectorImportProcessorService {
             executionStartDatetime: new Date(),
             executionEndDatetime: new Date(),
             totalErrors: 0,
-            totalWarnings: 0,
             executionActivities: [],
             entryUserId: userId,
         };
@@ -77,9 +76,9 @@ export class ConnectorImportProcessorService {
 
         // Step 2. Process downloaded files and save them as processed files
         for (const executionActivity of newConnectorLog.executionActivities) {
-            for (const file of executionActivity.files) {
+            for (const file of executionActivity.processedFiles) {
 
-                // If not downloaded due to errors then skipp processing
+                // If not downloaded due to errors then skip processing
                 if (!file.downloadedFileName) {
                     continue;
                 }
@@ -108,7 +107,7 @@ export class ConnectorImportProcessorService {
             const processedFileNames: string[] = [];
 
             // Get process file names
-            for (const file of executionActivity.files) {
+            for (const file of executionActivity.processedFiles) {
                 if (file.processedFileName) {
                     processedFileNames.push(file.processedFileName);
                 }
@@ -193,7 +192,7 @@ export class ConnectorImportProcessorService {
                     filePattern: spec.filePattern,
                     specificationId: spec.specificationId,
                     stationId: spec.stationId,
-                    files: [],
+                    processedFiles: [],
                 };
 
                 // Step 4: Check file changes and download only modified files
@@ -205,26 +204,26 @@ export class ConnectorImportProcessorService {
                     // Check if file has changed since last download
                     const fileModifiedDate = remoteFile.modifiedAt || new Date();
                     const fileSize = remoteFile.size || 0;
-                    const newFileMetadataVo : FileMetadataVo = {remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } }; 
+                    const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
 
                     if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity)) {
                         this.logger.log(`Skipping unchanged file: ${remoteFile.name} )`);
-                        newFileMetadataVo.skipped = true;
+                        fileProcessingResult.skipped = true;
                     } else {
                         const localDownloadPath = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
                         try {
                             await client.downloadTo(localDownloadPath, remoteFile.name);
-                            newFileMetadataVo.downloadedFileName = localDownloadPath;
+                            fileProcessingResult.downloadedFileName = localDownloadPath;
                             this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}  `);
                         } catch (error) {
                             let errorMessage = error instanceof Error ? error.message : String(error);
                             errorMessage = `Failed to download file ${remoteFile.name} for specification ${spec.specificationId}: ${errorMessage}`;
-                            newFileMetadataVo.errorMessage = errorMessage;
+                            fileProcessingResult.errorMessage = errorMessage;
                             this.logger.error(errorMessage);
                         }
                     }
 
-                     newExecutionActivity.files.push(newFileMetadataVo);
+                    newExecutionActivity.processedFiles.push(fileProcessingResult);
                 }
 
                 executionActivities.push(newExecutionActivity);
@@ -343,8 +342,8 @@ export class ConnectorImportProcessorService {
     * Check if a file has changed since the last download
     * Returns true if the file should be downloaded
     */
-    private hasFileChanged(fileName: string, modifiedDate: Date, size: number, lastKnownExecutionActivity: FileServerExecutionActivityVo ): boolean {
-        const lastKnownFile = lastKnownExecutionActivity.files.find(item => item.remoteFileMetadata.fileName === fileName);
+    private hasFileChanged(fileName: string, modifiedDate: Date, size: number, lastKnownExecutionActivity: FileServerExecutionActivityVo): boolean {
+        const lastKnownFile = lastKnownExecutionActivity.processedFiles.find(item => item.remoteFileMetadata.fileName === fileName);
 
         if (!lastKnownFile) {
             return true; // File is new, download it

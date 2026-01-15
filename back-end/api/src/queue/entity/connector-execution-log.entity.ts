@@ -32,9 +32,6 @@ export class ConnectorExecutionLogEntity extends AppBaseEntity {
 
     @Column({ name: "total_errors", type: 'int' })
     totalErrors: number;
-
-    @Column({ name: "total_warnings", type: 'int' })
-    totalWarnings: number;
 }
 
 // Used by File Servers
@@ -43,26 +40,26 @@ export interface FileServerExecutionActivityVo {
     specificationId: number; // source or export specification id
     stationId?: string;
 
-    // TODO. find a better name for this property
-    files: FileMetadataVo[];
+    // Tracks each file through the complete processing lifecycle: download → process → import
+    processedFiles: FileProcessingResultVo[];
 }
 
-// TODO. Find a better name for this interface
-export interface FileMetadataVo {
+// Represents the complete processing result for a single file from a remote server
+export interface FileProcessingResultVo {
     remoteFileMetadata: RemoteFileMetadataVo;
-    downloadedFileName?: string; // When missing. It means there is a error
-    processedFileName?: string; // When missing. It means there is a error
+    downloadedFileName?: string; // When missing, it means there was an error during download
+    processedFileName?: string; // When missing, it means there was an error during processing
     errorMessage?: string;
     skipped?: boolean; // When true, it means the remote file had not changed at the time the connector was being executed
 }
 
-// TODO. Find a better name for this interface
+// Represents metadata about a file on the remote server (FTP/SFTP/etc.)
 export interface RemoteFileMetadataVo {
     fileName: string;
 
     // Note, don't use Date type here because this will always be a JSON object.
     // There is no standard JSON representation of dates and therefore the JSON parser called by typeorm will always return this in a string format.
-    // Using a Date type may result in runtime bugs due to developers calling date functions from the property when its actually a string. 
+    // Using a Date type may result in runtime bugs due to developers calling date functions from the property when its actually a string.
     modifiedDate: string; // ISO string format
 
     size: number;

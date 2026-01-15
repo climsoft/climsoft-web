@@ -24,6 +24,7 @@ DECLARE
         'export_templates',
         'connector_specifications',
         'job_queues',
+        'connector_execution_log',
         'station_forms',
         'station_network_affiliations',
         'station_observation_environments',

@@ -8,7 +8,6 @@ export interface CreateConnectorExecutionLogDto {
     executionStartDatetime: Date;
     executionEndDatetime: Date;
     totalErrors: number;
-    totalWarnings: number;
     executionActivities: ExecutionActivity[];
     entryUserId: number;
 }
@@ -17,7 +16,6 @@ export interface UpdateConnectorExecutionLogDto {
     executionStartDatetime?: Date;
     executionEndDatetime?: Date;
     totalErrors?: number;
-    totalWarnings?: number;
     executionActivities?: ExecutionActivity[];
 }
 
@@ -26,7 +24,6 @@ export interface ConnectorExecutionLogFilters {
     startDate?: Date;
     endDate?: Date;
     hasErrors?: boolean;
-    hasWarnings?: boolean;
 }
 
 @Injectable()
@@ -47,7 +44,6 @@ export class ConnectorExecutionLogService {
             executionStartDatetime: dto.executionStartDatetime,
             executionEndDatetime: dto.executionEndDatetime,
             totalErrors: dto.totalErrors,
-            totalWarnings: dto.totalWarnings,
             executionActivities: dto.executionActivities,
             entryUserId: dto.entryUserId,
         });
@@ -73,10 +69,6 @@ export class ConnectorExecutionLogService {
 
         if (dto.totalErrors !== undefined) {
             log.totalErrors = dto.totalErrors;
-        }
-
-        if (dto.totalWarnings !== undefined) {
-            log.totalWarnings = dto.totalWarnings;
         }
 
         if (dto.executionActivities !== undefined) {
@@ -177,10 +169,6 @@ export class ConnectorExecutionLogService {
             logs = logs.filter(log => filters.hasErrors ? log.totalErrors > 0 : log.totalErrors === 0);
         }
 
-        if (filters?.hasWarnings !== undefined) {
-            logs = logs.filter(log => filters.hasWarnings ? log.totalWarnings > 0 : log.totalWarnings === 0);
-        }
-
         return logs;
     }
 
@@ -213,13 +201,6 @@ export class ConnectorExecutionLogService {
     }
 
     /**
-     * Get execution logs with warnings
-     */
-    public async findWithWarnings(connectorId?: number, limit: number = 50): Promise<ConnectorExecutionLogEntity[]> {
-        return this.findAll({ connectorId, hasWarnings: true }, limit);
-    }
-
-    /**
      * Get execution logs within a date range
      */
     public async findByDateRange(startDate: Date, endDate: Date, connectorId?: number): Promise<ConnectorExecutionLogEntity[]> {
@@ -234,7 +215,6 @@ export class ConnectorExecutionLogService {
     public async getConnectorStats(connectorId: number, startDate?: Date, endDate?: Date): Promise<{
         totalExecutions: number;
         totalErrors: number;
-        totalWarnings: number;
         successfulExecutions: number;
         failedExecutions: number;
         lastExecution: Date | null;
@@ -244,7 +224,6 @@ export class ConnectorExecutionLogService {
         const stats = {
             totalExecutions: logs.length,
             totalErrors: logs.reduce((sum, log) => sum + log.totalErrors, 0),
-            totalWarnings: logs.reduce((sum, log) => sum + log.totalWarnings, 0),
             successfulExecutions: logs.filter(log => log.totalErrors === 0).length,
             failedExecutions: logs.filter(log => log.totalErrors > 0).length,
             lastExecution: logs.length > 0 ? logs[0].entryDateTime : null,
