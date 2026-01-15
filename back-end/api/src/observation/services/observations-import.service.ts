@@ -12,7 +12,7 @@ import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
-import { DataSource } from 'typeorm'; 
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ObservationImportService {
@@ -36,7 +36,7 @@ export class ObservationImportService {
         private elementsService: ElementsService,
     ) { }
 
-    public async processFileForImportAndSave(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
+    public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
             const importFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
             const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_${new Date().getTime()}_processed.csv`;
@@ -44,15 +44,16 @@ export class ObservationImportService {
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
 
-            // Then process the import using duckdb
-             await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
+            // Process the import using duckdb
+            await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
 
+            // Import to database
             await this.importProcessedFilesToDatabase(exportFilePathName);
 
         } catch (error) {
-            console.error('Manual import fail: ', error)
             const errorMessage = error instanceof Error ? error.message : String(error);
-            throw new BadRequestException(`Failed to import file: ${errorMessage}`);
+            this.logger.error(errorMessage);
+            throw new BadRequestException(errorMessage);
         }
     }
 
@@ -78,21 +79,21 @@ export class ObservationImportService {
      * Uses a staging table approach to handle duplicates efficiently
      */
     public async importProcessedFilesToDatabase(filePathName: string): Promise<void> {
-   
-            const queryRunner = this.dataSource.createQueryRunner();
-            await queryRunner.connect();
-            await queryRunner.startTransaction();
 
-            try {
-                this.logger.log(`Importing file ${filePathName} into database`);
-                const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replaceAll('\\', '\/');
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-                // Generate a unique staging table name using timestamp
-                const stagingTableName = `obs_staging_${Date.now()}`;
+        try {
+            this.logger.log(`Importing file ${path.basename(filePathName)} into database`);
+            const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replaceAll('\\', '\/');
 
-                // Step 1: Create temporary staging table (no constraints for fast COPY)
-                // Column types match the observations table schema
-                const createStagingTableQuery = `
+            // Generate a unique staging table name using timestamp
+            const stagingTableName = `obs_staging_${Date.now()}`;
+
+            // Step 1: Create temporary staging table (no constraints for fast COPY)
+            // Column types match the observations table schema
+            const createStagingTableQuery = `
                     CREATE TEMP TABLE ${stagingTableName} (
                         ${this.STATION_ID_PROPERTY_NAME} VARCHAR NOT NULL,
                         ${this.ELEMENT_ID_PROPERTY_NAME} INTEGER NOT NULL,
@@ -107,21 +108,21 @@ export class ObservationImportService {
                     ) ON COMMIT DROP;
                 `;
 
-                await queryRunner.query(createStagingTableQuery);
+            await queryRunner.query(createStagingTableQuery);
 
-                // Step 2: COPY data into staging table (very fast, no constraints)
-                const copyQuery = `
+            // Step 2: COPY data into staging table (very fast, no constraints)
+            const copyQuery = `
                     COPY ${stagingTableName} (${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME}, ${this.ENTRY_USER_ID_PROPERTY_NAME})
                     FROM '${dbFilePathName}'
                     WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
                 `;
 
-                await queryRunner.query(copyQuery);
+            await queryRunner.query(copyQuery);
 
-                // Step 3: Insert from staging to observations with ON CONFLICT handling
-                // If duplicate exists, update the existing record with new values
-                // Cast flag from VARCHAR to observations_flag_enum type
-                const upsertQuery = `
+            // Step 3: Insert from staging to observations with ON CONFLICT handling
+            // If duplicate exists, update the existing record with new values
+            // Cast flag from VARCHAR to observations_flag_enum type
+            const upsertQuery = `
                     INSERT INTO observations (${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME}, ${this.ENTRY_USER_ID_PROPERTY_NAME})
                     SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME}, ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME}, ${this.FLAG_PROPERTY_NAME}::observations_flag_enum, ${this.COMMENT_PROPERTY_NAME}, ${this.ENTRY_USER_ID_PROPERTY_NAME}
                     FROM ${stagingTableName}
@@ -133,25 +134,26 @@ export class ObservationImportService {
                         ${this.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${this.ENTRY_USER_ID_PROPERTY_NAME};
                 `;
 
-                await queryRunner.query(upsertQuery);
+            await queryRunner.query(upsertQuery);
 
-                // Step 4: Commit transaction - staging table is automatically dropped (ON COMMIT DROP)
-                await queryRunner.commitTransaction();
+            // Step 4: Commit transaction - staging table is automatically dropped (ON COMMIT DROP)
+            await queryRunner.commitTransaction();
 
-                this.logger.log(`Successfully imported ${filePathName} into database`);
+            this.logger.log(`Successfully imported ${filePathName} into database`);
 
-            } catch (error) {
-                // Rollback transaction on error
-                await queryRunner.rollbackTransaction();
+        } catch (error) {
+            // Rollback transaction on error
+            await queryRunner.rollbackTransaction();
 
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                this.logger.error(`Failed to import file ${filePathName}: ${errorMessage}`);
-                throw new Error(`Database import failed for ${path.basename(filePathName)}: ${errorMessage}`);
-            } finally {
-                // Release the query runner
-                await queryRunner.release();
-            }
-     
+            let errorMessage = error instanceof Error ? error.message : String(error);
+            errorMessage = `Database import failed for ${path.basename(filePathName)}: ${errorMessage}`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
+        } finally {
+            // Release the query runner
+            await queryRunner.release();
+        }
+
     }
 
 
@@ -160,7 +162,8 @@ export class ObservationImportService {
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
-        const tmpObsTableName: string = path.basename(importFilePathName, path.extname(importFilePathName));
+        // Remove spaces and special characters from table name to ensure valid SQL identifier
+        const tmpObsTableName: string = path.basename(importFilePathName, path.extname(importFilePathName)).replace(/\s+/g, '_');
         // Note.
         // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
         // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb

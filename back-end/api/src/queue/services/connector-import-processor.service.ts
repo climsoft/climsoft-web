@@ -80,7 +80,7 @@ export class ConnectorImportProcessorService {
                 }
 
                 try {
-                    file.processedFileName = path.join(this.fileIOService.apiImportsDir, `${path.parse(file.downloadedFileName).name}_processed.csv`);
+                    file.processedFileName = path.posix.join(this.fileIOService.apiImportsDir, `${path.parse(file.downloadedFileName).name}_processed.csv`);
 
                     this.logger.log(`Processing file ${path.basename(file.downloadedFileName)} into ${path.basename(file.processedFileName)}`);
                     await this.observationImportService.processFileForImport(
@@ -139,7 +139,7 @@ export class ConnectorImportProcessorService {
                 await this.downloadFileOverFtp(connector, newConnectorLog, lastKnownConnectorExecutionActivities);
                 break;
             case FileServerProtocolEnum.SFTP:
-                //this.downloadFileOverSftp(connector, newConnectorLog, lastKnownConnectorExecutionActivities);
+                await this.downloadFileOverSftp(connector, newConnectorLog, lastKnownConnectorExecutionActivities);
                 break;
             default:
                 throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
@@ -213,7 +213,7 @@ export class ConnectorImportProcessorService {
                         this.logger.log(`Skipping unchanged file: ${remoteFile.name} )`);
                         fileProcessingResult.skipped = true;
                     } else {
-                        const localDownloadPath = path.join(this.fileIOService.apiImportsDir, `connector_${connector.name}_spec_${spec.specificationId}_download_${remoteFile.name}`);
+                        const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
                         try {
                             await client.downloadTo(localDownloadPath, remoteFile.name);
                             fileProcessingResult.downloadedFileName = localDownloadPath;
@@ -238,105 +238,88 @@ export class ConnectorImportProcessorService {
     }
 
 
-    // TODO. Implement the sftp download in a similar way to the ftp download using the correct `SftpClient` functions
-    
-    // private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto): Promise<{ imports: ConnectorImport[], metadata: FileMetadata[] }> {
-    //     const client = new SftpClient();
-    //     try {
-    //         const connectorParams = connector.parameters as FileServerParametersDto;
+    private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastKnownExecutionActivities: FileServerExecutionActivityVo[]): Promise<void> {
+        const client = new SftpClient();
 
-    //         // Get last known file metadata for change detection
-    //         const lastKnownMetadata = this.getLastKnownMetadata(connector);
+        try {
+            const connectorParams = connector.parameters as FileServerParametersDto;
 
-    //         // Step 1: Connect to SFTP server
-    //         await client.connect({
-    //             host: connector.hostName,
-    //             port: connector.parameters.port,
-    //             username: connector.parameters.username,
-    //             password: await EncryptionUtils.decrypt(connector.parameters.password), // Decrypt password
-    //             readyTimeout: connector.timeout * 1000,
-    //         });
+            // Step 1: Connect to SFTP server
+            await client.connect({
+                host: connector.hostName,
+                port: connector.parameters.port,
+                username: connector.parameters.username,
+                password: await EncryptionUtils.decrypt(connector.parameters.password), // Decrypt password
+                readyTimeout: connector.timeout ? connector.timeout * 1000 : undefined,
+            });
 
-    //         this.logger.log(`Connected to SFTP server ${connector.name}`);
+            this.logger.log(`Connected to SFTP server ${connector.name}`);
 
-    //         // Step 2: Get the list of files in remote directory
-    //         const fileList = await client.list(connectorParams.remotePath);
+            // Step 2: Get the list of files in remote directory
+            const fileList = await client.list(connectorParams.remotePath);
 
-    //         this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
+            this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
-    //         // Holds specification id, remote file name and local file name
-    //         const connectorImports: ConnectorImport[] = [];
-    //         const downloadedFilesMetadata: FileMetadata[] = [];
+            for (const spec of connectorParams.specifications) {
 
-    //         for (const spec of connectorParams.specifications) {
+                // Step 3: Find matching files
+                const matchingFiles = fileList.filter((file: any) =>
+                    file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
+                );
 
-    //             // Step 3: Find matching files
-    //             const matchingFiles = fileList.filter((file: any) =>
-    //                 file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
-    //             );
+                if (matchingFiles.length === 0) {
+                    this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
+                    continue;
+                }
 
-    //             if (matchingFiles.length === 0) {
-    //                 this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
-    //                 continue;
-    //             }
+                const newExecutionActivity: FileServerExecutionActivityVo = {
+                    filePattern: spec.filePattern,
+                    specificationId: spec.specificationId,
+                    stationId: spec.stationId,
+                    processedFiles: [],
+                };
 
-    //             const connectorImport: ConnectorImport = {
-    //                 specificationId: spec.specificationId,
-    //                 stationId: spec.stationId,
-    //                 files: []
-    //             };
+                // Step 4: Check file changes and download only modified files
+                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
 
-    //             // Step 4: Check file changes and download only modified files
-    //             this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern} for specification ${spec.specificationId}`);
-    //             let downloadedCount = 0;
-    //             let skippedCount = 0;
+                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
 
-    //             for (const remoteFile of matchingFiles) {
-    //                 // Check if file has changed since last download
-    //                 // SFTP file list returns modifyTime as milliseconds since epoch
-    //                 const fileModifiedDate = new Date(remoteFile.modifyTime || Date.now());
-    //                 const fileSize = remoteFile.size || 0;
+                for (const remoteFile of matchingFiles) {
+                    // Check if file has changed since last download
+                    // SFTP file list returns modifyTime as milliseconds since epoch
+                    const fileModifiedDate = new Date(remoteFile.modifyTime || Date.now());
+                    const fileSize = remoteFile.size || 0;
+                    const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
 
-    //                 if (!this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownMetadata)) {
-    //                     this.logger.log(`Skipping unchanged file: ${remoteFile.name} (last modified: ${fileModifiedDate.toISOString()}, size: ${fileSize})`);
-    //                     skippedCount++;
-    //                     continue;
-    //                 }
+                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity)) {
+                        this.logger.log(`Skipping unchanged file: ${remoteFile.name})`);
+                        fileProcessingResult.skipped = true;
+                    } else {
+                        const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFile.name);
+                        const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
 
-    //                 const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFile.name);
-    //                 const localDownloadPath = path.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
+                        try {
+                            await client.get(remoteFilePath, localDownloadPath);
+                            fileProcessingResult.downloadedFileName = localDownloadPath;
+                            this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}`);
+                        } catch (error) {
+                            let errorMessage = error instanceof Error ? error.message : String(error);
+                            errorMessage = `Failed to download file ${remoteFile.name}: ${errorMessage}`;
+                            fileProcessingResult.errorMessage = errorMessage;
+                            newConnectorLog.totalErrors++;
+                            this.logger.error(errorMessage);
+                        }
+                    }
 
-    //                 try {
-    //                     await client.get(remoteFilePath, localDownloadPath);
-    //                     this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath} (modified: ${fileModifiedDate.toISOString()}, size: ${fileSize})`);
-    //                     connectorImport.files.push({ downloadedFile: localDownloadPath, processedFile: '' });
-    //                     downloadedCount++;
+                    newExecutionActivity.processedFiles.push(fileProcessingResult);
+                }
 
-    //                     // Store metadata for this downloaded file
-    //                     downloadedFilesMetadata.push({
-    //                         fileName: remoteFile.name,
-    //                         modifiedDate: fileModifiedDate.toISOString(),
-    //                         size: fileSize
-    //                     });
-    //                 } catch (error) {
-    //                     const errorMessage = error instanceof Error ? error.message : String(error);
-    //                     throw new Error(`Failed to download file ${remoteFile.name} for specification ${spec.specificationId}: ${errorMessage}`);
-    //                 }
-    //             }
-
-    //             this.logger.log(`Download summary for specification ${spec.specificationId}: ${downloadedCount} downloaded, ${skippedCount} skipped (unchanged)`);
-
-    //             if (connectorImport.files.length > 0) {
-    //                 connectorImports.push(connectorImport);
-    //             }
-    //         }
-
-    //         return { imports: connectorImports, metadata: downloadedFilesMetadata };
-
-    //     } finally {
-    //         await client.end();
-    //     }
-    // }
+                newConnectorLog.executionActivities.push(newExecutionActivity);
+            }
+        } finally {
+            await client.end();
+        }
+    }
 
 
 

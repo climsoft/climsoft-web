@@ -146,7 +146,7 @@ export class ObservationsController {
     })
     ) file: Express.Multer.File) {
     try {
-      await this.observationImportService.processFileForImportAndSave(sourceId, file, AuthUtil.getLoggedInUser(request).id);
+      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -169,7 +169,7 @@ export class ObservationsController {
     ) file: Express.Multer.File) {
 
     try {
-      await this.observationImportService.processFileForImportAndSave(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
+      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
