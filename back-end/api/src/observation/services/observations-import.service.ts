@@ -47,7 +47,7 @@ export class ObservationImportService {
             // Then process the import using duckdb
              await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
 
-            await this.importProcessedFilesToDatabase([exportFilePathName]);
+            await this.importProcessedFilesToDatabase(exportFilePathName);
 
         } catch (error) {
             console.error('Manual import fail: ', error)
@@ -77,8 +77,8 @@ export class ObservationImportService {
      * Import processed CSV files to database using PostgreSQL COPY command
      * Uses a staging table approach to handle duplicates efficiently
      */
-    public async importProcessedFilesToDatabase(processedFiles: string[]): Promise<void> {
-        for (const filePathName of processedFiles) {
+    public async importProcessedFilesToDatabase(filePathName: string): Promise<void> {
+   
             const queryRunner = this.dataSource.createQueryRunner();
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -151,7 +151,7 @@ export class ObservationImportService {
                 // Release the query runner
                 await queryRunner.release();
             }
-        }
+     
     }
 
 

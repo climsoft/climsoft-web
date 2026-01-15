@@ -31,6 +31,7 @@ export class ConnectorExecutionLogEntity extends AppBaseEntity {
     executionActivities: ExecutionActivity[];
 
     @Column({ name: "total_errors", type: 'int' })
+    @Index()
     totalErrors: number;
 }
 
