@@ -73,7 +73,7 @@ export class ConnectorSpecificationsService {
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maximumRetries = dto.maximumRetries;
+        entity.maximumAttempts = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
 
         // Encrypt password before storing
@@ -110,7 +110,7 @@ export class ConnectorSpecificationsService {
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maximumRetries = dto.maximumRetries;
+        entity.maximumAttempts = dto.maximumRetries;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
         dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
@@ -139,6 +139,26 @@ export class ConnectorSpecificationsService {
         await this.connectorRepo.remove(entities);
         this.eventEmitter.emit('connector.deleted', {});
         return true;
+    }
+
+    /**
+     * Update the log field of a connector
+     */
+    public async updateLog(id: number, logEntry: any): Promise<void> {
+        const entity = await this.findEntity(id);
+
+        // Initialize log array if it doesn't exist
+        if (!entity.log) {
+            entity.log = [];
+        }
+
+        // Append the new log entry
+        entity.log.push(logEntry);
+
+        // Save the entity with updated log
+        await this.connectorRepo.save(entity);
+
+        this.logger.log(`Updated log for connector ${id}`);
     }
 
     /**
@@ -172,13 +192,14 @@ export class ConnectorSpecificationsService {
             endPointType: entity.endPointType,
             hostName: entity.hostName,
             timeout: entity.timeout,
-            maximumRetries: entity.maximumRetries,
+            maximumRetries: entity.maximumAttempts,
             cronSchedule: entity.cronSchedule,
             orderNumber: entity.orderNumber ? entity.orderNumber : undefined,
             parameters: entity.parameters,
             disabled: entity.disabled,
             comment: entity.comment ? entity.comment : '',
             entryUserId: entity.entryUserId,
+            log: entity.log,
         };
         return dto;
     }

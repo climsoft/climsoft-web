@@ -112,7 +112,7 @@ export class FileServerSpecificationDto {
 
     @IsInt()
     @Min(1)
-    specificationId: number;
+    specificationId: number; // source or export specification id
 
     @IsOptional()
     @IsString()

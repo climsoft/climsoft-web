@@ -16,7 +16,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ObservationImportService {
-    private readonly logger = new Logger(ObservationImportService.name);
+    private readonly logger: Logger = new Logger(ObservationImportService.name);
 
     private readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
     private readonly ELEMENT_ID_PROPERTY_NAME: string = 'element_id';

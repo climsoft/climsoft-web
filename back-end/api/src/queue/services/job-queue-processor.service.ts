@@ -17,7 +17,7 @@ export class JobQueueProcessorService {
     /**
      * Process pending queue jobs every minute
      */
-    @Cron(CronExpression.EVERY_MINUTE, {name: 'process-jobs'})
+    @Cron(CronExpression.EVERY_MINUTE, { name: 'process-jobs' })
     public async processPendingJobs() {
         if (this.isProcessing) {
             this.logger.debug('Already processing jobs, skipping this cycle');
@@ -46,7 +46,7 @@ export class JobQueueProcessorService {
     /**
      * Clean up old finished jobs daily at 3 AM
      */
-    @Cron('0 3 * * *',{name: 'prune-jobs-table'})
+    @Cron('0 3 * * *', { name: 'prune-jobs-table' })
     public async cleanupOldJobs() {
         this.logger.log('Running cleanup of old finished jobs');
         const deletedCount = await this.queueService.cleanupOldJobs(30);
@@ -67,7 +67,8 @@ export class JobQueueProcessorService {
 
             // TODO. This can be done as a prompt(event emitted) from individual processors after they finish the task. 
             // Will help with doing the tasks in parallel
-            await this.queueService.markAsFinished(job.id); 
+            await this.queueService.markAsFinished(job.id);
+
             this.logger.log(`Job ${job.id} completed successfully`);
 
         } catch (error) {
@@ -76,12 +77,8 @@ export class JobQueueProcessorService {
             await this.queueService.markAsFailed(job.id, errorMessage);
 
             // Try to retry the job if it hasn't exceeded max retries
-            // Get the retries from payload if available
-            // They should all implement `maximumRetries` property.
-            if(job.payload.maximumRetries){
-                await this.queueService.retryJob(job.id, job.payload.maximumRetries); 
-            }
-           
+            // They should all implement `maximumAttempts` property.
+            await this.queueService.retryJob(job.id, job.payload.maximumAttempts);
         }
     }
 }

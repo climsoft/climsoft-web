@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { JobQueueEntity } from '../entity/job-queue.entity';
-import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
+import { JobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity'; 
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
 import * as fs from 'fs/promises';
@@ -33,10 +32,10 @@ export class ConnectorExportProcessorService {
             return;
         }
 
-        const payload = job.payload as ConnectorJobPayloadDto;
-        this.logger.log(`Processing export job for connector ${payload.connectorId}`);
+        const payload: JobPayloadDto = job.payload ;
+        this.logger.log(`Processing export job for connector ${payload.payLoadId}`);
 
-        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
+        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.payLoadId);
 
         try {
             //await this.processExportSpecification(connector, connector.specificationId, job.entryUserId);

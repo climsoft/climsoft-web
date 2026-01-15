@@ -11,11 +11,14 @@ import { ConnectorExportProcessorService } from './services/connector-export-pro
 import { ConnectorSpecificationsModule } from 'src/metadata/connector-specifications/connector-specifications.module';
 import { MetadataModule } from 'src/metadata/metadata.module';
 import { ObservationModule } from 'src/observation/observation.module';
+import { ConnectorExecutionLogEntity } from './entity/connector-execution-log.entity';
+import { ConnectorExecutionLogService } from './services/connector-execution-log.service';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([
             JobQueueEntity,
+            ConnectorExecutionLogEntity,
         ]),
         SharedModule,
         UserModule,
@@ -28,6 +31,7 @@ import { ObservationModule } from 'src/observation/observation.module';
         JobQueueService,
         JobQueueProcessorService,
         ConnectorSchedulerService,
+        ConnectorExecutionLogService,
         ConnectorImportProcessorService,
         ConnectorExportProcessorService,
     ],

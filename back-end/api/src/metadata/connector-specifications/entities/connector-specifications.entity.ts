@@ -28,8 +28,8 @@ export class ConnectorSpecificationEntity extends AppBaseEntity {
   @Column({ name: 'timeout', type: 'int' })
   timeout: number; // in seconds
 
-  @Column({ name: "maximum_retries", type: "int" })
-  maximumRetries: number;
+  @Column({ name: "maximum_attempts", type: "int" })
+  maximumAttempts: number;
 
   @Column({ name: 'cron_schedule', type: 'varchar' })
   cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)

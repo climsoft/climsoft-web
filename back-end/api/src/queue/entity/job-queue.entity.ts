@@ -1,6 +1,14 @@
 import { AppBaseEntity } from "src/shared/entity/app-base-entity";
-import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { JobQueueStatusEnum } from "../enums/job-queue-status.enum";
+import { Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm"; 
+
+export enum JobQueueStatusEnum {
+    PENDING = 'pending',
+    PROCESSING = 'processing',
+    FINISHED = 'finished',
+    FAILED = 'failed',
+    CANCELLED = 'cancelled'
+}
+
 
 @Entity('job_queues')
 export class JobQueueEntity extends AppBaseEntity {
@@ -12,7 +20,7 @@ export class JobQueueEntity extends AppBaseEntity {
   name: string;
 
   @Column({ name: 'payload', type: 'jsonb' })
-  payload: any;
+  payload: JobPayloadDto;
 
   @Column({ name: 'scheduled_at', type: 'timestamptz' })
   @Index()
@@ -34,3 +42,9 @@ export class JobQueueEntity extends AppBaseEntity {
   errorMessage: string | null;
 }
 
+export interface JobPayloadDto {
+    payLoadId: number;
+    payloadType: string;
+    triggeredBy: 'schedule' | 'manual';
+    maximumAttempts: number;
+}

@@ -2,10 +2,9 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import { JobQueueService } from './job-queue.service';
-import { ConnectorJobPayloadDto } from 'src/metadata/connector-specifications/dtos/connector-job-payload.dto';
+import { JobQueueService } from './job-queue.service'; 
 import { OnEvent } from '@nestjs/event-emitter';
-import { JobQueueEntity } from '../entity/job-queue.entity';
+import { JobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
 
 @Injectable()
@@ -97,11 +96,10 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 return;
             }
 
-            const payload: ConnectorJobPayloadDto = {
-                connectorId: connector.id,
-                connectorType: connector.connectorType,
-                parameters: connector.parameters,
-                maximumRetries: connector.maximumRetries,
+            const payload: JobPayloadDto = {
+                payLoadId: connector.id,
+                payloadType: connector.connectorType,
+                maximumAttempts: connector.maximumRetries,
                 triggeredBy: 'schedule',
             };
 
@@ -128,11 +126,10 @@ export class ConnectorSchedulerService implements OnModuleInit {
     public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
         const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId);
 
-        const payload: ConnectorJobPayloadDto = {
-            connectorId: connector.id,
-            connectorType: connector.connectorType,
-            parameters: connector.parameters,
-            maximumRetries: connector.maximumRetries,
+        const payload: JobPayloadDto = {
+            payLoadId: connector.id,
+            payloadType: connector.connectorType,
+            maximumAttempts: connector.maximumRetries,
             triggeredBy: 'manual'
         };
 

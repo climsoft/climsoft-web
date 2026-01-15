@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
-import { JobQueueEntity } from '../entity/job-queue.entity';
-import { JobQueueStatusEnum } from '../enums/job-queue-status.enum';
+import { JobQueueEntity, JobQueueStatusEnum } from '../entity/job-queue.entity'; 
 
 @Injectable()
 export class JobQueueService {
@@ -93,7 +92,7 @@ export class JobQueueService {
     /**
      * Retry a failed job
      */
-    public async retryJob(jobId: number, maxRetries: number): Promise<boolean> {
+    public async retryJob(jobId: number, maxAttempts: number): Promise<boolean> {
         const job = await this.jobQueueRepo.findOneBy({ id: jobId });
 
         if (!job) {
@@ -101,8 +100,11 @@ export class JobQueueService {
             return false;
         }
 
-        if (job.attempts >= maxRetries) {
-            this.logger.warn(`Job ${jobId} has exceeded max retries (${maxRetries})`);
+        if (!maxAttempts ) {
+            this.logger.warn(`Job ${jobId} has zero or no maximum attempts)`);
+            return false;
+        } else if (job.attempts >= maxAttempts) {
+            this.logger.warn(`Job ${jobId} has exceeded maximum attempts (${maxAttempts})`);
             return false;
         }
 
