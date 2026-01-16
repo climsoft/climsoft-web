@@ -11,7 +11,7 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { FileProcessingResultVo, FileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
+import { FileProcessingResultVo, FileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 
 @Injectable()
@@ -127,34 +127,36 @@ export class ConnectorImportProcessorService {
     }
 
     private async downloadFromFileServer(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto): Promise<void> {
-        // Get last known file metadata for change detection 
+        // Get last known processed files for file change detection
         let lastKnownConnectorLog = await this.connectorExecutionLogService.findLatestByConnector(connector.id);
-        let lastKnownConnectorExecutionActivities: FileServerExecutionActivityVo[] = lastKnownConnectorLog ? lastKnownConnectorLog.executionActivities : [];
+        const lastProcessedRemoteFiles = new Map<string, RemoteFileMetadataVo>();
+        if (lastKnownConnectorLog) {
+            for (const executionActivity of lastKnownConnectorLog.executionActivities) {
+                for (const files of executionActivity.processedFiles) {
+                    lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
+                }
+            }
+        }
 
-        const connectorParams: FileServerParametersDto = connector.parameters as FileServerParametersDto;
-
-        switch (connectorParams.protocol) {
+        // Depending on protocol. Download files
+        switch ((connector.parameters as FileServerParametersDto).protocol) {
             case FileServerProtocolEnum.FTP:
             case FileServerProtocolEnum.FTPS:
-                await this.downloadFileOverFtp(connector, newConnectorLog, lastKnownConnectorExecutionActivities);
+                await this.downloadFileOverFtp(connector, newConnectorLog, lastProcessedRemoteFiles);
                 break;
             case FileServerProtocolEnum.SFTP:
-                await this.downloadFileOverSftp(connector, newConnectorLog, lastKnownConnectorExecutionActivities);
+                await this.downloadFileOverSftp(connector, newConnectorLog, lastProcessedRemoteFiles);
                 break;
             default:
                 throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
         }
     }
 
-    private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastKnownExecutionActivities: FileServerExecutionActivityVo[]): Promise<void> {
+    private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>): Promise<void> {
         const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
 
         try {
-
             const connectorParams = connector.parameters as FileServerParametersDto;
-
-            // Configure FTP client for better compatibility
-            //client.ftp.verbose = true; // Enable verbose logging for debugging
 
             // Step 1: Connect to FTP server
             await client.access({
@@ -173,69 +175,36 @@ export class ConnectorImportProcessorService {
             // Set the working directory
             await client.cd(connectorParams.remotePath);
 
-            // Step 2: Get the list of files in remote directory and set the corresponding source
+            // Step 2: Get the list of files in remote directory
             const fileList = await client.list();
 
             this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
-            for (const spec of connectorParams.specifications) {
+            // Step 3: Map FTP file list to RemoteFileMetadataVo[]
+            const remoteFiles: RemoteFileMetadataVo[] = fileList.map((file: any) => ({
+                fileName: file.name,
+                modifiedDate: (file.modifiedAt || new Date()).toISOString(),
+                size: file.size || 0
+            }));
 
-                // Step 3: Find matching files
-                const matchingFiles = fileList.filter(file =>
-                    file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
-                );
-
-                if (matchingFiles.length === 0) {
-                    this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
-                    continue;
+            // Step 4: Process specifications and download files
+            await this.processFileSpecifications(
+                connector,
+                connectorParams,
+                remoteFiles,
+                lastProcessedRemoteFiles,
+                newConnectorLog,
+                async (fileName: string, localPath: string) => {
+                    await client.downloadTo(localPath, fileName);
                 }
-
-                // Step 4: Check file changes and download only modified files
-                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
-
-                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
-                const newExecutionActivity: FileServerExecutionActivityVo = {
-                    filePattern: spec.filePattern,
-                    specificationId: spec.specificationId,
-                    stationId: spec.stationId,
-                    processedFiles: [],
-                };
-
-                for (const remoteFile of matchingFiles) {
-                    // Check if file has changed since last download
-                    const fileModifiedDate = remoteFile.modifiedAt || new Date();
-                    const fileSize = remoteFile.size || 0;
-                    const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
-
-                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity.processedFiles)) {
-                        this.logger.log(`Skipping unchanged file: ${remoteFile.name}`);
-                        fileProcessingResult.skipped = true;
-                    } else {
-                        const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
-                        try {
-                            await client.downloadTo(localDownloadPath, remoteFile.name);
-                            fileProcessingResult.downloadedFileName = localDownloadPath;
-                            this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}  `);
-                        } catch (error) {
-                            let errorMessage = error instanceof Error ? error.message : String(error);
-                            errorMessage = `Failed to download file ${remoteFile.name}: ${errorMessage}`;
-                            fileProcessingResult.errorMessage = errorMessage;
-                            newConnectorLog.totalErrors++;
-                            this.logger.error(errorMessage);
-                        }
-                    }
-                    newExecutionActivity.processedFiles.push(fileProcessingResult);
-                }
-
-                newConnectorLog.executionActivities.push(newExecutionActivity);
-            }
+            );
         } finally {
             client.close();
         }
     }
 
 
-    private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastKnownExecutionActivities: FileServerExecutionActivityVo[]): Promise<void> {
+    private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>): Promise<void> {
         const client = new SftpClient();
 
         try {
@@ -257,60 +226,26 @@ export class ConnectorImportProcessorService {
 
             this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
-            for (const spec of connectorParams.specifications) {
+            // Step 3: Map SFTP file list to RemoteFileMetadataVo[]
+            const remoteFiles: RemoteFileMetadataVo[] = fileList.map((file: any) => ({
+                fileName: file.name,
+                modifiedDate: new Date(file.modifyTime || Date.now()).toISOString(), // SFTP returns modifyTime as milliseconds since epoch
+                size: file.size || 0
+            }));
 
-                // Step 3: Find matching files
-                const matchingFiles = fileList.filter((file: any) =>
-                    file.name.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
-                );
 
-                if (matchingFiles.length === 0) {
-                    this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
-                    continue;
+            // Step 4: Process specifications and download files
+            await this.processFileSpecifications(
+                connector,
+                connectorParams,
+                remoteFiles,
+                lastProcessedRemoteFiles,
+                newConnectorLog,
+                async (fileName: string, localPath: string) => {
+                    const remoteFilePath = path.posix.join(connectorParams.remotePath, fileName);
+                    await client.get(remoteFilePath, localPath);
                 }
-
-                // Step 4: Check file changes and download only modified files
-                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
-
-                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
-                const newExecutionActivity: FileServerExecutionActivityVo = {
-                    filePattern: spec.filePattern,
-                    specificationId: spec.specificationId,
-                    stationId: spec.stationId,
-                    processedFiles: [],
-                };
-
-                for (const remoteFile of matchingFiles) {
-                    // Check if file has changed since last download
-                    // SFTP file list returns modifyTime as milliseconds since epoch
-                    const fileModifiedDate = new Date(remoteFile.modifyTime || Date.now());
-                    const fileSize = remoteFile.size || 0;
-                    const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
-
-                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity.processedFiles)) {
-                        this.logger.warn(`Skipping unchanged file: ${remoteFile.name}`);
-                        fileProcessingResult.skipped = true;
-                    } else {
-                        const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFile.name);
-                        const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
-
-                        try {
-                            await client.get(remoteFilePath, localDownloadPath);
-                            fileProcessingResult.downloadedFileName = localDownloadPath;
-                            this.logger.log(`Downloaded file ${remoteFile.name} to ${localDownloadPath}`);
-                        } catch (error) {
-                            let errorMessage = error instanceof Error ? error.message : String(error);
-                            errorMessage = `Failed to download file ${remoteFile.name}: ${errorMessage}`;
-                            fileProcessingResult.errorMessage = errorMessage;
-                            newConnectorLog.totalErrors++;
-                            this.logger.error(errorMessage);
-                        }
-                    }
-                    newExecutionActivity.processedFiles.push(fileProcessingResult);
-                }
-
-                newConnectorLog.executionActivities.push(newExecutionActivity);
-            }
+            );
         } finally {
             await client.end();
         }
@@ -319,19 +254,82 @@ export class ConnectorImportProcessorService {
 
 
     /**
+     * Process file specifications and download matching files
+     * Common handler that works with normalized file metadata from any protocol
+     */
+    private async processFileSpecifications(
+        connector: ViewConnectorSpecificationDto,
+        connectorParams: FileServerParametersDto,
+        remoteFiles: RemoteFileMetadataVo[],
+        lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>,
+        newConnectorLog: CreateConnectorExecutionLogDto,
+        downloadFile: (fileName: string, localPath: string) => Promise<void>
+    ): Promise<void> {
+
+        for (const spec of connectorParams.specifications) {
+            // Step 3: Find matching files
+            const matchingFiles = remoteFiles.filter(file =>
+                file.fileName.match(new RegExp(spec.filePattern.replace(/\*/g, '.*')))
+            );
+
+            if (matchingFiles.length === 0) {
+                this.logger.warn(`No files found matching pattern ${spec.filePattern} for connector ${connector.name}`);
+                continue;
+            }
+
+            // Step 4: Check file changes and download only modified files
+            this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
+
+            const newExecutionActivity: FileServerExecutionActivityVo = {
+                filePattern: spec.filePattern,
+                specificationId: spec.specificationId,
+                stationId: spec.stationId,
+                processedFiles: [],
+            };
+
+            for (const remoteFile of matchingFiles) {
+                const fileProcessingResult: FileProcessingResultVo = {
+                    remoteFileMetadata: remoteFile
+                };
+
+                if (!this.hasFileChanged(remoteFile, lastProcessedRemoteFiles)) {
+                    this.logger.log(`Skipping unchanged file: ${remoteFile.fileName}`);
+                    fileProcessingResult.skipped = true;
+                } else {
+                    const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.fileName}`);
+                    try {
+                        await downloadFile(remoteFile.fileName, localDownloadPath);
+                        fileProcessingResult.downloadedFileName = localDownloadPath;
+                        this.logger.log(`Downloaded file ${remoteFile.fileName} to ${localDownloadPath}`);
+                    } catch (error) {
+                        let errorMessage = error instanceof Error ? error.message : String(error);
+                        errorMessage = `Failed to download file ${remoteFile.fileName}: ${errorMessage}`;
+                        fileProcessingResult.errorMessage = errorMessage;
+                        newConnectorLog.totalErrors++;
+                        this.logger.error(errorMessage);
+                    }
+                }
+                newExecutionActivity.processedFiles.push(fileProcessingResult);
+            }
+
+            newConnectorLog.executionActivities.push(newExecutionActivity);
+        }
+    }
+
+    /**
     * Check if a file has changed since the last download
     * Returns true if the file should be downloaded
     */
-    private hasFileChanged(fileName: string, modifiedDate: Date, size: number, lastKnownProcessedFiles: FileProcessingResultVo[]): boolean {
-        const lastKnownFile = lastKnownProcessedFiles.find(item => item.remoteFileMetadata.fileName === fileName);
+    private hasFileChanged(remoteFile: RemoteFileMetadataVo, lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>): boolean {
+        // Get the last processed file metadata from the map
+        const lastProcessedRemoteFile = lastProcessedRemoteFiles.get(remoteFile.fileName);
 
-        if (!lastKnownFile) {
+        if (!lastProcessedRemoteFile) {
             return true; // File is new, download it
         } else {
-            const lastKnownRemoteFile = lastKnownFile.remoteFileMetadata
             // Compare modification date and size
-            const hasDateChanged = modifiedDate.getTime() !== new Date(lastKnownRemoteFile.modifiedDate).getTime();
-            const hasSizeChanged = size !== lastKnownRemoteFile.size;
+            const hasDateChanged = new Date(remoteFile.modifiedDate).getTime() !== new Date(lastProcessedRemoteFile.modifiedDate).getTime();
+            const hasSizeChanged = remoteFile.size !== lastProcessedRemoteFile.size;
 
             return hasDateChanged || hasSizeChanged;
         }
