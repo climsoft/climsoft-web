@@ -233,7 +233,6 @@ export class ConnectorImportProcessorService {
                 size: file.size || 0
             }));
 
-
             // Step 4: Process specifications and download files
             await this.processFileSpecifications(
                 connector,
@@ -294,7 +293,7 @@ export class ConnectorImportProcessorService {
 
                 if (!this.hasFileChanged(remoteFile, lastProcessedRemoteFiles)) {
                     this.logger.log(`Skipping unchanged file: ${remoteFile.fileName}`);
-                    fileProcessingResult.skipped = true;
+                    fileProcessingResult.unchangedFile = true;
                 } else {
                     const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.fileName}`);
                     try {

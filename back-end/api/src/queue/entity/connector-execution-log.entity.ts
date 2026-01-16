@@ -51,7 +51,7 @@ export interface FileProcessingResultVo {
     downloadedFileName?: string; // When missing, it means there was an error during download
     processedFileName?: string; // When missing, it means there was an error during processing
     errorMessage?: string;
-    skipped?: boolean; // When true, it means the remote file had not changed at the time the connector was being executed
+    unchangedFile?: boolean; // When true, it means the remote file had not changed at the time the connector was being executed
 }
 
 // Represents metadata about a file on the remote server (FTP/SFTP/etc.)
