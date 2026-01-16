@@ -186,7 +186,7 @@ export class ConnectorExecutionLogService {
         const log = await this.executionLogRepo.findOne({
             where: { connectorId },
             order: {
-                entryDateTime: 'DESC',
+                id: 'DESC',
             },
         });
 

@@ -146,7 +146,6 @@ export class ConnectorImportProcessorService {
         }
     }
 
-
     private async downloadFileOverFtp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastKnownExecutionActivities: FileServerExecutionActivityVo[]): Promise<void> {
         const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
 
@@ -191,6 +190,10 @@ export class ConnectorImportProcessorService {
                     continue;
                 }
 
+                // Step 4: Check file changes and download only modified files
+                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
+
+                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
                 const newExecutionActivity: FileServerExecutionActivityVo = {
                     filePattern: spec.filePattern,
                     specificationId: spec.specificationId,
@@ -198,19 +201,14 @@ export class ConnectorImportProcessorService {
                     processedFiles: [],
                 };
 
-                // Step 4: Check file changes and download only modified files
-                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
-
-                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
-
                 for (const remoteFile of matchingFiles) {
                     // Check if file has changed since last download
                     const fileModifiedDate = remoteFile.modifiedAt || new Date();
                     const fileSize = remoteFile.size || 0;
                     const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
 
-                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity)) {
-                        this.logger.log(`Skipping unchanged file: ${remoteFile.name} )`);
+                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity.processedFiles)) {
+                        this.logger.log(`Skipping unchanged file: ${remoteFile.name}`);
                         fileProcessingResult.skipped = true;
                     } else {
                         const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.name}`);
@@ -226,7 +224,6 @@ export class ConnectorImportProcessorService {
                             this.logger.error(errorMessage);
                         }
                     }
-
                     newExecutionActivity.processedFiles.push(fileProcessingResult);
                 }
 
@@ -272,17 +269,16 @@ export class ConnectorImportProcessorService {
                     continue;
                 }
 
+                // Step 4: Check file changes and download only modified files
+                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
+
+                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
                 const newExecutionActivity: FileServerExecutionActivityVo = {
                     filePattern: spec.filePattern,
                     specificationId: spec.specificationId,
                     stationId: spec.stationId,
                     processedFiles: [],
                 };
-
-                // Step 4: Check file changes and download only modified files
-                this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
-
-                const lastKnownExecutionActivity: FileServerExecutionActivityVo | undefined = lastKnownExecutionActivities.find(item => item.specificationId === spec.specificationId);
 
                 for (const remoteFile of matchingFiles) {
                     // Check if file has changed since last download
@@ -291,8 +287,8 @@ export class ConnectorImportProcessorService {
                     const fileSize = remoteFile.size || 0;
                     const fileProcessingResult: FileProcessingResultVo = { remoteFileMetadata: { fileName: remoteFile.name, modifiedDate: fileModifiedDate.toISOString(), size: fileSize } };
 
-                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity)) {
-                        this.logger.log(`Skipping unchanged file: ${remoteFile.name})`);
+                    if (lastKnownExecutionActivity && !this.hasFileChanged(remoteFile.name, fileModifiedDate, fileSize, lastKnownExecutionActivity.processedFiles)) {
+                        this.logger.warn(`Skipping unchanged file: ${remoteFile.name}`);
                         fileProcessingResult.skipped = true;
                     } else {
                         const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFile.name);
@@ -310,7 +306,6 @@ export class ConnectorImportProcessorService {
                             this.logger.error(errorMessage);
                         }
                     }
-
                     newExecutionActivity.processedFiles.push(fileProcessingResult);
                 }
 
@@ -327,8 +322,8 @@ export class ConnectorImportProcessorService {
     * Check if a file has changed since the last download
     * Returns true if the file should be downloaded
     */
-    private hasFileChanged(fileName: string, modifiedDate: Date, size: number, lastKnownExecutionActivity: FileServerExecutionActivityVo): boolean {
-        const lastKnownFile = lastKnownExecutionActivity.processedFiles.find(item => item.remoteFileMetadata.fileName === fileName);
+    private hasFileChanged(fileName: string, modifiedDate: Date, size: number, lastKnownProcessedFiles: FileProcessingResultVo[]): boolean {
+        const lastKnownFile = lastKnownProcessedFiles.find(item => item.remoteFileMetadata.fileName === fileName);
 
         if (!lastKnownFile) {
             return true; // File is new, download it
