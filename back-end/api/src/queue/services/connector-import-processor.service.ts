@@ -5,7 +5,7 @@ import { ConnectorSpecificationsService } from 'src/metadata/connector-specifica
 import { ObservationImportService } from 'src/observation/services/observations-import.service';
 import * as path from 'path';
 import { Client as FtpClient } from 'basic-ftp';
-import SftpClient from 'ssh2-sftp-client';
+import * as SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
 import { EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
