@@ -4,7 +4,7 @@ import { FlagEnum } from '../enums/flag.enum';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
@@ -157,7 +157,7 @@ export class ObservationImportService {
     }
 
 
-    private async processTabularSource(sourceDef: ViewSourceDto, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string): Promise<void> {
+    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string): Promise<void> {
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
@@ -337,7 +337,7 @@ export class ObservationImportService {
     }
 
 
-    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
+    private getAlterDateTimeColumnSQL(sourceDef: ViewSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
@@ -451,7 +451,7 @@ export class ObservationImportService {
         return sql;
     }
 
-    private getAlterValueColumnSQL(sourceDef: ViewSourceDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
+    private getAlterValueColumnSQL(sourceDef: ViewSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
 
         if (tabularDef.valueDefinition !== undefined) {

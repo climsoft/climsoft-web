@@ -9,7 +9,8 @@ import { Client as FtpClient } from 'basic-ftp';
 import SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { FileServerParametersDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { ImportFileServerParametersDto } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 
 @Injectable()
 export class ConnectorExportProcessorService {
@@ -26,11 +27,6 @@ export class ConnectorExportProcessorService {
     @OnEvent('connector.export')
     async handleExportJob(job: JobQueueEntity) {
 
-        if (1 === 1) {
-            // TODO. Delete this block.
-            this.logger.log(`Export of ${job.name}, done`);
-            return;
-        }
 
         const payload: JobPayloadDto = job.payload ;
         this.logger.log(`Processing export job for connector ${payload.payLoadId}`);
@@ -53,7 +49,7 @@ export class ConnectorExportProcessorService {
         this.logger.log(`Processing export specification ${specId} for connector ${connector.id}`);
 
         // Get export specification
-        const exportSpec = await this.exportService.find(specId);
+        const exportSpec: ViewSpecificationExportDto = await this.exportService.find(specId);
 
         // TODO: Generate export file using ExportObservationsService
         // For now, we'll create a placeholder
@@ -102,7 +98,7 @@ export class ConnectorExportProcessorService {
     private async uploadFileFtp(connector: ViewConnectorSpecificationDto, localFilePath: string): Promise<void> {
         const client = new FtpClient();
 
-        const connectExtraMetadata = connector.parameters as FileServerParametersDto;
+        const connectExtraMetadata = connector.parameters as ImportFileServerParametersDto;
         // TODO. Check how to timeout via the library
         // client.ftp.timeout = connector.timeout * 1000;
 

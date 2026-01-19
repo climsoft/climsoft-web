@@ -1,6 +1,6 @@
 import { IsBoolean, IsOptional } from "class-validator";
 
-export class ExportSpecificationParametersDto {
+export class RawExportParametersDto {
   // Data
   @IsOptional()
   @IsBoolean()

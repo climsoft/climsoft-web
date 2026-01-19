@@ -1,6 +1,7 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import { ExportSpecificationParametersDto } from './export-specification-parameters.dto';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { RawExportParametersDto } from './raw-export-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
+import { Type } from 'class-transformer';
 
 export class CreateExportSpecificationDto {
   @IsString()
@@ -12,10 +13,9 @@ export class CreateExportSpecificationDto {
   @IsEnum(ExportTypeEnum, { message: 'export type must be a valid value' })
   exportType: ExportTypeEnum;
 
-  //@ValidateNested()
-  //@Type(function () { return this._type(); }) 
-  @IsOptional() // TODO. Temporary until we implement validate nested
-  parameters: ExportSpecificationParametersDto; //TODO. Implement validations
+  @ValidateNested()
+  @Type(() => RawExportParametersDto)
+  parameters: RawExportParametersDto;
 
   @IsBoolean()
   disabled: boolean;

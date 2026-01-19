@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { StationFormEntity } from "../entities/station-form.entity";
 import { SourceSpecificationsService } from "src/metadata/source-specifications/services/source-specifications.service";
-import { ViewSourceDto } from "src/metadata/source-specifications/dtos/view-source.dto";
+import { ViewSourceSpecificationDto } from "src/metadata/source-specifications/dtos/view-source-specification.dto";
 
 @Injectable()
 export class StationFormsService {
@@ -13,7 +13,7 @@ export class StationFormsService {
         private sourcesService: SourceSpecificationsService) {
     }
 
-    public async getFormsAssignedToStation(stationId: string): Promise<ViewSourceDto[]> {
+    public async getFormsAssignedToStation(stationId: string): Promise<ViewSourceSpecificationDto[]> {
         const stationForms: StationFormEntity[] = await this.stationFormsRepo.findBy({ stationId: stationId });
         const stationFormIds: number[] = stationForms.map(form => form.formId);
         return stationFormIds.length > 0 ? await this.sourcesService.findSourcesByIds(stationFormIds) : [];

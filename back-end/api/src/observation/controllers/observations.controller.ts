@@ -85,7 +85,7 @@ export class ObservationsController {
     @Req() request: Request,
     @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
     @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
-    return this.exportObservationsService.generateExports(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
+    return this.exportObservationsService.generateManualExports(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
   }
 
   @Get('download-export/:templateid')

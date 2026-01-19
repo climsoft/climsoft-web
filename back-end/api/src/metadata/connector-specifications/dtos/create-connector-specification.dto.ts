@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
@@ -26,7 +27,7 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
-export type ConnectorParameters = FileServerParametersDto; // TODO. In future add other connector metadata types | HTTPMetadata ;
+export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
 export class CreateConnectorSpecificationDto {
     @IsString()
@@ -65,7 +66,27 @@ export class CreateConnectorSpecificationDto {
     orderNumber?: number; // Auto-generated if not provided
 
     @ValidateNested()
-    @Type(() => FileServerParametersDto)
+    @Type((options) => {
+        // The 'options.object' gives access to the parent DTO,
+        // allowing us to dynamically select the correct validation class
+        // for the 'parameters' property based on the 'sourceType'.
+
+        const object = options?.object;
+        if (!object?.connectorType) {
+            throw new BadRequestException('Connector type is required for determining parameters type');
+        }
+
+        const { connectorType } = object as CreateConnectorSpecificationDto;
+
+        switch (connectorType) {
+            case ConnectorTypeEnum.IMPORT:
+                return ImportFileServerParametersDto;
+            case ConnectorTypeEnum.EXPORT:
+                return ExportFileServerParametersDto;
+            default:
+                throw new BadRequestException('Connector type is not recognised');
+        }
+    })
     parameters: ConnectorParameters;
 
     @IsOptional()
@@ -79,7 +100,7 @@ export class CreateConnectorSpecificationDto {
     comment?: string;
 }
 
-export class FileServerParametersDto {
+export class ImportFileServerParametersDto {
     @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
     protocol: FileServerProtocolEnum;
 
@@ -108,21 +129,65 @@ export class FileServerParametersDto {
 
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => FileServerSpecificationDto)
-    specifications: FileServerSpecificationDto[];
+    @Type(() => ImportFileServerSpecificationDto)
+    specifications: ImportFileServerSpecificationDto[];
 }
 
-export class FileServerSpecificationDto {
+export class ImportFileServerSpecificationDto {
     @IsString()
     filePattern: string; // Will be used to check both single files and multiple files
 
     @IsInt()
     @Min(1)
-    specificationId: number; // source or export specification id
+    specificationId: number; // import source specification id
 
     @IsOptional()
     @IsString()
     stationId?: string; // Used by import only
+}
+
+export class ExportFileServerParametersDto {
+    @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
+    protocol: FileServerProtocolEnum;
+
+    @IsInt()
+    @Min(1)
+    @Max(65535)
+    port: number;
+
+    @IsString()
+    @IsNotEmpty()
+    username: string;
+
+    @IsString()
+    @IsNotEmpty()
+    password: string;
+
+    @IsString()
+    @IsNotEmpty()
+    remotePath: string;
+
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ExportFileServerSpecificationDto)
+    specifications: ExportFileServerSpecificationDto[];
+}
+
+export class ExportFileServerSpecificationDto {
+
+    @IsInt()
+    @Min(1)
+    specificationId: number; // export specification id
+
+    @IsInt()
+    @Min(1)
+    duration: number;
+
+    // TODO. Implement validation
+    durationType: 'days' | 'hours'; // used by observation-export service to determine observation period to query
+
+    @IsString()
+    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
 }
 
 export class WebServerMetadataDto {

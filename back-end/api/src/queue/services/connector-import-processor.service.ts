@@ -8,7 +8,7 @@ import { Client as FtpClient } from 'basic-ftp';
 import * as SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
-import { EndPointTypeEnum, FileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
+import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { FileProcessingResultVo, FileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
@@ -139,7 +139,7 @@ export class ConnectorImportProcessorService {
         }
 
         // Depending on protocol. Download files
-        switch ((connector.parameters as FileServerParametersDto).protocol) {
+        switch ((connector.parameters as ImportFileServerParametersDto).protocol) {
             case FileServerProtocolEnum.FTP:
             case FileServerProtocolEnum.FTPS:
                 await this.downloadFileOverFtp(connector, newConnectorLog, lastProcessedRemoteFiles);
@@ -156,7 +156,7 @@ export class ConnectorImportProcessorService {
         const client = connector.timeout ? new FtpClient(connector.timeout * 1000) : new FtpClient();
 
         try {
-            const connectorParams = connector.parameters as FileServerParametersDto;
+            const connectorParams = connector.parameters as ImportFileServerParametersDto;
 
             // Step 1: Connect to FTP server
             await client.access({
@@ -210,7 +210,7 @@ export class ConnectorImportProcessorService {
         const client = new SftpClient();
 
         try {
-            const connectorParams = connector.parameters as FileServerParametersDto;
+            const connectorParams = connector.parameters as ImportFileServerParametersDto;
 
             // Step 1: Connect to SFTP server
             await client.connect({
@@ -262,7 +262,7 @@ export class ConnectorImportProcessorService {
      */
     private async processFileSpecifications(
         connector: ViewConnectorSpecificationDto,
-        connectorParams: FileServerParametersDto,
+        connectorParams: ImportFileServerParametersDto,
         remoteFiles: RemoteFileMetadataVo[],
         lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>,
         newConnectorLog: CreateConnectorExecutionLogDto,

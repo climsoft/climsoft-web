@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs/common';
-import { DataSource } from "typeorm" 
-import { FileIOService } from 'src/shared/services/file-io.service'; 
+import { DataSource } from "typeorm"
+import { FileIOService } from 'src/shared/services/file-io.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -10,7 +10,7 @@ import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
-import { ExportSpecificationParametersDto } from 'src/metadata/export-specifications/dtos/export-specification-parameters.dto';
+import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
 
 @Injectable()
 export class ObservationsExportService {
@@ -23,11 +23,18 @@ export class ObservationsExportService {
     ) {
     }
 
-    public async generateExports(exportTemplateId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<number> {
+    public async generateAutoExports(exportSpecificationId: number, user: LoggedInUserDto): Promise<string> {
+        // TODO. 
+        // Generate export file that will be used by the export conector 
+        // Then return the file path
+        return '';
+    }
+
+    public async generateManualExports(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<number> {
         if (!user.isSystemAdmin) {
             if (user.permissions && user.permissions.exportPermissions) {
                 if (user.permissions.exportPermissions.exportTemplateIds) {
-                    if (!user.permissions.exportPermissions.exportTemplateIds.includes(exportTemplateId)) {
+                    if (!user.permissions.exportPermissions.exportTemplateIds.includes(exportSpecificationId)) {
                         throw new BadRequestException('User not allowed to export data using the given template');
                     }
                 }
@@ -36,7 +43,7 @@ export class ObservationsExportService {
             }
         }
 
-        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportTemplateId);
+        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
 
         // If export is disabled then don't generate it
         if (viewTemplateExportDto.disabled) {
@@ -44,7 +51,7 @@ export class ObservationsExportService {
         }
 
         const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
-        const exportParams: ExportSpecificationParametersDto = viewTemplateExportDto.parameters;
+        const exportParams: RawExportParametersDto = viewTemplateExportDto.parameters;
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -189,7 +196,7 @@ export class ObservationsExportService {
 
         }
         //------------------------------------------------------------------------------------------------
-        const outputPath: string = `${this.fileIOService.dbExportsDir}/${user.id}_${exportTemplateId}.csv`;
+        const outputPath: string = `${this.fileIOService.dbExportsDir}/${user.id}_${exportSpecificationId}.csv`;
         const sql: string = `
             COPY (
                 SELECT 
@@ -260,7 +267,7 @@ export class ObservationsExportService {
                     observationPeriod.within.fromDate = queryDto.fromDate;
                 }
 
-                 // If to date is specified the validate if it's within the allowed permissions
+                // If to date is specified the validate if it's within the allowed permissions
                 if (queryDto.toDate) {
                     if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
                         throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
@@ -270,7 +277,7 @@ export class ObservationsExportService {
 
             } else if (observationPeriod.fromDate) {
 
-                 // If from date is specified the validate if it's within the allowed permissions
+                // If from date is specified the validate if it's within the allowed permissions
                 if (queryDto.fromDate) {
                     if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
                         throw new BadRequestException('from date can not be less that what is allowed by the permissions');
@@ -308,7 +315,7 @@ export class ObservationsExportService {
             throw new BadRequestException('Export disabled');
         }
 
-        const  outputPath: string = `${this.fileIOService.apiExportsDir}/${userId}_${exportTemplateId}.csv`;
+        const outputPath: string = `${this.fileIOService.apiExportsDir}/${userId}_${exportTemplateId}.csv`;
         //console.log('Downloading from: ', outputPath);
 
         // TODO log the export

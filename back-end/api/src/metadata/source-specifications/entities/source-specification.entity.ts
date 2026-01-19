@@ -1,7 +1,7 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 import { SourceTypeEnum } from "src/metadata/source-specifications/enums/source-type.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { SourceParameters } from "../dtos/create-source.dto";
+import { SourceParameters } from "../dtos/create-source-specification.dto";
 
 @Entity("source_templates") // TODO. change to source_specification later
 @Check("CHK_source_templates_name_not_empty", `"name" <> ''`)// TODO. rename this too

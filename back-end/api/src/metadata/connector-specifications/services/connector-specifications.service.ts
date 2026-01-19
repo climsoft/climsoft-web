@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
-import { CreateConnectorSpecificationDto, FileServerParametersDto } from '../dtos/create-connector-specification.dto';
+import { CreateConnectorSpecificationDto, ImportFileServerParametersDto } from '../dtos/create-connector-specification.dto';
 import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';

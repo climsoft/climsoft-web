@@ -10,7 +10,7 @@ import { ImportSourceDto } from './import-source.dto';
 // Note, the `ClimsoftV4ImportParametersDto` will be deprecated after full migration to the Climsoft Web
 export type SourceParameters = FormSourceDto | ImportSourceDto | ClimsoftV4ImportParametersDto; 
 
-export class CreateSourceDto {
+export class CreateSourceSpecificationDto {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -32,7 +32,7 @@ export class CreateSourceDto {
       throw new BadRequestException('source type is required for determining parameters type');
     }
 
-    const { sourceType } = object as CreateSourceDto;
+    const { sourceType } = object as CreateSourceSpecificationDto;
 
     switch (sourceType) {
       case SourceTypeEnum.FORM:

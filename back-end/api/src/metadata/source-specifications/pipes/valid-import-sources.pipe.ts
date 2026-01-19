@@ -1,7 +1,7 @@
 import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator'; 
-import { CreateSourceDto } from '../dtos/create-source.dto';
+import { CreateSourceSpecificationDto } from '../dtos/create-source-specification.dto';
 
 
 @Injectable()
@@ -15,7 +15,7 @@ export class ValidateImportSourcePipe implements PipeTransform {
 
      //console.log('Import source pipe',"value: ", value," metadata: ", metadata);
 
-     if (!metadata.metatype || metadata.metatype === CreateSourceDto) {
+     if (!metadata.metatype || metadata.metatype === CreateSourceSpecificationDto) {
       return value;
     }
 
