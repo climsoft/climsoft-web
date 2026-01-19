@@ -38,8 +38,8 @@ export class ObservationImportService {
 
     public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
-            const importFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`;
-            const exportFilePathName: string = `${this.fileIOService.apiImportsDir}/user_${userId}_obs_${new Date().getTime()}_processed.csv`;
+            const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir,`user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}` )  ;
+            const exportFilePathName: string =  path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_${new Date().getTime()}_processed.csv`)  ;
 
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
@@ -86,7 +86,7 @@ export class ObservationImportService {
 
         try {
             this.logger.log(`Importing file ${path.basename(filePathName)} into database`);
-            const dbFilePathName: string = path.join(this.fileIOService.dbImportsDir, path.basename(filePathName)).replaceAll('\\', '\/');
+            const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(filePathName));
 
             // Generate a unique staging table name using timestamp
             const stagingTableName = `obs_staging_${Date.now()}`;
@@ -157,7 +157,7 @@ export class ObservationImportService {
     }
 
 
-    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string): Promise<void> {
+    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, importFilePathName: string, exportFileName: string, userId: number, stationId?: string): Promise<void> {
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
@@ -220,13 +220,14 @@ export class ObservationImportService {
         // Get the rows of the columns that match the dto properties
         // Only export the columns needed for PostgreSQL COPY import (exclude entry_datetime as it's auto-generated)
         startTime = new Date().getTime();
+        const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(exportFileName));
         await this.fileIOService.duckDb.exec(`
             COPY (
                 SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME},
                        ${this.INTERVAL_PROPERTY_NAME}, ${this.SOURCE_ID_PROPERTY_NAME}, ${this.VALUE_PROPERTY_NAME},
                        ${this.FLAG_PROPERTY_NAME}, ${this.COMMENT_PROPERTY_NAME}, ${this.ENTRY_USER_ID_PROPERTY_NAME}
                 FROM ${tmpObsTableName}
-            ) TO '${exportFilePathName}' (HEADER, DELIMITER ',');
+            ) TO '${dbFilePathName}' (HEADER, DELIMITER ',');
         `);
         this.logger.log(`DuckDB copy table took ${new Date().getTime() - startTime} milliseconds`);
 

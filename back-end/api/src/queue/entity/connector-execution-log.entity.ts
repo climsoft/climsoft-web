@@ -2,7 +2,7 @@ import { AppBaseEntity } from "src/shared/entity/app-base-entity";
 import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { ConnectorSpecificationEntity } from "../../metadata/connector-specifications/entities/connector-specifications.entity";
 
-export type ExecutionActivity = FileServerExecutionActivityVo;
+export type ExecutionActivity = ImportFileServerExecutionActivityVo | ExportFileServerExecutionActivityVo;
 
 @Entity("connector_execution_log")
 export class ConnectorExecutionLogEntity extends AppBaseEntity {
@@ -36,17 +36,17 @@ export class ConnectorExecutionLogEntity extends AppBaseEntity {
 }
 
 // Used by File Servers
-export interface FileServerExecutionActivityVo {
+export interface ImportFileServerExecutionActivityVo {
     filePattern: string;
-    specificationId: number; // source or export specification id
+    specificationId: number; // import source specification id
     stationId?: string;
 
     // Tracks each file through the complete processing lifecycle: download → process → import
-    processedFiles: FileProcessingResultVo[];
+    processedFiles: ImportFileProcessingResultVo[];
 }
 
 // Represents the complete processing result for a single file from a remote server
-export interface FileProcessingResultVo {
+export interface ImportFileProcessingResultVo {
     remoteFileMetadata: RemoteFileMetadataVo;
     downloadedFileName?: string; // When missing, it means there was an error during download
     processedFileName?: string; // When missing, it means there was an error during processing
@@ -64,4 +64,17 @@ export interface RemoteFileMetadataVo {
     modifiedDate: string; // ISO string format
 
     size: number;
+}
+
+export interface ExportFileServerExecutionActivityVo {
+    filePattern: string;
+    specificationId: number; // export specification id
+
+    // Tracks each file through the complete processing lifecycle: download → process → import
+    processedFiles: ExportFileProcessingResultVo[];
+}
+
+export interface ExportFileProcessingResultVo {
+    processedFileName?: string; 
+    errorMessage?: string;
 }

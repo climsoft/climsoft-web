@@ -11,6 +11,7 @@ import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
+import * as path from 'node:path';
 
 @Injectable()
 export class ObservationsExportService {
@@ -23,11 +24,14 @@ export class ObservationsExportService {
     ) {
     }
 
-    public async generateAutoExports(exportSpecificationId: number, user: LoggedInUserDto): Promise<string> {
+    public async generateAutoExports(exportSpecificationId: number, exportFileName: string,): Promise<void> {
+
+       const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(exportFileName));
+
+
         // TODO. 
         // Generate export file that will be used by the export conector 
-        // Then return the file path
-        return '';
+        
     }
 
     public async generateManualExports(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<number> {

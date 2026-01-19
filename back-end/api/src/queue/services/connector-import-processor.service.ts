@@ -11,7 +11,7 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { FileProcessingResultVo, FileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
+import { ImportFileProcessingResultVo, ImportFileServerExecutionActivityVo, RemoteFileMetadataVo } from '../entity/connector-execution-log.entity';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 
 @Injectable()
@@ -71,8 +71,8 @@ export class ConnectorImportProcessorService {
         }
 
         // Step 2. Process downloaded files and save them as processed files
-        for (const executionActivity of newConnectorLog.executionActivities) {
-            for (const file of executionActivity.processedFiles) {
+        for (const importExecutionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
+            for (const file of importExecutionActivity.processedFiles) {
 
                 // If not downloaded due to errors then skip processing
                 if (!file.downloadedFileName) {
@@ -84,11 +84,11 @@ export class ConnectorImportProcessorService {
 
                     this.logger.log(`Processing file ${path.basename(file.downloadedFileName)} into ${path.basename(file.processedFileName)}`);
                     await this.observationImportService.processFileForImport(
-                        executionActivity.specificationId,
+                        importExecutionActivity.specificationId,
                         file.downloadedFileName,
                         file.processedFileName,
                         userId,
-                        executionActivity.stationId,
+                        importExecutionActivity.stationId,
                     );
                     this.logger.log(`Successfully processed file ${path.basename(file.downloadedFileName)} into ${path.basename(file.processedFileName)}`);
                 } catch (error) {
@@ -103,7 +103,7 @@ export class ConnectorImportProcessorService {
 
         // Step 3. Import all processed files into database
         this.logger.log(`Starting bulk import for connector ${connector.name}`);
-        for (const executionActivity of newConnectorLog.executionActivities) {
+        for (const executionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
             for (const file of executionActivity.processedFiles) {
                 if (file.processedFileName) {
                     try {
@@ -131,7 +131,7 @@ export class ConnectorImportProcessorService {
         let lastKnownConnectorLog = await this.connectorExecutionLogService.findLatestByConnector(connector.id);
         const lastProcessedRemoteFiles = new Map<string, RemoteFileMetadataVo>();
         if (lastKnownConnectorLog) {
-            for (const executionActivity of lastKnownConnectorLog.executionActivities) {
+            for (const executionActivity of (lastKnownConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
                 for (const files of executionActivity.processedFiles) {
                     lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
                 }
@@ -283,7 +283,7 @@ export class ConnectorImportProcessorService {
             // Step 4: Check file changes and download only modified files
             this.logger.log(`Found ${matchingFiles.length} file(s) matching pattern ${spec.filePattern}`);
 
-            const newExecutionActivity: FileServerExecutionActivityVo = {
+            const newExecutionActivity: ImportFileServerExecutionActivityVo = {
                 filePattern: spec.filePattern,
                 specificationId: spec.specificationId,
                 stationId: spec.stationId,
@@ -291,7 +291,7 @@ export class ConnectorImportProcessorService {
             };
 
             for (const remoteFile of matchingFiles) {
-                const fileProcessingResult: FileProcessingResultVo = {
+                const fileProcessingResult: ImportFileProcessingResultVo = {
                     remoteFileMetadata: remoteFile
                 };
 
