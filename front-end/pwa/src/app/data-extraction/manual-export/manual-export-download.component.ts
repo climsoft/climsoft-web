@@ -159,7 +159,7 @@ export class ManualExportDownloadComponent implements OnInit {
     ).subscribe({
       next: data => {
         this.hidePreparingExport = true;
-        this.downloadLink = this.observationService.getDownloadExportLink(data);
+        this.downloadLink = this.observationService.getDownloadExportLink(this.viewExportTemplate.id);
         this.hideDownloadButton = false;
       },
       error: err => {

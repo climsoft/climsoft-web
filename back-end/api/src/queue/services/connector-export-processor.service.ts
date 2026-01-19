@@ -101,7 +101,7 @@ export class ConnectorExportProcessorService {
                 try {
                     // Generate export file 
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
-                    await this.observationsExportService.generateAutoExports(spec.specificationId, exportFilePathName);
+                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName);
                     fileProcessingResult.processedFileName = exportFilePathName;
                     this.logger.log(`Generated export file ${path.basename(exportFilePathName)}`);
                 } catch (error) {

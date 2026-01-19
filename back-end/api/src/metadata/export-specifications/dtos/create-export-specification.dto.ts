@@ -45,7 +45,7 @@ export class CreateExportSpecificationDto {
         throw new BadRequestException('export type is not recognised');
     }
   })
-  parameters: RawExportParametersDto;
+  parameters: ExportParameters;
 
   @IsBoolean()
   disabled: boolean;

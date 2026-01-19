@@ -12,6 +12,7 @@ import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 's
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
 import * as path from 'node:path';
+import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
 
 @Injectable()
 export class ObservationsExportService {
@@ -24,17 +25,7 @@ export class ObservationsExportService {
     ) {
     }
 
-    public async generateAutoExports(exportSpecificationId: number, exportFileName: string,): Promise<void> {
-
-       const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(exportFileName));
-
-
-        // TODO. 
-        // Generate export file that will be used by the export conector 
-        
-    }
-
-    public async generateManualExports(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<number> {
+    public async generateManualExport(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<void> {
         if (!user.isSystemAdmin) {
             if (user.permissions && user.permissions.exportPermissions) {
                 if (user.permissions.exportPermissions.exportTemplateIds) {
@@ -47,6 +38,12 @@ export class ObservationsExportService {
             }
         }
 
+        const exportFileName: string = `${user.id}_${exportSpecificationId}_export.csv`;
+        const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
+        await this.generateExport(exportSpecificationId, exportFileName, exportPermissions);
+    }
+
+    public async manualDownloadExport(exportSpecificationId: number, userId: number): Promise<StreamableFile> {
         const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
 
         // If export is disabled then don't generate it
@@ -54,8 +51,123 @@ export class ObservationsExportService {
             throw new BadRequestException('Export disabled');
         }
 
-        const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
-        const exportParams: RawExportParametersDto = viewTemplateExportDto.parameters;
+        const outputPath: string = path.posix.join(this.fileIOService.apiExportsDir, `${userId}_${exportSpecificationId}_export.csv`);
+        return this.fileIOService.createStreamableFile(outputPath);
+    }
+
+    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportTemplatePermissionsDto {
+        let exportPermissions: ExportTemplatePermissionsDto = {};
+
+        if (user.permissions && user.permissions.exportPermissions) {
+            exportPermissions = user.permissions.exportPermissions;
+        }
+
+        if (exportPermissions.stationIds) {
+            if (queryDto.stationIds) {
+                exportPermissions.stationIds = exportPermissions.stationIds.filter(item => queryDto.stationIds?.includes(item));
+            }
+        } else {
+            exportPermissions.stationIds = queryDto.stationIds;
+        }
+
+        if (exportPermissions.elementIds) {
+            if (queryDto.stationIds) {
+                exportPermissions.elementIds = exportPermissions.elementIds.filter(item => queryDto.elementIds?.includes(item));
+            }
+        } else {
+            exportPermissions.elementIds = queryDto.elementIds;
+        }
+
+        if (exportPermissions.intervals) {
+            if (queryDto.stationIds) {
+                exportPermissions.intervals = exportPermissions.intervals.filter(item => queryDto.intervals?.includes(item));
+            }
+        } else {
+            exportPermissions.intervals = queryDto.intervals;
+        }
+
+        let observationPeriod: ObservationPeriodPermissionsDto | undefined = exportPermissions.observationPeriod;
+
+        if (observationPeriod) {
+            if (observationPeriod.within) {
+
+                // If from date is specified the validate if it's within the allowed permissions
+                if (queryDto.fromDate) {
+                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.within.fromDate)) {
+                        throw new BadRequestException('from date can not be less than that what is allowed by the permissions');
+                    }
+                    observationPeriod.within.fromDate = queryDto.fromDate;
+                }
+
+                // If to date is specified the validate if it's within the allowed permissions
+                if (queryDto.toDate) {
+                    if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
+                        throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
+                    }
+                    observationPeriod.within.toDate = queryDto.toDate;
+                }
+
+            } else if (observationPeriod.fromDate) {
+
+                // If from date is specified the validate if it's within the allowed permissions
+                if (queryDto.fromDate) {
+                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
+                        throw new BadRequestException('from date can not be less that what is allowed by the permissions');
+                    }
+                    observationPeriod.fromDate = queryDto.fromDate;
+                }
+            } else if (observationPeriod.last) {
+
+                // TODO. validate from and to date based on specified last period
+                // For now. The application will simply ignore them and use what is specified in the permissions
+
+            }
+        } else {
+
+            // If from date and to date is specified then use within option
+            if (queryDto.fromDate && queryDto.toDate) {
+                observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
+            } else if (queryDto.fromDate) {
+                observationPeriod = { fromDate: queryDto.fromDate };
+            } else if (queryDto.toDate) {
+                throw new BadRequestException('to date only is not allowed by the permissions');
+            }
+        }
+
+        exportPermissions.observationPeriod = observationPeriod;
+
+        return exportPermissions;
+    }
+
+    public async generateExport(exportSpecificationId: number, exportFileName: string, exportPermissions: ExportTemplatePermissionsDto = {}): Promise<void> {
+        const viewExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
+
+        // If export is disabled then don't generate it
+        if (viewExportDto.disabled) {
+            throw new Error('Export is disabled');
+        }
+        const exportParams: RawExportParametersDto = viewExportDto.parameters as RawExportParametersDto;
+
+        switch (viewExportDto.exportType) {
+            case ExportTypeEnum.RAW:
+                this.generateRawExports(exportParams, exportFileName, exportPermissions);
+                break;
+            case ExportTypeEnum.AGGREGATE:
+                // TODO
+                break;
+            case ExportTypeEnum.WISSYNOP:
+                // TODO
+                break;
+            case ExportTypeEnum.WISDAYCLI:
+                // TODO
+                break;
+
+            default:
+                throw new Error('Export type no supported');
+        }
+    }
+
+    public async generateRawExports(exportParams: RawExportParametersDto, exportFilePathName: string, exportPermissions: ExportTemplatePermissionsDto = {}): Promise<void> {
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -143,8 +255,11 @@ export class ObservationsExportService {
         // DATA PROCESSING SELECTIONS
         //------------------------------------------------------------------------------------------------
 
+        // TODO. Fetch the utc setting from cache
         const displayUtcOffset: number = (((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters) as ClimsoftDisplayTimeZoneDto).utcOffset;
+
         if (exportParams.convertDatetimeToDisplayTimeZone) {
+
             if (exportParams.splitObservationDatetime) {
                 columnSelections.push(`EXTRACT(YEAR FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS year`);
                 columnSelections.push(`EXTRACT(MONTH FROM (ob.date_time + INTERVAL '${displayUtcOffset} hours')) AS month`);
@@ -199,8 +314,8 @@ export class ObservationsExportService {
             }
 
         }
-        //------------------------------------------------------------------------------------------------
-        const outputPath: string = `${this.fileIOService.dbExportsDir}/${user.id}_${exportSpecificationId}.csv`;
+        //------------------------------------------------------------------------------------------------ 
+        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, path.basename(exportFilePathName));
         const sql: string = `
             COPY (
                 SELECT 
@@ -212,119 +327,16 @@ export class ObservationsExportService {
                 INNER JOIN users us on ob.entry_user_id = us.id
                 WHERE ${sqlCondition} 
                 ORDER BY ob.date_time ASC
-            ) TO '${outputPath}' WITH CSV HEADER;
+            ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
         //console.log('Executing COPY command:', sql); // Debugging log
 
         // Execute raw SQL query (without parameterized placeholders)
-        // TODO. Find away of tracking the export process at the database level
         const results = await this.dataSource.manager.query(sql);
 
-        this.logger.log(`Export done:  ${outputPath} . Results: ${JSON.stringify(results)}`)
-
-        // Return the path to the generated CSV file
-        return viewTemplateExportDto.id;
+        this.logger.log(`Export done:  ${exportFilePathName} . Results: ${JSON.stringify(results)}`)
     }
 
-    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportTemplatePermissionsDto {
-        let exportPermissions: ExportTemplatePermissionsDto = {};
-
-        if (user.permissions && user.permissions.exportPermissions) {
-            exportPermissions = user.permissions.exportPermissions;
-        }
-
-        if (exportPermissions.stationIds) {
-            if (queryDto.stationIds) {
-                exportPermissions.stationIds = exportPermissions.stationIds.filter(item => queryDto.stationIds?.includes(item));
-            }
-        } else {
-            exportPermissions.stationIds = queryDto.stationIds;
-        }
-
-        if (exportPermissions.elementIds) {
-            if (queryDto.stationIds) {
-                exportPermissions.elementIds = exportPermissions.elementIds.filter(item => queryDto.elementIds?.includes(item));
-            }
-        } else {
-            exportPermissions.elementIds = queryDto.elementIds;
-        }
-
-        if (exportPermissions.intervals) {
-            if (queryDto.stationIds) {
-                exportPermissions.intervals = exportPermissions.intervals.filter(item => queryDto.intervals?.includes(item));
-            }
-        } else {
-            exportPermissions.intervals = queryDto.intervals;
-        }
-
-        let observationPeriod: ObservationPeriodPermissionsDto | undefined = exportPermissions.observationPeriod;
-
-        if (observationPeriod) {
-            if (observationPeriod.within) {
-
-                // If from date is specified the validate if it's within the allowed permissions
-                if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.within.fromDate)) {
-                        throw new BadRequestException('from date can not be less than that what is allowed by the permissions');
-                    }
-                    observationPeriod.within.fromDate = queryDto.fromDate;
-                }
-
-                // If to date is specified the validate if it's within the allowed permissions
-                if (queryDto.toDate) {
-                    if (new Date(queryDto.toDate) > new Date(observationPeriod.within.toDate)) {
-                        throw new BadRequestException('to date can not be greater than that what is allowed by the permissions');
-                    }
-                    observationPeriod.within.toDate = queryDto.toDate;
-                }
-
-            } else if (observationPeriod.fromDate) {
-
-                // If from date is specified the validate if it's within the allowed permissions
-                if (queryDto.fromDate) {
-                    if (new Date(queryDto.fromDate) < new Date(observationPeriod.fromDate)) {
-                        throw new BadRequestException('from date can not be less that what is allowed by the permissions');
-                    }
-                    observationPeriod.fromDate = queryDto.fromDate;
-                }
-            } else if (observationPeriod.last) {
-
-                // TODO. validate from and to date based on specified last period
-                // For now. The application will simply ignore them and use what is specified in the permissions
-
-            }
-        } else {
-
-            // If from date and to date is specified then use within option
-            if (queryDto.fromDate && queryDto.toDate) {
-                observationPeriod = { within: { fromDate: queryDto.fromDate, toDate: queryDto.toDate } };
-            } else if (queryDto.fromDate) {
-                observationPeriod = { fromDate: queryDto.fromDate };
-            } else if (queryDto.toDate) {
-                throw new BadRequestException('to date only is not allowed by the permissions');
-            }
-        }
-
-        exportPermissions.observationPeriod = observationPeriod;
-
-        return exportPermissions;
-    }
-
-    public async downloadExport(exportTemplateId: number, userId: number): Promise<StreamableFile> {
-        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportTemplateId);
-
-        // If export is disabled then don't generate it
-        if (viewTemplateExportDto.disabled) {
-            throw new BadRequestException('Export disabled');
-        }
-
-        const outputPath: string = `${this.fileIOService.apiExportsDir}/${userId}_${exportTemplateId}.csv`;
-        //console.log('Downloading from: ', outputPath);
-
-        // TODO log the export
-
-        return this.fileIOService.createStreamableFile(outputPath);
-    }
 
 }

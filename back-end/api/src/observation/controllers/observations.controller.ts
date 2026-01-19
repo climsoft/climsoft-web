@@ -26,7 +26,7 @@ export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
     private observationImportService: ObservationImportService,
-    private exportObservationsService: ObservationsExportService,
+    private observationExportsService: ObservationsExportService,
     private dataEntryCheckService: DataEntryAndCorrectionCheckService,
   ) { }
 
@@ -84,8 +84,8 @@ export class ObservationsController {
   generateExports(
     @Req() request: Request,
     @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
-    @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
-    return this.exportObservationsService.generateManualExports(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
+    @Query() viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationExportsService.generateManualExport(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
   }
 
   @Get('download-export/:templateid')
@@ -96,7 +96,7 @@ export class ObservationsController {
     @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number
   ) {
     // Stream the exported file to the response
-    return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
+    return await this.observationExportsService.manualDownloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
   }
 
   @Put('data-entry')

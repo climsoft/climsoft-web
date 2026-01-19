@@ -65,6 +65,10 @@ export class ObservationImportService {
             throw new Error('Source is not an import source');
         }
 
+         if (sourceDef.disabled) {
+            throw new Error('Import source is disabled');
+        }
+
         const importSourceDef = sourceDef.parameters as ImportSourceDto;
 
         if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
