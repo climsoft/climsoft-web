@@ -19,6 +19,7 @@ export class ConnectorExportProcessorService {
     constructor(
         private connectorService: ConnectorSpecificationsService,
         private exportService: ExportSpecificationsService,
+        private connectorExportProcessorService: ConnectorExportProcessorService,
     ) { }
 
     /**
