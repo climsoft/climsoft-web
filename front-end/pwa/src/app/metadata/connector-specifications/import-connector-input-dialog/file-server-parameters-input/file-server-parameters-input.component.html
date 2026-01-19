@@ -38,11 +38,17 @@
 
     <hr />
 
+    <div>
+        <app-check-box-input [label]="'Recursive'" [(value)]="ftpMetadata.recursive" />
+    </div>
+
+    <hr />
+
     <table class="table table-sm ms-2">
         <thead>
             <tr>
                 <th>File Source Pattern</th>
-                <th>Database Source</th>
+                <th>Source Specification</th>
                 <th>Station</th>
                 <th></th>
             </tr>

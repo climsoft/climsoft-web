@@ -175,8 +175,10 @@ export class ConnectorImportProcessorService {
             // Set the working directory
             await client.cd(connectorParams.remotePath);
 
-            // Step 2: Get the list of files in remote directory
-            const fileList = await client.list();
+            // Step 2: Get the list of files in remote directory (with optional recursion)
+            const fileList = connectorParams.recursive
+                ? await this.listFtpFilesRecursively(client, '.')
+                : await client.list();
 
             this.logger.log(`File lists for FTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
@@ -221,8 +223,10 @@ export class ConnectorImportProcessorService {
 
             this.logger.log(`Connected to SFTP server ${connector.name}`);
 
-            // Step 2: Get the list of files in remote directory
-            const fileList = await client.list(connectorParams.remotePath);
+            // Step 2: Get the list of files in remote directory (with optional recursion)
+            const fileList = connectorParams.recursive
+                ? await this.listSftpFilesRecursively(client, connectorParams.remotePath)
+                : await client.list(connectorParams.remotePath);
 
             this.logger.log(`File lists for SFTP server ${connector.name} successfully retrieved. Found: ${fileList.length}`);
 
@@ -295,7 +299,9 @@ export class ConnectorImportProcessorService {
                     this.logger.log(`Skipping unchanged file: ${remoteFile.fileName}`);
                     fileProcessingResult.unchangedFile = true;
                 } else {
-                    const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${remoteFile.fileName}`);
+                    // Flatten directory structure by replacing path separators with underscores
+                    const flatFileName = remoteFile.fileName.replace(/\//g, '_');
+                    const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `connector_${connector.id}_spec_${spec.specificationId}_download_${flatFileName}`);
                     try {
                         await downloadFile(remoteFile.fileName, localDownloadPath);
                         fileProcessingResult.downloadedFileName = localDownloadPath;
@@ -332,6 +338,76 @@ export class ConnectorImportProcessorService {
 
             return hasDateChanged || hasSizeChanged;
         }
+    }
+
+    /**
+     * Recursively list all files in FTP directory and subdirectories
+     * Returns flat list with relative paths from the base directory
+     */
+    private async listFtpFilesRecursively(client: FtpClient, relativePath: string): Promise<any[]> {
+        const allFiles: any[] = [];
+
+        try {
+            const items = await client.list(relativePath);
+
+            for (const item of items) {
+                const itemPath = relativePath === '.' ? item.name : path.posix.join(relativePath, item.name);
+
+                if (item.isDirectory) {
+                    // Recursively list subdirectory
+                    const subFiles = await this.listFtpFilesRecursively(client, itemPath);
+                    allFiles.push(...subFiles);
+                } else if (item.isFile) {
+                    // Add file with relative path
+                    allFiles.push({
+                        ...item,
+                        name: itemPath // Override name with full relative path
+                    });
+                }
+            }
+        } catch (error) {
+            this.logger.warn(`Failed to list directory ${relativePath}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        return allFiles;
+    }
+
+    /**
+     * Recursively list all files in SFTP directory and subdirectories
+     * Returns flat list with relative paths from the base directory
+     */
+    private async listSftpFilesRecursively(client: any, basePath: string, relativePath: string = ''): Promise<any[]> {
+        const allFiles: any[] = [];
+        const currentPath = relativePath ? path.posix.join(basePath, relativePath) : basePath;
+
+        try {
+            const items = await client.list(currentPath);
+
+            for (const item of items) {
+                // Skip . and .. entries
+                if (item.name === '.' || item.name === '..') {
+                    continue;
+                }
+
+                const itemRelativePath = relativePath ? path.posix.join(relativePath, item.name) : item.name;
+
+                if (item.type === 'd') {
+                    // Recursively list subdirectory
+                    const subFiles = await this.listSftpFilesRecursively(client, basePath, itemRelativePath);
+                    allFiles.push(...subFiles);
+                } else if (item.type === '-') {
+                    // Add file with relative path
+                    allFiles.push({
+                        ...item,
+                        name: itemRelativePath // Override name with relative path from base
+                    });
+                }
+            }
+        } catch (error) {
+            this.logger.warn(`Failed to list directory ${currentPath}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+
+        return allFiles;
     }
 
     /**

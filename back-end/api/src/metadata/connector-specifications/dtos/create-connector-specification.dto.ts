@@ -98,7 +98,13 @@ export class FileServerParametersDto {
 
     @IsString()
     @IsNotEmpty()
-    remotePath: string
+    remotePath: string;
+
+    @IsOptional()
+    @Type(() => String)
+    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+    @IsBoolean()
+    recursive?: boolean; // When true, files in subdirectories will be included
 
     @IsArray()
     @ValidateNested({ each: true })

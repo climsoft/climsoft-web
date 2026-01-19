@@ -22,7 +22,8 @@ export interface FileServerParametersModel {
     port: number;
     username: string;
     password: string;
-    remotePath: string
+    remotePath: string;
+    recursive?: boolean;
     specifications: FileServerSpecificationModel[];
 }
 
