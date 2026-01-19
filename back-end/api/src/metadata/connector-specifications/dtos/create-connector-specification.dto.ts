@@ -27,6 +27,11 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
+export enum ObservationDurationTypeEnum {
+    DAYS = 'days',
+    HOURS = 'hours'
+}
+
 export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
 export class CreateConnectorSpecificationDto {
@@ -100,7 +105,7 @@ export class CreateConnectorSpecificationDto {
     comment?: string;
 }
 
-export class ImportFileServerParametersDto {
+export class FileServerParametersDto {
     @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
     protocol: FileServerProtocolEnum;
 
@@ -120,6 +125,9 @@ export class ImportFileServerParametersDto {
     @IsString()
     @IsNotEmpty()
     remotePath: string;
+}
+
+export class ImportFileServerParametersDto extends FileServerParametersDto {
 
     @IsOptional()
     @Type(() => String)
@@ -131,6 +139,13 @@ export class ImportFileServerParametersDto {
     @ValidateNested({ each: true })
     @Type(() => ImportFileServerSpecificationDto)
     specifications: ImportFileServerSpecificationDto[];
+}
+
+export class ExportFileServerParametersDto extends FileServerParametersDto {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => ExportFileServerSpecificationDto)
+    specifications: ExportFileServerSpecificationDto[];
 }
 
 export class ImportFileServerSpecificationDto {
@@ -146,33 +161,6 @@ export class ImportFileServerSpecificationDto {
     stationId?: string; // Used by import only
 }
 
-export class ExportFileServerParametersDto {
-    @IsEnum(FileServerProtocolEnum, { message: 'File server protocol must be a valid value' })
-    protocol: FileServerProtocolEnum;
-
-    @IsInt()
-    @Min(1)
-    @Max(65535)
-    port: number;
-
-    @IsString()
-    @IsNotEmpty()
-    username: string;
-
-    @IsString()
-    @IsNotEmpty()
-    password: string;
-
-    @IsString()
-    @IsNotEmpty()
-    remotePath: string;
-
-    @IsArray()
-    @ValidateNested({ each: true })
-    @Type(() => ExportFileServerSpecificationDto)
-    specifications: ExportFileServerSpecificationDto[];
-}
-
 export class ExportFileServerSpecificationDto {
 
     @IsInt()
@@ -183,8 +171,8 @@ export class ExportFileServerSpecificationDto {
     @Min(1)
     duration: number;
 
-    // TODO. Implement validation
-    durationType: 'days' | 'hours'; // used by observation-export service to determine observation period to query
+    @IsEnum(ObservationDurationTypeEnum, { message: 'Observation duration type must be a valid value' })
+    durationType: ObservationDurationTypeEnum; // used by observation-export service to determine observation period to query
 
     @IsString()
     filePattern: 'yyyymmddhhmmss'; // used to name the created csv file

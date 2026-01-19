@@ -4,7 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
-import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, FileServerParametersModel } from '../models/create-connector-specification.model';
+import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocolEnum, ImportFileServerParametersModel } from '../models/create-connector-specification.model';
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
@@ -35,7 +35,7 @@ export class ImportConnectorInputDialogComponent {
         this.connector = data;
       });
     } else {
-      const ftpMetadata: FileServerParametersModel = {
+      const ftpMetadata: ImportFileServerParametersModel = {
         protocol: FileServerProtocolEnum.FTP,
         port: 21,
         username: '',
@@ -97,14 +97,14 @@ export class ImportConnectorInputDialogComponent {
       timeout: this.connector.timeout,
       maximumRetries: this.connector.maximumRetries,
       cronSchedule: this.connector.cronSchedule,
-      orderNumber: this.connector.orderNumber? this.connector.orderNumber: undefined,
+      orderNumber: this.connector.orderNumber ? this.connector.orderNumber : undefined,
       parameters: this.connector.parameters,
       disabled: this.connector.disabled,
       comment: this.connector.comment ? this.connector.comment : undefined,
     };
 
     let saveSubscription: Observable<ViewConnectorSpecificationModel>;
-    if (this.connector.id > 0) { 
+    if (this.connector.id > 0) {
       saveSubscription = this.connectorSpecificationsService.update(this.connector.id, createConnector);
     } else {
       saveSubscription = this.connectorSpecificationsService.add(createConnector);
@@ -124,6 +124,10 @@ export class ImportConnectorInputDialogComponent {
         this.pagesDataService.showToast({ title: 'Import Connector', message: `Error in saving import connector - ${err.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
+  }
+
+  protected onOrderNumberChange(value: number | null) {
+    if (value) this.connector.orderNumber = value;
   }
 
   protected onDeleteClick(): void {

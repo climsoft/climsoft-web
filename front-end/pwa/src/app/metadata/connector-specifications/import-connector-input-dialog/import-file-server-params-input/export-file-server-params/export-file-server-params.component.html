@@ -1,50 +1,11 @@
 <div *ngIf="ftpMetadata">
-    <div>
-        <app-file-server-protocol-selector-single [label]="'Protocol'" [selectedId]="ftpMetadata.protocol"
-            (selectedIdChange)="onFileProtocolSelection($event)" />
-    </div>
+    
 
     <hr />
 
-    <div>
-        <app-number-input [label]="'Port'" [(numValue)]="ftpMetadata.port" />
-    </div>
+    <!-- TODO. Implement the table -->
 
-    <hr />
-
-    <div>
-        <app-text-input [label]="'Username'" [(value)]="ftpMetadata.username" />
-    </div>
-
-    <hr />
-
-    <div>
-        <div>
-            <app-text-input [type]="'password'" [label]="'Password'" [(value)]="newPassword"
-                (valueChange)="onPasswordChange()" />
-        </div>
-        <div>
-            <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="confirmPassword"
-                (valueChange)="onPasswordChange()" />
-        </div>
-        <div class="text-danger" *ngIf="passwordErrormessage">{{ passwordErrormessage }}</div>
-    </div>
-
-    <hr />
-
-    <div>
-        <app-text-input [label]="'Remote Path'" [(value)]="ftpMetadata.remotePath" />
-    </div>
-
-    <hr />
-
-    <div>
-        <app-check-box-input [label]="'Recursive'" [(value)]="ftpMetadata.recursive" />
-    </div>
-
-    <hr />
-
-    <table class="table table-sm ms-2">
+    <!-- <table class="table table-sm ms-2">
         <thead>
             <tr>
                 <th>File Source Pattern</th>
@@ -78,5 +39,5 @@
                 </td>
             </tr>
         </tbody>
-    </table>
+    </table> -->
 </div>

@@ -1,21 +1,21 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { StringUtils } from '../../../../shared/utils/string.utils';
-import { EndPointTypeEnum } from '../../models/create-connector-specification.model';
+import { ConnectorTypeEnum } from '../../models/connector-type.enum';
 
 @Component({
-  selector: 'app-end-point-selector-single',
-  templateUrl: './end-point-selector-single.component.html',
-  styleUrls: ['./end-point-selector-single.component.scss']
+  selector: 'app-connector-type-selector-single',
+  templateUrl: './connector-type-selector-single.component.html',
+  styleUrls: ['./connector-type-selector-single.component.scss']
 })
-export class EndPointSelectorSingleComponent implements OnChanges {
+export class ConnectorTypeSelectorSingleComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public errorMessage!: string;
-  @Input() public includeOnlyIds!: EndPointTypeEnum[];
-  @Input() public selectedId!: EndPointTypeEnum;
-  @Output() public selectedIdChange = new EventEmitter<EndPointTypeEnum>();
+  @Input() public includeOnlyIds!: ConnectorTypeEnum[];
+  @Input() public selectedId!: ConnectorTypeEnum;
+  @Output() public selectedIdChange = new EventEmitter<ConnectorTypeEnum>();
 
-  protected options!: EndPointTypeEnum[];
-  protected selectedOption!: EndPointTypeEnum | null;
+  protected options!: ConnectorTypeEnum[];
+  protected selectedOption!: ConnectorTypeEnum | null;
 
   constructor() { }
 
@@ -24,7 +24,7 @@ export class EndPointSelectorSingleComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     //load options once
     if (!this.options) {
-      this.options = Object.values(EndPointTypeEnum);
+      this.options = Object.values(ConnectorTypeEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
@@ -42,15 +42,14 @@ export class EndPointSelectorSingleComponent implements OnChanges {
 
   }
 
-  protected optionDisplayFunction(option: EndPointTypeEnum): string {
+  protected optionDisplayFunction(option: ConnectorTypeEnum): string {
     return StringUtils.formatEnumForDisplay(option).toUpperCase();
   }
 
-  protected onSelectedOptionChange(selectedOption: EndPointTypeEnum | null) {
+  protected onSelectedOptionChange(selectedOption: ConnectorTypeEnum | null) {
     if (selectedOption) {
       this.selectedOption = selectedOption;
       this.selectedIdChange.emit(selectedOption);
     }
-
   }
 }

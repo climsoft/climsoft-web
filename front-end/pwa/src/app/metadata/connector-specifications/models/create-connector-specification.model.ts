@@ -1,30 +1,7 @@
-import { ConnectorTypeEnum } from "./connector-type.enum";
-
-export type ConnectorParameters = FileServerParametersModel; // TODO. In future add other connector metadata types | HTTPMetadata ;
-
-export interface CreateConnectorSpecificationModel {
-    name: string;
-    description?: string;
-    connectorType: ConnectorTypeEnum;
-    endPointType: EndPointTypeEnum;
-    hostName: string;
-    timeout: number; // in seconds
-    maximumRetries: number;
-    cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
-    orderNumber?: number | null;
-    parameters: ConnectorParameters;
-    disabled?: boolean;
-    comment?: string;
-}
-
-export interface FileServerParametersModel {
-    protocol: FileServerProtocolEnum;
-    port: number;
-    username: string;
-    password: string;
-    remotePath: string;
-    recursive?: boolean;
-    specifications: FileServerSpecificationModel[];
+ 
+export enum ConnectorTypeEnum {
+    IMPORT = 'import',
+    EXPORT = 'export'
 }
 
 export enum EndPointTypeEnum {
@@ -40,15 +17,101 @@ export enum FileServerProtocolEnum {
     FTPS = 'ftps',
 }
 
-export interface FileServerSpecificationModel {
+export enum WebServerProtocolEnum {
+    HTTP = 'http',
+    HTTPS = 'https',
+}
+
+export enum ObservationDurationTypeEnum {
+    DAYS = 'days',
+    HOURS = 'hours'
+}
+
+export type ConnectorParameters = ImportFileServerParametersModel | ExportFileServerParametersModel;
+
+export interface CreateConnectorSpecificationModel {
+    name: string;
+
+    description?: string;
+
+    connectorType: ConnectorTypeEnum;
+
+    endPointType: EndPointTypeEnum;
+
+
+    hostName: string;
+
+    timeout: number; // in seconds
+
+    maximumRetries: number;
+
+    cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
+
+
+    orderNumber?: number; // Auto-generated if not provided
+
+
+    parameters: ConnectorParameters;
+
+
+    disabled?: boolean;
+
+    comment?: string;
+}
+
+export interface FileServerParametersModel {
+    protocol: FileServerProtocolEnum;
+
+    port: number;
+
+    username: string;
+
+    password: string;
+
+    remotePath: string;
+}
+
+export interface ImportFileServerParametersModel extends FileServerParametersModel {
+
+    recursive?: boolean; // When true, files in subdirectories will be included
+
+    specifications: ImportFileServerSpecificationModel[];
+}
+
+export interface ExportFileServerParametersModel extends FileServerParametersModel {
+
+    specifications: ExportFileServerSpecificationModel[];
+}
+
+export interface ImportFileServerSpecificationModel {
+
     filePattern: string; // Will be used to check both single files and multiple files
-    specificationId: number;
+
+    specificationId: number; // import source specification id
+
     stationId?: string; // Used by import only
 }
 
+export interface ExportFileServerSpecificationModel {
+
+    specificationId: number; // export specification id
+
+    duration: number;
+
+    durationType: ObservationDurationTypeEnum; // used by observation-export service to determine observation period to query
+
+    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
+}
+
+export interface WebServerMetadataModel {
+
+    protocol: WebServerProtocolEnum;
 
 
+    token?: string;
 
-
-
-
+    specifications: {
+        specificationId: number;
+        stationId?: string;
+    };
+}

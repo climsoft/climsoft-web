@@ -13,8 +13,6 @@ import { ImportConnectorInputDialogComponent } from '../import-connector-input-d
 })
 export class ViewConnectorSpecificationsComponent {
 
-  @ViewChild('dlgImportConnectorInput') dlgImportConnectorInput!: ImportConnectorInputDialogComponent;
-
   protected connectors!: ViewConnectorSpecificationModel[];
 
   constructor(
@@ -32,14 +30,8 @@ export class ViewConnectorSpecificationsComponent {
     });
   }
 
-  protected onOptionsClicked(sourceTypeName: 'Add Import Connector' | 'Add Export Connector' | 'Delete All') {
-    switch (sourceTypeName) {
-      case 'Add Import Connector':
-        this.dlgImportConnectorInput.showDialog()
-        break;
-      case 'Add Export Connector':
-        // TODO
-        break;
+  protected onOptionsClicked(option:  'Delete All') {
+    switch (option) {
       case 'Delete All':
         this.connectorSpecificationsService.deleteAll().pipe(
           take(1)
@@ -54,19 +46,7 @@ export class ViewConnectorSpecificationsComponent {
 
   }
 
-  protected onEditConnector(connector: ViewConnectorSpecificationModel): void {
-    switch (connector.connectorType) {
-      case ConnectorTypeEnum.IMPORT:
-        this.dlgImportConnectorInput.showDialog(connector.id);
-        break;
-      case ConnectorTypeEnum.EXPORT:
-        // TODO.
-        break;
-      default:
-        throw new Error('Developer error: Connector type not supported');
-    }
 
-  }
 
   protected onConnectorInput(): void {
     this.loadConnectorSpecifications();

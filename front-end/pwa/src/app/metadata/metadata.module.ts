@@ -71,8 +71,11 @@ import { StationFocusSelectorMultipleComponent } from './stations/station-focus-
 import { ImportSourceValueDetailComponent } from './source-specifications/import-source-detail/import-source-value-detail/import-source-value-detail.component';
 import { ImportConnectorInputDialogComponent } from './connector-specifications/import-connector-input-dialog/import-connector-input-dialog.component';
 import { EndPointSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/end-point-selector-single/end-point-selector-single.component';
-import { FileServerParametersInputComponent } from './connector-specifications/import-connector-input-dialog/file-server-parameters-input/file-server-parameters-input.component';
-import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/file-server-parameters-input/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
+import { FileServerParametersInputComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/file-server-parameters-input.component';
+import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
+import { ConnectorTypeSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/connector-type-selector-single/connector-type-selector-single.component';
+import { ExportFileServerParamsComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/export-file-server-params/export-file-server-params.component';
+import { ImportFileServerParamsComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/import-file-server-params/import-file-server-params.component';
 
 @NgModule({
   declarations: [ 
@@ -167,7 +170,10 @@ import { FileServerProtocolSelectorSingleComponent } from './connector-specifica
     ImportConnectorInputDialogComponent,
     EndPointSelectorSingleComponent,
     FileServerParametersInputComponent,
+    ImportFileServerParamsComponent,
+    ExportFileServerParamsComponent,
     FileServerProtocolSelectorSingleComponent,
+    ConnectorTypeSelectorSingleComponent,
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,

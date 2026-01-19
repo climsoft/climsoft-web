@@ -143,15 +143,15 @@ export class SourceSpecificationsService {
         const dto: ViewSourceSpecificationDto = {
             id: entity.id,
             name: entity.name,
-            description: entity.description,
+            description: entity.description ? entity.description : '',
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleImage: entity.sampleImage?  entity.sampleImage: '' ,
+            sampleImage: entity.sampleImage ? entity.sampleImage : '',
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
             disabled: entity.disabled,
-            comment: entity.comment,
+            comment: entity.comment ? entity.comment : '',
         }
         return dto;
     }

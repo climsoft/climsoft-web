@@ -1,0 +1,44 @@
+<div *ngIf="ftpMetadata">
+ 
+    <div>
+        <app-check-box-input [label]="'Recursive'" [(value)]="ftpMetadata.recursive" />
+    </div>
+
+    <hr />
+
+    <table class="table table-sm ms-2">
+        <thead>
+            <tr>
+                <th>File Source Pattern</th>
+                <th>Source Specification</th>
+                <th>Station</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let item of ftpSpecifications; let i = index;">
+                <td>
+                    <app-text-input [id]="i + '_file_source_pattern_specification'" [value]="item.filePattern"
+                        (valueChange)="onFileSourcePatternInput($event, i)" />
+                </td>
+                <td>
+                    <app-source-selector-single [id]="i + '_import_db_source_specification'"
+                        [includeOnlyType]="importSourceTypeEnum" [selectedId]="item.specificationId"
+                        (selectedIdChange)="onImportDBSourceInput($event, i)" />
+                </td>
+
+                <td>
+                    <app-station-selector-single [id]="i + '_station_id_specification'" [selectedId]="item.stationId"
+                        (selectedIdChange)="onStationInput($event, i)" />
+                </td>
+
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveSpecification(i)"
+                        [disabled]="ftpSpecifications.length <= 1 || !item.filePattern || item.filePattern.trim() === '' || item.specificationId === null">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

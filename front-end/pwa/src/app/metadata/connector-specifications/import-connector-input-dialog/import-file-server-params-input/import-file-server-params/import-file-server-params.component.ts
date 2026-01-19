@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
-import { FileServerParametersModel, FileServerProtocolEnum } from '../../models/create-connector-specification.model';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum'; 
+import { ImportFileServerParametersModel } from '../../../models/create-connector-specification.model';
 
 /**
  * View model for internal UI state management of FTP specifications.
@@ -12,28 +12,21 @@ interface ViewModel {
   stationId: string | null;
 }
 
-/**
- * Component for managing FTP/SFTP/FTPS connector parameters input.
- * Handles dynamic addition/removal of file specifications with real-time validation.
- *
- * Features:
- * - Dynamic row management (auto-adds new row when all filled)
- * - Real-time synchronization with parent ftpMetadata
- * - Validates required fields (filePattern, specificationId)
- * - Prevents removal of empty or last remaining row
- */
+
 @Component({
-  selector: 'app-file-server-parameters-input',
-  templateUrl: './file-server-parameters-input.component.html',
-  styleUrls: ['./file-server-parameters-input.component.scss']
+  selector: 'app-import-file-server-params',
+  templateUrl: './import-file-server-params.component.html',
+  styleUrls: ['./import-file-server-params.component.scss']
 })
-export class FileServerParametersInputComponent implements OnChanges {
+export class ImportFileServerParamsComponent implements OnChanges {
 
   /** FTP metadata model bound from parent component */
-  @Input() public ftpMetadata!: FileServerParametersModel;
+  @Input() 
+  public ftpMetadata!: ImportFileServerParametersModel;
 
   /** Event emitted when validation errors occur */
-  @Output() public validationError = new EventEmitter<string>();
+  @Output() 
+  public validationError = new EventEmitter<string>();
 
   /** Source type filter for import source selector */
   protected importSourceTypeEnum: SourceTypeEnum = SourceTypeEnum.IMPORT;
@@ -41,17 +34,14 @@ export class FileServerParametersInputComponent implements OnChanges {
   /** Internal array for managing specification rows in the UI */
   protected ftpSpecifications: ViewModel[] = [];
 
-  protected newPassword: string = '';
-  protected confirmPassword: string = '';
-  protected passwordErrormessage: string = '';
+
 
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.ftpMetadata) {
-      this.newPassword = this.ftpMetadata.password;
-      this.confirmPassword = this.ftpMetadata.password;
+    if ( changes['ftpMetadata'] &&  this.ftpMetadata) {
+ 
       this.ftpSpecifications = [];
       for (const spec of this.ftpMetadata.specifications) {
         this.ftpSpecifications.push({ filePattern: spec.filePattern, specificationId: spec.specificationId, stationId: spec.stationId ? spec.stationId : null });
@@ -64,48 +54,6 @@ export class FileServerParametersInputComponent implements OnChanges {
     }
   }
 
-  /**
-   * Handles password change validation.
-   * Validates that both password fields are filled and match.
-   * Emits validation errors to parent component for display.
-   */
-  protected onPasswordChange(): void {
-    this.passwordErrormessage = '';
-    this.ftpMetadata.password = ''; // Reset passowrd
-
-    if (this.newPassword === '') {
-      this.passwordErrormessage = 'Empty passwords not allowed';
-    } else if (this.confirmPassword === '') {
-      this.passwordErrormessage = 'Password NOT confirmed';
-    } else if (this.newPassword !== this.confirmPassword) {
-      this.passwordErrormessage = 'Passwords DO NOT match';
-    }
-
-    if (this.passwordErrormessage === '') {
-      // Passwords match - update the metadata
-      this.ftpMetadata.password = this.newPassword;
-    }
-
-    this.validationError.emit(this.passwordErrormessage);
-  }
-
-  protected onFileProtocolSelection(protocol: FileServerProtocolEnum): void {
-    this.ftpMetadata.protocol = protocol;
-
-    switch (this.ftpMetadata.protocol) {
-      case FileServerProtocolEnum.FTP:
-        this.ftpMetadata.port = 21;
-        break;
-      case FileServerProtocolEnum.FTPS:
-        this.ftpMetadata.port = 990;
-        break;
-      case FileServerProtocolEnum.SFTP:
-        this.ftpMetadata.port = 22;
-        break;
-      default:
-        break;
-    }
-  }
 
   /**
    * Handles file pattern input changes.

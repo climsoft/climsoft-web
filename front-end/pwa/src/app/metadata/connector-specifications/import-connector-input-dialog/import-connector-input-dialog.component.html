@@ -16,6 +16,12 @@
         <hr />
 
         <div>
+            <app-connector-type-selector-single [label]="'Connector Type'" [(selectedId)]="connector.connectorType" />
+        </div>
+
+        <hr />
+
+        <div>
             <app-end-point-selector-single [label]="'End Point'" [(selectedId)]="connector.endPointType" />
         </div>
 
@@ -45,8 +51,9 @@
 
         <hr />
 
-         <div>
-            <app-number-input [label]="'Order'" [(value)]="connector.orderNumber" />
+        <div>
+            <app-number-input [label]="'Order'" [value]="connector.orderNumber"
+                (valueChange)="onOrderNumberChange($event)" />
         </div>
 
         <hr />
@@ -55,7 +62,8 @@
             <div class="card-header">End Point Parameters</div>
             <div class="card-body">
                 <div *ngIf="connector.endPointType === 'file_server'">
-                    <app-file-server-parameters-input [ftpMetadata]="connector.parameters" (validationError)="onValidationError($event)" />
+                    <app-file-server-parameters-input [connector]="connector"
+                        (validationError)="onValidationError($event)" />
                 </div>
                 <div *ngIf="connector.endPointType === 'web_server'" class="text-info">
                     Web Server end points will be supported in the next version release
