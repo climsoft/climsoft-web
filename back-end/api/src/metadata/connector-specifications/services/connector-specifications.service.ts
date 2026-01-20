@@ -102,10 +102,10 @@ export class ConnectorSpecificationsService {
         const entity = await this.findEntity(id);
 
         // Only encrypt if password has changed or not already encrypted or not masked
-        if (dto.parameters.password !== '***ENCRYPTED***' || !EncryptionUtils.isEncrypted(dto.parameters.password) || entity.parameters.password !== dto.parameters.password) {
-            dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
-        } else {
+        if (dto.parameters.password === '***ENCRYPTED***' || EncryptionUtils.isEncrypted(dto.parameters.password)) {
             dto.parameters.password = entity.parameters.password; // Keep existing encrypted password
+        } else {
+            dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
         }
 
         entity.name = dto.name;

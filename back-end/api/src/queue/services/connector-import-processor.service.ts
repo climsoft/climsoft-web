@@ -58,7 +58,10 @@ export class ConnectorImportProcessorService {
             entryUserId: userId,
         };
 
+        let startTime: number;
+
         // Step 1. Download the files
+         startTime = new Date().getTime();
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
                 await this.downloadFromFileServer(connector, newConnectorLog);
@@ -69,8 +72,10 @@ export class ConnectorImportProcessorService {
             default:
                 throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
         }
+         this.logger.log(`Completed downloading imports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 2. Process downloaded files and save them as processed files
+         startTime = new Date().getTime();
         for (const importExecutionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
             for (const file of importExecutionActivity.processedFiles) {
 
@@ -100,9 +105,11 @@ export class ConnectorImportProcessorService {
                 }
             }
         }
+          this.logger.log(`Completed processing imports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 3. Import all processed files into database
-        this.logger.log(`Starting bulk import for connector ${connector.name}`);
+        this.logger.log(`Starting import for connector ${connector.name}`);
+         startTime = new Date().getTime();
         for (const executionActivity of (newConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
             for (const file of executionActivity.processedFiles) {
                 if (file.processedFileName) {
@@ -119,7 +126,7 @@ export class ConnectorImportProcessorService {
                 }
             }
         }
-        this.logger.log(`Completed bulk import for connector ${connector.name}`);
+         this.logger.log(`Completed importing for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 4. Save the new the connector log
         newConnectorLog.executionEndDatetime = new Date();

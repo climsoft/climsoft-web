@@ -69,10 +69,10 @@ export class JobQueueProcessorService {
             // Will help with doing the tasks in parallel
             await this.queueService.markAsFinished(job.id);
 
-            this.logger.log(`Job ${job.id} completed successfully`);
+            this.logger.log(`Job ${job.id}: ${job.name} completed`);
 
         } catch (error) {
-            this.logger.error(`Job ${job.id} failed:`, error);
+            this.logger.error(`Job ${job.id}: ${job.name}  failed:`, error);
             const errorMessage = error instanceof Error ? error.message : String(error);
             await this.queueService.markAsFailed(job.id, errorMessage);
 

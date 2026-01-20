@@ -24,12 +24,12 @@ export interface UserPermissionModel {
         // TODO. Include range
     };
 
-    exportPermissions?: ExportTemplatePermissionsModel;
+    exportPermissions?: ExportPermissionsModel;
 
 
 }
 
-export interface ExportTemplatePermissionsModel {
+export interface ExportPermissionsModel {
     stationIds?: string[];
     elementIds?: number[];
     intervals?: number[];
@@ -47,8 +47,5 @@ export interface ObservationPeriodPermissionsModel {
 
     fromDate?: string;
 
-    last?: {
-        duration: number,
-        durationType: 'days' | 'hours' ,
-    };
+    last?: number;
 }

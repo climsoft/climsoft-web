@@ -45,7 +45,6 @@ export class ConnectorExportProcessorService {
      * Process a single connector export specification
      */
     private async processExportSpecifications(connector: ViewConnectorSpecificationDto, userId: number) {
-
         // create new connector log
         const newConnectorLog: CreateConnectorExecutionLogDto = {
             connectorId: connector.id,
@@ -56,10 +55,17 @@ export class ConnectorExportProcessorService {
             entryUserId: userId,
         };
 
+        let startTime: number;
+
         // Step 1. Generate export files based on specifications
+        this.logger.log(`Generating exports for connector ${connector.name}`);
+        startTime = new Date().getTime();
         await this.generateExportFilesForFileServer(connector, newConnectorLog);
+        this.logger.log(`Completed generating exports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 2. Upload generated files to remote server
+        this.logger.log(`Generating exports for connector ${connector.name}`);
+        startTime = new Date().getTime();
         switch (connector.endPointType) {
             case EndPointTypeEnum.FILE_SERVER:
                 await this.uploadToFileServer(connector, newConnectorLog);
@@ -70,8 +76,7 @@ export class ConnectorExportProcessorService {
             default:
                 throw new Error(`Developer Error. Unsupported end point type: ${connector.endPointType}`);
         }
-
-        this.logger.log(`Completed export for connector ${connector.name}`);
+        this.logger.log(`Completed uploading exports for connector ${connector.name}. Time: ${new Date().getTime() - startTime} milliseconds`);
 
         // Step 3. Save the new the connector log
         newConnectorLog.executionEndDatetime = new Date();
@@ -101,7 +106,7 @@ export class ConnectorExportProcessorService {
                 try {
                     // Generate export file 
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
-                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName);
+                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName, { observationPeriod: { last: (connector.parameters as ExportFileServerParametersDto).observationPeriod } });
                     fileProcessingResult.processedFileName = exportFilePathName;
                     this.logger.log(`Generated export file ${path.basename(exportFilePathName)}`);
                 } catch (error) {

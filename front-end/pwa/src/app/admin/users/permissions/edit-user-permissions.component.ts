@@ -130,28 +130,13 @@ export class EditUserPermissionsComponent implements OnDestroy {
       };
     } else if (option === 'Last') {
       this.userPermissions.exportPermissions.observationPeriod = {
-        last: {
-          duration: 31,
-          durationType: 'days',
-        }
+        last: 60
       };
     }
 
   }
 
-  protected onExportPeriodLastSelection(option: string): void {
-    if (!this.userPermissions.exportPermissions) return;
 
-    if (!(this.userPermissions.exportPermissions.observationPeriod && this.userPermissions.exportPermissions.observationPeriod.last)) {
-      return;
-    }
-
-    if (option === 'Days') {
-      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'days';
-    } else if (option === 'Hours') {
-      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'hours';
-    }
-  }
 
   protected onExportQcSelection(option: string): void {
     if (!this.userPermissions.exportPermissions) return;
@@ -159,7 +144,7 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.userPermissions.exportPermissions.qcStatuses = option === 'All' ? undefined : [QCStatusEnum.NONE, QCStatusEnum.PASSED];
   }
 
-  protected onExportTemplateSelection(selectionType: string): void {
+  protected onExportSpecificationSelection(selectionType: string): void {
     if (this.userPermissions.exportPermissions) {
       this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
     }

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { ExportTemplatePermissionsModel } from 'src/app/admin/users/models/permissions/user-permission.model';
+import { ExportPermissionsModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
@@ -51,7 +51,7 @@ export class ManualExportDownloadComponent implements OnInit {
     ).subscribe(user => {
       if (!user) return;
 
-      let exportPermissions: ExportTemplatePermissionsModel = {};
+      let exportPermissions: ExportPermissionsModel = {};
 
       if (user.permissions && user.permissions.exportPermissions) {
         exportPermissions = user.permissions.exportPermissions;

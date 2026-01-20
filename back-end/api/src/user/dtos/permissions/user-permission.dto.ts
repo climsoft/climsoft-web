@@ -1,4 +1,4 @@
-import { IsOptional } from "class-validator";
+import { IsInt, IsOptional, Min } from "class-validator";
 import { QCStatusEnum } from "src/observation/enums/qc-status.enum";
 
 export class ObservationPeriodPermissionsDto {
@@ -12,13 +12,12 @@ export class ObservationPeriodPermissionsDto {
     fromDate?: string;
 
     @IsOptional()
-    last?: {
-        duration: number,
-        durationType: 'days' | 'hours' ,
-    };
+    @IsInt()
+    @Min(1)
+    last?: number; // In minutes
 }
 
-export class ExportTemplatePermissionsDto {
+export class ExportPermissionsDto {
     @IsOptional()
     stationIds?: string[];
 
@@ -69,6 +68,6 @@ export class UserPermissionDto {
     };
 
     @IsOptional()
-    exportPermissions?: ExportTemplatePermissionsDto;
+    exportPermissions?: ExportPermissionsDto;
 }
 

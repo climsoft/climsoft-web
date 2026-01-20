@@ -6,7 +6,7 @@ import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
-import { DateUtils } from 'src/shared/utils/date.utils'; 
+import { DateUtils } from 'src/shared/utils/date.utils';
 import { ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
@@ -143,14 +143,7 @@ export class DataEntryAndCorrectionCheckService {
                         } else if (observationPeriod.last) {
                             const now = new Date();
                             const earliestAllowedDate = new Date();
-                            const duration = observationPeriod.last.duration;
-                            const durationType = observationPeriod.last.durationType;
-
-                            if (durationType === 'days') {
-                                earliestAllowedDate.setDate(now.getDate() - duration);
-                            } else if (durationType === 'hours') {
-                                earliestAllowedDate.setHours(now.getHours() - duration);
-                            }
+                            earliestAllowedDate.setMinutes(now.getMinutes() - observationPeriod.last);
 
                             if (new Date(dto.datetime) < earliestAllowedDate) {
                                 errorMessage = { message: `Date of the observation is outside what you are allowed to enter/correct/delete data for.`, dto: dto };

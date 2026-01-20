@@ -165,7 +165,7 @@
             <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'export_template_ids_permissions'" [groupItems]="[ 
               { label:'All', checked: userPermissions.exportPermissions.exportTemplateIds === undefined},  
               { label:'Select', checked: userPermissions.exportPermissions.exportTemplateIds  !== undefined}]"
-              (checkedValueChange)="onExportTemplateSelection($event)" />
+              (checkedValueChange)="onExportSpecificationSelection($event)" />
 
             <app-export-specification-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds"
               [id]="'exportIdPermissions'" [(selectedIds)]="userPermissions.exportPermissions.exportTemplateIds" />

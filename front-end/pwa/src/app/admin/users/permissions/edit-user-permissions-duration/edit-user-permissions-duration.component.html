@@ -24,14 +24,10 @@
   </div>
 
   <div *ngIf="selectedOption === 'Last'" class="d-flex align-items-center">
-    <app-number-input [id]="groupName + '_data_entry_last_days'" [numValue]="last.duration"
+    <app-number-input [id]="groupName + '_data_entry_last_days'" [numValue]="last"
       (numValueChange)="onLastDurationChange($event)" />
     <div class="ms-2">
-      <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="groupName + 'data_entry_last_duration'"
-        [groupItems]=" [
-                    { label:'Days', checked: last.durationType === 'days'}, 
-                    { label:'Hours' , checked: last.durationType === 'hours'} ]"
-        (checkedValueChange)="onLastDurationTypeChange($event)" />
+      minutes
     </div>
   </div>
 

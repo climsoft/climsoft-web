@@ -8,7 +8,7 @@ import { GeneralSettingsService } from 'src/settings/services/general-settings.s
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
-import { ExportTemplatePermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
+import { ExportPermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
 import * as path from 'node:path';
@@ -39,7 +39,7 @@ export class ObservationsExportService {
         }
 
         const exportFileName: string = `${user.id}_${exportSpecificationId}_export.csv`;
-        const exportPermissions: ExportTemplatePermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
+        const exportPermissions: ExportPermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
         await this.generateExport(exportSpecificationId, exportFileName, exportPermissions);
     }
 
@@ -55,8 +55,8 @@ export class ObservationsExportService {
         return this.fileIOService.createStreamableFile(outputPath);
     }
 
-    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportTemplatePermissionsDto {
-        let exportPermissions: ExportTemplatePermissionsDto = {};
+    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
+        let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {
             exportPermissions = user.permissions.exportPermissions;
@@ -139,7 +139,7 @@ export class ObservationsExportService {
         return exportPermissions;
     }
 
-    public async generateExport(exportSpecificationId: number, exportFileName: string, exportPermissions: ExportTemplatePermissionsDto = {}): Promise<void> {
+    public async generateExport(exportSpecificationId: number, exportFileName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
         const viewExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
 
         // If export is disabled then don't generate it
@@ -150,7 +150,7 @@ export class ObservationsExportService {
 
         switch (viewExportDto.exportType) {
             case ExportTypeEnum.RAW:
-                this.generateRawExports(exportParams, exportFileName, exportPermissions);
+                await this.generateRawExports(exportParams, exportFileName, exportPermissions);
                 break;
             case ExportTypeEnum.AGGREGATE:
                 // TODO
@@ -167,7 +167,7 @@ export class ObservationsExportService {
         }
     }
 
-    public async generateRawExports(exportParams: RawExportParametersDto, exportFilePathName: string, exportPermissions: ExportTemplatePermissionsDto = {}): Promise<void> {
+    public async generateRawExports(exportParams: RawExportParametersDto, exportFilePathName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -194,15 +194,7 @@ export class ObservationsExportService {
             } else if (exportPermissions.observationPeriod.fromDate) {
                 sqlCondition = sqlCondition + ` AND ob.date_time >= '${exportPermissions.observationPeriod.fromDate}'`;
             } else if (exportPermissions.observationPeriod.last) {
-                const durationType = exportPermissions.observationPeriod.last.durationType;
-                const duration = exportPermissions.observationPeriod.last.duration;
-                if (durationType === 'days') {
-                    sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${duration} days'`;
-                } else if (durationType === 'hours') {
-                    sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${duration} hours'`;
-                } else if (durationType === 'minutes') {
-                    sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${duration} minutes'`;
-                }
+                sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
             }
         }
 
@@ -333,9 +325,9 @@ export class ObservationsExportService {
         //console.log('Executing COPY command:', sql); // Debugging log
 
         // Execute raw SQL query (without parameterized placeholders)
-        const results = await this.dataSource.manager.query(sql);
+        await this.dataSource.manager.query(sql);
 
-        this.logger.log(`Export done:  ${exportFilePathName} . Results: ${JSON.stringify(results)}`)
+        this.logger.log(`Export done:  ${exportFilePathName}`)
     }
 
 
