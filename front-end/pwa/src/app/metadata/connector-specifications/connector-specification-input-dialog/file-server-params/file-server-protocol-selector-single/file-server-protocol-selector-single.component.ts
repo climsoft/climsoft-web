@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { FileServerProtocolEnum } from '../../models/create-connector-specification.model';
+import { FileServerProtocolEnum } from '../../../models/create-connector-specification.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({

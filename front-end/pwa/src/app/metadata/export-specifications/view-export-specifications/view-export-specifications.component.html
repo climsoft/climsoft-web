@@ -2,15 +2,15 @@
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
 
     <div class="d-flex align-items-center">
-      <div class="d-flex mx-2">
-        Count: {{ exports.length | number:'1.0-0' }}
-      </div>
-      <!-- <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="onSearch()">
-        Search
-      </button> -->
-      <div>
-        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Add','Delete All']"
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgExportInput.showDialog()">
+        Add
+      </button>
+      <div class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+      <div *ngIf="exports" class="d-flex mx-2">
+        [{{ exports.length | number:'1.0-0' }}]
       </div>
     </div>
   </div>
@@ -33,7 +33,7 @@
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let export of exports" (click)="onEditExport(export.id)">
+          <tr class="app-cursor-pointer" *ngFor="let export of exports" (click)="dlgExportInput.showDialog(export.id)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ export.name }}</td>
             <td>{{ export.description }}</td>
@@ -43,4 +43,5 @@
       </table>
     </div>
   </div>
+  <app-export-specification-input-dialog #dlgExportInput (ok)="onExportInput()" />
 </div>

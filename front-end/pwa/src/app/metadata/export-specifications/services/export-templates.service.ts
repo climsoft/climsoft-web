@@ -2,14 +2,14 @@ import { catchError, Observable, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";
-import { ViewExportTemplateModel } from "../models/view-export-template.model";
-import { CreateExportTemplateModel } from "../models/create-export-template.model";
+import { ViewExportSpecificationModel } from "../models/view-export-specification.model";
+import { CreateExportSpecificationModel } from "../models/create-export-specification.model";
 import { StringUtils } from "src/app/shared/utils/string.utils";
 
 @Injectable({
     providedIn: 'root'
 })
-export class ExportTemplatesService {
+export class ExportSpecificationsService {
     private endPointUrl: string;
     constructor(
         private appConfigService: AppConfigService,
@@ -17,14 +17,14 @@ export class ExportTemplatesService {
         this.endPointUrl = `${this.appConfigService.apiBaseUrl}/export-specifications`;
     }
 
-    public findAll(): Observable<ViewExportTemplateModel[]> {
-        return this.http.get<ViewExportTemplateModel[]>(`${this.endPointUrl}`).pipe(
+    public findAll(): Observable<ViewExportSpecificationModel[]> {
+        return this.http.get<ViewExportSpecificationModel[]>(`${this.endPointUrl}`).pipe(
             catchError(this.handleError)
         );
     }
 
-    public findOne(id: number): Observable<ViewExportTemplateModel> {
-        return this.http.get<ViewExportTemplateModel>(`${this.endPointUrl}/${id}`).pipe(
+    public findOne(id: number): Observable<ViewExportSpecificationModel> {
+        return this.http.get<ViewExportSpecificationModel>(`${this.endPointUrl}/${id}`).pipe(
             catchError(this.handleError)
         );
     }
@@ -36,15 +36,15 @@ export class ExportTemplatesService {
     //     );
     // }
 
-    public put(createDto: CreateExportTemplateModel): Observable<ViewExportTemplateModel> {
-        return this.http.post<ViewExportTemplateModel>(`${this.endPointUrl}`, createDto)
+    public add(createDto: CreateExportSpecificationModel): Observable<ViewExportSpecificationModel> {
+        return this.http.post<ViewExportSpecificationModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 catchError(this.handleError)
             );
     }
 
-    public update(id: number, updateDto: CreateExportTemplateModel): Observable<ViewExportTemplateModel> {
-        return this.http.patch<ViewExportTemplateModel>(`${this.endPointUrl}/${id}`, updateDto)
+    public update(id: number, updateDto: CreateExportSpecificationModel): Observable<ViewExportSpecificationModel> {
+        return this.http.patch<ViewExportSpecificationModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 catchError(this.handleError)
             );

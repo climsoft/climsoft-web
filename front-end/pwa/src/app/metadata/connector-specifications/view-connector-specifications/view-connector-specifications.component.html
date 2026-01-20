@@ -2,7 +2,7 @@
    <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
       <div class="d-flex align-items-center">
          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgConnectorInput.showDialog()">
-            Add Connector
+            Add
          </button>
          <div class="ms-2">
             <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
@@ -54,6 +54,6 @@
             </tbody>
          </table>
       </div>
-      <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
    </div>
+   <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
 </div>

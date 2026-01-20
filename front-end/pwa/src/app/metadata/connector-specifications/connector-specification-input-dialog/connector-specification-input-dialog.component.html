@@ -1,5 +1,5 @@
 <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
-    [displayDeleteOption]="connector && connector.id > 0" [closeOnOkClick]="false" (okClick)="onOkClick()"
+    [displayDeleteOption]="connector && connector.id > 0" [closeOnOkClick]="false" (okClick)="onSubmitClick()"
     (deleteClick)="onDeleteClick()">
 
     <div *ngIf="open && connector">
@@ -28,7 +28,7 @@
         <hr />
 
         <div>
-            <app-text-input [label]="'Host Name'" [(value)]="connector.hostName" />
+            <app-text-input [label]="'Host Name'" [labelSuperScript]="'ip address or domain'" [(value)]="connector.hostName" />
         </div>
 
         <hr />
@@ -46,7 +46,7 @@
         <hr />
 
         <div>
-            <app-text-input [label]="'Schedule'" [(value)]="connector.cronSchedule" />
+            <app-text-input [label]="'Schedule'" [labelSuperScript]="'cron'" [(value)]="connector.cronSchedule" />
         </div>
 
         <hr />

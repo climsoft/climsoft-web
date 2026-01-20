@@ -8,10 +8,10 @@ import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocol
 
 @Component({
   selector: 'app-connector-specification-input-dialog',
-  templateUrl: './import-connector-input-dialog.component.html',
-  styleUrls: ['./import-connector-input-dialog.component.scss']
+  templateUrl: './connector-specification-input-dialog.component.html',
+  styleUrls: ['./connector-specification-input-dialog.component.scss']
 })
-export class ImportConnectorInputDialogComponent {
+export class ConnectorSpecificationInputDialogComponent {
   @Output()
   public ok = new EventEmitter<void>();
 
@@ -26,15 +26,16 @@ export class ImportConnectorInputDialogComponent {
 
   public showDialog(connectorId?: number): void {
     this.open = true;
-    this.title = connectorId ? 'Edit Connector Specification' : 'New Connector Specification';
 
     if (connectorId) {
+      this.title = 'Edit Connector Specification';
       this.connectorSpecificationsService.findOne(connectorId).pipe(
         take(1),
       ).subscribe(data => {
         this.connector = data;
       });
     } else {
+      this.title = 'New Connector Specification';
       const ftpMetadata: ImportFileServerParametersModel = {
         protocol: FileServerProtocolEnum.FTP,
         port: 21,
@@ -57,34 +58,40 @@ export class ImportConnectorInputDialogComponent {
         orderNumber: 0,
         parameters: ftpMetadata,
         disabled: false,
-        comment: undefined,
+        comment: '',
       };
 
     }
   }
 
-  protected onOkClick(): void {
+  protected onSubmitClick(): void {
     if (!this.connector.name) {
-      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
+
+     if (!this.connector.description) {
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector description required', type: ToastEventTypeEnum.ERROR });
+      return;
+    }
+
     if (!this.connector.hostName) {
-      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Connector name required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector host name required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.connector.cronSchedule) {
-      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Cron schedule required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (!this.connector.parameters.password) {
-      this.pagesDataService.showToast({ title: 'Import Connector', message: 'Password required', type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Password required', type: ToastEventTypeEnum.ERROR });
       return;
     }
 
     if (this.parametersErrormMessage) {
-      this.pagesDataService.showToast({ title: 'Import Connector', message: this.parametersErrormMessage, type: ToastEventTypeEnum.ERROR });
+      this.pagesDataService.showToast({ title: 'Connector Specification', message: this.parametersErrormMessage, type: ToastEventTypeEnum.ERROR });
       return;
     }
 
@@ -115,13 +122,13 @@ export class ImportConnectorInputDialogComponent {
     ).subscribe({
       next: () => {
         this.open = false;
-        this.pagesDataService.showToast({ title: 'Import Connector', message: this.connector.id > 0 ? `Import connector updated` : `Import connector created`, type: ToastEventTypeEnum.SUCCESS });
+        this.pagesDataService.showToast({ title: 'Connector Specification', message: this.connector.id > 0 ? `Connector specification updated` : `Connector specification created`, type: ToastEventTypeEnum.SUCCESS });
         this.ok.emit();
       },
       error: err => {
         this.open = false;
         console.log('error: ', err);
-        this.pagesDataService.showToast({ title: 'Import Connector', message: `Error in saving import connector - ${err.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        this.pagesDataService.showToast({ title: 'Connector Specification', message: `Error in saving connector cpecification - ${err.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }
@@ -135,7 +142,7 @@ export class ImportConnectorInputDialogComponent {
       take(1)
     ).subscribe(() => {
       this.open = false;
-      this.pagesDataService.showToast({ title: "QC Tests", message: 'Connector Deleted', type: ToastEventTypeEnum.SUCCESS });
+      this.pagesDataService.showToast({ title: "Connector Specification", message: 'Connector specification deleted', type: ToastEventTypeEnum.SUCCESS });
       this.ok.emit();
     });
   }

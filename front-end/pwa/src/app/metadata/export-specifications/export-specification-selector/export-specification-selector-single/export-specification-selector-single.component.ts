@@ -1,14 +1,14 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { ExportTemplatesService } from '../../services/export-templates.service';
-import { ViewExportTemplateModel } from '../../models/view-export-template.model';
+import { ExportSpecificationsService } from '../../services/export-templates.service';
+import { ViewExportSpecificationModel } from '../../models/view-export-specification.model';
 
 @Component({
-  selector: 'app-export-template-selector-single',
-  templateUrl: './export-template-selector-single.component.html',
-  styleUrls: ['./export-template-selector-single.component.scss']
+  selector: 'app-export-specification-selector-single',
+  templateUrl: './export-specification-selector-single.component.html',
+  styleUrls: ['./export-specification-selector-single.component.scss']
 })
-export class ExportTemplateSelectorSingleComponent implements OnChanges {
+export class ExportSpecificationSelectorSingleComponent implements OnChanges {
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public errorMessage!: string;
@@ -17,16 +17,15 @@ export class ExportTemplateSelectorSingleComponent implements OnChanges {
   @Output() public selectedIdChange = new EventEmitter<number>();
 
 
-  protected allTemplates: ViewExportTemplateModel[] = [];
-  protected templates!: ViewExportTemplateModel[];
-  protected selectedTemplate!: ViewExportTemplateModel | null;
+  protected allTemplates: ViewExportSpecificationModel[] = [];
+  protected templates!: ViewExportSpecificationModel[];
+  protected selectedTemplate!: ViewExportSpecificationModel | null;
 
-  constructor(private exportTemplatesService: ExportTemplatesService) {
+  constructor(private exportTemplatesService: ExportSpecificationsService) {
     this.exportTemplatesService.findAll().pipe(take(1)).subscribe(data => {
       this.allTemplates = data;
       this.filterBasedOnSelectedIds();
     });
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -43,11 +42,11 @@ export class ExportTemplateSelectorSingleComponent implements OnChanges {
     this.selectedTemplate = foundElement ? foundElement : null;
   }
 
-  protected optionDisplayFunction(option: ViewExportTemplateModel): string {
+  protected optionDisplayFunction(option: ViewExportSpecificationModel): string {
     return `${option.id} - ${option.name}`;
   }
 
-  protected onSelectedOptionChange(selectedOption: ViewExportTemplateModel | null) {
+  protected onSelectedOptionChange(selectedOption: ViewExportSpecificationModel | null) {
     this.selectedId = selectedOption ? selectedOption.id : 0;
     this.selectedIdChange.emit(this.selectedId);
   }

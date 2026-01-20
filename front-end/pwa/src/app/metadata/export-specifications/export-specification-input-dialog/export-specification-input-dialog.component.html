@@ -1,0 +1,134 @@
+<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
+    [displayDeleteOption]="viewExportSpecification && viewExportSpecification.id > 0" [closeOnOkClick]="false"
+    (okClick)="onSubmitClick()" (deleteClick)="onDeleteClick()">
+
+    <div>
+        <app-text-input [label]="'Name'" [(value)]="viewExportSpecification.name" />
+    </div>
+
+    <hr />
+
+    <div>
+        <app-text-input [label]="'Description'" [(value)]="viewExportSpecification.description" />
+    </div>
+
+    <hr />
+
+    <div>
+        <app-export-type-selector-single [label]="'Export Type'" [(selectedId)]="viewExportSpecification.exportType" />
+    </div>
+
+    <hr />
+
+    <!-- Raw Data Export -->
+    <div *ngIf="viewExportSpecification.exportType === 'raw'">
+        <div class="card">
+            <div class="card-header">Data Processing Selections</div>
+            <div class="card-body">
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Convert date time to display time zone'"
+                        [(value)]="viewExportSpecification.parameters.convertDatetimeToDisplayTimeZone" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Split observation date time'"
+                        [(value)]="viewExportSpecification.parameters.splitObservationDatetime" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Unstack data'" [disabled]="true"
+                        [value]="viewExportSpecification.parameters.unstackData"
+                        (valueChange)="onUnstackData($event)" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include level'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeLevel" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include interval'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeInterval" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include flag'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeFlag" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include quality control status'"
+                        [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeQCStatus" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include quality control test log'"
+                        [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeQCTestLog" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include comments'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeComments" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'include entry date time'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeEntryDatetime" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include entry user email'" [disabled]="disableStackedDataOpetions"
+                        [(value)]="viewExportSpecification.parameters.includeEntryUserEmail" />
+                </div>
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="card">
+            <div class="card-header">Metadata Selections</div>
+            <div class="card-body">
+                <div>
+                    <app-check-box-input [label]="'Include station name'"
+                        [(value)]="viewExportSpecification.parameters.includeStationName" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include station location'"
+                        [(value)]="viewExportSpecification.parameters.includeStationLocation" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include station elevation'"
+                        [(value)]="viewExportSpecification.parameters.includeStationElevation" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include element abbreviation'"
+                        [(value)]="viewExportSpecification.parameters.includeElementAbbreviation" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include element name'"
+                        [(value)]="viewExportSpecification.parameters.includeElementName" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include element units'"
+                        [(value)]="viewExportSpecification.parameters.includeElementUnits" />
+                </div>
+                <div class="mt-2">
+                    <app-check-box-input [label]="'Include source name'"
+                        [(value)]="viewExportSpecification.parameters.includeSourceName" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <hr />
+
+    <div>
+        <app-check-box-input [label]="'Disable'" [(value)]="viewExportSpecification.disabled" />
+    </div>
+
+    <hr />
+
+    <div>
+        <app-text-input [label]="'Comment'" [(value)]="viewExportSpecification.comment" />
+    </div>
+
+    <div *ngIf="errorMessage">
+        <hr />
+        <div class="text-danger">
+            {{ errorMessage }}
+        </div>
+    </div>
+
+</app-dialog>

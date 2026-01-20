@@ -21,7 +21,7 @@ DECLARE
         'organisations',
         'regions',
         'source_templates', 
-        'export_templates',
+        'export_specifications',
         'connector_specifications',
         'job_queues',
         'connector_execution_log',

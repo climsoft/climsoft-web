@@ -27,11 +27,6 @@ export enum WebServerProtocolEnum {
     HTTPS = 'https',
 }
 
-export enum ObservationDurationTypeEnum {
-    DAYS = 'days',
-    HOURS = 'hours'
-}
-
 export type ConnectorParameters = ImportFileServerParametersDto | ExportFileServerParametersDto;
 
 export class CreateConnectorSpecificationDto {
@@ -142,6 +137,10 @@ export class ImportFileServerParametersDto extends FileServerParametersDto {
 }
 
 export class ExportFileServerParametersDto extends FileServerParametersDto {
+    @IsInt()
+    @Min(1)
+    observationPeriod: number; // In minutes
+
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ExportFileServerSpecificationDto)
@@ -167,14 +166,7 @@ export class ExportFileServerSpecificationDto {
     @Min(1)
     specificationId: number; // export specification id
 
-    @IsInt()
-    @Min(1)
-    duration: number;
-
-    @IsEnum(ObservationDurationTypeEnum, { message: 'Observation duration type must be a valid value' })
-    durationType: ObservationDurationTypeEnum; // used by observation-export service to determine observation period to query
-
-    @IsString()
+    @IsString() // TODO. Later change to enum
     filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
 }
 

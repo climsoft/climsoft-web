@@ -31,8 +31,6 @@ export class FileServerParametersInputComponent implements OnChanges {
   protected newPassword: string = '';
   protected confirmPassword: string = '';
   protected passwordErrormessage: string = '';
-  protected importFtpMetadata!: ImportFileServerParametersModel;
-  protected exportFtpMetadata!: ExportFileServerParametersModel;
 
   constructor() {
   }
@@ -42,19 +40,15 @@ export class FileServerParametersInputComponent implements OnChanges {
     if (changes['connector'] && this.connector) {
       this.newPassword = this.connector.parameters.password;
       this.confirmPassword = this.connector.parameters.password;
-
-      switch (this.connector.connectorType) {
-        case ConnectorTypeEnum.IMPORT:
-          this.importFtpMetadata = this.connector.parameters as ImportFileServerParametersModel;
-          break;
-        case ConnectorTypeEnum.EXPORT:
-          this.exportFtpMetadata = this.connector.parameters as ExportFileServerParametersModel;
-          break;
-        default:
-          break;
-      }
- 
     }
+  }
+
+  protected get importFileServerParameters(): ImportFileServerParametersModel {
+    return this.connector.parameters as ImportFileServerParametersModel;
+  }
+
+  protected get exportFileServerParameters(): ExportFileServerParametersModel {
+    return this.connector.parameters as ExportFileServerParametersModel;
   }
 
   /**

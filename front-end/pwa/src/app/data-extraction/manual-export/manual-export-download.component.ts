@@ -1,17 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
-import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ExportTemplatePermissionsModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { ExportTemplateParametersModel } from 'src/app/metadata/export-specifications/models/export-template-params.model';
-import { ViewExportTemplateModel } from 'src/app/metadata/export-specifications/models/view-export-template.model';
-import { ExportTemplatesService } from 'src/app/metadata/export-specifications/services/export-templates.service';
+import { ViewExportSpecificationModel } from 'src/app/metadata/export-specifications/models/view-export-specification.model';
+import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-templates.service';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
@@ -33,7 +29,7 @@ export class ManualExportDownloadComponent implements OnInit {
   protected includeOnlyElementIds: number[] = [];
   protected includeOnlyIntervals: number[] = [];
 
-  protected viewExportTemplate!: ViewExportTemplateModel;
+  protected viewExportTemplate!: ViewExportSpecificationModel;
   protected hidePreparingExport: boolean = true;
   protected downloadLink: string = '';
   protected hideDownloadButton: boolean = true;
@@ -44,7 +40,7 @@ export class ManualExportDownloadComponent implements OnInit {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private exportTemplateService: ExportTemplatesService,
+    private exportTemplateService: ExportSpecificationsService,
     private observationService: ObservationsService,
     private cachedMetadataService: CachedMetadataService,
     private route: ActivatedRoute,) {

@@ -205,7 +205,6 @@ export class ConnectorImportProcessorService {
         }
     }
 
-
     private async downloadFileOverSftp(connector: ViewConnectorSpecificationDto, newConnectorLog: CreateConnectorExecutionLogDto, lastProcessedRemoteFiles: Map<string, RemoteFileMetadataVo>): Promise<void> {
         const client = new SftpClient();
 

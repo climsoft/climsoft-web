@@ -1,31 +1,29 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum'; 
-import { ImportFileServerParametersModel } from '../../../models/create-connector-specification.model';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
+import { ExportFileServerParametersModel } from '../../../models/create-connector-specification.model';
 
 /**
  * View model for internal UI state management of FTP specifications.
  * Allows handling of partially filled rows before they are committed to ftpMetadata.
  */
 interface ViewModel {
-  filePattern: string;
-  specificationId: number | null;
-  stationId: string | null;
+  filePattern: string ;
+  specificationId: number;
 }
 
-
 @Component({
-  selector: 'app-import-file-server-params',
-  templateUrl: './import-file-server-params.component.html',
-  styleUrls: ['./import-file-server-params.component.scss']
+  selector: 'app-export-file-server-params',
+  templateUrl: './export-file-server-params.component.html',
+  styleUrls: ['./export-file-server-params.component.scss']
 })
-export class ImportFileServerParamsComponent implements OnChanges {
+export class ExportFileServerParamsComponent implements OnChanges {
 
-  /** FTP metadata model bound from parent component */
-  @Input() 
-  public ftpMetadata!: ImportFileServerParametersModel;
+  /** Export server parameters model bound from parent component */
+  @Input()
+  public exportFileServerParameters!: ExportFileServerParametersModel;
 
   /** Event emitted when validation errors occur */
-  @Output() 
+  @Output()
   public validationError = new EventEmitter<string>();
 
   /** Source type filter for import source selector */
@@ -35,21 +33,20 @@ export class ImportFileServerParamsComponent implements OnChanges {
   protected ftpSpecifications: ViewModel[] = [];
 
 
-
   constructor() {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ( changes['ftpMetadata'] &&  this.ftpMetadata) {
- 
+    if (changes['exportFileServerParameters'] && this.exportFileServerParameters) {
+
       this.ftpSpecifications = [];
-      for (const spec of this.ftpMetadata.specifications) {
-        this.ftpSpecifications.push({ filePattern: spec.filePattern, specificationId: spec.specificationId, stationId: spec.stationId ? spec.stationId : null });
+      for (const spec of this.exportFileServerParameters.specifications) {
+        this.ftpSpecifications.push({ filePattern: spec.filePattern, specificationId: spec.specificationId });
       }
 
       // always initialise the array with 2 empty specification rows.
       for (let i = 1; i <= 2; i++) {
-        this.ftpSpecifications.push({ filePattern: '', specificationId: null, stationId: null });
+        this.ftpSpecifications.push({ filePattern: '', specificationId: 0 });
       }
     }
   }
@@ -71,28 +68,18 @@ export class ImportFileServerParamsComponent implements OnChanges {
    * Handles import database source selection changes.
    * Updates the specificationId at the given index and triggers validation.
    *
-   * @param importDBSource - The selected source specification ID
+   * @param exportSpecificationId - The selected source specification ID
    * @param index - Index of the specification row being updated
    */
-  protected onImportDBSourceInput(importDBSource: number | null, index: number): void {
-    this.ftpSpecifications[index].specificationId = importDBSource;
+  protected onExportSpecificationInput(exportSpecificationId: number, index: number): void {
+    this.ftpSpecifications[index].specificationId = exportSpecificationId;
     this.checkAndAddNewSpecification();
   }
 
-  /**
-   * Handles station selection changes.
-   * Updates the stationId at the given index (optional field).
-   *
-   * @param stationId - The selected station ID
-   * @param index - Index of the specification row being updated
-   */
-  protected onStationInput(stationId: string | null, index: number): void {
-    this.ftpSpecifications[index].stationId = stationId;
-    this.checkAndAddNewSpecification();
-  }
+
 
   /**
-   * Checks if all specifications have both filePattern and specificationId filled.
+   * Checks if all specifications have  specificationId filled.
    * If yes, adds a new empty specification row for user convenience.
    * Also synchronizes ftpMetadata.specifications with valid entries.
    *
@@ -102,11 +89,11 @@ export class ImportFileServerParamsComponent implements OnChanges {
     this.updateFtpMetadataSpecifications();
 
     const allFilled = this.ftpSpecifications.every(
-      spec => spec.filePattern && spec.filePattern.trim() !== '' && spec.specificationId !== null
+      spec => spec.filePattern && spec.filePattern.trim() && spec.specificationId
     );
 
     if (allFilled) {
-      this.ftpSpecifications.push({ filePattern: '', specificationId: null, stationId: null });
+      this.ftpSpecifications.push({ filePattern: 'yyyymmddhhmmss', specificationId: 0 });
     }
   }
 
@@ -122,7 +109,7 @@ export class ImportFileServerParamsComponent implements OnChanges {
    */
   protected onRemoveSpecification(index: number): void {
     const spec = this.ftpSpecifications[index];
-    const isFilled = spec.filePattern && spec.filePattern.trim() !== '' && spec.specificationId !== null;
+    const isFilled =  spec.filePattern && spec.filePattern.trim() && spec.specificationId ;
 
     if (this.ftpSpecifications.length > 1 && isFilled) {
       this.ftpSpecifications.splice(index, 1);
@@ -138,14 +125,13 @@ export class ImportFileServerParamsComponent implements OnChanges {
    * ready for submission to the backend.
    */
   private updateFtpMetadataSpecifications(): void {
-    this.ftpMetadata.specifications = [];
+    this.exportFileServerParameters.specifications = [];
 
     for (const spec of this.ftpSpecifications) {
-      if (spec.filePattern && spec.filePattern.trim() !== '' && spec.specificationId !== null) {
-        this.ftpMetadata.specifications.push({
-          filePattern: spec.filePattern,
-          specificationId: spec.specificationId,
-          stationId: spec.stationId ? spec.stationId : undefined
+      if (spec.specificationId ) {
+        this.exportFileServerParameters.specifications.push({
+          filePattern: spec.filePattern  ? 'yyyymmddhhmmss'  : 'yyyymmddhhmmss',
+          specificationId: spec.specificationId, 
         });
       }
     }

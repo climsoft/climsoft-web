@@ -38,11 +38,11 @@ import { ElementSelectorMultipleComponent } from './elements/element-selector/el
 import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
 import { StationSelectorSingleComponent } from './stations/station-selector/station-single-input/station-selector-single.component';
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
-import { ViewExportTemplatesComponent } from './export-specifications/view-export-specifications/view-export-templates.component';
-import { ExportTemplateDetailComponent } from './export-specifications/export-specification-detail/export-template-detail.component';
+import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
+import { ExportSpecificationInputDialogComponent } from './export-specifications/export-specification-input-dialog/export-specification-input-dialog.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
-import { ExportTemplateSelectorSingleComponent } from './export-specifications/export-specification-selector/export-template-selector-single/export-template-selector-single.component';
-import { ExportTemplateSelectorMultipleComponent } from './export-specifications/export-specification-selector/export-template-selector-multiple/export-template-selector-multiple.component';
+import { ExportSpecificationSelectorSingleComponent } from './export-specifications/export-specification-selector/export-specification-selector-single/export-specification-selector-single.component';
+import { ExportSpecificationSelectorMultipleComponent } from './export-specifications/export-specification-selector/export-specification-selector-multiple/export-specification-selector-multiple.component';
 import { SourceSelectorSingleComponent } from './source-specifications/source-selector/source-single-input/source-selector-single.component';
 import { SourceSelectorMultipleComponent } from './source-specifications/source-selector/source-selector-multiple/source-selector-multiple.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
@@ -69,13 +69,13 @@ import { StationObsProcessingSelectorMultipleComponent } from './stations/statio
 import { StationEnvironmentSelectorMultipleComponent } from './stations/station-environment-selector/station-environment-selector-multiple/station-environment-selector-multiple.component';
 import { StationFocusSelectorMultipleComponent } from './stations/station-focus-selector/station-focus-selector-multiple/station-focus-selector-multiple.component';
 import { ImportSourceValueDetailComponent } from './source-specifications/import-source-detail/import-source-value-detail/import-source-value-detail.component';
-import { ImportConnectorInputDialogComponent } from './connector-specifications/import-connector-input-dialog/import-connector-input-dialog.component';
-import { EndPointSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/end-point-selector-single/end-point-selector-single.component';
-import { FileServerParametersInputComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/file-server-parameters-input.component';
-import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
-import { ConnectorTypeSelectorSingleComponent } from './connector-specifications/import-connector-input-dialog/connector-type-selector-single/connector-type-selector-single.component';
-import { ExportFileServerParamsComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/export-file-server-params/export-file-server-params.component';
-import { ImportFileServerParamsComponent } from './connector-specifications/import-connector-input-dialog/import-file-server-params-input/import-file-server-params/import-file-server-params.component';
+import { ConnectorSpecificationInputDialogComponent } from './connector-specifications/connector-specification-input-dialog/connector-specification-input-dialog.component';
+import { EndPointSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/end-point-selector-single/end-point-selector-single.component';
+import { FileServerParametersInputComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-parameters-input.component';
+import { FileServerProtocolSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/file-server-protocol-selector-single/file-server-protocol-selector-single.component';
+import { ConnectorTypeSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/connector-type-selector-single/connector-type-selector-single.component';
+import { ExportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/export-file-server-params/export-file-server-params.component';
+import { ImportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/import-file-server-params/import-file-server-params.component';
 
 @NgModule({
   declarations: [ 
@@ -161,13 +161,13 @@ import { ImportFileServerParamsComponent } from './connector-specifications/impo
     QCTestContextualParamsComponent,
     QCTestConditionInputComponent,
 
-    ViewExportTemplatesComponent,
-    ExportTemplateDetailComponent,
-    ExportTemplateSelectorSingleComponent,
-    ExportTemplateSelectorMultipleComponent,
+    ViewExportSpecificationsComponent,
+    ExportSpecificationInputDialogComponent,
+    ExportSpecificationSelectorSingleComponent,
+    ExportSpecificationSelectorMultipleComponent,
 
     ViewConnectorSpecificationsComponent,
-    ImportConnectorInputDialogComponent,
+    ConnectorSpecificationInputDialogComponent,
     EndPointSelectorSingleComponent,
     FileServerParametersInputComponent,
     ImportFileServerParamsComponent,
@@ -227,8 +227,8 @@ import { ImportFileServerParamsComponent } from './connector-specifications/impo
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
-    ExportTemplateSelectorSingleComponent,
-    ExportTemplateSelectorMultipleComponent,
+    ExportSpecificationSelectorSingleComponent,
+    ExportSpecificationSelectorMultipleComponent,
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,

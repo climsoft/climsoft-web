@@ -167,7 +167,7 @@
               { label:'Select', checked: userPermissions.exportPermissions.exportTemplateIds  !== undefined}]"
               (checkedValueChange)="onExportTemplateSelection($event)" />
 
-            <app-export-template-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds"
+            <app-export-specification-selector-multiple *ngIf="userPermissions.exportPermissions.exportTemplateIds"
               [id]="'exportIdPermissions'" [(selectedIds)]="userPermissions.exportPermissions.exportTemplateIds" />
           </div>
         </div>

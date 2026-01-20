@@ -1,12 +1,10 @@
 <div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onOptionsClicked('Add Form')">
-        Add Form
-      </button>
-      <button type="button" class="btn btn-outline-secondary btn-sm ms-2" (click)="onOptionsClicked('Add Import')">
-        Add Import
-      </button>
+      <div >
+        <app-drop-down-button [buttonText]="'Add'" [dropDownItems]="['Form', 'Import']"
+          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="false" />
+      </div>
       <div class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />

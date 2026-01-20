@@ -1,20 +1,20 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { ViewExportTemplateModel } from '../../models/view-export-template.model';
-import { ExportTemplatesService } from '../../services/export-templates.service';
+import { ViewExportSpecificationModel } from '../../models/view-export-specification.model';
+import { ExportSpecificationsService } from '../../services/export-templates.service';
 
 @Component({
-  selector: 'app-export-template-selector-multiple',
-  templateUrl: './export-template-selector-multiple.component.html',
-  styleUrls: ['./export-template-selector-multiple.component.scss']
+  selector: 'app-export-specification-selector-multiple',
+  templateUrl: './export-specification-selector-multiple.component.html',
+  styleUrls: ['./export-specification-selector-multiple.component.scss']
 })
-export class ExportTemplateSelectorMultipleComponent implements OnChanges {
+export class ExportSpecificationSelectorMultipleComponent implements OnChanges {
   @Input()
   public id!: string;
   @Input()
   public label!: string;
   @Input()
-  public placeholder!: string;
+  public placeholder!: string; 
   @Input()
   public errorMessage!: string;
   @Input()
@@ -24,11 +24,11 @@ export class ExportTemplateSelectorMultipleComponent implements OnChanges {
   @Output()
   public selectedIdsChange = new EventEmitter<number[]>();
 
-  protected allTemplates: ViewExportTemplateModel[] = [];
-  protected templates!: ViewExportTemplateModel[];
-  protected selectedTemplates!: ViewExportTemplateModel[];
+  protected allTemplates: ViewExportSpecificationModel[] = [];
+  protected templates!: ViewExportSpecificationModel[];
+  protected selectedTemplates!: ViewExportSpecificationModel[];
 
-  constructor(private exportTemplatesService: ExportTemplatesService) {
+  constructor(private exportTemplatesService: ExportSpecificationsService) {
     this.exportTemplatesService.findAll().pipe(
       take(1),
     ).subscribe(data => {
@@ -50,11 +50,11 @@ export class ExportTemplateSelectorMultipleComponent implements OnChanges {
     this.selectedTemplates = this.selectedIds && this.selectedIds.length > 0 ? this.templates.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 
-  protected optionDisplayFunction(option: ViewExportTemplateModel): string {
+  protected optionDisplayFunction(option: ViewExportSpecificationModel): string {
     return `${option.id} - ${option.name}`;
   }
 
-  protected onSelectedOptionsChange(selectedOptions: ViewExportTemplateModel[]) {
+  protected onSelectedOptionsChange(selectedOptions: ViewExportSpecificationModel[]) {
     this.selectedIds = selectedOptions.map(data => data.id);
     this.selectedIdsChange.emit(this.selectedIds);
   }

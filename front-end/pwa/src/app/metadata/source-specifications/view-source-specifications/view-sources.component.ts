@@ -69,13 +69,13 @@ export class ViewSourcesComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onOptionsClicked(sourceTypeName: 'Add Form' | 'Add Import' | 'Delete All') {
+  protected onOptionsClicked(sourceTypeName: 'Form' | 'Import' | 'Delete All') {
     let routeName: string = '';
     switch (sourceTypeName) {
-      case 'Add Form':
+      case 'Form':
         routeName = 'form-source-detail';
         break;
-      case 'Add Import':
+      case 'Import':
         routeName = 'import-source-detail';
         break;
       case 'Delete All':

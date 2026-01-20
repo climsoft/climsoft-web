@@ -6,8 +6,7 @@ import { FormSourceDetailComponent } from './source-specifications/form-source-d
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component'; 
 import { ImportSourceDetailComponent } from './source-specifications/import-source-detail/import-source-detail.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
-import { ViewExportTemplatesComponent } from './export-specifications/view-export-specifications/view-export-templates.component';
-import { ExportTemplateDetailComponent } from './export-specifications/export-specification-detail/export-template-detail.component';
+import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
@@ -73,11 +72,7 @@ const routes: Routes = [
       },    
       {
         path: 'view-export-specifications',
-        component: ViewExportTemplatesComponent
-      },
-      {
-        path: 'export-detail/:id',
-        component: ExportTemplateDetailComponent
+        component: ViewExportSpecificationsComponent
       },
       {
         path: 'view-connector-specifications',

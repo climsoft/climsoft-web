@@ -39,11 +39,11 @@
     <hr />
 
     <div *ngIf="connector.connectorType === ConnectorTypeEnum.IMPORT">
-        <app-import-file-server-params [ftpMetadata]="importFtpMetadata" />
+        <app-import-file-server-params [importFileServerParameters]="importFileServerParameters" />
     </div>
 
     <div *ngIf="connector.connectorType === ConnectorTypeEnum.EXPORT">
-        <app-export-file-server-params [ftpMetadata]="exportFtpMetadata" />
+        <app-export-file-server-params [exportFileServerParameters]="exportFileServerParameters" />
     </div>
 
 </div>

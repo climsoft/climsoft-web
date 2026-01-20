@@ -4,7 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
-import { ImportConnectorInputDialogComponent } from '../import-connector-input-dialog/import-connector-input-dialog.component';
+import { ConnectorSpecificationInputDialogComponent } from '../connector-specification-input-dialog/connector-specification-input-dialog.component';
 
 @Component({
   selector: 'app-view-connectors',
@@ -45,8 +45,6 @@ export class ViewConnectorSpecificationsComponent {
     }
 
   }
-
-
 
   protected onConnectorInput(): void {
     this.loadConnectorSpecifications();

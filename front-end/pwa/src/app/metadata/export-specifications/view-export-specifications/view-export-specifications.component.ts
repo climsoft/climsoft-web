@@ -1,23 +1,20 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ExportTemplatesService } from '../services/export-templates.service';
-import { ViewExportTemplateModel } from '../models/view-export-template.model';
+import { ExportSpecificationsService } from '../services/export-templates.service';
+import { ViewExportSpecificationModel } from '../models/view-export-specification.model';
 
 @Component({
-  selector: 'app-view-export-templates',
-  templateUrl: './view-export-templates.component.html',
-  styleUrls: ['./view-export-templates.component.scss']
+  selector: 'app-view-export-specifications',
+  templateUrl: './view-export-specifications.component.html',
+  styleUrls: ['./view-export-specifications.component.scss']
 })
-export class ViewExportTemplatesComponent {
-  protected exports!: ViewExportTemplateModel[];
+export class ViewExportSpecificationsComponent {
+  protected exports!: ViewExportSpecificationModel[];
 
   constructor(
     private pagesDataService: PagesDataService,
-    private exportsService: ExportTemplatesService,
-    private router: Router,
-    private route: ActivatedRoute) {
+    private exportsService: ExportSpecificationsService,) {
     this.pagesDataService.setPageHeader('Export Specifications');
     this.loadExportSpecifications();
   }
@@ -30,11 +27,8 @@ export class ViewExportTemplatesComponent {
     });
   }
 
-  protected onOptionsClicked(option: 'Add' | 'Delete All') {
+  protected onOptionsClicked(option: 'Delete All') {
     switch (option) {
-      case 'Add':
-        this.router.navigate(['export-detail', 'new'], { relativeTo: this.route.parent });
-        break;
       case 'Delete All':
         this.exportsService.deleteAll().pipe(
           take(1),
@@ -48,8 +42,8 @@ export class ViewExportTemplatesComponent {
     }
   }
 
-  protected onEditExport(exportId: number): void {
-    this.router.navigate(['export-detail', exportId], { relativeTo: this.route.parent });
+  protected onExportInput(): void {
+    this.loadExportSpecifications();
   }
 
 }

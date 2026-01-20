@@ -67,7 +67,7 @@ export interface RemoteFileMetadataVo {
 }
 
 export interface ExportFileServerExecutionActivityVo {
-    filePattern: string;
+    filePattern?: string;
     specificationId: number; // export specification id
 
     // Tracks each file through the complete processing lifecycle: download → process → import

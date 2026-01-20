@@ -1,4 +1,6 @@
 export enum ExportTypeEnum {
     RAW = 'raw',
-    AGGREGATE = 'AGGREGATE',
+    AGGREGATE = "aggregate",
+    WISSYNOP = "wissynop",
+    WISDAYCLI = "wisdaycli",
 }

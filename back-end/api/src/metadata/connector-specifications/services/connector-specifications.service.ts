@@ -17,12 +17,12 @@ export class ConnectorSpecificationsService {
         private eventEmitter: EventEmitter2,
     ) { }
 
-    public async find(id: number): Promise<ViewConnectorSpecificationDto> {
+    public async find(id: number, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto> {
         const entity = await this.findEntity(id);
-        return this.createViewDto(entity);
+        return this.createViewDto(entity, maskPassword);
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<ConnectorSpecificationEntity>): Promise<ViewConnectorSpecificationDto[]> {
+    public async findAll(selectOptions?: FindOptionsWhere<ConnectorSpecificationEntity>, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto[]> {
         const findOptions: FindManyOptions<ConnectorSpecificationEntity> = {
             order: {
                 id: "ASC"
@@ -36,13 +36,13 @@ export class ConnectorSpecificationsService {
         const entities = await this.connectorRepo.find(findOptions);
         const dtos: ViewConnectorSpecificationDto[] = [];
         for (const entity of entities) {
-            dtos.push(await this.createViewDto(entity)); // Don't decrypt for list view
+            dtos.push(await this.createViewDto(entity, maskPassword)); // Don't decrypt for list view
         }
         return dtos;
     }
 
-    public async findActiveConnectors(): Promise<ViewConnectorSpecificationDto[]> {
-        return this.findAll({ disabled: false });
+    public async findActiveConnectors(maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto[]> {
+        return this.findAll({ disabled: false }, maskPassword);
     }
 
     private async findEntity(id: number): Promise<ConnectorSpecificationEntity> {
@@ -64,6 +64,10 @@ export class ConnectorSpecificationsService {
             throw new BadRequestException(`Connector specification with name ${dto.name} already exists`);
         }
 
+        if (dto.parameters.password === '***ENCRYPTED***') {
+            throw new BadRequestException(`Password ***ENCRYPTED*** not supported`);
+        }
+
         entity = this.connectorRepo.create({
             name: dto.name,
         });
@@ -80,7 +84,7 @@ export class ConnectorSpecificationsService {
         dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
 
         entity.parameters = dto.parameters;
-        dto.orderNumber? entity.orderNumber = dto.orderNumber: null;
+        dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
@@ -97,8 +101,8 @@ export class ConnectorSpecificationsService {
     public async update(id: number, dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationDto> {
         const entity = await this.findEntity(id);
 
-        // Only encrypt if password has changed or not already encrypted 
-        if (entity.parameters.password !== dto.parameters.password || !EncryptionUtils.isEncrypted(dto.parameters.password)) {
+        // Only encrypt if password has changed or not already encrypted or not masked
+        if (dto.parameters.password !== '***ENCRYPTED***' || !EncryptionUtils.isEncrypted(dto.parameters.password) || entity.parameters.password !== dto.parameters.password) {
             dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
         } else {
             dto.parameters.password = entity.parameters.password; // Keep existing encrypted password
@@ -166,24 +170,7 @@ export class ConnectorSpecificationsService {
      * @param entity - The connector entity
      * @param decryptPassword - Whether to decrypt the password (true for usage, false for API responses)
      */
-    private async createViewDto(entity: ConnectorSpecificationEntity): Promise<ViewConnectorSpecificationDto> {
-        // const parameters : FTPMetadataDto= entity.parameters;
-
-        // if (decryptPassword) {
-        //     try {
-        //         // Decrypt password for actual usage (connecting to servers)
-        //         password = await EncryptionUtils.decrypt(entity.parameters.password);
-        //     } catch (error) {
-        //         this.logger.error(`Failed to decrypt password for connector ${entity.id}`, error);
-        //         throw new BadRequestException('Failed to decrypt connector password');
-        //     }
-        // } else {
-        //     // Mask password for API responses
-        //     password = '***ENCRYPTED***';
-        // }
-
-        // entity.parameters.password = password;
-
+    private async createViewDto(entity: ConnectorSpecificationEntity, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto> {
         const dto: ViewConnectorSpecificationDto = {
             id: entity.id,
             name: entity.name,
@@ -201,6 +188,11 @@ export class ConnectorSpecificationsService {
             entryUserId: entity.entryUserId,
             log: entity.log,
         };
+
+        if (maskPassword) {
+            // Mask password for API responses
+            dto.parameters.password = '***ENCRYPTED***';
+        }
         return dto;
     }
 

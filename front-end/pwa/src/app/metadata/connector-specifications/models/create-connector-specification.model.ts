@@ -1,4 +1,4 @@
- 
+
 export enum ConnectorTypeEnum {
     IMPORT = 'import',
     EXPORT = 'export'
@@ -20,11 +20,6 @@ export enum FileServerProtocolEnum {
 export enum WebServerProtocolEnum {
     HTTP = 'http',
     HTTPS = 'https',
-}
-
-export enum ObservationDurationTypeEnum {
-    DAYS = 'days',
-    HOURS = 'hours'
 }
 
 export type ConnectorParameters = ImportFileServerParametersModel | ExportFileServerParametersModel;
@@ -79,6 +74,7 @@ export interface ImportFileServerParametersModel extends FileServerParametersMod
 }
 
 export interface ExportFileServerParametersModel extends FileServerParametersModel {
+    observationPeriod: number; // In minutes
 
     specifications: ExportFileServerSpecificationModel[];
 }
@@ -95,10 +91,6 @@ export interface ImportFileServerSpecificationModel {
 export interface ExportFileServerSpecificationModel {
 
     specificationId: number; // export specification id
-
-    duration: number;
-
-    durationType: ObservationDurationTypeEnum; // used by observation-export service to determine observation period to query
 
     filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
 }

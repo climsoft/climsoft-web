@@ -13,17 +13,17 @@ export class ConnectorSpecificationsController {
 
     @Get()
     public findAll() {
-        return this.connectorSpecificationsService.findAll();
+        return this.connectorSpecificationsService.findAll(undefined, true);
     }
 
     @Get('active')
     public findActive() {
-        return this.connectorSpecificationsService.findActiveConnectors();
+        return this.connectorSpecificationsService.findActiveConnectors(true);
     }
 
     @Get(':id')
     public findOne(@Param('id', ParseIntPipe) id: number) {
-        return this.connectorSpecificationsService.find(id);
+        return this.connectorSpecificationsService.find(id, true);
     }
 
     @Admin()
