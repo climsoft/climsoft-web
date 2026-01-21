@@ -45,7 +45,6 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
     protected hasErrorsFilter: boolean | null = null;
 
     // Display functions for selectors
-    protected connectorDisplayFn = (option: ConnectorOption): string => option.name;
     protected errorFilterDisplayFn = (option: ErrorFilterOption): string => option.name;
 
     private destroy$ = new Subject<void>();
@@ -74,11 +73,6 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
             .subscribe({
                 next: (connectors) => {
                     this.connectors = connectors;
-                    // Build connector options for the dropdown
-                    this.connectorOptions = [
-                        { id: null, name: 'All Connectors' },
-                        ...connectors.map(c => ({ id: c.id, name: c.name }))
-                    ];
                 },
                 error: (err) => {
                     this.showError('Failed to load connectors', err);

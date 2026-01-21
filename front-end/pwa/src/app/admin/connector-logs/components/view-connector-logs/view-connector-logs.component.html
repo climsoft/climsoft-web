@@ -2,9 +2,8 @@
     <!-- Filters -->
     <div class="row mb-3">
         <div class="col-md-3">
-            <app-connector-specification-selector-single [label]="'Connector'"
-            [selectedId]="selectedConnectorId"
-                (selectedOptionChange)="onConnectorFilterChange($event)" />
+            <app-connector-specification-selector-single [label]="'Connector'" [selectedId]="selectedConnectorId"
+                (selectedIdChange)="onConnectorFilterChange($event)" />
         </div>
         <div class="col-md-2">
             <label class="form-label">From Date</label>

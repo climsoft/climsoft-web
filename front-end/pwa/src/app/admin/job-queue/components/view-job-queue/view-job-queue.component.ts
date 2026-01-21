@@ -105,8 +105,13 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         this.loadJobs();
     }
 
-    protected onStatusFilterChange(option: { id: JobQueueStatusEnum | null; name: string } | null): void {
-        this.selectedStatus = option?.id || null;
+    protected onTypeFilterChange(option: JobQueueStatusEnum | null): void {
+        // this.selectedStatus = option; // TODO
+        this.loadJobs();
+    }
+
+    protected onStatusFilterChange(option: JobQueueStatusEnum | null): void {
+        this.selectedStatus = option;
         this.loadJobs();
     }
 

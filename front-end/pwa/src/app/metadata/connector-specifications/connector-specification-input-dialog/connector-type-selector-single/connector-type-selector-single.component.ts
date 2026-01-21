@@ -19,8 +19,6 @@ export class ConnectorTypeSelectorSingleComponent implements OnChanges {
 
   constructor() { }
 
-  ngOnInit(): void { }
-
   ngOnChanges(changes: SimpleChanges): void {
     //load options once
     if (!this.options) {
