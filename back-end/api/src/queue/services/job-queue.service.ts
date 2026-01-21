@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
-import { JobQueueEntity, JobQueueStatusEnum } from '../entity/job-queue.entity'; 
+import { JobQueueEntity, JobQueueStatusEnum, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity'; 
 
 @Injectable()
 export class JobQueueService {
@@ -17,12 +17,18 @@ export class JobQueueService {
      */
     public async createJob(
         name: string,
-        payload: any,
+        jobType: JobTypeEnum,
+        triggeredBy: JobTriggerEnum,
+        maxAttempts: number,
+        payload: Record<string, any>,
         scheduledAt: Date,
         userId: number
     ): Promise<JobQueueEntity> {
         const job = this.jobQueueRepo.create({
             name,
+            jobType,
+            triggeredBy,
+            maxAttempts,
             payload,
             scheduledAt,
             status: JobQueueStatusEnum.PENDING,

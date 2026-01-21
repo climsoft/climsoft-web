@@ -1,0 +1,110 @@
+<app-dialog
+    [open]="open"
+    (openChange)="open = $event"
+    [title]="'Job Details: #' + (job?.id || '')"
+    [displayOkOption]="false"
+    [cancelButtonLabel]="'Close'">
+
+    <div *ngIf="job" class="job-detail-content">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link"
+                        [class.active]="activeTab === 'details'"
+                        (click)="activeTab = 'details'">
+                    Details
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link"
+                        [class.active]="activeTab === 'payload'"
+                        (click)="activeTab = 'payload'">
+                    Payload
+                </button>
+            </li>
+            <li class="nav-item" *ngIf="job.errorMessage">
+                <button class="nav-link"
+                        [class.active]="activeTab === 'error'"
+                        (click)="activeTab = 'error'">
+                    <i class="bi bi-exclamation-triangle text-danger"></i> Error
+                </button>
+            </li>
+        </ul>
+
+        <!-- Details Tab -->
+        <div *ngIf="activeTab === 'details'" class="tab-content">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <th class="w-25">Job ID</th>
+                        <td>{{ job.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <td>{{ job.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
+                                {{ formatStatus(job.status) }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Scheduled At</th>
+                        <td>{{ formatDate(job.scheduledAt) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Processed At</th>
+                        <td>{{ formatDate(job.processedAt) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Attempts</th>
+                        <td>{{ job.attempts }} / {{ job.payload.maximumAttempts }}</td>
+                    </tr>
+                    <tr>
+                        <th>Triggered By</th>
+                        <td>
+                            <span class="badge" [ngClass]="job.payload.triggeredBy === 'schedule' ? 'bg-primary' : 'bg-secondary'">
+                                {{ job.payload.triggeredBy }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Payload Type</th>
+                        <td>{{ job.payload.payloadType }}</td>
+                    </tr>
+                    <tr>
+                        <th>Payload ID</th>
+                        <td>{{ job.payload.payLoadId }}</td>
+                    </tr>
+                    <tr>
+                        <th>Created At</th>
+                        <td>{{ formatDate(job.entryDateTime) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Created By (User ID)</th>
+                        <td>{{ job.entryUserId }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Payload Tab -->
+        <div *ngIf="activeTab === 'payload'" class="tab-content">
+            <pre class="bg-light p-3 rounded border"><code>{{ formatPayload(job.payload) }}</code></pre>
+        </div>
+
+        <!-- Error Tab -->
+        <div *ngIf="activeTab === 'error' && job.errorMessage" class="tab-content">
+            <div class="alert alert-danger">
+                <h6 class="alert-heading">
+                    <i class="bi bi-exclamation-triangle"></i> Error Message
+                </h6>
+                <hr>
+                <pre class="mb-0 text-wrap">{{ job.errorMessage }}</pre>
+            </div>
+        </div>
+    </div>
+</app-dialog>

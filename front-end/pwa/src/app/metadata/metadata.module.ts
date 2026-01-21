@@ -76,6 +76,7 @@ import { FileServerProtocolSelectorSingleComponent } from './connector-specifica
 import { ConnectorTypeSelectorSingleComponent } from './connector-specifications/connector-specification-input-dialog/connector-type-selector-single/connector-type-selector-single.component';
 import { ExportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/export-file-server-params/export-file-server-params.component';
 import { ImportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/import-file-server-params/import-file-server-params.component';
+import { ConnectorSpecificationSelectorSingleComponent } from './connector-specifications/connector-specification-selector-single/connector-specification-selector-single.component';
 
 @NgModule({
   declarations: [ 
@@ -180,6 +181,8 @@ import { ImportFileServerParamsComponent } from './connector-specifications/conn
 
     NetworkAffiliationsSelectorSingleComponent,
 
+    ConnectorSpecificationSelectorSingleComponent,
+
   ],
   imports: [
     MetadataRoutingModule,
@@ -232,6 +235,8 @@ import { ImportFileServerParamsComponent } from './connector-specifications/conn
 
     QCStatusSelectorSingleComponent,
     ExportTypeSelectorSingleComponent,
+
+    ConnectorSpecificationSelectorSingleComponent,
   ]
 })
 export class MetadataModule { } 

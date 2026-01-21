@@ -9,6 +9,16 @@ export enum JobQueueStatusEnum {
     CANCELLED = 'cancelled'
 }
 
+// Note changes to this enum should be followed by changes to emit listeners
+export enum JobTypeEnum {
+    CONNECTOR_IMPORT = 'connector.import',
+    CONNECTOR_EXPORT = 'connector.export'
+}
+
+export enum JobTriggerEnum {
+    SCHEDULE = 'schedule',
+    MANUAL = 'manual'
+}
 
 @Entity('job_queues')
 export class JobQueueEntity extends AppBaseEntity {
@@ -19,8 +29,16 @@ export class JobQueueEntity extends AppBaseEntity {
   @Index()
   name: string;
 
+  @Column({ name: 'job_type', type: 'enum', enum: JobTypeEnum })
+  @Index()
+  jobType: JobTypeEnum;
+
+  @Column({ name: 'triggered_by', type: 'enum', enum: JobTriggerEnum })
+  @Index()
+  triggeredBy: JobTriggerEnum;
+
   @Column({ name: 'payload', type: 'jsonb' })
-  payload: JobPayloadDto;
+  payload: Record<string, any>;
 
   @Column({ name: 'scheduled_at', type: 'timestamptz' })
   @Index()
@@ -38,13 +56,14 @@ export class JobQueueEntity extends AppBaseEntity {
   @Index()
   attempts: number;
 
+  @Column({ name: 'max_attempts', type: 'int', default: 3 })
+  maxAttempts: number;
+
   @Column({ name: 'error_message', type: 'varchar', nullable: true })
   errorMessage: string | null;
 }
 
-export interface JobPayloadDto {
-    payLoadId: number;
-    payloadType: string;
-    triggeredBy: 'schedule' | 'manual';
-    maximumAttempts: number;
+// Connector-specific payload interface
+export interface ConnectorJobPayloadDto {
+    connectorId: number;
 }

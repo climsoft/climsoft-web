@@ -1,0 +1,113 @@
+<div class="container-fluid">
+    <!-- Filters -->
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label class="form-label">Status</label>
+            <app-selector-single-input
+                [options]="statusOptions"
+                [optionDisplayFn]="statusDisplayFn"
+                [(selectedOption)]="selectedStatusOption"
+                (selectedOptionChange)="onStatusFilterChange($event)">
+            </app-selector-single-input>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">From Date</label>
+            <app-date-input
+                [(ngModel)]="fromDate"
+                (ngModelChange)="onFilterChange()">
+            </app-date-input>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">To Date</label>
+            <app-date-input
+                [(ngModel)]="toDate"
+                (ngModelChange)="onFilterChange()">
+            </app-date-input>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="button" class="btn btn-outline-primary" (click)="loadJobs()">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div *ngIf="loading" class="text-center my-4">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Jobs table -->
+    <div *ngIf="!loading" class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Scheduled At</th>
+                    <th>Processed At</th>
+                    <th>Attempts</th>
+                    <th>Triggered By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let job of jobs; let i = index"
+                    class="cursor-pointer"
+                    (click)="onJobClick(job)">
+                    <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
+                    <td>{{ job.id }}</td>
+                    <td>{{ job.name }}</td>
+                    <td>
+                        <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
+                            {{ formatStatus(job.status) }}
+                        </span>
+                    </td>
+                    <td>{{ formatDate(job.scheduledAt) }}</td>
+                    <td>{{ formatDate(job.processedAt) }}</td>
+                    <td>{{ job.attempts }} / {{ job.payload.maximumAttempts }}</td>
+                    <td>
+                        <span class="badge" [ngClass]="job.payload.triggeredBy === 'schedule' ? 'bg-primary' : 'bg-secondary'">
+                            {{ job.payload.triggeredBy }}
+                        </span>
+                    </td>
+                    <td>
+                        <button *ngIf="canCancel(job)"
+                                type="button"
+                                class="btn btn-sm btn-outline-danger me-1"
+                                title="Cancel Job"
+                                (click)="onCancelJob(job, $event)">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                        <button *ngIf="canRetry(job)"
+                                type="button"
+                                class="btn btn-sm btn-outline-warning"
+                                title="Retry Job"
+                                (click)="onRetryJob(job, $event)">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr *ngIf="jobs.length === 0">
+                    <td colspan="9" class="text-center text-muted py-4">
+                        No jobs found
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && jobs.length > 0" class="d-flex justify-content-end mt-3">
+        <app-page-input
+            [pageInputDefinition]="paging"
+            (pageInputDefinitionChange)="onPageChange()">
+        </app-page-input>
+    </div>
+</div>
+
+<!-- Job Detail Dialog -->
+<app-job-detail-dialog #jobDetailDialog></app-job-detail-dialog>

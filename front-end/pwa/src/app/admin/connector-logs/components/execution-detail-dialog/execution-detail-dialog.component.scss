@@ -1,0 +1,37 @@
+.execution-detail-content {
+    min-width: 700px;
+    max-width: 900px;
+}
+
+.nav-link {
+    cursor: pointer;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow: auto;
+}
+
+.card-header {
+    transition: background-color 0.2s;
+}
+
+.card-header:hover {
+    background-color: #e9ecef;
+}
+
+.bg-danger-subtle {
+    background-color: #f8d7da !important;
+}
+
+.alert {
+    font-size: 0.875rem;
+}

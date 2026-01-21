@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { JobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
+import { ConnectorJobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { ObservationImportService } from 'src/observation/services/observations-import.service';
 import * as path from 'path';
@@ -30,10 +30,10 @@ export class ConnectorImportProcessorService {
      */
     @OnEvent('connector.import')
     public async handleImportJob(job: JobQueueEntity) {
-        const payload: JobPayloadDto = job.payload;
+        const payload = job.payload as ConnectorJobPayloadDto;
 
-        this.logger.log(`Processing import job for connector ${payload.payLoadId}`);
-        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.payLoadId);
+        this.logger.log(`Processing import job for connector ${payload.connectorId}`);
+        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
         try {
             await this.processImportSpecifications(connector, job.entryUserId);
         } catch (error) {

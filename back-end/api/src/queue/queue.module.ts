@@ -13,6 +13,8 @@ import { MetadataModule } from 'src/metadata/metadata.module';
 import { ObservationModule } from 'src/observation/observation.module';
 import { ConnectorExecutionLogEntity } from './entity/connector-execution-log.entity';
 import { ConnectorExecutionLogService } from './services/connector-execution-log.service';
+import { JobQueueController } from './controllers/job-queue.controller';
+import { ConnectorExecutionLogsController } from './controllers/connector-execution-logs.controller';
 
 @Module({
     imports: [
@@ -26,7 +28,10 @@ import { ConnectorExecutionLogService } from './services/connector-execution-log
         MetadataModule,
         ObservationModule,
     ],
-    controllers: [],
+    controllers: [
+        JobQueueController,
+        ConnectorExecutionLogsController,
+    ],
     providers: [
         JobQueueService,
         JobQueueProcessorService,

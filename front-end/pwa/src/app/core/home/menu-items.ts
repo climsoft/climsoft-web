@@ -23,7 +23,7 @@ export enum MainMenuNameEnum {
 export enum SubMenuNameEnum {
     DATA_ENTRY = 'Data Entry',
     MANUAL_IMPORT = 'Manual Import',
-    SCHEDULED_IMPORT = 'Scheduled Import',
+    //SCHEDULED_IMPORT = 'Scheduled Import',
     DATA_CORRECTION = 'Data Correction',
     DELETED_DATA = 'Deleted Data',
 
@@ -34,10 +34,10 @@ export enum SubMenuNameEnum {
 
     SOURCE_CHECKS = 'Source Checks',
     QC_ASSESSMENT = 'QC Assessment',
-    SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
+    //SCHEDULED_QC_TESTS = 'Scheduled QC Tests',
 
     MANUAL_EXPORT = 'Manual Export',
-    SCHEDULED_EXPORT = 'Scheduled Export',
+    //SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
     ORGANISATIONS = 'Organisations',
@@ -54,6 +54,8 @@ export enum SubMenuNameEnum {
     CLIMSOFT_V4 = 'Climsoft V4',
     SETTINGS = 'Settings',
     AUDIT_LOGS = 'Audit Logs',
+    JOB_QUEUE = 'Job Queue',
+    CONNECTOR_LOGS = 'Connector Logs',
 }
 
 export class MenuItemsUtil {
@@ -73,10 +75,10 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.MANUAL_IMPORT,
                     url: '/manual-import-selection',
                 },
-                {
-                    name: SubMenuNameEnum.SCHEDULED_IMPORT,
-                    url: '/auto-import-selection',
-                },
+                // {
+                //     name: SubMenuNameEnum.SCHEDULED_IMPORT,
+                //     url: '/auto-import-selection',
+                // },
                 {
                     name: SubMenuNameEnum.DATA_CORRECTION,
                     url: '/data-correction',
@@ -131,10 +133,10 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.QC_ASSESSMENT,
                     url: '/qc-assessment',
                 },
-                {
-                    name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
-                    url: '/scheduled-qc-selection',
-                },
+                // {
+                //     name: SubMenuNameEnum.SCHEDULED_QC_TESTS,
+                //     url: '/scheduled-qc-selection',
+                // },
             ]
         }
     }
@@ -150,10 +152,10 @@ export class MenuItemsUtil {
                     name: SubMenuNameEnum.MANUAL_EXPORT,
                     url: '/manual-export-selection',
                 },
-                {
-                    name: SubMenuNameEnum.SCHEDULED_EXPORT,
-                    url: '/auto-export-selection',
-                },
+                // {
+                //     name: SubMenuNameEnum.SCHEDULED_EXPORT,
+                //     url: '/auto-export-selection',
+                // },
             ]
         };
     }
@@ -231,6 +233,14 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.AUDIT_LOGS,
                     url: '/view-audits',
+                },
+                {
+                    name: SubMenuNameEnum.JOB_QUEUE,
+                    url: '/view-job-queue',
+                },
+                {
+                    name: SubMenuNameEnum.CONNECTOR_LOGS,
+                    url: '/view-connector-logs',
                 },
 
             ]

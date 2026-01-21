@@ -77,7 +77,7 @@ export class ConnectorSpecificationsService {
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maximumAttempts = dto.maximumRetries;
+        entity.maxAttempts = dto.maxAttempts;
         entity.cronSchedule = dto.cronSchedule;
 
         // Encrypt password before storing
@@ -114,7 +114,7 @@ export class ConnectorSpecificationsService {
         entity.endPointType = dto.endPointType;
         entity.hostName = dto.hostName;
         entity.timeout = dto.timeout;
-        entity.maximumAttempts = dto.maximumRetries;
+        entity.maxAttempts = dto.maxAttempts;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
         dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
@@ -179,7 +179,7 @@ export class ConnectorSpecificationsService {
             endPointType: entity.endPointType,
             hostName: entity.hostName,
             timeout: entity.timeout,
-            maximumRetries: entity.maximumAttempts,
+            maxAttempts: entity.maxAttempts,
             cronSchedule: entity.cronSchedule,
             orderNumber: entity.orderNumber ? entity.orderNumber : undefined,
             parameters: entity.parameters,

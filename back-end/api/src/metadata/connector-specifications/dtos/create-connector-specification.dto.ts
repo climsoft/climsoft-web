@@ -54,7 +54,7 @@ export class CreateConnectorSpecificationDto {
 
     @IsInt()
     @Min(0)
-    maximumRetries: number;
+    maxAttempts: number;
 
     @IsString()
     @IsNotEmpty()

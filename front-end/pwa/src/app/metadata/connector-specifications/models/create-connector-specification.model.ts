@@ -38,7 +38,7 @@ export interface CreateConnectorSpecificationModel {
 
     timeout: number; // in seconds
 
-    maximumRetries: number;
+    maxAttempts: number;
 
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 

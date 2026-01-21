@@ -1,0 +1,190 @@
+import { Component } from '@angular/core';
+import {
+    ViewConnectorExecutionLogModel,
+    ExecutionActivityModel,
+    ImportFileServerExecutionActivityModel,
+    ExportFileServerExecutionActivityModel,
+    ImportFileProcessingResultModel,
+    ExportFileProcessingResultModel
+} from '../../models/view-connector-execution-log.model';
+
+@Component({
+    selector: 'app-execution-detail-dialog',
+    templateUrl: './execution-detail-dialog.component.html',
+    styleUrls: ['./execution-detail-dialog.component.scss']
+})
+export class ExecutionDetailDialogComponent {
+    protected open: boolean = false;
+    protected log: ViewConnectorExecutionLogModel | null = null;
+    protected connectorName: string = '';
+    protected activeTab: 'summary' | 'activities' | 'files' = 'summary';
+    protected expandedActivityIndex: number | null = null;
+
+    public openDialog(log: ViewConnectorExecutionLogModel, connectorName: string): void {
+        this.log = log;
+        this.connectorName = connectorName;
+        this.activeTab = 'summary';
+        this.expandedActivityIndex = null;
+        this.open = true;
+    }
+
+    protected onClose(): void {
+        this.open = false;
+        this.log = null;
+    }
+
+    protected formatDate(dateString: string | null): string {
+        if (!dateString) {
+            return '-';
+        }
+        return new Date(dateString).toLocaleString();
+    }
+
+    protected getDuration(): string {
+        if (!this.log) {
+            return '-';
+        }
+        const start = new Date(this.log.executionStartDatetime).getTime();
+        const end = new Date(this.log.executionEndDatetime).getTime();
+        const durationMs = end - start;
+
+        if (durationMs < 1000) {
+            return `${durationMs}ms`;
+        } else if (durationMs < 60000) {
+            return `${(durationMs / 1000).toFixed(1)}s`;
+        } else {
+            const minutes = Math.floor(durationMs / 60000);
+            const seconds = Math.floor((durationMs % 60000) / 1000);
+            return `${minutes}m ${seconds}s`;
+        }
+    }
+
+    protected getTotalFileCount(): number {
+        if (!this.log?.executionActivities) {
+            return 0;
+        }
+        return this.log.executionActivities.reduce((count, activity) => {
+            return count + (activity.processedFiles?.length || 0);
+        }, 0);
+    }
+
+    protected getSuccessfulFileCount(): number {
+        if (!this.log?.executionActivities) {
+            return 0;
+        }
+        return this.log.executionActivities.reduce((count, activity) => {
+            return count + (activity.processedFiles?.filter(f => !this.hasFileError(f)).length || 0);
+        }, 0);
+    }
+
+    protected toggleActivity(index: number): void {
+        this.expandedActivityIndex = this.expandedActivityIndex === index ? null : index;
+    }
+
+    protected isImportActivity(activity: ExecutionActivityModel): activity is ImportFileServerExecutionActivityModel {
+        return 'stationId' in activity || (activity.processedFiles?.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
+    }
+
+    protected getActivityFilePattern(activity: ExecutionActivityModel): string {
+        return activity.filePattern || '-';
+    }
+
+    protected getActivitySpecId(activity: ExecutionActivityModel): number {
+        return activity.specificationId;
+    }
+
+    protected getActivityStationId(activity: ExecutionActivityModel): string | undefined {
+        if (this.isImportActivity(activity)) {
+            return activity.stationId;
+        }
+        return undefined;
+    }
+
+    protected getActivityFileCount(activity: ExecutionActivityModel): number {
+        return activity.processedFiles?.length || 0;
+    }
+
+    protected getActivityErrorCount(activity: ExecutionActivityModel): number {
+        if (!activity.processedFiles) {
+            return 0;
+        }
+        return activity.processedFiles.filter(f => this.hasFileError(f)).length;
+    }
+
+    protected hasFileError(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): boolean {
+        return !!file.errorMessage;
+    }
+
+    protected isUnchangedFile(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): boolean {
+        if ('unchangedFile' in file) {
+            return !!file.unchangedFile;
+        }
+        return false;
+    }
+
+    protected getFileName(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
+            return file.remoteFileMetadata.fileName;
+        }
+        if (file.processedFileName) {
+            return this.extractFileName(file.processedFileName);
+        }
+        return 'Unknown';
+    }
+
+    protected getFileSize(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
+            return this.formatFileSize(file.remoteFileMetadata.size);
+        }
+        return '-';
+    }
+
+    protected getFileModifiedDate(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
+            return this.formatDate(file.remoteFileMetadata.modifiedDate);
+        }
+        return '-';
+    }
+
+    protected getFileStatus(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if (file.errorMessage) {
+            return 'Error';
+        }
+        if (this.isUnchangedFile(file)) {
+            return 'Skipped (Unchanged)';
+        }
+        if (file.processedFileName) {
+            return 'Processed';
+        }
+        if ('downloadedFileName' in file && file.downloadedFileName) {
+            return 'Downloaded';
+        }
+        return 'Pending';
+    }
+
+    protected getFileStatusClass(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if (file.errorMessage) {
+            return 'bg-danger';
+        }
+        if (this.isUnchangedFile(file)) {
+            return 'bg-secondary';
+        }
+        if (file.processedFileName) {
+            return 'bg-success';
+        }
+        return 'bg-warning text-dark';
+    }
+
+    private extractFileName(path: string): string {
+        const parts = path.split(/[/\\]/);
+        return parts[parts.length - 1] || path;
+    }
+
+    private formatFileSize(bytes: number): string {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+}

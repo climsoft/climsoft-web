@@ -62,23 +62,20 @@ export class JobQueueProcessorService {
         try {
             await this.queueService.markAsProcessing(job.id);
 
-            // Emit event for job processors to handle
-            await this.eventEmitter.emitAsync(`${job.name}`, job);
+            // Emit event for job processors to handle based on job type
+            await this.eventEmitter.emitAsync(job.jobType, job);
 
-            // TODO. This can be done as a prompt(event emitted) from individual processors after they finish the task. 
-            // Will help with doing the tasks in parallel
             await this.queueService.markAsFinished(job.id);
 
             this.logger.log(`Job ${job.id}: ${job.name} completed`);
 
         } catch (error) {
-            this.logger.error(`Job ${job.id}: ${job.name}  failed:`, error);
+            this.logger.error(`Job ${job.id}: ${job.name} failed:`, error);
             const errorMessage = error instanceof Error ? error.message : String(error);
             await this.queueService.markAsFailed(job.id, errorMessage);
 
             // Try to retry the job if it hasn't exceeded max retries
-            // They should all implement `maximumAttempts` property.
-            await this.queueService.retryJob(job.id, job.payload.maximumAttempts);
+            await this.queueService.retryJob(job.id, job.maxAttempts);
         }
     }
 }

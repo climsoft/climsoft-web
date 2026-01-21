@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { JobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
+import { ConnectorJobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import * as path from 'path';
 import { Client as FtpClient } from 'basic-ftp';
@@ -29,10 +29,10 @@ export class ConnectorExportProcessorService {
      */
     @OnEvent('connector.export')
     public async handleExportJob(job: JobQueueEntity) {
-        const payload: JobPayloadDto = job.payload;
+        const payload = job.payload as ConnectorJobPayloadDto;
 
-        this.logger.log(`Processing export job for connector ${payload.payLoadId}`);
-        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.payLoadId);
+        this.logger.log(`Processing export job for connector ${payload.connectorId}`);
+        const connector: ViewConnectorSpecificationDto = await this.connectorService.find(payload.connectorId);
         try {
             await this.processExportSpecifications(connector, job.entryUserId);
         } catch (error) {

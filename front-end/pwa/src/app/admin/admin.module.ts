@@ -17,6 +17,14 @@ import { UserGroupDetailsComponent } from './users/user-group-details/user-group
 import { EditUserPermissionsComponent } from './users/permissions/edit-user-permissions.component';
 import { EditUserPermissionsDurationComponent } from './users/permissions/edit-user-permissions-duration/edit-user-permissions-duration.component';
 
+// Job Queue components
+import { ViewJobQueueComponent } from './job-queue/components/view-job-queue/view-job-queue.component';
+import { JobDetailDialogComponent } from './job-queue/components/job-detail-dialog/job-detail-dialog.component';
+
+// Connector Logs components
+import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
+import { ExecutionDetailDialogComponent } from './connector-logs/components/execution-detail-dialog/execution-detail-dialog.component';
+
 @NgModule({
   declarations: [
     ViewGeneralSettingsComponent,
@@ -24,7 +32,7 @@ import { EditUserPermissionsDurationComponent } from './users/permissions/edit-u
     ClimsoftBoundaryComponent,
     ClimsoftDisplayTimezoneComponent,
     ClimsoftV4Component,
-    
+
     ViewUserGroupsComponent,
     ViewUsersComponent,
     UserGroupDetailsComponent,
@@ -35,6 +43,14 @@ import { EditUserPermissionsDurationComponent } from './users/permissions/edit-u
     UserGroupSelectorSingleComponent,
     PasswordChangeComponent,
     ViewAuditsComponent,
+
+    // Job Queue
+    ViewJobQueueComponent,
+    JobDetailDialogComponent,
+
+    // Connector Logs
+    ViewConnectorLogsComponent,
+    ExecutionDetailDialogComponent,
   ],
   imports: [
     SharedModule,

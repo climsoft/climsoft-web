@@ -2,10 +2,11 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob } from 'cron';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import { JobQueueService } from './job-queue.service'; 
+import { JobQueueService } from './job-queue.service';
 import { OnEvent } from '@nestjs/event-emitter';
-import { JobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
+import { ConnectorJobPayloadDto, JobQueueEntity, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
+import { ConnectorTypeEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 
 @Injectable()
 export class ConnectorSchedulerService implements OnModuleInit {
@@ -96,27 +97,38 @@ export class ConnectorSchedulerService implements OnModuleInit {
                 return;
             }
 
-            const payload: JobPayloadDto = {
-                payLoadId: connector.id,
-                payloadType: connector.connectorType,
-                maximumAttempts: connector.maximumRetries,
-                triggeredBy: 'schedule',
+            const payload: ConnectorJobPayloadDto = {
+                connectorId: connector.id,
             };
 
-            const jobName = `connector.${connector.connectorType}`;
+            const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
 
             // Create queue job to be processed
             await this.jobQueueService.createJob(
-                jobName,
+                connector.name,
+                jobType,
+                JobTriggerEnum.SCHEDULE,
+                connector.maxAttempts,
                 payload,
                 new Date(), // Schedule immediately
                 connector.entryUserId, // User who created it
             );
 
-            this.logger.log(`Created ${connector.connectorType} job for connector ${connectorId}`);
+            this.logger.log(`Created ${connector.connectorType} job for connector ${connector.name}`);
 
         } catch (error) {
             this.logger.error(`Failed to schedule connector job ${connectorId}`, error);
+        }
+    }
+
+    private getEquivalentJobType(connectorType: ConnectorTypeEnum): JobTypeEnum {
+        switch (connectorType) {
+            case ConnectorTypeEnum.IMPORT:
+                return JobTypeEnum.CONNECTOR_IMPORT;
+            case ConnectorTypeEnum.EXPORT:
+                return JobTypeEnum.CONNECTOR_IMPORT;
+            default:
+                throw new Error('Developer Error. Connector type not supported');
         }
     }
 
@@ -126,23 +138,23 @@ export class ConnectorSchedulerService implements OnModuleInit {
     public async triggerConnectorManually(connectorId: number, userId: number): Promise<JobQueueEntity> {
         const connector: ViewConnectorSpecificationDto = await this.connectorSpecificationService.find(connectorId);
 
-        const payload: JobPayloadDto = {
-            payLoadId: connector.id,
-            payloadType: connector.connectorType,
-            maximumAttempts: connector.maximumRetries,
-            triggeredBy: 'manual'
+        const payload: ConnectorJobPayloadDto = {
+            connectorId: connector.id,
         };
 
-        const jobName = `connector.${connector.connectorType}`;
+        const jobType: JobTypeEnum = this.getEquivalentJobType(connector.connectorType);
 
         const job = await this.jobQueueService.createJob(
-            jobName,
+            connector.name,
+            jobType,
+            JobTriggerEnum.MANUAL,
+            connector.maxAttempts,
             payload,
             new Date(),
             userId
         );
 
-        this.logger.log(`Manually triggered ${connector.connectorType} job for connector ${connectorId}`);
+        this.logger.log(`Manually triggered ${connector.connectorType} job for connector ${connector.name}`);
 
         return job;
     }
