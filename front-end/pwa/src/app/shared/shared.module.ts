@@ -40,6 +40,7 @@ import { YearSelectorSingleComponent } from './controls/year-selector/year-selec
 import { DatetimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/datetime-format-selector-single/datetime-format-selector-single.component';
 import { TimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/time-format-selector-single/time-format-selector-single.component';
 import { DateFormatSelectorSingleComponent } from './controls/datetime-format-selectors/date-format-selector-single/date-format-selector-single.component';
+import { ErrorSelectorSingleComponent } from './controls/error-selector-single/error-selector-single.component';
 
 //--------------------------------
 
@@ -92,6 +93,8 @@ const controlsComponents = [
   DatetimeFormatSelectorSingleComponent,
   DateFormatSelectorSingleComponent,
   TimeFormatSelectorSingleComponent,
+
+  ErrorSelectorSingleComponent,
 ];
 
 const directives = [

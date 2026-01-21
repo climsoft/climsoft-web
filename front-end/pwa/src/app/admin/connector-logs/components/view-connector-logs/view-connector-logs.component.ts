@@ -8,6 +8,8 @@ import { PagingParameters } from 'src/app/shared/controls/page-input/paging-para
 import { ConnectorSpecificationsService } from 'src/app/metadata/connector-specifications/services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from 'src/app/metadata/connector-specifications/models/view-connector-specification.model';
 import { ExecutionDetailDialogComponent } from '../execution-detail-dialog/execution-detail-dialog.component';
+import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 interface ErrorFilterOption {
     id: boolean | null;
@@ -32,8 +34,10 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
     protected selectedConnectorId: number | null = null;
 
     // Date filters
-    protected startDate: string | null = null;
-    protected endDate: string | null = null;
+    protected dateRange: DateRange = {
+        fromDate: DateUtils.getDateOnlyAsString(new Date()),
+        toDate: DateUtils.getDateOnlyAsString(new Date())
+    };
 
     // Error filter
     protected errorFilterOptions: ErrorFilterOption[] = [
@@ -90,11 +94,11 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
         if (this.selectedConnectorId) {
             query.connectorId = this.selectedConnectorId;
         }
-        if (this.startDate) {
-            query.startDate = this.startDate;
+        if (this.dateRange.fromDate) {
+            query.startDate = this.dateRange.fromDate;
         }
-        if (this.endDate) {
-            query.endDate = this.endDate;
+        if (this.dateRange.toDate) {
+            query.endDate = this.dateRange.toDate;
         }
         if (this.hasErrorsFilter !== null) {
             query.hasErrors = this.hasErrorsFilter;
@@ -141,8 +145,8 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
 
         this.connectorLogService.getStats(
             this.selectedConnectorId,
-            this.startDate || undefined,
-            this.endDate || undefined
+            this.dateRange.fromDate,
+            this.dateRange.toDate
         )
             .pipe(takeUntil(this.destroy$))
             .subscribe({
@@ -155,7 +159,7 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
             });
     }
 
-    protected onFilterChange(): void {
+    protected onDateFilterChange(): void {
         this.loadLogs();
     }
 
@@ -164,8 +168,8 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
         this.loadLogs();
     }
 
-    protected onErrorFilterChange(option: ErrorFilterOption | null): void {
-        this.hasErrorsFilter = option?.id ?? null;
+    protected onErrorFilterChange(option: boolean | null): void {
+        this.hasErrorsFilter = option;
         this.loadLogs();
     }
 

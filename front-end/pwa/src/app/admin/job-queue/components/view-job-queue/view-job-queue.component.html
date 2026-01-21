@@ -10,18 +10,12 @@
                 (selectedIdChange)="onStatusFilterChange($event)" />
         </div>
         <div class="col-md-3">
-            <label class="form-label">From Date</label>
-            <app-date-input [(ngModel)]="fromDate" (ngModelChange)="onFilterChange()">
-            </app-date-input>
-        </div>
-        <div class="col-md-3">
-            <label class="form-label">To Date</label>
-            <app-date-input [(ngModel)]="toDate" (ngModelChange)="onFilterChange()">
-            </app-date-input>
+            <app-date-range-input [id]="'job_date'" [label]="'Date'" [(value)]="dateRange"
+                (valueChange)="onDateFilterChange()" />
         </div>
         <div class="col-md-3 d-flex align-items-end">
-            <button type="button" class="btn btn-outline-primary" (click)="loadJobs()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadJobs()">
+                Refresh
             </button>
         </div>
     </div>

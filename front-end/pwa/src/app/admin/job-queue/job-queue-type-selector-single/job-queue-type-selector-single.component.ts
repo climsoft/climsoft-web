@@ -32,7 +32,7 @@ export class JobQueueTypeSelectorSingleComponent implements OnChanges {
 
     // Only react to changes if selectedId actually changes and is not the first change
     if (this.selectedId) {
-      const found = this.options.find(period => period === this.selectedId);
+      const found = this.options.find(item => item === this.selectedId);
       if (found && found !== this.selectedOption) {
         this.selectedOption = found;
       }

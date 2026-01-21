@@ -11,7 +11,7 @@ interface Hour {
   templateUrl: './hour-single-input.component.html',
   styleUrls: ['./hour-single-input.component.scss']
 })
-export class HourSingleInputComponent implements OnInit, OnChanges {
+export class HourSingleInputComponent implements OnChanges {
   @Input() public label: string = 'Hour';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
@@ -24,9 +24,6 @@ export class HourSingleInputComponent implements OnInit, OnChanges {
 
   constructor() {
 
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnChanges(changes: SimpleChanges): void {

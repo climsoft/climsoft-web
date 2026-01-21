@@ -1,13 +1,13 @@
 <div *ngIf="value">
-  <div *ngIf="label">{{label}}:</div>
-  <div class="row">
-    <div class="col-auto">
-      <app-date-input [id]="'date_range_from_date'" [maxDate]="maxDate" [minDate]="minDate" [value]="value.fromDate"
+  <div *ngIf="label" class="fw-bold">{{label}}:</div>
+  <div class="d-flex">
+    <div>
+      <app-date-input [id]="id + '_dte_rg_from_dte'" [maxDate]="maxDate" [minDate]="minDate" [value]="value.fromDate"
         (valueChange)="onFromDateChange($event)" />
     </div>
-    <div class="col-auto d-flex align-items-center">To</div>
-    <div class="col-auto">
-      <app-date-input [id]="'date_range_to_date'" [maxDate]="maxDate" [minDate]="minDate" [value]="value.toDate"
+    <div class="mx-2 d-flex align-items-center">To</div>
+    <div>
+      <app-date-input [id]="id + '_dte_rg_to_dte'" [maxDate]="maxDate" [minDate]="minDate" [value]="value.toDate"
         (valueChange)="onToDateChange($event)" />
     </div>
   </div>

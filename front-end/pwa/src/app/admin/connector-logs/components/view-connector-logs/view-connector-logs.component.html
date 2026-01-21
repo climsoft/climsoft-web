@@ -5,25 +5,16 @@
             <app-connector-specification-selector-single [label]="'Connector'" [selectedId]="selectedConnectorId"
                 (selectedIdChange)="onConnectorFilterChange($event)" />
         </div>
-        <div class="col-md-2">
-            <label class="form-label">From Date</label>
-            <app-date-input [(ngModel)]="startDate" (ngModelChange)="onFilterChange()">
-            </app-date-input>
+        <div class="col-md-3">
+            <app-date-range-input [id]="'connector_log_date'" [label]="'Date'" [(value)]="dateRange"
+                (valueChange)="onDateFilterChange()" />
         </div>
-        <div class="col-md-2">
-            <label class="form-label">To Date</label>
-            <app-date-input [(ngModel)]="endDate" (ngModelChange)="onFilterChange()">
-            </app-date-input>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">Error Filter</label>
-            <app-selector-single-input [options]="errorFilterOptions" [optionDisplayFn]="errorFilterDisplayFn"
-                [(selectedOption)]="selectedErrorFilterOption" (selectedOptionChange)="onErrorFilterChange($event)">
-            </app-selector-single-input>
+        <div class="col-md-3">
+            <app-error-selector-single [label]="'Error'" (selectedIdChange)="onErrorFilterChange($event)" />
         </div>
         <div class="col-md-3 d-flex align-items-end">
-            <button type="button" class="btn btn-outline-primary" (click)="loadLogs()">
-                <i class="bi bi-arrow-clockwise"></i> Refresh
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadLogs()">
+                Refresh
             </button>
         </div>
     </div>

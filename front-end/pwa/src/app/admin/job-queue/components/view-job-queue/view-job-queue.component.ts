@@ -8,6 +8,8 @@ import { JobQueueStatusEnum } from '../../models/job-queue-status.enum';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { JobDetailDialogComponent } from '../job-detail-dialog/job-detail-dialog.component';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 
 @Component({
     selector: 'app-view-job-queue',
@@ -22,18 +24,11 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
     protected paging: PagingParameters = new PagingParameters();
 
     // Filter options
-    protected statusOptions: { id: JobQueueStatusEnum | null; name: string }[] = [
-        { id: null, name: 'All' },
-        { id: JobQueueStatusEnum.PENDING, name: 'Pending' },
-        { id: JobQueueStatusEnum.PROCESSING, name: 'Processing' },
-        { id: JobQueueStatusEnum.FINISHED, name: 'Finished' },
-        { id: JobQueueStatusEnum.FAILED, name: 'Failed' },
-        { id: JobQueueStatusEnum.CANCELLED, name: 'Cancelled' },
-    ];
-    protected selectedStatusOption: { id: JobQueueStatusEnum | null; name: string } | null = this.statusOptions[0];
     protected selectedStatus: JobQueueStatusEnum | null = null;
-    protected fromDate: string | null = null;
-    protected toDate: string | null = null;
+    protected dateRange: DateRange = {
+        fromDate: DateUtils.getDateOnlyAsString(new Date()),
+        toDate: DateUtils.getDateOnlyAsString(new Date())
+    };
 
     protected statusDisplayFn = (option: { id: JobQueueStatusEnum | null; name: string }): string => {
         return option.name;
@@ -67,11 +62,11 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         if (this.selectedStatus) {
             query.status = this.selectedStatus;
         }
-        if (this.fromDate) {
-            query.fromDate = this.fromDate;
+        if (this.dateRange.fromDate) {
+            query.fromDate = this.dateRange.fromDate;
         }
-        if (this.toDate) {
-            query.toDate = this.toDate;
+        if (this.dateRange.toDate) {
+            query.toDate = this.dateRange.toDate;
         }
 
         // First get the count
@@ -101,7 +96,7 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
             });
     }
 
-    protected onFilterChange(): void {
+    protected onDateFilterChange(): void {
         this.loadJobs();
     }
 
