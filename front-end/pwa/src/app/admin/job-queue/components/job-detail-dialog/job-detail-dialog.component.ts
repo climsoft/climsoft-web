@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { ViewJobQueueModel } from '../../models/view-job-queue.model';
 import { JobQueueStatusEnum, JobTypeEnum, JobTriggerEnum } from '../../models/job-queue-status.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 @Component({
     selector: 'app-job-detail-dialog',
@@ -10,18 +12,15 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 })
 export class JobDetailDialogComponent {
     protected open: boolean = false;
-    protected job: ViewJobQueueModel | null = null;
+    protected job!: ViewJobQueueModel;
     protected activeTab: 'details' | 'payload' | 'error' = 'details';
+    
+    constructor(private cachedMetadata: CachedMetadataService ) { }
 
     public openDialog(job: ViewJobQueueModel): void {
         this.job = job;
         this.activeTab = 'details';
         this.open = true;
-    }
-
-    protected onClose(): void {
-        this.open = false;
-        this.job = null;
     }
 
     protected getStatusBadgeClass(status: JobQueueStatusEnum): string {
@@ -49,7 +48,7 @@ export class JobDetailDialogComponent {
         if (!dateString) {
             return '-';
         }
-        return new Date(dateString).toLocaleString();
+        return DateUtils.getPresentableDatetime(dateString, this.cachedMetadata.utcOffSet);
     }
 
     protected formatPayload(payload: any): string {
@@ -74,9 +73,9 @@ export class JobDetailDialogComponent {
     protected getJobTypeBadgeClass(jobType: JobTypeEnum): string {
         switch (jobType) {
             case JobTypeEnum.CONNECTOR_IMPORT:
-                return 'bg-info text-white';
+                 return 'bg-primary';               
             case JobTypeEnum.CONNECTOR_EXPORT:
-                return 'bg-primary';
+                return 'bg-info text-white';
             default:
                 return 'bg-light text-dark';
         }

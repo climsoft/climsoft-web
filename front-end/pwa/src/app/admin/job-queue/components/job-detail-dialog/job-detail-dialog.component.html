@@ -1,31 +1,21 @@
-<app-dialog
-    [open]="open"
-    (openChange)="open = $event"
-    [title]="'Job Details: #' + (job?.id || '')"
-    [displayOkOption]="false"
+<app-dialog *ngIf="job" [(open)]="open" [title]="'Job Details: #' + job.id" [displayOkOption]="false"
     [cancelButtonLabel]="'Close'">
 
     <div *ngIf="job" class="job-detail-content">
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'details'"
-                        (click)="activeTab = 'details'">
+                <button class="nav-link" [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">
                     Details
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'payload'"
-                        (click)="activeTab = 'payload'">
+                <button class="nav-link" [class.active]="activeTab === 'payload'" (click)="activeTab = 'payload'">
                     Payload
                 </button>
             </li>
             <li class="nav-item" *ngIf="job.errorMessage">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'error'"
-                        (click)="activeTab = 'error'">
+                <button class="nav-link" [class.active]="activeTab === 'error'" (click)="activeTab = 'error'">
                     <i class="bi bi-exclamation-triangle text-danger"></i> Error
                 </button>
             </li>
@@ -33,7 +23,7 @@
 
         <!-- Details Tab -->
         <div *ngIf="activeTab === 'details'" class="tab-content">
-            <table class="table table-sm">
+            <table class="table table-sm details-table">
                 <tbody>
                     <tr>
                         <th class="w-25">Job ID</th>
@@ -82,10 +72,6 @@
                     <tr>
                         <th>Created At</th>
                         <td>{{ formatDate(job.entryDateTime) }}</td>
-                    </tr>
-                    <tr>
-                        <th>Created By (User ID)</th>
-                        <td>{{ job.entryUserId }}</td>
                     </tr>
                 </tbody>
             </table>
