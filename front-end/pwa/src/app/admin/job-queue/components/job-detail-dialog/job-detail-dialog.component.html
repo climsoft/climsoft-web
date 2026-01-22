@@ -9,11 +9,11 @@
                     Details
                 </button>
             </li>
-            <li class="nav-item">
+            <!-- <li class="nav-item">
                 <button class="nav-link" [class.active]="activeTab === 'payload'" (click)="activeTab = 'payload'">
                     Payload
                 </button>
-            </li>
+            </li> -->
             <li class="nav-item" *ngIf="job.errorMessage">
                 <button class="nav-link" [class.active]="activeTab === 'error'" (click)="activeTab = 'error'">
                     <i class="bi bi-exclamation-triangle text-danger"></i> Error
@@ -78,9 +78,9 @@
         </div>
 
         <!-- Payload Tab -->
-        <div *ngIf="activeTab === 'payload'" class="tab-content">
+        <!-- <div *ngIf="activeTab === 'payload'" class="tab-content">
             <pre class="bg-light p-3 rounded border"><code>{{ formatPayload(job.payload) }}</code></pre>
-        </div>
+        </div> -->
 
         <!-- Error Tab -->
         <div *ngIf="activeTab === 'error' && job.errorMessage" class="tab-content">

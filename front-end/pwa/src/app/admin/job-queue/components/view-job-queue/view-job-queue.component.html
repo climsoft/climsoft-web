@@ -54,7 +54,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr *ngFor="let job of jobs; let i = index" class="app-cursor-pointer" (click)="onJobClick(job)">
+                    <tr *ngFor="let job of jobs; let i = index" class="app-cursor-pointer"
+                        [class.table-danger]="job.errorMessage" (click)="onJobClick(job)">
                         <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
                         <td>{{ job.id }}</td>
                         <td>{{ job.name }}</td>
