@@ -62,61 +62,67 @@
         </div>
     </div>
 
-    <!-- Logs table -->
-    <div *ngIf="!loading" class="app-table-container">
-        <table class="table table-hover table-sm">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>ID</th>
-                    <th>Connector</th>
-                    <th>Started At</th>
-                    <th>Duration</th>
-                    <th>Activities</th>
-                    <th>Files</th>
-                    <th>Errors</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let log of logs; let i = index" class="app-cursor-pointer"
-                    [class.table-danger]="log.totalErrors > 0" (click)="onLogClick(log)">
-                    <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
-                    <td>{{ log.id }}</td>
-                    <td>{{ getConnectorName(log.connectorId) }}</td>
-                    <td>{{ formatDate(log.executionStartDatetime) }}</td>
-                    <td>{{ getDuration(log) }}</td>
-                    <td>{{ getActivityCount(log) }}</td>
-                    <td>{{ getFileCount(log) }}</td>
-                    <td>
-                        <span *ngIf="log.totalErrors > 0" class="badge bg-danger">
-                            {{ log.totalErrors }}
-                        </span>
-                        <span *ngIf="log.totalErrors === 0" class="badge bg-success">
-                            0
-                        </span>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Log"
-                            (click)="onDeleteLog(log, $event)">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr *ngIf="logs.length === 0">
-                    <td colspan="9" class="text-center text-muted py-4">
-                        No execution logs found
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div *ngIf="!loading">
+        <!-- Pagination -->
+        <div *ngIf="!loading && logs.length > 0" class="d-flex justify-content-end">
+            <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()">
+            </app-page-input>
+        </div>
+
+        <!-- Logs table -->
+        <div class="app-table-container">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Connector</th>
+                        <th>Started At</th>
+                        <th>Duration</th>
+                        <th>Activities</th>
+                        <th>Files</th>
+                        <th>Errors</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of logs; let i = index" class="app-cursor-pointer"
+                        [class.table-danger]="log.totalErrors > 0" (click)="onLogClick(log)">
+                        <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
+                        <td>{{ log.id }}</td>
+                        <td>{{ getConnectorName(log.connectorId) }}</td>
+                        <td>{{ formatDate(log.executionStartDatetime) }}</td>
+                        <td>{{ getDuration(log) }}</td>
+                        <td>{{ getActivityCount(log) }}</td>
+                        <td>{{ getFileCount(log) }}</td>
+                        <td>
+                            <span *ngIf="log.totalErrors > 0" class="badge bg-danger">
+                                {{ log.totalErrors }}
+                            </span>
+                            <span *ngIf="log.totalErrors === 0" class="badge bg-success">
+                                0
+                            </span>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="Delete Log"
+                                (click)="onDeleteLog(log, $event)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="logs.length === 0">
+                        <td colspan="9" class="text-center text-muted py-4">
+                            No execution logs found
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Pagination -->
-    <div *ngIf="!loading && logs.length > 0" class="d-flex justify-content-end mt-3">
-        <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()">
-        </app-page-input>
-    </div>
+
+
+
 </div>
 
 <!-- Execution Detail Dialog -->

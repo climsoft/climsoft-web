@@ -13,10 +13,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
-import { ValueFlagInputComponent } from 'src/app/observations/value-flag-input/value-flag-input.component';
-import { ViewObservationModel } from '../models/view-observation.model';
-
-
 
 @Component({
   selector: 'app-data-correction',

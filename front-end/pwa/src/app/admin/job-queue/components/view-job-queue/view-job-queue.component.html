@@ -31,70 +31,72 @@
         </div>
     </div>
 
-    <!-- Jobs table -->
-    <div *ngIf="!loading" class="app-table-container">
-        <table class="table table-hover table-sm">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Scheduled At</th>
-                    <th>Processed At</th>
-                    <th>Attempts</th>
-                    <th>Triggered By</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let job of jobs; let i = index" class="app-cursor-pointer" (click)="onJobClick(job)">
-                    <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
-                    <td>{{ job.id }}</td>
-                    <td>{{ job.name }}</td>
-                    <td>
-                        <span class="badge" [ngClass]="getJobTypeBadgeClass(job.jobType)">
-                            {{ formatJobType(job.jobType) }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
-                            {{ formatStatus(job.status) }}
-                        </span>
-                    </td>
-                    <td>{{ formatDate(job.scheduledAt) }}</td>
-                    <td>{{ formatDate(job.processedAt) }}</td>
-                    <td>{{ job.attempts }} / {{ job.maxAttempts }}</td>
-                    <td>
-                        <span class="badge" [ngClass]="getTriggeredByBadgeClass(job.triggeredBy)">
-                            {{ formatTriggeredBy(job.triggeredBy) }}
-                        </span>
-                    </td>
-                    <td>
-                        <button *ngIf="canCancel(job)" type="button" class="btn btn-sm btn-outline-danger me-1"
-                            title="Cancel Job" (click)="onCancelJob(job, $event)">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                        <button *ngIf="canRetry(job)" type="button" class="btn btn-sm btn-outline-warning"
-                            title="Retry Job" (click)="onRetryJob(job, $event)">
-                            <i class="bi bi-arrow-repeat"></i>
-                        </button>
-                    </td>
-                </tr>
-                <tr *ngIf="jobs.length === 0">
-                    <td colspan="10" class="text-center text-muted py-4">
-                        No jobs found
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div *ngIf="!loading && jobs.length > 0">
+        <!-- Pagination -->
+        <div class="d-flex justify-content-end">
+            <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
+        </div>
+        <!-- Jobs table -->
+        <div *ngIf="!loading" class="app-table-container">
+            <table class="table table-hover table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Scheduled At</th>
+                        <th>Processed At</th>
+                        <th>Attempts</th>
+                        <th>Triggered By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let job of jobs; let i = index" class="app-cursor-pointer" (click)="onJobClick(job)">
+                        <td>{{ (paging.page - 1) * paging.pageSize + i + 1 }}</td>
+                        <td>{{ job.id }}</td>
+                        <td>{{ job.name }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="getJobTypeBadgeClass(job.jobType)">
+                                {{ formatJobType(job.jobType) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
+                                {{ formatStatus(job.status) }}
+                            </span>
+                        </td>
+                        <td>{{ formatDate(job.scheduledAt) }}</td>
+                        <td>{{ formatDate(job.processedAt) }}</td>
+                        <td>{{ job.attempts }} / {{ job.maxAttempts }}</td>
+                        <td>
+                            <span class="badge" [ngClass]="getTriggeredByBadgeClass(job.triggeredBy)">
+                                {{ formatTriggeredBy(job.triggeredBy) }}
+                            </span>
+                        </td>
+                        <td>
+                            <button *ngIf="canCancel(job)" type="button" class="btn btn-sm btn-outline-danger me-1"
+                                title="Cancel Job" (click)="onCancelJob(job, $event)">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                            <button *ngIf="canRetry(job)" type="button" class="btn btn-sm btn-outline-warning"
+                                title="Retry Job" (click)="onRetryJob(job, $event)">
+                                <i class="bi bi-arrow-repeat"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="jobs.length === 0">
+                        <td colspan="10" class="text-center text-muted py-4">
+                            No jobs found
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- Pagination -->
-    <div *ngIf="!loading && jobs.length > 0" class="d-flex justify-content-end mt-3">
-        <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
-    </div>
 </div>
 
 <!-- Job Detail Dialog -->
