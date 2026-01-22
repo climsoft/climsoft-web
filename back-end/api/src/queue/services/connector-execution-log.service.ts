@@ -151,6 +151,10 @@ export class ConnectorExecutionLogService {
             where.executionStartDatetime = LessThanOrEqual(filters.endDate);
         }
 
+        if (filters?.hasErrors !== undefined) {
+            where.totalErrors = filters.hasErrors ? MoreThanOrEqual(1) : 0;
+        }
+
         const options: FindManyOptions<ConnectorExecutionLogEntity> = {
             where,
             order: {
@@ -162,14 +166,7 @@ export class ConnectorExecutionLogService {
             options.take = limit;
         }
 
-        let logs = await this.executionLogRepo.find(options);
-
-        // Apply in-memory filters for hasErrors and hasWarnings
-        if (filters?.hasErrors !== undefined) {
-            logs = logs.filter(log => filters.hasErrors ? log.totalErrors > 0 : log.totalErrors === 0);
-        }
-
-        return logs;
+        return await this.executionLogRepo.find(options);;
     }
 
     /**

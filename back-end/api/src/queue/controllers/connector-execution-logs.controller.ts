@@ -1,4 +1,4 @@
-import { Controller, Get, Delete, Param, Query, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Delete, Param, Query, ParseIntPipe, ParseDatePipe } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { ConnectorExecutionLogService, ConnectorExecutionLogFilters } from '../services/connector-execution-log.service';
 import { ConnectorExecutionLogQueryDto } from '../dtos/connector-execution-log-query.dto';
@@ -46,9 +46,9 @@ export class ConnectorExecutionLogsController {
     @Admin()
     @Get('stats')
     async getStats(
-        @Query('connectorId') connectorId: number,
-        @Query('startDate') startDate?: string,
-        @Query('endDate') endDate?: string,
+        @Query('connectorId', ParseIntPipe) connectorId: number,
+        @Query('startDate', new ParseDatePipe({ optional: true })) startDate?: Date,
+        @Query('endDate', new ParseDatePipe({ optional: true })) endDate?: Date,
     ): Promise<{
         totalExecutions: number;
         totalErrors: number;
@@ -58,20 +58,20 @@ export class ConnectorExecutionLogsController {
     }> {
         return this.executionLogService.getConnectorStats(
             connectorId,
-            startDate ? new Date(startDate) : undefined,
-            endDate ? new Date(endDate) : undefined,
+            startDate,
+            endDate,
         );
     }
 
     @Admin()
     @Get(':id')
-    async findOne(@Param('id') id: number): Promise<ConnectorExecutionLogEntity> {
+    async findOne(@Param('id', ParseIntPipe) id: number): Promise<ConnectorExecutionLogEntity> {
         return this.executionLogService.findOne(id);
     }
 
     @Admin()
     @Delete(':id')
-    async delete(@Param('id') id: number): Promise<void> {
+    async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
         await this.executionLogService.delete(id);
     }
 

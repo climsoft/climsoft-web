@@ -1,31 +1,21 @@
-<app-dialog
-    [open]="open"
-    (openChange)="open = $event"
-    [title]="'Execution Log: #' + (log?.id || '')"
-    [displayOkOption]="false"
+<app-dialog *ngIf="log" [(open)]="open" [title]="'Execution Log: #' + log.id " [displayOkOption]="false"
     [cancelButtonLabel]="'Close'">
 
     <div *ngIf="log" class="execution-detail-content">
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-3">
             <li class="nav-item">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'summary'"
-                        (click)="activeTab = 'summary'">
+                <button class="nav-link" [class.active]="activeTab === 'summary'" (click)="activeTab = 'summary'">
                     Summary
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'activities'"
-                        (click)="activeTab = 'activities'">
+                <button class="nav-link" [class.active]="activeTab === 'activities'" (click)="activeTab = 'activities'">
                     Activities ({{ log.executionActivities.length }})
                 </button>
             </li>
             <li class="nav-item">
-                <button class="nav-link"
-                        [class.active]="activeTab === 'files'"
-                        (click)="activeTab = 'files'">
+                <button class="nav-link" [class.active]="activeTab === 'files'" (click)="activeTab = 'files'">
                     All Files ({{ getTotalFileCount() }})
                 </button>
             </li>
@@ -41,7 +31,7 @@
                     </tr>
                     <tr>
                         <th>Connector</th>
-                        <td>{{ connectorName }} (ID: {{ log.connectorId }})</td>
+                        <td>{{ connectorName }}</td>
                     </tr>
                     <tr>
                         <th>Started At</th>
@@ -87,17 +77,15 @@
         </div>
 
         <!-- Activities Tab -->
-        <div *ngIf="activeTab === 'activities'" class="tab-content">
+        <div *ngIf="activeTab === 'activities'" class="tab-content activities-tab-content">
             <div *ngIf="!log.executionActivities || log.executionActivities.length === 0"
-                 class="text-center text-muted py-4">
+                class="text-center text-muted py-4">
                 No activities recorded
             </div>
 
-            <div *ngFor="let activity of log.executionActivities; let i = index"
-                 class="card mb-2">
-                <div class="card-header d-flex justify-content-between align-items-center cursor-pointer"
-                     [class.bg-danger-subtle]="getActivityErrorCount(activity) > 0"
-                     (click)="toggleActivity(i)">
+            <div *ngFor="let activity of log.executionActivities; let i = index" class="card mb-2">
+                <div class="card-header d-flex justify-content-between align-items-center app-cursor-pointer"
+                    [class.bg-danger-subtle]="getActivityErrorCount(activity) > 0" (click)="toggleActivity(i)">
                     <div>
                         <strong>Activity {{ i + 1 }}</strong>
                         <span class="ms-2 text-muted">
@@ -129,8 +117,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let file of activity.processedFiles"
-                                [class.table-danger]="hasFileError(file)"
+                            <tr *ngFor="let file of activity.processedFiles" [class.table-danger]="hasFileError(file)"
                                 [class.table-secondary]="isUnchangedFile(file)">
                                 <td>{{ getFileName(file) }}</td>
                                 <td>{{ getFileSize(file) }}</td>
@@ -146,7 +133,7 @@
 
                     <!-- Show errors if any -->
                     <div *ngFor="let file of activity.processedFiles">
-                        <div *ngIf="file.errorMessage" class="alert alert-danger mt-2 mb-0">
+                        <div *ngIf="file.errorMessage" class="alert alert-danger error-font-size mt-2 mb-0">
                             <strong>{{ getFileName(file) }}:</strong>
                             <span class="ms-2">{{ file.errorMessage }}</span>
                         </div>
@@ -156,13 +143,12 @@
         </div>
 
         <!-- Files Tab -->
-        <div *ngIf="activeTab === 'files'" class="tab-content">
-            <div *ngIf="getTotalFileCount() === 0"
-                 class="text-center text-muted py-4">
+        <div *ngIf="activeTab === 'files'" class="tab-content files-tab-content">
+            <div *ngIf="getTotalFileCount() === 0" class="text-center text-muted py-4">
                 No files processed
             </div>
 
-            <div *ngIf="getTotalFileCount() > 0" class="table-responsive">
+            <div *ngIf="getTotalFileCount() > 0">
                 <table class="table table-sm table-hover">
                     <thead class="table-light">
                         <tr>

@@ -7,6 +7,8 @@ import {
     ImportFileProcessingResultModel,
     ExportFileProcessingResultModel
 } from '../../models/view-connector-execution-log.model';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { DateUtils } from 'src/app/shared/utils/date.utils';
 
 @Component({
     selector: 'app-execution-detail-dialog',
@@ -15,10 +17,12 @@ import {
 })
 export class ExecutionDetailDialogComponent {
     protected open: boolean = false;
-    protected log: ViewConnectorExecutionLogModel | null = null;
+    protected log!: ViewConnectorExecutionLogModel ;
     protected connectorName: string = '';
     protected activeTab: 'summary' | 'activities' | 'files' = 'summary';
     protected expandedActivityIndex: number | null = null;
+
+    constructor(private cachedMetadata: CachedMetadataService) { }
 
     public openDialog(log: ViewConnectorExecutionLogModel, connectorName: string): void {
         this.log = log;
@@ -28,22 +32,14 @@ export class ExecutionDetailDialogComponent {
         this.open = true;
     }
 
-    protected onClose(): void {
-        this.open = false;
-        this.log = null;
-    }
-
     protected formatDate(dateString: string | null): string {
         if (!dateString) {
             return '-';
         }
-        return new Date(dateString).toLocaleString();
+        return DateUtils.getPresentableDatetime(dateString, this.cachedMetadata.utcOffSet);
     }
 
     protected getDuration(): string {
-        if (!this.log) {
-            return '-';
-        }
         const start = new Date(this.log.executionStartDatetime).getTime();
         const end = new Date(this.log.executionEndDatetime).getTime();
         const durationMs = end - start;
@@ -60,16 +56,13 @@ export class ExecutionDetailDialogComponent {
     }
 
     protected getTotalFileCount(): number {
-        if (!this.log?.executionActivities) {
-            return 0;
-        }
         return this.log.executionActivities.reduce((count, activity) => {
             return count + (activity.processedFiles?.length || 0);
         }, 0);
     }
 
     protected getSuccessfulFileCount(): number {
-        if (!this.log?.executionActivities) {
+        if (!this.log.executionActivities) {
             return 0;
         }
         return this.log.executionActivities.reduce((count, activity) => {

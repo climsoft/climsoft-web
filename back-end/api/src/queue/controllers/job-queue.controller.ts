@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Query, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, NotFoundException, BadRequestException, Logger, ParseIntPipe } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { JobQueueService } from '../services/job-queue.service';
 import { JobQueueQueryDto } from '../dtos/job-queue-query.dto';
@@ -46,7 +46,7 @@ export class JobQueueController {
 
     @Admin()
     @Get(':id')
-    async findOne(@Param('id') id: number): Promise<JobQueueEntity> {
+    async findOne(@Param('id', ParseIntPipe) id: number): Promise<JobQueueEntity> {
         const job = await this.jobQueueService.getJob(id);
         if (!job) {
             throw new NotFoundException(`Job #${id} not found`);
@@ -56,7 +56,7 @@ export class JobQueueController {
 
     @Admin()
     @Patch(':id/cancel')
-    async cancel(@Param('id') id: number): Promise<JobQueueEntity> {
+    async cancel(@Param('id', ParseIntPipe) id: number): Promise<JobQueueEntity> {
         const job = await this.jobQueueService.getJob(id);
         if (!job) {
             throw new NotFoundException(`Job #${id} not found`);
@@ -67,13 +67,13 @@ export class JobQueueController {
         }
 
         await this.jobQueueService.cancelJob(id);
-        
+
         return this.jobQueueService.getJob(id) as Promise<JobQueueEntity>;
     }
 
     @Admin()
     @Patch(':id/retry')
-    async retry(@Param('id') id: number): Promise<JobQueueEntity> {
+    async retry(@Param('id', ParseIntPipe) id: number): Promise<JobQueueEntity> {
         const job = await this.jobQueueService.getJob(id);
         if (!job) {
             throw new NotFoundException(`Job #${id} not found`);

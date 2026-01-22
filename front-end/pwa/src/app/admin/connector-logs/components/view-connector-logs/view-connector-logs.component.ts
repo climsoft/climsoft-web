@@ -10,6 +10,7 @@ import { ViewConnectorSpecificationModel } from 'src/app/metadata/connector-spec
 import { ExecutionDetailDialogComponent } from '../execution-detail-dialog/execution-detail-dialog.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 
 interface ErrorFilterOption {
     id: boolean | null;
@@ -21,7 +22,7 @@ interface ErrorFilterOption {
     templateUrl: './view-connector-logs.component.html',
     styleUrls: ['./view-connector-logs.component.scss']
 })
-export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
+export class ViewConnectorLogsComponent implements OnDestroy {
     @ViewChild('executionDetailDialog') executionDetailDialog!: ExecutionDetailDialogComponent;
 
     protected logs: ViewConnectorExecutionLogModel[] = [];
@@ -56,15 +57,19 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
     constructor(
         private pagesDataService: PagesDataService,
         private connectorLogService: ConnectorExecutionLogService,
-        private connectorSpecService: ConnectorSpecificationsService
+        private connectorSpecService: ConnectorSpecificationsService,
+        private cachedMetadataSearchService: CachedMetadataService,
     ) {
         this.pagesDataService.setPageHeader('Connector Execution Logs');
+        this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+            takeUntil(this.destroy$),
+        ).subscribe(allMetadataLoaded => {
+            if (!allMetadataLoaded) return;
+            this.loadConnectors();
+            this.loadLogs();
+        });
     }
 
-    ngOnInit(): void {
-        this.loadConnectors();
-        this.loadLogs();
-    }
 
     ngOnDestroy(): void {
         this.destroy$.next();
@@ -94,12 +99,16 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
         if (this.selectedConnectorId) {
             query.connectorId = this.selectedConnectorId;
         }
+
+         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
         if (this.dateRange.fromDate) {
-            query.startDate = this.dateRange.fromDate;
+            query.startDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00.000Z`, this.cachedMetadataSearchService.utcOffSet, 'subtract')
         }
         if (this.dateRange.toDate) {
-            query.endDate = this.dateRange.toDate;
+            query.endDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00.000Z`, this.cachedMetadataSearchService.utcOffSet, 'subtract');
         }
+        
         if (this.hasErrorsFilter !== null) {
             query.hasErrors = this.hasErrorsFilter;
         }
@@ -213,7 +222,7 @@ export class ViewConnectorLogsComponent implements OnInit, OnDestroy {
         if (!dateString) {
             return '-';
         }
-        return new Date(dateString).toLocaleString();
+        return DateUtils.getPresentableDatetime(dateString, this.cachedMetadataSearchService.utcOffSet);
     }
 
     protected getDuration(log: ViewConnectorExecutionLogModel): string {
