@@ -1,19 +1,23 @@
 <div class="container-fluid">
     <!-- Filters -->
     <div class="row mb-3">
-        <div class="col-md-3">
-            <app-job-queue-type-selector-single [label]="'Type'" [selectedId]="selectedStatus"
-                (selectedIdChange)="onTypeFilterChange($event)" />
+        <div class="col-md-2">
+            <app-job-type-selector-single [label]="'Job Type'" [selectedId]="selectedJobType"
+                (selectedIdChange)="onJobTypeFilterChange($event)" />
         </div>
-        <div class="col-md-3">
-            <app-job-queue-status-selector-single [label]="'Status'" [selectedId]="selectedStatus"
-                (selectedIdChange)="onStatusFilterChange($event)" />
+        <div class="col-md-2">
+            <app-job-status-selector-single [label]="'Status'" [selectedId]="selectedJobStatus"
+                (selectedIdChange)="onJobStatusFilterChange($event)" />
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
+            <app-job-trigger-selector-single [label]="'Triggered By'" [selectedId]="selectedTriggeredBy"
+                (selectedIdChange)="onTriggeredByFilterChange($event)" />
+        </div>
+        <div class="col-md-4">
             <app-date-range-input [id]="'job_date'" [label]="'Date'" [(value)]="dateRange"
                 (valueChange)="onDateFilterChange()" />
         </div>
-        <div class="col-md-3 d-flex align-items-end">
+        <div class="col-md-2 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadJobs()">
                 Refresh
             </button>
@@ -35,6 +39,7 @@
                     <th>#</th>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Type</th>
                     <th>Status</th>
                     <th>Scheduled At</th>
                     <th>Processed At</th>
@@ -49,17 +54,21 @@
                     <td>{{ job.id }}</td>
                     <td>{{ job.name }}</td>
                     <td>
+                        <span class="badge" [ngClass]="getJobTypeBadgeClass(job.jobType)">
+                            {{ formatJobType(job.jobType) }}
+                        </span>
+                    </td>
+                    <td>
                         <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
                             {{ formatStatus(job.status) }}
                         </span>
                     </td>
                     <td>{{ formatDate(job.scheduledAt) }}</td>
                     <td>{{ formatDate(job.processedAt) }}</td>
-                    <td>{{ job.attempts }} / {{ job.payload.maximumAttempts }}</td>
+                    <td>{{ job.attempts }} / {{ job.maxAttempts }}</td>
                     <td>
-                        <span class="badge"
-                            [ngClass]="job.payload.triggeredBy === 'schedule' ? 'bg-primary' : 'bg-secondary'">
-                            {{ job.payload.triggeredBy }}
+                        <span class="badge" [ngClass]="getTriggeredByBadgeClass(job.triggeredBy)">
+                            {{ formatTriggeredBy(job.triggeredBy) }}
                         </span>
                     </td>
                     <td>
@@ -74,7 +83,7 @@
                     </td>
                 </tr>
                 <tr *ngIf="jobs.length === 0">
-                    <td colspan="9" class="text-center text-muted py-4">
+                    <td colspan="10" class="text-center text-muted py-4">
                         No jobs found
                     </td>
                 </tr>

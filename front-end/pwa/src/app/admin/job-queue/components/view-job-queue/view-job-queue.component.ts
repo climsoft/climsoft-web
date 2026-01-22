@@ -1,22 +1,24 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { JobQueueService } from '../../services/job-queue.service';
 import { ViewJobQueueModel } from '../../models/view-job-queue.model';
 import { JobQueueQueryModel } from '../../models/job-queue-query.model';
-import { JobQueueStatusEnum } from '../../models/job-queue-status.enum';
+import { JobQueueStatusEnum, JobTypeEnum, JobTriggerEnum } from '../../models/job-queue-status.enum';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { JobDetailDialogComponent } from '../job-detail-dialog/job-detail-dialog.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
+import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+
 
 @Component({
     selector: 'app-view-job-queue',
     templateUrl: './view-job-queue.component.html',
     styleUrls: ['./view-job-queue.component.scss']
 })
-export class ViewJobQueueComponent implements OnInit, OnDestroy {
+export class ViewJobQueueComponent implements OnDestroy {
     @ViewChild('jobDetailDialog') jobDetailDialog!: JobDetailDialogComponent;
 
     protected jobs: ViewJobQueueModel[] = [];
@@ -24,28 +26,32 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
     protected paging: PagingParameters = new PagingParameters();
 
     // Filter options
-    protected selectedStatus: JobQueueStatusEnum | null = null;
+    protected selectedJobStatus!: JobQueueStatusEnum | null;
+    protected selectedJobType!: JobTypeEnum | null;
+    protected selectedTriggeredBy!: JobTriggerEnum | null;
     protected dateRange: DateRange = {
         fromDate: DateUtils.getDateOnlyAsString(new Date()),
         toDate: DateUtils.getDateOnlyAsString(new Date())
     };
 
-    protected statusDisplayFn = (option: { id: JobQueueStatusEnum | null; name: string }): string => {
-        return option.name;
-    };
 
     private destroy$ = new Subject<void>();
 
     constructor(
         private pagesDataService: PagesDataService,
-        private jobQueueService: JobQueueService
+        private jobQueueService: JobQueueService,
+        private cachedMetadataSearchService: CachedMetadataService,
     ) {
         this.pagesDataService.setPageHeader('Job Queue');
+
+        this.cachedMetadataSearchService.allMetadataLoaded.pipe(
+            takeUntil(this.destroy$),
+        ).subscribe(allMetadataLoaded => {
+            if (!allMetadataLoaded) return;
+            this.loadJobs();
+        });
     }
 
-    ngOnInit(): void {
-        this.loadJobs();
-    }
 
     ngOnDestroy(): void {
         this.destroy$.next();
@@ -59,14 +65,23 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
             pageSize: this.paging.pageSize,
         };
 
-        if (this.selectedStatus) {
-            query.status = this.selectedStatus;
+        if (this.selectedJobStatus) {
+            query.status = this.selectedJobStatus;
         }
+        if (this.selectedJobType) {
+            query.jobType = this.selectedJobType;
+        }
+        if (this.selectedTriggeredBy) {
+            query.triggeredBy = this.selectedTriggeredBy;
+        }
+
+        // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
+        // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
         if (this.dateRange.fromDate) {
-            query.fromDate = this.dateRange.fromDate;
+            query.fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.fromDate}T00:00:00.000Z`, this.cachedMetadataSearchService.utcOffSet, 'subtract')
         }
         if (this.dateRange.toDate) {
-            query.toDate = this.dateRange.toDate;
+            query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00.000Z`, this.cachedMetadataSearchService.utcOffSet, 'subtract');
         }
 
         // First get the count
@@ -100,13 +115,18 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         this.loadJobs();
     }
 
-    protected onTypeFilterChange(option: JobQueueStatusEnum | null): void {
-        // this.selectedStatus = option; // TODO
+    protected onJobTypeFilterChange(option: JobTypeEnum | null): void {
+        this.selectedJobType = option;
         this.loadJobs();
     }
 
-    protected onStatusFilterChange(option: JobQueueStatusEnum | null): void {
-        this.selectedStatus = option;
+    protected onJobStatusFilterChange(option: JobQueueStatusEnum | null): void {
+        this.selectedJobStatus = option;
+        this.loadJobs();
+    }
+
+    protected onTriggeredByFilterChange(option: JobTriggerEnum | null): void {
+        this.selectedTriggeredBy = option;
         this.loadJobs();
     }
 
@@ -125,7 +145,7 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         }
 
         this.jobQueueService.cancel(job.id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(take(1))
             .subscribe({
                 next: () => {
                     this.pagesDataService.showToast({
@@ -148,7 +168,7 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         }
 
         this.jobQueueService.retry(job.id)
-            .pipe(takeUntil(this.destroy$))
+            .pipe(take(1))
             .subscribe({
                 next: () => {
                     this.pagesDataService.showToast({
@@ -185,11 +205,48 @@ export class ViewJobQueueComponent implements OnInit, OnDestroy {
         return StringUtils.formatEnumForDisplay(status);
     }
 
+    protected formatJobType(jobType: JobTypeEnum): string {
+        switch (jobType) {
+            case JobTypeEnum.CONNECTOR_IMPORT:
+                return 'Import';
+            case JobTypeEnum.CONNECTOR_EXPORT:
+                return 'Export';
+            default:
+                return jobType;
+        }
+    }
+
+    protected formatTriggeredBy(triggeredBy: JobTriggerEnum): string {
+        return StringUtils.formatEnumForDisplay(triggeredBy);
+    }
+
+    protected getJobTypeBadgeClass(jobType: JobTypeEnum): string {
+        switch (jobType) {
+            case JobTypeEnum.CONNECTOR_IMPORT:
+                return 'bg-info text-white';
+            case JobTypeEnum.CONNECTOR_EXPORT:
+                return 'bg-primary';
+            default:
+                return 'bg-light text-dark';
+        }
+    }
+
+    protected getTriggeredByBadgeClass(triggeredBy: JobTriggerEnum): string {
+        switch (triggeredBy) {
+            case JobTriggerEnum.SCHEDULE:
+                return 'bg-primary';
+            case JobTriggerEnum.MANUAL:
+                return 'bg-secondary';
+            default:
+                return 'bg-light text-dark';
+        }
+    }
+
     protected formatDate(dateString: string | null): string {
         if (!dateString) {
             return '-';
         }
-        return new Date(dateString).toLocaleString();
+        return DateUtils.getPresentableDatetime(dateString, this.cachedMetadataSearchService.utcOffSet);
     }
 
     protected canCancel(job: ViewJobQueueModel): boolean {

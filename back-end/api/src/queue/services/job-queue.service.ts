@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThan, Repository } from 'typeorm';
-import { JobQueueEntity, JobQueueStatusEnum, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity'; 
+import { JobQueueEntity, JobQueueStatusEnum, JobTriggerEnum, JobTypeEnum } from '../entity/job-queue.entity';
 
 @Injectable()
 export class JobQueueService {
@@ -106,7 +106,7 @@ export class JobQueueService {
             return false;
         }
 
-        if (!maxAttempts ) {
+        if (!maxAttempts) {
             this.logger.warn(`Job ${jobId} has zero or no maximum attempts)`);
             return false;
         } else if (job.attempts >= maxAttempts) {
@@ -119,6 +119,8 @@ export class JobQueueService {
             scheduledAt: new Date(Date.now() + 60000), // Retry in 1 minute
         });
 
+        this.logger.log(`Job ${job.name} retried`);
+
         return true;
     }
 
@@ -130,6 +132,7 @@ export class JobQueueService {
             status: JobQueueStatusEnum.CANCELLED,
             processedAt: new Date(),
         });
+        this.logger.log(`Job ${jobId} cancelled`);
     }
 
     /**

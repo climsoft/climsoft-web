@@ -44,10 +44,26 @@
                         <td>{{ job.name }}</td>
                     </tr>
                     <tr>
+                        <th>Job Type</th>
+                        <td>
+                            <span class="badge" [ngClass]="getJobTypeBadgeClass(job.jobType)">
+                                {{ formatJobType(job.jobType) }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Status</th>
                         <td>
                             <span class="badge" [ngClass]="getStatusBadgeClass(job.status)">
                                 {{ formatStatus(job.status) }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Triggered By</th>
+                        <td>
+                            <span class="badge" [ngClass]="getTriggeredByBadgeClass(job.triggeredBy)">
+                                {{ formatTriggeredBy(job.triggeredBy) }}
                             </span>
                         </td>
                     </tr>
@@ -61,23 +77,7 @@
                     </tr>
                     <tr>
                         <th>Attempts</th>
-                        <td>{{ job.attempts }} / {{ job.payload.maximumAttempts }}</td>
-                    </tr>
-                    <tr>
-                        <th>Triggered By</th>
-                        <td>
-                            <span class="badge" [ngClass]="job.payload.triggeredBy === 'schedule' ? 'bg-primary' : 'bg-secondary'">
-                                {{ job.payload.triggeredBy }}
-                            </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>Payload Type</th>
-                        <td>{{ job.payload.payloadType }}</td>
-                    </tr>
-                    <tr>
-                        <th>Payload ID</th>
-                        <td>{{ job.payload.payLoadId }}</td>
+                        <td>{{ job.attempts }} / {{ job.maxAttempts }}</td>
                     </tr>
                     <tr>
                         <th>Created At</th>

@@ -6,11 +6,11 @@
                 (selectedIdChange)="onConnectorFilterChange($event)" />
         </div>
         <div class="col-md-3">
-            <app-date-range-input [id]="'connector_log_date'" [label]="'Date'" [(value)]="dateRange"
-                (valueChange)="onDateFilterChange()" />
+            <app-error-selector-single [label]="'Error'" (selectedIdChange)="onErrorFilterChange($event)" />
         </div>
         <div class="col-md-3">
-            <app-error-selector-single [label]="'Error'" (selectedIdChange)="onErrorFilterChange($event)" />
+            <app-date-range-input [id]="'connector_log_date'" [label]="'Date'" [(value)]="dateRange"
+                (valueChange)="onDateFilterChange()" />
         </div>
         <div class="col-md-3 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadLogs()">

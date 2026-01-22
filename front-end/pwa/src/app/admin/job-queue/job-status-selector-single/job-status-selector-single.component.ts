@@ -3,11 +3,11 @@ import { JobQueueStatusEnum } from '../models/job-queue-status.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 
 @Component({
-  selector: 'app-job-queue-status-selector-single',
-  templateUrl: './job-queue-status-selector-single.component.html',
-  styleUrls: ['./job-queue-status-selector-single.component.scss']
+  selector: 'app-job-status-selector-single',
+  templateUrl: './job-status-selector-single.component.html',
+  styleUrls: ['./job-status-selector-single.component.scss']
 })
-export class JobQueueStatusSelectorSingleComponent implements OnChanges {
+export class JobStatusSelectorSingleComponent implements OnChanges {
   @Input() public label!: string;
   @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: JobQueueStatusEnum[];

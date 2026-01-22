@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Query, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { JobQueueService } from '../services/job-queue.service';
 import { JobQueueQueryDto } from '../dtos/job-queue-query.dto';
@@ -8,10 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 @Controller('job-queue')
 export class JobQueueController {
+
     constructor(
         private readonly jobQueueService: JobQueueService,
-        @InjectRepository(JobQueueEntity)
-        private readonly jobQueueRepo: Repository<JobQueueEntity>,
+        @InjectRepository(JobQueueEntity) private readonly jobQueueRepo: Repository<JobQueueEntity>,
     ) { }
 
     @Admin()
@@ -67,6 +67,7 @@ export class JobQueueController {
         }
 
         await this.jobQueueService.cancelJob(id);
+        
         return this.jobQueueService.getJob(id) as Promise<JobQueueEntity>;
     }
 
@@ -82,8 +83,7 @@ export class JobQueueController {
             throw new BadRequestException(`Job #${id} cannot be retried. Current status: ${job.status}`);
         }
 
-        const maxAttempts = job.payload?.maximumAttempts || 3;
-        const success = await this.jobQueueService.retryJob(id, maxAttempts);
+        const success = await this.jobQueueService.retryJob(id, job.maxAttempts);
 
         if (!success) {
             throw new BadRequestException(`Job #${id} has exceeded maximum retry attempts`);
@@ -97,6 +97,14 @@ export class JobQueueController {
 
         if (query.status) {
             where.status = query.status;
+        }
+
+        if (query.jobType) {
+            where.jobType = query.jobType;
+        }
+
+        if (query.triggeredBy) {
+            where.triggeredBy = query.triggeredBy;
         }
 
         if (query.fromDate && query.toDate) {

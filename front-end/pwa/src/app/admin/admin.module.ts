@@ -24,8 +24,9 @@ import { JobDetailDialogComponent } from './job-queue/components/job-detail-dial
 // Connector Logs components
 import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
 import { ExecutionDetailDialogComponent } from './connector-logs/components/execution-detail-dialog/execution-detail-dialog.component';
-import { JobQueueTypeSelectorSingleComponent } from './job-queue/job-queue-type-selector-single/job-queue-type-selector-single.component';
-import { JobQueueStatusSelectorSingleComponent } from './job-queue/job-queue-status-selector-single/job-queue-status-selector-single.component';
+import { JobTypeSelectorSingleComponent } from './job-queue/job-type-selector-single/job-type-selector-single.component';
+import { JobStatusSelectorSingleComponent } from './job-queue/job-status-selector-single/job-status-selector-single.component';
+import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-trigger-selector-single/job-trigger-selector-single.component';
 
 @NgModule({
   declarations: [
@@ -49,8 +50,9 @@ import { JobQueueStatusSelectorSingleComponent } from './job-queue/job-queue-sta
     // Job Queue
     ViewJobQueueComponent,
     JobDetailDialogComponent,
-    JobQueueTypeSelectorSingleComponent,
-    JobQueueStatusSelectorSingleComponent,
+    JobTypeSelectorSingleComponent,
+    JobStatusSelectorSingleComponent,
+    JobTriggerSelectorSingleComponent,
 
     // Connector Logs
     ViewConnectorLogsComponent,

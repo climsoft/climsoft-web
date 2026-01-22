@@ -126,7 +126,7 @@ export class ConnectorSchedulerService implements OnModuleInit {
             case ConnectorTypeEnum.IMPORT:
                 return JobTypeEnum.CONNECTOR_IMPORT;
             case ConnectorTypeEnum.EXPORT:
-                return JobTypeEnum.CONNECTOR_IMPORT;
+                return JobTypeEnum.CONNECTOR_EXPORT;
             default:
                 throw new Error('Developer Error. Connector type not supported');
         }

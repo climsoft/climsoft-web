@@ -93,15 +93,14 @@ export class DateUtils {
         }
     }
 
-    public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number): string {
+    public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number, removeSeconds: boolean = true): string {
+        // TODO. Implement removing of seconds from the javascript datetime string
+        
         if (utcOffset === 0) {
-            return strDateTimeInJavaScriptIso.replace('T', ' ').
-                replace('Z', '').replace(':00', '').replace('.000', '');
+            return strDateTimeInJavaScriptIso.replace('T', ' '). replace('Z', '').replace(':00', '').replace('.000', '');
         }
 
-        return DateUtils.getDatetimesBasedOnUTCOffset(
-            strDateTimeInJavaScriptIso, utcOffset, 'add'
-        ).replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
+        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
     }
 
     public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {
@@ -112,7 +111,7 @@ export class DateUtils {
         } else {
             newDate.setHours(newDate.getHours() + utcOffset);
         }
-        
+
         return newDate.toISOString();
     }
 
