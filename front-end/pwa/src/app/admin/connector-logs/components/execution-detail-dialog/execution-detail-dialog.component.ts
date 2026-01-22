@@ -116,25 +116,37 @@ export class ExecutionDetailDialogComponent {
     }
 
     protected getFileName(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return file.remoteFileMetadata.fileName;
         }
-        if (file.processedFileName) {
-            return this.extractFileName(file.processedFileName);
+        // Check for export file metadata
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
+            return file.processedFileMetadata.fileName;
         }
         return 'Unknown';
     }
 
     protected getFileSize(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return this.formatFileSize(file.remoteFileMetadata.size);
+        }
+        // Check for export file metadata
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
+            return this.formatFileSize(file.processedFileMetadata.size);
         }
         return '-';
     }
 
     protected getFileModifiedDate(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return this.formatDate(file.remoteFileMetadata.modifiedDate);
+        }
+        // Check for export file metadata
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
+            return this.formatDate(file.processedFileMetadata.modifiedDate);
         }
         return '-';
     }
@@ -146,9 +158,15 @@ export class ExecutionDetailDialogComponent {
         if (this.isUnchangedFile(file)) {
             return 'Skipped (Unchanged)';
         }
-        if (file.processedFileName) {
-            return 'Processed';
+        // Check for processed file (both import and export use processedFileMetadata now)
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
+            // For exports, it's "Exported", for imports it's "Processed"
+            if ('remoteFileMetadata' in file) {
+                return 'Processed';
+            }
+            return 'Exported';
         }
+        // Check for downloaded file (imports only)
         if ('downloadedFileName' in file && file.downloadedFileName) {
             return 'Downloaded';
         }
@@ -162,15 +180,23 @@ export class ExecutionDetailDialogComponent {
         if (this.isUnchangedFile(file)) {
             return 'bg-secondary';
         }
-        if (file.processedFileName) {
+        // Check for processed file
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
             return 'bg-success';
+        }
+        // Check for downloaded file (imports only - partial success)
+        if ('downloadedFileName' in file && file.downloadedFileName) {
+            return 'bg-info';
         }
         return 'bg-warning text-dark';
     }
 
-    private extractFileName(path: string): string {
-        const parts = path.split(/[/\\]/);
-        return parts[parts.length - 1] || path;
+    // Get processed file size for comparison
+    protected getProcessedFileSize(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+        if ('processedFileMetadata' in file && file.processedFileMetadata) {
+            return this.formatFileSize(file.processedFileMetadata.size);
+        }
+        return '-';
     }
 
     private formatFileSize(bytes: number): string {

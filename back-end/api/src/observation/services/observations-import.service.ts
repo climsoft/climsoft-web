@@ -38,8 +38,8 @@ export class ObservationImportService {
 
     public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
-            const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir,`user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}` )  ;
-            const exportFilePathName: string =  path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_${new Date().getTime()}_processed.csv`)  ;
+            const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`);
+            const exportFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_${new Date().getTime()}_processed.csv`);
 
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
@@ -65,7 +65,7 @@ export class ObservationImportService {
             throw new Error('Source is not an import source');
         }
 
-         if (sourceDef.disabled) {
+        if (sourceDef.disabled) {
             throw new Error('Import source is disabled');
         }
 
@@ -161,13 +161,13 @@ export class ObservationImportService {
     }
 
 
-    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, importFilePathName: string, exportFileName: string, userId: number, stationId?: string): Promise<void> {
+    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, inputFilePathName: string, outputFileName: string, userId: number, stationId?: string): Promise<void> {
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
         // Remove spaces and special characters from table name to ensure valid SQL identifier
-        const tmpObsTableName: string = path.basename(importFilePathName, path.extname(importFilePathName)).replace(/\s+/g, '_');
+        const tmpObsTableName: string = path.basename(inputFilePathName, path.extname(inputFilePathName)).replace(/\s+/g, '_');
         // Note.
         // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
         // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
@@ -177,7 +177,7 @@ export class ObservationImportService {
         }
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${importFilePathName}', ${importParams.join(', ')});`;
+        const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${inputFilePathName}', ${importParams.join(', ')});`;
 
         //console.log("createSQL: ", createSQL);
 
@@ -224,7 +224,9 @@ export class ObservationImportService {
         // Get the rows of the columns that match the dto properties
         // Only export the columns needed for PostgreSQL COPY import (exclude entry_datetime as it's auto-generated)
         startTime = new Date().getTime();
-        const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(exportFileName));
+        // Note, duckdb operate at the API layer, so use apiImportsDir path
+        const dbFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, path.basename(outputFileName));
+        this.logger.log(`Attempting DuckDB writing of table ${tmpObsTableName};`);
         await this.fileIOService.duckDb.exec(`
             COPY (
                 SELECT ${this.STATION_ID_PROPERTY_NAME}, ${this.ELEMENT_ID_PROPERTY_NAME}, ${this.LEVEL_PROPERTY_NAME}, ${this.DATE_TIME_PROPERTY_NAME},
@@ -233,7 +235,7 @@ export class ObservationImportService {
                 FROM ${tmpObsTableName}
             ) TO '${dbFilePathName}' (HEADER, DELIMITER ',');
         `);
-        this.logger.log(`DuckDB copy table took ${new Date().getTime() - startTime} milliseconds`);
+        this.logger.log(`DuckDB writing table took: ${new Date().getTime() - startTime} milliseconds`);
 
         startTime = new Date().getTime();
         await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);

@@ -1,19 +1,20 @@
-export interface RemoteFileMetadataModel {
+export interface FileMetadataModel {
     fileName: string;
     modifiedDate: string;
     size: number;
 }
 
+
 export interface ImportFileProcessingResultModel {
-    remoteFileMetadata: RemoteFileMetadataModel;
+    remoteFileMetadata: FileMetadataModel;
     downloadedFileName?: string;
-    processedFileName?: string;
+    processedFileMetadata?: FileMetadataModel;
     errorMessage?: string;
     unchangedFile?: boolean;
 }
 
 export interface ExportFileProcessingResultModel {
-    processedFileName?: string;
+    processedFileMetadata?: FileMetadataModel;
     errorMessage?: string;
 }
 

@@ -31,9 +31,9 @@
         </div>
     </div>
 
-    <div *ngIf="!loading && jobs.length > 0">
+    <div *ngIf="!loading">
         <!-- Pagination -->
-        <div class="d-flex justify-content-end">
+        <div *ngIf="!loading && jobs.length > 0" class="d-flex justify-content-end">
             <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
         </div>
         <!-- Jobs table -->
