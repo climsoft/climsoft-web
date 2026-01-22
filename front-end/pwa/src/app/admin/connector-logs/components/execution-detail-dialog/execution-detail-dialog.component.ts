@@ -17,7 +17,7 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 })
 export class ExecutionDetailDialogComponent {
     protected open: boolean = false;
-    protected log!: ViewConnectorExecutionLogModel ;
+    protected log!: ViewConnectorExecutionLogModel;
     protected connectorName: string = '';
     protected activeTab: 'summary' | 'activities' | 'files' = 'summary';
     protected expandedActivityIndex: number | null = null;
@@ -74,7 +74,7 @@ export class ExecutionDetailDialogComponent {
         this.expandedActivityIndex = this.expandedActivityIndex === index ? null : index;
     }
 
-    protected isImportActivity(activity: ExecutionActivityModel): activity is ImportFileServerExecutionActivityModel {
+    private isImportActivity(activity: ExecutionActivityModel): activity is ImportFileServerExecutionActivityModel {
         return 'stationId' in activity || (activity.processedFiles?.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
     }
 

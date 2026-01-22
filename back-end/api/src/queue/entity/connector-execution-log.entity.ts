@@ -54,7 +54,7 @@ export interface ImportFileProcessingResultVo {
     unchangedFile?: boolean; // When true, it means the remote file had not changed at the time the connector was being executed
 }
 
-// Represents metadata about a file on the remote server (FTP/SFTP/etc.)
+// Represents metadata about a file on the remote server or processed for export (FTP/SFTP/etc.)
 export interface RemoteFileMetadataVo {
     fileName: string;
 
@@ -75,6 +75,7 @@ export interface ExportFileServerExecutionActivityVo {
 }
 
 export interface ExportFileProcessingResultVo {
-    processedFileName?: string; 
+    // TODO. Replace `processedFileName?: string;` with  `processedFileMetadata?: RemoteFileMetadataVo;` to track the exported file metadata then make corresponding changes in the `connector-export-processor.service.ts` file and front-end code that deals with `connector-logs`.
+    processedFileName?: string;
     errorMessage?: string;
 }
