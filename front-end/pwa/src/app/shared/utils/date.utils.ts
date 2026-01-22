@@ -94,13 +94,30 @@ export class DateUtils {
     }
 
     public static getPresentableDatetime(strDateTimeInJavaScriptIso: string, utcOffset: number, removeSeconds: boolean = true): string {
-        // TODO. Implement removing of seconds from the javascript datetime string
-        
-        if (utcOffset === 0) {
-            return strDateTimeInJavaScriptIso.replace('T', ' '). replace('Z', '').replace(':00', '').replace('.000', '');
+        let dateTimeStr = strDateTimeInJavaScriptIso;
+
+        if (utcOffset !== 0) {
+            dateTimeStr = DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add');
         }
 
-        return DateUtils.getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso, utcOffset, 'add').replace('T', ' ').replace('Z', '').replace(':00', '').replace('.000', '');
+        // Replace 'T' with space
+        dateTimeStr = dateTimeStr.replace('T', ' ');
+
+        // Remove milliseconds and 'Z'
+        const dotIndex = dateTimeStr.indexOf('.');
+        if (dotIndex !== -1) {
+            dateTimeStr = dateTimeStr.substring(0, dotIndex);
+        }
+
+        if (removeSeconds) {
+            // Remove seconds part (:ss)
+            const parts = dateTimeStr.split(':');
+            if (parts.length === 3) {
+                dateTimeStr = `${parts[0]}:${parts[1]}`;
+            }
+        }
+
+        return dateTimeStr;
     }
 
     public static getDatetimesBasedOnUTCOffset(strDateTimeInJavaScriptIso: string, utcOffset: number, operation: 'subtract' | 'add'): string {
@@ -144,5 +161,3 @@ export class DateUtils {
     }
 
 }
-
-

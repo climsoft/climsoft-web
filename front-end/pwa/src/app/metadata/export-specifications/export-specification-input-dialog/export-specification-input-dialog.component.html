@@ -1,4 +1,4 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
+<app-dialog *ngIf="viewExportSpecification" [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
     [displayDeleteOption]="viewExportSpecification && viewExportSpecification.id > 0" [closeOnOkClick]="false"
     (okClick)="onSubmitClick()" (deleteClick)="onDeleteClick()">
 

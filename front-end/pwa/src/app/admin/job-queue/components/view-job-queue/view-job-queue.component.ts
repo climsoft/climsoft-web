@@ -223,9 +223,9 @@ export class ViewJobQueueComponent implements OnDestroy {
     protected getJobTypeBadgeClass(jobType: JobTypeEnum): string {
         switch (jobType) {
             case JobTypeEnum.CONNECTOR_IMPORT:
-                return 'bg-info text-white';
-            case JobTypeEnum.CONNECTOR_EXPORT:
                 return 'bg-primary';
+            case JobTypeEnum.CONNECTOR_EXPORT:
+                return 'bg-info text-white';
             default:
                 return 'bg-light text-dark';
         }

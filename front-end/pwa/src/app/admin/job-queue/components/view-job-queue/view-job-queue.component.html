@@ -93,10 +93,9 @@
 
     <!-- Pagination -->
     <div *ngIf="!loading && jobs.length > 0" class="d-flex justify-content-end mt-3">
-        <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()">
-        </app-page-input>
+        <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
     </div>
 </div>
 
 <!-- Job Detail Dialog -->
-<app-job-detail-dialog #jobDetailDialog></app-job-detail-dialog>
+<app-job-detail-dialog #jobDetailDialog />
