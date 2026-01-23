@@ -5,7 +5,6 @@ import { EditGeneralSettingComponent } from './general-settings/edit-general-set
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
-import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
 import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 import { ViewJobQueueComponent } from './job-queue/components/view-job-queue/view-job-queue.component';
@@ -48,10 +47,6 @@ const routes: Routes = [
       {
         path: 'user-details/:id',
         component: UserDetailsComponent
-      },
-      {
-        path: 'view-audits',
-        component: ViewAuditsComponent,
       },
       {
         path: 'view-job-queue',

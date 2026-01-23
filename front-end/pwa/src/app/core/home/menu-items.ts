@@ -53,7 +53,6 @@ export enum SubMenuNameEnum {
     USERS = 'Users',
     CLIMSOFT_V4 = 'Climsoft V4',
     SETTINGS = 'Settings',
-    AUDIT_LOGS = 'Audit Logs',
     JOB_QUEUE = 'Job Queue',
     CONNECTOR_LOGS = 'Connector Logs',
 }
@@ -229,10 +228,6 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.SETTINGS,
                     url: '/view-general-settings',
-                },
-                {
-                    name: SubMenuNameEnum.AUDIT_LOGS,
-                    url: '/view-audits',
                 },
                 {
                     name: SubMenuNameEnum.JOB_QUEUE,

@@ -11,7 +11,6 @@ import { UserDetailsComponent } from './users/user-details/user-details.componen
 import { UserGroupSelectorSingleComponent } from './users/user-group-selector-single/user-group-selector-single.component';
 import { PasswordChangeComponent } from './users/password-change/password-change.component';
 import { ClimsoftV4Component } from './climsoft-v4/climsoft-v4.component';
-import { ViewAuditsComponent } from './audits/view-audits/view-audits.component';
 import { ViewUserGroupsComponent } from './users/view-user-groups/view-user-groups.component';
 import { UserGroupDetailsComponent } from './users/user-group-details/user-group-details.component';
 import { EditUserPermissionsComponent } from './users/permissions/edit-user-permissions.component';
@@ -45,7 +44,6 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
 
     UserGroupSelectorSingleComponent,
     PasswordChangeComponent,
-    ViewAuditsComponent,
 
     // Job Queue
     ViewJobQueueComponent,
