@@ -151,7 +151,10 @@ export class ConnectorImportProcessorService {
         if (lastKnownConnectorLog) {
             for (const executionActivity of (lastKnownConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
                 for (const files of executionActivity.processedFiles) {
-                    lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
+                     // Skip files that had errors during last processing
+                    if(!files.errorMessage){
+                         lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
+                    }                  
                 }
             }
         }
