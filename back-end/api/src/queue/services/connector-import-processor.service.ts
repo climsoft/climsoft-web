@@ -29,7 +29,7 @@ export class ConnectorImportProcessorService {
     /**
      * Handle connector import jobs
      */
-    @OnEvent('connector.import')
+    @OnEvent('connector.import', { suppressErrors: false })
     public async handleImportJob(job: JobQueueEntity) {
         const payload = job.payload as ConnectorJobPayloadDto;
 

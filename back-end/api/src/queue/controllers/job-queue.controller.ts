@@ -3,7 +3,7 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 import { JobQueueService } from '../services/job-queue.service';
 import { JobQueueQueryDto } from '../dtos/job-queue-query.dto';
 import { JobQueueEntity, JobQueueStatusEnum } from '../entity/job-queue.entity';
-import { Between, FindManyOptions, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, FindManyOptions, FindOptionsWhere, IsNull, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Controller('job-queue')
@@ -113,6 +113,13 @@ export class JobQueueController {
             where.scheduledAt = MoreThanOrEqual(new Date(query.fromDate));
         } else if (query.toDate) {
             where.scheduledAt = LessThanOrEqual(new Date(query.toDate));
+        }
+
+        if (query.hasErrors === true) {
+            where.errorMessage = Not(IsNull());
+        } else if (query.hasErrors === false) {
+            where.errorMessage = IsNull();
+           
         }
 
         return where;

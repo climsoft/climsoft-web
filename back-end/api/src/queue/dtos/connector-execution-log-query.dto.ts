@@ -16,9 +16,10 @@ export class ConnectorExecutionLogQueryDto {
     @IsDateString()
     endDate?: string;
 
+     // See issue https://github.com/typestack/class-transformer/issues/550 to know why the manual transformation is needed.
     @IsOptional()
-    @Type(() => String)
-    @Transform(({ value }) => value !== undefined ? StringUtils.mapBooleanStringToBoolean(value.toString()) : undefined)
+    @Type(() => String) // Required to stop transformer from converting the value type to boolean
+    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
     hasErrors?: boolean;
 
     @IsOptional()

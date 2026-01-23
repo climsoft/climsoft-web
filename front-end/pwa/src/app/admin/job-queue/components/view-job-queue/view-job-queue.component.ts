@@ -29,6 +29,7 @@ export class ViewJobQueueComponent implements OnDestroy {
     protected selectedJobStatus!: JobQueueStatusEnum | null;
     protected selectedJobType!: JobTypeEnum | null;
     protected selectedTriggeredBy!: JobTriggerEnum | null;
+    protected hasErrorsFilter: boolean | null = null;
     protected dateRange: DateRange = {
         fromDate: DateUtils.getDateOnlyAsString(new Date()),
         toDate: DateUtils.getDateOnlyAsString(new Date())
@@ -84,6 +85,10 @@ export class ViewJobQueueComponent implements OnDestroy {
             query.toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${this.dateRange.toDate}T23:59:00.000Z`, this.cachedMetadataSearchService.utcOffSet, 'subtract');
         }
 
+        if (this.hasErrorsFilter !== null) {
+            query.hasErrors = this.hasErrorsFilter;
+        }
+
         // First get the count
         this.jobQueueService.count(query)
             .pipe(takeUntil(this.destroy$))
@@ -127,6 +132,11 @@ export class ViewJobQueueComponent implements OnDestroy {
 
     protected onTriggeredByFilterChange(option: JobTriggerEnum | null): void {
         this.selectedTriggeredBy = option;
+        this.loadJobs();
+    }
+
+    protected onErrorFilterChange(option: boolean | null): void {
+        this.hasErrorsFilter = option;
         this.loadJobs();
     }
 

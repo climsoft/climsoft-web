@@ -1,6 +1,7 @@
 import { Transform, Type } from "class-transformer";
-import { IsDateString, IsEnum, IsInt, IsOptional } from "class-validator";
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional } from "class-validator";
 import { JobQueueStatusEnum, JobTypeEnum, JobTriggerEnum } from "../entity/job-queue.entity";
+import { StringUtils } from "src/shared/utils/string.utils";
 
 export class JobQueueQueryDto {
     @IsOptional()
@@ -32,4 +33,10 @@ export class JobQueueQueryDto {
     @Type(() => Number)
     @IsInt()
     pageSize?: number;
+
+    // See issue https://github.com/typestack/class-transformer/issues/550 to know why the manual transformation is needed.
+    @IsOptional()
+    @Type(() => String) // Required to stop transformer from converting the value type to boolean
+    @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
+    hasErrors?: boolean;
 }

@@ -6,6 +6,7 @@ export interface JobQueueQueryModel {
     triggeredBy?: JobTriggerEnum;
     fromDate?: string;
     toDate?: string;
+    hasErrors?: boolean;
     page?: number;
     pageSize?: number;
 }

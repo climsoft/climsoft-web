@@ -70,7 +70,7 @@ export class JobQueueProcessorService {
             this.logger.log(`Job ${job.id}: ${job.name} completed`);
 
         } catch (error) {
-            this.logger.error(`Job ${job.id}: ${job.name} failed:`, error);
+            this.logger.error(`Job ${job.id}: ${job.name} failed`);
             const errorMessage = error instanceof Error ? error.message : String(error);
             await this.queueService.markAsFailed(job.id, errorMessage);
 

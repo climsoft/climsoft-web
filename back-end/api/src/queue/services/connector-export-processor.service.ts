@@ -28,7 +28,7 @@ export class ConnectorExportProcessorService {
     /**
      * Handle connector export jobs
      */
-    @OnEvent('connector.export')
+    @OnEvent('connector.export', { suppressErrors: false })
     public async handleExportJob(job: JobQueueEntity) {
         const payload = job.payload as ConnectorJobPayloadDto;
 
