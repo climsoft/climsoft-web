@@ -8,16 +8,11 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   templateUrl: './bufr-export-params.component.html',
   styleUrls: ['./bufr-export-params.component.scss']
 })
-export class BufrExportParamsComponent implements OnChanges {
+export class BufrExportParamsComponent {
   @Input() public bufrExportParameters!: BufrExportParametersModel;
 
   protected bufrTypes: BufrTypeEnum[] = Object.values(BufrTypeEnum);
   protected bufrConverters: BufrConverterSpecification[] = BUFR_CONVERTER_SPECIFICATIONS;
-
-
-    ngOnChanges(changes: SimpleChanges): void {
-     console.log('BUFR Export Parameters changed:', this.bufrExportParameters);
-  }
 
   protected bufrTypeDisplayFunction(option: BufrTypeEnum): string {
     return StringUtils.capitalizeFirstLetter(option);
