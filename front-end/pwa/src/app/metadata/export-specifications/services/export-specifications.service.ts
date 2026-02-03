@@ -35,13 +35,6 @@ export class ExportSpecificationsService {
         );
     }
 
-    // public findSome(ids: number[]): Observable<ViewExportTemplateModel[]> {
-    //     let httpParams: HttpParams = StringUtils.getQueryParams<number[]>(ids);
-    //     return this.http.get<ViewExportTemplateModel[]>(`${this.endPointUrl}`, { params: httpParams }).pipe(
-    //         catchError(this.handleError)
-    //     );
-    // }
-
     public add(createDto: CreateExportSpecificationModel): Observable<ViewExportSpecificationModel> {
         return this.http.post<ViewExportSpecificationModel>(`${this.endPointUrl}`, createDto)
             .pipe(

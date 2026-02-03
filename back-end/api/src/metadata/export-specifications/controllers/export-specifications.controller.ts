@@ -17,14 +17,14 @@ export class ExportSpecificationsController {
         return this.exportTemplateService.findAll();
     }
 
-    @Get(':id')
-    public findOne(@Param('id', AuthorisedExportsPipe) id: number) {
-        return this.exportTemplateService.find(id);
-    }
-
     @Get('bufr-converter-specifications')
     public findBufrConverterSpecifications(): BufrConverterSpecification[] {
         return BUFR_CONVERTER_SPECIFICATIONS;
+    }
+
+    @Get(':id')
+    public findOne(@Param('id', AuthorisedExportsPipe) id: number) {
+        return this.exportTemplateService.find(id);
     }
 
     @Admin()
