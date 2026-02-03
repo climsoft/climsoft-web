@@ -5,7 +5,7 @@ import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.mod
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { ViewExportSpecificationModel } from 'src/app/metadata/export-specifications/models/view-export-specification.model';
-import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-templates.service';
+import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-specifications.service';
 
 @Component({
   selector: 'app-manual-export-selection',

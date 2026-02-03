@@ -2,7 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { ViewExportSpecificationModel } from '../models/view-export-specification.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ExportSpecificationsService } from '../services/export-templates.service';
+import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { CreateExportSpecificationModel } from '../models/create-export-specification.model';
 import { ExportTypeEnum } from '../models/export-type.enum';
 import { RawExportParametersModel } from '../models/raw-export-parameters.dto';

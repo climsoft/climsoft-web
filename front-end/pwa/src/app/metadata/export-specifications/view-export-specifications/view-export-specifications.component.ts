@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ExportSpecificationsService } from '../services/export-templates.service';
+import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { ViewExportSpecificationModel } from '../models/view-export-specification.model';
 
 @Component({

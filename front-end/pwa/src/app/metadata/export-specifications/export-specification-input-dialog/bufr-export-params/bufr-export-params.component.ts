@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { BufrExportParametersModel, BufrTypeEnum, BufrElementMapDto } from '../../models/bufr-export-parameters';
 import { BufrConverterSpecification, BUFR_CONVERTER_SPECIFICATIONS } from '../../models/bufr-converter';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { ExportSpecificationsService } from '../../services/export-specifications.service';
 
 @Component({
   selector: 'app-bufr-export-params',
@@ -12,7 +13,13 @@ export class BufrExportParamsComponent {
   @Input() public bufrExportParameters!: BufrExportParametersModel;
 
   protected bufrTypes: BufrTypeEnum[] = Object.values(BufrTypeEnum);
+
+  // TODO. Should get from backend service through the iported `ExportSpecificationsService`
   protected bufrConverters: BufrConverterSpecification[] = BUFR_CONVERTER_SPECIFICATIONS;
+
+  constructor(exportSpecificationsService: ExportSpecificationsService) {
+
+  }
 
   protected bufrTypeDisplayFunction(option: BufrTypeEnum): string {
     return StringUtils.capitalizeFirstLetter(option);

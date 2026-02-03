@@ -7,7 +7,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { ViewExportSpecificationModel } from 'src/app/metadata/export-specifications/models/view-export-specification.model';
-import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-templates.service';
+import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-specifications.service';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
 import { DateUtils } from 'src/app/shared/utils/date.utils';

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { ExportSpecificationsService } from '../../services/export-templates.service';
+import { ExportSpecificationsService } from '../../services/export-specifications.service';
 import { ViewExportSpecificationModel } from '../../models/view-export-specification.model';
 
 @Component({
