@@ -1,10 +1,10 @@
 import { catchError, Observable, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewExportSpecificationModel } from "../models/view-export-specification.model";
 import { CreateExportSpecificationModel } from "../models/create-export-specification.model";
-import { StringUtils } from "src/app/shared/utils/string.utils";
+import { BufrConverterSpecificationModel } from "../models/bufr-converter.model";
 
 @Injectable({
     providedIn: 'root'
@@ -25,6 +25,12 @@ export class ExportSpecificationsService {
 
     public findOne(id: number): Observable<ViewExportSpecificationModel> {
         return this.http.get<ViewExportSpecificationModel>(`${this.endPointUrl}/${id}`).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    public findBufrConverterSpecifications(): Observable<BufrConverterSpecificationModel[]> {
+        return this.http.get<BufrConverterSpecificationModel[]>(`${this.endPointUrl}/bufr-converter-specifications`).pipe(
             catchError(this.handleError)
         );
     }

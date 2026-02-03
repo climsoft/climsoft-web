@@ -1,8 +1,8 @@
 
-import { AggregateExportParametersModel } from './aggregate-export-parameters'; 
-import { BufrExportParametersModel } from './bufr-export-parameters';
+import { AggregateExportParametersModel } from './aggregate-export-parameters.model'; 
+import { BufrExportParametersModel } from './bufr-export-parameters.model';
 import { ExportTypeEnum } from './export-type.enum';
-import { RawExportParametersModel } from './raw-export-parameters.dto'; 
+import { RawExportParametersModel } from './raw-export-parameters.model'; 
 
 export type ExportParameters = RawExportParametersModel | AggregateExportParametersModel | BufrExportParametersModel;
 

@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { RawExportParametersModel } from '../../models/raw-export-parameters.dto';
+import { RawExportParametersModel } from '../../models/raw-export-parameters.model';
 
 @Component({
   selector: 'app-raw-export-params',

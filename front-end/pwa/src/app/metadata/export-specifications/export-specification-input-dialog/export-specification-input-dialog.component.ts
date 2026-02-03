@@ -5,9 +5,9 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { CreateExportSpecificationModel } from '../models/create-export-specification.model';
 import { ExportTypeEnum } from '../models/export-type.enum';
-import { RawExportParametersModel } from '../models/raw-export-parameters.dto';
-import { BufrExportParametersModel, BufrTypeEnum } from '../models/bufr-export-parameters';
-import { AggregateExportParametersModel } from '../models/aggregate-export-parameters';
+import { RawExportParametersModel } from '../models/raw-export-parameters.model';
+import { BufrExportParametersModel, BufrTypeEnum } from '../models/bufr-export-parameters.model';
+import { AggregateExportParametersModel } from '../models/aggregate-export-parameters.model';
 
 @Component({
   selector: 'app-export-specification-input-dialog',

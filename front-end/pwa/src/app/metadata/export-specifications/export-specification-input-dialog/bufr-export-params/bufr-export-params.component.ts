@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { BufrExportParametersModel, BufrTypeEnum, BufrElementMapDto } from '../../models/bufr-export-parameters';
-import { BufrConverterSpecification, BUFR_CONVERTER_SPECIFICATIONS } from '../../models/bufr-converter';
+import { Component, Input } from '@angular/core';
+import { take } from 'rxjs';
+import { BufrExportParametersModel, BufrTypeEnum } from '../../models/bufr-export-parameters.model';
+import { BufrConverterSpecificationModel } from '../../models/bufr-converter.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ExportSpecificationsService } from '../../services/export-specifications.service';
 
@@ -13,19 +14,21 @@ export class BufrExportParamsComponent {
   @Input() public bufrExportParameters!: BufrExportParametersModel;
 
   protected bufrTypes: BufrTypeEnum[] = Object.values(BufrTypeEnum);
+  protected bufrConverters: BufrConverterSpecificationModel[] = [];
 
-  // TODO. Should get from backend service through the iported `ExportSpecificationsService`
-  protected bufrConverters: BufrConverterSpecification[] = BUFR_CONVERTER_SPECIFICATIONS;
-
-  constructor(exportSpecificationsService: ExportSpecificationsService) {
-
+  constructor(private exportSpecificationsService: ExportSpecificationsService) {
+    this.exportSpecificationsService.findBufrConverterSpecifications().pipe(
+      take(1)
+    ).subscribe(data => {
+      this.bufrConverters = data;
+    });
   }
 
   protected bufrTypeDisplayFunction(option: BufrTypeEnum): string {
     return StringUtils.capitalizeFirstLetter(option);
   }
 
-  protected bufrConverterDisplayFunction(option: BufrConverterSpecification): string {
+  protected bufrConverterDisplayFunction(option: BufrConverterSpecificationModel): string {
     return option.elementName;
   }
 
@@ -53,13 +56,13 @@ export class BufrExportParamsComponent {
     this.bufrExportParameters.elementMappings[index].databaseElementId = elementId;
   }
 
-  protected onBufrConverterSelected(index: number, converter: BufrConverterSpecification | null): void {
+  protected onBufrConverterSelected(index: number, converter: BufrConverterSpecificationModel | null): void {
     if (converter) {
       this.bufrExportParameters.elementMappings[index].bufrConverterId = converter.id;
     }
   }
 
-  protected getSelectedBufrConverter(converterId: number): BufrConverterSpecification | null {
+  protected getSelectedBufrConverter(converterId: number): BufrConverterSpecificationModel | null {
     return this.bufrConverters.find(c => c.id === converterId) || null;
   }
 }
