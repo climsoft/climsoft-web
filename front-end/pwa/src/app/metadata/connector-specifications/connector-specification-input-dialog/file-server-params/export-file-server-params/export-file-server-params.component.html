@@ -1,35 +1,51 @@
 <div *ngIf="exportFileServerParameters">
     <div>
-        <app-number-input [label]="'Observation Period'" [labelSuperScript]="'minutes'" [(numValue)]="exportFileServerParameters.observationPeriod" />
+        <app-number-input [label]="'Observation Period'" [labelSuperScript]="'minutes'"
+            [(numValue)]="exportFileServerParameters.observationPeriod" />
     </div>
-    <hr />
-    <table class="table table-sm ms-2">
-        <thead>
-            <tr>
-                <th>File Source Pattern</th>
-                <th>Export Specification</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr *ngFor="let item of ftpSpecifications; let i = index;">
-                <td>
-                    <app-text-input [id]="i + '_file_source_pattern_specification'" [value]="item.filePattern"
-                        (valueChange)="onFileSourcePatternInput($event, i)" />
-                </td>
-                <td>
-                    <app-export-specification-selector-single [id]="i + '_db_export_specification'"
-                        [selectedId]="item.specificationId"
-                        (selectedIdChange)="onExportSpecificationInput($event, i)" />
-                </td>
 
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="onRemoveSpecification(i)"
-                        [disabled]="ftpSpecifications.length <= 1 || !item.filePattern || item.filePattern.trim() === '' || item.specificationId === null">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <hr />
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Export Specifications</span>
+                <button type="button" class="btn btn-sm btn-primary" (click)="onAddSpecification()">
+                    Add Specification
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div *ngIf="!exportFileServerParameters.specifications || exportFileServerParameters.specifications.length === 0"
+                class="text-muted text-center py-3">
+                No specifications configured. Click "Add Specification" to create one.
+            </div>
+
+            <div *ngIf="exportFileServerParameters.specifications && exportFileServerParameters.specifications.length > 0">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Export Specification</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let item of exportFileServerParameters.specifications; let i = index;">
+                            <td>
+                                <app-export-specification-selector-single [id]="i + '_db_export_specification'"
+                                    [selectedId]="item.specificationId"
+                                    (selectedIdChange)="onSpecificationIdChange(i, $event)" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveSpecification(i)">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
