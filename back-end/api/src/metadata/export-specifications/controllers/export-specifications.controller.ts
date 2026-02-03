@@ -5,7 +5,7 @@ import { AuthUtil } from 'src/user/services/auth.util';
 import { ExportSpecificationsService } from '../services/export-specifications.service'; 
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
-import { BUFR_CONVERTER_SPECIFICATIONS, BufrConverterSpecification } from '../dtos/bufr-converter.mappings';
+import { BUFR_CSV_MAPPINGS, BufrCSVMapping } from '../dtos/bufr-converter.mappings';
 
 @Controller('export-specifications')
 export class ExportSpecificationsController {
@@ -18,8 +18,8 @@ export class ExportSpecificationsController {
     }
 
     @Get('bufr-converter-specifications')
-    public findBufrConverterSpecifications(): BufrConverterSpecification[] {
-        return BUFR_CONVERTER_SPECIFICATIONS;
+    public findBufrConverterSpecifications(): BufrCSVMapping[] {
+        return BUFR_CSV_MAPPINGS;
     }
 
     @Get(':id')

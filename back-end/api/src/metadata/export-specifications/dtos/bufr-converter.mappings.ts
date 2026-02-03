@@ -1,7 +1,7 @@
 import { BufrTypeEnum } from "./bufr-export-parameters.dto";
 
 // Hardcoded specifications for BUFR converter
-export class BufrConverterSpecification {
+export class BufrCSVMapping {
     id: number;
     elementName: string;
     elementDescription: string;
@@ -9,7 +9,7 @@ export class BufrConverterSpecification {
     bufrType: BufrTypeEnum;
 }
 
-export const BUFR_CONVERTER_SPECIFICATIONS: BufrConverterSpecification[] = [
+export const BUFR_CSV_MAPPINGS: BufrCSVMapping[] = [
     //-----------------------------------------------------------
     // SYNOP elements
     //-----------------------------------------------------------
