@@ -18,7 +18,6 @@ export class CreateExportSpecificationDto {
   @IsEnum(ExportTypeEnum, { message: 'export type must be a valid value' })
   exportType: ExportTypeEnum;
 
-  @ValidateNested()
   @Type((options) => {
     // The 'options.object' gives access to the parent DTO,
     // allowing us to dynamically select the correct validation class
@@ -42,6 +41,7 @@ export class CreateExportSpecificationDto {
         throw new BadRequestException('export type is not recognised');
     }
   })
+  @ValidateNested()
   parameters: ExportParameters;
 
   @IsBoolean()

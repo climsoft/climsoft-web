@@ -1,0 +1,61 @@
+<div *ngIf="bufrExportParameters" class="card">
+    <div class="card-header">BUFR Configuration</div>
+    <div class="card-body">
+        <div>
+            <app-selector-single-input [id]="'bufr_type_selector'" [label]="'BUFR Type'" [options]="bufrTypes"
+                [optionDisplayFn]="bufrTypeDisplayFunction" [selectedOption]="bufrExportParameters.bufrType"
+                (selectedOptionChange)="onBufrTypeChange($event)" />
+        </div>
+        <hr />
+
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Element Mappings</span>
+                    <button type="button" class="btn btn-sm btn-primary" (click)="onAddElementMapping()">
+                        Add Mapping
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div *ngIf="!bufrExportParameters.elementMappings || bufrExportParameters.elementMappings.length === 0"
+                    class="text-muted text-center py-3">
+                    No element mappings configured. Click "Add Mapping" to create one.
+                </div>
+
+                <div *ngIf="bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Database Element</th>
+                                <th>BUFR Converter</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            <tr *ngFor="let mapping of bufrExportParameters.elementMappings; let i = index">
+                                <td>
+                                    <app-element-selector-single [id]="'bufr_element_' + i"
+                                        [selectedId]="mapping.databaseElementId"
+                                        (selectedIdChange)="onElementSelected(i, $event)" />
+                                </td>
+                                <td>
+                                    <app-selector-single-input [id]="'bufr_converter_' + i" [options]="bufrConverters"
+                                        [optionDisplayFn]="bufrConverterDisplayFunction"
+                                        [selectedOption]="getSelectedBufrConverter(mapping.bufrConverterId)"
+                                        (selectedOptionChange)="onBufrConverterSelected(i, $event)" />
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                        (click)="onRemoveElementMapping(i)">
+                                        Remove
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

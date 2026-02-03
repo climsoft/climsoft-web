@@ -1,6 +1,6 @@
  export enum BufrTypeEnum {
     SYNOP = 'synop',
-    DAYCLI = 'wisdaycli',
+    DAYCLI = 'daycli',
     CLIMAT = 'climat',
     TEMP = 'temp',
 }
@@ -8,7 +8,7 @@
 export interface BufrExportParametersModel { 
     bufrType: BufrTypeEnum;
  
-    elements: BufrElementMapDto[];
+    elementMappings: BufrElementMapDto[];
 }
 
 export interface BufrElementMapDto {

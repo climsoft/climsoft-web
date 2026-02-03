@@ -65,7 +65,6 @@ export class CreateConnectorSpecificationDto {
     @Min(1)
     orderNumber?: number; // Auto-generated if not provided
 
-    @ValidateNested()
     @Type((options) => {
         // The 'options.object' gives access to the parent DTO,
         // allowing us to dynamically select the correct validation class
@@ -87,6 +86,7 @@ export class CreateConnectorSpecificationDto {
                 throw new BadRequestException('Connector type is not recognised');
         }
     })
+    @ValidateNested()
     parameters: ConnectorParameters;
 
     @IsOptional()

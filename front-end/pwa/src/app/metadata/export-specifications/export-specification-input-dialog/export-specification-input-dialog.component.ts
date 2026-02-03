@@ -5,6 +5,9 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ExportSpecificationsService } from '../services/export-templates.service';
 import { CreateExportSpecificationModel } from '../models/create-export-specification.model';
 import { ExportTypeEnum } from '../models/export-type.enum';
+import { RawExportParametersModel } from '../models/raw-export-parameters.dto';
+import { BufrExportParametersModel, BufrTypeEnum } from '../models/bufr-export-parameters';
+import { AggregateExportParametersModel } from '../models/aggregate-export-parameters';
 
 @Component({
   selector: 'app-export-specification-input-dialog',
@@ -19,7 +22,6 @@ export class ExportSpecificationInputDialogComponent {
   protected title: string = '';
   protected viewExportSpecification!: ViewExportSpecificationModel;
   protected errorMessage!: string;
-  protected disableStackedDataOpetions: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -35,7 +37,6 @@ export class ExportSpecificationInputDialogComponent {
         take(1),
       ).subscribe(data => {
         this.viewExportSpecification = data;
-        this.disableStackedDataOpetions = this.viewExportSpecification.parameters.unstackData ? true : false;
       });
     } else {
       this.pagesDataService.setPageHeader('New Export Specification');
@@ -48,41 +49,51 @@ export class ExportSpecificationInputDialogComponent {
         disabled: false,
         comment: null,
       };
-
     }
   }
 
-  protected onUnstackData(value: boolean) {
-    this.viewExportSpecification.parameters.unstackData = value;
-    this.disableStackedDataOpetions = value
+  protected get rawParams(): RawExportParametersModel {
+    return this.viewExportSpecification.parameters as RawExportParametersModel;
+  }
 
-    if (value) {
-      // Uncheck all stacked data options when unstack option is clicked
-      this.viewExportSpecification.parameters.includeFlag = false;
-      this.viewExportSpecification.parameters.includeQCStatus = false;
-      this.viewExportSpecification.parameters.includeQCTestLog = false;
-      this.viewExportSpecification.parameters.includeComments = false;
-      this.viewExportSpecification.parameters.includeEntryDatetime = false;
-      this.viewExportSpecification.parameters.includeEntryUserEmail = false;
+  protected get bufrParams(): BufrExportParametersModel {
+    return this.viewExportSpecification.parameters as BufrExportParametersModel;
+  }
+
+  protected onExportTypeChange(exportType: ExportTypeEnum): void {
+    this.viewExportSpecification.exportType = exportType;
+
+    switch (exportType) {
+      case ExportTypeEnum.RAW:
+        this.viewExportSpecification.parameters = {} as RawExportParametersModel;
+        break;
+      case ExportTypeEnum.BUFR:
+        this.viewExportSpecification.parameters = {
+          bufrType: BufrTypeEnum.SYNOP,
+          elementMappings: []
+        } as BufrExportParametersModel;
+        break;
+      case ExportTypeEnum.AGGREGATE:
+        this.viewExportSpecification.parameters = {} as AggregateExportParametersModel;
+        break;
     }
-
   }
 
   protected onSubmitClick(): void {
     this.errorMessage = '';
 
     if (!this.viewExportSpecification) {
-      this.errorMessage = 'Template not defined';
+      this.errorMessage = 'Specification not defined';
       return;
     }
 
     if (!this.viewExportSpecification.name) {
-      this.errorMessage = 'Enter template name';
+      this.errorMessage = 'Enter specification name';
       return;
     }
 
     if (!this.viewExportSpecification.description) {
-      this.errorMessage = 'Enter template description';
+      this.errorMessage = 'Enter specification description';
       return;
     }
 
@@ -95,6 +106,8 @@ export class ExportSpecificationInputDialogComponent {
       disabled: this.viewExportSpecification.disabled,
       comment: this.viewExportSpecification.comment,
     }
+
+    console.log('Creating/updating export specification: ', createExportSpecification);
 
     let saveSubscription: Observable<ViewExportSpecificationModel>;
     if (this.viewExportSpecification.id > 0) {

@@ -40,6 +40,8 @@ import { StationSelectorSingleComponent } from './stations/station-selector/stat
 import { StationSelectorMultipleComponent } from './stations/station-selector/station-selector-multiple/station-selector-multiple.component';
 import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ExportSpecificationInputDialogComponent } from './export-specifications/export-specification-input-dialog/export-specification-input-dialog.component';
+import { RawExportParamsComponent } from './export-specifications/export-specification-input-dialog/raw-export-params/raw-export-params.component';
+import { BufrExportParamsComponent } from './export-specifications/export-specification-input-dialog/bufr-export-params/bufr-export-params.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ExportSpecificationSelectorSingleComponent } from './export-specifications/export-specification-selector/export-specification-selector-single/export-specification-selector-single.component';
 import { ExportSpecificationSelectorMultipleComponent } from './export-specifications/export-specification-selector/export-specification-selector-multiple/export-specification-selector-multiple.component';
@@ -164,6 +166,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
 
     ViewExportSpecificationsComponent,
     ExportSpecificationInputDialogComponent,
+    RawExportParamsComponent,
+    BufrExportParamsComponent,
     ExportSpecificationSelectorSingleComponent,
     ExportSpecificationSelectorMultipleComponent,
 
