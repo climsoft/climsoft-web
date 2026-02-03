@@ -97,7 +97,6 @@ export class ExportSpecificationInputDialogComponent {
       return;
     }
 
-
     const createExportSpecification: CreateExportSpecificationModel = {
       name: this.viewExportSpecification.name,
       description: this.viewExportSpecification.description,
@@ -106,8 +105,6 @@ export class ExportSpecificationInputDialogComponent {
       disabled: this.viewExportSpecification.disabled,
       comment: this.viewExportSpecification.comment,
     }
-
-    console.log('Creating/updating export specification: ', createExportSpecification);
 
     let saveSubscription: Observable<ViewExportSpecificationModel>;
     if (this.viewExportSpecification.id > 0) {
