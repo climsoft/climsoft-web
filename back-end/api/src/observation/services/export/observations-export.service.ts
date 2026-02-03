@@ -2,8 +2,7 @@ import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs
 import { DataSource } from "typeorm"
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
-import { AppConfig } from 'src/app.config';
-import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
+import { ViewObservationQueryDTO } from '../../dtos/view-observation-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';
@@ -13,15 +12,19 @@ import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/d
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
 import * as path from 'node:path';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
+import { BufrExportParametersDto, BufrTypeEnum } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
+import { BufrExportService } from './bufr-export.service';
 
 @Injectable()
 export class ObservationsExportService {
     private readonly logger = new Logger(ObservationsExportService.name);
+
     constructor(
         private exportTemplatesService: ExportSpecificationsService,
         private dataSource: DataSource,
         private fileIOService: FileIOService,
         private generalSettingsService: GeneralSettingsService,
+        private bufrExportService: BufrExportService,
     ) {
     }
 
@@ -52,6 +55,8 @@ export class ObservationsExportService {
         }
 
         const outputPath: string = path.posix.join(this.fileIOService.apiExportsDir, `${userId}_${exportSpecificationId}_export.csv`);
+
+        console.log('Starting download export', outputPath);
         return this.fileIOService.createStreamableFile(outputPath);
     }
 
@@ -146,14 +151,13 @@ export class ObservationsExportService {
         if (viewExportDto.disabled) {
             throw new Error('Export is disabled');
         }
-        const exportParams: RawExportParametersDto = viewExportDto.parameters as RawExportParametersDto;
 
         switch (viewExportDto.exportType) {
             case ExportTypeEnum.RAW:
-                await this.generateRawExports(exportParams, exportFileName, exportPermissions);
+                await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportFileName, exportPermissions);
                 break;
             case ExportTypeEnum.AGGREGATE:
-                // TODO
+                await this.generateBufrExports(viewExportDto.parameters as BufrExportParametersDto, exportFileName, exportPermissions);
                 break;
             case ExportTypeEnum.BUFR:
                 // TODO
@@ -323,7 +327,71 @@ export class ObservationsExportService {
         // Execute raw SQL query (without parameterized placeholders)
         await this.dataSource.manager.query(sql);
 
-        this.logger.log(`Export done:  ${exportFilePathName}`)
+        this.logger.log(`Export generated:  ${exportFilePathName}`)
+    }
+
+
+    public async generateBufrExports(exportParams: BufrExportParametersDto, exportFilePathName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
+
+        // TODO. In future these conditions should create parameters for a SQL function
+        // Manually construct the SQL query
+        let sqlCondition: string = 'ob.deleted = false';
+
+        // DATA FILTER SELECTIONS
+        //------------------------------------------------------------------------------------------------
+        if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
+            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+        }
+
+        sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
+
+        if (exportPermissions.observationPeriod) {
+            if (exportPermissions.observationPeriod.last) {
+                sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
+            }
+        }
+
+        //------------------------------------------------------------------------------------------------
+
+        const columnSelections: string[] = [];
+
+        columnSelections.push('ob.station_id AS station_id');
+        columnSelections.push('st.name AS station_name');
+        columnSelections.push('ST_Y(st.location) AS station_latitude');
+        columnSelections.push('ST_X(st.location) AS station_longitude');
+        columnSelections.push('st.elevation AS station_elevation');
+        columnSelections.push('ob.element_id AS element_id');
+        columnSelections.push('el.units AS element_units');
+        columnSelections.push('ob.level AS level');
+        columnSelections.push('ob.interval AS interval');
+        columnSelections.push('ob.date_time AS date_time');
+        columnSelections.push('ob.value AS value');
+
+        //------------------------------------------------------------------------------------------------ 
+        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, `${new Date().getTime()}_bufr_export.csv`);
+        const sql: string = `
+            COPY (
+                SELECT 
+                ${columnSelections.join(',')} 
+                FROM observations ob
+                INNER JOIN stations st on ob.station_id = st.id
+                INNER JOIN elements el on ob.element_id = el.id
+                WHERE ${sqlCondition} 
+                ORDER BY ob.date_time ASC
+            ) TO '${dbFilePathName}' WITH CSV HEADER;
+        `;
+
+        //console.log('Executing COPY command:', sql); // Debugging log
+
+        // Execute raw SQL query (without parameterized placeholders)
+        await this.dataSource.manager.query(sql);
+
+        // Now generate BUFR file using the exported csv file
+        // Note db file paths are different from api file paths due to how docker volumes are mapped
+        const apiFilePathName: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
+        await this.bufrExportService.generateDayCliIntermediateFile(exportParams, apiFilePathName, exportFilePathName);
+
+        //this.logger.log(`BUFR Export generated:  ${bufrFilePathName}`)
     }
 
 

@@ -9,7 +9,7 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { EndPointTypeEnum, ExportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
-import { ObservationsExportService } from 'src/observation/services/observations-export.service';
+import { ObservationsExportService } from 'src/observation/services/export/observations-export.service';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { ExportFileProcessingResultVo, ExportFileServerExecutionActivityVo, FileMetadataVo } from '../entity/connector-execution-log.entity';
 import * as fs from 'fs';
@@ -106,7 +106,8 @@ export class ConnectorExportProcessorService {
                 try {
                     // Generate export file
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
-                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName, { observationPeriod: { last: (connector.parameters as ExportFileServerParametersDto).observationPeriod } });
+                    const connectorParams = connector.parameters as ExportFileServerParametersDto;
+                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName, { stationIds: [spec.stationId], observationPeriod: { last: connectorParams.observationPeriod } });
 
                     // Get file stats for metadata
                     const fileStats = await fs.promises.stat(exportFilePathName);

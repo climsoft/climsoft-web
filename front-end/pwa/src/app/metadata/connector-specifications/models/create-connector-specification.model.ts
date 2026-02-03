@@ -90,12 +90,12 @@ export interface ImportFileServerSpecificationModel {
 
 export interface ExportFileServerSpecificationModel {
 
-    specificationId: number; // export specification id
-
     // TODO. Is this needed?
     filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
 
-    // TODO. Add station id.
+    specificationId: number; // export specification id
+
+    stationId: string;
 }
 
 export interface WebServerMetadataModel {

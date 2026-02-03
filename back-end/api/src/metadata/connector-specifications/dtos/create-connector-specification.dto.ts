@@ -157,17 +157,22 @@ export class ImportFileServerSpecificationDto {
 
     @IsOptional()
     @IsString()
+    @IsNotEmpty()
     stationId?: string; // Used by import only
 }
 
 export class ExportFileServerSpecificationDto {
 
+    @IsString() // TODO. Later change to enum
+    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
+
     @IsInt()
     @Min(1)
     specificationId: number; // export specification id
 
-    @IsString() // TODO. Later change to enum
-    filePattern: 'yyyymmddhhmmss'; // used to name the created csv file
+    @IsString()
+    @IsNotEmpty()
+    stationId: string;
 }
 
 export class WebServerMetadataDto {

@@ -70,8 +70,6 @@ export class ExportSpecificationsService {
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
 
-        console.log('Creating export specification entity: ', dto);
-
         await this.exportsRepo.save(entity);
 
         return this.createViewDto(entity);

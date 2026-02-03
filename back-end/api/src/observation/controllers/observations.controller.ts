@@ -10,7 +10,7 @@ import { AuthUtil } from 'src/user/services/auth.util';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { ObservationsExportService } from '../services/observations-export.service';
+import { ObservationsExportService } from '../services/export/observations-export.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
@@ -88,15 +88,15 @@ export class ObservationsController {
     return this.observationExportsService.generateManualExport(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
   }
 
-  @Get('download-export/:templateid')
+  @Get('download-export/:specificationid')
   @Header('Content-Type', 'text/csv')
   @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
   async download(
     @Req() request: Request,
-    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number
+    @Param('specificationid', AuthorisedExportsPipe) id: number
   ) {
     // Stream the exported file to the response
-    return await this.observationExportsService.manualDownloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
+    return this.observationExportsService.manualDownloadExport(id, AuthUtil.getLoggedInUser(request).id);
   }
 
   @Put('data-entry')

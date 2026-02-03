@@ -17,7 +17,8 @@ export class ExportFileServerParamsComponent {
     }
     this.exportFileServerParameters.specifications.push({
       filePattern: 'yyyymmddhhmmss',
-      specificationId: 0
+      specificationId: 0,
+      stationId: '',
     });
   }
 
@@ -27,5 +28,9 @@ export class ExportFileServerParamsComponent {
 
   protected onSpecificationIdChange(index: number, specificationId: number | null): void {
     this.exportFileServerParameters.specifications[index].specificationId = specificationId ?? 0;
+  }
+
+  protected onStationIdChange(index: number, stationId: string | null): void {
+    this.exportFileServerParameters.specifications[index].stationId = stationId ?? '';
   }
 }
