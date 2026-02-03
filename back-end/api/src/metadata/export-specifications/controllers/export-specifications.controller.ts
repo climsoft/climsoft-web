@@ -5,6 +5,7 @@ import { AuthUtil } from 'src/user/services/auth.util';
 import { ExportSpecificationsService } from '../services/export-specifications.service'; 
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
+import { BUFR_CONVERTER_SPECIFICATIONS, BufrConverterSpecification } from '../dtos/bufr-converter';
 
 @Controller('export-specifications')
 export class ExportSpecificationsController {
@@ -19,6 +20,11 @@ export class ExportSpecificationsController {
     @Get(':id')
     public findOne(@Param('id', AuthorisedExportsPipe) id: number) {
         return this.exportTemplateService.find(id);
+    }
+
+    @Get('bufr-converter-specifications')
+    public findBufrConverterSpecifications(): BufrConverterSpecification[] {
+        return BUFR_CONVERTER_SPECIFICATIONS;
     }
 
     @Admin()

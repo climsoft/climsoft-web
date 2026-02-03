@@ -2,12 +2,11 @@ import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min, ValidateNested } f
 import { RawExportParametersDto } from './raw-export-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
 import { Type } from 'class-transformer';
-import { WISSynopExportParametersDto } from './wis-synop-export-parameters';
-import { WISDayCliExportParametersDto } from './wis-daycli-export-parameters';
+import { BufrExportParametersDto } from './bufr-export-parameters.dto';
 import { BadRequestException } from '@nestjs/common';
 import { AggregateExportParametersDto } from './aggregate-export-parameters';
 
-export type ExportParameters = RawExportParametersDto | AggregateExportParametersDto | WISSynopExportParametersDto | WISDayCliExportParametersDto;
+export type ExportParameters = RawExportParametersDto | AggregateExportParametersDto | BufrExportParametersDto;
 
 export class CreateExportSpecificationDto {
   @IsString()
@@ -37,10 +36,8 @@ export class CreateExportSpecificationDto {
         return RawExportParametersDto;
       case ExportTypeEnum.AGGREGATE:
         return AggregateExportParametersDto;
-      case ExportTypeEnum.WISSYNOP:
-        return WISSynopExportParametersDto;
-      case ExportTypeEnum.WISDAYCLI:
-        return WISDayCliExportParametersDto;
+      case ExportTypeEnum.BUFR:
+        return BufrExportParametersDto;
       default:
         throw new BadRequestException('export type is not recognised');
     }

@@ -155,13 +155,9 @@ export class ObservationsExportService {
             case ExportTypeEnum.AGGREGATE:
                 // TODO
                 break;
-            case ExportTypeEnum.WISSYNOP:
+            case ExportTypeEnum.BUFR:
                 // TODO
                 break;
-            case ExportTypeEnum.WISDAYCLI:
-                // TODO
-                break;
-
             default:
                 throw new Error('Export type no supported');
         }
