@@ -391,6 +391,8 @@ export class ObservationsExportService {
         const apiFilePathName: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
         await this.bufrExportService.generateDayCliIntermediateFile(exportParams, apiFilePathName, exportFilePathName);
 
+      
+
         //this.logger.log(`BUFR Export generated:  ${bufrFilePathName}`)
     }
 

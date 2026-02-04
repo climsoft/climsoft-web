@@ -91,6 +91,9 @@ export class BufrExportService {
         await this.fileIOService.duckDb.exec(sql);
 
         this.logger.log(`DayCli intermediate file generated: ${outputFilePathName}`);
+
+        // TODO. Send command to external BUFR converter utility to generate BUFR file from the DayCli intermediate file
+        // e.g csv2bufr data transform outputFilePathName --bufr-template climsoft_dacli_template.json --output-dir ./bufr/
     }
 
 
