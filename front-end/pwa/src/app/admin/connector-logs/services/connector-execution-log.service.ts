@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
-import { ViewConnectorExecutionLogModel } from '../models/view-connector-execution-log.model';
+import { ViewConnectorExecutionLogModel } from '../models/connector-execution-log.model';
 import { ConnectorLogQueryModel } from '../models/connector-log-query.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 

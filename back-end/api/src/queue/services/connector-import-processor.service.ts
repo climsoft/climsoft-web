@@ -3,7 +3,8 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { ConnectorJobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
 import { ObservationImportService } from 'src/observation/services/observations-import.service';
-import * as path from 'path';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { Client as FtpClient } from 'basic-ftp';
 import * as SftpClient from 'ssh2-sftp-client';
 import axios from 'axios';
@@ -12,7 +13,7 @@ import { EndPointTypeEnum, ImportFileServerParametersDto, FileServerProtocolEnum
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { FileMetadataVo, ImportFileProcessingResultVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
-import * as fs from 'fs';
+
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 
 @Injectable()

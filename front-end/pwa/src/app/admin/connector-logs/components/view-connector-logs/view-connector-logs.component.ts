@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ConnectorExecutionLogService, ConnectorExecutionStats } from '../../services/connector-execution-log.service';
-import { ViewConnectorExecutionLogModel } from '../../models/view-connector-execution-log.model';
+import { ViewConnectorExecutionLogModel } from '../../models/connector-execution-log.model';
 import { ConnectorLogQueryModel } from '../../models/connector-log-query.model';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { ConnectorSpecificationsService } from 'src/app/metadata/connector-specifications/services/connector-specifications.service';

@@ -1,12 +1,9 @@
 import { Component } from '@angular/core';
 import {
     ViewConnectorExecutionLogModel,
-    ExecutionActivityModel,
-    ImportFileServerExecutionActivityModel,
-    ExportFileServerExecutionActivityModel,
-    ImportFileProcessingResultModel,
-    ExportFileProcessingResultModel
-} from '../../models/view-connector-execution-log.model';
+    ExecutionActivityModel, 
+    ImportFileProcessingResultModel, 
+} from '../../models/connector-execution-log.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
@@ -74,9 +71,6 @@ export class ExecutionDetailDialogComponent {
         this.expandedActivityIndex = this.expandedActivityIndex === index ? null : index;
     }
 
-    private isImportActivity(activity: ExecutionActivityModel): activity is ImportFileServerExecutionActivityModel {
-        return 'stationId' in activity || (activity.processedFiles?.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
-    }
 
     protected getActivityFilePattern(activity: ExecutionActivityModel): string {
         return activity.filePattern || '-';
@@ -87,10 +81,7 @@ export class ExecutionDetailDialogComponent {
     }
 
     protected getActivityStationId(activity: ExecutionActivityModel): string | undefined {
-        if (this.isImportActivity(activity)) {
-            return activity.stationId;
-        }
-        return undefined;
+        return (activity as any).stationId;
     }
 
     protected getActivityFileCount(activity: ExecutionActivityModel): number {

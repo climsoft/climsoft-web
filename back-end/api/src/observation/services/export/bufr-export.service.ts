@@ -1,21 +1,26 @@
 import { Injectable, Logger } from '@nestjs/common';
+import axios from 'axios';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { BufrExportParametersDto } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
 import { BUFR_CSV_MAPPINGS } from 'src/metadata/export-specifications/dtos/bufr-converter.mappings';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { AppConfig } from 'src/app.config';
 
 @Injectable()
 export class BufrExportService {
     private readonly logger = new Logger(BufrExportService.name);
+    private readonly daycliTemplate: Record<string, unknown>;
 
     constructor(
         private fileIOService: FileIOService,
     ) {
+        const templatePath = path.posix.join(__dirname, 'daycli-template.json');
+        this.daycliTemplate = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
     }
 
 
-    // expected inputFilePathName is the csv file generated from observations export. Example file is `daycli_input.csv`
-    // outputFilePathName is the BUFR DayCli intermediate file to be generated. Example file is `daycli_intermediate_output.csv`
-    public async generateDayCliIntermediateFile(exportParams: BufrExportParametersDto, inputFilePathName: string, outputFilePathName: string): Promise<void> {
+    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFile: string, suffix: string = ''): Promise<string[]> {
         // Build the pivot aggregation expressions for each element mapping
         // For each element we need: hour, minute, second, value, flag
         const pivotExpressions: string[] = [];
@@ -45,9 +50,11 @@ export class BufrExportService {
             pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
         }
 
+
+        const intermediateFile: string = '_daycli_intermediate.csv'; // TODO. Generate unique file name
+
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
-        // TODO. check the group by options
         const sql = `
             COPY (
                 SELECT
@@ -70,7 +77,7 @@ export class BufrExportService {
                     EXTRACT(DAY FROM date_time)::INTEGER AS day,
                     -- Pivoted element columns
                     ${pivotExpressions.join(',\\n')}
-                FROM read_csv('${inputFilePathName}', header=true, auto_detect=true)
+                FROM read_csv('${rawObservationsFile}', header=true, auto_detect=true)
                 GROUP BY
                     station_id,
                     station_latitude,
@@ -83,18 +90,59 @@ export class BufrExportService {
                     year,
                     month,
                     day
-            ) TO '${outputFilePathName}' WITH (HEADER, DELIMITER ',');
+            ) TO '${intermediateFile}' WITH (HEADER, DELIMITER ',');
         `;
 
         this.logger.debug(`Executing DayCli intermediate file generation SQL`);
 
         await this.fileIOService.duckDb.exec(sql);
 
-        this.logger.log(`DayCli intermediate file generated: ${outputFilePathName}`);
+        this.logger.log(`DayCli intermediate file generated: ${intermediateFile}`);
 
-        // TODO. Send command to external BUFR converter utility to generate BUFR file from the DayCli intermediate file
-        // e.g csv2bufr data transform outputFilePathName --bufr-template climsoft_dacli_template.json --output-dir ./bufr/
+        // Convert the intermediate CSV to BUFR using the csv2bufr HTTP service
+        return await this.convertToBufr(intermediateFile, suffix);
     }
 
+    private async convertToBufr(intermediateFile: string, suffix: string = ''): Promise<string[]> {
+        const csv2bufrUrl: string = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
+        const inputFile: string = intermediateFile;
+        const outputDir: string = this.fileIOService.apiExportsDir;
+
+        this.logger.log(`Calling csv2bufr service at ${csv2bufrUrl}`);
+        this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
+
+        try {
+            // TODO. 
+            // Include the suffix in the post body and add the necessary code in the csv2bufr service to add the suffix to output unique buffr file names if the suffix is provide.
+            const response = await axios.post(csv2bufrUrl, {
+                input_file: inputFile,
+                mappings: this.daycliTemplate,
+                output_dir: outputDir,
+            }, {
+                timeout: 60000,
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (response.data.success) {
+                this.logger.log(`BUFR conversion successful. Generated ${response.data.output_files.length} file(s)`);
+
+                if (response.data.errors && response.data.errors.length > 0) {
+                    this.logger.warn(`BUFR conversion had partial errors: ${response.data.errors.join('; ')}`);
+                }
+
+                return response.data.output_files;
+            } else {
+                const errorMsg = response.data.errors?.join('; ') || 'Unknown error';
+                throw new Error(`csv2bufr conversion failed: ${errorMsg}`);
+            }
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const detail = error.response?.data?.errors?.join('; ') || error.message;
+                this.logger.error(`csv2bufr HTTP error: ${detail}`);
+                throw new Error(`csv2bufr service error: ${detail}`);
+            }
+            throw error;
+        }
+    }
 
 }

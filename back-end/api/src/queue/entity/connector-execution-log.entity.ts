@@ -57,15 +57,10 @@ export interface ImportFileProcessingResultVo {
 export interface ExportFileServerExecutionActivityVo {
     filePattern?: string;
     specificationId: number; // export specification id
-
-    // Tracks each file through the complete processing lifecycle: download → process → import
-    processedFiles: ExportFileProcessingResultVo[];
-}
-
-export interface ExportFileProcessingResultVo {
-    processedFileMetadata?: FileMetadataVo;
+    processedFiles: FileMetadataVo[]; // When missing, it means there was an error during processing
     errorMessage?: string;
 }
+
 
 // Represents metadata about a file (downloaded or processed) (FTP/SFTP/etc.)
 export interface FileMetadataVo {

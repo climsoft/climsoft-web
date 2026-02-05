@@ -13,10 +13,6 @@ export interface ImportFileProcessingResultModel {
     unchangedFile?: boolean;
 }
 
-export interface ExportFileProcessingResultModel {
-    processedFileMetadata?: FileMetadataModel;
-    errorMessage?: string;
-}
 
 export interface ImportFileServerExecutionActivityModel {
     filePattern: string;
@@ -28,7 +24,8 @@ export interface ImportFileServerExecutionActivityModel {
 export interface ExportFileServerExecutionActivityModel {
     filePattern?: string;
     specificationId: number;
-    processedFiles: ExportFileProcessingResultModel[];
+    processedFiles: FileMetadataModel[];
+    errorMessage?: string;
 }
 
 export type ExecutionActivityModel = ImportFileServerExecutionActivityModel | ExportFileServerExecutionActivityModel;

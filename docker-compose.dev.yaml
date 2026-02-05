@@ -2,6 +2,7 @@
 services:
   climsoft_dev_db:
     image: postgis/postgis:17-3.5
+    container_name: climsoft-db
     environment:
       POSTGRES_DB: climsoft
       POSTGRES_USER: postgres
@@ -12,6 +13,16 @@ services:
       - climsoft_dev_data:/var/lib/postgresql/data
       - ./back-end/api/temp/imports:/var/lib/postgresql/imports  # Mount host directory
       - ./back-end/api/temp/exports:/var/lib/postgresql/exports  # Mount host directory
+
+  climsoft_csv2bufr:
+    build:
+      context: ./csv2bufr
+      dockerfile: Dockerfile
+    container_name: climsoft-csv2bufr
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./back-end/api/temp/exports:/app/exports
 
 volumes:
   climsoft_dev_data:

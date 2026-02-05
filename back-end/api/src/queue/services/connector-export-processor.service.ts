@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ConnectorJobPayloadDto, JobQueueEntity } from '../entity/job-queue.entity';
 import { ConnectorSpecificationsService } from 'src/metadata/connector-specifications/services/connector-specifications.service';
-import * as path from 'path';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { Client as FtpClient } from 'basic-ftp';
 import * as SftpClient from 'ssh2-sftp-client';
 import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specifications/dtos/view-connector-specification.dto';
@@ -11,8 +12,8 @@ import { FileIOService } from 'src/shared/services/file-io.service';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
 import { ObservationsExportService } from 'src/observation/services/export/observations-export.service';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
-import { ExportFileProcessingResultVo, ExportFileServerExecutionActivityVo, FileMetadataVo } from '../entity/connector-execution-log.entity';
-import * as fs from 'fs';
+import { ExportFileServerExecutionActivityVo, FileMetadataVo } from '../entity/connector-execution-log.entity';
+
 
 @Injectable()
 export class ConnectorExportProcessorService {
@@ -97,35 +98,37 @@ export class ConnectorExportProcessorService {
             try {
 
                 // Generate remote file name based on pattern
-                const timestamp = this.formatTimestamp(new Date(), spec.filePattern);
-                // TODO. Think about the implication of prefixing the file with 'export_' in regards to names that users may expect in the remote server
-                const exportFilePathName = path.posix.join(this.fileIOService.apiExportsDir, `export_${connector.id}_${spec.specificationId}_${timestamp}.csv`);
-
-                const fileProcessingResult: ExportFileProcessingResultVo = {};
-
+                const timestamp: string = spec.filePattern ? this.formatTimestamp(new Date(), spec.filePattern) : '';
+            
                 try {
                     // Generate export file
                     this.logger.log(`Generating export file for specification ${spec.specificationId}`);
                     const connectorParams = connector.parameters as ExportFileServerParametersDto;
-                    await this.observationsExportService.generateExport(spec.specificationId, exportFilePathName, { stationIds: [spec.stationId], observationPeriod: { last: connectorParams.observationPeriod } });
+                    const exportedFileNames: string[] = await this.observationsExportService.generateExport(spec.specificationId, { stationIds: [spec.stationId], observationPeriod: { last: connectorParams.observationPeriod } }, timestamp);
 
-                    // Get file stats for metadata
-                    const fileStats = await fs.promises.stat(exportFilePathName);
-                    fileProcessingResult.processedFileMetadata = {
-                        fileName: path.basename(exportFilePathName),
-                        modifiedDate: fileStats.mtime.toISOString(),
-                        size: fileStats.size,
-                    };
-                    this.logger.log(`Generated export file ${path.basename(exportFilePathName)}`);
+                    for (const exportedFileName of exportedFileNames) {
+                        // Get file stats for metadata
+                        const fileStats = await fs.promises.stat(exportedFileName);
+                         newExecutionActivity.processedFiles.push(
+                            {
+                                fileName: path.basename(exportedFileName),
+                                modifiedDate: fileStats.mtime.toISOString(),
+                                size: fileStats.size,
+                            }
+                        );
+                    }
+                    
+                    this.logger.log(`Successfully generated export file for specification ${spec.specificationId}`);
+
                 } catch (error) {
                     let errorMessage = error instanceof Error ? error.message : String(error);
                     errorMessage = `Failed to generate export file for specification ${spec.specificationId}: ${errorMessage}`;
-                    fileProcessingResult.errorMessage = errorMessage;
+                    newExecutionActivity.errorMessage = errorMessage;
                     newConnectorLog.totalErrors++;
                     this.logger.error(errorMessage);
                 }
 
-                newExecutionActivity.processedFiles.push(fileProcessingResult);
+
             } catch (error) {
                 this.logger.error(`Failed to process specification ${spec.specificationId}`, error);
                 newConnectorLog.totalErrors++;
@@ -196,17 +199,19 @@ export class ConnectorExportProcessorService {
             // Step 2: Set the working directory
             await client.cd(connectorParams.remotePath);
 
+
+
             // Step 3: Upload file
             for (const exportExecutionActivity of (newConnectorLog.executionActivities as ExportFileServerExecutionActivityVo[])) {
+
+                // If not generated due to errors then skip upload
+                if (!exportExecutionActivity.processedFiles) {
+                    continue;
+                }
+
                 for (const file of exportExecutionActivity.processedFiles) {
-
-                    // If not generated due to errors then skip upload
-                    if (!file.processedFileMetadata) {
-                        continue;
-                    }
-
-                    const localFilePath = path.posix.join(this.fileIOService.apiExportsDir, file.processedFileMetadata.fileName);
-                    const remoteFileName = file.processedFileMetadata.fileName;
+                    const localFilePath = path.posix.join(this.fileIOService.apiExportsDir, file.fileName);
+                    const remoteFileName = file.fileName;
                     try {
                         this.logger.log(`Uploading file ${remoteFileName} to remote server`);
                         await client.uploadFrom(localFilePath, remoteFileName);
@@ -215,7 +220,7 @@ export class ConnectorExportProcessorService {
                     } catch (error) {
                         let errorMessage = error instanceof Error ? error.message : String(error);
                         errorMessage = `Failed to upload file ${remoteFileName}: ${errorMessage}`;
-                        file.errorMessage = errorMessage;
+                        exportExecutionActivity.errorMessage = exportExecutionActivity.errorMessage ? `${exportExecutionActivity.errorMessage}/n${errorMessage}` : errorMessage;
                         newConnectorLog.totalErrors++;
                         this.logger.error(errorMessage);
                     }
@@ -249,15 +254,15 @@ export class ConnectorExportProcessorService {
 
             // Step 2: Upload file
             for (const exportExecutionActivity of (newConnectorLog.executionActivities as ExportFileServerExecutionActivityVo[])) {
+                // If not generated due to errors then skip upload
+                if (!exportExecutionActivity.processedFiles) {
+                    continue;
+                }
+
                 for (const file of exportExecutionActivity.processedFiles) {
 
-                    // If not generated due to errors then skip upload
-                    if (!file.processedFileMetadata) {
-                        continue;
-                    }
-
-                    const localFilePath = path.posix.join(this.fileIOService.apiExportsDir, file.processedFileMetadata.fileName);
-                    const remoteFileName = file.processedFileMetadata.fileName;
+                    const localFilePath = path.posix.join(this.fileIOService.apiExportsDir, file.fileName);
+                    const remoteFileName = file.fileName;
                     const remoteFilePath = path.posix.join(connectorParams.remotePath, remoteFileName);
                     try {
                         this.logger.log(`Uploading file ${remoteFileName} to remote server`);
@@ -266,7 +271,7 @@ export class ConnectorExportProcessorService {
                     } catch (error) {
                         let errorMessage = error instanceof Error ? error.message : String(error);
                         errorMessage = `Failed to upload file ${remoteFileName}: ${errorMessage}`;
-                        file.errorMessage = errorMessage;
+                        exportExecutionActivity.errorMessage = exportExecutionActivity.errorMessage ? `${exportExecutionActivity.errorMessage}/n${errorMessage}` : errorMessage;
                         newConnectorLog.totalErrors++;
                         this.logger.error(errorMessage);
                     }

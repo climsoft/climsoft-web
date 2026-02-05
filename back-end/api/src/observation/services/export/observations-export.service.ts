@@ -41,9 +41,9 @@ export class ObservationsExportService {
             }
         }
 
-        const exportFileName: string = `${user.id}_${exportSpecificationId}_export.csv`;
         const exportPermissions: ExportPermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
-        await this.generateExport(exportSpecificationId, exportFileName, exportPermissions);
+        const manualDownloadSuffix: string = `manual_download_${user.id}_${exportSpecificationId}_export`;
+        await this.generateExport(exportSpecificationId, exportPermissions, manualDownloadSuffix);
     }
 
     public async manualDownloadExport(exportSpecificationId: number, userId: number): Promise<StreamableFile> {
@@ -54,10 +54,14 @@ export class ObservationsExportService {
             throw new BadRequestException('Export disabled');
         }
 
-        const outputPath: string = path.posix.join(this.fileIOService.apiExportsDir, `${userId}_${exportSpecificationId}_export.csv`);
+        const manualDownloadSuffix: string = `manual_download_${userId}_${exportSpecificationId}_export`;
 
-        console.log('Starting download export', outputPath);
-        return this.fileIOService.createStreamableFile(outputPath);
+        // TODO. 
+        // Find file name with the generated suffix.
+        // Then create a streamable file and return it. 
+        const foundFile: string = '';
+
+        return this.fileIOService.createStreamableFile(foundFile);
     }
 
     private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
@@ -144,7 +148,7 @@ export class ObservationsExportService {
         return exportPermissions;
     }
 
-    public async generateExport(exportSpecificationId: number, exportFileName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
+    public async generateExport(exportSpecificationId: number, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
         const viewExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
 
         // If export is disabled then don't generate it
@@ -154,20 +158,17 @@ export class ObservationsExportService {
 
         switch (viewExportDto.exportType) {
             case ExportTypeEnum.RAW:
-                await this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportFileName, exportPermissions);
-                break;
+                return this.generateRawExports(viewExportDto.parameters as RawExportParametersDto, exportPermissions, suffix);
             case ExportTypeEnum.AGGREGATE:
-                await this.generateBufrExports(viewExportDto.parameters as BufrExportParametersDto, exportFileName, exportPermissions);
-                break;
+                return [];
             case ExportTypeEnum.BUFR:
-                // TODO
-                break;
+                return this.generateBufrExports(viewExportDto.parameters as BufrExportParametersDto, exportPermissions, suffix);
             default:
                 throw new Error('Export type no supported');
         }
     }
 
-    public async generateRawExports(exportParams: RawExportParametersDto, exportFilePathName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
+    public async generateRawExports(exportParams: RawExportParametersDto, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -307,7 +308,8 @@ export class ObservationsExportService {
 
         }
         //------------------------------------------------------------------------------------------------ 
-        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, path.basename(exportFilePathName));
+        const uniqueFileName: string = `${suffix}.csv`; // TODO. Generate unique file name
+        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
         const sql: string = `
             COPY (
                 SELECT 
@@ -322,16 +324,12 @@ export class ObservationsExportService {
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        //console.log('Executing COPY command:', sql); // Debugging log
-
         // Execute raw SQL query (without parameterized placeholders)
         await this.dataSource.manager.query(sql);
-
-        this.logger.log(`Export generated:  ${exportFilePathName}`)
+        return [path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName))];
     }
 
-
-    public async generateBufrExports(exportParams: BufrExportParametersDto, exportFilePathName: string, exportPermissions: ExportPermissionsDto = {}): Promise<void> {
+    public async generateBufrExports(exportParams: BufrExportParametersDto, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
 
         // TODO. In future these conditions should create parameters for a SQL function
         // Manually construct the SQL query
@@ -368,7 +366,9 @@ export class ObservationsExportService {
         columnSelections.push('ob.value AS value');
 
         //------------------------------------------------------------------------------------------------ 
-        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, `${new Date().getTime()}_bufr_export.csv`);
+        // TODO. Generate unique file name
+        const uniqueFileName: string = `_bufr_raw_export.csv`;
+        const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
         const sql: string = `
             COPY (
                 SELECT 
@@ -381,19 +381,13 @@ export class ObservationsExportService {
             ) TO '${dbFilePathName}' WITH CSV HEADER;
         `;
 
-        //console.log('Executing COPY command:', sql); // Debugging log
-
         // Execute raw SQL query (without parameterized placeholders)
         await this.dataSource.manager.query(sql);
 
         // Now generate BUFR file using the exported csv file
         // Note db file paths are different from api file paths due to how docker volumes are mapped
-        const apiFilePathName: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
-        await this.bufrExportService.generateDayCliIntermediateFile(exportParams, apiFilePathName, exportFilePathName);
-
-      
-
-        //this.logger.log(`BUFR Export generated:  ${bufrFilePathName}`)
+        const rawObservationsFile: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
+        return this.bufrExportService.generateDayCliBufrFiles(exportParams, rawObservationsFile, suffix);
     }
 
 
