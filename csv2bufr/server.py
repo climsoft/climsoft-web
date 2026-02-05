@@ -53,6 +53,7 @@ def transform_csv_to_bufr():
         input_file = body.get('input_file')
         mappings = body.get('mappings')
         output_dir = body.get('output_dir')
+        suffix = body.get('suffix', '')
 
         missing = []
         if not input_file:
@@ -94,7 +95,7 @@ def transform_csv_to_bufr():
                     errors.append(f'Row {idx}: No BUFR data produced')
                     continue
 
-                output_filename = f'{uuid.uuid4().hex}.bufr4'
+                output_filename = f'bufr_{uuid.uuid4().hex}_{suffix}_{idx}.bufr4' if suffix else f'bufr_{uuid.uuid4().hex}_{idx}.bufr4'
                 output_path = os.path.join(output_dir, output_filename)
 
                 with open(output_path, 'wb') as out_f:

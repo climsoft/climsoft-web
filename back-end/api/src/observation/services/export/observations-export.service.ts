@@ -10,6 +10,7 @@ import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { ExportPermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
+import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
 import { BufrExportParametersDto, BufrTypeEnum } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
@@ -308,7 +309,7 @@ export class ObservationsExportService {
 
         }
         //------------------------------------------------------------------------------------------------ 
-        const uniqueFileName: string = `${suffix}.csv`; // TODO. Generate unique file name
+        const uniqueFileName: string = suffix ? `raw_export_${crypto.randomUUID()}_${suffix}.csv` : `raw_export_${crypto.randomUUID()}.csv`;
         const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
         const sql: string = `
             COPY (
@@ -366,8 +367,7 @@ export class ObservationsExportService {
         columnSelections.push('ob.value AS value');
 
         //------------------------------------------------------------------------------------------------ 
-        // TODO. Generate unique file name
-        const uniqueFileName: string = `_bufr_raw_export.csv`;
+        const uniqueFileName: string = suffix ? `bufr_raw_export_${crypto.randomUUID()}_${suffix}.csv` : `bufr_raw_export_${crypto.randomUUID()}.csv`;
         const dbFilePathName: string = path.posix.join(this.fileIOService.dbExportsDir, uniqueFileName);
         const sql: string = `
             COPY (

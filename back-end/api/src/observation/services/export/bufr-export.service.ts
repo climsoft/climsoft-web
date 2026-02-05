@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
+import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { BufrExportParametersDto } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
@@ -20,7 +21,7 @@ export class BufrExportService {
     }
 
 
-    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFile: string, suffix: string = ''): Promise<string[]> {
+    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFile: string, suffix?: string): Promise<string[]> {
         // Build the pivot aggregation expressions for each element mapping
         // For each element we need: hour, minute, second, value, flag
         const pivotExpressions: string[] = [];
@@ -51,7 +52,7 @@ export class BufrExportService {
         }
 
 
-        const intermediateFile: string = '_daycli_intermediate.csv'; // TODO. Generate unique file name
+        const intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
 
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
@@ -103,7 +104,7 @@ export class BufrExportService {
         return await this.convertToBufr(intermediateFile, suffix);
     }
 
-    private async convertToBufr(intermediateFile: string, suffix: string = ''): Promise<string[]> {
+    private async convertToBufr(intermediateFile: string, suffix?: string ): Promise<string[]> {
         const csv2bufrUrl: string = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
         const inputFile: string = intermediateFile;
         const outputDir: string = this.fileIOService.apiExportsDir;
@@ -112,12 +113,11 @@ export class BufrExportService {
         this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
 
         try {
-            // TODO. 
-            // Include the suffix in the post body and add the necessary code in the csv2bufr service to add the suffix to output unique buffr file names if the suffix is provide.
             const response = await axios.post(csv2bufrUrl, {
                 input_file: inputFile,
                 mappings: this.daycliTemplate,
                 output_dir: outputDir,
+                suffix: suffix,
             }, {
                 timeout: 60000,
                 headers: { 'Content-Type': 'application/json' },
