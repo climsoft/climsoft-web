@@ -133,9 +133,9 @@
 
                     <!-- Show errors if any -->
                     <div *ngFor="let file of activity.processedFiles">
-                        <div *ngIf="file.errorMessage" class="alert alert-danger error-font-size mt-2 mb-0">
+                        <div *ngIf="hasFileError(file)" class="alert alert-danger error-font-size mt-2 mb-0">
                             <strong>{{ getFileName(file) }}:</strong>
-                            <span class="ms-2">{{ file.errorMessage }}</span>
+                            <span class="ms-2">{{ getFileErrorMessage(file) }}</span>
                         </div>
                     </div>
                 </div>
@@ -180,10 +180,10 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span *ngIf="file.errorMessage" class="text-danger small">
-                                        {{ file.errorMessage }}
+                                    <span *ngIf="hasFileError(file)" class="text-danger small">
+                                        {{ getFileErrorMessage(file) }}
                                     </span>
-                                    <span *ngIf="!file.errorMessage" class="text-muted">-</span>
+                                    <span *ngIf="!hasFileError(file)" class="text-muted">-</span>
                                 </td>
                             </tr>
                         </ng-container>

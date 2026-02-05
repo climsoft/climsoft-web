@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import {
     ViewConnectorExecutionLogModel,
-    ExecutionActivityModel, 
-    ImportFileProcessingResultModel, 
+    ExecutionActivityModel,
+    ImportFileProcessingResultModel,
+    FileMetadataModel,
 } from '../../models/connector-execution-log.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
@@ -95,97 +96,113 @@ export class ExecutionDetailDialogComponent {
         return activity.processedFiles.filter(f => this.hasFileError(f)).length;
     }
 
-    protected hasFileError(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): boolean {
-        return !!file.errorMessage;
+    protected hasFileError(file: ImportFileProcessingResultModel | FileMetadataModel): boolean {
+        if ('errorMessage' in file) {
+            return !!file.errorMessage;
+        }
+        return false;
     }
 
-    protected isUnchangedFile(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): boolean {
+    protected getFileErrorMessage(file: ImportFileProcessingResultModel | FileMetadataModel): string | undefined {
+        if ('errorMessage' in file) {
+            return file.errorMessage;
+        }
+        return undefined;
+    }
+
+    protected isUnchangedFile(file: ImportFileProcessingResultModel | FileMetadataModel): boolean {
         if ('unchangedFile' in file) {
             return !!file.unchangedFile;
         }
         return false;
     }
 
-    protected getFileName(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+    protected getFileName(file: ImportFileProcessingResultModel | FileMetadataModel): string {
         // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return file.remoteFileMetadata.fileName;
         }
-        // Check for export file metadata
-        if ('processedFileMetadata' in file && file.processedFileMetadata) {
-            return file.processedFileMetadata.fileName;
+        // Export file metadata (FileMetadataModel has fileName directly)
+        if ('fileName' in file) {
+            return file.fileName;
         }
         return 'Unknown';
     }
 
-    protected getFileSize(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+    protected getFileSize(file: ImportFileProcessingResultModel | FileMetadataModel): string {
         // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return this.formatFileSize(file.remoteFileMetadata.size);
         }
-        // Check for export file metadata
-        if ('processedFileMetadata' in file && file.processedFileMetadata) {
-            return this.formatFileSize(file.processedFileMetadata.size);
+        // Export file metadata (FileMetadataModel has size directly)
+        if ('size' in file && typeof file.size === 'number') {
+            return this.formatFileSize(file.size);
         }
         return '-';
     }
 
-    protected getFileModifiedDate(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+    protected getFileModifiedDate(file: ImportFileProcessingResultModel | FileMetadataModel): string {
         // Check for import file metadata
         if ('remoteFileMetadata' in file && file.remoteFileMetadata) {
             return this.formatDate(file.remoteFileMetadata.modifiedDate);
         }
-        // Check for export file metadata
-        if ('processedFileMetadata' in file && file.processedFileMetadata) {
-            return this.formatDate(file.processedFileMetadata.modifiedDate);
+        // Export file metadata (FileMetadataModel has modifiedDate directly)
+        if ('modifiedDate' in file) {
+            return this.formatDate(file.modifiedDate);
         }
         return '-';
     }
 
-    protected getFileStatus(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
-        if (file.errorMessage) {
+    protected getFileStatus(file: ImportFileProcessingResultModel | FileMetadataModel): string {
+        if (this.hasFileError(file)) {
             return 'Error';
         }
         if (this.isUnchangedFile(file)) {
             return 'Skipped (Unchanged)';
         }
-        // Check for processed file (both import and export use processedFileMetadata now)
-        if ('processedFileMetadata' in file && file.processedFileMetadata) {
-            // For exports, it's "Exported", for imports it's "Processed"
-            if ('remoteFileMetadata' in file) {
+        // Check for import file
+        if ('remoteFileMetadata' in file) {
+            if ('processedFileMetadata' in file && file.processedFileMetadata) {
                 return 'Processed';
             }
-            return 'Exported';
+            if ('downloadedFileName' in file && file.downloadedFileName) {
+                return 'Downloaded';
+            }
+            return 'Pending';
         }
-        // Check for downloaded file (imports only)
-        if ('downloadedFileName' in file && file.downloadedFileName) {
-            return 'Downloaded';
-        }
-        return 'Pending';
+        // Export file (FileMetadataModel) - if it exists in the list, it was exported
+        return 'Exported';
     }
 
-    protected getFileStatusClass(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
-        if (file.errorMessage) {
+    protected getFileStatusClass(file: ImportFileProcessingResultModel | FileMetadataModel): string {
+        if (this.hasFileError(file)) {
             return 'bg-danger';
         }
         if (this.isUnchangedFile(file)) {
             return 'bg-secondary';
         }
-        // Check for processed file
-        if ('processedFileMetadata' in file && file.processedFileMetadata) {
-            return 'bg-success';
+        // Check for import file
+        if ('remoteFileMetadata' in file) {
+            if ('processedFileMetadata' in file && file.processedFileMetadata) {
+                return 'bg-success';
+            }
+            if ('downloadedFileName' in file && file.downloadedFileName) {
+                return 'bg-info';
+            }
+            return 'bg-warning text-dark';
         }
-        // Check for downloaded file (imports only - partial success)
-        if ('downloadedFileName' in file && file.downloadedFileName) {
-            return 'bg-info';
-        }
-        return 'bg-warning text-dark';
+        // Export file (FileMetadataModel) - successfully exported
+        return 'bg-success';
     }
 
     // Get processed file size for comparison
-    protected getProcessedFileSize(file: ImportFileProcessingResultModel | ExportFileProcessingResultModel): string {
+    protected getProcessedFileSize(file: ImportFileProcessingResultModel | FileMetadataModel): string {
         if ('processedFileMetadata' in file && file.processedFileMetadata) {
             return this.formatFileSize(file.processedFileMetadata.size);
+        }
+        // For export files, the size is directly on the FileMetadataModel
+        if ('size' in file && typeof file.size === 'number') {
+            return this.formatFileSize(file.size);
         }
         return '-';
     }
