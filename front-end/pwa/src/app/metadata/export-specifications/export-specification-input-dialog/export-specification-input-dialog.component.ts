@@ -32,14 +32,14 @@ export class ExportSpecificationInputDialogComponent {
     this.open = true;
 
     if (exportId) {
-      this.pagesDataService.setPageHeader('Edit Export Specification');
+      this.title = 'Edit Export Specification';
       this.exportSpecificationsService.findOne(exportId).pipe(
         take(1),
       ).subscribe(data => {
         this.viewExportSpecification = data;
       });
     } else {
-      this.pagesDataService.setPageHeader('New Export Specification');
+      this.title = 'New Export Specification';
       this.viewExportSpecification = {
         id: 0,
         name: '',
@@ -129,7 +129,7 @@ export class ExportSpecificationInputDialogComponent {
     });
 
   }
-
+  
   protected onDeleteClick(): void {
     //todo. prompt for confirmation first
     this.exportSpecificationsService.delete(this.viewExportSpecification.id).subscribe((data) => {
