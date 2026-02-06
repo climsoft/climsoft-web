@@ -359,6 +359,9 @@ export class ObservationsExportService {
         columnSelections.push('ST_Y(st.location) AS station_latitude');
         columnSelections.push('ST_X(st.location) AS station_longitude');
         columnSelections.push('st.elevation AS station_elevation');
+        columnSelections.push('st.wmo_id AS wmo_id');
+        columnSelections.push('st.wigos_id AS wigos_id');
+
         columnSelections.push('ob.element_id AS element_id');
         columnSelections.push('el.units AS element_units');
         columnSelections.push('ob.level AS level');
