@@ -5,7 +5,6 @@ a shared volume, converts it to BUFR format, writes the output
 files to a shared volume, and returns the file paths.
 """
 
-import json
 import os
 import traceback
 import uuid
