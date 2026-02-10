@@ -2,10 +2,10 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req } 
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { ExportSpecificationsService } from '../services/export-specifications.service'; 
+import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
-import { BUFR_CSV_MAPPINGS, BufrCSVMapping } from '../dtos/bufr-converter.mappings';
+import { CLIMAT_BUFR_ELEMENTS, DACLI_BUFR_ELEMENTS, SYNOP_BUFR_ELEMENTS } from '../dtos/bufr-export-parameters.dto';
 
 @Controller('export-specifications')
 export class ExportSpecificationsController {
@@ -17,9 +17,19 @@ export class ExportSpecificationsController {
         return this.exportTemplateService.findAll();
     }
 
-    @Get('bufr-converter-specifications')
-    public findBufrConverterSpecifications(): BufrCSVMapping[] {
-        return BUFR_CSV_MAPPINGS;
+    @Get('synop-elements')
+    public findSynopElements(): string[] {
+        return SYNOP_BUFR_ELEMENTS;
+    }
+
+    @Get('daycli-elements')
+    public findDayCliElements(): string[] {
+        return DACLI_BUFR_ELEMENTS;
+    }
+
+    @Get('climat-elements')
+    public findCLIMATElements(): string[] {
+        return CLIMAT_BUFR_ELEMENTS;
     }
 
     @Get(':id')

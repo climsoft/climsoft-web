@@ -57,12 +57,11 @@ export class ObservationsExportService {
 
         const manualDownloadSuffix: string = `manual_download_${userId}_${exportSpecificationId}_export`;
 
-        // TODO. 
-        // Find file name with the generated suffix.
-        // Then create a streamable file and return it. 
-        const foundFile: string = '';
-
-        return this.fileIOService.createStreamableFile(foundFile);
+        // TODO. Replace the lines below with the following:
+        // Find file name that contains name `manualDownloadSuffix` then create a streamable file and return it.
+        // If multiple files are found then zip them and return the zip file as streamable file. 
+        const foundFiles: string = '';
+        return this.fileIOService.createStreamableFile(foundFiles);
     }
 
     private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {

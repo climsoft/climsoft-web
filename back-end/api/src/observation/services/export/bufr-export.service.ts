@@ -3,8 +3,7 @@ import axios from 'axios';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { BufrExportParametersDto } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
-import { BUFR_CSV_MAPPINGS } from 'src/metadata/export-specifications/dtos/bufr-converter.mappings';
+import { BufrExportParametersDto, DACLI_BUFR_ELEMENTS } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { AppConfig } from 'src/app.config';
 
@@ -27,13 +26,13 @@ export class BufrExportService {
         const pivotExpressions: string[] = [];
 
         for (const mapping of exportParams.elementMappings) {
-            const bufrMapping = BUFR_CSV_MAPPINGS.find(m => m.id === mapping.bufrConverterId);
+            const bufrMapping = DACLI_BUFR_ELEMENTS.find(m => m === mapping.bufrElement);
             if (!bufrMapping) {
                 continue;
             }
 
             const elementId = mapping.databaseElementId;
-            const colName = bufrMapping.columnName;
+            const colName = bufrMapping; // Use the bufr element name as the column name in the pivoted output
 
             // Hour column
             pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time) END) AS ${colName}_hour`);
@@ -56,6 +55,11 @@ export class BufrExportService {
 
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
+
+        // TODO:
+        // Get the wsi_series, wsi_issuer, wsi_issue_number, wsi_local from wigos_id. The wigos_id can be parsed to get them. Its structure is: WIGOS-XX-YYYYY-ZZZZZ where XX is the issuer, YYYYY is the series and ZZZZZ is the local id. We can use regex to extract these components. For now, we will use placeholder values for wsi_series, wsi_issuer, wsi_issue_number and wsi_local until we have station metadata with wigos_id populated. The same applies for wmo_block_number and wmo_station_number which can be extracted from wmo_id when we have station metadata with wmo_id populated. The precipitation_siting_classification can also be populated from station metadata when available. 
+        // Get the wmo_block_number and wmo_station_number from wmo_id. The wmo_id can be parsed to get them. Its structure is: BBBSS where BBB is the block number and SS is the station number. 
+        
         const sql = `
             COPY (
                 SELECT
