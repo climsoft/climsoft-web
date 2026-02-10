@@ -108,7 +108,7 @@
 
                 <div *ngIf="expandedActivityIndex === i" class="card-body">
                     <!-- Import activity files table -->
-                    <ng-container *ngIf="isImportActivity(activity)">
+                    <ng-container *ngIf="isImportConnector()">
                         <app-import-files-table
                             [files]="asImportActivity(activity).processedFiles"
                             [utcOffset]="cachedMetadata.utcOffSet">
@@ -116,7 +116,7 @@
                     </ng-container>
 
                     <!-- Export activity files table -->
-                    <ng-container *ngIf="!isImportActivity(activity)">
+                    <ng-container *ngIf="!isImportConnector()">
                         <app-export-files-table
                             [files]="asExportActivity(activity).processedFiles"
                             [activityErrorMessage]="asExportActivity(activity).errorMessage"
@@ -143,7 +143,7 @@
                     </h6>
 
                     <!-- Import activity files -->
-                    <ng-container *ngIf="isImportActivity(activity)">
+                    <ng-container *ngIf="isImportConnector()">
                         <app-import-files-table
                             [files]="asImportActivity(activity).processedFiles"
                             [utcOffset]="cachedMetadata.utcOffSet">
@@ -151,7 +151,7 @@
                     </ng-container>
 
                     <!-- Export activity files -->
-                    <ng-container *ngIf="!isImportActivity(activity)">
+                    <ng-container *ngIf="!isImportConnector()">
                         <app-export-files-table
                             [files]="asExportActivity(activity).processedFiles"
                             [activityErrorMessage]="asExportActivity(activity).errorMessage"

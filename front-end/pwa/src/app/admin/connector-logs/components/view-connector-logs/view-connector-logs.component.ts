@@ -187,7 +187,10 @@ export class ViewConnectorLogsComponent implements OnDestroy {
     }
 
     protected onLogClick(log: ViewConnectorExecutionLogModel): void {
-        this.executionDetailDialog.openDialog(log, this.getConnectorName(log.connectorId));
+        const connector = this.connectors.find(c => c.id === log.connectorId);
+        if (connector) {
+            this.executionDetailDialog.openDialog(log, connector.name, connector.connectorType);
+        }
     }
 
     protected onDeleteLog(log: ViewConnectorExecutionLogModel, event: Event): void {

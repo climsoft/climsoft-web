@@ -5,6 +5,7 @@ import {
     ImportFileServerExecutionActivityModel,
     ExportFileServerExecutionActivityModel,
 } from '../../models/connector-execution-log.model';
+import { ConnectorTypeEnum } from 'src/app/metadata/connector-specifications/models/create-connector-specification.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 
@@ -17,17 +18,23 @@ export class ExecutionDetailDialogComponent {
     protected open: boolean = false;
     protected log!: ViewConnectorExecutionLogModel;
     protected connectorName: string = '';
+    protected connectorType!: ConnectorTypeEnum;
     protected activeTab: 'summary' | 'activities' | 'files' = 'summary';
     protected expandedActivityIndex: number | null = null;
 
     constructor(protected cachedMetadata: CachedMetadataService) { }
 
-    public openDialog(log: ViewConnectorExecutionLogModel, connectorName: string): void {
+    public openDialog(log: ViewConnectorExecutionLogModel, connectorName: string, connectorType: ConnectorTypeEnum): void {
         this.log = log;
         this.connectorName = connectorName;
+        this.connectorType = connectorType;
         this.activeTab = 'summary';
         this.expandedActivityIndex = null;
         this.open = true;
+    }
+
+    protected isImportConnector(): boolean {
+        return this.connectorType === ConnectorTypeEnum.IMPORT;
     }
 
     protected formatDate(dateString: string | null): string {
@@ -64,9 +71,10 @@ export class ExecutionDetailDialogComponent {
             return 0;
         }
         return this.log.executionActivities.reduce((count, activity) => {
-            if (this.isImportActivity(activity)) {
+            if (this.isImportConnector()) {
                 // For imports, count files without errors
-                return count + (activity.processedFiles?.filter(f => !f.errorMessage).length || 0);
+                const importActivity = activity as ImportFileServerExecutionActivityModel;
+                return count + (importActivity.processedFiles?.filter(f => !f.errorMessage).length || 0);
             } else {
                 // For exports, all files in the list are successful (errors are at activity level)
                 return count + (activity.processedFiles?.length || 0);
@@ -87,8 +95,8 @@ export class ExecutionDetailDialogComponent {
     }
 
     protected getActivityStationId(activity: ExecutionActivityModel): string | undefined {
-        if (this.isImportActivity(activity)) {
-            return activity.stationId;
+        if (this.isImportConnector()) {
+            return (activity as ImportFileServerExecutionActivityModel).stationId;
         }
         return undefined;
     }
@@ -98,27 +106,18 @@ export class ExecutionDetailDialogComponent {
     }
 
     protected getActivityErrorCount(activity: ExecutionActivityModel): number {
-        if (this.isImportActivity(activity)) {
+        if (this.isImportConnector()) {
             // For imports, count files with errors
-            if (!activity.processedFiles) {
+            const importActivity = activity as ImportFileServerExecutionActivityModel;
+            if (!importActivity.processedFiles) {
                 return 0;
             }
-            return activity.processedFiles.filter(f => !!f.errorMessage).length;
+            return importActivity.processedFiles.filter(f => !!f.errorMessage).length;
         } else {
             // For exports, error is at activity level
-            return activity.errorMessage ? 1 : 0;
+            const exportActivity = activity as ExportFileServerExecutionActivityModel;
+            return exportActivity.errorMessage ? 1 : 0;
         }
-    }
-
-    protected isImportActivity(activity: ExecutionActivityModel): activity is ImportFileServerExecutionActivityModel {
-        // ImportFileServerExecutionActivityModel has stationId (optional) and processedFiles is ImportFileProcessingResultModel[]
-        // ExportFileServerExecutionActivityModel has errorMessage at activity level and processedFiles is FileMetadataModel[]
-        // Best discriminator: check if first file has remoteFileMetadata (import) or fileName directly (export)
-        if (activity.processedFiles && activity.processedFiles.length > 0) {
-            return 'remoteFileMetadata' in activity.processedFiles[0];
-        }
-        // If no files, check for stationId which is import-specific
-        return 'stationId' in activity;
     }
 
     protected asImportActivity(activity: ExecutionActivityModel): ImportFileServerExecutionActivityModel {
