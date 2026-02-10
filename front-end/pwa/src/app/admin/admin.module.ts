@@ -23,6 +23,8 @@ import { JobDetailDialogComponent } from './job-queue/components/job-detail-dial
 // Connector Logs components
 import { ViewConnectorLogsComponent } from './connector-logs/components/view-connector-logs/view-connector-logs.component';
 import { ExecutionDetailDialogComponent } from './connector-logs/components/execution-detail-dialog/execution-detail-dialog.component';
+import { ImportFilesTableComponent } from './connector-logs/components/import-files-table/import-files-table.component';
+import { ExportFilesTableComponent } from './connector-logs/components/export-files-table/export-files-table.component';
 import { JobTypeSelectorSingleComponent } from './job-queue/job-type-selector-single/job-type-selector-single.component';
 import { JobStatusSelectorSingleComponent } from './job-queue/job-status-selector-single/job-status-selector-single.component';
 import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-trigger-selector-single/job-trigger-selector-single.component';
@@ -55,6 +57,8 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
     // Connector Logs
     ViewConnectorLogsComponent,
     ExecutionDetailDialogComponent,
+    ImportFilesTableComponent,
+    ExportFilesTableComponent,
   ],
   imports: [
     SharedModule,

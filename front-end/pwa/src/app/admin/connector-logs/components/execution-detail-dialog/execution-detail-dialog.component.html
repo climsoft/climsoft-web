@@ -107,37 +107,22 @@
                 </div>
 
                 <div *ngIf="expandedActivityIndex === i" class="card-body">
-                    <table class="table table-sm table-bordered mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>File Name</th>
-                                <th>Size</th>
-                                <th>Modified</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let file of activity.processedFiles" [class.table-danger]="hasFileError(file)"
-                                [class.table-secondary]="isUnchangedFile(file)">
-                                <td>{{ getFileName(file) }}</td>
-                                <td>{{ getFileSize(file) }}</td>
-                                <td>{{ getFileModifiedDate(file) }}</td>
-                                <td>
-                                    <span class="badge" [ngClass]="getFileStatusClass(file)">
-                                        {{ getFileStatus(file) }}
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <!-- Import activity files table -->
+                    <ng-container *ngIf="isImportActivity(activity)">
+                        <app-import-files-table
+                            [files]="asImportActivity(activity).processedFiles"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-import-files-table>
+                    </ng-container>
 
-                    <!-- Show errors if any -->
-                    <div *ngFor="let file of activity.processedFiles">
-                        <div *ngIf="hasFileError(file)" class="alert alert-danger error-font-size mt-2 mb-0">
-                            <strong>{{ getFileName(file) }}:</strong>
-                            <span class="ms-2">{{ getFileErrorMessage(file) }}</span>
-                        </div>
-                    </div>
+                    <!-- Export activity files table -->
+                    <ng-container *ngIf="!isImportActivity(activity)">
+                        <app-export-files-table
+                            [files]="asExportActivity(activity).processedFiles"
+                            [activityErrorMessage]="asExportActivity(activity).errorMessage"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-export-files-table>
+                    </ng-container>
                 </div>
             </div>
         </div>
@@ -149,46 +134,31 @@
             </div>
 
             <div *ngIf="getTotalFileCount() > 0">
-                <table class="table table-sm table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>File Name</th>
-                            <th>Size</th>
-                            <th>Modified</th>
-                            <th>Status</th>
-                            <th>Error</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <ng-container *ngFor="let activity of log.executionActivities; let ai = index">
-                            <tr *ngFor="let file of activity.processedFiles; let fi = index"
-                                [class.table-danger]="hasFileError(file)"
-                                [class.table-secondary]="isUnchangedFile(file)">
-                                <td>{{ fi + 1 }}</td>
-                                <td>
-                                    {{ getFileName(file) }}
-                                    <small class="text-muted d-block">
-                                        Activity {{ ai + 1 }}: {{ getActivityFilePattern(activity) }}
-                                    </small>
-                                </td>
-                                <td>{{ getFileSize(file) }}</td>
-                                <td>{{ getFileModifiedDate(file) }}</td>
-                                <td>
-                                    <span class="badge" [ngClass]="getFileStatusClass(file)">
-                                        {{ getFileStatus(file) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span *ngIf="hasFileError(file)" class="text-danger small">
-                                        {{ getFileErrorMessage(file) }}
-                                    </span>
-                                    <span *ngIf="!hasFileError(file)" class="text-muted">-</span>
-                                </td>
-                            </tr>
-                        </ng-container>
-                    </tbody>
-                </table>
+                <div *ngFor="let activity of log.executionActivities; let ai = index" class="mb-3">
+                    <h6 class="text-muted mb-2">
+                        Activity {{ ai + 1 }}: {{ getActivityFilePattern(activity) }}
+                        <span *ngIf="getActivityStationId(activity)" class="badge bg-info ms-2">
+                            Station: {{ getActivityStationId(activity) }}
+                        </span>
+                    </h6>
+
+                    <!-- Import activity files -->
+                    <ng-container *ngIf="isImportActivity(activity)">
+                        <app-import-files-table
+                            [files]="asImportActivity(activity).processedFiles"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-import-files-table>
+                    </ng-container>
+
+                    <!-- Export activity files -->
+                    <ng-container *ngIf="!isImportActivity(activity)">
+                        <app-export-files-table
+                            [files]="asExportActivity(activity).processedFiles"
+                            [activityErrorMessage]="asExportActivity(activity).errorMessage"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-export-files-table>
+                    </ng-container>
+                </div>
             </div>
         </div>
     </div>
