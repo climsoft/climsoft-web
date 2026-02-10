@@ -35,14 +35,14 @@
                         <tbody class="table-group-divider">
                             <tr *ngFor="let mapping of bufrExportParameters.elementMappings; let i = index">
                                 <td>
-                                    <app-element-selector-single [id]="'bufr_element_' + i"
+                                    <app-element-selector-single [id]="'db_element_' + i"
                                         [selectedId]="mapping.databaseElementId"
                                         (selectedIdChange)="onElementSelected(i, $event)" />
                                 </td>
                                 <td>
-                                    <app-selector-single-input [id]="'bufr_converter_' + i" [options]="bufrConverters"
+                                    <app-selector-single-input [id]="'bufr_element_' + i" [options]="bufrElements"
                                         [optionDisplayFn]="bufrConverterDisplayFunction"
-                                        [selectedOption]="getSelectedBufrConverter(mapping.bufrConverterId)"
+                                        [selectedOption]="getSelectedBufrConverter(mapping.bufrElement)"
                                         (selectedOptionChange)="onBufrConverterSelected(i, $event)" />
                                 </td>
                                 <td>

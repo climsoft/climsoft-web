@@ -11,7 +11,9 @@ import { ExportPermissionsDto, ObservationPeriodPermissionsDto } from 'src/user/
 import { ViewSpecificationExportDto } from 'src/metadata/export-specifications/dtos/view-export-specification.dto';
 import { RawExportParametersDto } from 'src/metadata/export-specifications/dtos/raw-export-parameters.dto';
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import * as path from 'node:path';
+import * as archiver from 'archiver';
 import { ExportTypeEnum } from 'src/metadata/export-specifications/enums/export-type.enum';
 import { BufrExportParametersDto, BufrTypeEnum } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
 import { BufrExportService } from './bufr-export.service';
@@ -42,7 +44,7 @@ export class ObservationsExportService {
             }
         }
 
-        const exportPermissions: ExportPermissionsDto = this.validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user, queryDto);
+        const exportPermissions: ExportPermissionsDto = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
         const manualDownloadSuffix: string = `manual_download_${user.id}_${exportSpecificationId}_export`;
         await this.generateExport(exportSpecificationId, exportPermissions, manualDownloadSuffix);
     }
@@ -57,14 +59,58 @@ export class ObservationsExportService {
 
         const manualDownloadSuffix: string = `manual_download_${userId}_${exportSpecificationId}_export`;
 
-        // TODO. Replace the lines below with the following:
-        // Find file name that contains name `manualDownloadSuffix` then create a streamable file and return it.
-        // If multiple files are found then zip them and return the zip file as streamable file. 
-        const foundFiles: string = '';
-        return this.fileIOService.createStreamableFile(foundFiles);
+        // Find files that contain the manualDownloadSuffix in their name
+        const allFiles = await this.fileIOService.getFileNamesInDirectory(this.fileIOService.apiExportsDir);
+        const matchingFiles = allFiles.filter(file => file.includes(manualDownloadSuffix));
+
+        if (matchingFiles.length === 0) {
+            throw new BadRequestException('No export files found. Please generate the export first.');
+        }
+
+        if (matchingFiles.length === 1) {
+            // Single file - return it directly
+            const filePath = path.posix.join(this.fileIOService.apiExportsDir, matchingFiles[0]);
+            return this.fileIOService.createStreamableFile(filePath);
+        }
+
+        // Multiple files - zip them and return the zip file
+        const zipFileName = `${manualDownloadSuffix}_${crypto.randomUUID()}.zip`;
+        const zipFilePath = path.posix.join(this.fileIOService.apiExportsDir, zipFileName);
+
+        await this.createZipFile(matchingFiles, zipFilePath);
+        return this.fileIOService.createStreamableFile(zipFilePath);
     }
 
-    private validateAndRedefineTemplateFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
+    private async createZipFile(fileNames: string[], outputPath: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const output = fs.createWriteStream(outputPath);
+            const archive = archiver('zip', {
+                zlib: { level: 9 } // compression level.
+            }
+            );
+
+            output.on('close', () => {
+                this.logger.log(`Zip file created at ${outputPath} (${archive.pointer()} total bytes)`);
+                resolve();
+            });
+
+            archive.on('error', (err: Error) => {
+                this.logger.error(`Error creating zip file: ${err.message}`);
+                reject(err);
+            });
+
+            archive.pipe(output);
+
+            for (const fileName of fileNames) {
+                const filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
+                archive.file(filePath, { name: fileName });
+            }
+
+            archive.finalize();
+        });
+    }
+
+    private validateAndRedefineExportFiltersBasedOnUserQueryRequest(user: LoggedInUserDto, queryDto: ViewObservationQueryDTO): ExportPermissionsDto {
         let exportPermissions: ExportPermissionsDto = {};
 
         if (user.permissions && user.permissions.exportPermissions) {

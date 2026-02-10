@@ -4,7 +4,6 @@ import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { AppConfigService } from "src/app/app-config.service";
 import { ViewExportSpecificationModel } from "../models/view-export-specification.model";
 import { CreateExportSpecificationModel } from "../models/create-export-specification.model";
-import { BufrConverterSpecificationModel } from "../models/bufr-converter.model";
 
 @Injectable({
     providedIn: 'root'
@@ -29,8 +28,20 @@ export class ExportSpecificationsService {
         );
     }
 
-    public findBufrConverterSpecifications(): Observable<BufrConverterSpecificationModel[]> {
-        return this.http.get<BufrConverterSpecificationModel[]>(`${this.endPointUrl}/bufr-converter-specifications`).pipe(
+    public findSynopBufrElements(): Observable<string[]> {
+        return this.http.get<string[]>(`${this.endPointUrl}/synop-bufr-elements`).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    public findDayCliBufrElements(): Observable<string[]> {
+        return this.http.get<string[]>(`${this.endPointUrl}/daycli-bufr-elements`).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+    public findCLIMATBufrElements(): Observable<string[]> {
+        return this.http.get<string[]>(`${this.endPointUrl}/climat-bufr-elements`).pipe(
             catchError(this.handleError)
         );
     }

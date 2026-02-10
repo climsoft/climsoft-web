@@ -3,7 +3,7 @@ import axios from 'axios';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { BufrExportParametersDto, DACLI_BUFR_ELEMENTS } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
+import { BufrExportParametersDto, DAYCLI_BUFR_ELEMENTS } from 'src/metadata/export-specifications/dtos/bufr-export-parameters.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { AppConfig } from 'src/app.config';
 
@@ -26,7 +26,7 @@ export class BufrExportService {
         const pivotExpressions: string[] = [];
 
         for (const mapping of exportParams.elementMappings) {
-            const bufrMapping = DACLI_BUFR_ELEMENTS.find(m => m === mapping.bufrElement);
+            const bufrMapping = DAYCLI_BUFR_ELEMENTS.find(m => m === mapping.bufrElement);
             if (!bufrMapping) {
                 continue;
             }
@@ -56,21 +56,20 @@ export class BufrExportService {
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
 
-        // TODO:
-        // Get the wsi_series, wsi_issuer, wsi_issue_number, wsi_local from wigos_id. The wigos_id can be parsed to get them. Its structure is: WIGOS-XX-YYYYY-ZZZZZ where XX is the issuer, YYYYY is the series and ZZZZZ is the local id. We can use regex to extract these components. For now, we will use placeholder values for wsi_series, wsi_issuer, wsi_issue_number and wsi_local until we have station metadata with wigos_id populated. The same applies for wmo_block_number and wmo_station_number which can be extracted from wmo_id when we have station metadata with wmo_id populated. The precipitation_siting_classification can also be populated from station metadata when available. 
-        // Get the wmo_block_number and wmo_station_number from wmo_id. The wmo_id can be parsed to get them. Its structure is: BBBSS where BBB is the block number and SS is the station number. 
-        
+        // WIGOS ID format: series-issuer-issue_number-local (e.g., 0-20000-0-12345)
+        // WMO ID format: BBBSS (5 digits, first 3 are block number, last 2 are station number)
+
         const sql = `
             COPY (
                 SELECT
-                    -- WSI identifiers (placeholder values - would need station metadata for real values)
-                    0 AS wsi_series,
-                    20000 AS wsi_issuer,
-                    0 AS wsi_issue_number,
-                    station_id AS wsi_local,
-                    -- WMO identifiers (placeholder values - would need station metadata for real values)
-                    0 AS wmo_block_number,
-                    0 AS wmo_station_number,
+                    -- WSI identifiers parsed from wigos_id (format: series-issuer-issue_number-local)
+                    COALESCE(TRY_CAST(split_part(wigos_id, '-', 1) AS INTEGER), 0) AS wsi_series,
+                    COALESCE(TRY_CAST(split_part(wigos_id, '-', 2) AS INTEGER), 0) AS wsi_issuer,
+                    COALESCE(TRY_CAST(split_part(wigos_id, '-', 3) AS INTEGER), 0) AS wsi_issue_number,
+                    COALESCE(NULLIF(split_part(wigos_id, '-', 4), ''), station_id) AS wsi_local,
+                    -- WMO identifiers parsed from wmo_id (format: BBBSS - 5 digits)
+                    COALESCE(TRY_CAST(SUBSTRING(wmo_id, 1, 3) AS INTEGER), 0) AS wmo_block_number,
+                    COALESCE(TRY_CAST(SUBSTRING(wmo_id, 4, 2) AS INTEGER), 0) AS wmo_station_number,
                     -- Location
                     station_latitude AS latitude,
                     station_longitude AS longitude,

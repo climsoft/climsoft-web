@@ -5,7 +5,7 @@ import { AuthUtil } from 'src/user/services/auth.util';
 import { ExportSpecificationsService } from '../services/export-specifications.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { CreateExportSpecificationDto } from '../dtos/create-export-specification.dto';
-import { CLIMAT_BUFR_ELEMENTS, DACLI_BUFR_ELEMENTS, SYNOP_BUFR_ELEMENTS } from '../dtos/bufr-export-parameters.dto';
+import { CLIMAT_BUFR_ELEMENTS, DAYCLI_BUFR_ELEMENTS, SYNOP_BUFR_ELEMENTS } from '../dtos/bufr-export-parameters.dto';
 
 @Controller('export-specifications')
 export class ExportSpecificationsController {
@@ -17,18 +17,18 @@ export class ExportSpecificationsController {
         return this.exportTemplateService.findAll();
     }
 
-    @Get('synop-elements')
-    public findSynopElements(): string[] {
+    @Get('synop-bufr-elements')
+    public findSynopBufrElements(): string[] {
         return SYNOP_BUFR_ELEMENTS;
     }
 
-    @Get('daycli-elements')
-    public findDayCliElements(): string[] {
-        return DACLI_BUFR_ELEMENTS;
+    @Get('daycli-bufr-elements')
+    public findDayCliBufrElements(): string[] {
+        return DAYCLI_BUFR_ELEMENTS;
     }
 
-    @Get('climat-elements')
-    public findCLIMATElements(): string[] {
+    @Get('climat-bufr-elements')
+    public findCLIMATBufrElements(): string[] {
         return CLIMAT_BUFR_ELEMENTS;
     }
 

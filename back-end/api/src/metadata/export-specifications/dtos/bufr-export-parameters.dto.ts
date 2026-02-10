@@ -27,7 +27,7 @@ export class BufrElementMapDto {
     bufrElement: string;
 }
 
-export const DACLI_BUFR_ELEMENTS: string[] = [
+export const DAYCLI_BUFR_ELEMENTS: string[] = [
     'precipitation',
     'fresh_snow_depth',
     'total_snow_depth',

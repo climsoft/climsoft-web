@@ -14,5 +14,5 @@ export interface BufrExportParametersModel {
 export interface BufrElementMapDto {
     databaseElementId: number;
 
-    bufrConverterId: number;
+    bufrElement: string;
 }
