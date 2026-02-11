@@ -23,12 +23,12 @@
                     No element mappings configured. Click "Add Mapping" to create one.
                 </div>
 
-                <div *ngIf="bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
+                <div *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
                     <table class="table table-sm">
                         <thead>
                             <tr>
                                 <th>Database Element</th>
-                                <th>BUFR Converter</th>
+                                <th>BUFR Element</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -37,13 +37,13 @@
                                 <td>
                                     <app-element-selector-single [id]="'db_element_' + i"
                                         [selectedId]="mapping.databaseElementId"
-                                        (selectedIdChange)="onElementSelected(i, $event)" />
+                                        (selectedIdChange)="onDBElementSelected(i, $event)" />
                                 </td>
                                 <td>
                                     <app-selector-single-input [id]="'bufr_element_' + i" [options]="bufrElements"
-                                        [optionDisplayFn]="bufrConverterDisplayFunction"
-                                        [selectedOption]="getSelectedBufrConverter(mapping.bufrElement)"
-                                        (selectedOptionChange)="onBufrConverterSelected(i, $event)" />
+                                        [optionDisplayFn]="bufrElementDisplayFunction"
+                                        [selectedOption]="mapping.bufrElement"
+                                        (selectedOptionChange)="onBufrElementSelected(i, $event)" />
                                 </td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-outline-danger"

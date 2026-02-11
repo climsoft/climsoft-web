@@ -40,8 +40,14 @@ export class ExportSpecificationsService {
         );
     }
 
-    public findCLIMATBufrElements(): Observable<string[]> {
+    public findClimatBufrElements(): Observable<string[]> {
         return this.http.get<string[]>(`${this.endPointUrl}/climat-bufr-elements`).pipe(
+            catchError(this.handleError)
+        );
+    }
+
+       public findTempBufrElements(): Observable<string[]> {
+        return this.http.get<string[]>(`${this.endPointUrl}/temp-bufr-elements`).pipe(
             catchError(this.handleError)
         );
     }

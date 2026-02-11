@@ -129,9 +129,13 @@ export class ExportSpecificationInputDialogComponent {
     });
 
   }
-  
+
   protected onDeleteClick(): void {
-    //todo. prompt for confirmation first
+    if (!confirm('Are you sure you want to delete this specification?')) {
+      this.open = false;
+      return;
+    }
+
     this.exportSpecificationsService.delete(this.viewExportSpecification.id).subscribe((data) => {
       this.open = false;
       this.pagesDataService.showToast({ title: "Export Specification", message: 'Export specification deleted', type: ToastEventTypeEnum.SUCCESS });

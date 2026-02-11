@@ -28,7 +28,12 @@ export class ExportSpecificationsController {
     }
 
     @Get('climat-bufr-elements')
-    public findCLIMATBufrElements(): string[] {
+    public findClimatBufrElements(): string[] {
+        return CLIMAT_BUFR_ELEMENTS;
+    }
+
+    @Get('temp-bufr-elements')
+    public findTempBufrElements(): string[] {
         return CLIMAT_BUFR_ELEMENTS;
     }
 

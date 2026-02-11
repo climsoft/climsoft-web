@@ -1,6 +1,6 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { take } from 'rxjs';
-import { BufrExportParametersModel, BufrTypeEnum } from '../../models/bufr-export-parameters.model'; 
+import { BufrExportParametersModel, BufrTypeEnum } from '../../models/bufr-export-parameters.model';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { ExportSpecificationsService } from '../../services/export-specifications.service';
 
@@ -9,7 +9,7 @@ import { ExportSpecificationsService } from '../../services/export-specification
   templateUrl: './bufr-export-params.component.html',
   styleUrls: ['./bufr-export-params.component.scss']
 })
-export class BufrExportParamsComponent {
+export class BufrExportParamsComponent implements OnChanges {
   @Input() public bufrExportParameters!: BufrExportParametersModel;
 
   protected bufrTypes: BufrTypeEnum[] = Object.values(BufrTypeEnum);
@@ -22,18 +22,62 @@ export class BufrExportParamsComponent {
       this.bufrElements = data;
     });
   }
+  ngOnChanges(changes: SimpleChanges): void {
+    this.loadBufrElements();
+  }
+
+  private loadBufrElements(): void {
+    this.bufrElements = []; // Clear existing elements when bufr type changes
+    switch (this.bufrExportParameters.bufrType) {
+      case BufrTypeEnum.SYNOP:
+        this.exportSpecificationsService.findSynopBufrElements().pipe(
+          take(1)
+        ).subscribe(data => {
+          this.bufrElements = data;
+        });
+        break;
+      case BufrTypeEnum.DAYCLI:
+        this.exportSpecificationsService.findDayCliBufrElements().pipe(
+          take(1)
+        ).subscribe(data => {
+          this.bufrElements = data;
+        });
+        break;
+      case BufrTypeEnum.CLIMAT:
+        this.exportSpecificationsService.findClimatBufrElements().pipe(
+          take(1)
+        ).subscribe(data => {
+          this.bufrElements = data;
+        });
+        break;
+      case BufrTypeEnum.TEMP:
+        this.exportSpecificationsService.findDayCliBufrElements().pipe(
+          take(1)
+        ).subscribe(data => {
+          this.bufrElements = data;
+        });
+        break;
+      default:
+        break;
+    }
+  }
 
   protected bufrTypeDisplayFunction(option: BufrTypeEnum): string {
     return StringUtils.capitalizeFirstLetter(option);
   }
 
-  protected bufrConverterDisplayFunction(option: string): string {
-    return option;
+  protected bufrElementDisplayFunction(option: string): string {
+    // Convert format like 'air_temperature' to 'Air Temperature'
+    return option
+      .split('_')
+      .map(word => StringUtils.capitalizeFirstLetter(word))
+      .join(' ');
   }
 
   protected onBufrTypeChange(bufrType: BufrTypeEnum | null): void {
     if (bufrType) {
       this.bufrExportParameters.bufrType = bufrType;
+      this.loadBufrElements();
     }
   }
 
@@ -51,17 +95,13 @@ export class BufrExportParamsComponent {
     this.bufrExportParameters.elementMappings.splice(index, 1);
   }
 
-  protected onElementSelected(index: number, elementId: number): void {
+  protected onDBElementSelected(index: number, elementId: number): void {
     this.bufrExportParameters.elementMappings[index].databaseElementId = elementId;
   }
 
-  protected onBufrConverterSelected(index: number, converter: string | null): void {
+  protected onBufrElementSelected(index: number, converter: string | null): void {
     if (converter) {
       this.bufrExportParameters.elementMappings[index].bufrElement = converter;
     }
-  }
-
-  protected getSelectedBufrConverter(bufrElement: string): string | null {
-    return this.bufrElements.find(c => c === bufrElement) || null;
   }
 }
