@@ -46,11 +46,24 @@ export class BufrExportService {
                 pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(SECOND FROM date_time::TIMESTAMP) END) AS ${colName}_second`);
 
                 // Value column
-                pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value END) AS ${colName}`);
+                switch (bufrElement) {
+                    case 'maximum_temperature':
+                    case 'minimum_temperature':
+                    case 'average_temperature':
+                        // TODO. 
+                        // For now. We are assuming that the temperature values in the database are in Celsius and we need to convert them to Kelvin for BUFR. In future we should make this dynamic based on the metadata for the element.
+                        pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value + 273.15 END) AS ${colName}`);
+                        break;
+                    default:
+                        pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value END) AS ${colName}`);
+                        break;
+                }
 
-                // TODO. Flag column convert climsoft flags to equivalent bufr flag codes 
-                //pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
+
+                // TODO. 
+                // For now we are assuming that the flag values will be bull in the intermediate file but in future we should make this dynamic based on the metadata for the element and the actual flag values in the database.
                 pivotExpressions.push(`NULL AS ${colName}_flag`);
+                //pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
             } else {
                 // Element is not mapped - create NULL columns
                 pivotExpressions.push(`NULL AS ${colName}_hour`);
@@ -60,6 +73,10 @@ export class BufrExportService {
                 pivotExpressions.push(`NULL AS ${colName}_flag`);
             }
         }
+
+        // TODO. 
+        // For now we are hardcoding the thermometer height as it's required by the csv2bufr template to set the correct BUFR code for thermometer height, but in future we should make this dynamic based on the instrument metadata for the station and element. 
+        pivotExpressions.push(`2 AS thermometer_height`);
 
 
         let intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;

@@ -90,7 +90,7 @@ export class ObservationsController {
 
   @Get('download-export/:specificationid')
   @Header('Content-Type', 'text/csv')
-  @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
+  @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be conent-type specifc to what is being downloaded. Can be .csv or .zip or .bufr etc.
   async download(
     @Req() request: Request,
     @Param('specificationid', AuthorisedExportsPipe) id: number
