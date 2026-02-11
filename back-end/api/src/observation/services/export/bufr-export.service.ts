@@ -142,22 +142,18 @@ export class BufrExportService {
                 headers: { 'Content-Type': 'application/json' },
             });
 
-            if (response.data.success) {
-                this.logger.log(`BUFR conversion successful. Generated ${response.data.output_files.length} file(s)`);
 
-                if (response.data.errors && response.data.errors.length > 0) {
-                    this.logger.warn(`BUFR conversion had partial errors: ${response.data.errors.join('; ')}`);
-                }
+            this.logger.log(`BUFR conversion successful. Generated ${response.data.output_files.length} file(s)`);
 
-                const generatedFiles = response.data.output_files.map((file: string) => path.posix.join(this.fileIOService.apiExportsDir, path.basename(file)));
-                this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
-
-                return generatedFiles;
-            } else {
-                const errorMsg = response.data.errors?.join('; ') || 'Unknown error';
-                this.logger.debug(`csv2bufr conversion failed: ${errorMsg}`);
-                throw new Error(`csv2bufr conversion failed: ${errorMsg}`);
+            if (response.data.errors && response.data.errors.length > 0) {
+                this.logger.warn(`BUFR conversion had partial errors: ${response.data.errors.join('; ')}`);
             }
+
+            const generatedFiles = response.data.output_files.map((file: string) => path.posix.join(this.fileIOService.apiExportsDir, path.basename(file)));
+            this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
+
+            return generatedFiles;
+
         } catch (error) {
             this.logger.error('Error calling csv2bufr service:', error);
             if (axios.isAxiosError(error)) {

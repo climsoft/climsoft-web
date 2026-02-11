@@ -34,7 +34,6 @@ def transform_csv_to_bufr():
 
     Returns JSON:
       {
-        "success": true,
         "output_files": ["/app/exports/abc123.bufr4"],
         "metadata": [{ ... GeoJSON ... }],
         "errors": []
@@ -45,7 +44,6 @@ def transform_csv_to_bufr():
 
         if not body:
             return jsonify({
-                'success': False,
                 'errors': ['Request body must be JSON']
             }), 400
 
@@ -64,13 +62,11 @@ def transform_csv_to_bufr():
 
         if missing:
             return jsonify({
-                'success': False,
                 'errors': [f'Missing required fields: {", ".join(missing)}']
             }), 400
 
         if not os.path.isfile(input_file):
             return jsonify({
-                'success': False,
                 'errors': [f'Input file not found: {input_file}']
             }), 404
 
@@ -112,7 +108,6 @@ def transform_csv_to_bufr():
         success = len(output_files) > 0
 
         return jsonify({
-            'success': success,
             'output_files': output_files,
             'metadata': metadata_list,
             'errors': errors
@@ -121,7 +116,6 @@ def transform_csv_to_bufr():
     except Exception as e:
         app.logger.error(f'Unexpected error: {traceback.format_exc()}')
         return jsonify({
-            'success': False,
             'errors': [f'Unexpected server error: {str(e)}']
         }), 500
 
