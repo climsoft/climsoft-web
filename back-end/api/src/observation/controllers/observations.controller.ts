@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
@@ -80,23 +80,20 @@ export class ObservationsController {
     return this.observationsService.findDataFlow(query);
   }
 
-  @Get('generate-export/:templateid')
+  @Get('generate-export/:specificationid')
   generateExports(
     @Req() request: Request,
-    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
+    @Param('specificationid', AuthorisedExportsPipe) exportSpecificationId: number,
     @Query() viewObsevationQuery: ViewObservationQueryDTO) {
-    return this.observationExportsService.generateManualExport(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
+    return this.observationExportsService.generateManualExport(exportSpecificationId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
   }
 
-  @Get('download-export/:specificationid')
-  @Header('Content-Type', 'text/csv')
-  @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be conent-type specifc to what is being downloaded. Can be .csv or .zip or .bufr etc.
+  @Get('download-export/:uniquedownloadid')
   async download(
-    @Req() request: Request,
-    @Param('specificationid', AuthorisedExportsPipe) id: number
-  ) {
+    @Param('uniquedownloadid') uniqueDownloadId: string
+  ) { 
     // Stream the exported file to the response
-    return this.observationExportsService.manualDownloadExport(id, AuthUtil.getLoggedInUser(request).id);
+    return this.observationExportsService.manualDownloadExport(uniqueDownloadId);
   }
 
   @Put('data-entry')

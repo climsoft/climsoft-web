@@ -31,7 +31,7 @@ export class ObservationsExportService {
     ) {
     }
 
-    public async generateManualExport(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<void> {
+    public async generateManualExport(exportSpecificationId: number, queryDto: ViewObservationQueryDTO, user: LoggedInUserDto): Promise<string> {
         if (!user.isSystemAdmin) {
             if (user.permissions && user.permissions.exportPermissions) {
                 if (user.permissions.exportPermissions.exportTemplateIds) {
@@ -45,40 +45,60 @@ export class ObservationsExportService {
         }
 
         const exportPermissions: ExportPermissionsDto = this.validateAndRedefineExportFiltersBasedOnUserQueryRequest(user, queryDto);
-        const manualDownloadSuffix: string = `manual_download_${user.id}_${exportSpecificationId}_export`;
-        await this.generateExport(exportSpecificationId, exportPermissions, manualDownloadSuffix);
+        
+        const uniqueDownloadSuffix: string = `${crypto.randomUUID()}`;
+
+        await this.generateExport(exportSpecificationId, exportPermissions, uniqueDownloadSuffix);
+
+        return uniqueDownloadSuffix;
     }
 
-    public async manualDownloadExport(exportSpecificationId: number, userId: number): Promise<StreamableFile> {
-        const viewTemplateExportDto: ViewSpecificationExportDto = await this.exportTemplatesService.find(exportSpecificationId);
-
-        // If export is disabled then don't generate it
-        if (viewTemplateExportDto.disabled) {
-            throw new BadRequestException('Export disabled');
-        }
-
-        const manualDownloadSuffix: string = `manual_download_${userId}_${exportSpecificationId}_export`;
+    public async manualDownloadExport(uniqueDownloadSuffix: string): Promise<StreamableFile> { 
 
         // Find files that contain the manualDownloadSuffix in their name
         const allFiles = await this.fileIOService.getFileNamesInDirectory(this.fileIOService.apiExportsDir);
-        const matchingFiles = allFiles.filter(file => file.includes(manualDownloadSuffix));
+        const matchingFiles = allFiles.filter(file => file.includes(uniqueDownloadSuffix));
 
         if (matchingFiles.length === 0) {
             throw new BadRequestException('No export files found. Please generate the export first.');
         }
 
+        let filePath: string;
+        let fileName: string;
+
         if (matchingFiles.length === 1) {
             // Single file - return it directly
-            const filePath = path.posix.join(this.fileIOService.apiExportsDir, matchingFiles[0]);
-            return this.fileIOService.createStreamableFile(filePath);
+            fileName = matchingFiles[0];
+            filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
+        } else {
+            // Multiple files - zip them and return the zip file
+            fileName = `${uniqueDownloadSuffix}.zip`;
+            filePath = path.posix.join(this.fileIOService.apiExportsDir, fileName);
+            await this.createZipFile(matchingFiles, filePath);
         }
 
-        // Multiple files - zip them and return the zip file
-        const zipFileName = `${manualDownloadSuffix}_${crypto.randomUUID()}.zip`;
-        const zipFilePath = path.posix.join(this.fileIOService.apiExportsDir, zipFileName);
+        // Determine content type based on file extension
+        const contentType = this.getContentTypeForFile(fileName);
 
-        await this.createZipFile(matchingFiles, zipFilePath);
-        return this.fileIOService.createStreamableFile(zipFilePath);
+        return new StreamableFile(fs.createReadStream(filePath), {
+            type: contentType,
+            disposition: `attachment; filename="${fileName}"`,
+        });
+    }
+
+    private getContentTypeForFile(fileName: string): string {
+        const ext = path.extname(fileName).toLowerCase();
+        switch (ext) {
+            case '.csv':
+                return 'text/csv';
+            case '.zip':
+                return 'application/zip';
+            case '.bufr4':
+            case '.bufr':
+                return 'application/octet-stream';
+            default:
+                return 'application/octet-stream';
+        }
     }
 
     private async createZipFile(fileNames: string[], outputPath: string): Promise<void> {
@@ -408,6 +428,8 @@ export class ObservationsExportService {
             default:
                 break;
         }
+
+        sqlCondition = `${sqlCondition} AND ob.value IS NOT NULL`;
 
         //------------------------------------------------------------------------------------------------
 

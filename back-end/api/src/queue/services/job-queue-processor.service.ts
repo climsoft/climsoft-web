@@ -51,6 +51,8 @@ export class JobQueueProcessorService {
         this.logger.log('Running cleanup of old finished jobs');
         const deletedCount = await this.queueService.cleanupOldJobs(30);
         this.logger.log(`Cleaned up ${deletedCount} old jobs`);
+
+        // TODO. Also clean up all the connector logs within the same timeframe. Including their associated files in the file system.
     }
 
     /**

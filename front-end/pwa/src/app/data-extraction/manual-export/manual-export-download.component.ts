@@ -153,9 +153,9 @@ export class ManualExportDownloadComponent implements OnInit {
     this.observationService.generateExport(this.viewExportTemplate.id, observationFilter).pipe(
       take(1)
     ).subscribe({
-      next: data => {
+      next: uniqueDownloadId => {
         this.hidePreparingExport = true;
-        this.downloadLink = this.observationService.getDownloadExportLink(this.viewExportTemplate.id);
+        this.downloadLink = this.observationService.getDownloadExportLink(uniqueDownloadId);
         this.hideDownloadButton = false;
       },
       error: err => {

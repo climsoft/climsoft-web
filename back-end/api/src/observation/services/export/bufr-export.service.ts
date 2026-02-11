@@ -52,7 +52,7 @@ export class BufrExportService {
                     case 'average_temperature':
                         // TODO. 
                         // For now. We are assuming that the temperature values in the database are in Celsius and we need to convert them to Kelvin for BUFR. In future we should make this dynamic based on the metadata for the element.
-                        pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value + 273.15 END) AS ${colName}`);
+                        pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN (value::DOUBLE + 273.15) END) AS ${colName}`);
                         break;
                     default:
                         pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value END) AS ${colName}`);
@@ -74,9 +74,8 @@ export class BufrExportService {
             }
         }
 
-        // TODO. 
-        // For now we are hardcoding the thermometer height as it's required by the csv2bufr template to set the correct BUFR code for thermometer height, but in future we should make this dynamic based on the instrument metadata for the station and element. 
-        pivotExpressions.push(`2 AS thermometer_height`);
+        // TODO. For now we are hardcoding the belwo values  it's required by the csv2bufr template to set the correct BUFR codes, but in future we should make this dynamic based on the metadata for the station, element and instrument. 
+
 
 
         let intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
@@ -103,7 +102,12 @@ export class BufrExportService {
                     station_latitude AS latitude,
                     station_longitude AS longitude,
                     -- Siting classification (placeholder - would need station metadata)
+                    255 AS temperature_siting_classification,
                     255 AS precipitation_siting_classification,
+                    -- Placeholder - would need metadata to determine correct value
+                    2 AS averaging_method, 
+                    -- Placeholder - would need station metadata to determine if it's 1 (screen-level) or 2 (ground-level)
+                    2 AS thermometer_height, 
                     -- Date components (extracted from date_time)
                     EXTRACT(YEAR FROM date_time::TIMESTAMP)::INTEGER AS year,
                     EXTRACT(MONTH FROM date_time::TIMESTAMP)::INTEGER AS month,

@@ -366,17 +366,20 @@ export class ObservationsService {
       );
   }
 
-  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<number> {
-    return this.http.get<number>(
+  public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<string> {
+    return this.http.get<string>(
       `${this.endPointUrl}/generate-export/${exportTemplateId}`,
-      { params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery) })
+      { 
+        params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery),
+        responseType: 'text' as 'json'
+      })
       .pipe(
         catchError(AppAuthInterceptor.handleError)
       );
   }
 
-  public getDownloadExportLink(exportTemplateId: number): string {
-    return `${this.endPointUrl}/download-export/${exportTemplateId}`;
+  public getDownloadExportLink(uniqueDownloadId: string): string {
+    return `${this.endPointUrl}/download-export/${uniqueDownloadId}`;
   }
 
 }
