@@ -37,13 +37,13 @@ export class BufrExportService {
                 const elementId = mapping.databaseElementId;
 
                 // Hour column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time) END) AS ${colName}_hour`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time::TIMESTAMP) END) AS ${colName}_hour`);
 
                 // Minute column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(MINUTE FROM date_time) END) AS ${colName}_minute`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(MINUTE FROM date_time::TIMESTAMP) END) AS ${colName}_minute`);
 
                 // Second column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(SECOND FROM date_time) END) AS ${colName}_second`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(SECOND FROM date_time::TIMESTAMP) END) AS ${colName}_second`);
 
                 // Value column
                 pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN value END) AS ${colName}`);
@@ -86,14 +86,16 @@ export class BufrExportService {
                     -- Siting classification (placeholder - would need station metadata)
                     255 AS precipitation_siting_classification,
                     -- Date components (extracted from date_time)
-                    EXTRACT(YEAR FROM date_time)::INTEGER AS year,
-                    EXTRACT(MONTH FROM date_time)::INTEGER AS month,
-                    EXTRACT(DAY FROM date_time)::INTEGER AS day,
+                    EXTRACT(YEAR FROM date_time::TIMESTAMP)::INTEGER AS year,
+                    EXTRACT(MONTH FROM date_time::TIMESTAMP)::INTEGER AS month,
+                    EXTRACT(DAY FROM date_time::TIMESTAMP)::INTEGER AS day,
                     -- Pivoted element columns
-                    ${pivotExpressions.join(',\\n')}
+                    ${pivotExpressions.join(',\n')}
                 FROM read_csv('${rawObservationsFile}', header=true, auto_detect=true)
                 GROUP BY
                     station_id,
+                    wigos_id,
+                    wmo_id,
                     station_latitude,
                     station_longitude,
                     EXTRACT(YEAR FROM date_time),
@@ -108,6 +110,8 @@ export class BufrExportService {
         `;
 
         this.logger.debug(`Executing DayCli intermediate file generation SQL`);
+
+        console.log(sql); // Log the SQL for debugging purposes
 
         await this.fileIOService.duckDb.exec(sql);
 

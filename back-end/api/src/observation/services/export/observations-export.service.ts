@@ -375,6 +375,7 @@ export class ObservationsExportService {
         return [path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName))];
     }
 
+    // TODO. Refactor to not use `ExportPermissionsDto` as it's not really related to permissions in this context. Maybe create a new DTO that is specific for the parameters needed for generating the BUFR export
     public async generateBufrExports(exportParams: BufrExportParametersDto, exportPermissions: ExportPermissionsDto = {}, suffix: string = ''): Promise<string[]> {
 
         // TODO. In future these conditions should create parameters for a SQL function
@@ -384,15 +385,28 @@ export class ObservationsExportService {
         // DATA FILTER SELECTIONS
         //------------------------------------------------------------------------------------------------
         if (exportPermissions.stationIds && exportPermissions.stationIds.length > 0) {
-            sqlCondition = sqlCondition + ` AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
+            sqlCondition = `${sqlCondition} AND ob.station_id IN (${exportPermissions.stationIds.map(id => `'${id}'`).join(',')})`;
         }
 
-        sqlCondition = sqlCondition + ` AND ob.element_id IN (${exportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
+        sqlCondition = `${sqlCondition} AND ob.element_id IN (${exportParams.elementMappings.map(id => id.databaseElementId).join(',')})`;
 
         if (exportPermissions.observationPeriod) {
             if (exportPermissions.observationPeriod.last) {
-                sqlCondition = sqlCondition + ` AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
+                sqlCondition = `${sqlCondition} AND ob.date_time >= NOW() - INTERVAL '${exportPermissions.observationPeriod.last} minutes'`;
             }
+        }
+
+        switch (exportParams.bufrType) {
+            case BufrTypeEnum.SYNOP:
+                sqlCondition = `${sqlCondition} AND ob.interval = 60`;
+                break;
+            case BufrTypeEnum.DAYCLI:
+                sqlCondition = `${sqlCondition} AND ob.interval = 1440`;
+                break;
+            case BufrTypeEnum.CLIMAT:
+                break;
+            default:
+                break;
         }
 
         //------------------------------------------------------------------------------------------------
@@ -406,7 +420,6 @@ export class ObservationsExportService {
         columnSelections.push('st.elevation AS station_elevation');
         columnSelections.push('st.wmo_id AS wmo_id');
         columnSelections.push('st.wigos_id AS wigos_id');
-
         columnSelections.push('ob.element_id AS element_id');
         columnSelections.push('el.units AS element_units');
         columnSelections.push('ob.level AS level');
