@@ -25,29 +25,39 @@ export class BufrExportService {
         // For each element we need: hour, minute, second, value, flag
         const pivotExpressions: string[] = [];
 
-        for (const mapping of exportParams.elementMappings) {
-            const bufrMapping = DAYCLI_BUFR_ELEMENTS.find(m => m === mapping.bufrElement);
-            if (!bufrMapping) {
-                continue;
+        // Iterate over all DAYCLI_BUFR_ELEMENTS to ensure all columns are present in the intermediate file
+        for (const bufrElement of DAYCLI_BUFR_ELEMENTS) {
+            const mapping = exportParams.elementMappings.find(m => m.bufrElement === bufrElement);
+            const colName = bufrElement;
+
+            pivotExpressions.push(`0 AS ${colName}_day_offset`);
+
+            if (mapping) {
+                // Element is mapped - create pivot expressions using the database element ID
+                const elementId = mapping.databaseElementId;
+
+                // Hour column
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time) END) AS ${colName}_hour`);
+
+                // Minute column
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(MINUTE FROM date_time) END) AS ${colName}_minute`);
+
+                // Second column
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(SECOND FROM date_time) END) AS ${colName}_second`);
+
+                // Value column
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN value END) AS ${colName}`);
+
+                // Flag column (convert flag text to numeric: empty/null = 0, 'trace' or other = specific codes)
+                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
+            } else {
+                // Element is not mapped - create NULL columns
+                pivotExpressions.push(`NULL AS ${colName}_hour`);
+                pivotExpressions.push(`NULL AS ${colName}_minute`);
+                pivotExpressions.push(`NULL AS ${colName}_second`);
+                pivotExpressions.push(`NULL AS ${colName}`);
+                pivotExpressions.push(`NULL AS ${colName}_flag`);
             }
-
-            const elementId = mapping.databaseElementId;
-            const colName = bufrMapping; // Use the bufr element name as the column name in the pivoted output
-
-            // Hour column
-            pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time) END) AS ${colName}_hour`);
-
-            // Minute column
-            pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(MINUTE FROM date_time) END) AS ${colName}_minute`);
-
-            // Second column
-            pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(SECOND FROM date_time) END) AS ${colName}_second`);
-
-            // Value column
-            pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN value END) AS ${colName}`);
-
-            // Flag column (convert flag text to numeric: empty/null = 0, 'trace' or other = specific codes)
-            pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
         }
 
 
@@ -107,7 +117,7 @@ export class BufrExportService {
         return await this.convertToBufr(intermediateFile, suffix);
     }
 
-    private async convertToBufr(intermediateFile: string, suffix?: string ): Promise<string[]> {
+    private async convertToBufr(intermediateFile: string, suffix?: string): Promise<string[]> {
         const csv2bufrUrl: string = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
         const inputFile: string = intermediateFile;
         const outputDir: string = this.fileIOService.apiExportsDir;
