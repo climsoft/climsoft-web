@@ -448,7 +448,20 @@ export class ObservationsExportService {
         // Now generate BUFR file using the exported csv file
         // Note db file paths are different from api file paths due to how docker volumes are mapped
         const rawObservationsFile: string = path.posix.join(this.fileIOService.apiExportsDir, path.basename(dbFilePathName));
-        return this.bufrExportService.generateDayCliBufrFiles(exportParams, rawObservationsFile, suffix);
+
+        switch (exportParams.bufrType) {
+            case BufrTypeEnum.SYNOP:
+                throw new Error('SYNOP BUFR export not implemented yet');
+            case BufrTypeEnum.DAYCLI:
+                return this.bufrExportService.generateDayCliBufrFiles(exportParams, rawObservationsFile, suffix);
+            case BufrTypeEnum.CLIMAT:
+                throw new Error('Climat BUFR export not implemented yet');
+            case BufrTypeEnum.TEMP:
+                throw new Error('Temp BUFR export not implemented yet');
+            default:
+                throw new Error('Invalid BUFR export type');
+        }
+
     }
 
 

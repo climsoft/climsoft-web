@@ -22,9 +22,17 @@ export class FileIOService {
             // Files are stored under a 'temp' directory in the project root which is mounted to any test docker container. 
             // This allows us to avoid file permission issues and also easily inspect files.
 
-            const _tempDir: string = path.posix.join(process.cwd(), 'temp');
-            this._apiImportsDir = path.posix.join(process.cwd(), 'temp', 'imports');
-            this._apiExportsDir = path.posix.join(process.cwd(), 'temp', 'exports');
+            const _tempDir: string = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp');
+            this._apiImportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'imports');
+            this._apiExportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'exports');
+
+            // Delete the temp directory first to ensure a clean state on each server restart. This prevents issues with file locks and permission errors after hot reloads in development.
+            try {
+                fs.rmSync(_tempDir, { recursive: true, force: true });
+                this.logger.log(`Deleted existing temp directory: ${_tempDir}`);
+            } catch (err) {
+                this.logger.warn(`Could not delete temp directory (it may not exist): ${_tempDir}`);
+            }
 
             fs.mkdirSync(_tempDir, { recursive: true });
             fs.mkdirSync(this._apiImportsDir, { recursive: true });

@@ -37,16 +37,16 @@ export class BufrExportService {
                 const elementId = mapping.databaseElementId;
 
                 // Hour column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(HOUR FROM date_time::TIMESTAMP) END) AS ${colName}_hour`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(HOUR FROM date_time::TIMESTAMP) END) AS ${colName}_hour`);
 
                 // Minute column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(MINUTE FROM date_time::TIMESTAMP) END) AS ${colName}_minute`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(MINUTE FROM date_time::TIMESTAMP) END) AS ${colName}_minute`);
 
                 // Second column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN EXTRACT(SECOND FROM date_time::TIMESTAMP) END) AS ${colName}_second`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN EXTRACT(SECOND FROM date_time::TIMESTAMP) END) AS ${colName}_second`);
 
                 // Value column
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN value END) AS ${colName}`);
+                pivotExpressions.push(`MAX(CASE WHEN element_id::INTEGER = ${elementId} THEN value END) AS ${colName}`);
 
                 // TODO. Flag column convert climsoft flags to equivalent bufr flag codes 
                 //pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
@@ -93,7 +93,7 @@ export class BufrExportService {
                     EXTRACT(DAY FROM date_time::TIMESTAMP)::INTEGER AS day,
                     -- Pivoted element columns
                     ${pivotExpressions.join(',\n')}
-                FROM read_csv('${rawObservationsFile}', header=true, auto_detect=true)
+                FROM read_csv('${rawObservationsFile}', header=true, all_varchar=true)
                 GROUP BY
                     station_id,
                     wigos_id,
@@ -129,7 +129,7 @@ export class BufrExportService {
         const outputDir: string = `/app/exports/`;// this.fileIOService.apiExportsDir;
 
         this.logger.log(`Calling csv2bufr service at ${csv2bufrUrl}`);
-        this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
+        //this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
 
         try {
             const response = await axios.post(csv2bufrUrl, {
@@ -150,14 +150,14 @@ export class BufrExportService {
             }
 
             const generatedFiles = response.data.output_files.map((file: string) => path.posix.join(this.fileIOService.apiExportsDir, path.basename(file)));
-            this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
+            //this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
 
             return generatedFiles;
 
         } catch (error) {
             this.logger.error('Error calling csv2bufr service:', error);
             if (axios.isAxiosError(error)) {
-                const detail = error.response?.data?.errors?.join('; ') || error.message;
+                const detail = error.response?.data || error.message;
                 throw new Error(`csv2bufr service error: ${detail}`);
             }
             throw error;
