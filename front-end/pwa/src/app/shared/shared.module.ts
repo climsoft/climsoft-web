@@ -41,6 +41,7 @@ import { DatetimeFormatSelectorSingleComponent } from './controls/datetime-forma
 import { TimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/time-format-selector-single/time-format-selector-single.component';
 import { DateFormatSelectorSingleComponent } from './controls/datetime-format-selectors/date-format-selector-single/date-format-selector-single.component';
 import { ErrorSelectorSingleComponent } from './controls/error-selector-single/error-selector-single.component';
+import { CronInputComponent } from './controls/cron-input/cron-input.component';
 
 //--------------------------------
 
@@ -95,6 +96,7 @@ const controlsComponents = [
   TimeFormatSelectorSingleComponent,
 
   ErrorSelectorSingleComponent,
+  CronInputComponent,
 ];
 
 const directives = [
