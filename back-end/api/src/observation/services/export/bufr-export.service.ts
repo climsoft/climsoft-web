@@ -48,8 +48,9 @@ export class BufrExportService {
                 // Value column
                 pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN value END) AS ${colName}`);
 
-                // Flag column (convert flag text to numeric: empty/null = 0, 'trace' or other = specific codes)
-                pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
+                // TODO. Flag column convert climsoft flags to equivalent bufr flag codes 
+                //pivotExpressions.push(`MAX(CASE WHEN element_id = ${elementId} THEN CASE WHEN flag IS NULL OR flag = '' THEN 0 WHEN flag = 'trace' THEN 1 ELSE 2 END END) AS ${colName}_flag`);
+                pivotExpressions.push(`NULL AS ${colName}_flag`);
             } else {
                 // Element is not mapped - create NULL columns
                 pivotExpressions.push(`NULL AS ${colName}_hour`);
@@ -61,7 +62,8 @@ export class BufrExportService {
         }
 
 
-        const intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
+        let intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
+        intermediateFile = path.posix.join(this.fileIOService.apiExportsDir, intermediateFile);
 
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
@@ -98,9 +100,9 @@ export class BufrExportService {
                     wmo_id,
                     station_latitude,
                     station_longitude,
-                    EXTRACT(YEAR FROM date_time),
-                    EXTRACT(MONTH FROM date_time),
-                    EXTRACT(DAY FROM date_time)
+                    EXTRACT(YEAR FROM date_time::TIMESTAMP),
+                    EXTRACT(MONTH FROM date_time::TIMESTAMP),
+                    EXTRACT(DAY FROM date_time::TIMESTAMP)
                 ORDER BY
                     station_id,
                     year,
@@ -111,7 +113,7 @@ export class BufrExportService {
 
         this.logger.debug(`Executing DayCli intermediate file generation SQL`);
 
-        console.log(sql); // Log the SQL for debugging purposes
+        //console.log(sql); // Log the SQL for debugging purposes
 
         await this.fileIOService.duckDb.exec(sql);
 
@@ -123,8 +125,8 @@ export class BufrExportService {
 
     private async convertToBufr(intermediateFile: string, suffix?: string): Promise<string[]> {
         const csv2bufrUrl: string = `http://${AppConfig.csv2BufrCredentials.host}:${AppConfig.csv2BufrCredentials.port}/transform`;
-        const inputFile: string = intermediateFile;
-        const outputDir: string = this.fileIOService.apiExportsDir;
+        const inputFile: string = path.posix.join(`/app/exports/`, path.basename(intermediateFile)); // The csv2bufr service expects the input file to be in a specific directory, so we provide the relative path from that directory
+        const outputDir: string = `/app/exports/`;// this.fileIOService.apiExportsDir;
 
         this.logger.log(`Calling csv2bufr service at ${csv2bufrUrl}`);
         this.logger.debug(`Input: ${inputFile}, Output dir: ${outputDir}`);
@@ -147,15 +149,19 @@ export class BufrExportService {
                     this.logger.warn(`BUFR conversion had partial errors: ${response.data.errors.join('; ')}`);
                 }
 
-                return response.data.output_files;
+                const generatedFiles = response.data.output_files.map((file: string) => path.posix.join(this.fileIOService.apiExportsDir, path.basename(file)));
+                this.logger.debug(`Generated BUFR files: ${generatedFiles.join(', ')}`);
+
+                return generatedFiles;
             } else {
                 const errorMsg = response.data.errors?.join('; ') || 'Unknown error';
+                this.logger.debug(`csv2bufr conversion failed: ${errorMsg}`);
                 throw new Error(`csv2bufr conversion failed: ${errorMsg}`);
             }
         } catch (error) {
+            this.logger.error('Error calling csv2bufr service:', error);
             if (axios.isAxiosError(error)) {
                 const detail = error.response?.data?.errors?.join('; ') || error.message;
-                this.logger.error(`csv2bufr HTTP error: ${detail}`);
                 throw new Error(`csv2bufr service error: ${detail}`);
             }
             throw error;
