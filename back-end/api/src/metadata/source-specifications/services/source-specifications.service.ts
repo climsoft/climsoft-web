@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ViewSourceDto } from '../dtos/view-source.dto';
-import { CreateUpdateSourceDto } from '../dtos/create-update-source.dto';
+import { ViewSourceSpecificationDto } from '../dtos/view-source-specification.dto';
+import { CreateSourceSpecificationDto } from '../dtos/create-source-specification.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { SourceSpecificationEntity } from '../entities/source-specification.entity';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
@@ -18,11 +18,11 @@ export class SourceSpecificationsService {
     ) { }
 
 
-    public async find(id: number): Promise<ViewSourceDto> {
+    public async find(id: number): Promise<ViewSourceSpecificationDto> {
         return this.createViewDto(await this.findEntity(id));
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<SourceSpecificationEntity>): Promise<ViewSourceDto[]> {
+    public async findAll(selectOptions?: FindOptionsWhere<SourceSpecificationEntity>): Promise<ViewSourceSpecificationDto[]> {
         const findOptions: FindManyOptions<SourceSpecificationEntity> = {
             order: {
                 id: "ASC"
@@ -34,21 +34,21 @@ export class SourceSpecificationsService {
         }
 
         const sourceEntities = await this.sourceRepo.find(findOptions);
-        const dtos: ViewSourceDto[] = [];
+        const dtos: ViewSourceSpecificationDto[] = [];
         for (const entity of sourceEntities) {
             dtos.push(await this.createViewDto(entity));
         }
         return dtos;
     }
 
-    public async findSourcesByIds(ids: number[]): Promise<ViewSourceDto[]> {
+    public async findSourcesByIds(ids: number[]): Promise<ViewSourceSpecificationDto[]> {
         const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
             id: In(ids)
         };
         return this.findAll(findOptionsWhere);
     }
 
-    public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceDto[]> {
+    public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceSpecificationDto[]> {
         const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
             sourceType: sourceType
         };
@@ -66,14 +66,14 @@ export class SourceSpecificationsService {
         return entity;
     }
 
-    public async create(dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+    public async create(dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationDto> {
         // Source templates are required to have unique names
         let entity = await this.sourceRepo.findOneBy({
             name: dto.name,
         });
 
         if (entity) {
-            throw new BadRequestException(`Source template with name ${dto.name} found`);
+            throw new BadRequestException(`Source specification with name ${dto.name} already exists`);
         }
 
         entity = this.sourceRepo.create({
@@ -93,7 +93,7 @@ export class SourceSpecificationsService {
 
         await this.sourceRepo.save(entity);
 
-        const viewDto: ViewSourceDto = this.createViewDto(entity);
+        const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
 
         this.eventEmitter.emit('source.created', { id: entity.id, viewDto });
 
@@ -101,7 +101,7 @@ export class SourceSpecificationsService {
 
     }
 
-    public async update(id: number, dto: CreateUpdateSourceDto, userId: number): Promise<ViewSourceDto> {
+    public async update(id: number, dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationDto> {
         const entity = await this.findEntity(id);
         entity.name = dto.name;
         entity.description = dto.description;
@@ -117,7 +117,7 @@ export class SourceSpecificationsService {
 
         await this.sourceRepo.save(entity);
 
-        const viewDto: ViewSourceDto = this.createViewDto(entity);
+        const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
 
         this.eventEmitter.emit('source.updated', { id, viewDto });
 
@@ -139,19 +139,19 @@ export class SourceSpecificationsService {
         return true;
     }
 
-    private createViewDto(entity: SourceSpecificationEntity): ViewSourceDto {
-        const dto: ViewSourceDto = {
+    private createViewDto(entity: SourceSpecificationEntity): ViewSourceSpecificationDto {
+        const dto: ViewSourceSpecificationDto = {
             id: entity.id,
             name: entity.name,
-            description: entity.description,
+            description: entity.description ? entity.description : '',
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleImage: entity.sampleImage?  entity.sampleImage: '' ,
+            sampleImage: entity.sampleImage ? entity.sampleImage : '',
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
             disabled: entity.disabled,
-            comment: entity.comment,
+            comment: entity.comment ? entity.comment : '',
         }
         return dto;
     }

@@ -1,0 +1,58 @@
+<div *ngIf="exportFileServerParameters">
+    <div>
+        <app-number-input [label]="'Observation Period'" [labelSuperScript]="'minutes'"
+            [(numValue)]="exportFileServerParameters.observationPeriod" />
+    </div>
+
+    <hr />
+
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Export Specifications</span>
+                <button type="button" class="btn btn-sm btn-primary" (click)="onAddSpecification()">
+                    Add Specification
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div *ngIf="!exportFileServerParameters.specifications || exportFileServerParameters.specifications.length === 0"
+                class="text-muted text-center py-3">
+                No specifications configured. Click "Add Specification" to create one.
+            </div>
+
+            <!-- TODO. Add a column for station selector here. It will cover `stationId` property in similar way to the  specificationId -->
+            <div
+                *ngIf="exportFileServerParameters.specifications && exportFileServerParameters.specifications.length > 0">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Export Specification</th>
+                            <th>Station</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let item of exportFileServerParameters.specifications; let i = index;">
+                            <td>
+                                <app-export-specification-selector-single [id]="i + '_db_export_specification'"
+                                    [selectedId]="item.specificationId"
+                                    (selectedIdChange)="onSpecificationIdChange(i, $event)" />
+                            </td>
+                            <td>
+                                <app-station-selector-single [id]="i + '_db_station'" [selectedId]="item.stationId"
+                                    (selectedIdChange)="onStationIdChange(i, $event)" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"  title="Remove Specification"
+                                    (click)="onRemoveSpecification(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

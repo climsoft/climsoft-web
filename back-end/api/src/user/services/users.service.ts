@@ -107,6 +107,7 @@ export class UsersService {
             throw new NotFoundException('no user found');
         }
 
+        // TODO. Use the EncypUtils class for encyrpting passwords?
         userEntity.hashedPassword = await this.hashPassword(changedPassword.password);
         return this.createViewDto(await this.userRepo.save(userEntity));
     }

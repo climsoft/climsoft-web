@@ -4,8 +4,8 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { LoggedInUserModel } from 'src/app/admin/users/models/logged-in-user.model';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { ViewExportTemplateModel } from 'src/app/metadata/export-templates/models/view-export-template.model';
-import { ExportTemplatesService } from 'src/app/metadata/export-templates/services/export-templates.service';
+import { ViewExportSpecificationModel } from 'src/app/metadata/export-specifications/models/view-export-specification.model';
+import { ExportSpecificationsService } from 'src/app/metadata/export-specifications/services/export-specifications.service';
 
 @Component({
   selector: 'app-manual-export-selection',
@@ -13,13 +13,13 @@ import { ExportTemplatesService } from 'src/app/metadata/export-templates/servic
   styleUrls: ['./manual-export-selection.component.scss']
 })
 export class ManualExportSelectionComponent implements OnDestroy {
-  protected exports!: ViewExportTemplateModel[];
+  protected exports!: ViewExportSpecificationModel[];
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private exportTemplateService: ExportTemplatesService,
+    private exportTemplateService: ExportSpecificationsService,
     private router: Router,
     private route: ActivatedRoute,) {
     this.pagesDataService.setPageHeader('Select Export');
@@ -49,7 +49,7 @@ export class ManualExportSelectionComponent implements OnDestroy {
   }
 
   // TODO. Temporary fix. This should be done at the server level
-  protected filterOutPermittedExports(user: LoggedInUserModel, exports: ViewExportTemplateModel[]): ViewExportTemplateModel[] {
+  protected filterOutPermittedExports(user: LoggedInUserModel, exports: ViewExportSpecificationModel[]): ViewExportSpecificationModel[] {
 
     if (user.isSystemAdmin) return exports;
     if (!user.permissions) return [];
@@ -67,7 +67,7 @@ export class ManualExportSelectionComponent implements OnDestroy {
 
   protected onSearch(): void { }
 
-  protected onExportClick(source: ViewExportTemplateModel): void {
+  protected onExportClick(source: ViewExportSpecificationModel): void {
     this.router.navigate(['manual-export-download', source.id], { relativeTo: this.route.parent });
   }
 

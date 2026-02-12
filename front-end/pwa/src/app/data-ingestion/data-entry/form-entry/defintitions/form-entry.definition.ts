@@ -1,7 +1,7 @@
-import { CreateEntryFormModel, FieldType } from "src/app/metadata/source-templates/models/create-entry-form.model";
-import { DateUtils } from "src/app/shared/utils/date.utils"; 
+import { FormSourceModel, SelectorFieldControlType } from "src/app/metadata/source-specifications/models/form-source.model";
+import { DateUtils } from "src/app/shared/utils/date.utils";
 import { StringUtils } from "src/app/shared/utils/string.utils";
-import { ViewSourceModel } from "src/app/metadata/source-templates/models/view-source.model";
+import { ViewSourceModel } from "src/app/metadata/source-specifications/models/view-source.model";
 import { StationCacheModel } from "src/app/metadata/stations/services/stations-cache.service";
 import { EntryFormObservationQueryModel } from "../../../models/entry-form-observation-query.model";
 import { CachedMetadataService } from "src/app/metadata/metadata-updates/cached-metadata.service";
@@ -23,7 +23,7 @@ export interface FieldEntryDefinition {
 export class FormEntryDefinition {
     public station: StationCacheModel;
     private source: ViewSourceModel;
-    public formMetadata: CreateEntryFormModel;
+    public formMetadata: FormSourceModel;
 
     /** value of the element selector */
     public elementSelectorValue: number | null;
@@ -55,20 +55,20 @@ export class FormEntryDefinition {
 
         this.station = station;
         this.source = source;
-        this.formMetadata = source.parameters as CreateEntryFormModel;
+        this.formMetadata = source.parameters as FormSourceModel;
         this.cachedMetadataSearchService = newCachedMetadataSearchService;
 
         // Set the selectors values based on defined selectors in the form metadata
-        this.elementSelectorValue = this.formMetadata.selectors.includes('ELEMENT') ? this.formMetadata.elementIds[0] : null;
+        this.elementSelectorValue = this.formMetadata.selectors.includes(SelectorFieldControlType.ELEMENT) ? this.formMetadata.elementIds[0] : null;
         const todayDate: Date = new Date();
         this.yearSelectorValue = todayDate.getFullYear();
         this.monthSelectorValue = todayDate.getMonth() + 1;
-        this.daySelectorValue = this.formMetadata.selectors.includes('DAY') ? todayDate.getDate() : null;
+        this.daySelectorValue = this.formMetadata.selectors.includes(SelectorFieldControlType.DAY) ? todayDate.getDate() : null;
 
         // Set hour selector value
         // If one of selectors is hour, then set the current default hour to what what is equal or immediate greater hour
         this.hourSelectorValue = null;
-        if (this.formMetadata.selectors.includes('HOUR')) {
+        if (this.formMetadata.selectors.includes(SelectorFieldControlType.HOUR)) {
             let currentHour: number = new Date().getHours();
             for (const allowedDataEntryHour of this.formMetadata.hours) {
                 this.hourSelectorValue = allowedDataEntryHour;
@@ -103,7 +103,7 @@ export class FormEntryDefinition {
             stationId: this.station.id,
             elementIds: this.elementSelectorValue === null ? this.formMetadata.elementIds : [this.elementSelectorValue],
             level: 0,
-            interval: (this.source.parameters as CreateEntryFormModel).interval,
+            interval: (this.source.parameters as FormSourceModel).interval,
             sourceId: this.source.id,
             fromDate: '',
             toDate: '',
@@ -114,12 +114,12 @@ export class FormEntryDefinition {
 
         // If day value is defined then just define a single day range (24 hours) else define all date times for the entire month
         if (this.daySelectorValue) {
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.00Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.00Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${StringUtils.addLeadingZero(this.daySelectorValue)}T23:00:00.000Z`;
         } else {
             const lastDay: number = DateUtils.getLastDayOfMonth(year, month - 1);
-            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.00Z`;
-            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.00Z`;
+            observationQuery.fromDate = `${year}-${StringUtils.addLeadingZero(month)}-01T00:00:00.000Z`;
+            observationQuery.toDate = `${year}-${StringUtils.addLeadingZero(month)}-${lastDay}T23:00:00.000Z`;
         }
 
         // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
@@ -163,7 +163,7 @@ export class FormEntryDefinition {
      */
     private createObsEntriesForLinearLayout(dbObservations: ViewObservationModel[]): ObservationEntry[] {
         const obsDefinitions: ObservationEntry[] = [];
-        const entryField: FieldType = this.formMetadata.fields[0];
+        const entryField: SelectorFieldControlType = this.formMetadata.fields[0];
         const entryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(entryField)
 
         for (const fieldDef of entryfieldDefs) {
@@ -226,8 +226,8 @@ export class FormEntryDefinition {
         }
 
         const obsDefinitions: ObservationEntry[][] = [];
-        const rowEntryField: FieldType = this.formMetadata.fields[0];
-        const colEntryField: FieldType = this.formMetadata.fields[1];
+        const rowEntryField: SelectorFieldControlType = this.formMetadata.fields[0];
+        const colEntryField: SelectorFieldControlType = this.formMetadata.fields[1];
 
         const rowEntryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(rowEntryField);
         const colEntryfieldDefs: FieldEntryDefinition[] = this.getEntryFieldDefs(colEntryField);
@@ -294,7 +294,7 @@ export class FormEntryDefinition {
   * @param entryField 
   * @returns entry field definations used to create and label the value flag controls
   */
-    public getEntryFieldDefs(entryField: FieldType): FieldEntryDefinition[] {
+    public getEntryFieldDefs(entryField: SelectorFieldControlType): FieldEntryDefinition[] {
         let entryFieldDefs: FieldEntryDefinition[];
         switch (entryField) {
             case 'ELEMENT':
@@ -303,7 +303,7 @@ export class FormEntryDefinition {
                 for (const elementId of this.formMetadata.elementIds) {
                     const element = this.cachedMetadataSearchService.getElement(elementId);
                     if (element) {
-                        entryFieldDefs.push({ id: element.id, name: element.abbreviation , nameSuperScript: element.units });
+                        entryFieldDefs.push({ id: element.id, name: element.abbreviation, nameSuperScript: element.units });
                     }
                 }
                 break;

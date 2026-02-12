@@ -1,8 +1,8 @@
 import { BehaviorSubject, catchError, map, Observable, tap, throwError } from "rxjs";
 import { Injectable } from "@angular/core";
 import { ElementCacheModel, ElementsCacheService } from "../elements/services/elements-cache.service";
-import { SourceTemplatesCacheService } from "../source-templates/services/source-templates-cache.service";
-import { ViewSourceModel } from "../source-templates/models/view-source.model";
+import { SourcesCacheService } from "../source-specifications/services/source-cache.service";
+import { ViewSourceModel } from "../source-specifications/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
 import { QCTestCacheModel, QCTestsCacheService } from "../qc-tests/services/qc-tests-cache.service";
 import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
@@ -26,7 +26,7 @@ export class CachedMetadataService {
     constructor(
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
-        private sourcesCacheService: SourceTemplatesCacheService,
+        private sourcesCacheService: SourcesCacheService,
         private qcTestsCacheService: QCTestsCacheService,
         private generalSettingsCacheService: GeneralSettingsService,
     ) {

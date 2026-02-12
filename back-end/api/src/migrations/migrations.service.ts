@@ -149,11 +149,16 @@ export class MigrationsService {
   }
 
   private async seedGeneralSettings() {
-    // Default general settings
-    const count: number = await this.generalSettingsService.count();
-    if (count === 0) {
-      await this.generalSettingsService.bulkPut(GeneralSettingsDefaults.GENERAL_SETTINGS, 1);
-      this.logger.log('general settings added');
+    const existingSettings = await this.generalSettingsService.findAll();
+    const allSettingsExist = GeneralSettingsDefaults.GENERAL_SETTINGS;
+
+    for (const defaultSetting of allSettingsExist) {
+      //If any of the default settings do not exist in the server then add it. This is to make sure that new default settings added in the code will be added to existing installations after migration.
+      const settingExists = existingSettings.find(s => s.name === defaultSetting.name);
+      if (!settingExists) {
+        await this.generalSettingsService.bulkPut([defaultSetting], 1);
+        this.logger.log(`General setting added - ${defaultSetting.name}`);
+      }
     }
   }
 

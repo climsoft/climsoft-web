@@ -1,0 +1,66 @@
+<ng-container *ngIf="viewExportSpecification && open">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
+        [displayDeleteOption]="viewExportSpecification.id > 0" [closeOnOkClick]="false" [closeOnDeleteClick]="false"
+        (okClick)="onSubmitClick()" (deleteClick)="onDeleteButtonClick()">
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="viewExportSpecification.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="viewExportSpecification.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-export-type-selector-single [label]="'Export Type'" [selectedId]="viewExportSpecification.exportType"
+                (selectedIdChange)="onExportTypeChange($event)" />
+        </div>
+
+        <hr />
+
+        <!-- Parameters Section -->
+        <ng-container *ngIf="viewExportSpecification.exportType === 'raw'">
+            <app-raw-export-params [rawExportParameters]="rawParams" />
+        </ng-container>
+
+        <ng-container *ngIf="viewExportSpecification.exportType === 'bufr'">
+            <app-bufr-export-params [bufrExportParameters]="bufrParams" />
+        </ng-container>
+
+        <ng-container *ngIf="viewExportSpecification.exportType === 'aggregate'">
+            <div class="card">
+                <div class="card-header">Aggregate Export Parameters</div>
+                <div class="card-body text-info">
+                    Aggregate export parameters will be available in a future release.
+                </div>
+            </div>
+        </ng-container>
+
+        <hr />
+
+        <div>
+            <app-check-box-input [label]="'Disable'" [(value)]="viewExportSpecification.disabled" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewExportSpecification.comment" />
+        </div>
+
+        <div *ngIf="errorMessage">
+            <hr />
+            <div class="text-danger">
+                {{ errorMessage }}
+            </div>
+        </div>
+
+    </app-dialog>
+
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewExportSpecification.name"
+        [itemType]="'export specification'" (deleteConfirmed)="onDeleteConfirm()" />
+</ng-container>

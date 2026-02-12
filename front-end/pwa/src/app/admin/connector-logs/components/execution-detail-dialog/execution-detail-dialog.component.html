@@ -1,0 +1,165 @@
+<app-dialog *ngIf="log" [(open)]="open" [title]="'Execution Log: #' + log.id " [displayOkOption]="false"
+    [cancelButtonLabel]="'Close'">
+
+    <div *ngIf="log" class="execution-detail-content">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'summary'" (click)="activeTab = 'summary'">
+                    Summary
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'activities'" (click)="activeTab = 'activities'">
+                    Activities ({{ log.executionActivities.length }})
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'files'" (click)="activeTab = 'files'">
+                    All Files ({{ getTotalFileCount() }})
+                </button>
+            </li>
+        </ul>
+
+        <!-- Summary Tab -->
+        <div *ngIf="activeTab === 'summary'" class="tab-content">
+            <table class="table table-sm details-table">
+                <tbody>
+                    <tr>
+                        <th class="w-25">Log ID</th>
+                        <td>{{ log.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Connector</th>
+                        <td>{{ connectorName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Started At</th>
+                        <td>{{ formatDate(log.executionStartDatetime) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ended At</th>
+                        <td>{{ formatDate(log.executionEndDatetime) }}</td>
+                    </tr>
+                    <tr>
+                        <th>Duration</th>
+                        <td>{{ getDuration() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Activities</th>
+                        <td>{{ log.executionActivities.length }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Files</th>
+                        <td>{{ getTotalFileCount() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Successful Files</th>
+                        <td class="text-success">{{ getSuccessfulFileCount() }}</td>
+                    </tr>
+                    <tr>
+                        <th>Total Errors</th>
+                        <td>
+                            <span *ngIf="log.totalErrors > 0" class="text-danger fw-bold">
+                                {{ log.totalErrors }}
+                            </span>
+                            <span *ngIf="log.totalErrors === 0" class="text-success">
+                                0
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Created At</th>
+                        <td>{{ formatDate(log.entryDateTime) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Activities Tab -->
+        <div *ngIf="activeTab === 'activities'" class="tab-content activities-tab-content">
+            <div *ngIf="!log.executionActivities || log.executionActivities.length === 0"
+                class="text-center text-muted py-4">
+                No activities recorded
+            </div>
+
+            <div *ngFor="let activity of log.executionActivities; let i = index" class="card mb-2">
+                <div class="card-header d-flex justify-content-between align-items-center app-cursor-pointer"
+                    [class.bg-danger-subtle]="getActivityErrorCount(activity) > 0" (click)="toggleActivity(i)">
+                    <div>
+                        <strong>Activity {{ i + 1 }}</strong>
+                        <span class="ms-2 text-muted">
+                            Pattern: {{ getActivityFilePattern(activity) }}
+                        </span>
+                        <span *ngIf="getActivityStationId(activity)" class="ms-2 badge bg-info">
+                            Station: {{ getActivityStationId(activity) }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary me-2">
+                            {{ getActivityFileCount(activity) }} files
+                        </span>
+                        <span *ngIf="getActivityErrorCount(activity) > 0" class="badge bg-danger me-2">
+                            {{ getActivityErrorCount(activity) }} errors
+                        </span>
+                        <i class="bi" [ngClass]="expandedActivityIndex === i ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                    </div>
+                </div>
+
+                <div *ngIf="expandedActivityIndex === i" class="card-body">
+                    <!-- Import activity files table -->
+                    <ng-container *ngIf="isImportConnector()">
+                        <app-import-files-table
+                            [files]="asImportActivity(activity).processedFiles"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-import-files-table>
+                    </ng-container>
+
+                    <!-- Export activity files table -->
+                    <ng-container *ngIf="!isImportConnector()">
+                        <app-export-files-table
+                            [files]="asExportActivity(activity).processedFiles"
+                            [activityErrorMessage]="asExportActivity(activity).errorMessage"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-export-files-table>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+
+        <!-- Files Tab -->
+        <div *ngIf="activeTab === 'files'" class="tab-content files-tab-content">
+            <div *ngIf="getTotalFileCount() === 0" class="text-center text-muted py-4">
+                No files processed
+            </div>
+
+            <div *ngIf="getTotalFileCount() > 0">
+                <div *ngFor="let activity of log.executionActivities; let ai = index" class="mb-3">
+                    <h6 class="text-muted mb-2">
+                        Activity {{ ai + 1 }}: {{ getActivityFilePattern(activity) }}
+                        <span *ngIf="getActivityStationId(activity)" class="badge bg-info ms-2">
+                            Station: {{ getActivityStationId(activity) }}
+                        </span>
+                    </h6>
+
+                    <!-- Import activity files -->
+                    <ng-container *ngIf="isImportConnector()">
+                        <app-import-files-table
+                            [files]="asImportActivity(activity).processedFiles"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-import-files-table>
+                    </ng-container>
+
+                    <!-- Export activity files -->
+                    <ng-container *ngIf="!isImportConnector()">
+                        <app-export-files-table
+                            [files]="asExportActivity(activity).processedFiles"
+                            [activityErrorMessage]="asExportActivity(activity).errorMessage"
+                            [utcOffset]="cachedMetadata.utcOffSet">
+                        </app-export-files-table>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-dialog>

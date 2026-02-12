@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
-import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { FormSourceDTO } from 'src/metadata/source-specifications/dtos/form-source.dto';
 import { LoggedInUserDto } from 'src/user/dtos/logged-in-user.dto';
 import { OnEvent } from '@nestjs/event-emitter';
 import { DateUtils } from 'src/shared/utils/date.utils';
-import { ImportSourceDTO } from 'src/metadata/source-specifications/dtos/import-source.dto';
-import { ObservationPeriodPermissionsDto } from 'src/user/dtos/user-permission.dto';
+import { ObservationPeriodPermissionsDto } from 'src/user/dtos/permissions/user-permission.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
+import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 
 // TODO. Later convert this service to a guard??
 
@@ -20,7 +20,7 @@ interface FormParams {
 
 interface EntryFormValidation {
     sourceType: SourceTypeEnum;
-    settings: FormParams | ImportSourceDTO;
+    settings: FormParams | ImportSourceDto;
 }
 
 interface ValidationErrorMessage {
@@ -58,7 +58,7 @@ export class DataEntryAndCorrectionCheckService {
 
     private async resetFormParameters() {
         this.sourceParameters.clear();
-        const sourceTemplates: ViewSourceDto[] = await this.sourceService.findAll();
+        const sourceTemplates: ViewSourceSpecificationDto[] = await this.sourceService.findAll();
         for (const source of sourceTemplates) {
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const form = source.parameters as FormSourceDTO;
@@ -75,7 +75,7 @@ export class DataEntryAndCorrectionCheckService {
             } else if (source.sourceType === SourceTypeEnum.IMPORT) {
                 this.sourceParameters.set(source.id, {
                     sourceType: SourceTypeEnum.IMPORT,
-                    settings: source.parameters as ImportSourceDTO
+                    settings: source.parameters as ImportSourceDto
                 });
             } else {
                 throw new Error('Developer error: Source type not recognised')
@@ -143,14 +143,7 @@ export class DataEntryAndCorrectionCheckService {
                         } else if (observationPeriod.last) {
                             const now = new Date();
                             const earliestAllowedDate = new Date();
-                            const duration = observationPeriod.last.duration;
-                            const durationType = observationPeriod.last.durationType;
-
-                            if (durationType === 'days') {
-                                earliestAllowedDate.setDate(now.getDate() - duration);
-                            } else if (durationType === 'hours') {
-                                earliestAllowedDate.setHours(now.getHours() - duration);
-                            }
+                            earliestAllowedDate.setMinutes(now.getMinutes() - observationPeriod.last);
 
                             if (new Date(dto.datetime) < earliestAllowedDate) {
                                 errorMessage = { message: `Date of the observation is outside what you are allowed to enter/correct/delete data for.`, dto: dto };

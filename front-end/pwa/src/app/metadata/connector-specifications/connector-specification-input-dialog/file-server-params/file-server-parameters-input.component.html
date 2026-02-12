@@ -1,0 +1,49 @@
+<div *ngIf="connector">
+    <div>
+        <app-file-server-protocol-selector-single [label]="'Protocol'" [selectedId]="connector.parameters.protocol"
+            (selectedIdChange)="onFileProtocolSelection($event)" />
+    </div>
+
+    <hr />
+
+    <div>
+        <app-number-input [label]="'Port'" [(numValue)]="connector.parameters.port" />
+    </div>
+
+    <hr />
+
+    <div>
+        <app-text-input [label]="'Username'" [(value)]="connector.parameters.username" />
+    </div>
+
+    <hr />
+
+    <div>
+        <div>
+            <app-text-input [type]="'password'" [label]="'Password'" [(value)]="newPassword"
+                (valueChange)="onPasswordChange()" />
+        </div>
+        <div>
+            <app-text-input [type]="'password'" [label]="'Confirm Password'" [(value)]="confirmPassword"
+                (valueChange)="onPasswordChange()" />
+        </div>
+        <div class="text-danger" *ngIf="passwordErrormessage">{{ passwordErrormessage }}</div>
+    </div>
+
+    <hr />
+
+    <div>
+        <app-text-input [label]="'Remote Path'" [(value)]="connector.parameters.remotePath" />
+    </div>
+
+    <hr />
+
+    <div *ngIf="connector.connectorType === ConnectorTypeEnum.IMPORT">
+        <app-import-file-server-params [importFileServerParameters]="importFileServerParameters" />
+    </div>
+
+    <div *ngIf="connector.connectorType === ConnectorTypeEnum.EXPORT">
+        <app-export-file-server-params [exportFileServerParameters]="exportFileServerParameters" />
+    </div>
+
+</div>

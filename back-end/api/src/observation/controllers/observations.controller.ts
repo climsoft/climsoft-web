@@ -1,16 +1,16 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseArrayPipe, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ObservationsService } from '../services/observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ObservationImportService } from '../services/observation-import.service';
+import { ObservationImportService } from '../services/observations-import.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
-import { ExportObservationsService } from '../services/export-observations.service';
+import { ObservationsExportService } from '../services/export/observations-export.service';
 import { AuthorisedExportsPipe } from 'src/user/pipes/authorised-exports.pipe';
 import { AuthorisedImportsPipe } from 'src/user/pipes/authorised-imports.pipe';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
@@ -26,7 +26,7 @@ export class ObservationsController {
   constructor(
     private observationsService: ObservationsService,
     private observationImportService: ObservationImportService,
-    private exportObservationsService: ExportObservationsService,
+    private observationExportsService: ObservationsExportService,
     private dataEntryCheckService: DataEntryAndCorrectionCheckService,
   ) { }
 
@@ -80,23 +80,20 @@ export class ObservationsController {
     return this.observationsService.findDataFlow(query);
   }
 
-  @Get('generate-export/:templateid')
+  @Get('generate-export/:specificationid')
   generateExports(
     @Req() request: Request,
-    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number,
-    @Query() viewObsevationQuery: ViewObservationQueryDTO): Promise<number> {
-    return this.exportObservationsService.generateExports(exportTemplateId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
+    @Param('specificationid', AuthorisedExportsPipe) exportSpecificationId: number,
+    @Query() viewObsevationQuery: ViewObservationQueryDTO) {
+    return this.observationExportsService.generateManualExport(exportSpecificationId, viewObsevationQuery, AuthUtil.getLoggedInUser(request));
   }
 
-  @Get('download-export/:templateid')
-  @Header('Content-Type', 'text/csv')
-  @Header('Content-Disposition', 'attachment; filename="observations.csv"') // TODO. make the name be dynamic
+  @Get('download-export/:uniquedownloadid')
   async download(
-    @Req() request: Request,
-    @Param('templateid', AuthorisedExportsPipe) exportTemplateId: number
-  ) {
+    @Param('uniquedownloadid') uniqueDownloadId: string
+  ) { 
     // Stream the exported file to the response
-    return await this.exportObservationsService.downloadExport(exportTemplateId, AuthUtil.getLoggedInUser(request).id);
+    return this.observationExportsService.manualDownloadExport(uniqueDownloadId);
   }
 
   @Put('data-entry')
@@ -141,13 +138,12 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
-        new FileTypeValidator({ fileType: 'text/csv' }),
+        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
     try {
-      const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.processFile(sourceId, file, user.id, user.username);
+      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -164,14 +160,13 @@ export class ObservationsController {
     @UploadedFile(new ParseFilePipe({
       validators: [
         new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }), // 1GB
-        new FileTypeValidator({ fileType: 'text/csv' }),
+        new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
 
     try {
-      const user = AuthUtil.getLoggedInUser(request);
-      await this.observationImportService.processFile(sourceId, file, user.id, user.username, stationId);
+      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
       return { message: "success" };
     } catch (error) {
       return { message: `error: ${error}` };
@@ -191,8 +186,8 @@ export class ObservationsController {
   async softDelete(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe, new ParseArrayPipe({ items: DeleteObservationDto })) observationDtos: DeleteObservationDto[]) {
-         const user = AuthUtil.getLoggedInUser(request);
-      // Validate form data. If any invalid bad request will be thrown
+    const user = AuthUtil.getLoggedInUser(request);
+    // Validate form data. If any invalid bad request will be thrown
     await this.dataEntryCheckService.checkData(observationDtos, user, 'data-entry');
 
     return this.observationsService.softDelete(observationDtos, user.id);

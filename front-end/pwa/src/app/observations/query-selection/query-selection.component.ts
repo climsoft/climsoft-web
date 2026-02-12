@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleCha
 import { ViewObservationQueryModel } from 'src/app/data-ingestion/models/view-observation-query.model';
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
+import { UserPermissionModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { DataCorrectionComponent } from '../../data-ingestion/data-correction/data-correction.component';
 import { SourceChecksComponent } from '../../quality-control/source-checks/source-checks.component';
 import { DateRange } from 'src/app/shared/controls/date-range-input/date-range-input.component';
@@ -35,7 +35,7 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
   protected sourceIds: number[] = [];
   protected elementIds: number[] = [];
   protected intervals: number[] = [];
-  protected level: number | null = 0;
+  protected level: number | null | undefined = 0;
   protected dateRange: DateRange;
   protected useEntryDate: boolean = false;
   protected queryAllowed: boolean = true;
@@ -177,9 +177,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
     this.outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.fromDate}T00:00:00.000Z`, this.utcOffset, 'subtract') : undefined;
     this.outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.toDate}T23:59:00.000Z`, this.utcOffset, 'subtract') : undefined;
 
     // Emit the new filter parameters
     this.queryClick.emit(this.outputFilter);
@@ -202,9 +202,9 @@ export class QuerySelectionComponent implements OnChanges, OnDestroy {
     // Subtracts the offset to get UTC time if offset is plus and add the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
     outputFilter.fromDate = this.dateRange.fromDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.fromDate}T00:00:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.fromDate}T00:00:00.000Z`, this.utcOffset, 'subtract') : undefined;
     outputFilter.toDate = this.dateRange.toDate ? DateUtils.getDatetimesBasedOnUTCOffset(
-      `${this.dateRange.toDate}T23:59:00Z`, this.utcOffset, 'subtract') : undefined;
+      `${this.dateRange.toDate}T23:59:00.000Z`, this.utcOffset, 'subtract') : undefined;
 
     return outputFilter;
   }

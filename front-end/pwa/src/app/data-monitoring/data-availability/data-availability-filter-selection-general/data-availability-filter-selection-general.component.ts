@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { UserPermissionModel } from 'src/app/admin/users/models/user-permission.model';
+import { UserPermissionModel } from 'src/app/admin/users/models/permissions/user-permission.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -231,8 +231,8 @@ export class DataAvailabilityFilterSelectionGeneralComponent implements OnChange
 
     // Subtracts the offset to get UTC time if offset is plus and adds the offset to get UTC time if offset is minus
     // Note, it's subtraction and NOT addition because this is meant to submit data to the API NOT display it
-    fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
-    toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00Z`, this.cachedMetadataService.utcOffSet, 'subtract');
+    fromDate = DateUtils.getDatetimesBasedOnUTCOffset(`${fromDate}T00:00:00.000Z`, this.cachedMetadataService.utcOffSet, 'subtract');
+    toDate = DateUtils.getDatetimesBasedOnUTCOffset(`${toDate}T23:59:00.000Z`, this.cachedMetadataService.utcOffSet, 'subtract');
 
     if (new Date(fromDate) > new Date(toDate)) {
       this.pagesDataService.showToast({ title: 'Data Availability', message: 'From date cannot be greater than to date.', type: ToastEventTypeEnum.ERROR });

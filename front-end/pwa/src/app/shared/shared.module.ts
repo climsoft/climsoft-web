@@ -26,11 +26,8 @@ import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-
 import { IntervalSelectorSingleComponent } from './controls/period-input/interval-selector-single/interval-selector-single.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
-import { ElementDomainSingleInputComponent } from './controls/element-domain-input/element-domain-single-input/element-domain-single-input.component';
-import { ElementSubdomainSingleInputComponent } from './controls/element-subdomain-input/element-subdomain-single-input/element-subdomain-single-input.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
-import { ServerTypeInputComponent } from './controls/server-type-input/server-type-input.component';
 import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
@@ -43,6 +40,10 @@ import { YearSelectorSingleComponent } from './controls/year-selector/year-selec
 import { DatetimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/datetime-format-selector-single/datetime-format-selector-single.component';
 import { TimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/time-format-selector-single/time-format-selector-single.component';
 import { DateFormatSelectorSingleComponent } from './controls/datetime-format-selectors/date-format-selector-single/date-format-selector-single.component';
+import { ErrorSelectorSingleComponent } from './controls/error-selector-single/error-selector-single.component';
+import { CronInputComponent } from './controls/cron-input/cron-input.component';
+import { DeleteConfirmationDialogComponent } from './controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ToggleDisabledConfirmationDialogComponent } from './controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 
 //--------------------------------
 
@@ -79,9 +80,6 @@ const controlsComponents = [
   IntervalSelectorSingleComponent,
 
   DropDownButtonComponent,
-  ElementDomainSingleInputComponent,
-  ElementSubdomainSingleInputComponent,
-  ServerTypeInputComponent,
   FlagSingleInputComponent,
   PageInputComponent,
   DropDownContainerComponent,
@@ -98,6 +96,11 @@ const controlsComponents = [
   DatetimeFormatSelectorSingleComponent,
   DateFormatSelectorSingleComponent,
   TimeFormatSelectorSingleComponent,
+
+  ErrorSelectorSingleComponent,
+  CronInputComponent,
+  DeleteConfirmationDialogComponent,
+  ToggleDisabledConfirmationDialogComponent,
 ];
 
 const directives = [

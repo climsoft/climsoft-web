@@ -37,7 +37,7 @@ export class StationsImportExportService {
 
     public async import(file: Express.Multer.File, userId: number) {
         const tmpTableName = `stations_upload_user_${userId}_${new Date().getTime()}`;
-        const tmpFilePathName: string = `${this.fileIOService.tempFilesFolderPath}/${tmpTableName}.csv`;
+        const tmpFilePathName: string = `${this.fileIOService.apiImportsDir}/${tmpTableName}.csv`;
         // Save the file to the temporary directory
         await this.fileIOService.saveFile(file, tmpFilePathName);
 
@@ -268,7 +268,7 @@ export class StationsImportExportService {
             (await insertStatement).finalize();
 
             // Export the DuckDB data into a CSV file
-            const filePathName: string = `${this.fileIOService.tempFilesFolderPath}/${tmpTableName}.csv`;
+            const filePathName: string = `${this.fileIOService.apiExportsDir}/${tmpTableName}.csv`;
             await this.fileIOService.duckDb.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
 
             // Delete the stations table 

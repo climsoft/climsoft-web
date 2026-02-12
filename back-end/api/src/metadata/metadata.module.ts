@@ -38,6 +38,9 @@ import { ElementsImportExportService } from './elements/services/elements-import
 import { ExportSpecificationEntity } from './export-specifications/entities/export-specification.entity';
 import { ExportSpecificationsController } from './export-specifications/controllers/export-specifications.controller';
 import { ExportSpecificationsService } from './export-specifications/services/export-specifications.service';
+import { ConnectorSpecificationEntity } from './connector-specifications/entities/connector-specifications.entity';
+import { ConnectorSpecificationsController } from './connector-specifications/controllers/connector-specifications.controller';
+import { ConnectorSpecificationsService } from './connector-specifications/services/connector-specifications.service';
 import { OrganisationsController } from './organisations/controllers/organisations.controller';
 import { OrganisationsService } from './organisations/services/organisations.service';
 import { RegionEntity } from './regions/entities/region.entity';
@@ -72,6 +75,8 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
             SourceSpecificationEntity,
 
             ExportSpecificationEntity,
+
+            ConnectorSpecificationEntity,
         ]),
         SharedModule,
         UserModule,
@@ -97,6 +102,8 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
 
         ExportSpecificationsController,
 
+        ConnectorSpecificationsController,
+
         MetadataUpdatesController,
     ],
     providers: [
@@ -116,11 +123,13 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
         SourceSpecificationsService,
 
         QCSpecificationsService,
-        
+
         RegionsService,
         StationsImportExportService,
         ElementsImportExportService,
         ExportSpecificationsService,
+
+        ConnectorSpecificationsService,
     ],
 
     exports: [
@@ -136,7 +145,7 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
         QCSpecificationsService,
         RegionsService,
         ExportSpecificationsService,
-
+        ConnectorSpecificationsService,
     ]
 })
 export class MetadataModule { }

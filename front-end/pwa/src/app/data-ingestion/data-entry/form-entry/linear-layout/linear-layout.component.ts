@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, SimpleChanges, Output, EventEmitter, QueryList, ViewChildren, ViewChild, OnDestroy } from '@angular/core';
 import { ViewPortSize, ViewportService } from 'src/app/core/services/view-port.service';
-import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition'; 
+import { FieldEntryDefinition, FormEntryDefinition } from '../defintitions/form-entry.definition';
 import { ValueFlagInputComponent } from '../../../../observations/value-flag-input/value-flag-input.component';
 import { NumberInputComponent } from 'src/app/shared/controls/number-input/number-input.component';
 import { Subject, take, takeUntil } from 'rxjs';
@@ -24,7 +24,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
 
   @Input() public refreshLayout!: boolean;
 
-  @Input() public duplicateObservations!: Map<string, ViewObservationModel>  ;
+  @Input() public duplicateObservations!: Map<string, ViewObservationModel>;
 
   @Output() public focusSaveButton = new EventEmitter<void>();
 
@@ -47,7 +47,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
   protected totalErrorMessage!: string;
 
   /** Used to determine the layout to be used depending on the screen size */
-  protected largeScreen: boolean = true; 
+  protected largeScreen: boolean = true;
 
   private destroy$ = new Subject<void>();
 
@@ -67,7 +67,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
       this.observationsDefinitions = this.formDefinitions.getObsEntriesForLinearLayout();
     }
 
-    if (changes["userFormSettings"] && this.userFormSettings) { 
+    if (changes["userFormSettings"] && this.userFormSettings) {
       if (this.fieldDefinitions) {
         // Setting change could be related to maximum rows so reinitialise the chunks
         this.fieldDefinitionsChunks = this.getFieldDefsChunks(this.fieldDefinitions);
@@ -192,7 +192,7 @@ export class LinearLayoutComponent implements OnChanges, OnDestroy {
     });
   }
 
-  public sameInput(valueFlag: string, comment: string ): void {
+  public sameInput(valueFlag: string, comment: string): void {
     this.vfComponents.forEach(component => {
       component.onSameValueInput(valueFlag, comment);
     });

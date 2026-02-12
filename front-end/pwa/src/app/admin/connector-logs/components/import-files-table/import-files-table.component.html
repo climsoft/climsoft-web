@@ -1,0 +1,32 @@
+<table class="table table-sm table-bordered mb-0">
+    <thead class="table-light">
+        <tr>
+            <th>File Name</th>
+            <th>Size</th>
+            <th>Modified</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let file of files"
+            [class.table-danger]="hasFileError(file)"
+            [class.table-secondary]="isUnchangedFile(file)">
+            <td>{{ getFileName(file) }}</td>
+            <td>{{ getFileSize(file) }}</td>
+            <td>{{ getFileModifiedDate(file) }}</td>
+            <td>
+                <span class="badge" [ngClass]="getFileStatusClass(file)">
+                    {{ getFileStatus(file) }}
+                </span>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Show errors if any -->
+<div *ngFor="let file of files">
+    <div *ngIf="hasFileError(file)" class="alert alert-danger error-font-size mt-2 mb-0">
+        <strong>{{ getFileName(file) }}:</strong>
+        <span class="ms-2">{{ file.errorMessage }}</span>
+    </div>
+</div>

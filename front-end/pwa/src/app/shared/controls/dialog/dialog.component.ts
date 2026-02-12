@@ -6,48 +6,22 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./dialog.component.scss']
 })
 export class DialogComponent {
+  @Input() title!: string;
+  @Input() okButtonLabel: string = 'Ok';
+  @Input() cancelButtonLabel: string = 'Cancel';
+  @Input() deleteButtonLabel: string = 'Delete';
+  @Input() displayOkOption: boolean = true;
+  @Input() displayCancelOption: boolean = true;
+  @Input() displayDeleteOption: boolean = false;
+  @Input() closeOnOkClick: boolean = true;
+  @Input() closeOnCancelClick: boolean = true;
+  @Input() closeOnDeleteClick: boolean = true;
+  @Input() open: boolean = false;
 
-  @Input()
-  title!: string;
-
-  @Input()
-  okButtonLabel: string = 'Ok';
-
-  @Input()
-  cancelButtonLabel: string = 'Cancel';
-
-  @Input()
-  deleteButtonLabel: string = 'Delete';
-
-  @Input()
-  displayOkOption: boolean = true;
-
-  @Input()
-  displayCancelOption: boolean = true;
-
-  @Input()
-  displayDeleteOption: boolean = false;
-
-  @Input()
-  closeOnOkClick: boolean = true;
-
-  @Input()
-  closeOnCancelClick: boolean = true;
-
-  @Input()
-  open: boolean = false;
-
-  @Output()
-  openChange = new EventEmitter<boolean>();
-
-  @Output()
-  okClick = new EventEmitter<void>();
-
-  @Output()
-  cancelClick = new EventEmitter<void>();
-
-  @Output()
-  deleteClick = new EventEmitter<void>();
+  @Output() openChange = new EventEmitter<boolean>();
+  @Output() okClick = new EventEmitter<void>();
+  @Output() cancelClick = new EventEmitter<void>();
+  @Output() deleteClick = new EventEmitter<void>();
 
   public openDialog() {
     this.open = true;
@@ -68,7 +42,9 @@ export class DialogComponent {
   }
 
   protected onDeleteClick(): void {
-    this.onClose();
+    if(this.closeOnDeleteClick) {
+      this.onClose();
+    }
     this.deleteClick.emit();
   }
 

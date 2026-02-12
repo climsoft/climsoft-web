@@ -1,6 +1,6 @@
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { UserGroupEntity } from "./user-group.entity";
-import { UserPermissionDto } from "../dtos/user-permission.dto";
+import { UserPermissionDto } from "../dtos/permissions/user-permission.dto";
 
 @Entity("users")
 @Check("CHK_users_name_not_empty", `"name" <> ''`)

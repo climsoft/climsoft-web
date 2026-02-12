@@ -1,8 +1,7 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { UserPermissionModel } from '../models/user-permission.model';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
+import { UserPermissionModel } from '../models/permissions/user-permission.model';
 import { Subject, takeUntil } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -22,10 +21,10 @@ export class EditUserPermissionsComponent implements OnDestroy {
     this.cachedMetadataService.allMetadataLoaded.pipe(
       takeUntil(this.destroy$)
     ).subscribe(allMetadataLoaded => {
-      if(!allMetadataLoaded) return;
+      if (!allMetadataLoaded) return;
       // Note. Don't filter out disabled imports. 
       // Admin should be able to allocate even disabled imports because they may want to occassion enable or disable large imports.
-      this.onlyIncludeImportIds =  this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
+      this.onlyIncludeImportIds = this.cachedMetadataService.sourcesMetadata.filter(item => item.sourceType === SourceTypeEnum.IMPORT).map(item => item.id);
     });
   }
 
@@ -131,36 +130,21 @@ export class EditUserPermissionsComponent implements OnDestroy {
       };
     } else if (option === 'Last') {
       this.userPermissions.exportPermissions.observationPeriod = {
-        last: {
-          duration: 31,
-          durationType: 'days',
-        }
+        last: 60
       };
     }
 
   }
 
-  protected onExportPeriodLastSelection(option: string): void {
-    if (!this.userPermissions.exportPermissions) return;
 
-    if (!(this.userPermissions.exportPermissions.observationPeriod && this.userPermissions.exportPermissions.observationPeriod.last)) {
-      return;
-    }
-
-    if (option === 'Days') {
-      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'days';
-    } else if (option === 'Hours') {
-      this.userPermissions.exportPermissions.observationPeriod.last.durationType = 'hours';
-    }
-  }
 
   protected onExportQcSelection(option: string): void {
     if (!this.userPermissions.exportPermissions) return;
 
-    this.userPermissions.exportPermissions.qcStatus = option === 'All' ? undefined : QCStatusEnum.PASSED;
+    this.userPermissions.exportPermissions.qcStatuses = option === 'All' ? undefined : [QCStatusEnum.NONE, QCStatusEnum.PASSED];
   }
 
-  protected onExportTemplateSelection(selectionType: string): void {
+  protected onExportSpecificationSelection(selectionType: string): void {
     if (this.userPermissions.exportPermissions) {
       this.userPermissions.exportPermissions.exportTemplateIds = (selectionType === 'All') ? undefined : [];
     }

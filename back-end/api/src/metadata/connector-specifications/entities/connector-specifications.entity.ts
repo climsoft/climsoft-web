@@ -1,63 +1,47 @@
-import { AppBaseEntity } from "src/shared/entity/app-base-entity";
+import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
+import { ConnectorParameters, ConnectorTypeEnum, EndPointTypeEnum } from "../dtos/create-connector-specification.dto";
 
 @Entity("connector_specifications")
 @Check("CHK_connector_specifications_name_not_empty", `"name" <> ''`)
-export class IntegrationConnectors extends AppBaseEntity {
+export class ConnectorSpecificationEntity extends AppBaseEntity {
   @PrimaryGeneratedColumn({ name: "id" })
   id: number;
 
   @Column({ name: 'name', type: 'varchar', unique: true })
   name: string;
 
-  @Column({ name: "description", type: 'varchar', nullable: true })
+  @Column({ name: 'description', type: 'varchar', nullable: true })
   description: string | null;
 
-  @Column({ name: "connector_type", type: 'varchar' })
+  @Column({ name: 'connector_type', type: 'enum', enum: ConnectorTypeEnum })
   @Index()
-  connectorType: 'import' | 'export';
+  connectorType: ConnectorTypeEnum;
 
-  @Column({ name: "server_ip_address", type: 'varchar' })
+  @Column({ name: 'protocol', type: 'enum', enum: EndPointTypeEnum })
   @Index()
-  severIPAddress: string;
+  endPointType: EndPointTypeEnum;
 
-  @Column({ name: 'protocol', type: 'varchar' })
-  @Index()
-  protocol: 'http' | 'https' | 'ftp' | 'sftp'; // Note. All supported protocols assume that they are working with files
-
-  @Column({ name: "port", type: 'int' })
-  @Index()
-  port: number;
-
-  @Column({ name: "username", type: 'varchar' })
-  @Index()
-  username: string;
-
-  @Column({ name: "password", type: 'varchar' })
-  @Index()
-  password: string;
+  @Column({ name: 'host_name', type: 'varchar' })
+  hostName: string;
 
   @Column({ name: 'timeout', type: 'int' })
-  @Index()
   timeout: number; // in seconds
 
-  @Column({ name: "retries", type: "int" })
+  @Column({ name: 'max_attempts', type: "int" })
+  maxAttempts: number;
+
+  @Column({ name: 'cron_schedule', type: 'varchar' })
+  cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
+
+  @Column({ name: "parameters", type: 'jsonb' })
+  parameters: ConnectorParameters;
+
+  @Column({ name: "order_number", type: "int", nullable: true })
   @Index()
-  retries: number;
+  orderNumber: number | null;
 
-
-  // TODO. Add field(s) that best describes the cron patterns
-
-
-
-  @Column({ name: 'specification_id', type: 'int' })  
-  @Index()
-  specification_id: number;
-
-  @Column({ name: "extra_metadata", type: 'jsonb', nullable: true })
-  extraMetadata: any | null;
-
-  @Column({ name: 'disabled', type: 'bool' })
+  @Column({ name: 'disabled', type: 'bool', default: false })
   @Index()
   disabled: boolean;
 
@@ -65,6 +49,5 @@ export class IntegrationConnectors extends AppBaseEntity {
   comment: string | null;
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
-  log: any | null;
+  log: BaseLogVo[] | null;
 }
-

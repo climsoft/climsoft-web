@@ -1,0 +1,88 @@
+<div class="card">
+    <div class="card-header">Data Processing Selections</div>
+    <div class="card-body">
+        <div class="mt-2">
+            <app-check-box-input [label]="'Convert date time to display time zone'"
+                [(value)]="rawExportParameters.convertDatetimeToDisplayTimeZone" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Split observation date time'"
+                [(value)]="rawExportParameters.splitObservationDatetime" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Unstack data'" [disabled]="true"
+                [value]="rawExportParameters.unstackData"
+                (valueChange)="onUnstackData($event)" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include level'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeLevel" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include interval'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeInterval" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include flag'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeFlag" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include quality control status'"
+                [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeQCStatus" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include quality control test log'"
+                [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeQCTestLog" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include comments'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeComments" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'include entry date time'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeEntryDatetime" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include entry user email'" [disabled]="disableStackedDataOptions"
+                [(value)]="rawExportParameters.includeEntryUserEmail" />
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<div class="card">
+    <div class="card-header">Metadata Selections</div>
+    <div class="card-body">
+        <div>
+            <app-check-box-input [label]="'Include station name'"
+                [(value)]="rawExportParameters.includeStationName" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include station location'"
+                [(value)]="rawExportParameters.includeStationLocation" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include station elevation'"
+                [(value)]="rawExportParameters.includeStationElevation" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include element abbreviation'"
+                [(value)]="rawExportParameters.includeElementAbbreviation" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include element name'"
+                [(value)]="rawExportParameters.includeElementName" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include element units'"
+                [(value)]="rawExportParameters.includeElementUnits" />
+        </div>
+        <div class="mt-2">
+            <app-check-box-input [label]="'Include source name'"
+                [(value)]="rawExportParameters.includeSourceName" />
+        </div>
+    </div>
+</div>

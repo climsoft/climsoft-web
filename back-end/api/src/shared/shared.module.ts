@@ -6,6 +6,4 @@ import { FileIOService } from './services/file-io.service';
     exports: [FileIOService]
 })
 export class SharedModule {
-
-
 }

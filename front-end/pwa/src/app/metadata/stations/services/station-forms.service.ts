@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, catchError, concat, from, map, take, tap, throwError } from 'rxjs';
-import { ViewSourceModel } from '../../source-templates/models/view-source.model';
+import { ViewSourceModel } from '../../source-specifications/models/view-source.model';
 import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';

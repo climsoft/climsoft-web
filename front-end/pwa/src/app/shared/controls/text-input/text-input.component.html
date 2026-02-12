@@ -6,7 +6,7 @@
       <span *ngIf="displaylabelFullColon">:</span>
     </div>
     <div
-      [class.input-group]="displayDropDownOption || displayCancelOption || displayExtraInfoOption || displaySearchOption  || warningMessage || errorMessage">
+      [class.input-group]="displayExtraInfoOption || displaySearchOption || displaySettingOption ||  displayCancelOption ||displayDropDownOption ||  warningMessage || errorMessage">
 
       <!-- Note text-bg-warning has fore color as black intentionally from bootstrap. Yellow and white don't blend in well -->
       <input *ngIf="simulateTabOnEnter" #appHtmlInput appSimulateTabOnEnter [type]="type"
@@ -27,6 +27,7 @@
         (keydown.enter)="onEnterKeyPressed()" (blur)="onInputBlur()" />
 
       <!-- Note in all the buttons below, btn-input-group class is needed to prevent tab selection on enter key press -->
+      <!-- Any button added here should have its *ngIf flag as part of this div [class.input-group] above -->
 
       <button *ngIf="warningMessage && !errorMessage" type="button"
         class="btn btn-sm btn-outline-warning btn-input-group" (click)="dlgWarningMessage.openDialog()">
@@ -47,11 +48,6 @@
         <div class="fs-5">{{ errorMessage }}</div>
       </app-dialog>
 
-      <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
-        (click)="onCancelOptionClick()">
-        <i class="bi bi-x"></i>
-      </button>
-
       <button *ngIf="displayExtraInfoOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
         (click)="onDisplayExtraInfoClick()">
         <i class="bi bi-info"></i>
@@ -60,6 +56,16 @@
       <button *ngIf="displaySearchOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
         (click)="onDisplaySearchClick()">
         <i class="bi bi-search"></i>
+      </button>
+
+      <button *ngIf="displaySettingOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+        (click)="onDisplaySettingClick()">
+        <i class="bi bi-gear"></i>
+      </button>
+
+      <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"
+        (click)="onCancelOptionClick()">
+        <i class="bi bi-x"></i>
       </button>
 
       <button *ngIf="displayDropDownOption" type="button" class="btn btn-sm btn-outline-secondary btn-input-group"

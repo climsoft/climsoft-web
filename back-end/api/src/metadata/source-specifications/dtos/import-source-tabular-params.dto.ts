@@ -1,7 +1,7 @@
 import { IsInt, IsOptional, IsString } from "class-validator";
 import { FlagEnum } from "src/observation/enums/flag.enum"; 
 
-export class ImportSourceTabularParamsDTO  {
+export class ImportSourceTabularParamsDto  {
 
     /** Whether to fetch station and its column position */
     stationDefinition?: StationDefinition;
@@ -205,7 +205,7 @@ export interface HourDefinition {
     */
     timeColumn?: {
         columnPosition: number;
-        timeFormat: TimeFormatTypes; // Optional when the time is just a hour integer
+        timeFormat: TimeFormatTypes;
     };
 
     /**

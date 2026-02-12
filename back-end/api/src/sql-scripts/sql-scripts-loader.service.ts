@@ -13,7 +13,7 @@ export class SqlScriptsLoaderService {
 
 
     private getScriptsDirectoryPath(): string {
-        return path.dirname(__filename);
+        return __dirname;
     }
 
     /**

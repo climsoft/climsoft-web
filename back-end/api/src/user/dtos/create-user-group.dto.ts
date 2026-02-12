@@ -1,6 +1,6 @@
 
 import { IsOptional, IsString, ValidateNested } from "class-validator";
-import { UserPermissionDto } from "./user-permission.dto";
+import { UserPermissionDto } from "./permissions/user-permission.dto";
 export class CreateUserGroupDto {
     @IsString()
     name: string;

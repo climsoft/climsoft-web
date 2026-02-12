@@ -19,6 +19,9 @@ export class TextInputComponent {
   @Input() public displaySearchOption: boolean = false;
   @Output() public displaySearchOptionClick = new EventEmitter<void>();
 
+  @Input() public displaySettingOption: boolean = false;
+  @Output() public displaySettingOptionClick = new EventEmitter<void>();
+
   @Input() public displayCancelOption: boolean = false;
   @Output() public displayCancelOptionClick = new EventEmitter<void>();
 
@@ -35,7 +38,7 @@ export class TextInputComponent {
   @Input() public hintMessage!: string;
   @Input() public errorMessage!: string;
   @Input() public warningMessage!: string;
-  @Input() public value: string | number | null = '';
+  @Input() public value: string | number | null | undefined = '';
   @Input() public simulateTabOnEnter: boolean = true;
 
   @Output() public valueChange = new EventEmitter<string>();
@@ -103,6 +106,10 @@ export class TextInputComponent {
 
   protected onDisplaySearchClick(): void {
     this.displaySearchOptionClick.emit();
+  }
+
+  protected onDisplaySettingClick(): void {
+    this.displaySettingOptionClick.emit();
   }
 
 }

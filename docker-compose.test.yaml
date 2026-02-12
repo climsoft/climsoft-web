@@ -54,15 +54,38 @@ services:
       V4_DB_USERNAME: "${V4_DB_USERNAME}"
       V4_DB_PASSWORD: "${V4_DB_PASSWORD}"
       V4_DB_UTCOFFSET: "${V4_DB_UTCOFFSET}"
-    expose: 
+      CSV2BUFR_HOST: climsoft_csv2bufr
+      CSV2BUFR_PORT: 5001
+    expose:
       - 3000 # Expose to internal network only. Communication to the API can go through the nginx reverse proxy.
     depends_on:
       climsoft_db:
         condition: service_healthy # Wait until climsoft_db is healthy as indicate by healthcheck
+      climsoft_csv2bufr:
+        condition: service_healthy
+    volumes:
+      - climsoft_test_imports:/app/imports
+      - climsoft_test_exports:/app/exports
+    networks:
+      - climsoft_network
+
+  climsoft_csv2bufr:
+    build:
+      context: ./csv2bufr
+      dockerfile: Dockerfile
+    container_name: climsoft-csv2bufr
+    restart: always
+    expose:
+      - 5001 # Expose to internal network only.
     volumes:
       - climsoft_test_exports:/app/exports
     networks:
       - climsoft_network
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   climsoft_db:
     image: postgis/postgis:17-3.5
@@ -76,6 +99,7 @@ services:
       - "5432:5432" # Expose to both external and internal network.
     volumes:
       - climsoft_test_database:/var/lib/postgresql/data
+      - climsoft_test_imports:/var/lib/postgresql/imports
       - climsoft_test_exports:/var/lib/postgresql/exports
     networks:
       - climsoft_network
@@ -92,6 +116,7 @@ services:
 
 volumes:
   climsoft_test_database:
+  climsoft_test_imports:
   climsoft_test_exports:
 
 networks:

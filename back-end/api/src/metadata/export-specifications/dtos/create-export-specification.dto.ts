@@ -1,6 +1,12 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import { ExportSpecificationParametersDto } from './export-specification-parameters.dto';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { RawExportParametersDto } from './raw-export-parameters.dto';
 import { ExportTypeEnum } from '../enums/export-type.enum';
+import { Type } from 'class-transformer';
+import { BufrExportParametersDto } from './bufr-export-parameters.dto';
+import { BadRequestException } from '@nestjs/common';
+import { AggregateExportParametersDto } from './aggregate-export-parameters.dto';
+
+export type ExportParameters = RawExportParametersDto | AggregateExportParametersDto | BufrExportParametersDto;
 
 export class CreateExportSpecificationDto {
   @IsString()
@@ -12,10 +18,31 @@ export class CreateExportSpecificationDto {
   @IsEnum(ExportTypeEnum, { message: 'export type must be a valid value' })
   exportType: ExportTypeEnum;
 
-  //@ValidateNested()
-  //@Type(function () { return this._type(); }) 
-  @IsOptional() // TODO. Temporary until we implement validate nested
-  parameters: ExportSpecificationParametersDto; //TODO. Implement validations
+  @Type((options) => {
+    // The 'options.object' gives access to the parent DTO,
+    // allowing us to dynamically select the correct validation class
+    // for the 'parameters' property based on the 'sourceType'.
+
+    const object = options?.object;
+    if (!object?.exportType) {
+      throw new BadRequestException('source type is required for determining parameters type');
+    }
+
+    const { exportType } = object as CreateExportSpecificationDto;
+
+    switch (exportType) {
+      case ExportTypeEnum.RAW:
+        return RawExportParametersDto;
+      case ExportTypeEnum.AGGREGATE:
+        return AggregateExportParametersDto;
+      case ExportTypeEnum.BUFR:
+        return BufrExportParametersDto;
+      default:
+        throw new BadRequestException('export type is not recognised');
+    }
+  })
+  @ValidateNested()
+  parameters: ExportParameters;
 
   @IsBoolean()
   disabled: boolean;

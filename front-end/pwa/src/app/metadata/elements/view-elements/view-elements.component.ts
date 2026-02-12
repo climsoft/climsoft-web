@@ -4,7 +4,6 @@ import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 import { OptionEnum } from 'src/app/shared/options.enum';
 
 @Component({
@@ -13,7 +12,8 @@ import { OptionEnum } from 'src/app/shared/options.enum';
   styleUrls: ['./view-elements.component.scss']
 })
 export class ViewElementsComponent implements OnDestroy {
-  protected elements!: CreateViewElementModel[];
+  protected allElements: CreateViewElementModel[] = [];
+  protected elements: CreateViewElementModel[] = [];
   protected searchedIds: number[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
@@ -24,7 +24,6 @@ export class ViewElementsComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private cachedMetadataService: CachedMetadataService,
     private elementsCacheService: ElementsCacheService,
     private appAuthService: AppAuthService,) {
 
@@ -43,11 +42,11 @@ export class ViewElementsComponent implements OnDestroy {
     });
 
 
-    this.cachedMetadataService.allMetadataLoaded.pipe(
+    this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
-      // Always call filtered seacrh ids because when the caches refreshes, the selected ids will not be the ones shown
+    ).subscribe(data => {
+      this.allElements = data
+      // Always call filtered search ids because when the caches refreshes, the selected ids will not be the ones shown
       this.filterSearchedIds();
     });
 
@@ -65,8 +64,7 @@ export class ViewElementsComponent implements OnDestroy {
 
   private filterSearchedIds(): void {
     this.elements = this.searchedIds && this.searchedIds.length > 0 ?
-      this.cachedMetadataService.elementsMetadata.filter(item => this.searchedIds.includes(item.id)) :
-      [...this.cachedMetadataService.elementsMetadata];
+      this.allElements.filter(item => this.searchedIds.includes(item.id)) : [...this.allElements];
   }
 
   protected onOptionsClick(option: OptionEnum): void {

@@ -1,10 +1,10 @@
 import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
-import { SourceTypeEnum } from 'src/app/metadata/source-templates/models/source-type.enum';
-import { ViewSourceModel } from 'src/app/metadata/source-templates/models/view-source.model';
+import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
+import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-templates/services/source-templates-cache.service';
+import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
@@ -20,7 +20,7 @@ export class ImportSelectionComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private sourceCacheService: SourceTemplatesCacheService,
+    private sourceCacheService: SourcesCacheService,
     private router: Router,
     private route: ActivatedRoute) {
     this.pagesDataService.setPageHeader('Select Import Source');

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
-import { ObservationPeriodPermissionsModel } from '../../models/user-permission.model';
+import { ObservationPeriodPermissionsModel } from '../../models/permissions/user-permission.model';
 import { Subject, takeUntil } from 'rxjs';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
@@ -17,7 +17,7 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
   protected selectedOption: 'All' | 'Within' | 'From' | 'Last' = 'All';
   protected within: { fromDate: string, toDate: string } = { fromDate: new Date().toISOString().split('T')[0], toDate: new Date().toISOString().split('T')[0] };
   protected fromDate: string = new Date().toISOString().split('T')[0];
-  protected last: { duration: number, durationType: 'days' | 'hours' } = { duration: 31, durationType: 'days' }
+  protected last: number= 60
 
   private utcMetadataLoaded: boolean = false;
 
@@ -82,7 +82,7 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
       };
     } else if (option === 'Last') {
       this.observationPeriod = {
-        last: this.last,
+        last: 60,
       };
     }
 
@@ -105,17 +105,9 @@ export class EditUserPermissionsDurationComponent implements OnChanges, OnDestro
   }
 
   protected onLastDurationChange(duration: number): void {
-    this.last.duration = duration;
+    this.last = duration;
     this.changeObservationPeriod('Last');
   }
 
-  protected onLastDurationTypeChange(option: string): void {
-    if (option === 'Days') {
-      this.last.durationType = 'days';
-    } else if (option === 'Hours') {
-      this.last.durationType = 'hours';
-    }
-
-    this.changeObservationPeriod('Last');
-  }
+ 
 }

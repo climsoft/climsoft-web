@@ -10,12 +10,12 @@ import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.en
 import { UsersService } from 'src/user/services/users.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
-import { ViewSourceDto } from 'src/metadata/source-specifications/dtos/view-source.dto';
+import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { FindOptionsWhere } from 'typeorm';
 import { SourceSpecificationEntity } from 'src/metadata/source-specifications/entities/source-specification.entity';
 import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
-import { CreateUpdateSourceDto } from 'src/metadata/source-specifications/dtos/create-update-source.dto';
+import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
 import { CreateQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/create-qc-specification.dto';
 import { ViewQCSpecificationDto } from 'src/metadata/qc-specifications/dtos/view-qc-specification.dto';
@@ -487,7 +487,7 @@ export class ClimsoftV4WebSyncSetUpService {
         return true;
     }
 
-    public async getClimsoftImportSource(): Promise<ViewSourceDto | null> {
+    public async getClimsoftImportSource(): Promise<ViewSourceSpecificationDto | null> {
         const selectOptions: FindOptionsWhere<SourceSpecificationEntity> = {
             name: 'climsoft_v4',
         };
@@ -496,13 +496,13 @@ export class ClimsoftV4WebSyncSetUpService {
         return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
     }
 
-    public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceDto> {
-        const existingClimsoftV4Source: ViewSourceDto | null = await this.getClimsoftImportSource();
+    public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceSpecificationDto> {
+        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = await this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
             return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);
         } else {
-            const newClismoftSource: CreateUpdateSourceDto = {
+            const newClismoftSource: CreateSourceSpecificationDto = {
                 name: 'climsoft_v4',
                 description: 'Import from Climsoft version 4 database',
                 sourceType: SourceTypeEnum.IMPORT,

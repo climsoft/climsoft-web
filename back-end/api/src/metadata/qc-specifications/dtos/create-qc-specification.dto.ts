@@ -1,6 +1,6 @@
 import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
-import { Type } from 'class-transformer'; 
+import { Type } from 'class-transformer';
 import { RangeThresholdQCTestParamsDto } from './qc-test-parameters/range-qc-test-params.dto';
 import { BadRequestException } from '@nestjs/common';
 import { SpikeQCTestParamsDto } from './qc-test-parameters/spike-qc-test-params.dto';
@@ -34,12 +34,18 @@ export class CreateQCSpecificationDto {
 
     @ValidateNested()
     @Type((options) => {
-        const object = options?.newObject;
+        // The 'options.object' gives access to the parent DTO's source data,
+        // allowing us to dynamically select the correct validation class
+        // for the 'parameters' property based on the 'qcTestType'.
+        const object = options?.object;
+
         if (!object?.qcTestType) {
             throw new BadRequestException('qcTestType is required for determining parameters type');
         }
 
-        switch (object.qcTestType) {
+        const { qcTestType } = object as CreateQCSpecificationDto;
+
+        switch (qcTestType) {
             case QCTestTypeEnum.RANGE_THRESHOLD:
                 return RangeThresholdQCTestParamsDto;
             case QCTestTypeEnum.FLAT_LINE:
@@ -57,7 +63,7 @@ export class CreateQCSpecificationDto {
             case QCTestTypeEnum.SPATIAL_CONSISTENCY:
                 return SpatialQCTestParamsDto;
             default:
-                throw new BadRequestException('qcTestType is not recognised');
+                throw new BadRequestException('qc type is not recognised');
         }
     })
     parameters: QCTestParameters;

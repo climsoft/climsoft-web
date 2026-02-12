@@ -1,6 +1,6 @@
 
 import { IsBoolean, IsEmail, IsInt, IsOptional, IsString } from "class-validator";
-import { UserPermissionDto } from "./user-permission.dto";
+import { UserPermissionDto } from "./permissions/user-permission.dto";
 export class CreateUserDto {
     @IsString()
     name: string; // validate to not allow empty

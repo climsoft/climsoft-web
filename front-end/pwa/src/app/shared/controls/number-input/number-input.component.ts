@@ -12,16 +12,17 @@ export class NumberInputComponent implements OnChanges {
   @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
   @Input() public id!: string | number;
   @Input() public label!: string;
+  @Input() public labelSuperScript!: string;
   @Input() public disabled!: boolean;
   @Input() public borderSize!: number;
   @Input() public hintMessage!: string;
   @Input() public errorMessage!: string;
   @Input() public max!: number;
   @Input() public min!: number;
-  @Input() public value!: number | null;
+  @Input() public value!: number | null | undefined;
   @Input() public numValue!: number;
   @Input() public simulateTabOnEnter: boolean = true;
-  @Output() public valueChange = new EventEmitter<number | null>();
+  @Output() public valueChange = new EventEmitter<number | null >();
   @Output() public numValueChange = new EventEmitter<number>();
   @Output() public inputClick = new EventEmitter<number | null>();
   @Output() public inputEnterKeyPress = new EventEmitter<number | null>();
@@ -33,7 +34,7 @@ export class NumberInputComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['numValue']) {
       this.value = this.numValue;
-    } else if (changes['value'] && this.value !== null && StringUtils.containsNumbersOnly(this.value.toString())) {
+    } else if (changes['value'] && this.value !== undefined && this.value !== null && StringUtils.containsNumbersOnly(this.value.toString())) {
       this.numValue = +this.value;
     }
   }

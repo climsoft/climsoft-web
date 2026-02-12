@@ -1,0 +1,93 @@
+<ng-container *ngIf="open && connector">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="connector.id > 0"
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSubmitClick()"
+        (deleteClick)="onDeleteButtonClick()">
+
+        <div>
+            <div>
+                <app-text-input [label]="'Name'" [(value)]="connector.name" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'Description'" [(value)]="connector.description" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-connector-type-selector-single [label]="'Connector Type'"
+                    [(selectedId)]="connector.connectorType" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-end-point-selector-single [label]="'End Point'" [(selectedId)]="connector.endPointType" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'Host Name'" [labelSuperScript]="'ip address or domain'"
+                    [(value)]="connector.hostName" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-number-input [label]="'Timeout'" [labelSuperScript]="'Seconds'" [(numValue)]="connector.timeout" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-number-input [label]="'Maximum Attempts'" [(numValue)]="connector.maxAttempts" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                    [(value)]="connector.cronSchedule" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-number-input [label]="'Order'" [value]="connector.orderNumber"
+                    (valueChange)="onOrderNumberChange($event)" />
+            </div>
+
+            <hr />
+
+            <div class="card">
+                <div class="card-header">End Point Parameters</div>
+                <div class="card-body">
+                    <div *ngIf="connector.endPointType === 'file_server'">
+                        <app-file-server-parameters-input [connector]="connector"
+                            (validationError)="onValidationError($event)" />
+                    </div>
+                    <div *ngIf="connector.endPointType === 'web_server'" class="text-info">
+                        Web Server end points will be supported in the next version release
+                    </div>
+                </div>
+            </div>
+            <hr />
+
+            <div>
+                <app-check-box-input [label]="'Disable'" [(value)]="connector.disabled" />
+            </div>
+            <hr />
+
+            <div>
+                <app-text-input [label]="'Comment'" [(value)]="connector.comment" />
+            </div>
+        </div>
+    </app-dialog>
+
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="connector.name" [itemType]="'connector'"
+        (deleteConfirmed)="onDeleteConfirm()" />
+
+</ng-container>

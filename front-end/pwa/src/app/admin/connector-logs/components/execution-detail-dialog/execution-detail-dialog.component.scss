@@ -1,0 +1,30 @@
+.execution-detail-content {
+    min-width: 700px;
+    max-width: 900px;
+}
+
+.details-table th {
+    background-color: #f8f9fa;
+}
+
+
+.activities-tab-content, .files-tab-content {
+    max-height: 400px;
+    overflow: auto;
+}
+
+// .card-header {
+//     transition: background-color 0.2s;
+// }
+
+// .card-header:hover {
+//     background-color: #e9ecef;
+// }
+
+.bg-danger-subtle {
+    background-color: #f8d7da !important;
+}
+
+.error-font-size {
+    font-size: 0.875rem;
+}

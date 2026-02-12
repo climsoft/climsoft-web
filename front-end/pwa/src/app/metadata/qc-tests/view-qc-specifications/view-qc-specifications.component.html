@@ -1,0 +1,102 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+    <div class="d-flex align-items-center">
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="dlgQcEdit.openDialog()">
+        Add
+      </button>
+      <div class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="dlgSearchElements.showDialog(searchedIds)">
+          Search
+        </button>
+        <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
+      </div>
+      <div class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
+          (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+      <div *ngIf="qCSpecifications" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
+        (click)="onSearchInput([])">
+        [{{ qCSpecifications.length | number:'1.0-0' }}]
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body px-0">
+    <div class="app-table-container" style="height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+          <col style="width: 14%;" />
+          <col style="width: 14%;" />
+          <col style="width: 6%;" />
+          <col style="width: 8%;" />
+          <col style="width: 12%;" />
+          <col style="width: 32%;" />
+          <col style="width: 12%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Name</th>
+            <th>Element</th>
+            <th>Level</th>
+            <th>Interval</th>
+            <th>Type</th>
+            <th>Parameters</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="table-group-divider">
+          <tr class="app-cursor-pointer" *ngFor="let qcTestParam of qCSpecifications"
+            [class.qc-disabled]="qcTestParam.disabled">
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.name }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationLevel }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationIntervalName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">
+              <span class="badge" [ngClass]="{
+                'bg-primary': qcTestParam.qcTestType === 'range_threshold',
+                'bg-info': qcTestParam.qcTestType === 'flat_line',
+                'bg-warning text-dark': qcTestParam.qcTestType === 'spike',
+                'bg-secondary': qcTestParam.qcTestType === 'relational_comparison',
+                'bg-success': qcTestParam.qcTestType === 'contextual_consistency',
+                'bg-danger': qcTestParam.qcTestType === 'diurnal'
+              }">
+                {{ qcTestParam.qcTestTypeName }}
+              </span>
+            </td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.formattedParameters }}</td>
+            <td>
+              <div *ngIf="isSystemAdmin" class="d-flex gap-2">
+                <button type="button" class="btn btn-sm"
+                  [ngClass]="qcTestParam.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                  [title]="qcTestParam.disabled ? 'Enable QC test' : 'Disable QC test'"
+                  (click)="onToggleDisabledClick(qcTestParam, $event)">
+                  <i class="bi" [ngClass]="qcTestParam.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete QC test"
+                  (click)="onDeleteClick(qcTestParam, $event)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <app-qc-specification-input-dialog #dlgQcEdit />
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedQcTest?.name || ''"
+    [itemType]="'QC specification'" (deleteConfirmed)="onDeleteConfirm()" />
+
+  <!-- Enable/Disable Confirmation Dialog -->
+  <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedQcTest?.name || ''"
+    [itemType]="'QC specification'" [isCurrentlyDisabled]="selectedQcTest?.disabled || false"
+    [operationType]="selectedQcTest?.qcTestTypeName + ' QC' || ''"
+    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+</div>
