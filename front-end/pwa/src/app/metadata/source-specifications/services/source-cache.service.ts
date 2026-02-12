@@ -10,7 +10,7 @@ import { AppConfigService } from "src/app/app-config.service";
 @Injectable({
     providedIn: 'root'
 })
-export class SourceTemplatesCacheService {
+export class SourcesCacheService {
     private endPointUrl: string;
     private readonly _cachedSources: BehaviorSubject<ViewSourceModel[]> = new BehaviorSubject<ViewSourceModel[]>([]);
     private checkUpdatesSubscription: Subscription = new Subscription();

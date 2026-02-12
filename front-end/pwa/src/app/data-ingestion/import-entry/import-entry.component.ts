@@ -6,7 +6,7 @@ import { ImportSourceTabularParamsModel } from 'src/app/metadata/source-specific
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourceTemplatesCacheService } from 'src/app/metadata/source-specifications/services/source-templates-cache.service';
+import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 
@@ -53,7 +53,7 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
     private appConfigService: AppConfigService,
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private importSourcesService: SourceTemplatesCacheService,
+    private importSourcesService: SourcesCacheService,
     private http: HttpClient,
     private route: ActivatedRoute) {
 

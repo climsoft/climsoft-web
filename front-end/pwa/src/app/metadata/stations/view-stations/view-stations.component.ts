@@ -1,12 +1,9 @@
 import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { CreateStationModel } from '../models/create-station.model';
 import { OptionEnum } from 'src/app/shared/options.enum';
-import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
 type tab = 'table' | 'geomap' | 'treemap';
 
@@ -17,7 +14,8 @@ type tab = 'table' | 'geomap' | 'treemap';
 })
 export class ViewStationsComponent implements OnDestroy {
   protected activeTab: tab = 'table';
-  protected stations!: StationCacheModel[];
+  protected allStations: StationCacheModel[] = [];
+  protected stations: StationCacheModel[] = [];
   protected searchedIds: string[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
@@ -29,8 +27,8 @@ export class ViewStationsComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private cachedMetadataService: CachedMetadataService,
     private stationsCacheService: StationsCacheService,) {
+
     this.pagesDataService.setPageHeader('Stations');
 
     // Check on allowed options
@@ -45,10 +43,10 @@ export class ViewStationsComponent implements OnDestroy {
       }
     });
 
-    this.cachedMetadataService.allMetadataLoaded.pipe(
+    this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
+    ).subscribe(data => {
+      this.allStations = data;
       // Always call filtered seacrh ids because when the caches refreshes, the selected ids will not be the ones shown
       this.filterSearchedIds();
     });
@@ -70,8 +68,7 @@ export class ViewStationsComponent implements OnDestroy {
 
   private filterSearchedIds(): void {
     this.stations = this.searchedIds && this.searchedIds.length > 0 ?
-      this.cachedMetadataService.stationsMetadata.filter(item => this.searchedIds.includes(item.id)) :
-      [...this.cachedMetadataService.stationsMetadata];
+      this.allStations.filter(item => this.searchedIds.includes(item.id)) : [...this.allStations];
   }
 
   protected onOptionsClick(option: OptionEnum): void {

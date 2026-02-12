@@ -9,7 +9,7 @@ import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { CreateSourceModel } from 'src/app/metadata/source-specifications/models/create-source.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
-import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
+import { SourcesCacheService } from '../services/source-cache.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
@@ -29,7 +29,7 @@ export class ImportSourceDetailComponent implements OnInit {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private importSourcesService: SourceTemplatesCacheService,
+    private importSourcesService: SourcesCacheService,
     private location: Location,
     private route: ActivatedRoute) {
   }

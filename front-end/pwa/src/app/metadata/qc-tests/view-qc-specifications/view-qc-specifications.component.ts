@@ -4,11 +4,12 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
 import { QCSpecificationInputDialogComponent } from '../qc-test-input-dialog/qc-specification-input-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
+import { ElementsCacheService } from '../../elements/services/elements-cache.service';
+import { CreateViewElementModel } from '../../elements/models/create-view-element.model';
 
-interface ElementQCTestView extends QCTestCacheModel {
+interface ElementQCSpecView extends QCTestCacheModel {
   elementName: string;
 }
 
@@ -30,9 +31,11 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
-  protected qCTestParams!: ElementQCTestView[];
+
+  protected allQCSpecifications: ElementQCSpecView[] = [];
+  protected qCSpecifications: ElementQCSpecView[] = [];
   protected searchedIds: number[] = [];
-  protected selectedQcTest: ElementQCTestView | null = null;
+  protected selectedQcTest: ElementQCSpecView | null = null;
 
   protected dropDownItems: OptionEnum[] = [];
   protected optionTypeEnum: typeof OptionEnum = OptionEnum;
@@ -43,8 +46,8 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private cachedMetadataService: CachedMetadataService,
-    private elementsQCTestsCacheService: QCTestsCacheService,) {
+    private elementsCacheService: ElementsCacheService,
+    private qCTestsCacheService: QCTestsCacheService,) {
 
     this.pagesDataService.setPageHeader('QC Specifications');
 
@@ -60,11 +63,22 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
       }
     });
 
-    this.cachedMetadataService.allMetadataLoaded.pipe(
+    this.qCTestsCacheService.cachedQCTests.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
-      this.filterSearchedIds();
+    ).subscribe(qcSPecs => {
+
+      this.elementsCacheService.cachedElements.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(elements => {
+
+        this.allQCSpecifications = qcSPecs.map(qcSPec => {
+          const element = elements.find(item => item.id === qcSPec.elementId);
+          return { ...qcSPec, elementName: element ? element.name : '' };
+        });
+
+        // Always call filtered search ids because when the caches refreshes, the selected ids will not be the ones shown
+        this.filterSearchedIds();
+      });
     });
 
   }
@@ -80,31 +94,26 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   }
 
   private filterSearchedIds(): void {
-    const qcTestsCache = this.searchedIds && this.searchedIds.length > 0 ?
-      this.cachedMetadataService.qcTestsMetadata.filter(item => this.searchedIds.includes(item.elementId)) : this.cachedMetadataService.qcTestsMetadata;
-
-    this.qCTestParams = qcTestsCache.map(qcTest => {
-      const element = this.cachedMetadataService.elementsMetadata.find(item => item.id === qcTest.elementId);
-      return { ...qcTest, elementName: element ? element.name : '' };
-    });
+    this.qCSpecifications = this.searchedIds && this.searchedIds.length > 0 ?
+      this.allQCSpecifications.filter(item => this.searchedIds.includes(item.elementId)) : [...this.allQCSpecifications];
   }
 
   protected onOptionsClicked(option: OptionEnum) {
     switch (option) {
       case OptionEnum.SORT_BY_QC_NAME:
-        this.qCTestParams.sort((a, b) => a.name.localeCompare(b.name));
+        this.qCSpecifications.sort((a, b) => a.name.localeCompare(b.name));
         break;
       case OptionEnum.SORT_BY_ELEMENT_ID:
-        this.qCTestParams.sort((a, b) => a.elementId - b.elementId);
+        this.qCSpecifications.sort((a, b) => a.elementId - b.elementId);
         break;
       case OptionEnum.SORT_BY_ELEMENT_NAME:
-        this.qCTestParams.sort((a, b) => a.elementName.localeCompare(b.elementName));
+        this.qCSpecifications.sort((a, b) => a.elementName.localeCompare(b.elementName));
         break;
       case OptionEnum.SORT_BY_QC_TYPE:
-        this.qCTestParams.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
+        this.qCSpecifications.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
         break;
       case OptionEnum.DELETE_ALL:
-        this.elementsQCTestsCacheService.deleteAll().pipe(
+        this.qCTestsCacheService.deleteAll().pipe(
           take(1),
         ).subscribe(() => {
           this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
@@ -116,7 +125,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
 
   }
 
-  protected onDeleteClick(qcTest: ElementQCTestView, event: Event): void {
+  protected onDeleteClick(qcTest: ElementQCSpecView, event: Event): void {
     event.stopPropagation();
     this.selectedQcTest = qcTest;
     this.dlgDeleteConfirm.showDialog();
@@ -124,7 +133,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
 
   protected onDeleteConfirm(): void {
     if (!this.selectedQcTest) return;
-    this.elementsQCTestsCacheService.delete(this.selectedQcTest.id).pipe(
+    this.qCTestsCacheService.delete(this.selectedQcTest.id).pipe(
       take(1)
     ).subscribe(() => {
       this.pagesDataService.showToast({ title: 'QC Specification', message: 'QC specification deleted', type: ToastEventTypeEnum.SUCCESS });
@@ -132,7 +141,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
     });
   }
 
-  protected onToggleDisabledClick(qcTest: ElementQCTestView, event: Event): void {
+  protected onToggleDisabledClick(qcTest: ElementQCSpecView, event: Event): void {
     event.stopPropagation();
     this.selectedQcTest = qcTest;
     this.dlgToggleDisabled.showDialog();
@@ -142,7 +151,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
     if (!this.selectedQcTest) return;
     const newDisabledState = !this.selectedQcTest.disabled;
     const { id, elementName, observationIntervalName, qcTestTypeName, formattedParameters, ...updateDto } = this.selectedQcTest;
-    this.elementsQCTestsCacheService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
+    this.qCTestsCacheService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
       take(1)
     ).subscribe({
       next: () => {

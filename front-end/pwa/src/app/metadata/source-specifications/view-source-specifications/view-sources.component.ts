@@ -4,7 +4,7 @@ import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
+import { SourcesCacheService } from '../services/source-cache.service';
 import { StationFormsService } from '../../stations/services/station-forms.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -34,7 +34,7 @@ export class ViewSourcesComponent implements OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourceTemplatesCacheService,
+    private sourcesCacheService: SourcesCacheService,
     private stationFormsService: StationFormsService,
     private router: Router,
     private route: ActivatedRoute) {
