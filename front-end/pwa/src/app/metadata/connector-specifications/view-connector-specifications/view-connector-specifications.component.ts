@@ -1,10 +1,8 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
-import { ConnectorTypeEnum } from '../models/connector-type.enum';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
-import { ConnectorSpecificationInputDialogComponent } from '../connector-specification-input-dialog/connector-specification-input-dialog.component';
 
 @Component({
   selector: 'app-view-connectors',
