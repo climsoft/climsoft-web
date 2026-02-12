@@ -36,14 +36,7 @@ export class PagingParameters {
 
 
     public setTotalRowCount(totalRowCount: number): void {
-        if (totalRowCount > 0) {
-            this._totalRowCount = totalRowCount;
-            this._page = 1;
-        } else {
-            this._totalRowCount = 0;
-            this._page = 0;
-        }
-
+        this._totalRowCount = totalRowCount;
         this.setTotalPages();
     }
 

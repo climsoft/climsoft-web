@@ -65,8 +65,7 @@
     <div *ngIf="!loading">
         <!-- Pagination -->
         <div *ngIf="!loading && logs.length > 0" class="d-flex justify-content-end">
-            <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()">
-            </app-page-input>
+            <app-page-input [pageInputDefinition]="paging" (pageInputDefinitionChange)="onPageChange()" />
         </div>
 
         <!-- Logs table -->

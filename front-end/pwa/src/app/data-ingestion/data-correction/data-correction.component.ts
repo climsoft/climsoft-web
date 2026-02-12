@@ -47,7 +47,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     ).subscribe(allMetadataLoaded => {
       if (!allMetadataLoaded) return;
       this.allMetadataLoaded = allMetadataLoaded;
-      this.queryData();
+      this.loadData();
     });
 
   }
@@ -73,7 +73,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
       if (toDate) newQueryFilter.toDate = toDate;
 
       this.queryFilter = newQueryFilter;
-      this.queryData();
+      this.loadData();
     });
   }
 
@@ -89,33 +89,29 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected onQueryClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
     this.queryFilter = queryFilter;
-    this.queryData();
+    this.loadData();
   }
 
-  private queryData(): void {
+  protected loadData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter)) {
       return;
     }
 
-    if (!this.enableQueryButton) return; // This means querying is still in progress. So no need to resend the request.
-
-    console.log('querying data...');
-
-    this.observationsEntries = [];
-    this.numOfChanges = 0;
-    this.enableSaveButton = false;
-    this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
-    this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
+    this.numOfChanges = 0;
+    this.observationsEntries = [];
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+
+    this.observationService.count(this.queryFilter).pipe(
+      take(1)
+    ).subscribe(
       {
         next: count => {
           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
-          if (count > 0) {
-            this.loadData();
-          } else {
+          if (!count) {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
-            this.enableSaveButton = false;
           }
         },
         error: err => {
@@ -123,15 +119,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         },
       });
-  }
-
-  protected loadData(): void {
-    this.enableQueryButton = false;
-    this.enableSaveButton = false;
-    this.numOfChanges = 0;
-    this.observationsEntries = [];
-    this.queryFilter.page = this.pageInputDefinition.page;
-    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
@@ -250,7 +237,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         if (changedObs.length > 0) {
           this.updatedObservations(changedObs);
         } else {
-          this.queryData();
+          this.loadData();
         }
       },
       error: err => {
@@ -268,7 +255,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         this.enableSaveButton = true;
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         this.pagesDataService.showToast({ title: 'Data Correction', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS });
-        this.queryData();
+        this.loadData();
       },
       error: err => {
         this.enableSaveButton = true;
