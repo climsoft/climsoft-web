@@ -61,8 +61,6 @@ services:
     depends_on:
       climsoft_db:
         condition: service_healthy # Wait until climsoft_db is healthy as indicate by healthcheck
-      climsoft_csv2bufr:
-        condition: service_healthy
     volumes:
       - climsoft_test_imports:/app/imports
       - climsoft_test_exports:/app/exports
@@ -81,11 +79,6 @@ services:
       - climsoft_test_exports:/app/exports
     networks:
       - climsoft_network
-    healthcheck:
-      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/health')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   climsoft_db:
     image: postgis/postgis:17-3.5
@@ -104,7 +97,7 @@ services:
     networks:
       - climsoft_network
     # Recursively change the ownership of the /var/lib/postgresql/exports directory and all its contents to user postgres and group postgres.
-    # The executes the default PostGIS/PostgreSQL startup entrypoint, passing postgres as the command to run the Postgres server.
+    # Then execute the default PostGIS/PostgreSQL startup entrypoint, passing postgres as the command to run the Postgres server.
     command: >
       sh -c "chown -R postgres:postgres /var/lib/postgresql/exports 
       && docker-entrypoint.sh postgres"

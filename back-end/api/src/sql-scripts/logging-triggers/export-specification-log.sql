@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION func_update_export_templates_log()
+CREATE OR REPLACE FUNCTION func_update_export_specifications_log()
 RETURNS TRIGGER AS $$
 BEGIN
         IF (
@@ -25,7 +25,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE TRIGGER trg_update_export_templates_log
-BEFORE UPDATE ON export_templates
+CREATE OR REPLACE TRIGGER trg_update_export_specifications_log
+BEFORE UPDATE ON export_specifications
 FOR EACH row
 EXECUTE FUNCTION func_update_export_templates_log();
