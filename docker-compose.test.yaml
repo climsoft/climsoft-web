@@ -5,7 +5,6 @@ services:
       context: ./
       dockerfile: Dockerfile
     container_name: climsoft-nginx-proxy
-    restart: always
     ports: # Expose to external network
       - "${HOST_HTTP_PORT}:80"
       #- "${HOST_HTTPS_PORT}:443" # Use this if HTTPS is required
@@ -22,7 +21,6 @@ services:
       context: ./front-end/pwa
       dockerfile: Dockerfile
     container_name: climsoft-pwa
-    restart: always
     environment:
       HOST_IP_ADDRESS: "${HOST_IP_ADDRESS}" # used in config.json.
       HOST_HTTP_PORT: "${HOST_HTTP_PORT}" # used in config.json.
@@ -38,7 +36,6 @@ services:
       context: ./back-end/api
       dockerfile: Dockerfile
     container_name: climsoft-api
-    restart: always
     environment:
       DB_HOST: climsoft_db
       DB_PORT: 5432
@@ -72,7 +69,6 @@ services:
       context: ./back-end/csv2bufr
       dockerfile: Dockerfile
     container_name: climsoft-csv2bufr
-    restart: always
     expose:
       - 5001 # Expose to internal network only.
     volumes:
@@ -83,7 +79,6 @@ services:
   climsoft_db:
     image: postgis/postgis:17-3.5
     container_name: climsoft-db
-    restart: always
     environment:
       POSTGRES_DB: "${DB_NAME}" # Default database postgres will create, required when setting up postgres the first time.
       POSTGRES_USER: postgres # Uses the default postgres username for simplicity, required when setting up postgres the first time.

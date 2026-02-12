@@ -28,4 +28,4 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER trg_update_export_specifications_log
 BEFORE UPDATE ON export_specifications
 FOR EACH row
-EXECUTE FUNCTION func_update_export_templates_log();
+EXECUTE FUNCTION func_update_export_specifications_log();
