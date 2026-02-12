@@ -48,6 +48,7 @@ interface DayOfWeekOption {
 })
 export class CronInputComponent {
   @Input() public label: string = '';
+  @Input() public labelSuperScript!: string;
   @Input() public value: string = '';
   @Output() public valueChange = new EventEmitter<string>();
 

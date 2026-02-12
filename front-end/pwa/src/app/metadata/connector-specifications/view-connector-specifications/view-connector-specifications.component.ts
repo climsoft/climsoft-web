@@ -98,8 +98,11 @@ export class ViewConnectorSpecificationsComponent {
     const newDisabledState = !this.selectedConnector.disabled;
     const action = newDisabledState ? 'disabled' : 'enabled';
 
-    this.connectorSpecificationsService.update(this.selectedConnector.id, {
-      ...this.selectedConnector,
+    // Destructure to exclude 'id', 'entryUserId' and 'log' since API expects CreateConnectorSpecificationModel
+    const { id, entryUserId, log, ...updateDto } = this.selectedConnector;
+
+    this.connectorSpecificationsService.update(id, {
+      ...updateDto,
       disabled: newDisabledState
     }).pipe(
       take(1)
@@ -114,6 +117,7 @@ export class ViewConnectorSpecificationsComponent {
         this.selectedConnector = null;
       },
       error: (err) => {
+        console.error('Error updating connector: ', err);
         this.pagesDataService.showToast({
           title: 'Connector Specification',
           message: `Error updating connector: ${err.message}`,

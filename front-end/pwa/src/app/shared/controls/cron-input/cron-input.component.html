@@ -1,5 +1,6 @@
-<app-text-input [label]="label" [placeholder]="'e.g. */5 * * * *'" [value]="value" (valueChange)="onInputChange($event)"
-    [displaySettingOption]="true" (displaySettingOptionClick)="onOpenDialogClick()" />
+<app-text-input [label]="label" [labelSuperScript]="labelSuperScript" [placeholder]="'e.g. */5 * * * *'" [value]="value"
+    (valueChange)="onInputChange($event)" [displaySettingOption]="true"
+    (displaySettingOptionClick)="onOpenDialogClick()" />
 
 
 <app-dialog [(open)]="dialogOpen" [title]="'Schedule Builder'" [okButtonLabel]="'Apply'" (okClick)="onDialogOkClick()">

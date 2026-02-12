@@ -1,6 +1,7 @@
 <ng-container *ngIf="open && connector">
     <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="connector.id > 0"
-        [closeOnOkClick]="false" (okClick)="onSubmitClick()" (deleteClick)="onDeleteButtonClick()">
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSubmitClick()"
+        (deleteClick)="onDeleteButtonClick()">
 
         <div>
             <div>
@@ -48,7 +49,8 @@
             <hr />
 
             <div>
-                <app-cron-input [label]="'Schedule'" [(value)]="connector.cronSchedule" />
+                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                    [(value)]="connector.cronSchedule" />
             </div>
 
             <hr />
@@ -72,13 +74,11 @@
                     </div>
                 </div>
             </div>
-
             <hr />
 
             <div>
                 <app-check-box-input [label]="'Disable'" [(value)]="connector.disabled" />
             </div>
-
             <hr />
 
             <div>

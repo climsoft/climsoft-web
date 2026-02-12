@@ -60,8 +60,10 @@ export class ConnectorSpecificationInputDialogComponent {
         cronSchedule: '',
         orderNumber: 0,
         parameters: ftpMetadata,
-        disabled: false,
+        disabled: true, // New connectors are disabled by default. User can enable after creating the connection.
         comment: '',
+        entryUserId: 0,
+        log: null,
       };
 
     }
@@ -73,7 +75,7 @@ export class ConnectorSpecificationInputDialogComponent {
       return;
     }
 
-     if (!this.connector.description) {
+    if (!this.connector.description) {
       this.pagesDataService.showToast({ title: 'Connector Specification', message: 'Connector description required', type: ToastEventTypeEnum.ERROR });
       return;
     }
@@ -141,6 +143,7 @@ export class ConnectorSpecificationInputDialogComponent {
   }
 
   protected onDeleteButtonClick(): void {
+    console.log('Delete button clicked for connector: ', this.connector, ' and ',  this.dlgDeleteConfirm);
     this.dlgDeleteConfirm.showDialog();
   }
 
