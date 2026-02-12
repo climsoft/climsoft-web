@@ -143,7 +143,6 @@ export class ConnectorSpecificationInputDialogComponent {
   }
 
   protected onDeleteButtonClick(): void {
-    console.log('Delete button clicked for connector: ', this.connector, ' and ',  this.dlgDeleteConfirm);
     this.dlgDeleteConfirm.showDialog();
   }
 
