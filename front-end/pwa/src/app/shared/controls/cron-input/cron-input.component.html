@@ -1,122 +1,133 @@
-<div class="cron-input-container">
-    <div *ngIf="label" class="fw-bold mb-2">
-        <label>{{ label }}:</label>
-    </div>
+<app-text-input [label]="label" [placeholder]="'e.g. */5 * * * *'" [value]="value" (valueChange)="onInputChange($event)"
+    [displaySettingOption]="true" (displaySettingOptionClick)="onOpenDialogClick()" />
 
-    <div class="row g-2">
-        <!-- Frequency Selector -->
-        <div class="col-12">
-            <app-selector-single-input [label]="'Frequency'" [options]="frequencyOptions"
-                [optionDisplayFn]="frequencyDisplayFn" [selectedOption]="selectedFrequency"
-                (selectedOptionChange)="onFrequencyChange($event)" />
+
+<app-dialog [(open)]="dialogOpen" [title]="'Schedule Builder'" [okButtonLabel]="'Apply'" (okClick)="onDialogOkClick()">
+    <div class="cron-dialog-content">
+        <!-- Unsupported expression warning -->
+        <div *ngIf="isUnsupportedExpression" class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            The current cron expression is not supported by the builder. You can edit it manually in the input field or
+            select a new schedule below.
+            <div class="mt-2">
+                <code>{{ value }}</code>
+            </div>
         </div>
 
-        <!-- Every N minutes -->
-        <ng-container *ngIf="selectedFrequency.id === 'every_n_minutes'">
+        <div class="row g-3">
+            <!-- Frequency Selector -->
             <div class="col-12">
-                <app-selector-single-input [label]="'Every'" [options]="minuteIntervals"
-                    [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinuteInterval"
-                    (selectedOptionChange)="onMinuteIntervalChange($event)" />
-                <span class="form-text">minutes</span>
+                <app-selector-single-input [label]="'Frequency'" [options]="frequencyOptions"
+                    [optionDisplayFn]="frequencyDisplayFn" [selectedOption]="selectedFrequency"
+                    (selectedOptionChange)="onFrequencyChange($event)" />
             </div>
-        </ng-container>
 
-        <!-- Hourly at minute -->
-        <ng-container *ngIf="selectedFrequency.id === 'hourly_at_minute'">
-            <div class="col-12">
-                <app-selector-single-input [label]="'At minute'" [options]="minutes"
-                    [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
-                    (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
-
-        <!-- Every N hours at minute -->
-        <ng-container *ngIf="selectedFrequency.id === 'every_n_hours'">
-            <div class="col-6">
-                <app-selector-single-input [label]="'Every'" [options]="hourIntervals"
-                    [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHourInterval"
-                    (selectedOptionChange)="onHourIntervalChange($event)" />
-                <span class="form-text">hours</span>
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'At minute'" [options]="minutes"
-                    [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
-                    (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
-
-        <!-- Daily at time -->
-        <ng-container *ngIf="selectedFrequency.id === 'daily'">
-            <div class="col-6">
-                <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'Minute'" [options]="minutes" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedMinute" (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
-
-        <!-- Every N days at time -->
-        <ng-container *ngIf="selectedFrequency.id === 'every_n_days'">
-            <div class="col-12">
-                <app-selector-single-input [label]="'Every'" [options]="dayIntervals"
-                    [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedDayInterval"
-                    (selectedOptionChange)="onDayIntervalChange($event)" />
-                <span class="form-text">days</span>
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'Minute'" [options]="minutes" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedMinute" (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
-
-        <!-- Weekly on day(s) at time -->
-        <ng-container *ngIf="selectedFrequency.id === 'weekly'">
-            <div class="col-12">
-                <label class="fw-bold">On day(s):</label>
-                <div class="d-flex flex-wrap gap-2 mt-1">
-                    <button *ngFor="let day of daysOfWeek" type="button" class="btn btn-sm"
-                        [class.btn-primary]="day.selected" [class.btn-outline-secondary]="!day.selected"
-                        (click)="onDayOfWeekToggle(day)">
-                        {{ day.shortName }}
-                    </button>
+            <!-- Every N minutes -->
+            <ng-container *ngIf="selectedFrequency.id === 'every_n_minutes'">
+                <div class="col-12">
+                    <app-selector-single-input [label]="'Every'" [options]="minuteIntervals"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinuteInterval"
+                        (selectedOptionChange)="onMinuteIntervalChange($event)" />
+                    <span class="form-text ms-2">minutes</span>
                 </div>
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'Minute'" [options]="minutes" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedMinute" (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
+            </ng-container>
 
-        <!-- Monthly on day at time -->
-        <ng-container *ngIf="selectedFrequency.id === 'monthly'">
-            <div class="col-12">
-                <app-selector-single-input [label]="'On day'" [options]="daysOfMonth"
-                    [optionDisplayFn]="dayOfMonthDisplayFn" [selectedOption]="selectedDayOfMonth"
-                    (selectedOptionChange)="onDayOfMonthChange($event)" />
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
-            </div>
-            <div class="col-6">
-                <app-selector-single-input [label]="'Minute'" [options]="minutes" [optionDisplayFn]="numberDisplayFn"
-                    [selectedOption]="selectedMinute" (selectedOptionChange)="onMinuteChange($event)" />
-            </div>
-        </ng-container>
+            <!-- Hourly at minute -->
+            <ng-container *ngIf="selectedFrequency.id === 'hourly_at_minute'">
+                <div class="col-12">
+                    <app-selector-single-input [label]="'At minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
 
-        <!-- Generated cron expression display -->
-        <div class="col-12 mt-2">
-            <small class="text-muted">Cron: <code>{{ generatedCron }}</code></small>
+            <!-- Every N hours at minute -->
+            <ng-container *ngIf="selectedFrequency.id === 'every_n_hours'">
+                <div class="col-6">
+                    <app-selector-single-input [label]="'Every'" [options]="hourIntervals"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHourInterval"
+                        (selectedOptionChange)="onHourIntervalChange($event)" />
+                    <span class="form-text ms-2">hours</span>
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'At minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
+
+            <!-- Daily at time -->
+            <ng-container *ngIf="selectedFrequency.id === 'daily'">
+                <div class="col-6">
+                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
+                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'Minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
+
+            <!-- Every N days at time -->
+            <ng-container *ngIf="selectedFrequency.id === 'every_n_days'">
+                <div class="col-12">
+                    <app-selector-single-input [label]="'Every'" [options]="dayIntervals"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedDayInterval"
+                        (selectedOptionChange)="onDayIntervalChange($event)" />
+                    <span class="form-text ms-2">days</span>
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
+                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'Minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
+
+            <!-- Weekly on day(s) at time -->
+            <ng-container *ngIf="selectedFrequency.id === 'weekly'">
+                <div class="col-12">
+                    <label class="fw-bold">On day(s):</label>
+                    <div class="d-flex flex-wrap gap-2 mt-1">
+                        <button *ngFor="let day of daysOfWeek" type="button" class="btn btn-sm"
+                            [class.btn-primary]="day.selected" [class.btn-outline-secondary]="!day.selected"
+                            (click)="onDayOfWeekToggle(day)">
+                            {{ day.shortName }}
+                        </button>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
+                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'Minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
+
+            <!-- Monthly on day at time -->
+            <ng-container *ngIf="selectedFrequency.id === 'monthly'">
+                <div class="col-12">
+                    <app-selector-single-input [label]="'On day'" [options]="daysOfMonth"
+                        [optionDisplayFn]="dayOfMonthDisplayFn" [selectedOption]="selectedDayOfMonth"
+                        (selectedOptionChange)="onDayOfMonthChange($event)" />
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
+                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                </div>
+                <div class="col-6">
+                    <app-selector-single-input [label]="'Minute'" [options]="minutes"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedMinute"
+                        (selectedOptionChange)="onMinuteChange($event)" />
+                </div>
+            </ng-container>
         </div>
     </div>
-</div>
+</app-dialog>

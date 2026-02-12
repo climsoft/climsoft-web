@@ -41,14 +41,14 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
       this.filteredOptions = [...this.options];
     }
 
-    if (changes['selectedOption'] && this.selectedOption) {
+    if (changes['selectedOption']) {
       // TODO. Investigate how this can be avoided when `selectedOption` is changed within this control
       this.setSelectedOptionDisplay();
     }
   }
 
   private setSelectedOptionDisplay(): void {
-    this.selectedOptionDisplay = this.selectedOption ? this.optionDisplayFn(this.selectedOption) : '';
+    this.selectedOptionDisplay = this.selectedOption !== undefined && this.selectedOption !== null ? this.optionDisplayFn(this.selectedOption) : '';
   }
 
   protected onSearchInput(inputValue: string): void {
