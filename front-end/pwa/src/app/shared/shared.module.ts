@@ -43,6 +43,7 @@ import { DateFormatSelectorSingleComponent } from './controls/datetime-format-se
 import { ErrorSelectorSingleComponent } from './controls/error-selector-single/error-selector-single.component';
 import { CronInputComponent } from './controls/cron-input/cron-input.component';
 import { DeleteConfirmationDialogComponent } from './controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ToggleDisabledConfirmationDialogComponent } from './controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 
 //--------------------------------
 
@@ -99,6 +100,7 @@ const controlsComponents = [
   ErrorSelectorSingleComponent,
   CronInputComponent,
   DeleteConfirmationDialogComponent,
+  ToggleDisabledConfirmationDialogComponent,
 ];
 
 const directives = [

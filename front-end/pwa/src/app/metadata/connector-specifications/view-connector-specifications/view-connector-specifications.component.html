@@ -79,20 +79,8 @@
       [itemType]="'connector'" (deleteConfirmed)="onDeleteConfirm()" />
 
    <!-- Enable/Disable Confirmation Dialog -->
-   <app-dialog [(open)]="toggleDialogOpen" [title]="toggleDialogTitle" [okButtonLabel]="toggleDialogOkLabel"
-      [displayDeleteOption]="false" (okClick)="onToggleDisabledConfirm()">
-      <div *ngIf="selectedConnector">
-         <p>{{ toggleDialogMessage }}</p>
-         <div *ngIf="!selectedConnector.disabled" class="alert alert-warning">
-            <i class="bi bi-info-circle me-1"></i>
-            <strong>Note:</strong> Disabling a connector will stop its scheduled {{ selectedConnector.connectorType }} operations.
-            No data will be {{ selectedConnector.connectorType === 'import' ? 'imported' : 'exported' }} until the connector is enabled again.
-         </div>
-         <div *ngIf="selectedConnector.disabled" class="alert alert-info">
-            <i class="bi bi-info-circle me-1"></i>
-            <strong>Note:</strong> Enabling this connector will schedule its {{ selectedConnector.connectorType }} operations
-            according to the cron schedule: <code>{{ selectedConnector.cronSchedule }}</code>
-         </div>
-      </div>
-   </app-dialog>
+   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedConnector?.name || ''"
+      [itemType]="'connector'" [isCurrentlyDisabled]="selectedConnector?.disabled || false"
+      [operationType]="selectedConnector?.connectorType || ''"
+      [schedule]="selectedConnector?.cronSchedule || ''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

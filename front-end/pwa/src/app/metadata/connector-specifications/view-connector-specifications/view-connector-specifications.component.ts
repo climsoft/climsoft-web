@@ -2,6 +2,7 @@ import { Component, ViewChild } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 
@@ -12,17 +13,12 @@ import { ConnectorSpecificationsService } from '../services/connector-specificat
 })
 export class ViewConnectorSpecificationsComponent {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
   protected connectors!: ViewConnectorSpecificationModel[];
 
   // Selected connector for actions
   protected selectedConnector: ViewConnectorSpecificationModel | null = null;
-
-  // Toggle enabled/disabled confirmation dialog
-  protected toggleDialogOpen: boolean = false;
-  protected toggleDialogTitle: string = '';
-  protected toggleDialogOkLabel: string = '';
-  protected toggleDialogMessage: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -93,18 +89,7 @@ export class ViewConnectorSpecificationsComponent {
   protected onToggleDisabledClick(connector: ViewConnectorSpecificationModel, event: Event): void {
     event.stopPropagation();
     this.selectedConnector = connector;
-
-    if (connector.disabled) {
-      this.toggleDialogTitle = 'Enable Connector';
-      this.toggleDialogOkLabel = 'Enable';
-      this.toggleDialogMessage = `Are you sure you want to enable the connector "${connector.name}"?`;
-    } else {
-      this.toggleDialogTitle = 'Disable Connector';
-      this.toggleDialogOkLabel = 'Disable';
-      this.toggleDialogMessage = `Are you sure you want to disable the connector "${connector.name}"?`;
-    }
-
-    this.toggleDialogOpen = true;
+    this.dlgToggleDisabled.showDialog();
   }
 
   protected onToggleDisabledConfirm(): void {
