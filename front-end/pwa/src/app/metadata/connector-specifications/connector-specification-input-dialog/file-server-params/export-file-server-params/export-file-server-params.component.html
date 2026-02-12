@@ -22,7 +22,8 @@
             </div>
 
             <!-- TODO. Add a column for station selector here. It will cover `stationId` property in similar way to the  specificationId -->
-            <div *ngIf="exportFileServerParameters.specifications && exportFileServerParameters.specifications.length > 0">
+            <div
+                *ngIf="exportFileServerParameters.specifications && exportFileServerParameters.specifications.length > 0">
                 <table class="table table-sm">
                     <thead>
                         <tr>
@@ -38,15 +39,14 @@
                                     [selectedId]="item.specificationId"
                                     (selectedIdChange)="onSpecificationIdChange(i, $event)" />
                             </td>
-                             <td>
-                                <app-station-selector-single [id]="i + '_db_station'"
-                                    [selectedId]="item.stationId"
+                            <td>
+                                <app-station-selector-single [id]="i + '_db_station'" [selectedId]="item.stationId"
                                     (selectedIdChange)="onStationIdChange(i, $event)" />
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                <button type="button" class="btn btn-sm btn-outline-danger"  title="Remove Specification"
                                     (click)="onRemoveSpecification(i)">
-                                    Remove
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </td>
                         </tr>

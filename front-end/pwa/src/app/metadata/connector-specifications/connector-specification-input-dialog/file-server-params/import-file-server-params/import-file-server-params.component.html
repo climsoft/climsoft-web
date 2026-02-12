@@ -21,7 +21,8 @@
                 No specifications configured. Click "Add Specification" to create one.
             </div>
 
-            <div *ngIf="importFileServerParameters.specifications && importFileServerParameters.specifications.length > 0">
+            <div
+                *ngIf="importFileServerParameters.specifications && importFileServerParameters.specifications.length > 0">
                 <table class="table table-sm">
                     <thead>
                         <tr>
@@ -44,13 +45,12 @@
                             </td>
                             <td>
                                 <app-station-selector-single [id]="i + '_station_id_specification'"
-                                    [selectedId]="getStationId(i)"
-                                    (selectedIdChange)="onStationIdChange(i, $event)" />
+                                    [selectedId]="getStationId(i)" (selectedIdChange)="onStationIdChange(i, $event)" />
                             </td>
                             <td>
-                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                <button type="button" class="btn btn-sm btn-outline-danger" title="Remove Specification"
                                     (click)="onRemoveSpecification(i)">
-                                    Remove
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </td>
                         </tr>
