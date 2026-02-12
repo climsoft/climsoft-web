@@ -19,13 +19,13 @@
          <table class="table table-hover table-sm">
             <colgroup>
                <col style="width: 2%;" />
-               <col style="width: 16%;" />
-               <col style="width: 6%;" />
+               <col style="width: 14%;" />
+               <col style="width: 7%;" />
+               <col style="width: 12%;" />
                <col style="width: 10%;" />
-               <col style="width: 8%;" />
-               <col style="width: 8%;" />
-               <col style="width: 48%;" />
                <col style="width: 5%;" />
+               <col style="width: 40%;" />
+               <col style="width: 10%;" />
             </colgroup>
             <thead>
                <tr>
@@ -36,24 +36,63 @@
                   <th>Schedule</th>
                   <th>Order</th>
                   <th>Description</th>
-                  <th>Disabled</th>
+                  <th>Actions</th>
                </tr>
             </thead>
             <tbody>
-               <tr class="app-cursor-pointer" *ngFor="let connector of connectors"
-                  (click)="dlgConnectorInput.showDialog(connector.id)">
-                  <td><i class="bi bi-arrow-right-short"></i></td>
-                  <td>{{ connector.name }}</td>
-                  <td>{{ connector.connectorType }}</td>
-                  <td>{{ connector.hostName }}</td>
-                  <td>{{ connector.cronSchedule }}</td>
-                  <td>{{ connector.orderNumber }}</td>
-                  <td>{{ connector.description }}</td>
-                  <td>{{ connector.disabled? 'Yes': 'No' }}</td>
+               <tr class="app-cursor-pointer" *ngFor="let connector of connectors">
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)"><i class="bi bi-arrow-right-short"></i></td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.name }}</td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">
+                     <span class="badge" [ngClass]="connector.connectorType === 'import' ? 'bg-success' : 'bg-primary'">
+                        <i class="bi" [ngClass]="connector.connectorType === 'import' ? 'bi-download' : 'bi-upload'"></i>
+                        {{ connector.connectorType }}
+                     </span>
+                  </td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.hostName }}</td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.cronSchedule }}</td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.orderNumber }}</td>
+                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.description }}</td>
+                  <td>
+                     <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm"
+                           [ngClass]="connector.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                           [title]="connector.disabled ? 'Enable connector' : 'Disable connector'"
+                           (click)="onToggleDisabledClick(connector, $event)">
+                           <i class="bi" [ngClass]="connector.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" title="Delete connector"
+                           (click)="onDeleteClick(connector, $event)">
+                           <i class="bi bi-trash"></i>
+                        </button>
+                     </div>
+                  </td>
                </tr>
             </tbody>
          </table>
       </div>
    </div>
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
+
+   <!-- Delete Confirmation Dialog -->
+   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''"
+      [itemType]="'connector'" (deleteConfirmed)="onDeleteConfirm()" />
+
+   <!-- Enable/Disable Confirmation Dialog -->
+   <app-dialog [(open)]="toggleDialogOpen" [title]="toggleDialogTitle" [okButtonLabel]="toggleDialogOkLabel"
+      [displayDeleteOption]="false" (okClick)="onToggleDisabledConfirm()">
+      <div *ngIf="selectedConnector">
+         <p>{{ toggleDialogMessage }}</p>
+         <div *ngIf="!selectedConnector.disabled" class="alert alert-warning">
+            <i class="bi bi-info-circle me-1"></i>
+            <strong>Note:</strong> Disabling a connector will stop its scheduled {{ selectedConnector.connectorType }} operations.
+            No data will be {{ selectedConnector.connectorType === 'import' ? 'imported' : 'exported' }} until the connector is enabled again.
+         </div>
+         <div *ngIf="selectedConnector.disabled" class="alert alert-info">
+            <i class="bi bi-info-circle me-1"></i>
+            <strong>Note:</strong> Enabling this connector will schedule its {{ selectedConnector.connectorType }} operations
+            according to the cron schedule: <code>{{ selectedConnector.cronSchedule }}</code>
+         </div>
+      </div>
+   </app-dialog>
 </div>

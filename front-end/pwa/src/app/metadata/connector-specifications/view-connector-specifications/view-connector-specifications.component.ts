@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 
@@ -10,8 +11,18 @@ import { ConnectorSpecificationsService } from '../services/connector-specificat
   styleUrls: ['./view-connector-specifications.component.scss']
 })
 export class ViewConnectorSpecificationsComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
   protected connectors!: ViewConnectorSpecificationModel[];
+
+  // Selected connector for actions
+  protected selectedConnector: ViewConnectorSpecificationModel | null = null;
+
+  // Toggle enabled/disabled confirmation dialog
+  protected toggleDialogOpen: boolean = false;
+  protected toggleDialogTitle: string = '';
+  protected toggleDialogOkLabel: string = '';
+  protected toggleDialogMessage: string = '';
 
   constructor(
     private pagesDataService: PagesDataService,
@@ -28,7 +39,7 @@ export class ViewConnectorSpecificationsComponent {
     });
   }
 
-  protected onOptionsClicked(option:  'Delete All') {
+  protected onOptionsClicked(option: 'Delete All') {
     switch (option) {
       case 'Delete All':
         this.connectorSpecificationsService.deleteAll().pipe(
@@ -46,6 +57,85 @@ export class ViewConnectorSpecificationsComponent {
 
   protected onConnectorInput(): void {
     this.loadConnectorSpecifications();
+  }
+
+  protected onDeleteClick(connector: ViewConnectorSpecificationModel, event: Event): void {
+    event.stopPropagation();
+    this.selectedConnector = connector;
+    this.dlgDeleteConfirm.showDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    if (!this.selectedConnector) return;
+
+    this.connectorSpecificationsService.delete(this.selectedConnector.id).pipe(
+      take(1)
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: `Connector "${this.selectedConnector!.name}" deleted`,
+          type: ToastEventTypeEnum.SUCCESS
+        });
+        this.loadConnectorSpecifications();
+        this.selectedConnector = null;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: `Error deleting connector: ${err.message}`,
+          type: ToastEventTypeEnum.ERROR
+        });
+      }
+    });
+  }
+
+  protected onToggleDisabledClick(connector: ViewConnectorSpecificationModel, event: Event): void {
+    event.stopPropagation();
+    this.selectedConnector = connector;
+
+    if (connector.disabled) {
+      this.toggleDialogTitle = 'Enable Connector';
+      this.toggleDialogOkLabel = 'Enable';
+      this.toggleDialogMessage = `Are you sure you want to enable the connector "${connector.name}"?`;
+    } else {
+      this.toggleDialogTitle = 'Disable Connector';
+      this.toggleDialogOkLabel = 'Disable';
+      this.toggleDialogMessage = `Are you sure you want to disable the connector "${connector.name}"?`;
+    }
+
+    this.toggleDialogOpen = true;
+  }
+
+  protected onToggleDisabledConfirm(): void {
+    if (!this.selectedConnector) return;
+
+    const newDisabledState = !this.selectedConnector.disabled;
+    const action = newDisabledState ? 'disabled' : 'enabled';
+
+    this.connectorSpecificationsService.update(this.selectedConnector.id, {
+      ...this.selectedConnector,
+      disabled: newDisabledState
+    }).pipe(
+      take(1)
+    ).subscribe({
+      next: () => {
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: `Connector "${this.selectedConnector!.name}" ${action}`,
+          type: ToastEventTypeEnum.SUCCESS
+        });
+        this.loadConnectorSpecifications();
+        this.selectedConnector = null;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({
+          title: 'Connector Specification',
+          message: `Error updating connector: ${err.message}`,
+          type: ToastEventTypeEnum.ERROR
+        });
+      }
+    });
   }
 
 }

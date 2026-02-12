@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorTypeEnum } from '../models/connector-type.enum';
@@ -12,6 +13,8 @@ import { CreateConnectorSpecificationModel, EndPointTypeEnum, FileServerProtocol
   styleUrls: ['./connector-specification-input-dialog.component.scss']
 })
 export class ConnectorSpecificationInputDialogComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+
   @Output()
   public ok = new EventEmitter<void>();
 
@@ -137,7 +140,11 @@ export class ConnectorSpecificationInputDialogComponent {
     if (value) this.connector.orderNumber = value;
   }
 
-  protected onDeleteClick(): void {
+  protected onDeleteButtonClick(): void {
+    this.dlgDeleteConfirm.showDialog();
+  }
+
+  protected onDeleteConfirm(): void {
     this.connectorSpecificationsService.delete(this.connector.id).pipe(
       take(1)
     ).subscribe(() => {

@@ -1,6 +1,6 @@
 <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'"
     [displayDeleteOption]="connector && connector.id > 0" [closeOnOkClick]="false" (okClick)="onSubmitClick()"
-    (deleteClick)="onDeleteClick()">
+    (deleteClick)="onDeleteButtonClick()">
 
     <div *ngIf="open && connector">
         <div>
@@ -86,3 +86,6 @@
     </div>
 
 </app-dialog>
+
+<app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="connector?.name || ''"
+    [itemType]="'connector'" (deleteConfirmed)="onDeleteConfirm()" />

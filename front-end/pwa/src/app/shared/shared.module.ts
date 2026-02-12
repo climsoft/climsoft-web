@@ -42,6 +42,7 @@ import { TimeFormatSelectorSingleComponent } from './controls/datetime-format-se
 import { DateFormatSelectorSingleComponent } from './controls/datetime-format-selectors/date-format-selector-single/date-format-selector-single.component';
 import { ErrorSelectorSingleComponent } from './controls/error-selector-single/error-selector-single.component';
 import { CronInputComponent } from './controls/cron-input/cron-input.component';
+import { DeleteConfirmationDialogComponent } from './controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 //--------------------------------
 
@@ -97,6 +98,7 @@ const controlsComponents = [
 
   ErrorSelectorSingleComponent,
   CronInputComponent,
+  DeleteConfirmationDialogComponent,
 ];
 
 const directives = [
