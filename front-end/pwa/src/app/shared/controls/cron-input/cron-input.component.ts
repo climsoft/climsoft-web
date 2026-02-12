@@ -1,5 +1,24 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
+/**
+ * CronInputComponent - A simple cron expression builder for common scheduling scenarios.
+ *
+ * This component provides a user-friendly dialog for creating cron expressions commonly used
+ * in climate and hydrology data collection workflows, including:
+ * - Every N minutes (e.g., automatic weather station syncs)
+ * - Hourly at specific minute (e.g., delayed polling after file production)
+ * - Every N hours at specific minute
+ * - Daily at specific time (e.g., daily climate summaries)
+ * - Every N days at specific time (e.g., dekadal summaries)
+ * - Weekly on specific day(s) at specific time
+ * - Monthly on specific day at specific time
+ *
+ * For more advanced cron expressions not supported by this builder, users can:
+ * - Manually type the cron expression in the input field
+ * - Use https://claudiuconstantin.github.io/cron-editor (for ngx-cron-editor: https://www.npmjs.com/package/ngx-cron-editor)
+ * - Use https://haavardj.github.io/ngx-cron-editor (for cron-editor: https://www.npmjs.com/package/cron-editor)
+ * - Use any popular AI assistant to generate a custom cron expression
+ */
 export enum CronFrequencyEnum {
   EVERY_N_MINUTES = 'every_n_minutes',
   HOURLY_AT_MINUTE = 'hourly_at_minute',
@@ -46,7 +65,7 @@ export class CronInputComponent {
   ];
 
   protected daysOfWeek: DayOfWeekOption[] = [
-    { id: 0, name: 'Sunday', shortName: 'Sun', selected: false },
+    { id: 0, name: 'Sunday', shortName: 'Sun', selected: true },
     { id: 1, name: 'Monday', shortName: 'Mon', selected: false },
     { id: 2, name: 'Tuesday', shortName: 'Tue', selected: false },
     { id: 3, name: 'Wednesday', shortName: 'Wed', selected: false },
@@ -142,7 +161,7 @@ export class CronInputComponent {
   }
 
   private resetDaysOfWeek(): void {
-    this.daysOfWeek.forEach(d => d.selected = false);
+    this.daysOfWeek.forEach(d => d.selected = d.id === 0); // Sunday as default
   }
 
   private resetToDefaults(): void {
