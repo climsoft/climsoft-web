@@ -22,7 +22,7 @@ import { ImportSourceLevelDetailComponent } from './source-specifications/import
 import { ImportSourceMissingFlagDetailComponent } from './source-specifications/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
-import { QCTestParameterInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-test-input-dialog.component';
+import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
 import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
 import { QCTestFlatLineParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-flat-line-params/qc-test-flat-line-params.component';
@@ -62,7 +62,7 @@ import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stat
 import { QCStatusSelectorSingleComponent } from './qc-tests/qc-status-selector-single/qc-status-selector-single.component';
 import { ExportTypeSelectorSingleComponent } from './export-specifications/export-type-selector-single/export-type-selector-single.component';
 import { NetworkAffiliationsSelectorSingleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-single/network-affiliations-selector-single.component';
-import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
+import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
 import { RegionSelectorMultipleComponent } from './regions/regions-selector/region-selector-multiple/region-selector-multiple.component';
 import { OrganisationSelectorMultipleComponent } from './organisations/organisation-selector/organisation-selector-multiple/organisation-selector-multiple.component';
 import { NetworkAffiliationsSelectorMultipleComponent } from './network-affiliations/network-affiliations-selector/network-affiliations-selector-multiple/network-affiliations-selector-multiple.component';
@@ -154,8 +154,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
-    ViewQCTestsComponent, 
-    QCTestParameterInputDialogComponent,
+    ViewQCSpecificationsComponent, 
+    QCSpecificationInputDialogComponent,
     QCTestTypeSingleSelectorComponent,
     QCTestRangeThresholdParamsComponent,
     QCTestFlatLineParamsComponent,

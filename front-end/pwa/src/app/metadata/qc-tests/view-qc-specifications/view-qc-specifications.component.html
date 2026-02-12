@@ -2,7 +2,7 @@
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
       <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
-        (click)="dlgQcEdit.showDialog()">
+        (click)="dlgQcEdit.openDialog()">
         Add
       </button>
       <div class="ms-2">
@@ -43,7 +43,7 @@
         </thead>
         <tbody>
           <tr class="app-cursor-pointer" *ngFor="let qcTestParam of qCTestParams"
-            (click)="isSystemAdmin? dlgQcEdit.showDialog(qcTestParam.id): ''">
+            (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ qcTestParam.name }}</td>
             <td>{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
@@ -56,6 +56,6 @@
         </tbody>
       </table>
     </div>
-    <app-qc-test-input-dialog #dlgQcEdit />
+    <app-qc-specification-input-dialog #dlgQcEdit />
   </div>
 </div>

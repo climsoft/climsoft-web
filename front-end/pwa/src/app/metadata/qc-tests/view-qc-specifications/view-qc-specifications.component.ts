@@ -2,7 +2,7 @@ import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
-import { QCTestParameterInputDialogComponent } from '../qc-test-input-dialog/qc-test-input-dialog.component';
+import { QCSpecificationInputDialogComponent } from '../qc-test-input-dialog/qc-specification-input-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 
@@ -19,12 +19,12 @@ enum OptionEnum {
 }
 
 @Component({
-  selector: 'app-view-qc-tests',
-  templateUrl: './view-qc-tests.component.html',
-  styleUrls: ['./view-qc-tests.component.scss']
+  selector: 'app-view-qc-specifications',
+  templateUrl: './view-qc-specifications.component.html',
+  styleUrls: ['./view-qc-specifications.component.scss']
 })
-export class ViewQCTestsComponent implements OnDestroy {
-  @ViewChild('dlgQcEdit') appQCEditDialog!: QCTestParameterInputDialogComponent;
+export class ViewQCSpecificationsComponent implements OnDestroy {
+  @ViewChild('dlgQcEdit') appQCEditDialog!: QCSpecificationInputDialogComponent;
 
   protected qCTestParams!: ElementQCTestView[];
   protected searchedIds: number[] = [];

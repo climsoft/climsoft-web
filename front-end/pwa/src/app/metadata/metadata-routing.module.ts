@@ -12,7 +12,7 @@ import { ViewOrganisationsComponent } from './organisations/view-organisations/v
 import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
-import { ViewQCTestsComponent } from './qc-tests/view-qc-tests/view-qc-tests.component';
+import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
 
 const routes: Routes = [
   {
@@ -64,7 +64,7 @@ const routes: Routes = [
       }, 
         {
         path: 'view-qc-test-specifications',
-        component: ViewQCTestsComponent
+        component: ViewQCSpecificationsComponent
       },
         {
         path: 'view-source-specifications',

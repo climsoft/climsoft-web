@@ -13,11 +13,11 @@ import { QCTestsCacheService } from '../services/qc-tests-cache.service';
 import { FlatLineQCTestParamsModel } from '../models/qc-test-parameters/flat-line-qc-test-params.model';
 
 @Component({
-  selector: 'app-qc-test-input-dialog',
-  templateUrl: './qc-test-input-dialog.component.html',
-  styleUrls: ['./qc-test-input-dialog.component.scss']
+  selector: 'app-qc-specification-input-dialog',
+  templateUrl: './qc-specification-input-dialog.component.html',
+  styleUrls: ['./qc-specification-input-dialog.component.scss']
 })
-export class QCTestParameterInputDialogComponent {
+export class QCSpecificationInputDialogComponent {
   @Output()
   public ok = new EventEmitter<void>();
 
@@ -31,7 +31,7 @@ export class QCTestParameterInputDialogComponent {
     private qcTestscacheService: QCTestsCacheService,
     private pagesDataService: PagesDataService) { }
 
-  public showDialog(elementQCTestId?: number): void {
+  public openDialog(elementQCTestId?: number): void {
     this.open = true;
     this.title = elementQCTestId ? 'Edit QC Specification' : 'New QC Specification';
 
