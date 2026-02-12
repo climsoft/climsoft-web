@@ -369,7 +369,7 @@ export class ObservationsService {
   public generateExport(exportTemplateId: number, viewObsQuery: ViewObservationQueryModel): Observable<string> {
     return this.http.get<string>(
       `${this.endPointUrl}/generate-export/${exportTemplateId}`,
-      { 
+      {
         params: StringUtils.getQueryParams<ViewObservationQueryModel>(viewObsQuery),
         responseType: 'text' as 'json'
       })

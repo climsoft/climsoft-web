@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Transform, Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min, ValidateNested } from 'class-validator';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { IsCron } from 'src/shared/validators/is-cron.validator';
 
 
 export enum ConnectorTypeEnum {
@@ -58,6 +59,7 @@ export class CreateConnectorSpecificationDto {
 
     @IsString()
     @IsNotEmpty()
+    @IsCron()
     cronSchedule: string; // Cron pattern (e.g., '0 2 * * *' for 2 AM daily)
 
     @IsOptional()
