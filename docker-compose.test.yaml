@@ -71,7 +71,7 @@ services:
 
   climsoft_csv2bufr:
     build:
-      context: ./csv2bufr
+      context: ./back-end/csv2bufr
       dockerfile: Dockerfile
     container_name: climsoft-csv2bufr
     restart: always
