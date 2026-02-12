@@ -4,13 +4,11 @@
         <p>{{ confirmMessage }}</p>
         <div *ngIf="!isCurrentlyDisabled" class="alert alert-warning">
             <i class="bi bi-info-circle me-1"></i>
-            <strong>Note:</strong> Disabling this {{ itemType }} will stop its scheduled {{ operationType }} operations.
-            No data will be {{ operationType === 'import' ? 'imported' : 'exported' }} until it is enabled again.
+            <strong>Note:</strong> Disabling this {{ itemType }} will stop its {{ operationType }} operations.
         </div>
         <div *ngIf="isCurrentlyDisabled" class="alert alert-info">
             <i class="bi bi-info-circle me-1"></i>
-            <strong>Note:</strong> Enabling this {{ itemType }} will schedule its {{ operationType }} operations
-            according to the schedule: <code>{{ schedule }}</code>
+            <strong>Note:</strong> Enabling this {{ itemType }} will resume its {{ operationType }} operations.
         </div>
     </div>
 </app-dialog>

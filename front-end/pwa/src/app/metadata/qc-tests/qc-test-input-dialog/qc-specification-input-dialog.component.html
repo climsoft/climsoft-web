@@ -1,84 +1,87 @@
-<app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
-    [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
-
-    <div *ngIf="open && updateQcTest">
-        <div>
-            <app-element-selector-single [label]="'Element'" [(selectedId)]="updateQcTest.elementId" />
-        </div>
-        <hr />
+<ng-container *ngIf="open && updateQcTest">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="updateQcTest.id > 0"
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
         <div>
-            <app-text-input [label]="'Name'" [(value)]="updateQcTest.name" />
-        </div>
+            <div>
+                <app-element-selector-single [label]="'Element'" [(selectedId)]="updateQcTest.elementId" />
+            </div>
+            <hr />
 
-        <hr />
+            <div>
+                <app-text-input [label]="'Name'" [(value)]="updateQcTest.name" />
+            </div>
 
-        <div>
-            <app-text-input [label]="'Description'" [(value)]="updateQcTest.description" />
-        </div>
+            <hr />
 
-        <hr />
+            <div>
+                <app-text-input [label]="'Description'" [(value)]="updateQcTest.description" />
+            </div>
 
-        <div>
-            <app-number-input [label]="'Observation Level'" [(numValue)]="updateQcTest.observationLevel" />
-        </div>
+            <hr />
 
-        <hr />
+            <div>
+                <app-number-input [label]="'Observation Level'" [(numValue)]="updateQcTest.observationLevel" />
+            </div>
 
-        <div>
-            <app-interval-selector-single [label]="'Observation Interval'"
-                [(selectedId)]="updateQcTest.observationInterval" />
-        </div>
+            <hr />
 
-        <hr />
+            <div>
+                <app-interval-selector-single [label]="'Observation Interval'"
+                    [(selectedId)]="updateQcTest.observationInterval" />
+            </div>
 
-        <div>
-            <app-qc-test-type-single-selector [label]="'QC Test Type'" [selectedId]="updateQcTest.qcTestType"
-                (selectedIdChange)="onQCTestTypeSelected($event)" />
-        </div>
+            <hr />
 
-        <hr />
+            <div>
+                <app-qc-test-type-single-selector [label]="'QC Test Type'" [selectedId]="updateQcTest.qcTestType"
+                    (selectedIdChange)="onQCTestTypeSelected($event)" />
+            </div>
 
-        <div class="card">
-            <div class="card-header">Parameters</div>
-            <div class="card-body">
-                <div *ngIf="!displayNotYetSupported">
-                    <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
-                        [rangeThresholdQCTestParameters]="rangeThresholdParam" />
+            <hr />
 
-                    <app-qc-test-flat-line-params *ngIf="isFlatLine" [flatLineQCTestParameters]="flatLineParam" />
+            <div class="card">
+                <div class="card-header">Parameters</div>
+                <div class="card-body">
+                    <div *ngIf="!displayNotYetSupported">
+                        <app-qc-test-range-threshold-params *ngIf="isRangeThreshold"
+                            [rangeThresholdQCTestParameters]="rangeThresholdParam" />
 
-                    <app-qc-test-spike-params *ngIf="isSpike" [spikeQCTestParameters]="spikeParam" />
+                        <app-qc-test-flat-line-params *ngIf="isFlatLine" [flatLineQCTestParameters]="flatLineParam" />
 
-                    <app-qc-test-relational-params *ngIf="isRelationalComparison"
-                        [relationalQCTestParameters]="relationalComparisonParam" />
+                        <app-qc-test-spike-params *ngIf="isSpike" [spikeQCTestParameters]="spikeParam" />
 
-                    <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
-                        [contextualQCTestParameters]="contextualConsistentyParam" />
+                        <app-qc-test-relational-params *ngIf="isRelationalComparison"
+                            [relationalQCTestParameters]="relationalComparisonParam" />
+
+                        <app-qc-test-contextual-params *ngIf="isContextualConsistenty"
+                            [contextualQCTestParameters]="contextualConsistentyParam" />
+                    </div>
+
+                    <div *ngIf="displayNotYetSupported" class="fw-bold text-info">
+                        QC Test will be supported in the next version release
+                    </div>
                 </div>
 
-                <div *ngIf="displayNotYetSupported" class="fw-bold text-info">
-                    QC Test will be supported in the next version release
-                </div>
+            </div>
+
+            <hr />
+
+            <div>
+                <app-check-box-input [label]="'Disable'" [(value)]="updateQcTest.disabled" />
+            </div>
+
+            <hr />
+
+            <div>
+                <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />
             </div>
 
         </div>
 
-        <hr />
+    </app-dialog>
 
-        <div>
-            <app-check-box-input [label]="'Disable'" [(value)]="updateQcTest.disabled" />
-        </div>
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="updateQcTest.name" [itemType]="'QC specification'"
+        (deleteConfirmed)="onDeleteConfirm()" />
 
-        <hr />
-
-        <div>
-            <app-text-input [label]="'Comment'" [(value)]="updateQcTest.comment" />
-        </div>
-
-    </div>
-
-</app-dialog>
-
-<app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="updateQcTest?.name || ''"
-    [itemType]="'QC specification'" (deleteConfirmed)="onDeleteConfirm()" />
+</ng-container>

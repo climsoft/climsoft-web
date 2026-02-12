@@ -1,6 +1,6 @@
 import { CreateViewGeneralSettingDto } from "src/settings/dtos/create-view-general-setting.dto";
 import { ClimsoftBoundaryDto } from "src/settings/dtos/settings/climsoft-boundary.dto";
-import { ClimsoftDisplayTimeZoneDto } from "src/settings/dtos/settings/climsoft-display-timezone.dto"; 
+import { ClimsoftDisplayTimeZoneDto } from "src/settings/dtos/settings/climsoft-display-timezone.dto";
 
 export class GeneralSettingsDefaults {
     public static readonly GENERAL_SETTINGS: CreateViewGeneralSettingDto[] = [
@@ -22,7 +22,16 @@ export class GeneralSettingsDefaults {
                 utcOffset: 0,
                 isValid: () => true
             } as ClimsoftDisplayTimeZoneDto
-        }, 
+        },
+        {
+            id: 3,
+            name: 'Scheduler',
+            description: 'Settings related to the scheduler that runs the connectors, QC and alerts.',
+            parameters: {
+                utcOffset: 0,
+                isValid: () => true
+            }
+        },
 
     ];
 

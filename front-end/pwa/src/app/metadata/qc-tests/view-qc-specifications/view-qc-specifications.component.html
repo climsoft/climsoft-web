@@ -97,6 +97,6 @@
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedQcTest?.name || ''"
     [itemType]="'QC specification'" [isCurrentlyDisabled]="selectedQcTest?.disabled || false"
-    [operationType]="selectedQcTest?.qcTestTypeName || ''"
+    [operationType]="selectedQcTest?.qcTestTypeName + ' QC' || ''"
     [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

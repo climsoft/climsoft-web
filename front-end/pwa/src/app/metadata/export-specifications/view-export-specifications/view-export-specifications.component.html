@@ -1,4 +1,4 @@
-<div *ngIf="exports" class="card border-0">
+<div class="card border-0">
   <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
 
     <div class="d-flex align-items-center">
@@ -16,7 +16,7 @@
   </div>
 
   <div class="card-body px-0">
-    <div class="app-table-container" style="height: 80vh;">
+    <div *ngIf="exports" class="app-table-container" style="height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -35,8 +35,7 @@
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let export of exports"
-            [class.export-disabled]="export.disabled">
+          <tr class="app-cursor-pointer" *ngFor="let export of exports" [class.export-disabled]="export.disabled">
             <td (click)="dlgExportInput.showDialog(export.id)"><i class="bi bi-arrow-right-short"></i></td>
             <td (click)="dlgExportInput.showDialog(export.id)">{{ export.name }}</td>
             <td (click)="dlgExportInput.showDialog(export.id)">
@@ -77,6 +76,6 @@
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedExport?.name || ''"
     [itemType]="'export specification'" [isCurrentlyDisabled]="selectedExport?.disabled || false"
-    [operationType]="selectedExport?.exportType || ''"
-    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+    [operationType]="selectedExport?.exportType + ' export' || ''" [schedule]="''"
+    (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>
