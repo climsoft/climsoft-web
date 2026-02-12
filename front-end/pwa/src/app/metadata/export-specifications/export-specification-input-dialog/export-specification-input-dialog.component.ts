@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { ViewExportSpecificationModel } from '../models/view-export-specification.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -8,6 +8,7 @@ import { ExportTypeEnum } from '../models/export-type.enum';
 import { RawExportParametersModel } from '../models/raw-export-parameters.model';
 import { BufrExportParametersModel, BufrTypeEnum } from '../models/bufr-export-parameters.model';
 import { AggregateExportParametersModel } from '../models/aggregate-export-parameters.model';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 @Component({
   selector: 'app-export-specification-input-dialog',
@@ -15,6 +16,8 @@ import { AggregateExportParametersModel } from '../models/aggregate-export-param
   styleUrls: ['./export-specification-input-dialog.component.scss']
 })
 export class ExportSpecificationInputDialogComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+
   @Output()
   public ok = new EventEmitter<void>();
 
@@ -130,18 +133,18 @@ export class ExportSpecificationInputDialogComponent {
 
   }
 
-  protected onDeleteClick(): void {
-    if (!confirm('Are you sure you want to delete this specification?')) {
-      this.open = false;
-      return;
-    }
+  protected onDeleteButtonClick(): void {
+    this.dlgDeleteConfirm.showDialog();
+  }
 
-    this.exportSpecificationsService.delete(this.viewExportSpecification.id).subscribe((data) => {
+  protected onDeleteConfirm(): void {
+    this.exportSpecificationsService.delete(this.viewExportSpecification.id).pipe(
+      take(1)
+    ).subscribe(() => {
       this.open = false;
       this.pagesDataService.showToast({ title: "Export Specification", message: 'Export specification deleted', type: ToastEventTypeEnum.SUCCESS });
       this.ok.emit();
     });
-
   }
 
 }

@@ -126,4 +126,6 @@
         </button>
     </div>
 
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewSource.name"
+        [itemType]="'form specification'" (deleteConfirmed)="onDeleteConfirm()" />
 </div>

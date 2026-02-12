@@ -155,4 +155,6 @@
         </button>
     </div>
 
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewSource.name"
+        [itemType]="'import specification'" (deleteConfirmed)="onDeleteConfirm()" />
 </div>

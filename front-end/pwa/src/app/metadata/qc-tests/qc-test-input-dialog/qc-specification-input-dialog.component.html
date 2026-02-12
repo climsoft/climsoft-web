@@ -1,5 +1,5 @@
 <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="updateQcTest && updateQcTest.id > 0"
-    [closeOnOkClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
+    [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onOkClick()" (deleteClick)="onDeleteClick()">
 
     <div *ngIf="open && updateQcTest">
         <div>
@@ -79,3 +79,6 @@
     </div>
 
 </app-dialog>
+
+<app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="updateQcTest?.name || ''"
+    [itemType]="'QC specification'" (deleteConfirmed)="onDeleteConfirm()" />

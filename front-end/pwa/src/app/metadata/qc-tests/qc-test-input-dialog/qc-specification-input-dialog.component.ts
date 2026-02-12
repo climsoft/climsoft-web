@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { Observable, take } from 'rxjs';
 import { CreateQCTestModel } from 'src/app/metadata/qc-tests/models/create-qc-test.model';
 import { ContextualQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/contextual-qc-test-params.model';
@@ -11,6 +11,7 @@ import { ViewQCTestModel } from 'src/app/metadata/qc-tests/models/view-qc-test.m
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { QCTestsCacheService } from '../services/qc-tests-cache.service';
 import { FlatLineQCTestParamsModel } from '../models/qc-test-parameters/flat-line-qc-test-params.model';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 @Component({
   selector: 'app-qc-specification-input-dialog',
@@ -18,6 +19,8 @@ import { FlatLineQCTestParamsModel } from '../models/qc-test-parameters/flat-lin
   styleUrls: ['./qc-specification-input-dialog.component.scss']
 })
 export class QCSpecificationInputDialogComponent {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+
   @Output()
   public ok = new EventEmitter<void>();
 
@@ -199,20 +202,15 @@ export class QCSpecificationInputDialogComponent {
   }
 
   protected onDeleteClick(): void {
+    this.dlgDeleteConfirm.showDialog();
+  }
+
+  protected onDeleteConfirm(): void {
     this.qcTestscacheService.delete(this.updateQcTest.id).pipe(
       take(1)
-    ).subscribe((data) => {
-      let message: string;
-      let messageType: ToastEventTypeEnum;
-      if (data) {
-        message = `qc test deleted`;
-        messageType = ToastEventTypeEnum.SUCCESS;
-      } else {
-        message = "Error in deleting qc test";
-        messageType = ToastEventTypeEnum.ERROR;
-      }
+    ).subscribe(() => {
       this.open = false;
-      this.pagesDataService.showToast({ title: "QC Tests", message: message, type: messageType });
+      this.pagesDataService.showToast({ title: 'QC Tests', message: 'QC test deleted', type: ToastEventTypeEnum.SUCCESS });
       this.ok.emit();
     });
   }

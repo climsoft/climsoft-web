@@ -20,28 +20,63 @@
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
-          <col style="width: 18%;" />
-          <col style="width: 75%;" />
-          <col style="width: 5%;" />
+          <col style="width: 16%;" />
+          <col style="width: 8%;" />
+          <col style="width: 62%;" />
+          <col style="width: 12%;" />
         </colgroup>
         <thead>
           <tr>
             <th></th>
             <th>Name</th>
+            <th>Type</th>
             <th>Description</th>
-            <th>Disabled</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let export of exports" (click)="dlgExportInput.showDialog(export.id)">
-            <td><i class="bi bi-arrow-right-short"></i></td>
-            <td>{{ export.name }}</td>
-            <td>{{ export.description }}</td>
-            <td>{{ export.disabled? 'Yes': 'No' }}</td>
+          <tr class="app-cursor-pointer" *ngFor="let export of exports"
+            [class.export-disabled]="export.disabled">
+            <td (click)="dlgExportInput.showDialog(export.id)"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="dlgExportInput.showDialog(export.id)">{{ export.name }}</td>
+            <td (click)="dlgExportInput.showDialog(export.id)">
+              <span class="badge" [ngClass]="{
+                'bg-info': export.exportType === 'raw',
+                'bg-warning text-dark': export.exportType === 'aggregate',
+                'bg-secondary': export.exportType === 'bufr'
+              }">
+                {{ export.exportType }}
+              </span>
+            </td>
+            <td (click)="dlgExportInput.showDialog(export.id)">{{ export.description }}</td>
+            <td>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm"
+                  [ngClass]="export.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                  [title]="export.disabled ? 'Enable export' : 'Disable export'"
+                  (click)="onToggleDisabledClick(export, $event)">
+                  <i class="bi" [ngClass]="export.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete export"
+                  (click)="onDeleteClick(export, $event)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
   <app-export-specification-input-dialog #dlgExportInput (ok)="onExportInput()" />
+
+  <!-- Delete Confirmation Dialog -->
+  <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedExport?.name || ''"
+    [itemType]="'export specification'" (deleteConfirmed)="onDeleteConfirm()" />
+
+  <!-- Enable/Disable Confirmation Dialog -->
+  <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedExport?.name || ''"
+    [itemType]="'export specification'" [isCurrentlyDisabled]="selectedExport?.disabled || false"
+    [operationType]="selectedExport?.exportType || ''"
+    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

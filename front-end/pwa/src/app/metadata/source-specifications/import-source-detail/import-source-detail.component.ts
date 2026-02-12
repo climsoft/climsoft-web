@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
@@ -11,6 +11,7 @@ import { CreateSourceModel } from 'src/app/metadata/source-specifications/models
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 @Component({
   selector: 'app-import-source-detail',
@@ -18,6 +19,7 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./import-source-detail.component.scss']
 })
 export class ImportSourceDetailComponent implements OnInit {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
   protected viewSource!: ViewSourceModel;
   protected errorMessage: string = '';
@@ -199,9 +201,15 @@ export class ImportSourceDetailComponent implements OnInit {
   }
 
   protected onDelete(): void {
-    //TODO. Prompt for confirmation first
-    this.importSourcesService.delete(this.viewSource.id).subscribe({
+    this.dlgDeleteConfirm.showDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.importSourcesService.delete(this.viewSource.id).pipe(
+      take(1)
+    ).subscribe({
       next: () => {
+        this.pagesDataService.showToast({ title: 'Import Template', message: 'Import template deleted', type: ToastEventTypeEnum.SUCCESS });
         this.location.back();
       },
       error: err => {

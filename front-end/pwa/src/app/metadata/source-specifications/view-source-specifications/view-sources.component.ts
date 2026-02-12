@@ -8,6 +8,8 @@ import { SourceTemplatesCacheService } from '../services/source-templates-cache.
 import { StationFormsService } from '../../stations/services/station-forms.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 
 interface View extends ViewSourceModel {
   // Applicable to form source only
@@ -22,9 +24,11 @@ interface View extends ViewSourceModel {
 })
 export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
   protected sources!: View[];
-  protected selectedSource!: View;
+  protected selectedSource: View | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -118,13 +122,54 @@ export class ViewSourcesComponent implements OnDestroy {
   }
 
   protected onAssignFormToStationsInput(stationIds: string[]): void {
+    if (!this.selectedSource) return;
     this.stationFormsService.putStationsAssignedToUseForm(this.selectedSource.id, stationIds).pipe(
       take(1)
     ).subscribe(data => {
-      this.selectedSource.assignedStations = data.length;
+      if (this.selectedSource) {
+        this.selectedSource.assignedStations = data.length;
+      }
     });
   }
 
+  protected onDeleteClick(source: View, event: Event): void {
+    event.stopPropagation();
+    this.selectedSource = source;
+    this.dlgDeleteConfirm.showDialog();
+  }
 
+  protected onDeleteConfirm(): void {
+    if (!this.selectedSource) return;
+    this.sourcesCacheService.delete(this.selectedSource.id).pipe(
+      take(1)
+    ).subscribe(() => {
+      this.pagesDataService.showToast({ title: 'Source Specification', message: 'Source specification deleted', type: ToastEventTypeEnum.SUCCESS });
+      this.selectedSource = null;
+    });
+  }
+
+  protected onToggleDisabledClick(source: View, event: Event): void {
+    event.stopPropagation();
+    this.selectedSource = source;
+    this.dlgToggleDisabled.showDialog();
+  }
+
+  protected onToggleDisabledConfirm(): void {
+    if (!this.selectedSource) return;
+    const newDisabledState = !this.selectedSource.disabled;
+    const { id, assignedStations, sourceTypeName, ...updateDto } = this.selectedSource;
+    this.sourcesCacheService.update(id, { ...updateDto, disabled: newDisabledState }).pipe(
+      take(1)
+    ).subscribe({
+      next: () => {
+        const action = newDisabledState ? 'disabled' : 'enabled';
+        this.pagesDataService.showToast({ title: 'Source Specification', message: `Source specification ${action}`, type: ToastEventTypeEnum.SUCCESS });
+        this.selectedSource = null;
+      },
+      error: err => {
+        this.pagesDataService.showToast({ title: 'Source Specification', message: `Error updating source specification - ${err.message}`, type: ToastEventTypeEnum.ERROR });
+      }
+    });
+  }
 
 }

@@ -28,6 +28,13 @@
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
+          <col style="width: 14%;" />
+          <col style="width: 14%;" />
+          <col style="width: 6%;" />
+          <col style="width: 8%;" />
+          <col style="width: 12%;" />
+          <col style="width: 32%;" />
+          <col style="width: 12%;" />
         </colgroup>
         <thead>
           <tr>
@@ -38,24 +45,58 @@
             <th>Interval</th>
             <th>Type</th>
             <th>Parameters</th>
-            <th>Disabled</th>
+            <th>Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="table-group-divider">
           <tr class="app-cursor-pointer" *ngFor="let qcTestParam of qCTestParams"
-            (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">
-            <td><i class="bi bi-arrow-right-short"></i></td>
-            <td>{{ qcTestParam.name }}</td>
-            <td>{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
-            <td>{{ qcTestParam.observationLevel }}</td>
-            <td>{{ qcTestParam.observationIntervalName }}</td>
-            <td>{{ qcTestParam.qcTestTypeName }}</td>
-            <td>{{ qcTestParam.formattedParameters }}</td>
-            <td>{{ qcTestParam.disabled? 'Yes': 'No' }}</td>
+            [class.qc-disabled]="qcTestParam.disabled">
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.name }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationLevel }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationIntervalName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">
+              <span class="badge" [ngClass]="{
+                'bg-primary': qcTestParam.qcTestType === 'range_threshold',
+                'bg-info': qcTestParam.qcTestType === 'flat_line',
+                'bg-warning text-dark': qcTestParam.qcTestType === 'spike',
+                'bg-secondary': qcTestParam.qcTestType === 'relational_comparison',
+                'bg-success': qcTestParam.qcTestType === 'contextual_consistency',
+                'bg-danger': qcTestParam.qcTestType === 'diurnal'
+              }">
+                {{ qcTestParam.qcTestTypeName }}
+              </span>
+            </td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.formattedParameters }}</td>
+            <td>
+              <div *ngIf="isSystemAdmin" class="d-flex gap-2">
+                <button type="button" class="btn btn-sm"
+                  [ngClass]="qcTestParam.disabled ? 'btn-outline-success' : 'btn-outline-warning'"
+                  [title]="qcTestParam.disabled ? 'Enable QC test' : 'Disable QC test'"
+                  (click)="onToggleDisabledClick(qcTestParam, $event)">
+                  <i class="bi" [ngClass]="qcTestParam.disabled ? 'bi-play-circle' : 'bi-pause-circle'"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" title="Delete QC test"
+                  (click)="onDeleteClick(qcTestParam, $event)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
     </div>
     <app-qc-specification-input-dialog #dlgQcEdit />
   </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedQcTest?.name || ''"
+    [itemType]="'QC specification'" (deleteConfirmed)="onDeleteConfirm()" />
+
+  <!-- Enable/Disable Confirmation Dialog -->
+  <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedQcTest?.name || ''"
+    [itemType]="'QC specification'" [isCurrentlyDisabled]="selectedQcTest?.disabled || false"
+    [operationType]="selectedQcTest?.qcTestTypeName || ''"
+    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

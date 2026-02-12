@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
 import { CreateSourceModel } from '../models/create-source.model';
@@ -9,6 +9,7 @@ import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/so
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { SourceTemplatesCacheService } from '../services/source-templates-cache.service';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 // TODO. Try using angular forms?
 
@@ -18,6 +19,7 @@ import { SourceTemplatesCacheService } from '../services/source-templates-cache.
   styleUrls: ['./form-source-detail.component.scss']
 })
 export class FormSourceDetailComponent implements OnInit, OnDestroy {
+  @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
   protected viewSource!: ViewSourceModel;
 
@@ -291,11 +293,16 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
   }
 
   protected onDelete(): void {
-    //todo. prompt for confirmation first
-    this.sourcesCacheService.delete(this.viewSource.id).subscribe((data) => {
+    this.dlgDeleteConfirm.showDialog();
+  }
+
+  protected onDeleteConfirm(): void {
+    this.sourcesCacheService.delete(this.viewSource.id).pipe(
+      take(1)
+    ).subscribe(() => {
+      this.pagesDataService.showToast({ title: 'Form Specification', message: 'Form specification deleted', type: ToastEventTypeEnum.SUCCESS });
       this.location.back();
     });
-
   }
 
   protected onCancel(): void {
