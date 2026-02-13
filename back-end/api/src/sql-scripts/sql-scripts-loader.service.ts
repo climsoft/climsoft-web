@@ -12,9 +12,6 @@ export class SqlScriptsLoaderService {
         private fileIOService: FileIOService,) { }
 
 
-    private getScriptsDirectoryPath(): string {
-        return __dirname;
-    }
 
     /**
      * Used by the migrations service
@@ -23,7 +20,7 @@ export class SqlScriptsLoaderService {
         try {
             // Get the script directory from absolute path of this service file
             // For windows platform, replace the backslashes with forward slashes.
-            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const scriptsDirPath: string = __dirname.replaceAll("\\", "\/");
             const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/default-triggers/default-entry-date-time.sql`
             const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
             //console.log('ENTRY DATE TIME SQL:', sql);
@@ -43,7 +40,7 @@ export class SqlScriptsLoaderService {
 
             // Get the script directory from absolute path of this service file
             // For windows platform, replace the backslashes with forward slashes.
-            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const scriptsDirPath: string = __dirname.replaceAll("\\", "\/");
             const logScriptsDirPath: string = `${scriptsDirPath}/logging-triggers`
             const fileNames: string[] = await this.fileIOService.getFileNamesInDirectory(logScriptsDirPath);
 
@@ -68,7 +65,7 @@ export class SqlScriptsLoaderService {
         try {
             // Get the script directory from absolute path of this service file
             // For windows platform, replace the backslashes with forward slashes.
-            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const scriptsDirPath: string = __dirname.replaceAll("\\", "\/");
             const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/qc-tests/qc-tests-functions.sql`
             const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
             //console.log('ENTRY DATE TIME SQL:', sql);
@@ -87,7 +84,7 @@ export class SqlScriptsLoaderService {
         try {
             // Get the script directory from absolute path of this service file
             // For windows platform, replace the backslashes with forward slashes.
-            const scriptsDirPath: string = this.getScriptsDirectoryPath().replaceAll("\\", "\/");
+            const scriptsDirPath: string = __dirname.replaceAll("\\", "\/");
             const entryDatetimeScriptsDirPath: string = `${scriptsDirPath}/data-availability/data-availiability-details-function.sql`
             const sql: string = await this.fileIOService.readFile(entryDatetimeScriptsDirPath, 'utf8');
             //console.log('ENTRY DATE TIME SQL:', sql);
@@ -98,7 +95,5 @@ export class SqlScriptsLoaderService {
             throw new Error(error);
         }
     }
-
-
 
 }

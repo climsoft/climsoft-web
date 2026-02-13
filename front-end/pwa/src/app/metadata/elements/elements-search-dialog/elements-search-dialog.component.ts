@@ -1,9 +1,10 @@
-import { Component, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { Component, Output, EventEmitter, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppDatabase } from 'src/app/app-database';
 import { ElementSearchHistoryModel } from '../models/elements-search-history.model';
-import { ElementCacheModel } from '../services/elements-cache.service';
+import { ElementCacheModel, ElementsCacheService } from '../services/elements-cache.service';
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
+import { Subject, takeUntil } from 'rxjs';
 
 enum SelectionOptionTypeEnum {
   SELECT_ALL,
@@ -24,7 +25,7 @@ interface ElementSearchModel {
   templateUrl: './elements-search-dialog.component.html',
   styleUrls: ['./elements-search-dialog.component.scss']
 })
-export class ElementsSearchDialogComponent {
+export class ElementsSearchDialogComponent implements OnDestroy {
   @ViewChild('elementIdNameTableContainer', { read: ElementRef }) elementIdNameTableContainer!: ElementRef;
 
   @Output() public searchedIdsChange = new EventEmitter<number[]>();
@@ -37,8 +38,10 @@ export class ElementsSearchDialogComponent {
   protected searchName: string = '';
   protected saveSearch: boolean = false;
 
-  // Holds the complete list of elements to search from
-  protected elements!: ElementCacheModel[];
+  protected allElements: ElementCacheModel[] = [];
+
+  // Holds the list of elements to search from
+  protected elements: ElementCacheModel[] = [];
 
   // Holds the filtered list of elements based on filter and search input
   protected filteredElements!: ElementSearchModel[];
@@ -46,14 +49,25 @@ export class ElementsSearchDialogComponent {
   // Holds the ids of the selected elements and is emitted on dialog OK click
   protected selectedIds: number[] = [];
 
-  constructor(private cachedMetadataService: CachedMetadataService) {
+  private destroy$ = new Subject<void>();
+
+  constructor(private elementsCacheService: ElementsCacheService) {
+    this.elementsCacheService.cachedElements.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
+      this.allElements = data;
+    });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   public async showDialog(newSelectedIds?: number[], newIncludeOnlyIds?: number[]): Promise<void> {
     this.searchValue = ''; // clear ay search value
     this.elements = newIncludeOnlyIds && newIncludeOnlyIds.length > 0 ?
-      this.cachedMetadataService.elementsMetadata.filter(item => newIncludeOnlyIds.includes(item.id)) :
-      this.cachedMetadataService.elementsMetadata;
+      this.allElements.filter(item => newIncludeOnlyIds.includes(item.id)) : [...this.allElements];
 
     if (newSelectedIds && newSelectedIds.length > 0) {
       this.activeTab = 'new';

@@ -1,7 +1,7 @@
 import { Component, Output, EventEmitter, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { AppDatabase, StationSearchHistoryModel } from 'src/app/app-database';
-import { StationCacheModel } from '../services/stations-cache.service';
+import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.service';
 import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
@@ -53,8 +53,10 @@ export class StationsSearchDialogComponent implements OnDestroy {
   protected searchName: string = '';
   protected saveSearch: boolean = false;
 
-  // Holds the complete list of stations to search from
-  protected stations!: StationCacheModel[];
+  protected allStations: StationCacheModel[] = [];
+
+  // Holds the list of stations to search from
+  protected stations: StationCacheModel[] = [];
 
   // Holds the filtered list of stations based on filter and search input
   protected filteredStations: StationSearchModel[] = [];
@@ -75,9 +77,10 @@ export class StationsSearchDialogComponent implements OnDestroy {
 
   constructor(
     private viewPortService: ViewportService,
-    private cachedMetadataService: CachedMetadataService,
+    private stationsCacheService: StationsCacheService,
     private regionsService: RegionsCacheService,
     private stationNetworkAffiliationsService: StationNetworkAffiliationsService,) {
+
     this.viewPortService.viewPortSize.pipe(
       takeUntil(this.destroy$),
     ).subscribe(viewPortSize => {
@@ -90,6 +93,12 @@ export class StationsSearchDialogComponent implements OnDestroy {
       this.regions = data
     });
 
+    this.stationsCacheService.cachedStations.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(data => {
+      this.allStations = data;
+    });
+
   }
 
   ngOnDestroy(): void {
@@ -100,8 +109,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
   public async showDialog(newSelectedIds?: string[], includeOnlyIds?: string[]): Promise<void> {
     this.searchValue = ''; // clear ay search value
     this.stations = includeOnlyIds && includeOnlyIds.length > 0 ?
-      this.cachedMetadataService.stationsMetadata.filter(item => includeOnlyIds.includes(item.id)) :
-      this.cachedMetadataService.stationsMetadata;
+      this.allStations.filter(item => includeOnlyIds.includes(item.id)) : this.allStations;
 
     if (newSelectedIds && newSelectedIds.length > 0) {
       this.activeTab = 'new';
@@ -295,7 +303,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     // TODO. 
     // Investigate why map viewer doen't display stations on the map.
     // Can the map viewer be made to to listen for changes in the elements of the array itself?
-     this.selectedIds =  [...this.selectedIds];
+    this.selectedIds = [...this.selectedIds];
   }
 
   protected onEnterKeyPress(): void {
