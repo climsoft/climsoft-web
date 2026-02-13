@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 
 @Component({
@@ -17,18 +16,17 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public selectedIds: string[] = [];
   @Output() public selectedIdsChange = new EventEmitter<string[]>();
 
+  protected allStations: StationCacheModel[] = [];
   protected stations: StationCacheModel[] = [];
   protected selectedStations: StationCacheModel[] = [];
-  private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
 
-  constructor(private cachedMetadataService: CachedMetadataService) {
-    this.cachedMetadataService.allMetadataLoaded.pipe(
+  constructor(private stationsCacheService: StationsCacheService) {
+    this.stationsCacheService.cachedStations.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
-      this.allMetadataLoaded = allMetadataLoaded;
+    ).subscribe(data => {
+      this.allStations = data;
       this.setStationsToInclude();
       this.filterBasedOnSelectedIds();
     });
@@ -51,16 +49,11 @@ export class StationSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   private setStationsToInclude(): void {
-    if (!this.allMetadataLoaded) return;
-    
     this.stations = this.includeOnlyIds && this.includeOnlyIds.length > 0 ?
-      this.cachedMetadataService.stationsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) :
-      this.cachedMetadataService.stationsMetadata;
+      this.allStations.filter(item => this.includeOnlyIds.includes(item.id)) : this.allStations;
   }
 
   private filterBasedOnSelectedIds(): void {
-    if (!this.allMetadataLoaded) return;
-
     this.selectedStations = this.selectedIds.length > 0 ? this.stations.filter(item => this.selectedIds.includes(item.id)) : [];
   }
 

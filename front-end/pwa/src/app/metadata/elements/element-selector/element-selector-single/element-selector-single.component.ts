@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { ElementCacheModel, ElementsCacheService } from '../../services/elements-cache.service';
 
@@ -26,14 +26,14 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allElements = data;
-      this.setStationsToInclude();
+      this.setElementsToInclude();
       this.setSelected();
     });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['includeOnlyIds']) {
-      this.setStationsToInclude();
+      this.setElementsToInclude();
     }
     if (changes['selectedId']) {
       this.setSelected();
@@ -45,7 +45,7 @@ export class ElementSelectorSingleComponent implements OnChanges, OnDestroy {
     this.destroy$.complete();
   }
 
-  private setStationsToInclude(): void {
+  private setElementsToInclude(): void {
     this.elements = this.includeOnlyIds && this.includeOnlyIds.length > 0 ? this.allElements.filter(item => this.includeOnlyIds.includes(item.id)) : this.allElements;
   }
 

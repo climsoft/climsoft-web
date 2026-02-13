@@ -1,7 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
-import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
-import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
+import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 
 @Component({
   selector: 'app-element-selector-multiple',
@@ -17,18 +16,17 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
   @Input() public selectedIds: number[] = [];
   @Output() public selectedIdsChange = new EventEmitter<number[]>();
 
-  protected elements!: ElementCacheModel[];
+  protected allElements: ElementCacheModel[] = [];
+  protected elements: ElementCacheModel[] = [];
   protected selectedElements!: ElementCacheModel[];
-  private allMetadataLoaded: boolean = false;
 
   private destroy$ = new Subject<void>();
 
-  constructor(private cachedMetadataService: CachedMetadataService) {
-    this.cachedMetadataService.allMetadataLoaded.pipe(
+  constructor(private elementsCacheService: ElementsCacheService) {
+    this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(allMetadataLoaded => {
-      if (!allMetadataLoaded) return;
-      this.allMetadataLoaded = allMetadataLoaded;
+    ).subscribe(data => {
+      this.allElements = data;
       this.setElementsToInclude();
       this.filterBasedOnSelectedIds();
     });
@@ -52,15 +50,11 @@ export class ElementSelectorMultipleComponent implements OnChanges, OnDestroy {
   }
 
   private setElementsToInclude(): void {
-    if (!this.allMetadataLoaded) return;
-
     this.elements = this.includeOnlyIds && this.includeOnlyIds.length > 0 ?
-      this.cachedMetadataService.elementsMetadata.filter(item => this.includeOnlyIds.includes(item.id)) :
-      this.cachedMetadataService.elementsMetadata;
+      this.allElements.filter(item => this.includeOnlyIds.includes(item.id)) : [...this.allElements];
   }
 
   private filterBasedOnSelectedIds(): void {
-    if (!this.allMetadataLoaded) return;
     const selectedElements: ElementCacheModel[] = [];
     if (this.selectedIds.length > 0) {
       // Note. To reserve the order loop by selected ids array not the elements arrays
