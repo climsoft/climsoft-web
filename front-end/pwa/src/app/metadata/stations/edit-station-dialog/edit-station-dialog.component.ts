@@ -1,12 +1,12 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { Observable, take } from 'rxjs';
-import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { UpdateStationModel } from 'src/app/metadata/stations/models/update-station.model';
 import { StationsCacheService } from '../services/stations-cache.service';
 import { AppLocationService } from 'src/app/app-location.service';
 import { CreateStationModel } from '../models/create-station.model';
 import { StationStatusEnum } from '../models/station-status.enum';
+import { StationProcessingMethodEnum } from '../models/station-processing-method.enum';
+import { UpdateStationModel } from '../models/update-station.model';
 
 @Component({
   selector: 'app-edit-station-dialog',
@@ -66,7 +66,7 @@ export class EditStationDialogComponent {
         longitude: 0,
         latitude: 0,
         elevation: 0,
-        stationObsProcessingMethod: StationObsProcessingMethodEnum.AUTOMATIC,
+        stationObsProcessingMethod: StationProcessingMethodEnum.AUTOMATIC,
         stationObsEnvironmentId: 0,
         stationObsFocusId: 0,
         organisationId: 0,
@@ -95,8 +95,8 @@ export class EditStationDialogComponent {
     });
   }
 
-  protected onStationObsMethodChange(stationObservationMethodEnum: StationObsProcessingMethodEnum | null): void {
-    this.station.stationObsProcessingMethod = stationObservationMethodEnum ? stationObservationMethodEnum : StationObsProcessingMethodEnum.AUTOMATIC;
+  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | null): void {
+    this.station.stationObsProcessingMethod = stationObservationMethodEnum ? stationObservationMethodEnum : StationProcessingMethodEnum.AUTOMATIC;
   }
 
 

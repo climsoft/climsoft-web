@@ -1,8 +1,8 @@
-import { StationObsProcessingMethodEnum } from "./station-obs-processing-method.enum";
+import { StationProcessingMethodEnum } from "./station-processing-method.enum";
 
 export class ViewStationQueryModel {
     stationIds?: string[];
-    obsProcessingMethods?: StationObsProcessingMethodEnum[];
+    obsProcessingMethods?: StationProcessingMethodEnum[];
     obsEnvironmentIds?: number[];
     obsFocusIds?: number[];
     page?: number;

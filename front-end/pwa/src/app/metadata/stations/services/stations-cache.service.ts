@@ -1,17 +1,17 @@
 import { StringUtils } from "src/app/shared/utils/string.utils";
 import { BehaviorSubject, concatMap, map, Observable, of, Subscription, tap } from "rxjs";
 import { Injectable } from "@angular/core";
-import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metadata-updates.service";
 import { AppDatabase } from "src/app/app-database";
-import { ViewStationObsEnvModel } from "src/app/metadata/stations/models/view-station-obs-env.model";
-import { ViewStationObsFocusModel } from "src/app/metadata/stations/models/view-station-obs-focus.model";
-import { StationObsProcessingMethodEnum } from "src/app/metadata/stations/models/station-obs-processing-method.enum";
 import { HttpClient } from "@angular/common/http";
-import { UpdateStationModel } from "src/app/metadata/stations/models/update-station.model";
-import { StationStatusEnum } from "src/app/metadata/stations/models/station-status.enum";
 import { AppConfigService } from "src/app/app-config.service";
 import { CreateStationModel } from "../models/create-station.model";
 import { ViewOrganisationModel } from "../../organisations/models/view-organisation.model";
+import { StationProcessingMethodEnum } from "../models/station-processing-method.enum";
+import { StationStatusEnum } from "../models/station-status.enum";
+import { ViewStationObsEnvModel } from "../models/view-station-obs-env.model";
+import { ViewStationObsFocusModel } from "../models/view-station-obs-focus.model";
+import { UpdateStationModel } from "../models/update-station.model";
+import { MetadataUpdatesService } from "../../metadata-updates/metadata-updates.service";
 
 export interface StationCacheModel {
     id: string;
@@ -22,7 +22,7 @@ export interface StationCacheModel {
         latitude: number;
     } | null,
     elevation: number | null;
-    stationObsProcessingMethod: StationObsProcessingMethodEnum;
+    stationObsProcessingMethod: StationProcessingMethodEnum;
     stationObsProcessingMethodName: string;
     stationObsEnvironmentId: number | null;
     stationObsEnvironmentName: string;

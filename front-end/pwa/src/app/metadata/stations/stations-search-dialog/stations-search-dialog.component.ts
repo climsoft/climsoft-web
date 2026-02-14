@@ -4,13 +4,12 @@ import { AppDatabase, StationSearchHistoryModel } from 'src/app/app-database';
 import { StationCacheModel, StationsCacheService } from '../services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewportService, ViewPortSize } from 'src/app/core/services/view-port.service';
-import { CachedMetadataService } from '../../metadata-updates/cached-metadata.service';
 import { StationStatusEnum } from '../models/station-status.enum';
-import { StationObsProcessingMethodEnum } from '../models/station-obs-processing-method.enum';
 import { RegionsCacheService } from '../../regions/services/regions-cache.service';
 import { ViewRegionModel } from '../../regions/models/view-region.model';
 import { booleanPointInPolygon, multiPolygon, point } from '@turf/turf';
 import { StationNetworkAffiliationsService } from '../services/station-network-affiliations.service';
+import { StationProcessingMethodEnum } from '../models/station-processing-method.enum';
 
 enum SelectionOptionTypeEnum {
   SELECT_ALL,
@@ -31,7 +30,7 @@ interface StationFilterModel {
   stationIdsForSelectedNetworkAffiliations: string[],
   environmentIds: number[],
   focusIds: number[],
-  processingIds: StationObsProcessingMethodEnum[],
+  processingIds: StationProcessingMethodEnum[],
   statusIds: StationStatusEnum[],
 }
 
@@ -210,7 +209,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.filteredStations = this.getFilteredStations(this.stations, this.filter, this.selectedIds);
   }
 
-  protected onStationObsProcessingMethodSelected(selectedProcessingIds: StationObsProcessingMethodEnum[]): void {
+  protected onStationObsProcessingMethodSelected(selectedProcessingIds: StationProcessingMethodEnum[]): void {
     this.filter.processingIds = selectedProcessingIds;
     this.filteredStations = this.getFilteredStations(this.stations, this.filter, this.selectedIds);
   }

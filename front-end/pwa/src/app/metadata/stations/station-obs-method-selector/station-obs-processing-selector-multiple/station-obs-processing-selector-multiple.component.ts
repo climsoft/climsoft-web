@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core'; 
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { StationObsProcessingMethodEnum } from '../../models/station-obs-processing-method.enum';
+import { StationProcessingMethodEnum } from '../../models/station-processing-method.enum';
 
 @Component({
   selector: 'app-station-obs-processing-selector-multiple',
@@ -12,14 +12,14 @@ export class StationObsProcessingSelectorMultipleComponent implements OnChanges 
   @Input() public label!: string;
   @Input() public placeholder!: string;
   @Input() public errorMessage!: string;
-  @Input() public selectedIds: StationObsProcessingMethodEnum[] = [];
-  @Output() public selectedIdsChange = new EventEmitter<StationObsProcessingMethodEnum[]>();
+  @Input() public selectedIds: StationProcessingMethodEnum[] = [];
+  @Output() public selectedIdsChange = new EventEmitter<StationProcessingMethodEnum[]>();
 
-  protected stationObsProcessing: StationObsProcessingMethodEnum[] = [];
-  protected selectedStationObsProcessing: StationObsProcessingMethodEnum[] = []; 
+  protected stationObsProcessing: StationProcessingMethodEnum[] = [];
+  protected selectedStationObsProcessing: StationProcessingMethodEnum[] = []; 
 
   constructor() {
-   this.stationObsProcessing = Object.values(StationObsProcessingMethodEnum);
+   this.stationObsProcessing = Object.values(StationProcessingMethodEnum);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -32,7 +32,7 @@ export class StationObsProcessingSelectorMultipleComponent implements OnChanges 
     this.selectedStationObsProcessing = this.selectedIds.length > 0 ? this.stationObsProcessing.filter(item => this.selectedIds.includes(item)) : [];
   }
 
-  protected optionDisplayFunction(option: StationObsProcessingMethodEnum): string {
+  protected optionDisplayFunction(option: StationProcessingMethodEnum): string {
     return StringUtils.formatEnumForDisplay(option);
   }
 
@@ -40,7 +40,7 @@ export class StationObsProcessingSelectorMultipleComponent implements OnChanges 
    * Called by the generic multiple selector.
    * @param selectedOptions 
    */
-  protected onSelectedOptionsChange(selectedOptions: StationObsProcessingMethodEnum[]) {
+  protected onSelectedOptionsChange(selectedOptions: StationProcessingMethodEnum[]) {
     this.selectedIds.length = 0; // clear the array
     this.selectedIds.push(...selectedOptions);
 
