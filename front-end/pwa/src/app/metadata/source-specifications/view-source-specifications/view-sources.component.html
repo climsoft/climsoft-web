@@ -20,10 +20,10 @@
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
-          <col style="width: 16%;" />
-          <col style="width: 8%;" />
+          <col style="width: 20%;" />
+          <col style="width: 10%;" />
           <col style="width: 44%;" />
-          <col style="width: 18%;" />
+          <col style="width: 12%;" />
           <col style="width: 12%;" />
         </colgroup>
         <thead>
@@ -32,16 +32,17 @@
             <th>Name</th>
             <th>Type</th>
             <th>Description</th>
-            <th></th>
+            <th>Stations</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
           <tr class="app-cursor-pointer" *ngFor="let source of sources"
-            [class.source-disabled]="source.disabled">
-            <td (click)="onEditSource(source)"><i class="bi bi-arrow-right-short"></i></td>
-            <td (click)="onEditSource(source)">{{ source.name }}</td>
-            <td (click)="onEditSource(source)">
+            [class.source-disabled]="source.disabled"
+            (click)="onEditSource(source)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ source.name }}</td>
+            <td>
               <span class="badge" [ngClass]="{
                 'bg-primary': source.sourceType === 'form',
                 'bg-info': source.sourceType === 'import'
@@ -49,13 +50,18 @@
                 {{ source.sourceTypeName }}
               </span>
             </td>
-            <td (click)="onEditSource(source)">{{ source.description }}</td>
+            <td>{{ source.description }}</td>
             <td>
-              <div *ngIf="source.sourceType === 'form'" class="d-flex align-items-center">
-                <button type="button" class="btn btn-outline-secondary btn-sm"
-                  (click)="onAssignStationsClicked(source)">Allocate/Deallocate Stations</button>
-                <div class="ms-2">{{ source.assignedStations }}</div>
-              </div>
+              <button *ngIf="source.sourceType === 'form'"
+                type="button"
+                class="btn btn-outline-secondary btn-sm position-relative"
+                (click)="onAssignStationsClicked(source, $event)"
+                title="Allocate/Deallocate Stations">
+                <i class="bi bi-building"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
+                  {{ source.assignedStations }}
+                </span>
+              </button>
             </td>
             <td>
               <div class="d-flex gap-2">
