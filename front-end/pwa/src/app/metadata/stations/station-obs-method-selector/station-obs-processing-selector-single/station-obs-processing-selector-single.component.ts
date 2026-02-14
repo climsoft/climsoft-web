@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { StationObsProcessingMethodEnum } from 'src/app/metadata/stations/models/station-obs-processing-method.enum';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
+import { StationProcessingMethodEnum } from '../../models/station-processing-method.enum';
 
 @Component({
   selector: 'app-station-obs-processing-single-selector',
@@ -10,12 +10,12 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 export class StationObsProcessingSingleSelectorComponent implements OnInit, OnChanges {
   @Input() public label!: string ;
   @Input() public errorMessage!: string ;
-  @Input() public includeOnlyIds!: StationObsProcessingMethodEnum[];
-  @Input() public selectedId!: StationObsProcessingMethodEnum | null;
-  @Output() public selectedIdChange = new EventEmitter<StationObsProcessingMethodEnum | null>();
+  @Input() public includeOnlyIds!: StationProcessingMethodEnum[];
+  @Input() public selectedId!: StationProcessingMethodEnum | null;
+  @Output() public selectedIdChange = new EventEmitter<StationProcessingMethodEnum | null>();
 
-  protected options!: StationObsProcessingMethodEnum[];
-  protected selectedOption!: StationObsProcessingMethodEnum | null;
+  protected options!: StationProcessingMethodEnum[];
+  protected selectedOption!: StationProcessingMethodEnum | null;
 
   constructor() {
 
@@ -29,11 +29,11 @@ export class StationObsProcessingSingleSelectorComponent implements OnInit, OnCh
 
     //load options once
     if (!this.options) {
-      this.options = Object.values(StationObsProcessingMethodEnum);
+      this.options = Object.values(StationProcessingMethodEnum);
     }
 
     if (this.includeOnlyIds && this.includeOnlyIds.length > 0) {
-      this.options = Object.values(StationObsProcessingMethodEnum).filter(
+      this.options = Object.values(StationProcessingMethodEnum).filter(
         data => this.includeOnlyIds.includes(data));
     }
 
@@ -49,11 +49,11 @@ export class StationObsProcessingSingleSelectorComponent implements OnInit, OnCh
 
   }
 
-  protected optionDisplayFunction(option: StationObsProcessingMethodEnum): string {
+  protected optionDisplayFunction(option: StationProcessingMethodEnum): string {
     return StringUtils.capitalizeFirstLetter(option);
   }
 
-  protected onSelectedOptionChange(selectedOption: StationObsProcessingMethodEnum | null) {
+  protected onSelectedOptionChange(selectedOption: StationProcessingMethodEnum | null) {
     this.selectedOption = selectedOption;
     if (selectedOption) {
       this.selectedId = selectedOption;
