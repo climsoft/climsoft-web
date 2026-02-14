@@ -112,12 +112,13 @@ export class ViewSourcesComponent implements OnDestroy {
     this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
   }
 
-  protected onAssignStationsClicked(selectedSource: View) {
+  protected onAssignStationsClicked(selectedSource: View, event: Event) {
+    event.stopPropagation();
     this.selectedSource = selectedSource;
     this.stationFormsService.getStationsAssignedToUseForm(selectedSource.id).pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
-      this.appStationSearchDialog.showDialog(data);
+      this.appStationSearchDialog.showDialog(data, undefined, `Allocate/Deallocate Stations for ${selectedSource.name}`);
     });
   }
 

@@ -44,6 +44,7 @@ export class StationsSearchDialogComponent implements OnDestroy {
 
   @Output() public searchedIdsChange = new EventEmitter<string[]>();
 
+  protected title: string = 'Search Stations';
   protected open: boolean = false;
   protected activeTab!: 'new' | 'history';
   protected previousSearches!: StationSearchHistoryModel[];
@@ -105,7 +106,8 @@ export class StationsSearchDialogComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  public async showDialog(newSelectedIds?: string[], includeOnlyIds?: string[]): Promise<void> {
+  public async showDialog(newSelectedIds?: string[], includeOnlyIds?: string[], title?:string): Promise<void> {
+   this.title = title ? title : 'Search Stations';
     this.searchValue = ''; // clear ay search value
     this.stations = includeOnlyIds && includeOnlyIds.length > 0 ?
       this.allStations.filter(item => includeOnlyIds.includes(item.id)) : this.allStations;

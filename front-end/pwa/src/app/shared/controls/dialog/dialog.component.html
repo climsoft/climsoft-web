@@ -1,28 +1,29 @@
-<div *ngIf="open" class="dialog-overlay">
+<ng-container *ngIf="open">
+    <div class="dialog-overlay">
+        <div class="card">
+            <div *ngIf="title" class="card-header fw-bold d-flex justify-content-between align-items-center">
+                <div>{{ title }}</div>
+                <button type="button" class="btn-close" (click)="onCancelClick()"></button>
+            </div>
+            <div class="card-body max-vh-80 min-vw-50 overflow-auto">
+                <ng-content></ng-content>
+            </div>
 
-    <div class="card">
-        <div *ngIf="title" class="card-header fw-bold d-flex justify-content-between align-items-center">
-            <div>{{ title }}</div>
-           <button type="button" class="btn-close" (click)="onCancelClick()"></button>
-        </div>
-        <div class="card-body max-vh-80 min-vw-50 overflow-auto">
-            <ng-content></ng-content>
-        </div>
+            <div class="card-footer d-flex justify-content-end">
+                <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary"
+                    (click)="onOkClick()">
+                    {{okButtonLabel}}
+                </button>
+                <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"
+                    (click)="onCancelClick()">
+                    {{cancelButtonLabel }}
+                </button>
+                <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2"
+                    (click)="onDeleteClick()">
+                    {{deleteButtonLabel }}
+                </button>
+            </div>
 
-        <div class="card-footer d-flex justify-content-end"> 
-            <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
-                {{okButtonLabel}}
-            </button>
-            <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"
-                (click)="onCancelClick()">
-                {{cancelButtonLabel }}
-            </button>
-            <button *ngIf="displayDeleteOption" type="button" class="btn btn-sm btn-outline-danger ms-2"
-                (click)="onDeleteClick()">
-                {{deleteButtonLabel }}
-            </button>  
         </div>
-
     </div>
-
-</div>
+</ng-container>
