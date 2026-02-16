@@ -156,6 +156,15 @@ export class SourceSpecificationsService {
         return dto;
     }
 
+    public async findAllReferencedSampleFiles(): Promise<Set<string>> {
+        const entities = await this.sourceRepo.find({
+            select: ['sampleFile'],
+        });
+        return new Set(
+            entities.map(e => e.sampleFile).filter((f): f is string => !!f)
+        );
+    }
+
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
         let changesDetected: boolean = false;
 

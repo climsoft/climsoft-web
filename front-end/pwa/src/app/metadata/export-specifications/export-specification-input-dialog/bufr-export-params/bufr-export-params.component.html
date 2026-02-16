@@ -23,7 +23,8 @@
                     No element mappings configured. Click "Add Mapping" to create one.
                 </div>
 
-                <div *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
+                <ng-container
+                    *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
                     <table class="table table-sm">
                         <thead>
                             <tr>
@@ -48,13 +49,13 @@
                                 <td>
                                     <button type="button" class="btn btn-sm btn-outline-danger"
                                         (click)="onRemoveElementMapping(i)">
-                                        Remove
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
-                </div>
+                </ng-container>
             </div>
         </div>
     </div>

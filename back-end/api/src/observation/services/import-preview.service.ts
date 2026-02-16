@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { Interval } from '@nestjs/schedule';
+import { Cron, Interval } from '@nestjs/schedule';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
@@ -10,6 +10,7 @@ import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications
 import { ImportSourceDto, DataStructureTypeEnum } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { PreviewError, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { TableData } from 'duckdb-async';
 
 interface PreviewSession {
@@ -32,6 +33,7 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     constructor(
         private fileIOService: FileIOService,
+        private sourcesService: SourceSpecificationsService,
     ) { }
 
     public async onModuleDestroy() {
@@ -48,6 +50,50 @@ export class ImportPreviewService implements OnModuleDestroy {
                 this.logger.log(`Cleaning up stale preview session: ${sessionId}`);
                 await this.destroySession(sessionId);
             }
+        }
+    }
+
+    @Cron('0 2 * * *')
+    public async cleanupOrphanedPreviewFiles(): Promise<void> {
+        try {
+            this.logger.log('Running orphaned preview file cleanup task');
+            const importsDir = this.fileIOService.apiImportsDir;
+
+            const allFiles: string[] = await fs.promises.readdir(importsDir);
+            const previewFiles = allFiles.filter(f => f.startsWith('preview_'));
+
+            if (previewFiles.length === 0) return;
+
+            // Get all sample files referenced by saved specifications
+            const referencedFiles = await this.sourcesService.findAllReferencedSampleFiles();
+
+            // Collect files from active sessions (still in use)
+            const activeSessionFiles = new Set<string>();
+            for (const session of this.sessions.values()) {
+                activeSessionFiles.add(path.basename(session.uploadedFilePath));
+            }
+
+            // Delete orphaned files
+            let deletedCount = 0;
+            for (const file of previewFiles) {
+                if (!referencedFiles.has(file) && !activeSessionFiles.has(file)) {
+                    try {
+                        await fs.promises.unlink(path.posix.join(importsDir, file));
+                        deletedCount++;
+                    } catch (e) {
+                        this.logger.warn(`Could not delete orphaned preview file ${file}: ${e}`);
+                    }
+                }
+            }
+
+            if (deletedCount > 0) {
+                this.logger.log(`Cleaned up ${deletedCount} orphaned preview file(s)`);
+            }
+
+            this.logger.log('Orphaned preview file cleanup task completed');
+
+        } catch (e) {
+            this.logger.warn(`Error during orphaned file cleanup: ${e}`);
         }
     }
 
@@ -222,14 +268,8 @@ export class ImportPreviewService implements OnModuleDestroy {
             this.logger.warn(`Could not drop preview table ${session.tableName}: ${e}`);
         }
 
-        // DO NOT DELETE THE UPLOADED FILES IMMEDIATELY AFTER EACH SESSION ENDS BECAUSE:
-        // The file is needed for future previews
-
-        // try {
-        //     await fs.promises.unlink(session.uploadedFilePath);
-        // } catch (e) {
-        //     this.logger.warn(`Could not delete preview file ${session.uploadedFilePath}: ${e}`);
-        // }
+        // Files are NOT deleted here — they may be referenced by saved specifications.
+        // Orphaned files are cleaned up by the daily cleanupOrphanedPreviewFiles() job.
 
         this.sessions.delete(sessionId);
     }
@@ -287,7 +327,7 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     private convertTableDataToPreviewRows(tableData: TableData): string[][] {
         if (tableData.length === 0) return [];
-        
+
         const keys = Object.keys(tableData[0]);
         return tableData.map(row => keys.map(key => {
             const val = row[key];
