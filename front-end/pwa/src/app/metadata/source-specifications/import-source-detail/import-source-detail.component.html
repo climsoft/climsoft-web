@@ -1,18 +1,20 @@
-<div *ngIf="importSource" class="card border-0">
+<ng-container *ngIf="open && importSource">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [displayDeleteOption]="importSource.id > 0"
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSave()" (deleteClick)="onDelete()"
+        (cancelClick)="closeDialog()">
 
-    <!-- Wizard Tab Navigation -->
-    <div class="card-header px-1 py-0">
-        <ul class="nav nav-tabs card-header-tabs">
-            <li class="nav-item" *ngFor="let step of wizardSteps">
-                <button class="nav-link" [class.active]="activeStep === step" [class.disabled]="isStepDisabled(step)"
-                    (click)="onStepTabClick(step)">
-                    {{ stepLabels[step] }}
-                </button>
-            </li>
-        </ul>
-    </div>
+        <!-- Wizard Tab Navigation -->
+        <div class="mb-3">
+            <ul class="nav nav-tabs">
+                <li class="nav-item" *ngFor="let step of wizardSteps">
+                    <button class="nav-link" [class.active]="activeStep === step"
+                        [class.disabled]="isStepDisabled(step)" (click)="onStepTabClick(step)">
+                        {{ stepLabels[step] }}
+                    </button>
+                </li>
+            </ul>
+        </div>
 
-    <div class="card-body px-0">
         <div class="row">
 
             <!-- Left column: Step configuration controls -->
@@ -200,22 +202,8 @@
 
         </div>
 
-        <hr />
-
-        <div class="d-flex justify-content-end gap-1">
-            <button *ngIf="activeStep === 'review'" class="btn btn-sm btn-outline-primary" (click)="onSave()">
-                Save
-            </button>
-            <button *ngIf="importSource && importSource.id > 0 && activeStep === 'review'"
-                class="btn btn-sm btn-outline-danger" (click)="onDelete()">
-                Delete
-            </button>
-            <button class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
-                Cancel
-            </button>
-        </div>
-    </div>
+    </app-dialog>
 
     <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="importSource.name" [itemType]="'import specification'"
         (deleteConfirmed)="onDeleteConfirm()" />
-</div>
+</ng-container>

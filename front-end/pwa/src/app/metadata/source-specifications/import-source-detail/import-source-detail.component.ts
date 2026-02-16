@@ -1,9 +1,6 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { Component, EventEmitter, HostListener, OnDestroy, Output, ViewChild } from '@angular/core';
 import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ActivatedRoute } from '@angular/router';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
@@ -22,9 +19,14 @@ type WizardStep = 'upload' | 'station' | 'element' | 'datetime' | 'value' | 'rev
     templateUrl: './import-source-detail.component.html',
     styleUrls: ['./import-source-detail.component.scss']
 })
-export class ImportSourceDetailComponent implements OnInit, OnDestroy {
+export class ImportSourceDetailComponent implements OnDestroy {
     @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
+    @Output()
+    public ok = new EventEmitter<void>();
+
+    protected open: boolean = false;
+    protected title: string = '';
     protected importSource!: ViewSourceModel;
     protected errorMessage: string = '';
 
@@ -58,17 +60,29 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         private pagesDataService: PagesDataService,
         private importSourcesService: SourcesCacheService,
         private importPreviewService: ImportPreviewHttpService,
-        private location: Location,
-        private route: ActivatedRoute,
     ) { }
 
-    ngOnInit(): void {
-        const sourceId = this.route.snapshot.params['id'];
+    public openDialog(sourceId?: number): void {
+        // Reset all state
+        this.cleanupSession();
+        this.errorMessage = '';
+        this.activeStep = 'upload';
+        this.previewColumns = [];
+        this.previewRows = [];
+        this.skippedRows = [];
+        this.totalRowCount = 0;
+        this.rowsDropped = 0;
+        this.warnings = [];
+        this.errors = [];
+        this.previewLoading = false;
+        this.uploadedFileName = '';
 
-        if (StringUtils.containsNumbersOnly(sourceId)) {
-            this.pagesDataService.setPageHeader('Edit Import Specification');
+        this.open = true;
 
-            this.importSourcesService.findOne(+sourceId).pipe(
+        if (sourceId) {
+            this.title = 'Edit Import Specification';
+
+            this.importSourcesService.findOne(sourceId).pipe(
                 takeUntil(this.destroy$),
             ).subscribe((data) => {
                 if (data) {
@@ -78,7 +92,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
             });
 
         } else {
-            this.pagesDataService.setPageHeader('New Import Specification');
+            this.title = 'New Import Specification';
 
             const defaultTabularDefs: ImportSourceTabularParamsModel = {
                 rowsToSkip: 1,
@@ -381,7 +395,8 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         ).subscribe({
             next: () => {
                 this.pagesDataService.showToast({ title: 'Import Template', message: this.importSource.id > 0 ? `Import template updated` : `Import template created`, type: ToastEventTypeEnum.SUCCESS });
-                this.location.back();
+                this.closeDialog();
+                this.ok.emit();
             },
             error: err => {
                 if (err instanceof HttpErrorResponse) {
@@ -401,7 +416,8 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         ).subscribe({
             next: () => {
                 this.pagesDataService.showToast({ title: 'Import Template', message: 'Import template deleted', type: ToastEventTypeEnum.SUCCESS });
-                this.location.back();
+                this.closeDialog();
+                this.ok.emit();
             },
             error: err => {
                 this.pagesDataService.showToast({ title: 'Import Template', message: `Error in deleting import template - ${err.error.message}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
@@ -409,8 +425,9 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         });
     }
 
-    protected onCancel(): void {
-        this.location.back();
+    protected closeDialog(): void {
+        this.cleanupSession();
+        this.open = false;
     }
 
     private initPreviewFromSavedFile(): void {

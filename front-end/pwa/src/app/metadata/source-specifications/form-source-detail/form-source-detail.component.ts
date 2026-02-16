@@ -1,10 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
 import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
-import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
@@ -18,9 +15,14 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
   templateUrl: './form-source-detail.component.html',
   styleUrls: ['./form-source-detail.component.scss']
 })
-export class FormSourceDetailComponent implements OnInit, OnDestroy {
+export class FormSourceDetailComponent implements OnDestroy {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
+  @Output()
+  public ok = new EventEmitter<void>();
+
+  protected open: boolean = false;
+  protected title: string = '';
   protected viewSource!: ViewSourceModel;
 
   protected possibleSelectors: SelectorFieldControlType[] = [SelectorFieldControlType.ELEMENT, SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR];
@@ -50,16 +52,15 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
 
   constructor(
     private pagesDataService: PagesDataService,
-    private sourcesCacheService: SourcesCacheService,
-    private location: Location,
-    private route: ActivatedRoute) {
+    private sourcesCacheService: SourcesCacheService) {
   }
 
-  ngOnInit(): void {
-    const sourceId = this.route.snapshot.params['id'];
-    if (StringUtils.containsNumbersOnly(sourceId)) {
-      this.pagesDataService.setPageHeader('Edit Form Specification');
-      this.sourcesCacheService.findOne(+sourceId).pipe(
+  public openDialog(sourceId?: number): void {
+    this.open = true;
+
+    if (sourceId) {
+      this.title = 'Edit Form Specification';
+      this.sourcesCacheService.findOne(sourceId).pipe(
         takeUntil(this.destroy$),
       ).subscribe(data => {
         if (data) {
@@ -68,7 +69,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.pagesDataService.setPageHeader('New Form Specification');
+      this.title = 'New Form Specification';
       const entryForm: FormSourceModel = {
         selectors: [SelectorFieldControlType.DAY, SelectorFieldControlType.HOUR],
         fields: [SelectorFieldControlType.ELEMENT],
@@ -274,7 +275,8 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
           this.pagesDataService.showToast({
             title: 'Form Template', message: `Form ${this.viewSource.name} template saved`, type: ToastEventTypeEnum.SUCCESS
           });
-          this.location.back();
+          this.open = false;
+          this.ok.emit();
         }
       });
     } else {
@@ -285,7 +287,8 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
           this.pagesDataService.showToast({
             title: 'Form Template', message: `Form  ${this.viewSource.name} template updated`, type: ToastEventTypeEnum.SUCCESS
           });
-          this.location.back();
+          this.open = false;
+          this.ok.emit();
         }
       });
     }
@@ -301,12 +304,9 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe(() => {
       this.pagesDataService.showToast({ title: 'Form Specification', message: 'Form specification deleted', type: ToastEventTypeEnum.SUCCESS });
-      this.location.back();
+      this.open = false;
+      this.ok.emit();
     });
-  }
-
-  protected onCancel(): void {
-    this.location.back();
   }
 
   private validSelectors(selectors: SelectorFieldControlType[]): boolean {
