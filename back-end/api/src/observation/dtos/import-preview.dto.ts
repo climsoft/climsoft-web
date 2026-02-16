@@ -24,6 +24,20 @@ export class UpdateBaseParamsDto {
     delimiter?: string;
 }
 
+export class InitFromFileDto {
+    @IsString()
+    sampleFile: string;
+
+    @IsInt()
+    @Min(0)
+    @Type(() => Number)
+    rowsToSkip: number;
+
+    @IsOptional()
+    @IsString()
+    delimiter?: string;
+}
+
 export class ProcessPreviewDto {
     @IsOptional()// Skipping validation for now as the structure can be complex and dynamic
     sourceDefinition: CreateSourceSpecificationDto;
@@ -48,6 +62,7 @@ export interface PreviewError {
 
 export interface RawPreviewResponse {
     sessionId: string;
+    sampleFile: string;
     columns: string[];
     totalRowCount: number;
     previewRows: string[][];

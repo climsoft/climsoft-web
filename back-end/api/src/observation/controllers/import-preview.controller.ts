@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportPreviewService } from '../services/import-preview.service';
-import { UpdateBaseParamsDto, ProcessPreviewDto } from '../dtos/import-preview.dto';
+import { UpdateBaseParamsDto, ProcessPreviewDto, InitFromFileDto } from '../dtos/import-preview.dto';
 
 @Controller('import-preview')
 export class ImportPreviewController {
@@ -24,7 +24,14 @@ export class ImportPreviewController {
     ) {
         const skip: number = rowsToSkip > 0 ? rowsToSkip : 0;
         const delim: string | undefined = delimiter || undefined;
-        return await this.importPreviewService.uploadAndPreview(file, skip, delim);
+        return await this.importPreviewService.initAndPreviewFile(file, skip, delim);
+    }
+
+    @Post('init-from-file')
+    public async initFromFile(
+        @Body() dto: InitFromFileDto,
+    ) {
+        return await this.importPreviewService.initAndPreviewFile(dto.sampleFile, dto.rowsToSkip, dto.delimiter);
     }
 
     @Post('base-params/:sessionId')

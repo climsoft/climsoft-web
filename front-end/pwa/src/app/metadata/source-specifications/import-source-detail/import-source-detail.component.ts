@@ -73,6 +73,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
             ).subscribe((data) => {
                 if (data) {
                     this.importSource = data;
+                    this.initPreviewFromSavedFile();
                 }
             });
 
@@ -204,6 +205,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
             next: (res) => {
                 this.previewLoading = false;
                 this.sessionId = res.sessionId;
+                this.importSource.sampleFile = res.sampleFile;
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
                 this.skippedRows = res.skippedRows;
@@ -409,6 +411,33 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
 
     protected onCancel(): void {
         this.location.back();
+    }
+
+    private initPreviewFromSavedFile(): void {
+        if (!this.importSource.sampleFile) return;
+
+        this.previewLoading = true;
+
+        this.importPreviewService.initFromFile(
+            this.importSource.sampleFile,
+            this.tabularImportParams.rowsToSkip,
+            this.tabularImportParams.delimiter,
+        ).pipe(take(1)).subscribe({
+            next: (res) => {
+                this.previewLoading = false;
+                this.sessionId = res.sessionId;
+                this.uploadedFileName = res.sampleFile;
+                this.previewColumns = res.columns;
+                this.previewRows = res.previewRows;
+                this.skippedRows = res.skippedRows;
+                this.totalRowCount = res.totalRowCount;
+                this.rowsDropped = 0;
+            },
+            error: () => {
+                // File no longer exists on server — silently fall back to "upload a sample file" prompt
+                this.previewLoading = false;
+            }
+        });
     }
 
     private cleanupSession(): void {

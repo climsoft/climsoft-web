@@ -40,6 +40,14 @@ export class ImportPreviewHttpService {
         });
     }
 
+    public initFromFile(sampleFile: string, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
+        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/init-from-file`, {
+            sampleFile,
+            rowsToSkip,
+            delimiter,
+        });
+    }
+
     public deleteSession(sessionId: string): Observable<any> {
         return this.http.delete(`${this.endPointUrl}/${sessionId}`);
     }

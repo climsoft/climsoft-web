@@ -13,6 +13,7 @@ export interface PreviewError {
 
 export interface RawPreviewResponse {
     sessionId: string;
+    sampleFile: string;
     columns: string[];
     totalRowCount: number;
     previewRows: string[][];

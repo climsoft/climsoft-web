@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -8,10 +8,9 @@ import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ImportSqlBuilder } from './import-sql-builder';
 import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ImportSourceDto, DataStructureTypeEnum } from 'src/metadata/source-specifications/dtos/import-source.dto';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
-import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { PreviewError, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
+import { TableData } from 'duckdb-async';
 
 interface PreviewSession {
     sessionId: string;
@@ -35,14 +34,14 @@ export class ImportPreviewService implements OnModuleDestroy {
         private fileIOService: FileIOService,
     ) { }
 
-    async onModuleDestroy() {
+    public async onModuleDestroy() {
         for (const sessionId of this.sessions.keys()) {
             await this.destroySession(sessionId);
         }
     }
 
     @Interval(60000)
-    async cleanupStaleSessions() {
+    public async cleanupStaleSessions() {
         const now = Date.now();
         for (const [sessionId, session] of this.sessions) {
             if (now - session.lastAccessedAt > this.SESSION_TTL_MS) {
@@ -52,19 +51,29 @@ export class ImportPreviewService implements OnModuleDestroy {
         }
     }
 
-    async uploadAndPreview(file: Express.Multer.File, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
+    public async initAndPreviewFile(file: string | Express.Multer.File, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
         const sessionId = crypto.randomUUID();
         const timestamp = Date.now();
-        const ext = path.extname(file.originalname);
-        const uploadedFilePath = path.posix.join(
-            this.fileIOService.apiImportsDir,
-            `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`
-        );
+        let uploadedFilePath: string;
+
+        if (typeof file !== 'string') {
+            const ext = path.extname(file.originalname);
+            uploadedFilePath = path.posix.join(this.fileIOService.apiImportsDir, `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`);
+            // Save file to disk
+            await fs.promises.writeFile(uploadedFilePath, file.buffer);
+
+        } else {
+            uploadedFilePath = path.posix.join(this.fileIOService.apiImportsDir, path.basename(file));
+            // Check if file exists
+            try {
+                await fs.promises.access(uploadedFilePath, fs.constants.R_OK);
+            } catch {
+                throw new NotFoundException(`Sample file not found: ${file}`);
+            }
+        }
+
         // Create a valid SQL identifier from the session ID. Note uuid v4 contains hyphens which are not allowed in SQL identifiers, so we remove them.
         const tableName = `preview_${sessionId.substring(0, 8).replaceAll('-', '')}_${timestamp}`;
-
-        // Save file to disk
-        await fs.promises.writeFile(uploadedFilePath, file.buffer);
 
         const session: PreviewSession = {
             sessionId,
@@ -85,11 +94,13 @@ export class ImportPreviewService implements OnModuleDestroy {
         const totalRowCount = await this.getRowCount(tableName);
         const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
         const skippedRows = await this.getSkippedRows(session);
+        const sampleFile = path.basename(uploadedFilePath);
 
-        return { sessionId, columns, totalRowCount, previewRows, skippedRows };
+        return { sessionId, sampleFile, columns, totalRowCount, previewRows, skippedRows };
     }
 
-    async updateBaseParams(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
+
+    public async updateBaseParams(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
         const session = this.getSession(sessionId);
         session.rowsToSkip = rowsToSkip;
         session.delimiter = delimiter;
@@ -102,11 +113,12 @@ export class ImportPreviewService implements OnModuleDestroy {
         const totalRowCount = await this.getRowCount(session.tableName);
         const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
         const skippedRows = await this.getSkippedRows(session);
+        const sampleFile = path.basename(session.uploadedFilePath);
 
-        return { sessionId, columns, totalRowCount, previewRows, skippedRows };
+        return { sessionId, sampleFile, columns, totalRowCount, previewRows, skippedRows };
     }
 
-    async previewStep(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
+    public async previewStep(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
         const session = this.getSession(sessionId);
         session.lastAccessedAt = Date.now();
 
@@ -200,7 +212,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         return { columns, previewRows, totalRowCount: afterCount, rowsDropped, warnings, errors };
     }
 
-    async destroySession(sessionId: string): Promise<void> {
+    public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
         if (!session) return;
 
@@ -210,11 +222,14 @@ export class ImportPreviewService implements OnModuleDestroy {
             this.logger.warn(`Could not drop preview table ${session.tableName}: ${e}`);
         }
 
-        try {
-            await fs.promises.unlink(session.uploadedFilePath);
-        } catch (e) {
-            this.logger.warn(`Could not delete preview file ${session.uploadedFilePath}: ${e}`);
-        }
+        // DO NOT DELETE THE UPLOADED FILES IMMEDIATELY AFTER EACH SESSION ENDS BECAUSE:
+        // The file is needed for future previews
+
+        // try {
+        //     await fs.promises.unlink(session.uploadedFilePath);
+        // } catch (e) {
+        //     this.logger.warn(`Could not delete preview file ${session.uploadedFilePath}: ${e}`);
+        // }
 
         this.sessions.delete(sessionId);
     }
@@ -222,7 +237,7 @@ export class ImportPreviewService implements OnModuleDestroy {
     private getSession(sessionId: string): PreviewSession {
         const session = this.sessions.get(sessionId);
         if (!session) {
-            throw new Error(`Preview session not found: ${sessionId}. It may have expired.`);
+            throw new NotFoundException(`Preview session not found: ${sessionId}. It may have expired.`);
         }
         return session;
     }
@@ -234,7 +249,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         // Read CSV with the configured params
         const importParams = ImportSqlBuilder.buildCsvImportParams(session.rowsToSkip, session.delimiter);
         const createSQL = `CREATE OR REPLACE TABLE ${session.tableName} AS SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${this.MAX_PREVIEW_ROWS};`;
-       
+
         await this.fileIOService.duckDb.run(createSQL);
 
         // Rename columns to normalized names (column0, column1, ...)
@@ -251,13 +266,8 @@ export class ImportPreviewService implements OnModuleDestroy {
         const rows = await this.fileIOService.duckDb.all(
             `SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${session.rowsToSkip}`
         );
-        if (rows.length === 0) return [];
 
-        const keys = Object.keys(rows[0]);
-        return rows.map(row => keys.map(key => {
-            const val = row[key];
-            return val === null || val === undefined ? '' : String(val);
-        }));
+        return this.convertTableDataToPreviewRows(rows);
     }
 
     private async getColumnNames(tableName: string): Promise<string[]> {
@@ -272,11 +282,14 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     private async getPreviewRows(tableName: string, limit: number): Promise<string[][]> {
         const rows = await this.fileIOService.duckDb.all(`SELECT * FROM ${tableName} LIMIT ${limit}`);
-        if (rows.length === 0) return [];
+        return this.convertTableDataToPreviewRows(rows);
+    }
 
-        // Convert each row object to an array of string values
-        const keys = Object.keys(rows[0]);
-        return rows.map(row => keys.map(key => {
+    private convertTableDataToPreviewRows(tableData: TableData): string[][] {
+        if (tableData.length === 0) return [];
+        
+        const keys = Object.keys(tableData[0]);
+        return tableData.map(row => keys.map(key => {
             const val = row[key];
             return val === null || val === undefined ? '' : String(val);
         }));
