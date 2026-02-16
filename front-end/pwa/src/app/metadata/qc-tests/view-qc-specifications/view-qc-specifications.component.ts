@@ -7,7 +7,6 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { ElementsCacheService } from '../../elements/services/elements-cache.service';
-import { CreateViewElementModel } from '../../elements/models/create-view-element.model';
 
 interface ElementQCSpecView extends QCTestCacheModel {
   elementName: string;
