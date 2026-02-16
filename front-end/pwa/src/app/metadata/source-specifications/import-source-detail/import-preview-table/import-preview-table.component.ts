@@ -7,6 +7,7 @@ import { PreviewError, PreviewWarning } from '../../models/import-preview.model'
     styleUrls: ['./import-preview-table.component.scss']
 })
 export class ImportPreviewTableComponent {
+    @Input() title: string = 'Data Preview';
     @Input() columns: string[] = [];
     @Input() rows: string[][] = [];
     @Input() totalRowCount: number = 0;

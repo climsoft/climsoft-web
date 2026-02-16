@@ -16,8 +16,7 @@ export interface RawPreviewResponse {
     columns: string[];
     totalRowCount: number;
     previewRows: string[][];
-    error?: boolean;
-    message?: string;
+    skippedRows: string[][];
 }
 
 export interface StepPreviewResponse {
@@ -27,6 +26,4 @@ export interface StepPreviewResponse {
     rowsDropped: number;
     warnings: PreviewWarning[];
     errors: PreviewError[];
-    error?: boolean;
-    message?: string;
 }

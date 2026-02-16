@@ -1,5 +1,6 @@
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 
 export class UploadPreviewDto {
     @IsInt()
@@ -25,7 +26,7 @@ export class UpdateBaseParamsDto {
 
 export class ProcessPreviewDto {
     @IsOptional()// Skipping validation for now as the structure can be complex and dynamic
-    sourceDefinition: any;
+    sourceDefinition: CreateSourceSpecificationDto;
 
     @IsOptional()
     @IsString()
@@ -50,6 +51,7 @@ export interface RawPreviewResponse {
     columns: string[];
     totalRowCount: number;
     previewRows: string[][];
+    skippedRows: string[][];
 }
 
 export interface StepPreviewResponse {

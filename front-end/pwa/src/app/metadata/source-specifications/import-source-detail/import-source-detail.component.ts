@@ -7,7 +7,7 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { Observable, Subject, take, takeUntil } from 'rxjs';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
-import { CreateSourceModel } from 'src/app/metadata/source-specifications/models/create-source.model';
+import { CreateSourceSpecificationModel } from 'src/app/metadata/source-specifications/models/create-source-specification.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { SourcesCacheService } from '../services/source-cache.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -44,6 +44,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
     protected sessionId: string | null = null;
     protected previewColumns: string[] = [];
     protected previewRows: string[][] = [];
+    protected skippedRows: string[][] = [];
     protected totalRowCount: number = 0;
     protected rowsDropped: number = 0;
     protected warnings: PreviewWarning[] = [];
@@ -202,19 +203,17 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         ).pipe(take(1)).subscribe({
             next: (res) => {
                 this.previewLoading = false;
-                if (res.error) {
-                    this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: res.message || 'Upload failed' }];
-                    return;
-                }
                 this.sessionId = res.sessionId;
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
+                this.skippedRows = res.skippedRows;
                 this.totalRowCount = res.totalRowCount;
                 this.rowsDropped = 0;
             },
             error: (err) => {
                 this.previewLoading = false;
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: 'Failed to upload file. Please try again.' }];
+                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to upload file.';
+                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
                 console.error('Preview upload error:', err);
             }
         });
@@ -239,7 +238,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         this.warnings = [];
         this.errors = [];
 
-        const sourceDefinition: CreateSourceModel = {
+        const sourceDefinition: CreateSourceSpecificationModel = {
             name: this.importSource.name,
             description: this.importSource.description,
             sourceType: SourceTypeEnum.IMPORT,
@@ -265,10 +264,6 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         ).pipe(take(1)).subscribe({
             next: (res) => {
                 this.previewLoading = false;
-                if (res.error) {
-                    this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: res.message || 'Preview processing failed' }];
-                    return;
-                }
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
                 this.totalRowCount = res.totalRowCount;
@@ -278,7 +273,8 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 this.previewLoading = false;
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: 'Failed to generate preview. Check your configuration.' }];
+                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to generate preview.';
+                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
                 console.error('Preview step error:', err);
             }
         });
@@ -298,18 +294,16 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
         ).pipe(take(1)).subscribe({
             next: (res) => {
                 this.previewLoading = false;
-                if (res.error) {
-                    this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: res.message || 'Failed to load raw preview' }];
-                    return;
-                }
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
+                this.skippedRows = res.skippedRows;
                 this.totalRowCount = res.totalRowCount;
                 this.rowsDropped = 0;
             },
             error: (err) => {
                 this.previewLoading = false;
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message: 'Failed to load raw preview.' }];
+                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to load raw preview.';
+                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
                 console.error('Raw preview error:', err);
             }
         });
@@ -360,7 +354,7 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const createUpdateSource: CreateSourceModel = {
+        const createUpdateSource: CreateSourceSpecificationModel = {
             name: this.importSource.name,
             description: this.importSource.description,
             sourceType: SourceTypeEnum.IMPORT,

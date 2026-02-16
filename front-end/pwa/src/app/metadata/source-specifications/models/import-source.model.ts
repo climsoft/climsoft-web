@@ -1,5 +1,5 @@
 import { ImportSourceTabularParamsModel } from "./import-source-tabular-params.model";
-import { SourceParametersValidity } from "./create-source.model";
+import { SourceParametersValidity } from "./create-source-specification.model";
 
 export enum DataStructureTypeEnum {
     TABULAR = "tabular",

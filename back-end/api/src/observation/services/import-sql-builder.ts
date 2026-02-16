@@ -4,6 +4,7 @@ import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, Value
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
+import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -124,7 +125,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterDateTimeColumnSQL(sourceDef: ViewSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
+    static buildAlterDateTimeColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
@@ -235,7 +236,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterValueColumnSQL(sourceDef: ViewSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
+    static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
 
         if (tabularDef.valueDefinition !== undefined) {

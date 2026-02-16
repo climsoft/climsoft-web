@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
 import { RawPreviewResponse, StepPreviewResponse } from '../../models/import-preview.model';
+import { CreateSourceSpecificationModel } from '../../models/create-source-specification.model';
 
 @Injectable({ providedIn: 'root' })
 export class ImportPreviewHttpService {
@@ -32,7 +33,7 @@ export class ImportPreviewHttpService {
         });
     }
 
-    public previewStep(sessionId: string, sourceDefinition: any, stationId?: string): Observable<StepPreviewResponse> {
+    public previewStep(sessionId: string, sourceDefinition: CreateSourceSpecificationModel, stationId?: string): Observable<StepPreviewResponse> {
         return this.http.post<StepPreviewResponse>(`${this.endPointUrl}/process/${sessionId}`, {
             sourceDefinition,
             stationId,

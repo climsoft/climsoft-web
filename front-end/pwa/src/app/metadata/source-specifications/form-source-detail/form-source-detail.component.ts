@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormSourceModel, LayoutType, SelectorFieldControlType, } from '../models/form-source.model';
-import { CreateSourceModel } from '../models/create-source.model';
+import { CreateSourceSpecificationModel } from '../models/create-source-specification.model';
 import { ActivatedRoute } from '@angular/router';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
@@ -253,7 +253,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       allowDoubleDataEntry: this.allowDoubleDataEntry,
     };
 
-    const createUpdateSource: CreateSourceModel = {
+    const createUpdateSource: CreateSourceSpecificationModel = {
       name: this.viewSource.name,
       description: this.viewSource.description,
       sourceType: SourceTypeEnum.FORM,

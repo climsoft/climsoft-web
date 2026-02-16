@@ -28,11 +28,16 @@
 
     <!-- Preview table -->
     <div *ngIf="hasFile && !loading && columns.length > 0" class="table-responsive">
-        <div class="mb-2 small text-muted">
-            Showing {{ rows.length }} of {{ totalRowCount }} row(s)
-            <span *ngIf="rowsDropped > 0" class="text-warning ms-2">
-                ({{ rowsDropped }} row(s) removed)
-            </span>
+        <div class="mb-2 small text-muted d-flex justify-content-between align-items-center">
+            <div>
+                {{ title }}
+            </div>
+            <div>
+                Showing {{ rows.length }} of {{ totalRowCount }} row(s)
+                <span *ngIf="rowsDropped > 0" class="text-warning ms-2">
+                    ({{ rowsDropped }} row(s) removed)
+                </span>
+            </div>
         </div>
 
         <table class="table table-sm table-striped table-bordered mb-0">

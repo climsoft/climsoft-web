@@ -166,15 +166,7 @@
 
 
                 <!-- Refresh and Navigation buttons. Only show them when the preview session has been set up. -->
-                <div *ngIf="sessionId" class="d-flex justify-content-between gap-1 mt-3 pt-3 border-top">
-                    <!-- Refresh preview button (for non-upload steps) -->
-                    <button type="button" class="btn btn-outline-info btn-sm" (click)="refreshPreview()">
-                        Refresh Preview
-                    </button>
-
-                    <!-- Spacer div to push navigation buttons to the edges when the refresh button is not shown -->
-                    <div class="flex-grow-1"></div>
-
+                <div *ngIf="sessionId" class="d-flex justify-content-end gap-1 mt-3 pt-3 border-top">
                     <button *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
                         (click)="onPrevious()">
                         Previous
@@ -187,9 +179,19 @@
 
             </div>
 
-            <!-- Right column: Preview table -->
+            <!-- Right column: Preview tables -->
             <div class="col-md-7">
-                <app-import-preview-table [columns]="previewColumns" [rows]="previewRows"
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-outline-info btn-sm" (click)="refreshPreview()">
+                        Refresh Preview
+                    </button>
+                </div>
+               
+                <div *ngIf="skippedRows.length > 0" class="mb-3"> 
+                      <app-import-preview-table [title]="'Skipped Rows'" [columns]="previewColumns" [rows]="skippedRows" [hasFile]="true" />
+                </div>
+
+                <app-import-preview-table [title]="'Data Preview'" [columns]="previewColumns" [rows]="previewRows"
                     [totalRowCount]="totalRowCount" [rowsDropped]="rowsDropped" [warnings]="warnings" [errors]="errors"
                     [loading]="previewLoading" [hasFile]="!!sessionId"
                     [noFileMessage]="'Upload a sample file on the left to see a live preview of how your data will be processed'" />

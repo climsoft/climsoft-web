@@ -4,7 +4,7 @@ import { SourceTypeEnum } from "./source-type.enum";
 
 export type SourceParameters = FormSourceModel | ImportSourceModel;
 
-export interface CreateSourceModel {
+export interface CreateSourceSpecificationModel {
   name: string;
   description: string;
   sourceType: SourceTypeEnum;

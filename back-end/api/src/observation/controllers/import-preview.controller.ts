@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ImportPreviewService } from '../services/import-preview.service';
 import { UpdateBaseParamsDto, ProcessPreviewDto } from '../dtos/import-preview.dto';
@@ -19,17 +19,12 @@ export class ImportPreviewController {
                 new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
             ]
         })) file: Express.Multer.File,
-        @Body('rowsToSkip') rowsToSkip: string,
+        @Body('rowsToSkip', ParseIntPipe) rowsToSkip: number,
         @Body('delimiter') delimiter?: string,
     ) {
-        try {
-            const skip = parseInt(rowsToSkip, 10) || 0;
-            const delim = delimiter || undefined;
-            return await this.importPreviewService.uploadAndPreview(file, skip, delim);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return { error: true, message };
-        }
+        const skip: number = rowsToSkip > 0 ? rowsToSkip : 0;
+        const delim: string | undefined = delimiter || undefined;
+        return await this.importPreviewService.uploadAndPreview(file, skip, delim);
     }
 
     @Post('base-params/:sessionId')
@@ -37,13 +32,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: UpdateBaseParamsDto,
     ) {
-        console.log('base-params preview with sessionId:', sessionId);
-        try {
-            return await this.importPreviewService.updateBaseParams(sessionId, dto.rowsToSkip, dto.delimiter);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return { error: true, message };
-        }
+        return await this.importPreviewService.updateBaseParams(sessionId, dto.rowsToSkip, dto.delimiter);
     }
 
     @Post('process/:sessionId')
@@ -51,14 +40,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: ProcessPreviewDto,
     ) {
-
-        console.log('Processing preview with sessionId:', sessionId);
-        try {
-            return await this.importPreviewService.previewStep(sessionId, dto.sourceDefinition, dto.stationId);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            return { error: true, message };
-        }
+        return await this.importPreviewService.previewStep(sessionId, dto.sourceDefinition, dto.stationId);
     }
 
     @Delete(':sessionId')

@@ -11,6 +11,7 @@ import { ImportSourceDto, DataStructureTypeEnum } from 'src/metadata/source-spec
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { PreviewError, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
+import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 
 interface PreviewSession {
     sessionId: string;
@@ -83,8 +84,9 @@ export class ImportPreviewService implements OnModuleDestroy {
         const columns = await this.getColumnNames(tableName);
         const totalRowCount = await this.getRowCount(tableName);
         const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
+        const skippedRows = await this.getSkippedRows(session);
 
-        return { sessionId, columns, totalRowCount, previewRows };
+        return { sessionId, columns, totalRowCount, previewRows, skippedRows };
     }
 
     async updateBaseParams(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
@@ -99,11 +101,12 @@ export class ImportPreviewService implements OnModuleDestroy {
         const columns = await this.getColumnNames(session.tableName);
         const totalRowCount = await this.getRowCount(session.tableName);
         const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
+        const skippedRows = await this.getSkippedRows(session);
 
-        return { sessionId, columns, totalRowCount, previewRows };
+        return { sessionId, columns, totalRowCount, previewRows, skippedRows };
     }
 
-    async previewStep(sessionId: string, sourceDefinition: any, stationId?: string): Promise<StepPreviewResponse> {
+    async previewStep(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
         const session = this.getSession(sessionId);
         session.lastAccessedAt = Date.now();
 
@@ -114,22 +117,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         await this.loadRawTable(session);
         const beforeCount = await this.getRowCount(session.tableName);
 
-        // Build a ViewSourceSpecificationDto-like object from the source definition
-        const sourceDef: ViewSourceSpecificationDto = {
-            id: 0,
-            name: sourceDefinition.name || '',
-            description: sourceDefinition.description || '',
-            sourceType: SourceTypeEnum.IMPORT,
-            utcOffset: sourceDefinition.utcOffset ?? 0,
-            allowMissingValue: sourceDefinition.allowMissingValue ?? false,
-            scaleValues: sourceDefinition.scaleValues ?? false,
-            sampleFile: '',
-            parameters: sourceDefinition.parameters,
-            disabled: false,
-            comment: null,
-        } as any;
-
-        const importDef = sourceDefinition.parameters as ImportSourceDto;
+        const importDef = sourceDef.parameters as ImportSourceDto;
         if (!importDef || importDef.dataStructureType !== DataStructureTypeEnum.TABULAR) {
             errors.push({
                 type: 'MISSING_REQUIRED_FIELD',
@@ -182,7 +170,6 @@ export class ImportPreviewService implements OnModuleDestroy {
                 // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
                 const sql = step.buildSql();
                 if (sql) {
-                            console.log( sql);
                     await this.fileIOService.duckDb.exec(sql);
                 }
             } catch (error) {
@@ -198,7 +185,6 @@ export class ImportPreviewService implements OnModuleDestroy {
         const columns = await this.getColumnNames(session.tableName);
         const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
         const rowsDropped = beforeCount - afterCount;
-        console.log(`Rows before: ${beforeCount}, after: ${afterCount}, dropped: ${rowsDropped}`);
 
         // Detect warnings on whatever columns exist so far
         await this.detectWarnings(session.tableName, columns, warnings);
@@ -258,7 +244,6 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         const createSQL = `CREATE OR REPLACE TABLE ${session.tableName} AS SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${this.MAX_PREVIEW_ROWS};`;
        
-        console.log(createSQL);
         await this.fileIOService.duckDb.run(createSQL);
 
         // Rename columns to normalized names (column0, column1, ...)
@@ -267,6 +252,31 @@ export class ImportPreviewService implements OnModuleDestroy {
         if (renameSQL) {
             await this.fileIOService.duckDb.exec(renameSQL);
         }
+    }
+
+    private async getSkippedRows(session: PreviewSession): Promise<string[][]> {
+        if (session.rowsToSkip <= 0) return [];
+
+        const importParams: string[] = [
+            'header = false',
+            'skip = 0',
+            'all_varchar = true',
+            'strict_mode = false',
+        ];
+        if (session.delimiter) {
+            importParams.push(`delim = '${session.delimiter}'`);
+        }
+
+        const rows = await this.fileIOService.duckDb.all(
+            `SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${session.rowsToSkip}`
+        );
+        if (rows.length === 0) return [];
+
+        const keys = Object.keys(rows[0]);
+        return rows.map(row => keys.map(key => {
+            const val = row[key];
+            return val === null || val === undefined ? '' : String(val);
+        }));
     }
 
     private async getColumnNames(tableName: string): Promise<string[]> {

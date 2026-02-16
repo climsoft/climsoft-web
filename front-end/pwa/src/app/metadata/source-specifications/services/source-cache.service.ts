@@ -4,7 +4,7 @@ import { MetadataUpdatesService } from "src/app/metadata/metadata-updates/metada
 import { AppDatabase } from "src/app/app-database";
 import { HttpClient } from "@angular/common/http";
 import { ViewSourceModel } from "../models/view-source.model";
-import { CreateSourceModel } from "../models/create-source.model";
+import { CreateSourceSpecificationModel } from "../models/create-source-specification.model";
 import { AppConfigService } from "src/app/app-config.service";
 
 @Injectable({
@@ -62,7 +62,7 @@ export class SourcesCacheService {
         );
     }
 
-    public add(createDto: CreateSourceModel): Observable<ViewSourceModel> {
+    public add(createDto: CreateSourceSpecificationModel): Observable<ViewSourceModel> {
         return this.http.post<ViewSourceModel>(`${this.endPointUrl}`, createDto)
             .pipe(
                 tap(() => {
@@ -71,7 +71,7 @@ export class SourcesCacheService {
             );
     }
 
-    public update(id: number, updateDto: CreateSourceModel): Observable<ViewSourceModel> {
+    public update(id: number, updateDto: CreateSourceSpecificationModel): Observable<ViewSourceModel> {
         return this.http.patch<ViewSourceModel>(`${this.endPointUrl}/${id}`, updateDto)
             .pipe(
                 tap(() => {
