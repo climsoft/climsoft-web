@@ -228,6 +228,8 @@ export class ImportSourceDetailComponent implements OnInit, OnDestroy {
     protected refreshPreview(): void {
         if (!this.sessionId) return;
 
+        // If we're on the initial upload step, always refresh the raw preview without re-processing the file
+        // Important when user needs to see the original preview even after changing parameters in the later steps
         if (this.activeStep === 'upload') {
             this.loadRawPreview();
             return;
