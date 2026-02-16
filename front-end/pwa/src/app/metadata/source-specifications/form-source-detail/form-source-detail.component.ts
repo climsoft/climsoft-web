@@ -89,7 +89,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
         utcOffset: 0,
         allowMissingValue: true,
         scaleValues: true, // By default forms usually have scaled values.
-        sampleImage: '',
+        sampleFile: '',
         parameters: entryForm,
         disabled: false,
         comment: '',
@@ -259,7 +259,7 @@ export class FormSourceDetailComponent implements OnInit, OnDestroy {
       sourceType: SourceTypeEnum.FORM,
       utcOffset: this.utcOffset,
       allowMissingValue: this.allowMissingValue,
-      sampleImage: '',
+      sampleFile: '',
       parameters: entryForm,
       scaleValues: true, // By default form values are always scaled.
       disabled: this.viewSource.disabled,

@@ -21,6 +21,7 @@ import { ImportSourceDelimeterDetailComponent } from './source-specifications/im
 import { ImportSourceLevelDetailComponent } from './source-specifications/import-source-detail/import-source-level-detail/import-source-level-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './source-specifications/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
+import { ImportPreviewTableComponent } from './source-specifications/import-source-detail/import-preview-table/import-preview-table.component';
 import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
 import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
@@ -137,6 +138,7 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ImportSourceMissingFlagDetailComponent,
     ImportSourceValueDetailComponent,
     ImportSourceFlagDetailComponent,
+    ImportPreviewTableComponent,
 
     EditElementDialogComponent, 
     ImportElementsDialogComponent,

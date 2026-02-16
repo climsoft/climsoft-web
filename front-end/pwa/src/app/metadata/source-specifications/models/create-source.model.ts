@@ -30,7 +30,7 @@ export interface CreateSourceModel {
   scaleValues: boolean;
 
   /** Sample paper image that resembles the source design */
-  sampleImage: string;
+  sampleFile: string;
 
   disabled: boolean;
   comment: string | null;

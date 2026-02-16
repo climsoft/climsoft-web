@@ -1,0 +1,16 @@
+.preview-container {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.table-responsive {
+    max-height: 55vh;
+    overflow: auto;
+}
+
+.table th,
+.table td {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

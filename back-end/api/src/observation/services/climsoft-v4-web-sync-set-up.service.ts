@@ -510,7 +510,7 @@ export class ClimsoftV4WebSyncSetUpService {
                 utcOffset: this.v4UtcOffset,
                 allowMissingValue: true,
                 scaleValues: false,
-                sampleImage: '',
+                sampleFile: '',
                 disabled: false,
                 comment: null,
             }

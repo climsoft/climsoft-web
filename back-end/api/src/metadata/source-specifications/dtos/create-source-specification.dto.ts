@@ -71,10 +71,10 @@ export class CreateSourceSpecificationDto {
   @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
   scaleValues?: boolean;
 
-  /** Sample paper image that resembles the source design */
+  /** Sample file that resembles the source design (can be form image, pdf or import file csv, dat) */
   @IsOptional()
   @IsString()
-  sampleImage?: string;
+  sampleFile?: string;
 
   @IsOptional()
   @Type(() => String) // Required to stop transformer from converting the value type to boolean

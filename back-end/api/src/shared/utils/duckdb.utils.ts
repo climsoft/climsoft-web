@@ -4,13 +4,19 @@ export class DuckDBUtils {
 
     public static async getRenameDefaultColumnNamesSQL(duckdb: Database, tableName: string): Promise<string> {
         // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
-        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'. 
-        // This function aims to ensure that the column names are corrected to the suffix expected, that is, 'column0'  
+        // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'.
+        // This function normalises column names to 1-based indices (column1, column2, ...) matching user expectations where columns are counted starting at 1.
 
         const sourceColumnNames: string[] = (await duckdb.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
         let sql: string = "";
+        // Two-pass rename to avoid collisions (e.g. renaming column0 → column1 when column1 already exists).
+        // Pass 1: rename all columns to temporary names
         for (let i = 0; i < sourceColumnNames.length; i++) {
-            sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO column${i};`;
+            sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO __temp_col_${i};`;
+        }
+        // Pass 2: rename temporary names to final 1-based names
+        for (let i = 0; i < sourceColumnNames.length; i++) {
+            sql = sql + `ALTER TABLE ${tableName} RENAME __temp_col_${i} TO column${i + 1};`;
         }
         return sql;
     }
