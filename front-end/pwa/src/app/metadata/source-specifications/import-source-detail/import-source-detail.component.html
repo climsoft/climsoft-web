@@ -186,9 +186,10 @@
                         Refresh Preview
                     </button>
                 </div>
-               
-                <div *ngIf="skippedRows.length > 0" class="mb-3"> 
-                      <app-import-preview-table [title]="'Skipped Rows'" [columns]="previewColumns" [rows]="skippedRows" [hasFile]="true" />
+
+                <div *ngIf="skippedRows.length > 0" class="mb-3">
+                    <app-import-preview-table [title]="'Skipped Rows'" [columns]="previewColumns" [rows]="skippedRows"
+                        [hasFile]="true" />
                 </div>
 
                 <app-import-preview-table [title]="'Data Preview'" [columns]="previewColumns" [rows]="previewRows"
