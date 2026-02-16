@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, OnDestroy, Output, ViewChild } from '@angular/core';
 import { ImportSourceTabularParamsModel } from '../models/import-source-tabular-params.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
@@ -147,15 +147,6 @@ export class ImportSourceDetailComponent implements OnDestroy {
         this.cleanupSession();
         this.destroy$.next();
         this.destroy$.complete();
-    }
-
-    @HostListener('window:beforeunload')
-    onBeforeUnload(): void {
-        if (this.sessionId) {
-            // Best-effort cleanup using sendBeacon
-            const url = `${this.importPreviewService['endPointUrl']}/${this.sessionId}`;
-            navigator.sendBeacon(url);
-        }
     }
 
     // ─── Accessors ───
