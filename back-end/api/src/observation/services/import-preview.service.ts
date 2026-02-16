@@ -60,8 +60,8 @@ export class ImportPreviewService implements OnModuleDestroy {
             this.fileIOService.apiImportsDir,
             `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`
         );
-        // Create a valid SQL identifier from the session ID
-        const tableName = `preview_${sessionId.substring(0, 8).replace(/-/g, '')}_${timestamp}`;
+        // Create a valid SQL identifier from the session ID. Note uuid v4 contains hyphens which are not allowed in SQL identifiers, so we remove them.
+        const tableName = `preview_${sessionId.substring(0, 8).replaceAll('-', '')}_${timestamp}`;
 
         // Save file to disk
         await fs.promises.writeFile(uploadedFilePath, file.buffer);
@@ -248,7 +248,6 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         // Rename columns to normalized names (column0, column1, ...)
         const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, session.tableName);
-        console.log(renameSQL);
         if (renameSQL) {
             await this.fileIOService.duckDb.exec(renameSQL);
         }
