@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { StationDefinition } from '../../models/import-source-tabular-params.model';
 
 @Component({
@@ -6,7 +6,7 @@ import { StationDefinition } from '../../models/import-source-tabular-params.mod
   templateUrl: './import-source-station-detail.component.html',
   styleUrls: ['./import-source-station-detail.component.scss']
 })
-export class ImportSourceStationDetailComponent implements OnChanges {
+export class ImportSourceStationDetailComponent {
 
   @Input()
   public stationDefinition?: StationDefinition;
@@ -14,50 +14,25 @@ export class ImportSourceStationDetailComponent implements OnChanges {
   @Output()
   public stationDefinitionChange = new EventEmitter<StationDefinition | undefined>();
 
-  protected fetchStationsHolder!: { sourceId: string, databaseId: string }[];
-
-  ngOnChanges(changes: SimpleChanges): void {
-
-    if (this.stationDefinition && this.stationDefinition.stationsToFetch) {
-      this.fetchStationsHolder = [... this.stationDefinition.stationsToFetch];
-      //Add new placholder values
-      this.fetchStationsHolder.push({ sourceId: '', databaseId: '' });
-    }
-
-  }
-
   protected onIncludeStation(include: boolean): void {
     this.stationDefinition = include ? { columnPosition: 0, stationsToFetch: undefined } : undefined;
     this.stationDefinitionChange.emit(this.stationDefinition);
   }
 
-  protected onFetchStationsChange(fetch: boolean) {
-
+  protected onFetchStationsChange(fetch: boolean): void {
     if (!this.stationDefinition) {
       return;
     }
-
-    // Add new placeholder for visibility of the entry controls if stations are specified
-    this.fetchStationsHolder =  [{ sourceId: '', databaseId: '' }] ;
     this.stationDefinition.stationsToFetch = fetch ? [] : undefined;
   }
 
-  protected onStationToFetchEntry(): void {
-    if (!this.stationDefinition || !this.stationDefinition.stationsToFetch || !this.fetchStationsHolder) {
-      return;
-    }
+  protected onAddStationMapping(): void {
+    this.stationDefinition?.stationsToFetch?.push({ sourceId: '', databaseId: '' });
+  }
 
-    //If it's the last control add new placeholder for visibility of the entry controls
-    const last = this.fetchStationsHolder[this.fetchStationsHolder.length - 1];
-    if (last.sourceId !== '' && last.databaseId !== '') {
-
-      // Set the new valid values from the place holder
-      this.stationDefinition.stationsToFetch = [...this.fetchStationsHolder];
-
-      //Add new placholder values
-      this.fetchStationsHolder.push({ sourceId: '', databaseId: '' });
-
-    }
+  protected onRemoveStationMapping(index: number): void {
+    this.stationDefinition?.stationsToFetch?.splice(index, 1);
+    this.stationDefinitionChange.emit(this.stationDefinition);
   }
 
 }

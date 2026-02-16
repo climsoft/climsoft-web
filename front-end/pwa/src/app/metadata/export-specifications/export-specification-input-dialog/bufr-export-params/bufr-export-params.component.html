@@ -23,39 +23,39 @@
                     No element mappings configured. Click "Add Mapping" to create one.
                 </div>
 
-                <ng-container
-                    *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Database Element</th>
-                                <th>BUFR Element</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-group-divider">
-                            <tr *ngFor="let mapping of bufrExportParameters.elementMappings; let i = index">
-                                <td>
-                                    <app-element-selector-single [id]="'db_element_' + i"
-                                        [selectedId]="mapping.databaseElementId"
-                                        (selectedIdChange)="onDBElementSelected(i, $event)" />
-                                </td>
-                                <td>
-                                    <app-selector-single-input [id]="'bufr_element_' + i" [options]="bufrElements"
-                                        [optionDisplayFn]="bufrElementDisplayFunction"
-                                        [selectedOption]="mapping.bufrElement"
-                                        (selectedOptionChange)="onBufrElementSelected(i, $event)" />
-                                </td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                        (click)="onRemoveElementMapping(i)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </ng-container>
+                <table
+                    *ngIf="bufrElements && bufrElements.length > 0 && bufrExportParameters.elementMappings && bufrExportParameters.elementMappings.length > 0"
+                    class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Database Element</th>
+                            <th>BUFR Element</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let mapping of bufrExportParameters.elementMappings; let i = index">
+                            <td>
+                                <app-element-selector-single [id]="'db_element_' + i"
+                                    [selectedId]="mapping.databaseElementId"
+                                    (selectedIdChange)="onDBElementSelected(i, $event)" />
+                            </td>
+                            <td>
+                                <app-selector-single-input [id]="'bufr_element_' + i" [options]="bufrElements"
+                                    [optionDisplayFn]="bufrElementDisplayFunction"
+                                    [selectedOption]="mapping.bufrElement"
+                                    (selectedOptionChange)="onBufrElementSelected(i, $event)" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveElementMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
             </div>
         </div>
     </div>
