@@ -232,16 +232,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         await this.fileIOService.duckDb.run(`DROP TABLE IF EXISTS ${session.tableName};`);
 
         // Read CSV with the configured params
-        const importParams: string[] = [
-            'header = false',
-            `skip = ${session.rowsToSkip}`,
-            'all_varchar = true',
-            'strict_mode = false',
-        ];
-        if (session.delimiter) {
-            importParams.push(`delim = '${session.delimiter}'`);
-        }
-
+        const importParams = ImportSqlBuilder.buildCsvImportParams(session.rowsToSkip, session.delimiter);
         const createSQL = `CREATE OR REPLACE TABLE ${session.tableName} AS SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${this.MAX_PREVIEW_ROWS};`;
        
         await this.fileIOService.duckDb.run(createSQL);
@@ -256,16 +247,7 @@ export class ImportPreviewService implements OnModuleDestroy {
     private async getSkippedRows(session: PreviewSession): Promise<string[][]> {
         if (session.rowsToSkip <= 0) return [];
 
-        const importParams: string[] = [
-            'header = false',
-            'skip = 0',
-            'all_varchar = true',
-            'strict_mode = false',
-        ];
-        if (session.delimiter) {
-            importParams.push(`delim = '${session.delimiter}'`);
-        }
-
+        const importParams = ImportSqlBuilder.buildCsvImportParams(0, session.delimiter);
         const rows = await this.fileIOService.duckDb.all(
             `SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${session.rowsToSkip}`
         );

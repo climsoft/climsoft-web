@@ -291,6 +291,23 @@ export class ImportSqlBuilder {
         return sql;
     }
 
+    static buildCsvImportParams(rowsToSkip: number, delimiter?: string): string[] {
+        // Note.
+        // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
+        // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
+
+        const params: string[] = [
+            'header = false',
+            `skip = ${rowsToSkip}`,
+            'all_varchar = true',
+            'strict_mode = false',
+        ];
+        if (delimiter) {
+            params.push(`delim = '${delimiter}'`);
+        }
+        return params;
+    }
+
     static buildRemoveDuplicatesSQL(tableName: string): string {
         // Remove duplicates based on the composite primary key (station_id, element_id, level, date_time, interval, source_id)
         // Keep the last occurrence by using row_number() ordered by rowid in descending order

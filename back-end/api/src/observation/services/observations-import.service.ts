@@ -156,13 +156,7 @@ export class ObservationImportService {
 
         // Remove spaces and special characters from table name to ensure valid SQL identifier
         const tmpObsTableName: string = path.basename(inputFilePathName, path.extname(inputFilePathName)).replace(/\s+/g, '_');
-        // Note.
-        // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-        // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
-        const importParams: string[] = ['header = false', `skip = ${tabularDef.rowsToSkip}`, 'all_varchar = true', 'strict_mode = false'];
-        if (tabularDef.delimiter) {
-            importParams.push(`delim = '${tabularDef.delimiter}'`);
-        }
+        const importParams = ImportSqlBuilder.buildCsvImportParams(tabularDef.rowsToSkip, tabularDef.delimiter);
 
         // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
         const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${inputFilePathName}', ${importParams.join(', ')});`;
