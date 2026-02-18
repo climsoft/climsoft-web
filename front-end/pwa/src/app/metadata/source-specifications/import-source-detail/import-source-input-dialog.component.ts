@@ -41,6 +41,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         value: 'Value & More',
         review: 'Review',
     };
+    protected visitedSteps: Set<WizardStep> = new Set(['upload']);
 
     // Preview state
     protected sessionId: string | null = null;
@@ -76,11 +77,14 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         this.error = null;
         this.previewLoading = false;
         this.uploadedFileName = '';
+        this.visitedSteps = new Set(['upload']);
 
         this.open = true;
 
         if (sourceId) {
             this.title = 'Edit Import Specification';
+            // Mark all steps as visited for existing specifications
+            this.wizardSteps.forEach(s => this.visitedSteps.add(s));
 
             this.sourcesCacheService.findOne(sourceId).pipe(
                 takeUntil(this.destroy$),
@@ -163,6 +167,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     protected onStepTabClick(step: WizardStep): void {
         this.activeStep = step;
+        this.visitedSteps.add(step);
         this.refreshPreview();
     }
 
@@ -170,6 +175,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         const currentIndex = this.wizardSteps.indexOf(this.activeStep);
         if (currentIndex < this.wizardSteps.length - 1) {
             this.activeStep = this.wizardSteps[currentIndex + 1];
+            this.visitedSteps.add(this.activeStep);
             if (this.sessionId) {
                 this.refreshPreview();
             }
@@ -180,12 +186,62 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         const currentIndex = this.wizardSteps.indexOf(this.activeStep);
         if (currentIndex > 0) {
             this.activeStep = this.wizardSteps[currentIndex - 1];
+            this.visitedSteps.add(this.activeStep);
             this.refreshPreview();
         }
     }
 
     protected isStepDisabled(step: WizardStep): boolean {
-        return step !== 'upload' && !this.sessionId;
+        if (step === 'upload') return false;
+        // Allow navigation when editing an existing spec or when a session exists
+        return !this.sessionId && !(this.importSource?.id > 0);
+    }
+
+    protected getStepNumber(step: WizardStep): number {
+        return this.wizardSteps.indexOf(step) + 1;
+    }
+
+    protected getStepValidationErrors(step: WizardStep): string[] {
+        if (!this.importSource) return [];
+        const errors: string[] = [];
+        const params = this.tabularImportParams;
+
+        switch (step) {
+            case 'upload':
+                if (!this.importSource.name) errors.push('Name is required');
+                if (!this.importSource.description) errors.push('Description is required');
+                if (!this.sessionId) errors.push('Sample file is required');
+                break;
+            case 'station':
+                // Station is optional — no validation errors
+                break;
+            case 'element':
+                if (!params.elementDefinition.hasElement && !params.elementDefinition.noElement) {
+                    errors.push('Element definition is required');
+                }
+                break;
+            case 'datetime':
+                if (!params.datetimeDefinition.dateTimeInSingleColumn &&
+                    !params.datetimeDefinition.dateTimeInTwoColumns &&
+                    !params.datetimeDefinition.dateTimeInMultipleColumns) {
+                    errors.push('Date/time definition is required');
+                }
+                break;
+            case 'value':
+                // Value can be undefined for multi-column elements
+                break;
+            case 'review':
+                break;
+        }
+        return errors;
+    }
+
+    protected isStepValid(step: WizardStep): boolean {
+        return this.getStepValidationErrors(step).length === 0;
+    }
+
+    protected hasStepBeenVisited(step: WizardStep): boolean {
+        return this.visitedSteps.has(step);
     }
 
     // ─── File Upload ───
@@ -331,6 +387,10 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (dataStructureType !== null) {
             this.importSourceParams.dataStructureType = dataStructureType;
         }
+    }
+
+    protected get showNavigation(): boolean {
+        return !!this.sessionId || (this.importSource?.id > 0);
     }
 
     // ─── Save / Delete / Cancel ───
