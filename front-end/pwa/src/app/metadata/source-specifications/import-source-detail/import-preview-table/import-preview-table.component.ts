@@ -15,7 +15,7 @@ export class ImportPreviewTableComponent {
     @Input() warnings: PreviewWarning[] = [];
     @Input() error: PreviewError | null = null;
     @Input() loading: boolean = false;
-    @Input() height: string = '30vh';
+    @Input() maxHeight: string = '30vh';
     @Input() noFileMessage: string = 'Upload a sample file to see a live preview';
     @Input() hasFile: boolean = false;
 }

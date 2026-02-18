@@ -27,7 +27,7 @@ body {
 }
 
 .app-table-container {
-    height: 60vh; // Components can overwrite this with [style.height]
+    max-height: 60vh; // Components can overwrite this with [style.max-height]
     overflow: auto;
 }
 

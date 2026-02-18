@@ -45,13 +45,13 @@
 
             <div *ngIf="sampleSkippedRows.length > 0" class="mb-2">
               <app-import-preview-table [title]="'Skipped Rows'" [columns]="sampleColumns" [rows]="sampleSkippedRows"
-                [hasFile]="true" [height]="'13vh'" />
+                [hasFile]="true" [maxHeight]="'13vh'" />
             </div>
 
             <app-import-preview-table [title]="'Sample Data'" [columns]="sampleColumns"
               [rows]="sampleRows" [totalRowCount]="sampleTotalRowCount" [loading]="sampleLoading"
               [hasFile]="sampleHasFile" [noFileMessage]="'No sample file available for this import specification'"
-              [height]="'13vh'" />
+              [maxHeight]="'13vh'" />
 
           </div>
         </div>
@@ -66,14 +66,14 @@
 
             <app-import-preview-table [title]="'Raw Data'" [columns]="rawUploadColumns"
               [rows]="rawUploadRows" [totalRowCount]="rawUploadTotalRowCount" [hasFile]="rawUploadHasFile"
-              [noFileMessage]="'Upload a file to see the raw data'" [height]="'13vh'" />
+              [noFileMessage]="'Upload a file to see the raw data'" [maxHeight]="'13vh'" />
 
             <div class="mt-2">
               <app-import-preview-table [title]="'Transformed Data'" [columns]="uploadColumns"
                 [rows]="uploadRows" [totalRowCount]="uploadTotalRowCount" [rowsDropped]="uploadRowsDropped"
                 [warnings]="uploadWarnings" [error]="uploadError" [loading]="uploadLoading" [hasFile]="uploadHasFile"
                 [noFileMessage]="'Upload a file to see a preview of the transformed data before importing'"
-                [height]="'13vh'" />
+                [maxHeight]="'13vh'" />
             </div>
 
           </div>
