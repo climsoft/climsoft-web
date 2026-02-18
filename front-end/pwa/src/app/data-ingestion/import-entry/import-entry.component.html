@@ -1,6 +1,6 @@
 <ng-container *ngIf="open && viewSource">
-  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'" (okClick)="onConfirmImport()"
-    (cancelClick)="closeDialog()">
+  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
+    [closeOnOkClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
 
     <div class="card border-0">
       <div class="card-header d-flex px-1 py-0 flex-column">
