@@ -31,7 +31,7 @@
     </div>
 
     <!-- Preview table -->
-    <div *ngIf="hasFile && !loading && columns.length > 0" class="table-responsive">
+    <div *ngIf="hasFile && !loading && columns.length > 0" class="preview-table" [style.max-height]="maxHeight">
         <div class="mb-2 small text-muted d-flex justify-content-between align-items-center">
             <div>
                 {{ title }}
