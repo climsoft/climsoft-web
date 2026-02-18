@@ -19,6 +19,7 @@ import { ImportSourceIntervalDetailComponent } from './source-specifications/imp
 import { ImportSourceDateDetailComponent } from './source-specifications/import-source-detail/import-source-date-detail/import-source-date-detail.component';
 import { ImportSourceDelimeterDetailComponent } from './source-specifications/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
 import { ImportSourceLevelDetailComponent } from './source-specifications/import-source-detail/import-source-level-detail/import-source-level-detail.component';
+import { ImportSourceCommentDetailComponent } from './source-specifications/import-source-detail/import-source-comment-detail/import-source-comment-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './source-specifications/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
 import { ImportPreviewTableComponent } from './source-specifications/import-source-detail/import-preview-table/import-preview-table.component';
@@ -135,6 +136,7 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
     ImportSourceLevelDetailComponent,
+    ImportSourceCommentDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceValueDetailComponent,
     ImportSourceFlagDetailComponent,

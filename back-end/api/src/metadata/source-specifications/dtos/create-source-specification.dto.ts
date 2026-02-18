@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils'; 
 import { FormSourceDTO as FormSourceDto } from './form-source.dto';
@@ -51,6 +51,7 @@ export class CreateSourceSpecificationDto {
 * If false, entry date time will be converted to UTC before being sent to sever
 */
   @IsInt()
+  @Min(0)
   utcOffset: number;
 
   /**

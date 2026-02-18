@@ -114,7 +114,7 @@
                             <app-import-source-value-detail [(valueDefinition)]="tabularImportParams.valueDefinition" />
                         </div>
 
-                        <hr />
+                        <hr *ngIf="tabularImportParams.valueDefinition" />
 
                         <div>
                             <app-import-source-missing-flag-detail
@@ -128,6 +128,14 @@
                             <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'"
                                 [(value)]="importSource.scaleValues" />
                         </div>
+
+                        <hr />
+
+                        <div>
+                            <app-import-source-comment-detail
+                                [(commentColumnPosition)]="tabularImportParams.commentColumnPosition" />
+                        </div>
+
                     </div>
 
                     <!-- Step: Review -->
@@ -154,73 +162,33 @@
                                         <td class="text-muted review-label">Delimiter</td>
                                         <td>{{ tabularImportParams.delimiter || 'Auto-detect' }}</td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="review-section mb-2">
-                            <div class="review-section-header">Station</div>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
                                     <tr>
-                                        <td class="text-muted review-label">Source</td>
+                                        <td class="text-muted review-label">Station</td>
                                         <td>
                                             {{ tabularImportParams.stationDefinition ? 'Column ' +
                                             tabularImportParams.stationDefinition.columnPosition : 'Provided at import
                                             time' }}
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="review-section mb-2">
-                            <div class="review-section-header">Level</div>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
                                     <tr>
-                                        <td class="text-muted review-label">Source</td>
+                                        <td class="text-muted review-label">Level</td>
                                         <td>
                                             {{ tabularImportParams.levelColumnPosition !== undefined ? 'Column ' +
                                             tabularImportParams.levelColumnPosition : 'Not specified' }}
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="review-section mb-2">
-                            <div class="review-section-header">Date & Time</div>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
                                     <tr>
                                         <td class="text-muted review-label">UTC Offset</td>
                                         <td>{{ importSource.utcOffset }}</td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="review-section mb-2">
-                            <div class="review-section-header">Interval</div>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
                                     <tr>
-                                        <td class="text-muted review-label">Default</td>
+                                        <td class="text-muted review-label">Interval</td>
                                         <td>
                                             {{ tabularImportParams.intervalDefinition.defaultInterval !== undefined ?
                                             tabularImportParams.intervalDefinition.defaultInterval + ' min' :
                                             'Column ' + tabularImportParams.intervalDefinition.columnPosition }}
                                         </td>
                                     </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="review-section mb-2">
-                            <div class="review-section-header">Value & More</div>
-                            <table class="table table-sm table-borderless mb-0">
-                                <tbody>
                                     <tr>
                                         <td class="text-muted review-label">Allow Missing</td>
                                         <td>{{ importSource.allowMissingValue ? 'Yes' : 'No' }}</td>
@@ -228,6 +196,13 @@
                                     <tr>
                                         <td class="text-muted review-label">Scale Values</td>
                                         <td>{{ importSource.scaleValues ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Comment</td>
+                                        <td>
+                                            {{ tabularImportParams.commentColumnPosition !== undefined ? 'Column ' +
+                                            tabularImportParams.commentColumnPosition : 'Not specified' }}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

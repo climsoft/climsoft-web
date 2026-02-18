@@ -1,0 +1,9 @@
+<div>
+    <app-check-box-input [label]="'Includes Comments'" [value]="commentColumnPosition !== undefined"
+        (valueChange)="onIncludeComment($event)" />
+
+    <div class="ms-4" *ngIf="commentColumnPosition !== undefined">
+        <app-number-input [label]="'Column Position'" [numValue]="commentColumnPosition"
+            (numValueChange)="onColumnPositionChange($event)" />
+    </div>
+</div>

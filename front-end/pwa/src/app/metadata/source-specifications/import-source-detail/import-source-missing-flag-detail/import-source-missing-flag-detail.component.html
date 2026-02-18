@@ -1,7 +1,11 @@
 <div>
-    <app-check-box-input [label]="'Import Missing Values'" [value]="allowMissingValue" (valueChange)="onAllowMissingValueChange($event)" />
+    <div>
+        <app-text-input [label]="'Missing Value Flags'" [value]="sourceMissingValueFlags"
+            (valueChange)="onSourceMissingValueFlagsChange($event)" />
+    </div>
 
-    <hr class="border border-secondary border-1">
-
-    <app-text-input [label]="'Missing Value Flags'" [value]="sourceMissingValueFlags" (valueChange)="onSourceMissingValueFlagsChange($event)" />
+    <div class="mt-2">
+        <app-check-box-input [label]="'Import Missing Values'" [value]="allowMissingValue"
+            (valueChange)="onAllowMissingValueChange($event)" />
+    </div>
 </div>

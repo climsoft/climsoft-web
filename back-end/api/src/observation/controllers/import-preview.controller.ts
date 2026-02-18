@@ -2,7 +2,6 @@ import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Para
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
 import { ImportPreviewService } from '../services/import-preview.service';
-import { ObservationImportService } from '../services/observations-import.service';
 import { UpdateBaseParamsDto, ProcessPreviewDto, InitFromFileDto, PreviewForImportDto } from '../dtos/import-preview.dto';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
@@ -12,7 +11,6 @@ export class ImportPreviewController {
 
     constructor(
         private importPreviewService: ImportPreviewService,
-        private observationImportService: ObservationImportService,
         private sourcesService: SourceSpecificationsService,
     ) { }
 

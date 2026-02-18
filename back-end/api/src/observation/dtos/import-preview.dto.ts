@@ -1,16 +1,6 @@
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
-
-// export class UploadPreviewDto {
-//     @IsInt()
-//     @Min(0)
-//     rowsToSkip: number;
-
-//     @IsOptional()
-//     @IsString()
-//     delimiter?: string;
-// }
 
 export class UpdateBaseParamsDto {
     @IsInt()
@@ -36,7 +26,8 @@ export class InitFromFileDto {
 }
 
 export class ProcessPreviewDto {
-    @IsOptional()// TODO. Do validation.
+    @ValidateNested()
+    @Type(() => CreateSourceSpecificationDto)
     sourceDefinition: CreateSourceSpecificationDto;
 
     @IsOptional()
