@@ -1,0 +1,11 @@
+<div>
+    <label class="form-label fw-bold">{{ label }}</label>
+    <div class="d-flex align-items-center gap-2">
+        <input #fileInput type="file" style="display: none;" [accept]="accept" (change)="onFileChange($event)">
+        <button type="button" class="btn btn-outline-primary btn-sm" [disabled]="disabled"
+            (click)="fileInput.click()">
+            {{ fileName ? changeButtonLabel : buttonLabel }}
+        </button>
+        <span *ngIf="fileName" class="badge bg-secondary">{{ fileName }}</span>
+    </div>
+</div>

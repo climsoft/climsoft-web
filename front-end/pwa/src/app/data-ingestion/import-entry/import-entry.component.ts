@@ -130,22 +130,14 @@ export class ImportEntryComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onFileSelected(fileInputEvent: any): void {
-    if (fileInputEvent.target.files.length === 0) {
-      return;
-    }
-
+  protected onFileSelected(file: File): void {
     if (this.showStationSelection && !this.selectedStationId) {
       this.importStage = ImportStage.ERROR;
       this.importMessage = 'Please select a station first';
       return;
     }
 
-    const selectedFile = fileInputEvent.target.files[0] as File;
-    // Clear the file input so the same file can be re-selected
-    fileInputEvent.target.value = null;
-
-    this.uploadFile(selectedFile);
+    this.uploadFile(file);
   }
 
 

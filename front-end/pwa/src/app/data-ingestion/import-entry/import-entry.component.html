@@ -8,18 +8,9 @@
           <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
             [(selectedId)]="selectedStationId" />
         </div>
-        <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
-          <div>
-            File to Upload
-          </div>
-          <div class="d-flex align-items-center" style="gap: 8px;">
-            <input #fileUpload type="file" style="display: none;" [accept]="'.csv,.dat,.tsv,.txt'"
-              (change)="onFileSelected($event)">
-            <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
-              (click)="fileUpload.click()">
-              Upload File
-            </button>
-          </div>
+        <div class="mt-1 mb-1">
+          <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="disableUpload"
+            (fileSelected)="onFileSelected($event)" />
         </div>
       </div>
 

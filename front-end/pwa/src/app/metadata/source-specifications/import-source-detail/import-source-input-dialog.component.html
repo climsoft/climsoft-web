@@ -24,16 +24,8 @@
                     <!-- Step: File & Basics -->
                     <div *ngIf="activeStep === 'upload'">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Sample File</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <input #fileUpload type="file" style="display: none;" [accept]="'.csv,.dat,.tsv,.txt'"
-                                    (change)="onFileSelected($event)">
-                                <button type="button" class="btn btn-outline-primary btn-sm"
-                                    (click)="fileUpload.click()">
-                                    {{ uploadedFileName ? 'Change File' : 'Upload Sample File' }}
-                                </button>
-                                <span *ngIf="uploadedFileName" class="badge bg-secondary">{{ uploadedFileName }}</span>
-                            </div>
+                            <app-file-input [label]="'Sample File'" [buttonLabel]="'Upload Sample File'"
+                                [fileName]="uploadedFileName" (fileSelected)="onFileSelected($event)" />
                         </div>
                         
                         <hr />

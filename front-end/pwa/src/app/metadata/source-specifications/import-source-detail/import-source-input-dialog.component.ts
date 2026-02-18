@@ -190,12 +190,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     // ─── File Upload ───
 
-    protected onFileSelected(fileInputEvent: any): void {
-        if (fileInputEvent.target.files.length === 0) {
-            return;
-        }
-
-        const file = fileInputEvent.target.files[0] as File;
+    protected onFileSelected(file: File): void {
         this.uploadedFileName = file.name;
 
         this.previewLoading = true;
@@ -224,9 +219,6 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 console.error('Preview upload error:', err);
             }
         });
-
-        // Reset file input so re-selecting same file triggers change
-        fileInputEvent.target.value = null;
     }
 
     // ─── Preview ───
