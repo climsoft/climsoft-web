@@ -12,7 +12,7 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 import { ImportPreviewHttpService } from './services/import-preview.service';
 import { PreviewError, PreviewWarning } from '../models/import-preview.model';
 
-type WizardStep = 'upload' | 'station' | 'element' | 'datetime' | 'value' | 'review';
+type WizardStep = 'upload' | 'station' | 'element' | 'level' | 'datetime' | 'interval' | 'value' | 'review';
 
 @Component({
     selector: 'app-import-source-input-dialog',
@@ -32,12 +32,14 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
     // Wizard state
     protected activeStep: WizardStep = 'upload';
-    protected readonly wizardSteps: WizardStep[] = ['upload', 'station', 'element', 'datetime', 'value', 'review'];
+    protected readonly wizardSteps: WizardStep[] = ['upload', 'station', 'element', 'level', 'datetime', 'interval', 'value', 'review'];
     protected readonly stepLabels: Record<WizardStep, string> = {
         upload: 'File & Basics',
         station: 'Station',
         element: 'Elements',
+        level: 'Level',
         datetime: 'Date & Time',
+        interval: 'Interval',
         value: 'Value & More',
         review: 'Review',
     };
@@ -220,12 +222,18 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                     errors.push('Element definition is required');
                 }
                 break;
+            case 'level':
+                // Level is optional — no validation errors
+                break;
             case 'datetime':
                 if (!params.datetimeDefinition.dateTimeInSingleColumn &&
                     !params.datetimeDefinition.dateTimeInTwoColumns &&
                     !params.datetimeDefinition.dateTimeInMultipleColumns) {
                     errors.push('Date/time definition is required');
                 }
+                break;
+            case 'interval':
+                // Interval has defaults — no validation errors
                 break;
             case 'value':
                 // Value can be undefined for multi-column elements

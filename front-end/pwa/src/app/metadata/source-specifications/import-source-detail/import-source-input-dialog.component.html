@@ -84,36 +84,34 @@
                             (elementDefinitionChange)="onElementOrDatetimeDefChanged()" />
                     </div>
 
+                    <!-- Step: Level -->
+                    <div *ngIf="activeStep === 'level'">
+                        <app-import-source-level-detail
+                            [(levelColumnPosition)]="tabularImportParams.levelColumnPosition" />
+                    </div>
+
                     <!-- Step: Date & Time -->
                     <div *ngIf="activeStep === 'datetime'">
                         <app-import-source-date-detail [datetimeDefinition]="tabularImportParams.datetimeDefinition"
                             (datetimeDefinitionChange)="onElementOrDatetimeDefChanged()" />
+
+                        <hr />
+
+                        <div>
+                            <app-number-input [label]="'UTC Offset'" [(numValue)]="importSource.utcOffset" />
+                        </div>
+                    </div>
+
+                    <!-- Step: Interval -->
+                    <div *ngIf="activeStep === 'interval'">
+                        <app-import-source-interval-detail
+                            [intervalDefinition]="tabularImportParams.intervalDefinition" />
                     </div>
 
                     <!-- Step: Value & More -->
                     <div *ngIf="activeStep === 'value'">
                         <div>
                             <app-import-source-value-detail [(valueDefinition)]="tabularImportParams.valueDefinition" />
-                        </div>
-
-                        <hr />
-
-                        <div>
-                            <app-import-source-interval-detail
-                                [intervalDefinition]="tabularImportParams.intervalDefinition" />
-                        </div>
-
-                        <hr />
-
-                        <div>
-                            <app-import-source-level-detail
-                                [(levelColumnPosition)]="tabularImportParams.levelColumnPosition" />
-                        </div>
-
-                        <hr />
-
-                        <div>
-                            <app-number-input [label]="'UTC Offset'" [(numValue)]="importSource.utcOffset" />
                         </div>
 
                         <hr />
@@ -177,13 +175,52 @@
                         </div>
 
                         <div class="review-section mb-2">
-                            <div class="review-section-header">Value & More</div>
+                            <div class="review-section-header">Level</div>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted review-label">Source</td>
+                                        <td>
+                                            {{ tabularImportParams.levelColumnPosition !== undefined ? 'Column ' +
+                                            tabularImportParams.levelColumnPosition : 'Not specified' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="review-section mb-2">
+                            <div class="review-section-header">Date & Time</div>
                             <table class="table table-sm table-borderless mb-0">
                                 <tbody>
                                     <tr>
                                         <td class="text-muted review-label">UTC Offset</td>
                                         <td>{{ importSource.utcOffset }}</td>
                                     </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="review-section mb-2">
+                            <div class="review-section-header">Interval</div>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted review-label">Default</td>
+                                        <td>
+                                            {{ tabularImportParams.intervalDefinition.defaultInterval !== undefined ?
+                                            tabularImportParams.intervalDefinition.defaultInterval + ' min' :
+                                            'Column ' + tabularImportParams.intervalDefinition.columnPosition }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="review-section mb-2">
+                            <div class="review-section-header">Value & More</div>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
                                     <tr>
                                         <td class="text-muted review-label">Allow Missing</td>
                                         <td>{{ importSource.allowMissingValue ? 'Yes' : 'No' }}</td>
@@ -216,7 +253,7 @@
 
 
                 <!-- Navigation buttons -->
-                <div *ngIf="showNavigation" class="d-flex justify-content-end gap-1 mt-2 pt-3 border-top">
+                <div *ngIf="showNavigation" class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
                     <button *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
                         (click)="onPrevious()">
                         Previous
@@ -247,7 +284,8 @@
                 <app-import-preview-table [title]="'Data Preview'" [columns]="previewColumns" [rows]="previewRows"
                     [totalRowCount]="totalRowCount" [rowsDropped]="rowsDropped" [warnings]="warnings" [error]="error"
                     [loading]="previewLoading" [hasFile]="!!sessionId"
-                    [noFileMessage]="'Upload a sample file on the left to see a live preview of how your data will be processed'" />
+                    [noFileMessage]="'Upload a sample file on the left to see a live preview of how your data will be processed'"
+                    [maxHeight]="'30vh'" />
             </div>
 
         </div>
