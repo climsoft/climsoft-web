@@ -1,11 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnDestroy } from '@angular/core';
 import { Subject, switchMap, take, takeUntil } from 'rxjs';
 import { ImportSourceTabularParamsModel } from 'src/app/metadata/source-specifications/models/import-source-tabular-params.model';
 import { ImportSourceModel, DataStructureTypeEnum } from 'src/app/metadata/source-specifications/models/import-source.model';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
-import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ImportPreviewHttpService } from 'src/app/metadata/source-specifications/import-source-detail/services/import-preview.service';
 import { RawPreviewResponse, StepPreviewResponse, PreviewWarning, PreviewError } from 'src/app/metadata/source-specifications/models/import-preview.model';
@@ -24,7 +21,9 @@ enum ImportStage {
   templateUrl: './import-entry.component.html',
   styleUrls: ['./import-entry.component.scss']
 })
-export class ImportEntryComponent implements OnInit, OnDestroy {
+export class ImportEntryComponent implements OnDestroy {
+  protected open: boolean = false;
+  protected title: string = '';
   protected viewSource!: ViewSourceModel;
 
   // Sample file preview (from the saved specification)
@@ -66,11 +65,8 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(
-    private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
-    private importSourcesService: SourcesCacheService,
     private importPreviewHttpService: ImportPreviewHttpService,
-    private route: ActivatedRoute,
   ) {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
@@ -93,28 +89,39 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
-    const sourceId = this.route.snapshot.params['id'];
-    this.importSourcesService.findOne(+sourceId).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe((data) => {
-      if (!data) {
-        return;
-      }
-      this.viewSource = data;
-      this.pagesDataService.setPageHeader(`Import Data From ${this.viewSource.name}`);
-      const importSource: ImportSourceModel = this.viewSource.parameters as ImportSourceModel;
+  public openDialog(source: ViewSourceModel): void {
+    this.viewSource = source;
+    this.title = `Import Data From ${source.name}`;
 
-      if (importSource.dataStructureType === DataStructureTypeEnum.TABULAR) {
-        const tabularSource: ImportSourceTabularParamsModel = importSource.dataStructureParameters as ImportSourceTabularParamsModel;
-        this.showStationSelection = !tabularSource.stationDefinition;
-      }
+    // Reset all state
+    this.resetSamplePreview();
+    this.resetUploadPreview();
+    this.importStage = ImportStage.IDLE;
+    this.importMessage = '';
+    this.showConfirmImport = false;
+    this.disableUpload = false;
+    this.selectedStationId = null;
+    this.sessionId = null;
 
-      // Load sample file preview if available
-      if (this.viewSource.sampleFileName) {
-        this.loadSampleFilePreview();
-      }
-    });
+    const importSource: ImportSourceModel = this.viewSource.parameters as ImportSourceModel;
+    if (importSource.dataStructureType === DataStructureTypeEnum.TABULAR) {
+      const tabularSource: ImportSourceTabularParamsModel = importSource.dataStructureParameters as ImportSourceTabularParamsModel;
+      this.showStationSelection = !tabularSource.stationDefinition;
+    } else {
+      this.showStationSelection = false;
+    }
+
+    this.open = true;
+
+    // Load sample file preview if available
+    if (this.viewSource.sampleFileName) {
+      this.loadSampleFilePreview();
+    }
+  }
+
+  protected closeDialog(): void {
+    this.cleanupSession();
+    this.open = false;
   }
 
   ngOnDestroy(): void {
@@ -269,6 +276,15 @@ export class ImportEntryComponent implements OnInit, OnDestroy {
         this.importMessage = err.error?.message || 'Failed to process file. Please try again.';
       }
     });
+  }
+
+  private resetSamplePreview(): void {
+    this.sampleColumns = [];
+    this.sampleRows = [];
+    this.sampleSkippedRows = [];
+    this.sampleTotalRowCount = 0;
+    this.sampleLoading = false;
+    this.sampleHasFile = false;
   }
 
   private resetUploadPreview(): void {
