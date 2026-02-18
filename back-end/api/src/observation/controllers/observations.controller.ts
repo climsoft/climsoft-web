@@ -91,7 +91,7 @@ export class ObservationsController {
   @Get('download-export/:uniquedownloadid')
   async download(
     @Param('uniquedownloadid') uniqueDownloadId: string
-  ) { 
+  ) {
     // Stream the exported file to the response
     return this.observationExportsService.manualDownloadExport(uniqueDownloadId);
   }
@@ -137,18 +137,13 @@ export class ObservationsController {
     @Param('sourceid', AuthorisedImportsPipe) sourceId: number,
     @UploadedFile(new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 * 1 }), // 1GB
+        // 1GB to accomodate preview of large files. Note, should always be same us that used in `ImportPreviewController` for upload endpoint to ensure smooth preview of files uploaded for import.
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
         new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
-    try {
-      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id);
-      return { message: "success" };
-    } catch (error) {
-      return { message: `error: ${error}` };
-    }
-
+    return  this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id);
   }
 
   @Post('upload/:sourceid/:stationid')
@@ -159,19 +154,14 @@ export class ObservationsController {
     @Param('stationid', AuthorisedStationsPipe) stationId: string,
     @UploadedFile(new ParseFilePipe({
       validators: [
-        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }), // 1GB
+        // 1GB to accomodate preview of large files. Note, should always be same us that used in `ImportPreviewController` for upload endpoint to ensure smooth preview of files uploaded for import.
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1024 }),
         new FileTypeValidator({ fileType: /(text\/csv|text\/plain|application\/octet-stream)/, fallbackToMimetype: true }),
       ]
     })
     ) file: Express.Multer.File) {
 
-    try {
-      await this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
-      return { message: "success" };
-    } catch (error) {
-      return { message: `error: ${error}` };
-    }
-
+   return this.observationImportService.processManualImport(sourceId, file, AuthUtil.getLoggedInUser(request).id, stationId);
   }
 
   @Admin()

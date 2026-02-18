@@ -6,14 +6,14 @@ export interface PreviewWarning {
 }
 
 export interface PreviewError {
-    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR' | 'MISSING_REQUIRED_FIELD';
+    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
     message: string;
     detail?: string;
 }
 
 export interface RawPreviewResponse {
     sessionId: string;
-    sampleFile: string;
+    fileName: string;
     columns: string[];
     totalRowCount: number;
     previewRows: string[][];
@@ -26,5 +26,5 @@ export interface StepPreviewResponse {
     totalRowCount: number;
     rowsDropped: number;
     warnings: PreviewWarning[];
-    errors: PreviewError[];
+    error?: PreviewError;
 }

@@ -15,11 +15,11 @@ import { PreviewError, PreviewWarning } from '../models/import-preview.model';
 type WizardStep = 'upload' | 'station' | 'element' | 'datetime' | 'value' | 'review';
 
 @Component({
-    selector: 'app-import-source-detail',
-    templateUrl: './import-source-detail.component.html',
-    styleUrls: ['./import-source-detail.component.scss']
+    selector: 'app-import-source-input-dialog',
+    templateUrl: './import-source-input-dialog.component.html',
+    styleUrls: ['./import-source-input-dialog.component.scss']
 })
-export class ImportSourceDetailComponent implements OnDestroy {
+export class ImportSourceInputDialogComponent implements OnDestroy {
     @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
     @Output()
@@ -50,7 +50,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
     protected totalRowCount: number = 0;
     protected rowsDropped: number = 0;
     protected warnings: PreviewWarning[] = [];
-    protected errors: PreviewError[] = [];
+    protected error: PreviewError | null = null;
     protected previewLoading: boolean = false;
     protected uploadedFileName: string = '';
 
@@ -58,7 +58,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
 
     constructor(
         private pagesDataService: PagesDataService,
-        private importSourcesService: SourcesCacheService,
+        private sourcesCacheService: SourcesCacheService,
         private importPreviewService: ImportPreviewHttpService,
     ) { }
 
@@ -73,7 +73,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
         this.totalRowCount = 0;
         this.rowsDropped = 0;
         this.warnings = [];
-        this.errors = [];
+        this.error = null;
         this.previewLoading = false;
         this.uploadedFileName = '';
 
@@ -82,7 +82,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
         if (sourceId) {
             this.title = 'Edit Import Specification';
 
-            this.importSourcesService.findOne(sourceId).pipe(
+            this.sourcesCacheService.findOne(sourceId).pipe(
                 takeUntil(this.destroy$),
             ).subscribe((data) => {
                 if (data) {
@@ -133,7 +133,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
                 description: '',
                 sourceType: SourceTypeEnum.IMPORT,
                 allowMissingValue: false,
-                sampleFile: '',
+                sampleFileName: '',
                 utcOffset: 0,
                 parameters: defaultImportSourceDefs,
                 scaleValues: false,
@@ -200,7 +200,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
 
         this.previewLoading = true;
         this.warnings = [];
-        this.errors = [];
+        this.error = null;
 
         this.importPreviewService.upload(
             file,
@@ -210,7 +210,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
             next: (res) => {
                 this.previewLoading = false;
                 this.sessionId = res.sessionId;
-                this.importSource.sampleFile = res.sampleFile;
+                this.importSource.sampleFileName = res.fileName;
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
                 this.skippedRows = res.skippedRows;
@@ -220,7 +220,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
             error: (err) => {
                 this.previewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to upload file.';
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
+                this.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Preview upload error:', err);
             }
         });
@@ -243,7 +243,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
 
         this.previewLoading = true;
         this.warnings = [];
-        this.errors = [];
+        this.error = null;
 
         const sourceDefinition: CreateSourceSpecificationModel = {
             name: this.importSource.name,
@@ -251,7 +251,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
             sourceType: SourceTypeEnum.IMPORT,
             scaleValues: this.importSource.scaleValues,
             allowMissingValue: this.importSource.allowMissingValue,
-            sampleFile: this.importSource.sampleFile,
+            sampleFileName: this.importSource.sampleFileName,
             utcOffset: this.importSource.utcOffset,
             parameters: this.importSource.parameters,
             disabled: this.importSource.disabled,
@@ -276,12 +276,12 @@ export class ImportSourceDetailComponent implements OnDestroy {
                 this.totalRowCount = res.totalRowCount;
                 this.rowsDropped = res.rowsDropped;
                 this.warnings = res.warnings;
-                this.errors = res.errors;
+                this.error = res.error || null;
             },
             error: (err) => {
                 this.previewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to generate preview.';
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
+                this.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Preview step error:', err);
             }
         });
@@ -292,7 +292,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
 
         this.previewLoading = true;
         this.warnings = [];
-        this.errors = [];
+        this.error = null;
 
         this.importPreviewService.updateBaseParams(
             this.sessionId,
@@ -310,7 +310,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
             error: (err) => {
                 this.previewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to load raw preview.';
-                this.errors = [{ type: 'SQL_EXECUTION_ERROR', message }];
+                this.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Raw preview error:', err);
             }
         });
@@ -367,7 +367,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
             sourceType: SourceTypeEnum.IMPORT,
             scaleValues: this.importSource.scaleValues,
             allowMissingValue: this.importSource.allowMissingValue,
-            sampleFile: this.importSource.sampleFile,
+            sampleFileName: this.importSource.sampleFileName,
             utcOffset: this.importSource.utcOffset,
             parameters: this.importSource.parameters,
             disabled: this.importSource.disabled,
@@ -376,14 +376,12 @@ export class ImportSourceDetailComponent implements OnDestroy {
 
         let saveSubscription: Observable<ViewSourceModel>;
         if (this.importSource.id > 0) {
-            saveSubscription = this.importSourcesService.update(this.importSource.id, createUpdateSource);
+            saveSubscription = this.sourcesCacheService.update(this.importSource.id, createUpdateSource);
         } else {
-            saveSubscription = this.importSourcesService.add(createUpdateSource);
+            saveSubscription = this.sourcesCacheService.add(createUpdateSource);
         }
 
-        saveSubscription.pipe(
-            take(1)
-        ).subscribe({
+        saveSubscription.pipe(take(1)).subscribe({
             next: () => {
                 this.pagesDataService.showToast({ title: 'Import Template', message: this.importSource.id > 0 ? `Import template updated` : `Import template created`, type: ToastEventTypeEnum.SUCCESS });
                 this.closeDialog();
@@ -402,9 +400,7 @@ export class ImportSourceDetailComponent implements OnDestroy {
     }
 
     protected onDeleteConfirm(): void {
-        this.importSourcesService.delete(this.importSource.id).pipe(
-            take(1)
-        ).subscribe({
+        this.sourcesCacheService.delete(this.importSource.id).pipe(take(1)).subscribe({
             next: () => {
                 this.pagesDataService.showToast({ title: 'Import Template', message: 'Import template deleted', type: ToastEventTypeEnum.SUCCESS });
                 this.closeDialog();
@@ -421,27 +417,28 @@ export class ImportSourceDetailComponent implements OnDestroy {
         this.open = false;
     }
 
-    private initPreviewFromSavedFile(): void {
-        if (!this.importSource.sampleFile) return;
+    private initPreviewFromSavedFile(): void {                          
+        if (!this.importSource.sampleFileName) return;
 
         this.previewLoading = true;
 
         this.importPreviewService.initFromFile(
-            this.importSource.sampleFile,
+            this.importSource.sampleFileName,
             this.tabularImportParams.rowsToSkip,
             this.tabularImportParams.delimiter,
         ).pipe(take(1)).subscribe({
-            next: (res) => {
+            next: (res) => { 
                 this.previewLoading = false;
                 this.sessionId = res.sessionId;
-                this.uploadedFileName = res.sampleFile;
+                this.uploadedFileName = res.fileName;
                 this.previewColumns = res.columns;
                 this.previewRows = res.previewRows;
                 this.skippedRows = res.skippedRows;
                 this.totalRowCount = res.totalRowCount;
                 this.rowsDropped = 0;
             },
-            error: () => {
+            error: (err) => {
+                console.error('Error initializing preview from saved file.', err);
                 // File no longer exists on server — silently fall back to "upload a sample file" prompt
                 this.previewLoading = false;
             }

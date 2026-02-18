@@ -1,10 +1,12 @@
 import { FlagEnum } from '../enums/flag.enum';
-import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
+import { PreviewError } from '../dtos/import-preview.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { Database } from 'duckdb-async';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -12,7 +14,7 @@ import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications
  *
  * Used by both ObservationImportService (actual imports) and ImportPreviewService (live previews).
  */
-export class ImportSqlBuilder {
+export class TabularImportTransformer {
 
     static readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
     static readonly ELEMENT_ID_PROPERTY_NAME: string = 'element_id';
@@ -25,7 +27,149 @@ export class ImportSqlBuilder {
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
-    static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId?: string): string {
+    public static async loadTableFromFile(duckDb: Database, filePathName: string, rowsToSkip: number, maxRows: number, delimiter: string | undefined): Promise<string> {
+        // Read CSV with the configured params
+        const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
+        const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
+        // Remove spaces and special characters from table name to ensure valid SQL identifier
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(filePathName);
+
+        // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", etc. based on the column positions.
+        const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
+
+        await duckDb.run(createSQL);
+
+
+        // Rename columns to normalized names (column0, column1, ...)
+        const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(duckDb, tableName);
+        await duckDb.exec(renameSQL);
+        
+        return tableName;
+    }
+
+    public static async executeTransformation(
+        duckDb: Database,
+        tableName: string,
+        sourceId: number,
+        sourceDef: CreateSourceSpecificationDto,
+        elements: CreateViewElementDto[],
+        userId: number,
+        stationId?: string,
+    ): Promise<PreviewError | void> {
+
+        const importDef = sourceDef.parameters as ImportSourceDto;
+        const tabularDef = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
+
+        // Execute each transformation step individually.
+        // Each step's SQL is built and executed separately so that:
+        // 1. If a step fails, previous successful transformations remain visible in the preview
+        // 2. The error message tells the user exactly which step failed
+        // 3. The user can see partial progress and fix only what's broken
+
+        const steps: { name: string; buildSql: () => string }[] = [
+            { name: 'Station', buildSql: () => TabularImportTransformer.buildAlterStationColumnSQL(tabularDef, tableName, stationId) },
+            { name: 'Element', buildSql: () => TabularImportTransformer.buildAlterElementColumnSQL(tabularDef, tableName) },
+            { name: 'Level', buildSql: () => TabularImportTransformer.buildAlterLevelColumnSQL(tabularDef, tableName) },
+            { name: 'Date/Time', buildSql: () => TabularImportTransformer.buildAlterDateTimeColumnSQL(sourceDef, tabularDef, tableName) },
+            { name: 'Interval', buildSql: () => TabularImportTransformer.buildAlterIntervalColumnSQL(tabularDef, tableName) },
+            { name: 'Value & Flag', buildSql: () => TabularImportTransformer.buildAlterValueColumnSQL(sourceDef, importDef, tabularDef, tableName) },
+            {
+                name: 'Scale Values',
+                buildSql: () => {
+                    let sql = '';
+                    if (sourceDef.scaleValues) {
+                        //const elementIdsToScale: number[] = (await duckDb.all( `SELECT DISTINCT ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME} FROM ${tableName};`   )).map(item => (item[ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME]));
+                        //const elements: CreateViewElementDto[] = await elementsService.find({ elementIds: elementIdsToScale });
+                        sql += TabularImportTransformer.buildScaleValueSQL(tableName, elements);
+                    }
+                    return sql;
+                }
+            },
+            { name: 'Comment', buildSql: () => TabularImportTransformer.buildAlterCommentColumnSQL(tabularDef, tableName) },
+            {
+                name: 'Finalize',
+                buildSql: () => {
+                    let sql = '';
+                    sql += `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
+                    sql += `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId};`;
+                    sql += TabularImportTransformer.buildRemoveDuplicatesSQL(tableName);
+                    return sql;
+                }
+            },
+        ];
+
+        for (const step of steps) {
+            try {
+                // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
+                const sql = step.buildSql();
+                if (sql) {
+                    await duckDb.exec(sql);
+                }
+            } catch (error) {
+                // Stop processing — later steps may depend on this one.
+                return TabularImportTransformer.classifyDuckDbError(error, step.name);
+
+            }
+        }
+    }
+
+    public static async exportTransformedDataToFile(duckDb: Database, tableName: string, exportFilePath: string): Promise<void> {
+        // Only export the columns needed for PostgreSQL COPY import (exclude entry_datetime as it's auto-generated)
+        await duckDb.exec(`
+            COPY (
+                SELECT 
+                    ${TabularImportTransformer.STATION_ID_PROPERTY_NAME},
+                    ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME},
+                    ${TabularImportTransformer.LEVEL_PROPERTY_NAME},
+                    ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME},
+                    ${TabularImportTransformer.INTERVAL_PROPERTY_NAME},
+                    ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME},
+                    ${TabularImportTransformer.VALUE_PROPERTY_NAME},
+                    ${TabularImportTransformer.FLAG_PROPERTY_NAME},
+                    ${TabularImportTransformer.COMMENT_PROPERTY_NAME},
+                    ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME}
+                FROM ${tableName}
+            ) TO '${exportFilePath}' (HEADER, DELIMITER ',');
+        `);
+    }
+
+    private static buildScaleValueSQL(tableName: string, elements: CreateViewElementDto[]): string {
+        let scalingSQLs: string = '';
+        for (const element of elements) {
+            if (element.entryScaleFactor) {
+                scalingSQLs += `UPDATE ${tableName} SET ${TabularImportTransformer.VALUE_PROPERTY_NAME} = (${TabularImportTransformer.VALUE_PROPERTY_NAME} / ${element.entryScaleFactor}) WHERE ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME} = ${element.id} AND ${TabularImportTransformer.VALUE_PROPERTY_NAME} IS NOT NULL;`;
+            }
+        }
+        return scalingSQLs;
+    }
+
+    private static classifyDuckDbError(error: unknown, stepName: string): PreviewError {
+        const msg = error instanceof Error ? error.message : String(error);
+
+        if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {
+            return {
+                type: 'COLUMN_NOT_FOUND',
+                message: `${stepName}: A column referenced in the specification was not found in the uploaded file. Check that the column positions are correct.`,
+                detail: msg,
+            };
+        }
+
+        if (msg.includes('out of range') || msg.includes('Binder Error')) {
+            return {
+                type: 'INVALID_COLUMN_POSITION',
+                message: `${stepName}: A column position is out of range. The file has fewer columns than expected.`,
+                detail: msg,
+            };
+        }
+
+        return {
+            type: 'SQL_EXECUTION_ERROR',
+            message: `${stepName}: An error occurred while processing the file with the current specification.`,
+            detail: msg,
+        };
+    }
+
+    private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId?: string): string {
         let sql: string;
         if (source.stationDefinition) {
             const stationDefinition = source.stationDefinition;
@@ -48,7 +192,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterIntervalColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string {
+    private static buildAlterIntervalColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string;
         if (source.intervalDefinition.columnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.intervalDefinition.columnPosition} TO ${this.INTERVAL_PROPERTY_NAME};`
@@ -60,7 +204,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterLevelColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string {
+    private static buildAlterLevelColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string;
         if (source.levelColumnPosition !== undefined) {
             sql = `ALTER TABLE ${tableName} RENAME column${source.levelColumnPosition} TO ${this.LEVEL_PROPERTY_NAME};`;
@@ -82,7 +226,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterElementColumnSQL(tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
+    private static buildAlterElementColumnSQL(tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
         if (tabularDef.elementDefinition.noElement) {
             const noElement = tabularDef.elementDefinition.noElement
@@ -125,7 +269,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterDateTimeColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
+    private static buildAlterDateTimeColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
@@ -236,7 +380,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
+    private static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string = '';
 
         if (tabularDef.valueDefinition !== undefined) {
@@ -291,24 +435,7 @@ export class ImportSqlBuilder {
         return sql;
     }
 
-    static buildCsvImportParams(rowsToSkip: number, delimiter?: string): string[] {
-        // Note.
-        // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-        // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
-
-        const params: string[] = [
-            'header = false',
-            `skip = ${rowsToSkip}`,
-            'all_varchar = true',
-            'strict_mode = false',
-        ];
-        if (delimiter) {
-            params.push(`delim = '${delimiter}'`);
-        }
-        return params;
-    }
-
-    static buildRemoveDuplicatesSQL(tableName: string): string {
+    private static buildRemoveDuplicatesSQL(tableName: string): string {
         // Remove duplicates based on the composite primary key (station_id, element_id, level, date_time, interval, source_id)
         // Keep the last occurrence by using row_number() ordered by rowid in descending order
         // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids
@@ -322,5 +449,4 @@ export class ImportSqlBuilder {
             ) WHERE rn > 1
         );`;
     }
-
 }

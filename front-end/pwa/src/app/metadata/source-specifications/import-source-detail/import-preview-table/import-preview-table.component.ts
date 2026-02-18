@@ -13,7 +13,7 @@ export class ImportPreviewTableComponent {
     @Input() totalRowCount: number = 0;
     @Input() rowsDropped: number = 0;
     @Input() warnings: PreviewWarning[] = [];
-    @Input() errors: PreviewError[] = [];
+    @Input() error: PreviewError | null = null;
     @Input() loading: boolean = false;
     @Input() noFileMessage: string = 'Upload a sample file to see a live preview';
     @Input() hasFile: boolean = false;

@@ -7,8 +7,8 @@ import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations/view-stations/view-stations-table/view-stations-table.component';
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
-import { FormSourceDetailComponent } from './source-specifications/form-source-detail/form-source-detail.component';
-import { ImportSourceDetailComponent } from './source-specifications/import-source-detail/import-source-detail.component';
+import { FormSourceInputDialogComponent } from './source-specifications/form-source-detail/form-source-input-dialog.component';
+import { ImportSourceInputDialogComponent } from './source-specifications/import-source-detail/import-source-input-dialog.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component'; 
 import { EditStationDialogComponent } from './stations/edit-station-dialog/edit-station-dialog.component';
 import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component'; 
@@ -101,8 +101,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     RegionSelectorMultipleComponent,
 
     ViewSourcesComponent,
-    FormSourceDetailComponent,
-    ImportSourceDetailComponent,
+    FormSourceInputDialogComponent,
+    ImportSourceInputDialogComponent,
 
     ViewStationsComponent, 
     EditStationDialogComponent,
@@ -243,6 +243,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ExportTypeSelectorSingleComponent,
 
     ConnectorSpecificationSelectorSingleComponent,
+
+    ImportPreviewTableComponent,
   ]
 })
 export class MetadataModule { } 

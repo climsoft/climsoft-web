@@ -24,26 +24,6 @@
                     <!-- Step: File & Basics -->
                     <div *ngIf="activeStep === 'upload'">
                         <div class="mb-3">
-                            <app-text-input [label]="'Name'" [(value)]="importSource.name" />
-                        </div>
-
-                        <div class="mb-3">
-                            <app-text-input [label]="'Description'" [(value)]="importSource.description" />
-                        </div>
-
-                        <hr />
-
-                        <div class="mb-3">
-                            <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportParams.rowsToSkip" />
-                        </div>
-
-                        <div class="mb-3">
-                            <app-import-source-delimeter-detail [(delimiter)]="tabularImportParams.delimiter" />
-                        </div>
-
-                        <hr />
-
-                        <div class="mb-3">
                             <label class="form-label fw-bold">Sample File</label>
                             <div class="d-flex align-items-center gap-2">
                                 <input #fileUpload type="file" style="display: none;" [accept]="'.csv,.dat,.tsv,.txt'"
@@ -54,6 +34,30 @@
                                 </button>
                                 <span *ngIf="uploadedFileName" class="badge bg-secondary">{{ uploadedFileName }}</span>
                             </div>
+                        </div>
+                        
+                        <hr />
+                        
+                        <div>
+                            <app-text-input [label]="'Name'" [(value)]="importSource.name" />
+                        </div>
+                        
+                        <hr />
+
+                        <div>
+                            <app-text-input [label]="'Description'" [(value)]="importSource.description" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportParams.rowsToSkip" />
+                        </div>
+                        
+                        <hr />
+
+                        <div>
+                            <app-import-source-delimeter-detail [(delimiter)]="tabularImportParams.delimiter" />
                         </div>
 
 
@@ -195,7 +199,7 @@
                 </div>
 
                 <app-import-preview-table [title]="'Data Preview'" [columns]="previewColumns" [rows]="previewRows"
-                    [totalRowCount]="totalRowCount" [rowsDropped]="rowsDropped" [warnings]="warnings" [errors]="errors"
+                    [totalRowCount]="totalRowCount" [rowsDropped]="rowsDropped" [warnings]="warnings" [error]="error"
                     [loading]="previewLoading" [hasFile]="!!sessionId"
                     [noFileMessage]="'Upload a sample file on the left to see a live preview of how your data will be processed'" />
             </div>

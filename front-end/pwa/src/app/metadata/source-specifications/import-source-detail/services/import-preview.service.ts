@@ -40,12 +40,23 @@ export class ImportPreviewHttpService {
         });
     }
 
-    public initFromFile(sampleFile: string, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
+    public initFromFile(fileName: string, rowsToSkip: number, delimiter?: string): Observable<RawPreviewResponse> {
         return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/init-from-file`, {
-            sampleFile,
+            fileName,
             rowsToSkip,
             delimiter,
         });
+    }
+
+    public previewForImport(sessionId: string, sourceId: number, stationId?: string): Observable<StepPreviewResponse> {
+        return this.http.post<StepPreviewResponse>(`${this.endPointUrl}/process-for-import/${sessionId}`, {
+            sourceId,
+            stationId,
+        });
+    }
+
+    public confirmImport(sessionId: string): Observable<any> {
+        return this.http.post(`${this.endPointUrl}/confirm-import/${sessionId}`, {});
     }
 
     public deleteSession(sessionId: string): Observable<any> {

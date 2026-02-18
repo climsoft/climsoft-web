@@ -11,11 +11,11 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 // TODO. Try using angular forms?
 
 @Component({
-  selector: 'app-form-source-detail',
-  templateUrl: './form-source-detail.component.html',
-  styleUrls: ['./form-source-detail.component.scss']
+  selector: 'app-form-source-input-dialog',
+  templateUrl: './form-source-input-dialog.component.html',
+  styleUrls: ['./form-source-input-dialog.component.scss']
 })
-export class FormSourceDetailComponent implements OnDestroy {
+export class FormSourceInputDialogComponent implements OnDestroy {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
 
   @Output()
@@ -90,7 +90,7 @@ export class FormSourceDetailComponent implements OnDestroy {
         utcOffset: 0,
         allowMissingValue: true,
         scaleValues: true, // By default forms usually have scaled values.
-        sampleFile: '',
+        sampleFileName: '',
         parameters: entryForm,
         disabled: false,
         comment: '',
@@ -260,7 +260,7 @@ export class FormSourceDetailComponent implements OnDestroy {
       sourceType: SourceTypeEnum.FORM,
       utcOffset: this.utcOffset,
       allowMissingValue: this.allowMissingValue,
-      sampleFile: '',
+      sampleFileName: '',
       parameters: entryForm,
       scaleValues: true, // By default form values are always scaled.
       disabled: this.viewSource.disabled,

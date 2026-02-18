@@ -28,8 +28,8 @@ export class SourceSpecificationEntity extends AppBaseEntity {
     @Column({ name: "scale_values", type: "boolean", default: false })
     scaleValues: boolean;
 
-    @Column({ name: "sample_file", type: "varchar", nullable: true })
-    sampleFile: string | null;
+    @Column({ name: "sample_file_name", type: "varchar", nullable: true })
+    sampleFileName: string | null;
 
     @Column({ name: "parameters", type: "jsonb" })
     parameters: SourceParameters;

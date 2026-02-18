@@ -14,16 +14,20 @@
     </div>
 
     <!-- Errors -->
-    <div *ngFor="let err of errors" class="alert alert-danger py-2 mb-2" role="alert">
-        <strong>Error:</strong> {{ err.message }}
-        <div *ngIf="err.detail" class="small text-muted mt-1">{{ err.detail }}</div>
+    <div *ngIf="error" class="alert alert-danger py-2 mb-2" role="alert">
+        <strong>Error:</strong> {{ error.message }}
+        <div *ngIf="error.detail" class="small text-muted mt-1">
+            {{ error.detail }}
+        </div>
     </div>
 
     <!-- Warnings -->
     <div *ngFor="let warn of warnings" class="alert alert-warning py-2 mb-2" role="alert">
         {{ warn.message }}
-        <span *ngIf="warn.affectedRowCount" class="badge bg-warning text-dark ms-1">{{ warn.affectedRowCount }}
-            row(s)</span>
+        <span *ngIf="warn.affectedRowCount" class="badge bg-warning text-dark ms-1">
+            {{ warn.affectedRowCount }}
+            row(s)
+        </span>
     </div>
 
     <!-- Preview table -->

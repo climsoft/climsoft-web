@@ -4,19 +4,18 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { ImportSqlBuilder } from './import-sql-builder';
-import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
-import { ImportSourceDto, DataStructureTypeEnum } from 'src/metadata/source-specifications/dtos/import-source.dto';
+import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
+import { ElementsService } from 'src/metadata/elements/services/elements.service';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { TableData } from 'duckdb-async';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 
 interface PreviewSession {
     sessionId: string;
-    uploadedFilePath: string;
-    tableName: string;
+    fileName: string;
     rowsToSkip: number;
     delimiter?: string;
     createdAt: number;
@@ -34,6 +33,7 @@ export class ImportPreviewService implements OnModuleDestroy {
     constructor(
         private fileIOService: FileIOService,
         private sourcesService: SourceSpecificationsService,
+        private elementsService: ElementsService,
     ) { }
 
     public async onModuleDestroy() {
@@ -70,7 +70,7 @@ export class ImportPreviewService implements OnModuleDestroy {
             // Collect files from active sessions (still in use)
             const activeSessionFiles = new Set<string>();
             for (const session of this.sessions.values()) {
-                activeSessionFiles.add(path.basename(session.uploadedFilePath));
+                activeSessionFiles.add(path.basename(session.fileName));
             }
 
             // Delete orphaned files
@@ -97,155 +97,86 @@ export class ImportPreviewService implements OnModuleDestroy {
         }
     }
 
-    public async initAndPreviewFile(file: string | Express.Multer.File, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
+    public async initAndPreviewRawFile(fileorFileName: string | Express.Multer.File, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
         const sessionId = crypto.randomUUID();
         const timestamp = Date.now();
-        let uploadedFilePath: string;
+        let importFilePathName: string;
 
-        if (typeof file !== 'string') {
-            const ext = path.extname(file.originalname);
-            uploadedFilePath = path.posix.join(this.fileIOService.apiImportsDir, `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`);
-            // Save file to disk
-            await fs.promises.writeFile(uploadedFilePath, file.buffer);
-
-        } else {
-            uploadedFilePath = path.posix.join(this.fileIOService.apiImportsDir, path.basename(file));
-            // Check if file exists
+        if (typeof fileorFileName === 'string') {
             try {
-                await fs.promises.access(uploadedFilePath, fs.constants.R_OK);
-            } catch {
-                throw new NotFoundException(`Sample file not found: ${file}`);
+                // Check if file exists
+                importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, path.basename(fileorFileName));
+                await fs.promises.access(importFilePathName, fs.constants.R_OK);
+            } catch (error) {
+                throw new NotFoundException(`File not found for preview: ${fileorFileName}`);
             }
+        } else {
+            // Save file from memory to disk for processing.
+            const ext = path.extname(fileorFileName.originalname);
+            importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `preview_${sessionId.substring(0, 8)}_${timestamp}${ext}`);
+            await fs.promises.writeFile(importFilePathName, fileorFileName.buffer);
         }
-
-        // Create a valid SQL identifier from the session ID. Note uuid v4 contains hyphens which are not allowed in SQL identifiers, so we remove them.
-        const tableName = `preview_${sessionId.substring(0, 8).replaceAll('-', '')}_${timestamp}`;
 
         const session: PreviewSession = {
             sessionId,
-            uploadedFilePath,
-            tableName,
+            fileName: path.basename(importFilePathName),
             rowsToSkip,
             delimiter,
             createdAt: timestamp,
             lastAccessedAt: timestamp,
         };
+
         this.sessions.set(sessionId, session);
 
-        // Load raw data into DuckDB
-        await this.loadRawTable(session);
-
-        // Get preview data
-        const columns = await this.getColumnNames(tableName);
-        const totalRowCount = await this.getRowCount(tableName);
-        const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
-        const skippedRows = await this.getSkippedRows(session);
-        const sampleFile = path.basename(uploadedFilePath);
-
-        return { sessionId, sampleFile, columns, totalRowCount, previewRows, skippedRows };
+        return this.previewRawFile(session);
     }
 
 
-    public async updateBaseParams(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
+    public async updateBaseParamsAndPreviewRawFile(sessionId: string, rowsToSkip: number, delimiter?: string): Promise<RawPreviewResponse> {
         const session = this.getSession(sessionId);
         session.rowsToSkip = rowsToSkip;
         session.delimiter = delimiter;
         session.lastAccessedAt = Date.now();
 
-        // Reload with new params
-        await this.loadRawTable(session);
-
-        const columns = await this.getColumnNames(session.tableName);
-        const totalRowCount = await this.getRowCount(session.tableName);
-        const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
-        const skippedRows = await this.getSkippedRows(session);
-        const sampleFile = path.basename(session.uploadedFilePath);
-
-        return { sessionId, sampleFile, columns, totalRowCount, previewRows, skippedRows };
+        return this.previewRawFile(session);
     }
 
-    public async previewStep(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
+    public async previewRawFile(session: PreviewSession): Promise<RawPreviewResponse> {
+        // Load the file into DuckDB (resets to raw state for idempotent preview)
+        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
+        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+
+        // Get preview data
+        const columns = await this.getColumnNames(tableName);
+        const totalRowCount = await this.getRowCount(tableName);
+        const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
+        const skippedRows = await this.getSkippedRows(importFilePathName, session.rowsToSkip, session.delimiter);
+
+        return { sessionId: session.sessionId, fileName: session.fileName, columns, totalRowCount, previewRows, skippedRows };
+    }
+
+    public async transformAndPreviewFile(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
         const session = this.getSession(sessionId);
         session.lastAccessedAt = Date.now();
 
-        const warnings: PreviewWarning[] = [];
-        const errors: PreviewError[] = [];
+        // Reset table to raw state for idempotent processing 
+        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName); 
+        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
-        // Reset table to raw state for idempotent processing
-        await this.loadRawTable(session);
-        const beforeCount = await this.getRowCount(session.tableName);
+        const beforeCount: number = await this.getRowCount(tableName);
 
-        const importDef = sourceDef.parameters as ImportSourceDto;
-        if (!importDef || importDef.dataStructureType !== DataStructureTypeEnum.TABULAR) {
-            errors.push({
-                type: 'MISSING_REQUIRED_FIELD',
-                message: 'Only tabular data structure is supported for preview.',
-            });
-            const columns = await this.getColumnNames(session.tableName);
-            const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
-            return { columns, previewRows, totalRowCount: beforeCount, rowsDropped: 0, warnings, errors };
-        }
+        // TODO. Will come from cache in later iterations
+        const elements: CreateViewElementDto[] = await this.elementsService.find();
 
-        const tabularDef = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
-        if (!tabularDef) {
-            errors.push({
-                type: 'MISSING_REQUIRED_FIELD',
-                message: 'Tabular data structure parameters are not defined.',
-            });
-            const columns = await this.getColumnNames(session.tableName);
-            const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
-            return { columns, previewRows, totalRowCount: beforeCount, rowsDropped: 0, warnings, errors };
-        }
-
-        // Execute each transformation step individually.
-        // Each step's SQL is built and executed separately so that:
-        // 1. If a step fails, previous successful transformations remain visible in the preview
-        // 2. The error message tells the user exactly which step failed
-        // 3. The user can see partial progress and fix only what's broken
-
-        const steps: { name: string; buildSql: () => string }[] = [
-            { name: 'Station', buildSql: () => ImportSqlBuilder.buildAlterStationColumnSQL(tabularDef, session.tableName, stationId) },
-            { name: 'Element', buildSql: () => ImportSqlBuilder.buildAlterElementColumnSQL(tabularDef, session.tableName) },
-            { name: 'Date/Time', buildSql: () => ImportSqlBuilder.buildAlterDateTimeColumnSQL(sourceDef, tabularDef, session.tableName) },
-            { name: 'Value & Flag', buildSql: () => ImportSqlBuilder.buildAlterValueColumnSQL(sourceDef, importDef, tabularDef, session.tableName) },
-            { name: 'Level', buildSql: () => ImportSqlBuilder.buildAlterLevelColumnSQL(tabularDef, session.tableName) },
-            { name: 'Interval', buildSql: () => ImportSqlBuilder.buildAlterIntervalColumnSQL(tabularDef, session.tableName) },
-            { name: 'Comment', buildSql: () => ImportSqlBuilder.buildAlterCommentColumnSQL(tabularDef, session.tableName) },
-            {
-                name: 'Finalize',
-                buildSql: () => {
-                    let sql = '';
-                    sql += `ALTER TABLE ${session.tableName} ADD COLUMN ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT 0;`;
-                    sql += `ALTER TABLE ${session.tableName} ADD COLUMN ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT 0;`;
-                    sql += ImportSqlBuilder.buildRemoveDuplicatesSQL(session.tableName);
-                    return sql;
-                }
-            },
-        ];
-
-        for (const step of steps) {
-            try {
-                // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
-                const sql = step.buildSql();
-                if (sql) {
-                    await this.fileIOService.duckDb.exec(sql);
-                }
-            } catch (error) {
-                const classifiedError = this.classifyDuckDbError(error, step.name);
-                errors.push(classifiedError);
-                // Stop processing — later steps may depend on this one
-                break;
-            }
-        }
+        // Apply transformations based on the source definition. 
+        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDb, tableName, 0, sourceDef, elements, 0, stationId);
 
         // Return the current table state (includes all successful transformations)
-        const afterCount = await this.getRowCount(session.tableName);
-        const columns = await this.getColumnNames(session.tableName);
-        const previewRows = await this.getPreviewRows(session.tableName, this.DISPLAY_ROWS);
+        const afterCount = await this.getRowCount(tableName);
+        const columns = await this.getColumnNames(tableName);
+        const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
         const rowsDropped = beforeCount - afterCount;
-
-        // Detect warnings on whatever columns exist so far
-        await this.detectWarnings(session.tableName, columns, warnings);
+        const warnings: PreviewWarning[] = await this.detectWarnings(tableName, columns);// Detect warnings on whatever columns exist so far
 
         if (rowsDropped > 0) {
             warnings.push({
@@ -255,26 +186,28 @@ export class ImportPreviewService implements OnModuleDestroy {
             });
         }
 
-        return { columns, previewRows, totalRowCount: afterCount, rowsDropped, warnings, errors };
+        return { columns, previewRows, totalRowCount: afterCount, rowsDropped, warnings, error: error ? error : undefined };
     }
+
 
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);
         if (!session) return;
 
         try {
-            await this.fileIOService.duckDb.run(`DROP TABLE IF EXISTS ${session.tableName};`);
+            const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
+            await this.fileIOService.duckDb.run(`DROP TABLE IF EXISTS ${tableName};`);
         } catch (e) {
-            this.logger.warn(`Could not drop preview table ${session.tableName}: ${e}`);
+            this.logger.warn(`Could not drop preview table ${session.fileName}: ${e}`);
         }
 
         // Files are NOT deleted here — they may be referenced by saved specifications.
-        // Orphaned files are cleaned up by the daily cleanupOrphanedPreviewFiles() job.
+        // Orphaned files are cleaned up by the daily `cleanupOrphanedPreviewFiles()` job.
 
         this.sessions.delete(sessionId);
     }
 
-    private getSession(sessionId: string): PreviewSession {
+    public getSession(sessionId: string): PreviewSession {
         const session = this.sessions.get(sessionId);
         if (!session) {
             throw new NotFoundException(`Preview session not found: ${sessionId}. It may have expired.`);
@@ -282,30 +215,12 @@ export class ImportPreviewService implements OnModuleDestroy {
         return session;
     }
 
-    private async loadRawTable(session: PreviewSession): Promise<void> {
-        // Drop existing table
-        await this.fileIOService.duckDb.run(`DROP TABLE IF EXISTS ${session.tableName};`);
 
-        // Read CSV with the configured params
-        const importParams = ImportSqlBuilder.buildCsvImportParams(session.rowsToSkip, session.delimiter);
-        const createSQL = `CREATE OR REPLACE TABLE ${session.tableName} AS SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${this.MAX_PREVIEW_ROWS};`;
+    private async getSkippedRows(importFilePathName: string, rowsToSkip: number, delimiter?: string): Promise<string[][]> {
+        if (rowsToSkip <= 0) return [];
 
-        await this.fileIOService.duckDb.run(createSQL);
-
-        // Rename columns to normalized names (column0, column1, ...)
-        const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, session.tableName);
-        if (renameSQL) {
-            await this.fileIOService.duckDb.exec(renameSQL);
-        }
-    }
-
-    private async getSkippedRows(session: PreviewSession): Promise<string[][]> {
-        if (session.rowsToSkip <= 0) return [];
-
-        const importParams = ImportSqlBuilder.buildCsvImportParams(0, session.delimiter);
-        const rows = await this.fileIOService.duckDb.all(
-            `SELECT * FROM read_csv('${session.uploadedFilePath}', ${importParams.join(', ')}) LIMIT ${session.rowsToSkip}`
-        );
+        const importParams = DuckDBUtils.buildCsvImportParams(0, delimiter);
+        const rows = await this.fileIOService.duckDb.all(`SELECT * FROM read_csv('${importFilePathName}', ${importParams.join(', ')}) LIMIT ${rowsToSkip}`);
 
         return this.convertTableDataToPreviewRows(rows);
     }
@@ -335,12 +250,16 @@ export class ImportPreviewService implements OnModuleDestroy {
         }));
     }
 
-    private async detectWarnings(tableName: string, columns: string[], warnings: PreviewWarning[]): Promise<void> {
+    private async detectWarnings(tableName: string, columns: string[]): Promise<PreviewWarning[]> {
+        const warnings: PreviewWarning[] = [];
         // Check for NULL values in key columns
         const keyColumns = [
-            ImportSqlBuilder.STATION_ID_PROPERTY_NAME,
-            ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME,
-            ImportSqlBuilder.DATE_TIME_PROPERTY_NAME,
+            TabularImportTransformer.STATION_ID_PROPERTY_NAME,
+            TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME,
+            TabularImportTransformer.LEVEL_PROPERTY_NAME,
+            TabularImportTransformer.DATE_TIME_PROPERTY_NAME,
+            TabularImportTransformer.INTERVAL_PROPERTY_NAME,
+
         ];
 
         for (const col of keyColumns) {
@@ -365,12 +284,12 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         // Check for duplicates on composite key
         const compositeKeyCols = [
-            ImportSqlBuilder.STATION_ID_PROPERTY_NAME,
-            ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME,
-            ImportSqlBuilder.LEVEL_PROPERTY_NAME,
-            ImportSqlBuilder.DATE_TIME_PROPERTY_NAME,
-            ImportSqlBuilder.INTERVAL_PROPERTY_NAME,
-            ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME,
+            TabularImportTransformer.STATION_ID_PROPERTY_NAME,
+            TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME,
+            TabularImportTransformer.LEVEL_PROPERTY_NAME,
+            TabularImportTransformer.DATE_TIME_PROPERTY_NAME,
+            TabularImportTransformer.INTERVAL_PROPERTY_NAME,
+            TabularImportTransformer.SOURCE_ID_PROPERTY_NAME,
         ];
 
         if (compositeKeyCols.every(col => columns.includes(col))) {
@@ -395,32 +314,8 @@ export class ImportPreviewService implements OnModuleDestroy {
                 // Columns might not all exist yet, skip
             }
         }
-    }
 
-    private classifyDuckDbError(error: unknown, stepName: string): PreviewError {
-        const msg = error instanceof Error ? error.message : String(error);
-
-        if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {
-            return {
-                type: 'COLUMN_NOT_FOUND',
-                message: `${stepName}: A column referenced in the specification was not found in the uploaded file. Check that the column positions are correct.`,
-                detail: msg,
-            };
-        }
-
-        if (msg.includes('out of range') || msg.includes('Binder Error')) {
-            return {
-                type: 'INVALID_COLUMN_POSITION',
-                message: `${stepName}: A column position is out of range. The file has fewer columns than expected.`,
-                detail: msg,
-            };
-        }
-
-        return {
-            type: 'SQL_EXECUTION_ERROR',
-            message: `${stepName}: An error occurred while processing the file with the current specification.`,
-            detail: msg,
-        };
+        return warnings;
     }
 
 }

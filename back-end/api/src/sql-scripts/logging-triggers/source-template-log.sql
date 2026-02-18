@@ -9,7 +9,7 @@ BEGIN
             NEW.allow_missing_value IS DISTINCT FROM OLD.allow_missing_value OR 
             NEW.scale_values IS DISTINCT FROM OLD.scale_values OR 
             NEW.parameters IS DISTINCT FROM OLD.parameters OR 
-            NEW.sample_file IS DISTINCT FROM OLD.sample_file OR 
+            NEW.sample_file_name IS DISTINCT FROM OLD.sample_file_name OR 
             NEW.disabled IS DISTINCT FROM OLD.disabled OR 
             NEW.comment IS DISTINCT FROM OLD.comment
         ) THEN
@@ -23,7 +23,7 @@ BEGIN
             'allow_missing_value', OLD.allow_missing_value,
             'scale_values', OLD.scale_values,
             'parameters', OLD.parameters,
-            'sample_file', OLD.sample_file,
+            'sample_file_name', OLD.sample_file_name,
             'disabled', OLD.disabled,
             'comment', OLD.comment,
             'entryUserId', OLD.entry_user_id, 

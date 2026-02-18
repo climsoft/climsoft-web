@@ -20,19 +20,19 @@ export class FileIOService {
         if (AppConfig.devMode) {
             // Dev mode uses local file system for easier debugging and development. 
             // Files are stored under a 'temp' directory in the project root which is mounted to any test docker container. 
-            // This allows us to avoid file permission issues and also easily inspect files.
+            // This allows us to easily inspect files.
 
             const _tempDir: string = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp');
             this._apiImportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'imports');
             this._apiExportsDir = path.posix.join(process.cwd().replaceAll('\\', '/'), 'temp', 'exports');
 
             // Delete the temp directory first to ensure a clean state on each server restart. This prevents issues with file locks and permission errors after hot reloads in development.
-            try {
-                fs.rmSync(_tempDir, { recursive: true, force: true });
-                this.logger.log(`Deleted existing temp directory: ${_tempDir}`);
-            } catch (err) {
-                this.logger.warn(`Could not delete temp directory (it may not exist): ${_tempDir}`);
-            }
+            // try {
+            //     fs.rmSync(_tempDir, { recursive: true, force: true });
+            //     this.logger.log(`Deleted existing temp directory: ${_tempDir}`);
+            // } catch (err) {
+            //     this.logger.warn(`Could not delete temp directory (it may not exist): ${_tempDir}`);
+            // }
 
             fs.mkdirSync(_tempDir, { recursive: true });
             fs.mkdirSync(this._apiImportsDir, { recursive: true });
@@ -86,19 +86,17 @@ export class FileIOService {
 
     // Move to a duckdb service under a different NodeJS process that manages duckdb. Helps with any duckdb crushes
     private async setupDuckDB() {
-        // TODO. Counter check this bug.
+        // Fist delete the duck db path to prevent DuckDB WAL file corruption issues after NestJS hot reloads
 
-        // Delete the 'temp' directory first if it exists in development mode
-        // This prevents DuckDB WAL file corruption issues after NestJS hot reloads
-        //try {
-        //await fs.promises.rm(this._tempDir, { recursive: true, force: true });
-        //} catch (err) {
-        // Ignore errors if directory doesn't exist or can't be deleted
-        //console.warn('Could not delete temp directory:', err);
-        //}
+        const duckDbPath = path.posix.join(this._apiImportsDir, 'duckdb');
+        if (fs.existsSync(duckDbPath)) {
+            fs.rmSync(duckDbPath, { recursive: true, force: true });
+            this.logger.log(`Deleted existing DuckDB data at: ${duckDbPath}`);
+        }
+        fs.mkdirSync(duckDbPath, { recursive: true });
 
         // Initialise DuckDB with the specified file path
-        this._duckDb = await Database.create(`${this.apiImportsDir}/duckdb_io.db`);
+        this._duckDb = await Database.create(path.posix.join(duckDbPath, 'duckdb_io.db'));
     }
 
 

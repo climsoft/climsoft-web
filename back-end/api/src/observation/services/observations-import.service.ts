@@ -7,11 +7,11 @@ import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/d
 import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DataSource } from 'typeorm';
-import { ImportSqlBuilder } from './import-sql-builder';
+import { TabularImportTransformer } from './tabular-import-transformer';
+import { PreviewError } from '../dtos/import-preview.dto';
 
 @Injectable()
 export class ObservationImportService {
@@ -27,16 +27,23 @@ export class ObservationImportService {
     public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
             const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`);
-            const exportFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_${new Date().getTime()}_processed.csv`);
 
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
 
             // Process the import using duckdb
-            await this.processFileForImport(sourceId, importFilePathName, exportFilePathName, userId, stationId);
+            const processedFilePathName = await this.processFileForImport(sourceId, importFilePathName, userId, stationId);
 
             // Import to database
-            await this.importProcessedFilesToDatabase(exportFilePathName);
+            await this.importProcessedFileToDatabase(processedFilePathName);
+
+            try {
+                // Delete created files
+                fs.promises.unlink(importFilePathName);
+                fs.promises.unlink(processedFilePathName);
+            } catch (error) {
+                this.logger.error(`Failed to delete uploaded file ${importFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
+            }
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -45,7 +52,7 @@ export class ObservationImportService {
         }
     }
 
-    public async processFileForImport(sourceId: number, importFilePathName: string, exportFilePathName: string, userId: number, stationId?: string) {
+    public async processFileForImport(sourceId: number, importFilePathName: string, userId: number, stationId?: string): Promise<string> {
         // Get the source definition using the source id
         const sourceDef = await this.sourcesService.find(sourceId);
 
@@ -60,18 +67,56 @@ export class ObservationImportService {
         const importSourceDef = sourceDef.parameters as ImportSourceDto;
 
         if (importSourceDef.dataStructureType === DataStructureTypeEnum.TABULAR) {
-            await this.processTabularSource(sourceDef, importFilePathName, exportFilePathName, userId, stationId);
+            return this.processTabularSource(sourceDef, importFilePathName, userId, stationId);
         } else {
             throw new Error('Source structure not supported yet');
         }
     }
 
+    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, inputFilePathName: string, userId: number, stationId?: string): Promise<string> {
+        const sourceId: number = sourceDef.id;
+        const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
+        const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
+
+
+        // Execute the duckdb DDL SQL commands
+        let startTime = Date.now();
+
+        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
+
+        // TODO. Will come from cache in later iterations 
+        const elements: CreateViewElementDto[] = await this.elementsService.find();
+
+        // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
+        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDb, tableName, sourceId, sourceDef, elements, userId, stationId);
+
+        this.logger.log(`DuckDB alters took ${Date.now() - startTime} milliseconds`);
+
+        // TODO. throw errors if any.
+        if (errors) {
+            this.logger.error(`Errors found during data transformation for file ${path.basename(inputFilePathName)}: ${JSON.stringify(errors)}`);
+            throw new Error(`Data transformation failed with ${errors} error(s). Check logs for details.`);
+        }
+
+        // Note, duckdb operate at the API layer, so use apiImportsDir path
+        const timestamp = Date.now();
+        const exportFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `import_processed_${path.basename(inputFilePathName, path.extname(inputFilePathName))}_${timestamp}.csv`);
+
+        startTime = Date.now();
+        await TabularImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDb, tableName, exportFilePathName);
+        this.logger.log(`DuckDB export took ${Date.now() - startTime} milliseconds`);
+
+        await this.fileIOService.duckDb.run(`DROP TABLE ${tableName};`);
+
+        return exportFilePathName;
+
+    }
+
     /**
-     * Import processed CSV files to database using PostgreSQL COPY command
+     * Import processed CSV file to database using PostgreSQL COPY command
      * Uses a staging table approach to handle duplicates efficiently
      */
-    public async importProcessedFilesToDatabase(filePathName: string): Promise<void> {
-
+    public async importProcessedFileToDatabase(filePathName: string): Promise<void> {
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -87,16 +132,16 @@ export class ObservationImportService {
             // Column types match the observations table schema
             const createStagingTableQuery = `
                     CREATE TEMP TABLE ${stagingTableName} (
-                        ${ImportSqlBuilder.STATION_ID_PROPERTY_NAME} VARCHAR NOT NULL,
-                        ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME} INTEGER NOT NULL,
-                        ${ImportSqlBuilder.LEVEL_PROPERTY_NAME} INTEGER NOT NULL,
-                        ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME} TIMESTAMPTZ NOT NULL,
-                        ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME} INTEGER NOT NULL,
-                        ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME} INTEGER NOT NULL,
-                        ${ImportSqlBuilder.VALUE_PROPERTY_NAME} DOUBLE PRECISION,
-                        ${ImportSqlBuilder.FLAG_PROPERTY_NAME} VARCHAR,
-                        ${ImportSqlBuilder.COMMENT_PROPERTY_NAME} VARCHAR,
-                        ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME} INTEGER NOT NULL
+                        ${TabularImportTransformer.STATION_ID_PROPERTY_NAME} VARCHAR NOT NULL,
+                        ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME} INTEGER NOT NULL,
+                        ${TabularImportTransformer.LEVEL_PROPERTY_NAME} INTEGER NOT NULL,
+                        ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME} TIMESTAMPTZ NOT NULL,
+                        ${TabularImportTransformer.INTERVAL_PROPERTY_NAME} INTEGER NOT NULL,
+                        ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER NOT NULL,
+                        ${TabularImportTransformer.VALUE_PROPERTY_NAME} DOUBLE PRECISION,
+                        ${TabularImportTransformer.FLAG_PROPERTY_NAME} VARCHAR,
+                        ${TabularImportTransformer.COMMENT_PROPERTY_NAME} VARCHAR,
+                        ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER NOT NULL
                     ) ON COMMIT DROP;
                 `;
 
@@ -104,7 +149,7 @@ export class ObservationImportService {
 
             // Step 2: COPY data into staging table (very fast, no constraints)
             const copyQuery = `
-                    COPY ${stagingTableName} (${ImportSqlBuilder.STATION_ID_PROPERTY_NAME}, ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME}, ${ImportSqlBuilder.LEVEL_PROPERTY_NAME}, ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME}, ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME}, ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME}, ${ImportSqlBuilder.VALUE_PROPERTY_NAME}, ${ImportSqlBuilder.FLAG_PROPERTY_NAME}, ${ImportSqlBuilder.COMMENT_PROPERTY_NAME}, ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME})
+                    COPY ${stagingTableName} (${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME})
                     FROM '${dbFilePathName}'
                     WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
                 `;
@@ -115,15 +160,15 @@ export class ObservationImportService {
             // If duplicate exists, update the existing record with new values
             // Cast flag from VARCHAR to observations_flag_enum type
             const upsertQuery = `
-                    INSERT INTO observations (${ImportSqlBuilder.STATION_ID_PROPERTY_NAME}, ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME}, ${ImportSqlBuilder.LEVEL_PROPERTY_NAME}, ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME}, ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME}, ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME}, ${ImportSqlBuilder.VALUE_PROPERTY_NAME}, ${ImportSqlBuilder.FLAG_PROPERTY_NAME}, ${ImportSqlBuilder.COMMENT_PROPERTY_NAME}, ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME})
-                    SELECT ${ImportSqlBuilder.STATION_ID_PROPERTY_NAME}, ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME}, ${ImportSqlBuilder.LEVEL_PROPERTY_NAME}, ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME}, ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME}, ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME}, ${ImportSqlBuilder.VALUE_PROPERTY_NAME}, ${ImportSqlBuilder.FLAG_PROPERTY_NAME}::observations_flag_enum, ${ImportSqlBuilder.COMMENT_PROPERTY_NAME}, ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME}
+                    INSERT INTO observations (${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME})
+                    SELECT ${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME}, ${TabularImportTransformer.VALUE_PROPERTY_NAME}, ${TabularImportTransformer.FLAG_PROPERTY_NAME}::observations_flag_enum, ${TabularImportTransformer.COMMENT_PROPERTY_NAME}, ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME}
                     FROM ${stagingTableName}
-                    ON CONFLICT (${ImportSqlBuilder.STATION_ID_PROPERTY_NAME}, ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME}, ${ImportSqlBuilder.LEVEL_PROPERTY_NAME}, ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME}, ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME}, ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME})
+                    ON CONFLICT (${TabularImportTransformer.STATION_ID_PROPERTY_NAME}, ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME}, ${TabularImportTransformer.LEVEL_PROPERTY_NAME}, ${TabularImportTransformer.DATE_TIME_PROPERTY_NAME}, ${TabularImportTransformer.INTERVAL_PROPERTY_NAME}, ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME})
                     DO UPDATE SET
-                        ${ImportSqlBuilder.VALUE_PROPERTY_NAME} = EXCLUDED.${ImportSqlBuilder.VALUE_PROPERTY_NAME},
-                        ${ImportSqlBuilder.FLAG_PROPERTY_NAME} = EXCLUDED.${ImportSqlBuilder.FLAG_PROPERTY_NAME},
-                        ${ImportSqlBuilder.COMMENT_PROPERTY_NAME} = EXCLUDED.${ImportSqlBuilder.COMMENT_PROPERTY_NAME},
-                        ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME};
+                        ${TabularImportTransformer.VALUE_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.VALUE_PROPERTY_NAME},
+                        ${TabularImportTransformer.FLAG_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.FLAG_PROPERTY_NAME},
+                        ${TabularImportTransformer.COMMENT_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.COMMENT_PROPERTY_NAME},
+                        ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} = EXCLUDED.${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME};
                 `;
 
             await queryRunner.query(upsertQuery);
@@ -145,95 +190,5 @@ export class ObservationImportService {
             // Release the query runner
             await queryRunner.release();
         }
-
     }
-
-
-    private async processTabularSource(sourceDef: ViewSourceSpecificationDto, inputFilePathName: string, outputFileName: string, userId: number, stationId?: string): Promise<void> {
-        const sourceId: number = sourceDef.id;
-        const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
-        const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
-
-        // Remove spaces and special characters from table name to ensure valid SQL identifier
-        const tmpObsTableName: string = path.basename(inputFilePathName, path.extname(inputFilePathName)).replace(/\s+/g, '_');
-        const importParams = ImportSqlBuilder.buildCsvImportParams(tabularDef.rowsToSkip, tabularDef.delimiter);
-
-        // Read csv to duckdb for processing. Important to execute this first before altering the columns due to the renaming of the default column names
-        const createSQL: string = `CREATE OR REPLACE TABLE ${tmpObsTableName} AS SELECT * FROM read_csv('${inputFilePathName}', ${importParams.join(', ')});`;
-
-        //console.log("createSQL: ", createSQL);
-
-        await this.fileIOService.duckDb.run(createSQL);
-
-        let alterSQLs: string;
-        // Rename all columns to use the expected suffix column indices
-        alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpObsTableName);
-
-        // Add the rest of the columns
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterStationColumnSQL(tabularDef, tmpObsTableName, stationId);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterElementColumnSQL(tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterDateTimeColumnSQL(sourceDef, tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterValueColumnSQL(sourceDef, importDef, tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterLevelColumnSQL(tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterIntervalColumnSQL(tabularDef, tmpObsTableName);
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildAlterCommentColumnSQL(tabularDef, tmpObsTableName);
-
-
-        // Add source and user column
-        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId};`;
-        alterSQLs = alterSQLs + `ALTER TABLE ${tmpObsTableName} ADD COLUMN ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId};`;
-
-        // Remove duplicate values based on composite primary key (station_id, element_id, level, date_time, interval, source_id)
-        // Keep the last occurrence of each duplicate
-        alterSQLs = alterSQLs + ImportSqlBuilder.buildRemoveDuplicatesSQL(tmpObsTableName);
-
-        //console.log("alterSQLs: ", alterSQLs);
-
-        // Execute the duckdb DDL SQL commands
-        let startTime = new Date().getTime();
-        await this.fileIOService.duckDb.exec(alterSQLs);
-        this.logger.log(`DuckDB alters took ${new Date().getTime() - startTime} milliseconds`);
-
-        if (sourceDef.scaleValues) {
-            startTime = new Date().getTime();
-            // Scale values if indicated, execute the scale values SQL
-            await this.fileIOService.duckDb.exec(await this.getScaleValueSQL(tmpObsTableName));
-            this.logger.log(`DuckDB scaling took ${new Date().getTime() - startTime} milliseconds`);
-        }
-
-        // Get the rows of the columns that match the dto properties
-        // Only export the columns needed for PostgreSQL COPY import (exclude entry_datetime as it's auto-generated)
-        startTime = new Date().getTime();
-        // Note, duckdb operate at the API layer, so use apiImportsDir path
-        const dbFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, path.basename(outputFileName));
-        this.logger.log(`Attempting DuckDB writing of table ${tmpObsTableName};`);
-        await this.fileIOService.duckDb.exec(`
-            COPY (
-                SELECT ${ImportSqlBuilder.STATION_ID_PROPERTY_NAME}, ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME}, ${ImportSqlBuilder.LEVEL_PROPERTY_NAME}, ${ImportSqlBuilder.DATE_TIME_PROPERTY_NAME},
-                       ${ImportSqlBuilder.INTERVAL_PROPERTY_NAME}, ${ImportSqlBuilder.SOURCE_ID_PROPERTY_NAME}, ${ImportSqlBuilder.VALUE_PROPERTY_NAME},
-                       ${ImportSqlBuilder.FLAG_PROPERTY_NAME}, ${ImportSqlBuilder.COMMENT_PROPERTY_NAME}, ${ImportSqlBuilder.ENTRY_USER_ID_PROPERTY_NAME}
-                FROM ${tmpObsTableName}
-            ) TO '${dbFilePathName}' (HEADER, DELIMITER ',');
-        `);
-        this.logger.log(`DuckDB writing table took: ${new Date().getTime() - startTime} milliseconds`);
-
-        startTime = new Date().getTime();
-        await this.fileIOService.duckDb.run(`DROP TABLE ${tmpObsTableName};`);
-        this.logger.log(`DuckDB drop table took ${new Date().getTime() - startTime} milliseconds`);
-
-    }
-
-    private async getScaleValueSQL(tableName: string): Promise<string> {
-        const elementIdsToScale: number[] = (await this.fileIOService.duckDb.all(`SELECT DISTINCT ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME} FROM ${tableName};`)).map(item => (item[ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME]));
-        const elements: CreateViewElementDto[] = await this.elementsService.find({ elementIds: elementIdsToScale });
-        let scalingSQLs: string = '';
-        for (const element of elements) {
-            // Only scale elements that have a scaling factor > 0
-            if (element.entryScaleFactor) {
-                scalingSQLs = scalingSQLs + `UPDATE ${tableName} SET ${ImportSqlBuilder.VALUE_PROPERTY_NAME} = (${ImportSqlBuilder.VALUE_PROPERTY_NAME} / ${element.entryScaleFactor}) WHERE ${ImportSqlBuilder.ELEMENT_ID_PROPERTY_NAME} = ${element.id} AND ${ImportSqlBuilder.VALUE_PROPERTY_NAME} IS NOT NULL;`;
-            }
-        }
-        return scalingSQLs;
-    }
-
 }
