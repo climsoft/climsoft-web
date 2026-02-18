@@ -31,7 +31,7 @@
     </div>
 
     <!-- Preview table -->
-    <div *ngIf="hasFile && !loading && columns.length > 0" class="preview-table" [style.max-height]="maxHeight">
+    <div *ngIf="hasFile && !loading && columns.length > 0">
         <div class="mb-2 small text-muted d-flex justify-content-between align-items-center">
             <div>
                 {{ title }}
@@ -44,26 +44,29 @@
             </div>
         </div>
 
-        <table class="table table-sm table-striped table-bordered mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th *ngFor="let col of columns; let i = index" class="text-nowrap small">
-                        {{ col }}
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let row of rows">
-                    <td *ngFor="let cell of row" class="text-nowrap small">
-                        {{ cell }}
-                    </td>
-                </tr>
-                <tr *ngIf="rows.length === 0">
-                    <td [attr.colspan]="columns.length" class="text-center text-muted">
-                        No data rows
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="app-table-container" [style.height]="height">
+            <table class="table table-sm table-striped table-bordered mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th *ngFor="let col of columns; let i = index" class="text-nowrap small">
+                            {{ col }}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of rows">
+                        <td *ngFor="let cell of row" class="text-nowrap small">
+                            {{ cell }}
+                        </td>
+                    </tr>
+                    <tr *ngIf="rows.length === 0">
+                        <td [attr.colspan]="columns.length" class="text-center text-muted">
+                            No data rows
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 </div>

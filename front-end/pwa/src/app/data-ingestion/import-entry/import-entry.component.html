@@ -2,21 +2,25 @@
   <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
     [closeOnOkClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
 
-    <div class="card border-0">
+    <div>
 
-        <!-- station and file selction -->
-      <div class="card-header d-flex px-1 py-0 flex-column">
-        <div *ngIf="showStationSelection" class="mt-1">
-          <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
-            [(selectedId)]="selectedStationId" />
+      <!-- Upload Controls -->
+      <div class="card border-primary mb-3">
+        <div class="card-header bg-primary bg-opacity-10 border-primary py-2">
+          <strong>Upload Controls</strong>
+          <small class="text-muted d-block">Select a station (if required) and upload your data file.</small>
         </div>
-        <div class="mt-1 mb-1">
+        <div class="card-body py-2 px-2">
+          <div *ngIf="showStationSelection" class="mb-2">
+            <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
+              [(selectedId)]="selectedStationId" />
+          </div>
           <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="disableUpload"
             (fileSelected)="onFileSelected($event)" />
         </div>
       </div>
 
-      <div class="card-body px-1">
+      <div>
 
         <!-- Status message -->
         <div *ngIf="importMessage" class="alert py-2 mb-2"
@@ -41,13 +45,13 @@
 
             <div *ngIf="sampleSkippedRows.length > 0" class="mb-2">
               <app-import-preview-table [title]="'Skipped Rows'" [columns]="sampleColumns" [rows]="sampleSkippedRows"
-                [hasFile]="true" [maxHeight]="'15vh'" />
+                [hasFile]="true" [height]="'13vh'" />
             </div>
 
             <app-import-preview-table [title]="'Sample Data'" [columns]="sampleColumns"
               [rows]="sampleRows" [totalRowCount]="sampleTotalRowCount" [loading]="sampleLoading"
               [hasFile]="sampleHasFile" [noFileMessage]="'No sample file available for this import specification'"
-              [maxHeight]="'15vh'" />
+              [height]="'13vh'" />
 
           </div>
         </div>
@@ -62,14 +66,14 @@
 
             <app-import-preview-table [title]="'Raw Data'" [columns]="rawUploadColumns"
               [rows]="rawUploadRows" [totalRowCount]="rawUploadTotalRowCount" [hasFile]="rawUploadHasFile"
-              [noFileMessage]="'Upload a file to see the raw data'" [maxHeight]="'15vh'" />
+              [noFileMessage]="'Upload a file to see the raw data'" [height]="'13vh'" />
 
             <div class="mt-2">
               <app-import-preview-table [title]="'Transformed Data'" [columns]="uploadColumns"
                 [rows]="uploadRows" [totalRowCount]="uploadTotalRowCount" [rowsDropped]="uploadRowsDropped"
                 [warnings]="uploadWarnings" [error]="uploadError" [loading]="uploadLoading" [hasFile]="uploadHasFile"
                 [noFileMessage]="'Upload a file to see a preview of the transformed data before importing'"
-                [maxHeight]="'15vh'" />
+                [height]="'13vh'" />
             </div>
 
           </div>

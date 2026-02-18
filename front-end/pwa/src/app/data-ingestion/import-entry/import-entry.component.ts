@@ -62,6 +62,8 @@ export class ImportEntryComponent implements OnDestroy {
   protected onlyIncludeStationIds: string[] = [];
 
   private sessionId: string | null = null;
+  protected uploadedFileName: string = '';
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -131,6 +133,8 @@ export class ImportEntryComponent implements OnDestroy {
   }
 
   protected onFileSelected(file: File): void {
+    this.uploadedFileName = file.name;
+
     if (this.showStationSelection && !this.selectedStationId) {
       this.importStage = ImportStage.ERROR;
       this.importMessage = 'Please select a station first';
@@ -245,6 +249,7 @@ export class ImportEntryComponent implements OnDestroy {
   }
 
   private resetUploadPreview(): void {
+    this.uploadedFileName = '';
     this.rawUploadColumns = [];
     this.rawUploadRows = [];
     this.rawUploadTotalRowCount = 0;
@@ -258,7 +263,6 @@ export class ImportEntryComponent implements OnDestroy {
     this.uploadLoading = false;
     this.uploadHasFile = false;
   }
-
 
   protected onConfirmImport(): void {
     if (!this.sessionId) {

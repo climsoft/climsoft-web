@@ -42,7 +42,7 @@ export class ObservationImportService {
                 fs.promises.unlink(importFilePathName);
                 fs.promises.unlink(processedFilePathName);
             } catch (error) {
-                this.logger.error(`Failed to delete uploaded file ${importFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
+                this.logger.error(`Failed to delete uploaded file ${importFilePathName} and processed file ${processedFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
             }
 
         } catch (error) {
@@ -74,14 +74,13 @@ export class ObservationImportService {
     }
 
     private async processTabularSource(sourceDef: ViewSourceSpecificationDto, inputFilePathName: string, userId: number, stationId?: string): Promise<string> {
+        const startTime: number = Date.now();
+
         const sourceId: number = sourceDef.id;
         const importDef: ImportSourceDto = sourceDef.parameters as ImportSourceDto;
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
-
         // Execute the duckdb DDL SQL commands
-        let startTime = Date.now();
-
         const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
         // TODO. Will come from cache in later iterations 
@@ -89,8 +88,6 @@ export class ObservationImportService {
 
         // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
         const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDb, tableName, sourceId, sourceDef, elements, userId, stationId);
-
-        this.logger.log(`DuckDB alters took ${Date.now() - startTime} milliseconds`);
 
         // TODO. throw errors if any.
         if (errors) {
@@ -102,11 +99,11 @@ export class ObservationImportService {
         const timestamp = Date.now();
         const exportFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `import_processed_${path.basename(inputFilePathName, path.extname(inputFilePathName))}_${timestamp}.csv`);
 
-        startTime = Date.now();
         await TabularImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDb, tableName, exportFilePathName);
-        this.logger.log(`DuckDB export took ${Date.now() - startTime} milliseconds`);
 
         await this.fileIOService.duckDb.run(`DROP TABLE ${tableName};`);
+
+        this.logger.log(`DuckDB processing took ${Date.now() - startTime} milliseconds`);
 
         return exportFilePathName;
 
@@ -117,6 +114,7 @@ export class ObservationImportService {
      * Uses a staging table approach to handle duplicates efficiently
      */
     public async importProcessedFileToDatabase(filePathName: string): Promise<void> {
+        let startTime = Date.now();
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
@@ -190,5 +188,7 @@ export class ObservationImportService {
             // Release the query runner
             await queryRunner.release();
         }
+
+        this.logger.log(`PostgreSQL import took ${Date.now() - startTime} milliseconds`);
     }
 }

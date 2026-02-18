@@ -5,13 +5,14 @@ import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
-import { PreviewError, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
+import { PreviewError, PreviewForImportDto, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { TableData } from 'duckdb-async';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { ObservationImportService } from './observations-import.service';
 
 interface PreviewSession {
     sessionId: string;
@@ -32,6 +33,7 @@ export class ImportPreviewService implements OnModuleDestroy {
 
     constructor(
         private fileIOService: FileIOService,
+        private observationImportService: ObservationImportService,
         private sourcesService: SourceSpecificationsService,
         private elementsService: ElementsService,
     ) { }
@@ -160,7 +162,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         session.lastAccessedAt = Date.now();
 
         // Reset table to raw state for idempotent processing 
-        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName); 
+        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
         const beforeCount: number = await this.getRowCount(tableName);
@@ -189,6 +191,21 @@ export class ImportPreviewService implements OnModuleDestroy {
         return { columns, previewRows, totalRowCount: afterCount, rowsDropped, warnings, error: error ? error : undefined };
     }
 
+    public async importFile(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
+        const session = this.getSession(sessionId);
+
+        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
+        const processedFilePathName: string = await this.observationImportService.processFileForImport(dto.sourceId, importFilePathName, userId, dto.stationId);
+
+        await this.observationImportService.importProcessedFileToDatabase(processedFilePathName);
+
+        try {
+            // Delete created file
+            fs.promises.unlink(processedFilePathName);
+        } catch (error) {
+            this.logger.error(`Failed to delete processed file ${processedFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
 
     public async destroySession(sessionId: string): Promise<void> {
         const session = this.sessions.get(sessionId);

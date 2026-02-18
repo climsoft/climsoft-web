@@ -74,16 +74,10 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: PreviewForImportDto, // TODO. Authenticate.
     ) {
-        const userId: number = AuthUtil.getLoggedInUserId(request);
-        const session = this.importPreviewService.getSession(sessionId);
+        
+        await this.importPreviewService.importFile(sessionId, dto,  AuthUtil.getLoggedInUserId(request));
 
-        const exportFilePath: string = await this.observationImportService.processFileForImport(dto.sourceId, session.fileName, userId, dto.stationId);
-
-        await this.observationImportService.importProcessedFileToDatabase(exportFilePath);
-
-        await this.importPreviewService.destroySession(sessionId);
-
-        return { message: 'Import completed successfully' };
+        return this.importPreviewService.destroySession(sessionId);
     }
 
     @Delete(':sessionId')
