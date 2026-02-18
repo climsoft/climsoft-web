@@ -7,9 +7,7 @@ import { ViewRegionsComponent } from './regions/view-regions/view-regions.compon
 import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
-import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
-import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
 import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
 
 const routes: Routes = [
@@ -33,16 +31,8 @@ const routes: Routes = [
         component: ViewNetworkAffiliationsComponent
       },
       {
-        path: 'network-affiliation-details/:id',
-        component: NetworkAffiliationDetailsComponent
-      },
-      {
         path: 'view-organisations',
         component: ViewOrganisationsComponent
-      },
-      {
-        path: 'organisation-details/:id',
-        component: OrganisationDetailsComponent
       },
       {
         path: 'view-regions',

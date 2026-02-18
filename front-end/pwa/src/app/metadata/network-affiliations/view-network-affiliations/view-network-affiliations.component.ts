@@ -2,11 +2,10 @@ import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { AppAuthService } from 'src/app/app-auth.service';
-import { ActivatedRoute, Router } from '@angular/router';
-import { ViewNetworkAffiliationModel } from '../models/view-network-affiliation.model';
 import { NetworkAffiliationCacheModel, NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
 import { StationNetworkAffiliationsService } from '../../stations/services/station-network-affiliations.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
+import { NetworkAffiliationInputDialogComponent } from '../network-affiliation-input-dialog/network-affiliation-input-dialog.component';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -21,6 +20,7 @@ interface View extends NetworkAffiliationCacheModel {
 })
 export class ViewNetworkAffiliationsComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
+  @ViewChild('dlgNetworkDetails') dlgNetworkDetails!: NetworkAffiliationInputDialogComponent;
   protected networkAffiliations!: View[];
   protected selectedNetwork!: View;
   protected isSystemAdmin: boolean = false;
@@ -32,8 +32,6 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     private appAuthService: AppAuthService,
     private networkAffiliationsCacheService: NetworkAffiliationsCacheService,
     private stationNetworkAffiliationsService: StationNetworkAffiliationsService,
-    private router: Router,
-    private route: ActivatedRoute,
   ) {
 
     this.pagesDataService.setPageHeader('Network Affiliations');
@@ -80,7 +78,7 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
 
   protected onOptionsClicked(option: optionsType): void {
     if (option === 'Add') {
-      this.router.navigate(['network-affiliation-details', 'new'], { relativeTo: this.route.parent });
+      this.dlgNetworkDetails.openDialog();
     } else if (option === 'Delete All') {
       this.networkAffiliationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
@@ -91,7 +89,7 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
   }
 
   protected onEditNetworkAffiliation(networkAff: View): void {
-    this.router.navigate(['network-affiliation-details', networkAff.id], { relativeTo: this.route.parent });
+    this.dlgNetworkDetails.openDialog(networkAff.id);
   }
 
   protected onAssignStationsClicked(selectedSource: View) {

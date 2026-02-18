@@ -1,0 +1,29 @@
+<ng-container *ngIf="open && viewOrganisation">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+        (okClick)="onSaveClick()">
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="viewOrganisation.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="viewOrganisation.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewOrganisation.comment" />
+        </div>
+
+        <div *ngIf="errorMessage">
+            <hr />
+            <div class="text-danger">
+                {{ errorMessage }}
+            </div>
+        </div>
+
+    </app-dialog>
+</ng-container>

@@ -50,14 +50,14 @@ import { ExportSpecificationSelectorMultipleComponent } from './export-specifica
 import { SourceSelectorSingleComponent } from './source-specifications/source-selector/source-single-input/source-selector-single.component';
 import { SourceSelectorMultipleComponent } from './source-specifications/source-selector/source-selector-multiple/source-selector-multiple.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
-import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
+import { OrganisationInputDialogComponent } from './organisations/organisation-input-dialog/organisation-input-dialog.component';
 import { StationObsProcessingSingleSelectorComponent } from './stations/station-obs-method-selector/station-obs-processing-selector-single/station-obs-processing-selector-single.component';
 import { StationStatusSelectorSingleComponent } from './stations/station-status-selector/station-status-selector-single/station-status-selector-single.component';
 import { StationFocusSelectorSingleComponent } from './stations/station-focus-selector/station-focus-selector-single/station-focus-selector-single.component';
 import { StationEnvironmentSelectorSingleComponent } from './stations/station-environment-selector/station-environment-selector-single/station-environment-selector-single.component';
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
-import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
+import { NetworkAffiliationInputDialogComponent } from './network-affiliations/network-affiliation-input-dialog/network-affiliation-input-dialog.component';
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component'; 
 import { ElementTypeSingleInputComponent } from './elements/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
@@ -86,12 +86,12 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
   declarations: [ 
 
     ViewNetworkAffiliationsComponent,
-    NetworkAffiliationDetailsComponent, 
+    NetworkAffiliationInputDialogComponent, 
     NetworkAffiliationsSelectorMultipleComponent,
     NetworkAffiliationsSelectorSingleComponent,
 
     ViewOrganisationsComponent,
-    OrganisationDetailsComponent,
+    OrganisationInputDialogComponent,
     OrganisationSelectorSingleComponent,
     OrganisationSelectorMultipleComponent,
 

@@ -1,0 +1,34 @@
+<ng-container *ngIf="open && viewNetworkAffiliations">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+        (okClick)="onSaveClick()">
+
+        <div>
+            <app-text-input [label]="'Name'" [(value)]="viewNetworkAffiliations.name" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-text-input [label]="'Description'" [(value)]="viewNetworkAffiliations.description" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-network-affiliations-selector-single [label]="'Parent Network'" [displayCancelOption]="true"
+                [(selectedId)]="viewNetworkAffiliations.parentNetworkId" />
+        </div>
+
+        <div>
+            <app-text-input [label]="'Comment'" [(value)]="viewNetworkAffiliations.comment" />
+        </div>
+
+        <div *ngIf="errorMessage">
+            <hr />
+            <div class="text-danger">
+                {{ errorMessage }}
+            </div>
+        </div>
+
+    </app-dialog>
+</ng-container>

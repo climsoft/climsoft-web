@@ -1,10 +1,10 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ViewOrganisationModel } from '../models/view-organisation.model';
 import { OrganisationsCacheService } from '../services/organisations-cache.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { OrganisationInputDialogComponent } from '../organisation-input-dialog/organisation-input-dialog.component';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -14,6 +14,7 @@ type optionsType = 'Add' | 'Delete All';
   styleUrls: ['./view-organisations.component.scss']
 })
 export class ViewOrganisationsComponent implements OnDestroy {
+  @ViewChild('dlgOrganisationDetails') dlgOrganisationDetails!: OrganisationInputDialogComponent;
   protected organisations!: ViewOrganisationModel[];
   protected isSystemAdmin: boolean = false;
 
@@ -23,8 +24,6 @@ export class ViewOrganisationsComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private organisationsCacheService: OrganisationsCacheService,
-    private router: Router,
-    private route: ActivatedRoute,
   ) {
 
     this.pagesDataService.setPageHeader('Organisations');
@@ -56,7 +55,7 @@ export class ViewOrganisationsComponent implements OnDestroy {
 
   protected onOptionsClicked(option: optionsType): void {
     if (option === 'Add') {
-      this.router.navigate(['organisation-details', 'new'], { relativeTo: this.route.parent });
+      this.dlgOrganisationDetails.openDialog();
     } else if (option === 'Delete All') {
       this.organisationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
         if (data) {
@@ -68,7 +67,7 @@ export class ViewOrganisationsComponent implements OnDestroy {
 
   protected onEditOrganisation(organisation: ViewOrganisationModel): void {
     if (!this.isSystemAdmin) return;
-    this.router.navigate(['organisation-details', organisation.id], { relativeTo: this.route.parent });
+    this.dlgOrganisationDetails.openDialog(organisation.id);
   }
 
 
