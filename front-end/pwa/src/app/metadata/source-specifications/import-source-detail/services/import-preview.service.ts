@@ -55,8 +55,11 @@ export class ImportPreviewHttpService {
         });
     }
 
-    public confirmImport(sessionId: string): Observable<any> {
-        return this.http.post(`${this.endPointUrl}/confirm-import/${sessionId}`, {});
+    public confirmImport(sessionId: string, sourceId: number, stationId?: string): Observable<any> {
+        return this.http.post(`${this.endPointUrl}/confirm-import/${sessionId}`, {
+            sourceId,
+            stationId,
+        });
     }
 
     public deleteSession(sessionId: string): Observable<any> {

@@ -148,41 +148,6 @@ export class ImportEntryComponent implements OnDestroy {
     this.uploadFile(selectedFile);
   }
 
-  protected onConfirmImport(): void {
-    if (!this.sessionId) {
-      return;
-    }
-
-    this.importStage = ImportStage.IMPORTING;
-    this.importMessage = 'Importing data into database...';
-    this.disableUpload = true;
-    this.showConfirmImport = false;
-
-    this.importPreviewHttpService.confirmImport(this.sessionId).pipe(
-      take(1),
-    ).subscribe({
-      next: () => {
-        this.importStage = ImportStage.SUCCESS;
-        this.importMessage = 'File successfully imported!';
-        this.disableUpload = false;
-        this.sessionId = null;
-      },
-      error: (err) => {
-        this.importStage = ImportStage.ERROR;
-        this.importMessage = err.error?.message || 'Import failed. Please try again.';
-        this.disableUpload = false;
-      }
-    });
-  }
-
-  protected onCancelImport(): void {
-    this.cleanupSession();
-    this.resetUploadPreview();
-    this.importStage = ImportStage.IDLE;
-    this.importMessage = '';
-    this.showConfirmImport = false;
-    this.disableUpload = false;
-  }
 
   private loadSampleFilePreview(): void {
     const importSource = this.viewSource.parameters as ImportSourceModel;
@@ -301,6 +266,43 @@ export class ImportEntryComponent implements OnDestroy {
     this.uploadLoading = false;
     this.uploadHasFile = false;
   }
+
+
+  protected onConfirmImport(): void {
+    if (!this.sessionId) {
+      return;
+    }
+
+    this.importStage = ImportStage.IMPORTING;
+    this.importMessage = 'Importing data into database...';
+    this.disableUpload = true;
+    this.showConfirmImport = false;
+
+    this.importPreviewHttpService.confirmImport(this.sessionId, this.viewSource.id, this.selectedStationId || undefined).pipe(
+      take(1),
+    ).subscribe({
+      next: () => {
+        this.importStage = ImportStage.SUCCESS;
+        this.importMessage = 'File successfully imported!';
+        this.disableUpload = false;
+        this.sessionId = null;
+      },
+      error: (err) => {
+        this.importStage = ImportStage.ERROR;
+        this.importMessage = err.error?.message || 'Import failed. Please try again.';
+        this.disableUpload = false;
+      }
+    });
+  }
+
+  // protected onCancelImport(): void {
+  //   this.cleanupSession();
+  //   this.resetUploadPreview();
+  //   this.importStage = ImportStage.IDLE;
+  //   this.importMessage = '';
+  //   this.showConfirmImport = false;
+  //   this.disableUpload = false;
+  // }
 
   private cleanupSession(): void {
     if (this.sessionId) {
