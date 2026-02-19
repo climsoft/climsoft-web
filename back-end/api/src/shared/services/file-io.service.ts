@@ -1,16 +1,16 @@
-import { Injectable, Logger, StreamableFile } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, StreamableFile } from '@nestjs/common';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Database } from "duckdb-async";
+import { DuckDBInstance, DuckDBConnection } from '@duckdb/node-api';
 import { AppConfig } from 'src/app.config';
 
 // TODO. After removing the deprecated file io methods from various services, we can rename this service
 
 @Injectable()
-export class FileIOService {
+export class FileIOService implements OnModuleDestroy {
     private readonly logger = new Logger(FileIOService.name);
 
-    private _duckDb: Database;
+    private _duckDbConn: DuckDBConnection;
     private _apiImportsDir: string;
     private _apiExportsDir: string;
     private _dbImportsDir: string;
@@ -62,6 +62,10 @@ export class FileIOService {
         this.setupDuckDB();
     }
 
+    public async onModuleDestroy() {
+        this._duckDbConn.disconnectSync();
+    }
+
     public get apiImportsDir(): string {
         return this._apiImportsDir;
     }
@@ -80,8 +84,9 @@ export class FileIOService {
 
 
     // TODO. Push duckdb related functionalities to a separate duckdb service
-    public get duckDb(): Database {
-        return this._duckDb;
+
+    public get duckDbConn(): DuckDBConnection {
+        return this._duckDbConn;
     }
 
     // Move to a duckdb service under a different NodeJS process that manages duckdb. Helps with any duckdb crushes
@@ -96,7 +101,8 @@ export class FileIOService {
         fs.mkdirSync(duckDbPath, { recursive: true });
 
         // Initialise DuckDB with the specified file path
-        this._duckDb = await Database.create(path.posix.join(duckDbPath, 'duckdb_io.db'));
+        const duckDbInstance: DuckDBInstance = await DuckDBInstance.create(path.posix.join(duckDbPath, 'duckdb_io.db'));
+        this._duckDbConn = await duckDbInstance.connect();
     }
 
 

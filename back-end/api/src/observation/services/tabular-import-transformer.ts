@@ -6,7 +6,7 @@ import { StringUtils } from 'src/shared/utils/string.utils';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { PreviewError } from '../dtos/import-preview.dto';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
-import { Database } from 'duckdb-async';
+import { DuckDBConnection } from '@duckdb/node-api';
 
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
@@ -27,7 +27,7 @@ export class TabularImportTransformer {
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
-    public static async loadTableFromFile(duckDb: Database, filePathName: string, rowsToSkip: number, maxRows: number, delimiter: string | undefined): Promise<string> {
+    public static async loadTableFromFile(conn: DuckDBConnection, filePathName: string, rowsToSkip: number, maxRows: number, delimiter: string | undefined): Promise<string> {
         // Read CSV with the configured params
         const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
         const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
@@ -37,18 +37,18 @@ export class TabularImportTransformer {
         // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", etc. based on the column positions.
         const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
 
-        await duckDb.run(createSQL);
+        await conn.run(createSQL);
 
 
         // Rename columns to normalized names (column0, column1, ...)
-        const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(duckDb, tableName);
-        await duckDb.exec(renameSQL);
-        
+        const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
+        await conn.run(renameSQL);
+
         return tableName;
     }
 
     public static async executeTransformation(
-        duckDb: Database,
+        conn: DuckDBConnection,
         tableName: string,
         sourceId: number,
         sourceDef: CreateSourceSpecificationDto,
@@ -103,7 +103,7 @@ export class TabularImportTransformer {
                 // Build the SQL — this can throw if the config is invalid (e.g. missing required fields)
                 const sql = step.buildSql();
                 if (sql) {
-                    await duckDb.exec(sql);
+                    await conn.run(sql);
                 }
             } catch (error) {
                 // Stop processing — later steps may depend on this one.
@@ -113,11 +113,11 @@ export class TabularImportTransformer {
         }
     }
 
-    public static async exportTransformedDataToFile(duckDb: Database, tableName: string, exportFilePath: string): Promise<void> {
+    public static async exportTransformedDataToFile(conn: DuckDBConnection, tableName: string, exportFilePath: string): Promise<void> {
         // Only export the columns needed for PostgreSQL COPY import (exclude entry_datetime as it's auto-generated)
-        await duckDb.exec(`
+        await conn.run(`
             COPY (
-                SELECT 
+                SELECT
                     ${TabularImportTransformer.STATION_ID_PROPERTY_NAME},
                     ${TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME},
                     ${TabularImportTransformer.LEVEL_PROPERTY_NAME},

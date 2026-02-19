@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { TableData } from 'duckdb-async';
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
 import { ElementsService } from './elements.service';
 import { ElementTypesService } from './element-types.service';
@@ -32,14 +31,14 @@ export class ElementsImportExportService {
         try {
 
             // Read csv to duckdb and create table.
-            await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
+            await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
 
             // Make sure there are no empty ids and names
             //await this.validateIdAndNameValues(tmpStationTableName);
 
             let alterSQLs: string;
             // Rename all columns to use the expected suffix column indices
-            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpTableName);
+            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDbConn, tmpTableName);
 
             alterSQLs = alterSQLs + this.getAlterIdColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + this.getAlterAbbreviationColumnSQL(tmpTableName);
@@ -51,26 +50,27 @@ export class ElementsImportExportService {
             alterSQLs = alterSQLs + this.getAlterCommentsColumnSQL(tmpTableName);
 
             // Execute the duckdb DDL SQL commands
-            await this.fileIOService.duckDb.exec(alterSQLs);
+            await this.fileIOService.duckDbConn.run(alterSQLs);
 
-            let duplicates: TableData | undefined;
+            let duplicates: any[];
             //check for duplicate ids
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.ID_PROPERTY);
+            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ID_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
             //check for abbreviations names
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.ABBREVIATION_PROPERTY);
+            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ABBREVIATION_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
             //check for duplicate names
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.NAME_PROPERTY);
+            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.NAME_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
 
             // Get all the data imported
-            const rows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY}, ${this.ABBREVIATION_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.UNITS_PROPERTY}, ${this.TYPE_ID_PROPERTY}, ${this.ENTRY_SCALE_FACTOR_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
+            const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT ${this.ID_PROPERTY}, ${this.ABBREVIATION_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.UNITS_PROPERTY}, ${this.TYPE_ID_PROPERTY}, ${this.ENTRY_SCALE_FACTOR_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
+            const rows = reader.getRowObjects() as any[];
 
-            // Delete the stations table 
-            this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);
+            // Delete the elements table
+            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
 
-            // Save the stations
+            // Save the elements
             await this.elementsService.bulkPut(rows as CreateViewElementDto[], userId);
 
         } catch (error) {
@@ -159,34 +159,30 @@ export class ElementsImportExportService {
             const createTableAndInserSQLs = this.getCreateTableAndInsertSQL(tmpTableName);
 
             // Create a DuckDB table for stations
-            await this.fileIOService.duckDb.run(createTableAndInserSQLs.createTable);
+            await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.createTable);
 
             // Insert the data into DuckDB
-            const insertStatement = this.fileIOService.duckDb.prepare(createTableAndInserSQLs.insert);
-
             for (const element of allElements) {
                 const elementType = allElementTypes.find(item => item.id === element.typeId);
 
-                await (await insertStatement).run(
-                    element.id,
-                    element.abbreviation,
-                    element.name,
-                    element.description !== null ? element.description : '',
-                    element.units !== null ? element.units : '',
-                    elementType ? elementType.name.toLowerCase() : '',
-                    element.entryScaleFactor !== null ? element.entryScaleFactor : '',
-                    element.comment !== null ? element.comment : '',
-                );
+                await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.insert, {
+                    1: element.id,
+                    2: element.abbreviation,
+                    3: element.name,
+                    4: element.description !== null ? element.description : '',
+                    5: element.units !== null ? element.units : '',
+                    6: elementType ? elementType.name.toLowerCase() : '',
+                    7: element.entryScaleFactor !== null ? element.entryScaleFactor : '',
+                    8: element.comment !== null ? element.comment : '',
+                });
             }
-
-            (await insertStatement).finalize();
 
             // Export the DuckDB data into a CSV file
             const filePathName: string = `${this.fileIOService.apiExportsDir}/${tmpTableName}.csv`;
-            await this.fileIOService.duckDb.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
+            await this.fileIOService.duckDbConn.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
 
-            // Delete the stations table 
-            this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);
+            // Delete the stations table
+            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
 
             // Return the generated CSV file
             return this.fileIOService.createStreamableFile(filePathName);

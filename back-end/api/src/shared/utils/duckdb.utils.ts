@@ -1,4 +1,4 @@
-import { Database } from "duckdb-async";
+import { DuckDBConnection } from '@duckdb/node-api';
 import * as path from 'node:path';
 
 export class DuckDBUtils {
@@ -30,12 +30,14 @@ export class DuckDBUtils {
         return path.basename(filePathName, path.extname(filePathName)).replace(/\s+/g, '_');
     }
 
-    static async getRenameDefaultColumnNamesSQL(duckdb: Database, tableName: string): Promise<string> {
+    static async getRenameDefaultColumnNamesSQL(conn: DuckDBConnection, tableName: string): Promise<string> {
         // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
         // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'.
         // This function normalises column names to 1-based indices (column1, column2, ...) matching user expectations where columns are counted starting at 1.
 
-        const sourceColumnNames: string[] = (await duckdb.all(`DESCRIBE ${tableName}`)).map(item => (item.column_name));
+        const reader = await conn.runAndReadAll(`DESCRIBE ${tableName}`);
+        const sourceColumnNames: string[] = reader.getRowObjects().map((item: any) => item.column_name);
+
         let sql: string = '';
         // Two-pass rename to avoid collisions (e.g. renaming column0 → column1 when column1 already exists).
         // Pass 1: rename all columns to temporary names
@@ -71,13 +73,14 @@ export class DuckDBUtils {
         return sql;
     }
 
-    static async getDuplicateCount(duckdb: Database, tableName: string, columnName: string) {
+    static async getDuplicateCount(conn: DuckDBConnection, tableName: string, columnName: string) {
         // As of 29/11/2024, duckdb does not support setting unique constraints via ALTER COLUMN,
         // This implementation aims to get count of duplicate values for a specific column
 
-        return duckdb.all(
+        const reader = await conn.runAndReadAll(
             `SELECT ${columnName}, COUNT(*)::DOUBLE AS duplicate_count FROM ${tableName} GROUP BY ${columnName} HAVING COUNT(*) > 1`
         );
+        return reader.getRowObjects();
     }
 
 }

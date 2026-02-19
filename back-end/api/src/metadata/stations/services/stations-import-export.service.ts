@@ -7,7 +7,6 @@ import { StationObsFocusesService } from './station-obs-focuses.service';
 import { StationStatusEnum } from '../enums/station-status.enum';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { TableData } from 'duckdb-async';
 
 @Injectable()
 export class StationsImportExportService {
@@ -44,14 +43,14 @@ export class StationsImportExportService {
         try {
 
             // Read csv to duckdb and create table.
-            await this.fileIOService.duckDb.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
+            await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
 
             // Make sure there are no empty ids and names
             //await this.validateIdAndNameValues(tmpStationTableName);
 
             let alterSQLs: string;
             // Rename all columns to use the expected suffix column indices
-            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDb, tmpTableName);
+            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDbConn, tmpTableName);
 
             alterSQLs = alterSQLs + this.getAlterIdColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + this.getAlterNameColumnSQL(tmpTableName);
@@ -66,20 +65,21 @@ export class StationsImportExportService {
             alterSQLs = alterSQLs +  this.getAlterCommentsColumnSQL(tmpTableName);
 
             // Execute the duckdb DDL SQL commands
-            await this.fileIOService.duckDb.exec(alterSQLs);
+            await this.fileIOService.duckDbConn.run(alterSQLs);
 
              //check for duplicate ids
-            const duplicates: TableData | undefined = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.ID_PROPERTY);
+            const duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ID_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
             //check for duplicate names
-            // duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDb, tmpTableName, this.NAME_PROPERTY);
+            // duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.NAME_PROPERTY);
             // if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
 
             // Get all the data imported
-            const rows = await this.fileIOService.duckDb.all(`SELECT ${this.ID_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.LATITUDE_PROPERTY}, ${this.LONGITUDE_PROPERTY}, ${this.ELEVATION_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY}, ${this.STATUS_PROPERTY}, ${this.DATE_ESTABLISHED_PROPERTY}, ${this.DATE_CLOSED_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
+            const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT ${this.ID_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.LATITUDE_PROPERTY}, ${this.LONGITUDE_PROPERTY}, ${this.ELEVATION_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY}, ${this.STATUS_PROPERTY}, ${this.DATE_ESTABLISHED_PROPERTY}, ${this.DATE_CLOSED_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
+            const rows = reader.getRowObjects() as any[];
 
-            // Delete the stations table 
-            this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);
+            // Delete the stations table
+            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
 
             // Save the stations
             await this.stationService.bulkPut(rows as CreateStationDto[], userId);
@@ -236,43 +236,39 @@ export class StationsImportExportService {
             const createTableAndInserSQLs = this.getCreateTableAndInsertSQL(tmpTableName);
 
             // Create a DuckDB table for stations
-            await this.fileIOService.duckDb.run(createTableAndInserSQLs.createTable);
+            await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.createTable);
 
             // Insert the data into DuckDB
-            const insertStatement = this.fileIOService.duckDb.prepare(createTableAndInserSQLs.insert);
-
             for (const station of allStations) {
                 const stationObsEnv = allStationObsEnv.find(item => item.id === station.stationObsEnvironmentId);
                 const stationObsFocus = allStationObsFocus.find(item => item.id === station.stationObsFocusId);
 
-                await (await insertStatement).run(
-                    station.id,
-                    station.name,
-                    station.description !== null ? station.description : '',
-                    station.stationObsProcessingMethod,
-                    station.latitude !== null ? station.latitude : '',
-                    station.longitude !== null ? station.longitude : '',
-                    station.elevation !== null ? station.elevation : '',
-                    stationObsEnv ? stationObsEnv.name.toLowerCase() : '',
-                    stationObsFocus ? stationObsFocus.name.toLowerCase() : '',
-                    station.wmoId !== null ? station.wmoId : '',
-                    station.wigosId !== null ? station.wigosId : '',
-                    station.icaoId !== null ? station.icaoId : '',
-                    station.status ? station.status : null,
-                    station.dateEstablished ? station.dateEstablished.substring(0, 10) : null,
-                    station.dateClosed ? station.dateClosed.substring(0, 10) : null,
-                    station.comment !== null ? station.comment : ''
-                );
+                await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.insert, {
+                    1: station.id,
+                    2: station.name,
+                    3: station.description !== null ? station.description : '',
+                    4: station.stationObsProcessingMethod,
+                    5: station.latitude !== null ? station.latitude : '',
+                    6: station.longitude !== null ? station.longitude : '',
+                    7: station.elevation !== null ? station.elevation : '',
+                    8: stationObsEnv ? stationObsEnv.name.toLowerCase() : '',
+                    9: stationObsFocus ? stationObsFocus.name.toLowerCase() : '',
+                    10: station.wmoId !== null ? station.wmoId : '',
+                    11: station.wigosId !== null ? station.wigosId : '',
+                    12: station.icaoId !== null ? station.icaoId : '',
+                    13: station.status ? station.status : null,
+                    14: station.dateEstablished ? station.dateEstablished.substring(0, 10) : null,
+                    15: station.dateClosed ? station.dateClosed.substring(0, 10) : null,
+                    16: station.comment !== null ? station.comment : ''
+                });
             }
-
-            (await insertStatement).finalize();
 
             // Export the DuckDB data into a CSV file
             const filePathName: string = `${this.fileIOService.apiExportsDir}/${tmpTableName}.csv`;
-            await this.fileIOService.duckDb.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
+            await this.fileIOService.duckDbConn.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
 
-            // Delete the stations table 
-            this.fileIOService.duckDb.run(`DROP TABLE ${tmpTableName};`);
+            // Delete the stations table
+            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
 
             // Return the path of the generated CSV file
             return filePathName;

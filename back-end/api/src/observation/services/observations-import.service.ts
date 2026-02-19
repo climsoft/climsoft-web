@@ -81,13 +81,13 @@ export class ObservationImportService {
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
         // Execute the duckdb DDL SQL commands
-        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDb, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
+        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
-        // TODO. Will come from cache in later iterations 
+        // TODO. Will come from cache in later iterations
         const elements: CreateViewElementDto[] = await this.elementsService.find();
 
         // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
-        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDb, tableName, sourceId, sourceDef, elements, userId, stationId);
+        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, userId, stationId);
 
         // TODO. throw errors if any.
         if (errors) {
@@ -99,9 +99,9 @@ export class ObservationImportService {
         const timestamp = Date.now();
         const exportFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `import_processed_${path.basename(inputFilePathName, path.extname(inputFilePathName))}_${timestamp}.csv`);
 
-        await TabularImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDb, tableName, exportFilePathName);
+        await TabularImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, exportFilePathName);
 
-        await this.fileIOService.duckDb.run(`DROP TABLE ${tableName};`);
+        await this.fileIOService.duckDbConn.run(`DROP TABLE ${tableName};`);
 
         this.logger.log(`DuckDB processing took ${Date.now() - startTime} milliseconds`);
 

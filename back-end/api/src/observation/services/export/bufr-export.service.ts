@@ -20,7 +20,7 @@ export class BufrExportService {
     }
 
 
-    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFile: string, suffix?: string): Promise<string[]> {
+    public async generateDayCliBufrFiles(exportParams: BufrExportParametersDto, rawObservationsFilePathName: string, suffix?: string): Promise<string[]> {
         // Build the pivot aggregation expressions for each element mapping
         // For each element we need: hour, minute, second, value, flag
         const pivotExpressions: string[] = [];
@@ -78,8 +78,8 @@ export class BufrExportService {
 
 
 
-        let intermediateFile: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
-        intermediateFile = path.posix.join(this.fileIOService.apiExportsDir, intermediateFile);
+        const intermediateFileName: string = suffix ? `daycli_intermediate_${crypto.randomUUID()}_${suffix}.csv` : `daycli_intermediate_${crypto.randomUUID()}.csv`;
+        const intermediateFilePathName: string = path.posix.join(this.fileIOService.apiExportsDir, intermediateFileName);
 
         // Build the full SQL query
         // The query reads the input CSV, groups by station and date, and pivots elements to columns
@@ -114,7 +114,7 @@ export class BufrExportService {
                     EXTRACT(DAY FROM date_time::TIMESTAMP)::INTEGER AS day,
                     -- Pivoted element columns
                     ${pivotExpressions.join(',\n')}
-                FROM read_csv('${rawObservationsFile}', header=true, all_varchar=true)
+                FROM read_csv('${rawObservationsFilePathName}', header=true, all_varchar=true)
                 GROUP BY
                     station_id,
                     wigos_id,
@@ -129,19 +129,19 @@ export class BufrExportService {
                     year,
                     month,
                     day
-            ) TO '${intermediateFile}' WITH (HEADER, DELIMITER ',');
+            ) TO '${intermediateFilePathName}' WITH (HEADER, DELIMITER ',');
         `;
 
         this.logger.debug(`Executing DayCli intermediate file generation SQL`);
 
         //console.log(sql); // Log the SQL for debugging purposes
 
-        await this.fileIOService.duckDb.exec(sql);
+        await this.fileIOService.duckDbConn.run(sql);
 
-        this.logger.log(`DayCli intermediate file generated: ${intermediateFile}`);
+        this.logger.log(`DayCli intermediate file generated: ${intermediateFilePathName}`);
 
         // Convert the intermediate CSV to BUFR using the csv2bufr HTTP service
-        return await this.convertToBufr(intermediateFile, suffix);
+        return await this.convertToBufr(intermediateFilePathName, suffix);
     }
 
     private async convertToBufr(intermediateFile: string, suffix?: string): Promise<string[]> {
@@ -176,7 +176,7 @@ export class BufrExportService {
             return generatedFiles;
 
         } catch (error) {
-            this.logger.error('Error calling csv2bufr service:', error);
+            //this.logger.error('Error calling csv2bufr service:', error);
             if (axios.isAxiosError(error)) {
                 const detail = error.response?.data || error.message;
                 throw new Error(`csv2bufr service error: ${detail}`);
