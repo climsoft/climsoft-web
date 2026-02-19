@@ -146,26 +146,6 @@ export class ConnectorSpecificationsService {
     }
 
     /**
-     * Update the log field of a connector
-     */
-    public async updateLog(id: number, logEntry: any): Promise<void> {
-        const entity = await this.findEntity(id);
-
-        // Initialize log array if it doesn't exist
-        if (!entity.log) {
-            entity.log = [];
-        }
-
-        // Append the new log entry
-        entity.log.push(logEntry);
-
-        // Save the entity with updated log
-        await this.connectorRepo.save(entity);
-
-        this.logger.log(`Updated log for connector ${id}`);
-    }
-
-    /**
      * Create view DTO from entity
      * @param entity - The connector entity
      * @param decryptPassword - Whether to decrypt the password (true for usage, false for API responses)
