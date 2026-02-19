@@ -1,30 +1,46 @@
-import { FindManyOptions, FindOptionsWhere, MoreThan, Repository } from "typeorm";
-import { Injectable } from "@nestjs/common";
+import { Repository } from "typeorm";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
 import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
 import { ElementSubdomainEntity } from "../entities/element-subdomain.entity";
 import { ViewElementSubdomainDto } from "../dtos/elements/view-element-subdomain.dto";
+import { CacheLoadResult, MetadataCache } from "src/shared/cache/metadata-cache";
 
 @Injectable()
-export class ElementSubdomainsService {
+export class ElementSubdomainsService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewElementSubdomainDto>;
 
     public constructor(
         @InjectRepository(ElementSubdomainEntity) private elementSubdomainRepo: Repository<ElementSubdomainEntity>) {
+        this.cache = new MetadataCache<ViewElementSubdomainDto>(
+            'ElementSubdomains',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
     }
 
-    public async find(): Promise<ViewElementSubdomainDto[]> {
-        const findOptions: FindManyOptions<ElementSubdomainEntity> = {
-            order: { id: "ASC" }
-        };
-
-        return (await this.elementSubdomainRepo.find(findOptions)).map(item=>{
-            return {id: item.id, name: item.name, description: item.description, domain: item.domain}
-        });
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
     }
 
-    public async count(){
-        return await this.elementSubdomainRepo.count()
+    private async loadCacheData(): Promise<CacheLoadResult<ViewElementSubdomainDto>> {
+        const entities = await this.elementSubdomainRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(item => ({
+            id: item.id, name: item.name, description: item.description, domain: item.domain
+        }));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public find(): ViewElementSubdomainDto[] {
+        return this.cache.getAll();
+    }
+
+    public count(): number {
+        return this.cache.getCount();
     }
 
     public async bulkPut(dtos: ViewElementSubdomainDto[], userId: number) {
@@ -40,11 +56,13 @@ export class ElementSubdomainsService {
             entities.push(entity);
         }
 
-        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        const batchSize = 1000;
         for (let i = 0; i < entities.length; i += batchSize) {
             const batch = entities.slice(i, i + batchSize);
             await this.insertOrUpdateValues(batch);
         }
+
+        await this.cache.invalidate();
     }
 
     private async insertOrUpdateValues(entities: Partial<ElementSubdomainEntity>[]): Promise<void> {
@@ -57,7 +75,7 @@ export class ElementSubdomainsService {
                 [
                     "name",
                     "description",
-                    "domain", 
+                    "domain",
                     "entry_user_id"
                 ],
                 ["id"],
@@ -68,33 +86,8 @@ export class ElementSubdomainsService {
             .execute();
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.elementSubdomainRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<ElementSubdomainEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.elementSubdomainRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.find();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

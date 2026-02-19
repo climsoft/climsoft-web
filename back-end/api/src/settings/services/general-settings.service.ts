@@ -1,69 +1,66 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, MoreThan, Repository } from 'typeorm';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateViewGeneralSettingDto } from '../dtos/create-view-general-setting.dto';
 import { GeneralSettingEntity } from '../entities/general-setting.entity';
 import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class GeneralSettingsService {
+export class GeneralSettingsService implements OnModuleInit {
+    private readonly cache: MetadataCache<CreateViewGeneralSettingDto>;
 
     constructor(
         @InjectRepository(GeneralSettingEntity) private generalSettingRepo: Repository<GeneralSettingEntity>
-    ) { }
+    ) {
+        this.cache = new MetadataCache<CreateViewGeneralSettingDto>(
+            'GeneralSettings',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
+    }
 
-    private async findEntity(id: number): Promise<GeneralSettingEntity> {
-        const entity = await this.generalSettingRepo.findOneBy({
-            id: id,
-        });
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
 
-        if (!entity) {
+    private async loadCacheData(): Promise<CacheLoadResult<CreateViewGeneralSettingDto>> {
+        const entities = await this.generalSettingRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public find(id: number): CreateViewGeneralSettingDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
             throw new NotFoundException(`Entity #${id} not found`);
         }
-        return entity;
+        return dto;
     }
 
-    public async find(id: number): Promise<CreateViewGeneralSettingDto> {
-        return this.createViewDto(await this.findEntity(id));
-    }
-
-    public async findAll(selectOptions?: FindOptionsWhere<GeneralSettingEntity>): Promise<CreateViewGeneralSettingDto[]> {
-        const findOptions: FindManyOptions<GeneralSettingEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
-
-        if (selectOptions) {
-            findOptions.where = selectOptions;
-        }
-
-        return (await this.generalSettingRepo.find(findOptions)).map(item => {
-            return this.createViewDto(item);
-        });
+    public findAll(): CreateViewGeneralSettingDto[] {
+        return this.cache.getAll();
     }
 
     /**
      * Used when user is updating the settings parameters
-     * @param id 
-     * @param dto 
-     * @param userId 
-     * @returns 
      */
-    public async update(id: number, dto: UpdateGeneralSettingDto, userId: number) : Promise<CreateViewGeneralSettingDto>{
+    public async update(id: number, dto: UpdateGeneralSettingDto, userId: number): Promise<CreateViewGeneralSettingDto> {
         const entity = await this.findEntity(id);
         entity.parameters = dto.parameters;
         entity.entryUserId = userId;
-        return this.createViewDto(await this.generalSettingRepo.save(entity));
+        const saved = await this.generalSettingRepo.save(entity);
+        await this.cache.invalidate();
+        return this.createViewDto(saved);
     }
 
     /**
      * Used by migration service to save default settings
-     * @param dtos 
-     * @param userId 
-     * @returns 
      */
     public async bulkPut(dtos: CreateViewGeneralSettingDto[], userId: number): Promise<number> {
         const entities: GeneralSettingEntity[] = [];
@@ -86,11 +83,23 @@ export class GeneralSettingsService {
         }
 
         const savedEntities = await this.generalSettingRepo.save(entities);
+        await this.cache.invalidate();
         return savedEntities.length;
     }
 
-    public async count() {
-        return this.generalSettingRepo.count();
+    public count(): number {
+        return this.cache.getCount();
+    }
+
+    private async findEntity(id: number): Promise<GeneralSettingEntity> {
+        const entity = await this.generalSettingRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            throw new NotFoundException(`Entity #${id} not found`);
+        }
+        return entity;
     }
 
     private createViewDto(entity: GeneralSettingEntity): CreateViewGeneralSettingDto {
@@ -102,33 +111,8 @@ export class GeneralSettingsService {
         };
     }
 
-      public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-            let changesDetected: boolean = false;
-    
-            const serverCount = await this.generalSettingRepo.count();
-    
-            if (serverCount !== updatesQueryDto.lastModifiedCount) {
-                // If number of records in server are not the same as those in the client then changes detected
-                changesDetected = true;
-            } else {
-                const whereOptions: FindOptionsWhere<GeneralSettingEntity> = {};
-    
-                if (updatesQueryDto.lastModifiedDate) {
-                    whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-                }
-    
-                // If there was any changed record then changes detected
-                changesDetected = (await this.generalSettingRepo.count({ where: whereOptions })) > 0
-            }
-    
-            if (changesDetected) {
-                // If any changes detected then return all records 
-                const allRecords = await this.findAll();
-                return { metadataChanged: true, metadataRecords: allRecords }
-            } else {
-                // If no changes detected then indicate no metadata changed
-                return { metadataChanged: false }
-            }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
+    }
 
 }

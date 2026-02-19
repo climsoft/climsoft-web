@@ -33,7 +33,7 @@ export class ClimsoftV4ToWebSyncService {
      * @returns 
      */
     public async getV4ImportParameters(): Promise<ClimsoftV4ImportParametersDto> {
-        const existingClimsoftV4Source = await this.climsoftV4WebSetupService.getClimsoftImportSource();
+        const existingClimsoftV4Source = this.climsoftV4WebSetupService.getClimsoftImportSource();
         if (!existingClimsoftV4Source) {
             throw new NotFoundException(`not_found`);
         }

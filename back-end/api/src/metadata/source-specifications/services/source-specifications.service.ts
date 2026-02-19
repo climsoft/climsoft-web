@@ -1,5 +1,5 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ViewSourceSpecificationDto } from '../dtos/view-source-specification.dto';
 import { CreateSourceSpecificationDto } from '../dtos/create-source-specification.dto';
@@ -8,62 +8,55 @@ import { SourceSpecificationEntity } from '../entities/source-specification.enti
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class SourceSpecificationsService {
+export class SourceSpecificationsService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewSourceSpecificationDto>;
 
     constructor(
         @InjectRepository(SourceSpecificationEntity) private sourceRepo: Repository<SourceSpecificationEntity>,
         private eventEmitter: EventEmitter2,
-    ) { }
-
-
-    public async find(id: number): Promise<ViewSourceSpecificationDto> {
-        return this.createViewDto(await this.findEntity(id));
+    ) {
+        this.cache = new MetadataCache<ViewSourceSpecificationDto>(
+            'SourceSpecifications',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<SourceSpecificationEntity>): Promise<ViewSourceSpecificationDto[]> {
-        const findOptions: FindManyOptions<SourceSpecificationEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
-
-        if (selectOptions) {
-            findOptions.where = selectOptions;
-        }
-
-        const sourceEntities = await this.sourceRepo.find(findOptions);
-        const dtos: ViewSourceSpecificationDto[] = [];
-        for (const entity of sourceEntities) {
-            dtos.push(await this.createViewDto(entity));
-        }
-        return dtos;
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
     }
 
-    public async findSourcesByIds(ids: number[]): Promise<ViewSourceSpecificationDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
-            id: In(ids)
-        };
-        return this.findAll(findOptionsWhere);
+    private async loadCacheData(): Promise<CacheLoadResult<ViewSourceSpecificationDto>> {
+        const entities = await this.sourceRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
     }
 
-    public async findSourcesByType(sourceType: SourceTypeEnum): Promise<ViewSourceSpecificationDto[]> {
-        const findOptionsWhere: FindOptionsWhere<SourceSpecificationEntity> = {
-            sourceType: sourceType
-        };
-        return this.findAll(findOptionsWhere);
-    }
-
-    private async findEntity(id: number): Promise<SourceSpecificationEntity> {
-        const entity = await this.sourceRepo.findOneBy({
-            id: id,
-        });
-
-        if (!entity) {
+    public find(id: number): ViewSourceSpecificationDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
             throw new NotFoundException(`Source #${id} not found`);
         }
-        return entity;
+        return dto;
+    }
+
+    public findAll(): ViewSourceSpecificationDto[] {
+        return this.cache.getAll();
+    }
+
+    public findSourcesByIds(ids: number[]): ViewSourceSpecificationDto[] {
+        const idSet = new Set(ids);
+        return this.cache.getAll().filter(dto => idSet.has(dto.id));
+    }
+
+    public findSourcesByType(sourceType: SourceTypeEnum): ViewSourceSpecificationDto[] {
+        return this.cache.getAll().filter(dto => dto.sourceType === sourceType);
     }
 
     public async create(dto: CreateSourceSpecificationDto, userId: number): Promise<ViewSourceSpecificationDto> {
@@ -92,6 +85,7 @@ export class SourceSpecificationsService {
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
+        await this.cache.invalidate();
 
         const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
 
@@ -116,6 +110,7 @@ export class SourceSpecificationsService {
         entity.entryUserId = userId;
 
         await this.sourceRepo.save(entity);
+        await this.cache.invalidate();
 
         const viewDto: ViewSourceSpecificationDto = this.createViewDto(entity);
 
@@ -127,6 +122,7 @@ export class SourceSpecificationsService {
     public async delete(id: number): Promise<number> {
         const source = await this.findEntity(id);
         await this.sourceRepo.remove(source);
+        await this.cache.invalidate();
         this.eventEmitter.emit('source.deleted', { id });
         return id;
     }
@@ -135,8 +131,20 @@ export class SourceSpecificationsService {
         const entities: SourceSpecificationEntity[] = await this.sourceRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.sourceRepo.remove(entities);
+        await this.cache.invalidate();
         this.eventEmitter.emit('source.deleted', {});
         return true;
+    }
+
+    private async findEntity(id: number): Promise<SourceSpecificationEntity> {
+        const entity = await this.sourceRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            throw new NotFoundException(`Source #${id} not found`);
+        }
+        return entity;
     }
 
     private createViewDto(entity: SourceSpecificationEntity): ViewSourceSpecificationDto {
@@ -156,42 +164,16 @@ export class SourceSpecificationsService {
         return dto;
     }
 
-    public async findAllReferencedSampleFiles(): Promise<Set<string>> {
-        const entities = await this.sourceRepo.find({
-            select: ['sampleFileName'],
-        });
+    public findAllReferencedSampleFiles(): Set<string> {
         return new Set(
-            entities.map(e => e.sampleFileName).filter((f): f is string => !!f)
+            this.cache.getAll()
+                .map(dto => dto.sampleFileName)
+                .filter((f): f is string => !!f && f !== '')
         );
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.sourceRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<SourceSpecificationEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.sourceRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.findAll();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

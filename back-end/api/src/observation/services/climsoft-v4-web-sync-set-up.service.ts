@@ -487,17 +487,14 @@ export class ClimsoftV4WebSyncSetUpService {
         return true;
     }
 
-    public async getClimsoftImportSource(): Promise<ViewSourceSpecificationDto | null> {
-        const selectOptions: FindOptionsWhere<SourceSpecificationEntity> = {
-            name: 'climsoft_v4',
-        };
-        await this.sourcesService.findAll(selectOptions);
-        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions);
+    public getClimsoftImportSource(): ViewSourceSpecificationDto | null {
+        const allSources = this.sourcesService.findAll();
+        const existingClimsoftV4Source = allSources.filter(s => s.name === 'climsoft_v4');
         return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
     }
 
     public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceSpecificationDto> {
-        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = await this.getClimsoftImportSource();
+        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
             return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);

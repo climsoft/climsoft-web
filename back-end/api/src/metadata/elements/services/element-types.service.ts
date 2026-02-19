@@ -1,30 +1,46 @@
-import { FindManyOptions, FindOptionsWhere, MoreThan, Repository } from "typeorm";
-import { Injectable } from "@nestjs/common";
+import { FindManyOptions, Repository } from "typeorm";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
-import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto"; 
+import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
 import { ElementTypeEntity } from "../entities/element-type.entity";
 import { ViewElementTypeDto } from "../dtos/elements/view-element-type.dto";
+import { CacheLoadResult, MetadataCache } from "src/shared/cache/metadata-cache";
 
 @Injectable()
-export class ElementTypesService {
+export class ElementTypesService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewElementTypeDto>;
 
     public constructor(
         @InjectRepository(ElementTypeEntity) private elementTypeRepo: Repository<ElementTypeEntity>) {
+        this.cache = new MetadataCache<ViewElementTypeDto>(
+            'ElementTypes',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
     }
 
-    public async find(): Promise<ViewElementTypeDto[]> {
-        const findOptions: FindManyOptions<ElementTypeEntity> = {
-            order: { id: "ASC" }
-        };
-
-        return (await this.elementTypeRepo.find(findOptions)).map(item=>{
-            return {id: item.id, name: item.name, description: item.description, subdomainId: item.subdomainId}
-        });
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
     }
 
-    public async count(){
-        return await this.elementTypeRepo.count()
+    private async loadCacheData(): Promise<CacheLoadResult<ViewElementTypeDto>> {
+        const entities = await this.elementTypeRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(item => ({
+            id: item.id, name: item.name, description: item.description, subdomainId: item.subdomainId
+        }));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public find(): ViewElementTypeDto[] {
+        return this.cache.getAll();
+    }
+
+    public count(): number {
+        return this.cache.getCount();
     }
 
     public async bulkPut(dtos: ViewElementTypeDto[], userId: number) {
@@ -38,9 +54,10 @@ export class ElementTypesService {
                 entryUserId: userId
             });
             entities.push(entity);
-        } 
+        }
 
-        await this.insertOrUpdateValues(entities);    
+        await this.insertOrUpdateValues(entities);
+        await this.cache.invalidate();
     }
 
     private async insertOrUpdateValues(entities: Partial<ElementTypeEntity>[]): Promise<void> {
@@ -53,7 +70,7 @@ export class ElementTypesService {
                 [
                     "name",
                     "description",
-                    "subdomain_id", 
+                    "subdomain_id",
                     "entry_user_id"
                 ],
                 ["id"],
@@ -64,33 +81,8 @@ export class ElementTypesService {
             .execute();
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.elementTypeRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<ElementTypeEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.elementTypeRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.find();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

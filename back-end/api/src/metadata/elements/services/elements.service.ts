@@ -1,60 +1,88 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ElementEntity } from '../../elements/entities/element.entity';
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
 import { UpdateElementDto } from '../dtos/elements/update-element.dto';
 import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class ElementsService {
+export class ElementsService implements OnModuleInit {
+    private readonly cache: MetadataCache<CreateViewElementDto>;
+
     constructor(
         @InjectRepository(ElementEntity) private elementRepo: Repository<ElementEntity>,
-    ) { }
-
-    public async findOne(id: number): Promise<CreateViewElementDto> {
-        return this.createViewDto(await this.findEntity(id));
+    ) {
+        this.cache = new MetadataCache<CreateViewElementDto>(
+            'Elements',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
     }
 
-    public async find(viewElementQueryDto?: ViewElementQueryDTO): Promise<CreateViewElementDto[]> {
-        const findOptions: FindManyOptions<ElementEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
+
+    private async loadCacheData(): Promise<CacheLoadResult<CreateViewElementDto>> {
+        const entities = await this.elementRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public findOne(id: number): CreateViewElementDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
+            throw new NotFoundException(`Element #${id} not found`);
+        }
+        return dto;
+    }
+
+    public find(viewElementQueryDto?: ViewElementQueryDTO): CreateViewElementDto[] {
+        let results = this.cache.getAll();
 
         if (viewElementQueryDto) {
-            findOptions.where = this.getFilter(viewElementQueryDto);
-            // If page and page size provided, skip and limit accordingly
+            // Apply filters
+            if (viewElementQueryDto.elementIds) {
+                const idSet = new Set(viewElementQueryDto.elementIds);
+                results = results.filter(dto => idSet.has(dto.id));
+            }
+
+            if (viewElementQueryDto.typeIds) {
+                const typeIdSet = new Set(viewElementQueryDto.typeIds);
+                results = results.filter(dto => typeIdSet.has(dto.typeId));
+            }
+
+            // Apply pagination
             if (viewElementQueryDto.page && viewElementQueryDto.page > 0 && viewElementQueryDto.pageSize) {
-                findOptions.skip = (viewElementQueryDto.page - 1) * viewElementQueryDto.pageSize;
-                findOptions.take = viewElementQueryDto.pageSize;
+                const skip = (viewElementQueryDto.page - 1) * viewElementQueryDto.pageSize;
+                results = results.slice(skip, skip + viewElementQueryDto.pageSize);
             }
         }
 
-        return (await this.elementRepo.find(findOptions)).map(entity => {
-            return this.createViewDto(entity);
-        });
+        return results;
     }
 
-    public async count(viewStationQueryDto: ViewElementQueryDTO): Promise<number> {
-        return this.elementRepo.countBy(this.getFilter(viewStationQueryDto));
-    }
-
-    private getFilter(viewStationQueryDto: ViewElementQueryDTO): FindOptionsWhere<ElementEntity> {
-        const whereOptions: FindOptionsWhere<ElementEntity> = {};
+    public count(viewStationQueryDto: ViewElementQueryDTO): number {
+        let results = this.cache.getAll();
 
         if (viewStationQueryDto.elementIds) {
-            whereOptions.id = viewStationQueryDto.elementIds.length === 1 ? viewStationQueryDto.elementIds[0] : In(viewStationQueryDto.elementIds);
+            const idSet = new Set(viewStationQueryDto.elementIds);
+            results = results.filter(dto => idSet.has(dto.id));
         }
 
         if (viewStationQueryDto.typeIds) {
-            whereOptions.typeId = viewStationQueryDto.typeIds.length === 1 ? viewStationQueryDto.typeIds[0] : In(viewStationQueryDto.typeIds);
+            const typeIdSet = new Set(viewStationQueryDto.typeIds);
+            results = results.filter(dto => typeIdSet.has(dto.typeId));
         }
 
-        return whereOptions
+        return results.length;
     }
 
     public async add(createDto: CreateViewElementDto, userId: number): Promise<CreateViewElementDto> {
@@ -73,8 +101,8 @@ export class ElementsService {
         this.updateEntity(entity, createDto, userId);
 
         await this.elementRepo.save(entity);
+        await this.cache.invalidate();
 
-        // Important. Retrieve the entity with updated properties like type name before creating the view
         return this.findOne(entity.id);
 
     }
@@ -85,12 +113,14 @@ export class ElementsService {
         this.updateEntity(entity, updateDto, userId);
 
         await this.elementRepo.save(entity);
+        await this.cache.invalidate();
 
         return this.createViewDto(entity);
     }
 
     public async delete(id: number): Promise<number> {
         await this.elementRepo.remove(await this.findEntity(id));
+        await this.cache.invalidate();
         return id;
     }
 
@@ -105,11 +135,13 @@ export class ElementsService {
             entities.push(entity);
         }
 
-        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        const batchSize = 1000;
         for (let i = 0; i < entities.length; i += batchSize) {
             const batch = entities.slice(i, i + batchSize);
             await this.insertOrUpdateValues(batch);
         }
+
+        await this.cache.invalidate();
     }
 
     private async insertOrUpdateValues(entities: ElementEntity[]): Promise<void> {
@@ -141,6 +173,7 @@ export class ElementsService {
         const entities: ElementEntity[] = await this.elementRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.elementRepo.remove(entities);
+        await this.cache.invalidate();
         return true;
     }
 
@@ -155,11 +188,8 @@ export class ElementsService {
         entity.entryUserId = userId;
     }
 
-
     /**
      * Tries to find the element with the passed id, if not found throws a NOT FOUND error
-     * @param id 
-     * @returns 
      */
     private async findEntity(id: number): Promise<ElementEntity> {
         const elementEntity: ElementEntity | null = await this.elementRepo.findOneBy({
@@ -185,33 +215,8 @@ export class ElementsService {
         }
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.elementRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<ElementEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.elementRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.find();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

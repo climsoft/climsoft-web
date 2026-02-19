@@ -1,70 +1,108 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { StationEntity } from '../entities/station.entity';
 import { UpdateStationDto } from '../dtos/update-station.dto';
 import { CreateStationDto } from '../dtos/create-update-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class StationsService {
+export class StationsService implements OnModuleInit {
+    private readonly cache: MetadataCache<CreateStationDto>;
 
     constructor(
         @InjectRepository(StationEntity) private readonly stationRepo: Repository<StationEntity>,
-    ) { }
+    ) {
+        this.cache = new MetadataCache<CreateStationDto>(
+            'Stations',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
+    }
 
-    public async find(viewStationQueryDto?: ViewStationQueryDTO): Promise<CreateStationDto[]> {
-        const findOptions: FindManyOptions<StationEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
+
+    private async loadCacheData(): Promise<CacheLoadResult<CreateStationDto>> {
+        const entities = await this.stationRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public find(viewStationQueryDto?: ViewStationQueryDTO): CreateStationDto[] {
+        let results = this.cache.getAll();
 
         if (viewStationQueryDto) {
-            findOptions.where = this.getFilter(viewStationQueryDto);
-            // If page and page size provided, skip and limit accordingly
+            // Apply filters
+            if (viewStationQueryDto.stationIds) {
+                const idSet = new Set(viewStationQueryDto.stationIds);
+                results = results.filter(dto => idSet.has(dto.id));
+            }
+
+            if (viewStationQueryDto.obsProcessingMethods) {
+                const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
+                results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
+            }
+
+            if (viewStationQueryDto.obsEnvironmentIds) {
+                const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
+                results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
+            }
+
+            if (viewStationQueryDto.obsFocusIds) {
+                const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
+                results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
+            }
+
+            // Apply pagination
             if (viewStationQueryDto.page && viewStationQueryDto.page > 0 && viewStationQueryDto.pageSize) {
-                findOptions.skip = (viewStationQueryDto.page - 1) * viewStationQueryDto.pageSize;
-                findOptions.take = viewStationQueryDto.pageSize;
+                const skip = (viewStationQueryDto.page - 1) * viewStationQueryDto.pageSize;
+                results = results.slice(skip, skip + viewStationQueryDto.pageSize);
             }
         }
 
-        return (await this.stationRepo.find(findOptions)).map(entity => {
-            return this.createViewDto(entity);
-        });
+        return results;
     }
 
-    public async count(viewStationQueryDto: ViewStationQueryDTO): Promise<number> {
-        return this.stationRepo.countBy(this.getFilter(viewStationQueryDto));
-    }
-
-    private getFilter(viewStationQueryDto: ViewStationQueryDTO): FindOptionsWhere<StationEntity> {
-        const whereOptions: FindOptionsWhere<StationEntity> = {};
+    public count(viewStationQueryDto: ViewStationQueryDTO): number {
+        let results = this.cache.getAll();
 
         if (viewStationQueryDto.stationIds) {
-            whereOptions.id = viewStationQueryDto.stationIds.length === 1 ? viewStationQueryDto.stationIds[0] : In(viewStationQueryDto.stationIds);
+            const idSet = new Set(viewStationQueryDto.stationIds);
+            results = results.filter(dto => idSet.has(dto.id));
         }
 
         if (viewStationQueryDto.obsProcessingMethods) {
-            whereOptions.obsProcessingMethod = viewStationQueryDto.obsProcessingMethods.length === 1 ? viewStationQueryDto.obsProcessingMethods[0] : In(viewStationQueryDto.obsProcessingMethods);
+            const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
+            results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
         }
 
         if (viewStationQueryDto.obsEnvironmentIds) {
-            whereOptions.obsEnvironmentId = viewStationQueryDto.obsEnvironmentIds.length === 1 ? viewStationQueryDto.obsEnvironmentIds[0] : In(viewStationQueryDto.obsEnvironmentIds);
+            const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
+            results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
         }
 
         if (viewStationQueryDto.obsFocusIds) {
-            whereOptions.obsFocusId = viewStationQueryDto.obsFocusIds.length === 1 ? viewStationQueryDto.obsFocusIds[0] : In(viewStationQueryDto.obsFocusIds);
+            const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
+            results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
         }
 
-        return whereOptions
+        return results.length;
     }
 
-    public async findOne(id: string): Promise<CreateStationDto> {
-        const entity = await this.getEntity(id);
-        return this.createViewDto(entity);
+    public findOne(id: string): CreateStationDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
+            throw new NotFoundException(`Station #${id} not found`);
+        }
+        return dto;
     }
 
     public async add(createDto: CreateStationDto, userId: number): Promise<CreateStationDto> {
@@ -83,19 +121,22 @@ export class StationsService {
         this.updateEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
+        await this.cache.invalidate();
 
-        // Retrieve the station with updated properties
         return this.findOne(entity.id);
     }
 
     public async update(id: string, updateDto: UpdateStationDto, userId: number): Promise<CreateStationDto> {
         const entity: StationEntity = await this.getEntity(id);
         this.updateEntity(entity, updateDto, userId);
-        return this.createViewDto(await this.stationRepo.save(entity));
+        await this.stationRepo.save(entity);
+        await this.cache.invalidate();
+        return this.createViewDto(entity);
     }
 
     public async delete(id: string): Promise<string> {
         await this.stationRepo.remove(await this.getEntity(id));
+        await this.cache.invalidate();
         return id;
     }
 
@@ -165,11 +206,13 @@ export class StationsService {
             entities.push(entity);
         }
 
-        const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
+        const batchSize = 1000;
         for (let i = 0; i < entities.length; i += batchSize) {
             const batch = entities.slice(i, i + batchSize);
             await this.insertOrUpdateValues(batch);
         }
+
+        await this.cache.invalidate();
     }
 
     private async insertOrUpdateValues(entities: StationEntity[]): Promise<void> {
@@ -209,77 +252,12 @@ export class StationsService {
         const entities: StationEntity[] = await this.stationRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.stationRepo.remove(entities);
+        await this.cache.invalidate();
         return true;
     }
 
-    private async checkUpdatesOrig(updatesQueryDto: MetadataUpdatesQueryDto, stationIds: string[] | null): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-        const whereOptions: FindOptionsWhere<StationEntity> = {};
-
-        // If stations provided then check for the given stations only.
-        // Important when user logs out and logs in with with a different account
-        if (stationIds) {
-            whereOptions.id = stationIds.length === 1 ? stationIds[0] : In(stationIds);
-        }
-
-        const serverCount = await this.stationRepo.count({ where: whereOptions });
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            // If number of stations are same as the client then check for changes using last modified date if available
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.stationRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return records based on station ids filter
-            const allRecords = (await this.stationRepo.find({ where: whereOptions })).map(entity => {
-                return this.createViewDto(entity);
-            });
-
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
-    }
-
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-        const serverCount = await this.stationRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<StationEntity> = {};
-
-            // If number of stations are same as the client then check for changes using last modified date if available
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.stationRepo.count({ where: whereOptions })) > 0;
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all stations
-            const allRecords = (await this.stationRepo.find()).map(entity => {
-                return this.createViewDto(entity);
-            });
-
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

@@ -60,8 +60,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: PreviewForImportDto, // TODO. Validate that the user has import rights for the source and station
     ) {
-        const viewSourceDef = await this.sourcesService.find(dto.sourceId);
-        return this.importPreviewService.transformAndPreviewFile(sessionId, viewSourceDef, dto.stationId);
+        return this.importPreviewService.transformAndPreviewFile(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId);
     }
 
     @Post('confirm-import/:sessionId')

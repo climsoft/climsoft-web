@@ -13,7 +13,7 @@ export class ConnectorSpecificationsController {
 
     @Get()
     public findAll() {
-        return this.connectorSpecificationsService.findAll(undefined, true);
+        return this.connectorSpecificationsService.findAll(true);
     }
 
     @Get('active')
