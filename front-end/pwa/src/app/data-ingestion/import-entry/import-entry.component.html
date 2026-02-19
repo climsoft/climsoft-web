@@ -1,103 +1,87 @@
-<div *ngIf="viewSource" class="card border-0">
-  <div class="card-header d-flex px-1 py-0 flex-column">
-    <div *ngIf="showStationSelection" class="mt-1">
-      <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
-        [(selectedId)]="selectedStationId" />
-    </div>
-    <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
-      <div>
-        File to Upload
-      </div>
-      <div>
-        <input #fileUpload type="file" style="display: none;" [accept]="'.csv,.dat,.tsv,.txt'"
-          (change)="onFileSelected($event)">
-        <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
-          (click)="fileUpload.click()">
-          Upload File
-        </button>
-      </div>
-    </div>
-  </div>
+<ng-container *ngIf="open && viewSource">
+  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
+    [closeOnOkClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
 
-  <div class="card-body">
-    <div class="d-flex flex-column align-items-center justify-content-center"
-      style="min-height:300px; background-color:#e0f7fa; border-radius: 8px; padding: 24px;">
+    <div>
 
-      <!-- File Name Display (when file is selected) -->
-      <div *ngIf="selectedFileName && uploadStage !== UploadStage.IDLE" class="mb-3">
-        <span class="badge bg-secondary" style="font-size: 0.9rem; padding: 8px 16px;">
-          📄 {{ selectedFileName }}
-        </span>
-      </div>
-
-      <!-- Timer Display (during upload/processing) -->
-      <div
-        *ngIf="uploadStage === UploadStage.UPLOADING || uploadStage === UploadStage.PROCESSING || uploadStage === UploadStage.IMPORTING"
-        class="mb-3">
-        <div class="text-center">
-          <div style="font-size: 2.5rem; font-weight: 600; color: #0277bd; font-family: monospace;">
-            {{ elapsedTime }}
+      <!-- Upload Controls -->
+      <div class="card border-primary mb-3">
+        <div class="card-header bg-primary bg-opacity-10 border-primary py-2">
+          <strong>Upload Controls</strong>
+          <small class="text-muted d-block">Select a station (if required) and upload your data file.</small>
+        </div>
+        <div class="card-body py-2 px-2">
+          <div *ngIf="showStationSelection" class="mb-2">
+            <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
+              [(selectedId)]="selectedStationId" />
           </div>
-          <div style="font-size: 0.85rem; color: #666; margin-top: -4px;">
-            elapsed time
+          <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="disableUpload"
+            (fileSelected)="onFileSelected($event)" />
+        </div>
+      </div>
+
+      <div>
+
+        <!-- Status message -->
+        <div *ngIf="importMessage" class="alert py-2 mb-2"
+          [ngClass]="{ 'alert-danger': importStage === ImportStage.ERROR, 'alert-success': importStage === ImportStage.SUCCESS, 'alert-info': importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING }">
+          <div class="d-flex align-items-center" style="gap: 8px;">
+            <div
+              *ngIf="importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING"
+              class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            {{ importMessage }}
           </div>
         </div>
-      </div>
 
-      <!-- Completion Time Display (after success/error) -->
-      <div *ngIf="(uploadStage === UploadStage.SUCCESS || uploadStage === UploadStage.ERROR) && elapsedTime !== '00:00'"
-        class="mb-3">
-        <div class="text-center">
-          <span class="badge" [ngClass]="uploadStage === UploadStage.SUCCESS ? 'bg-success' : 'bg-danger'"
-            style="font-size: 1rem; padding: 6px 12px;">
-            ⏱️ Completed in {{ elapsedTime }}
-          </span>
+        <!-- Expected Format (Sample File) -->
+        <div class="card border-info mb-3">
+          <div class="card-header bg-info bg-opacity-10 border-info py-2">
+            <strong>Expected Format</strong>
+            <small class="text-muted d-block">Reference data from the import specification. Use this to verify your file matches the expected structure.</small>
+          </div>
+          <div class="card-body py-2 px-2">
+
+            <div *ngIf="sampleSkippedRows.length > 0" class="mb-2">
+              <app-import-preview-table [title]="'Skipped Rows'" [columns]="sampleColumns" [rows]="sampleSkippedRows"
+                [hasFile]="true" [maxHeight]="'13vh'" />
+            </div>
+
+            <app-import-preview-table [title]="'Sample Data'" [columns]="sampleColumns"
+              [rows]="sampleRows" [totalRowCount]="sampleTotalRowCount" [loading]="sampleLoading"
+              [hasFile]="sampleHasFile" [noFileMessage]="'No sample file available for this import specification'"
+              [maxHeight]="'13vh'" />
+
+          </div>
         </div>
-      </div>
 
-      <!-- Status Message -->
-      <div class="text-center mb-3" [class.text-danger]="uploadError"
-        [class.text-success]="uploadStage === UploadStage.SUCCESS" style="font-size: 1.1rem; font-weight: 500;">
-        {{ uploadMessage }}
-      </div>
+        <!-- Your Upload -->
+        <div class="card mb-3">
+          <div class="card-header py-2">
+            <strong>Your Upload</strong>
+            <small class="text-muted d-block">Preview of the file you uploaded. Compare with the expected format above.</small>
+          </div>
+          <div class="card-body py-2 px-2">
 
-      <!-- Progress Bar (during active upload/processing) -->
-      <div class="px-4 w-100"
-        *ngIf="uploadStage === UploadStage.UPLOADING || uploadStage === UploadStage.PROCESSING || uploadStage === UploadStage.IMPORTING">
-        <div class="progress" style="height: 8px;">
-          <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" style="width: 100%"></div>
+            <app-import-preview-table [title]="'Raw Data'" [columns]="rawUploadColumns"
+              [rows]="rawUploadRows" [totalRowCount]="rawUploadTotalRowCount" [hasFile]="rawUploadHasFile"
+              [noFileMessage]="'Upload a file to see the raw data'" [maxHeight]="'13vh'" />
+
+            <div class="mt-2">
+              <app-import-preview-table [title]="'Transformed Data'" [columns]="uploadColumns"
+                [rows]="uploadRows" [totalRowCount]="uploadTotalRowCount" [rowsDropped]="uploadRowsDropped"
+                [warnings]="uploadWarnings" [error]="uploadError" [loading]="uploadLoading" [hasFile]="uploadHasFile"
+                [noFileMessage]="'Upload a file to see a preview of the transformed data before importing'"
+                [maxHeight]="'13vh'" />
+            </div>
+
+          </div>
         </div>
-      </div>
 
-      <!-- Stage Indicator -->
-      <div *ngIf="uploadStage !== UploadStage.IDLE" class="mt-3">
-        <div class="d-flex justify-content-center align-items-center"
-          style="gap: 8px; font-size: 0.85rem; color: #666;">
-          <span [class.fw-bold]="uploadStage === UploadStage.UPLOADING"
-            [class.text-primary]="uploadStage === UploadStage.UPLOADING">
-            📤 Upload
-          </span>
-          <span>→</span>
-          <span [class.fw-bold]="uploadStage === UploadStage.PROCESSING"
-            [class.text-primary]="uploadStage === UploadStage.PROCESSING">
-            ⚙️ Process
-          </span>
-          <span>→</span>
-          <span [class.fw-bold]="uploadStage === UploadStage.IMPORTING"
-            [class.text-primary]="uploadStage === UploadStage.IMPORTING">
-            💾 Import
-          </span>
-          <span>→</span>
-          <span [class.fw-bold]="uploadStage === UploadStage.SUCCESS || uploadStage === UploadStage.ERROR"
-            [class.text-success]="uploadStage === UploadStage.SUCCESS"
-            [class.text-danger]="uploadStage === UploadStage.ERROR">
-            {{
-            uploadStage === UploadStage.SUCCESS ? '✅ Done' : uploadStage === UploadStage.ERROR ? '❌ Error' : '⏳ Pending'
-            }}
-          </span>
-        </div>
-      </div>
 
+      </div>
     </div>
-  </div>
-</div>
+
+  </app-dialog>
+</ng-container>

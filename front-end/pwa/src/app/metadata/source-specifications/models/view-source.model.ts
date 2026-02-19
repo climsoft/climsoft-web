@@ -1,5 +1,5 @@
-import { CreateSourceModel } from "./create-source.model";
+import { CreateSourceSpecificationModel } from "./create-source-specification.model";
 
-export interface ViewSourceModel extends CreateSourceModel  {
+export interface ViewSourceModel extends CreateSourceSpecificationModel  {
     id: number;
 }

@@ -25,54 +25,97 @@
                             [value]="elementDefinition.hasElement.singleColumn.elementsToFetch !== undefined"
                             (valueChange)="onSingleFetchElementsChange($event)" />
 
-                        <table *ngIf="elementDefinition.hasElement.singleColumn.elementsToFetch"
-                            class="table table-sm ms-2">
-                            <thead>
-                                <tr>
-                                    <th>Source ID</th>
-                                    <th>Database ID</th>
-                                </tr>
-                            </thead>
-                            <tbody class="table-group-divider">
-                                <tr *ngFor="let item of elementToFetchsHolder; let i = index">
-                                    <td>
-                                        <app-text-input [id]="i + '_source_element_id'" [(value)]="item.sourceId"
-                                            (valueChange)="onSingleElementsToFetchEntry()" />
-                                    </td>
-                                    <td>
-                                        <app-element-selector-single [id]="i + '_database_element_id'"
-                                            [(selectedId)]="item.databaseId"
-                                            (selectedIdChange)="onSingleElementsToFetchEntry()" />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div *ngIf="elementDefinition.hasElement.singleColumn.elementsToFetch" class="ms-2">
+                            <div class="d-flex justify-content-end mb-2">
+                                <button type="button" class="btn btn-sm btn-primary"
+                                    (click)="onAddSingleElementMapping()">
+                                    Add Mapping
+                                </button>
+                            </div>
+
+                            <div *ngIf="elementDefinition.hasElement.singleColumn.elementsToFetch.length === 0"
+                                class="text-muted text-center py-2">
+                                No element mappings configured. Click "Add Mapping" to create one.
+                            </div>
+
+                            <table
+                                *ngIf="elementDefinition.hasElement.singleColumn.elementsToFetch.length > 0"
+                                class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Source ID</th>
+                                        <th>Database ID</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table-group-divider">
+                                    <tr *ngFor="let item of elementDefinition.hasElement.singleColumn.elementsToFetch; let i = index">
+                                        <td>
+                                            <app-text-input [id]="i + '_source_element_id'"
+                                                [(value)]="item.sourceId" />
+                                        </td>
+                                        <td>
+                                            <app-element-selector-single [id]="i + '_database_element_id'"
+                                                [(selectedId)]="item.databaseId" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                                (click)="onRemoveSingleElementMapping(i)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
             </div>
 
             <!--multiple column elements-->
-            <table *ngIf="elementDefinition.hasElement.multipleColumn" class="table table-sm ms-2">
-                <thead>
-                    <tr>
-                        <th>Column Position</th>
-                        <th>Database ID</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr *ngFor="let item of elementColumnsHolder; let i = index;">
-                        <td>
-                            <app-number-input [id]="i + '_multiple_element_column_position'"
-                                [(numValue)]="item.columnPosition" />
-                        </td>
-                        <td>
-                            <app-element-selector-single [id]="i + '_multiple_database_element_id'"
-                                [(selectedId)]="item.databaseId" (selectedIdChange)="onMultipleElementsEntry()" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div *ngIf="elementDefinition.hasElement.multipleColumn" class="ms-2">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-primary"
+                        (click)="onAddMultipleElementMapping()">
+                        Add Mapping
+                    </button>
+                </div>
+
+                <div *ngIf="elementDefinition.hasElement.multipleColumn.length === 0"
+                    class="text-muted text-center py-2">
+                    No column mappings configured. Click "Add Mapping" to create one.
+                </div>
+
+                <table *ngIf="elementDefinition.hasElement.multipleColumn.length > 0"
+                    class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Column Position</th>
+                            <th>Database ID</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let item of elementDefinition.hasElement.multipleColumn; let i = index;">
+                            <td>
+                                <app-number-input [id]="i + '_multiple_element_column_position'"
+                                    [(numValue)]="item.columnPosition" />
+                            </td>
+                            <td>
+                                <app-element-selector-single [id]="i + '_multiple_database_element_id'"
+                                    [(selectedId)]="item.databaseId" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveMultipleElementMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
 
         </div>

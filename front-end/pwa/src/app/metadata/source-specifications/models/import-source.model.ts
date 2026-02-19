@@ -1,5 +1,5 @@
 import { ImportSourceTabularParamsModel } from "./import-source-tabular-params.model";
-import { SourceParametersValidity } from "./create-source.model";
+import { SourceParametersValidity } from "./create-source-specification.model";
 
 export enum DataStructureTypeEnum {
     TABULAR = "tabular",
@@ -11,6 +11,7 @@ export interface ImportSourceModel extends SourceParametersValidity {
 
     dataStructureType: DataStructureTypeEnum;
 
+    // Later this can be extended to support other data structure types, for now it is only applicable to tabular.
     dataStructureParameters: ImportSourceTabularParamsModel;
 
     /**

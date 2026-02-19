@@ -1,0 +1,272 @@
+<ng-container *ngIf="open && importSource">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [displayDeleteOption]="importSource.id > 0"
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSave()" (deleteClick)="onDelete()"
+        (cancelClick)="closeDialog()">
+
+        <!-- Wizard Tab Navigation -->
+        <div class="mb-3">
+            <ul class="nav nav-tabs">
+                <li class="nav-item" *ngFor="let step of wizardSteps">
+                    <button class="nav-link d-flex align-items-center gap-1" [class.active]="activeStep === step"
+                        [class.disabled]="isStepDisabled(step)" (click)="onStepTabClick(step)">
+                        <span class="step-badge"
+                            [class.bg-success]="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step"
+                            [class.bg-danger]="hasStepBeenVisited(step) && !isStepValid(step) && activeStep !== step"
+                            [class.bg-primary]="activeStep === step"
+                            [class.bg-secondary]="!hasStepBeenVisited(step) && activeStep !== step">
+                            <ng-container
+                                *ngIf="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step">&#10003;</ng-container>
+                            <ng-container
+                                *ngIf="!(hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step)">{{
+                                getStepNumber(step) }}</ng-container>
+                        </span>
+                        {{ stepLabels[step] }}
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Validation alerts for current step -->
+        <div *ngIf="getStepValidationErrors(activeStep).length > 0" class="alert alert-warning py-2 mb-3">
+            <div *ngFor="let err of getStepValidationErrors(activeStep)" class="small">
+                {{ err }}
+            </div>
+        </div>
+
+        <div class="row">
+
+            <!-- Left column: Step configuration controls -->
+            <div class="col-md-5 d-flex flex-column justify-content-between">
+
+                <div class="step-content">
+                    <!-- Step: File & Basics -->
+                    <div *ngIf="activeStep === 'upload'">
+                        <div class="mb-3">
+                            <app-file-input [label]="'Sample File'" [buttonLabel]="'Upload Sample File'"
+                                [fileName]="uploadedFileName" (fileSelected)="onFileSelected($event)" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-text-input [label]="'Name'" [(value)]="importSource.name" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-text-input [label]="'Description'" [(value)]="importSource.description" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportParams.rowsToSkip" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-import-source-delimeter-detail [(delimiter)]="tabularImportParams.delimiter" />
+                        </div>
+
+                    </div>
+
+                    <!-- Step: Station -->
+                    <div *ngIf="activeStep === 'station'">
+                        <app-import-source-station-detail
+                            [(stationDefinition)]="tabularImportParams.stationDefinition" />
+                    </div>
+
+                    <!-- Step: Elements -->
+                    <div *ngIf="activeStep === 'element'">
+                        <app-import-source-element-detail [elementDefinition]="tabularImportParams.elementDefinition"
+                            (elementDefinitionChange)="onElementOrDatetimeDefChanged()" />
+                    </div>
+
+                    <!-- Step: Level -->
+                    <div *ngIf="activeStep === 'level'">
+                        <app-import-source-level-detail
+                            [(levelColumnPosition)]="tabularImportParams.levelColumnPosition" />
+                    </div>
+
+                    <!-- Step: Date & Time -->
+                    <div *ngIf="activeStep === 'datetime'">
+                        <app-import-source-date-detail [datetimeDefinition]="tabularImportParams.datetimeDefinition"
+                            (datetimeDefinitionChange)="onElementOrDatetimeDefChanged()" />
+
+                        <hr />
+
+                        <div>
+                            <app-number-input [label]="'UTC Offset'" [(numValue)]="importSource.utcOffset" />
+                        </div>
+                    </div>
+
+                    <!-- Step: Interval -->
+                    <div *ngIf="activeStep === 'interval'">
+                        <app-import-source-interval-detail
+                            [intervalDefinition]="tabularImportParams.intervalDefinition" />
+                    </div>
+
+                    <!-- Step: Value & More -->
+                    <div *ngIf="activeStep === 'value'">
+                        <div>
+                            <app-import-source-value-detail [(valueDefinition)]="tabularImportParams.valueDefinition" />
+                        </div>
+
+                        <hr *ngIf="tabularImportParams.valueDefinition" />
+
+                        <div>
+                            <app-import-source-missing-flag-detail
+                                [(allowMissingValue)]="importSource.allowMissingValue"
+                                [(sourceMissingValueFlags)]="importSourceParams.sourceMissingValueFlags" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-check-box-input [label]="'Scale Values (e.g 101 to 10.1)'"
+                                [(value)]="importSource.scaleValues" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-import-source-comment-detail
+                                [(commentColumnPosition)]="tabularImportParams.commentColumnPosition" />
+                        </div>
+
+                    </div>
+
+                    <!-- Step: Review -->
+                    <div *ngIf="activeStep === 'review'">
+                        <h6>Configuration Summary</h6>
+
+                        <div class="review-section mb-2">
+                            <div class="review-section-header">File & Basics</div>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted review-label">Name</td>
+                                        <td>{{ importSource.name || '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Description</td>
+                                        <td>{{ importSource.description || '—' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Rows to Skip</td>
+                                        <td>{{ tabularImportParams.rowsToSkip }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Delimiter</td>
+                                        <td>{{ tabularImportParams.delimiter || 'Auto-detect' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Station</td>
+                                        <td>
+                                            {{ tabularImportParams.stationDefinition ? 'Column ' +
+                                            tabularImportParams.stationDefinition.columnPosition : 'Provided at import
+                                            time' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Level</td>
+                                        <td>
+                                            {{ tabularImportParams.levelColumnPosition !== undefined ? 'Column ' +
+                                            tabularImportParams.levelColumnPosition : 'Not specified' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">UTC Offset</td>
+                                        <td>{{ importSource.utcOffset }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Interval</td>
+                                        <td>
+                                            {{ tabularImportParams.intervalDefinition.defaultInterval !== undefined ?
+                                            tabularImportParams.intervalDefinition.defaultInterval + ' min' :
+                                            'Column ' + tabularImportParams.intervalDefinition.columnPosition }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Allow Missing</td>
+                                        <td>{{ importSource.allowMissingValue ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Scale Values</td>
+                                        <td>{{ importSource.scaleValues ? 'Yes' : 'No' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted review-label">Comment</td>
+                                        <td>
+                                            {{ tabularImportParams.commentColumnPosition !== undefined ? 'Column ' +
+                                            tabularImportParams.commentColumnPosition : 'Not specified' }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-check-box-input [label]="'Disable'" [(value)]="importSource.disabled" />
+                        </div>
+
+                        <hr />
+
+                        <div>
+                            <app-text-input [label]="'Comment'" [(value)]="importSource.comment" />
+                        </div>
+
+                        <div *ngIf="errorMessage" class="alert alert-danger py-2">
+                            {{ errorMessage }}
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Navigation buttons -->
+                <div *ngIf="showNavigation" class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
+                    <button *ngIf="activeStep !== 'upload'" class="btn btn-sm btn-outline-secondary"
+                        (click)="onPrevious()">
+                        Previous
+                    </button>
+
+                    <button *ngIf="activeStep !== 'review'" class="btn btn-sm btn-outline-primary" (click)="onNext()">
+                        Next
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right column: Preview tables -->
+            <div class="col-md-7">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <small class="text-muted">Preview updates as you navigate steps</small>
+                    <button type="button" class="btn btn-outline-info btn-sm" [disabled]="!sessionId"
+                        (click)="refreshPreview()">
+                        Refresh Preview
+                    </button>
+                </div>
+
+                <div *ngIf="skippedRows.length > 0" class="mb-3">
+                    <app-import-preview-table [title]="'Skipped Rows'" [columns]="previewColumns" [rows]="skippedRows"
+                        [hasFile]="true" [maxHeight]="'15vh'" />
+                </div>
+
+                <app-import-preview-table [title]="'Data Preview'" [columns]="previewColumns" [rows]="previewRows"
+                    [totalRowCount]="totalRowCount" [rowsDropped]="rowsDropped" [warnings]="warnings" [error]="error"
+                    [loading]="previewLoading" [hasFile]="!!sessionId"
+                    [noFileMessage]="'Upload a sample file on the left to see a live preview of how your data will be processed'"
+                    [maxHeight]="'30vh'" />
+            </div>
+
+        </div>
+
+    </app-dialog>
+
+    <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="importSource.name" [itemType]="'import specification'"
+        (deleteConfirmed)="onDeleteConfirm()" />
+</ng-container>

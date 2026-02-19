@@ -39,8 +39,15 @@ export class DateFormatSelectorSingleComponent implements OnChanges {
 
   }
 
-  protected optionDisplayFunction(option: DateFormatTypes): string {
-    return option;
+  private readonly displayLabels: Record<DateFormatTypes, string> = {
+    '%Y-%m-%d': '2024-01-15 (%Y-%m-%d)',
+    '%d-%m-%Y': '15-01-2024 (%d-%m-%Y)',
+    '%Y/%m/%d': '2024/01/15 (%Y/%m/%d)',
+    '%d/%m/%Y': '15/01/2024 (%d/%m/%Y)',
+  };
+
+  protected optionDisplayFunction = (option: DateFormatTypes): string => {
+    return this.displayLabels[option] ?? option;
   }
 
   protected onSelectedOptionChange(selectedOption: DateFormatTypes | null) {

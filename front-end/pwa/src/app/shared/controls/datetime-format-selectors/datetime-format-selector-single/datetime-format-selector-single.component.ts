@@ -47,8 +47,23 @@ export class DatetimeFormatSelectorSingleComponent implements OnChanges {
 
   }
 
-  protected optionDisplayFunction(option: DateTimeFormatTypes): string {
-    return option;
+  private readonly displayLabels: Record<DateTimeFormatTypes, string> = {
+    '%Y-%m-%d %H:%M:%S': '2024-01-15 14:30:00 (%Y-%m-%d %H:%M:%S)',
+    '%Y-%m-%d %H:%M': '2024-01-15 14:30 (%Y-%m-%d %H:%M)',
+    '%Y-%m-%d': '2024-01-15 (%Y-%m-%d)',
+    '%d-%m-%Y %H:%M:%S': '15-01-2024 14:30:00 (%d-%m-%Y %H:%M:%S)',
+    '%d-%m-%Y %H:%M': '15-01-2024 14:30 (%d-%m-%Y %H:%M)',
+    '%d-%m-%Y': '15-01-2024 (%d-%m-%Y)',
+    '%Y/%m/%d %H:%M:%S': '2024/01/15 14:30:00 (%Y/%m/%d %H:%M:%S)',
+    '%Y/%m/%d %H:%M': '2024/01/15 14:30 (%Y/%m/%d %H:%M)',
+    '%Y/%m/%d': '2024/01/15 (%Y/%m/%d)',
+    '%d/%m/%Y %H:%M:%S': '15/01/2024 14:30:00 (%d/%m/%Y %H:%M:%S)',
+    '%d/%m/%Y %H:%M': '15/01/2024 14:30 (%d/%m/%Y %H:%M)',
+    '%d/%m/%Y': '15/01/2024 (%d/%m/%Y)',
+  };
+
+  protected optionDisplayFunction = (option: DateTimeFormatTypes): string => {
+    return this.displayLabels[option] ?? option;
   }
 
   protected onSelectedOptionChange(selectedOption: DateTimeFormatTypes | null) {

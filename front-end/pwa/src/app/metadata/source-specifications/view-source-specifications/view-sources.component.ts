@@ -1,5 +1,4 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
@@ -10,6 +9,8 @@ import { StationsSearchDialogComponent } from '../../stations/stations-search-di
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
+import { FormSourceInputDialogComponent } from '../form-source-detail/form-source-input-dialog.component';
+import { ImportSourceInputDialogComponent } from '../import-source-detail/import-source-input-dialog.component';
 
 interface View extends ViewSourceModel {
   // Applicable to form source only
@@ -26,6 +27,8 @@ export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
+  @ViewChild('dlgFormEdit') dlgFormEdit!: FormSourceInputDialogComponent;
+  @ViewChild('dlgImportEdit') dlgImportEdit!: ImportSourceInputDialogComponent;
 
   protected sources!: View[];
   protected selectedSource: View | null = null;
@@ -35,9 +38,7 @@ export class ViewSourcesComponent implements OnDestroy {
   constructor(
     private pagesDataService: PagesDataService,
     private sourcesCacheService: SourcesCacheService,
-    private stationFormsService: StationFormsService,
-    private router: Router,
-    private route: ActivatedRoute) {
+    private stationFormsService: StationFormsService) {
 
     this.pagesDataService.setPageHeader('Source Specifications');
 
@@ -74,13 +75,12 @@ export class ViewSourcesComponent implements OnDestroy {
   }
 
   protected onOptionsClicked(sourceTypeName: 'Form' | 'Import' | 'Delete All') {
-    let routeName: string = '';
     switch (sourceTypeName) {
       case 'Form':
-        routeName = 'form-source-detail';
+        this.dlgFormEdit.openDialog();
         break;
       case 'Import':
-        routeName = 'import-source-detail';
+        this.dlgImportEdit.openDialog();
         break;
       case 'Delete All':
         this.sourcesCacheService.deleteAll().pipe(
@@ -92,24 +92,19 @@ export class ViewSourcesComponent implements OnDestroy {
       default:
         throw new Error('Developer error, option not supported');
     }
-
-    this.router.navigate([routeName, 'new'], { relativeTo: this.route.parent });
   }
 
   protected onEditSource(source: ViewSourceModel): void {
-    const sourceType: SourceTypeEnum = source.sourceType;
-    let routeName: string;
-    switch (sourceType) {
+    switch (source.sourceType) {
       case SourceTypeEnum.FORM:
-        routeName = 'form-source-detail'
+        this.dlgFormEdit.openDialog(source.id);
         break;
       case SourceTypeEnum.IMPORT:
-        routeName = 'import-source-detail'
+        this.dlgImportEdit.openDialog(source.id);
         break;
       default:
         throw new Error('Developer error: Source type not supported');
     }
-    this.router.navigate([routeName, source.id], { relativeTo: this.route.parent });
   }
 
   protected onAssignStationsClicked(selectedSource: View, event: Event) {

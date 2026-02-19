@@ -7,8 +7,8 @@ import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map
 import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewStationsTableComponent } from './stations/view-stations/view-stations-table/view-stations-table.component';
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
-import { FormSourceDetailComponent } from './source-specifications/form-source-detail/form-source-detail.component';
-import { ImportSourceDetailComponent } from './source-specifications/import-source-detail/import-source-detail.component';
+import { FormSourceInputDialogComponent } from './source-specifications/form-source-detail/form-source-input-dialog.component';
+import { ImportSourceInputDialogComponent } from './source-specifications/import-source-detail/import-source-input-dialog.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component'; 
 import { EditStationDialogComponent } from './stations/edit-station-dialog/edit-station-dialog.component';
 import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component'; 
@@ -19,8 +19,10 @@ import { ImportSourceIntervalDetailComponent } from './source-specifications/imp
 import { ImportSourceDateDetailComponent } from './source-specifications/import-source-detail/import-source-date-detail/import-source-date-detail.component';
 import { ImportSourceDelimeterDetailComponent } from './source-specifications/import-source-detail/import-source-delimeter-detail/import-source-delimeter-detail.component';
 import { ImportSourceLevelDetailComponent } from './source-specifications/import-source-detail/import-source-level-detail/import-source-level-detail.component';
+import { ImportSourceCommentDetailComponent } from './source-specifications/import-source-detail/import-source-comment-detail/import-source-comment-detail.component';
 import { ImportSourceMissingFlagDetailComponent } from './source-specifications/import-source-detail/import-source-missing-flag-detail/import-source-missing-flag-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-detail/import-source-flag-detail/import-source-flag-detail.component';
+import { ImportPreviewTableComponent } from './source-specifications/import-source-detail/import-preview-table/import-preview-table.component';
 import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
 import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
@@ -48,14 +50,14 @@ import { ExportSpecificationSelectorMultipleComponent } from './export-specifica
 import { SourceSelectorSingleComponent } from './source-specifications/source-selector/source-single-input/source-selector-single.component';
 import { SourceSelectorMultipleComponent } from './source-specifications/source-selector/source-selector-multiple/source-selector-multiple.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
-import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
+import { OrganisationInputDialogComponent } from './organisations/organisation-input-dialog/organisation-input-dialog.component';
 import { StationObsProcessingSingleSelectorComponent } from './stations/station-obs-method-selector/station-obs-processing-selector-single/station-obs-processing-selector-single.component';
 import { StationStatusSelectorSingleComponent } from './stations/station-status-selector/station-status-selector-single/station-status-selector-single.component';
 import { StationFocusSelectorSingleComponent } from './stations/station-focus-selector/station-focus-selector-single/station-focus-selector-single.component';
 import { StationEnvironmentSelectorSingleComponent } from './stations/station-environment-selector/station-environment-selector-single/station-environment-selector-single.component';
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
-import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
+import { NetworkAffiliationInputDialogComponent } from './network-affiliations/network-affiliation-input-dialog/network-affiliation-input-dialog.component';
 import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component'; 
 import { ElementTypeSingleInputComponent } from './elements/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
@@ -84,12 +86,12 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
   declarations: [ 
 
     ViewNetworkAffiliationsComponent,
-    NetworkAffiliationDetailsComponent, 
+    NetworkAffiliationInputDialogComponent, 
     NetworkAffiliationsSelectorMultipleComponent,
     NetworkAffiliationsSelectorSingleComponent,
 
     ViewOrganisationsComponent,
-    OrganisationDetailsComponent,
+    OrganisationInputDialogComponent,
     OrganisationSelectorSingleComponent,
     OrganisationSelectorMultipleComponent,
 
@@ -100,8 +102,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     RegionSelectorMultipleComponent,
 
     ViewSourcesComponent,
-    FormSourceDetailComponent,
-    ImportSourceDetailComponent,
+    FormSourceInputDialogComponent,
+    ImportSourceInputDialogComponent,
 
     ViewStationsComponent, 
     EditStationDialogComponent,
@@ -134,9 +136,11 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ImportSourceDateDetailComponent,
     ImportSourceDelimeterDetailComponent,
     ImportSourceLevelDetailComponent,
+    ImportSourceCommentDetailComponent,
     ImportSourceMissingFlagDetailComponent,
     ImportSourceValueDetailComponent,
     ImportSourceFlagDetailComponent,
+    ImportPreviewTableComponent,
 
     EditElementDialogComponent, 
     ImportElementsDialogComponent,
@@ -241,6 +245,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ExportTypeSelectorSingleComponent,
 
     ConnectorSpecificationSelectorSingleComponent,
+
+    ImportPreviewTableComponent,
   ]
 })
 export class MetadataModule { } 

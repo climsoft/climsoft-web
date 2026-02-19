@@ -1,5 +1,7 @@
-<div *ngIf="viewSource" class="card border-0">
-    <div class="card-body px-0">
+<ng-container *ngIf="open && viewSource">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Submit'" [displayDeleteOption]="viewSource.id > 0"
+        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSave()" (deleteClick)="onDelete()">
+
         <div>
             <app-text-input [label]="'Name'" [(value)]="viewSource.name" />
         </div>
@@ -88,12 +90,12 @@
 
         <hr />
 
-        <div> 
+        <div>
             <app-check-box-input [label]="'Allow Double Data Entry'" [(value)]="allowDoubleDataEntry" />
         </div>
 
         <hr />
-        
+
         <div>
             <app-check-box-input [label]="'Disable'" [(value)]="viewSource.disabled" />
         </div>
@@ -111,21 +113,8 @@
             </div>
         </div>
 
-
-    </div>
-
-    <div class="card-footer bg-transparent d-flex justify-content-end px-0">
-        <button type="button" class="me-1 btn btn-sm btn-outline-primary" (click)="onSave()">
-            Submit
-        </button>
-        <button *ngIf="viewSource.id > 0" type="button" class="me-1 btn btn-sm btn-outline-danger" (click)="onDelete()">
-            Delete
-        </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancel()">
-            Cancel
-        </button>
-    </div>
+    </app-dialog>
 
     <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="viewSource.name"
         [itemType]="'form specification'" (deleteConfirmed)="onDeleteConfirm()" />
-</div>
+</ng-container>

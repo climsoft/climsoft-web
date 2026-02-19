@@ -15,8 +15,10 @@ import { ClimsoftWebToV4SyncService } from './services/climsoft-web-to-v4-sync.s
 import { ObservationsExportService } from './services/export/observations-export.service';
 import { ClimsoftV4WebSyncSetUpService } from './services/climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ToWebSyncService } from './services/climsoft-v4-to-web-sync.service';
-import { DataEntryAndCorrectionCheckService } from './services/data-entry-check.service'; 
+import { DataEntryAndCorrectionCheckService } from './services/data-entry-check.service';
 import { BufrExportService } from './services/export/bufr-export.service';
+import { ImportPreviewService } from './services/import-preview.service';
+import { ImportPreviewController } from './controllers/import-preview.controller';
 
 @Module({
   imports: [
@@ -30,6 +32,7 @@ import { BufrExportService } from './services/export/bufr-export.service';
     ObservationsController,
     QualityControlController,
     ClimsoftV4Controller,
+    ImportPreviewController,
   ],
   providers: [
     ObservationsService,
@@ -41,6 +44,7 @@ import { BufrExportService } from './services/export/bufr-export.service';
     ClimsoftV4WebSyncSetUpService,
     ClimsoftWebToV4SyncService,
     ClimsoftV4ToWebSyncService,
+    ImportPreviewService,
   ],
   exports: [
     ObservationImportService,

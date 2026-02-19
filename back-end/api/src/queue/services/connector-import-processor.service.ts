@@ -86,27 +86,19 @@ export class ConnectorImportProcessorService {
                     continue;
                 }
 
-                const processedFileName = `${path.parse(file.downloadedFileName).name}_processed.csv`;
-                const processedFilePath = path.posix.join(this.fileIOService.apiImportsDir, processedFileName);
-
                 try {
-                    this.logger.log(`Processing file ${path.basename(file.downloadedFileName)} into ${processedFileName}`);
-                    await this.observationImportService.processFileForImport(
-                        importExecutionActivity.specificationId,
-                        file.downloadedFileName,
-                        processedFilePath,
-                        userId,
-                        importExecutionActivity.stationId,
-                    );
+                    const downloadedFilePathName = path.posix.join(this.fileIOService.apiImportsDir, file.downloadedFileName);
+                    this.logger.log(`Processing file ${downloadedFilePathName} `);
+                    const processedFilePathName = await this.observationImportService.processFileForImport(importExecutionActivity.specificationId, downloadedFilePathName, userId, importExecutionActivity.stationId);
 
                     // Get file stats for processed file metadata
-                    const fileStats = await fs.promises.stat(processedFilePath);
+                    const fileStats = await fs.promises.stat(processedFilePathName);
                     file.processedFileMetadata = {
-                        fileName: processedFileName,
+                        fileName: processedFilePathName,
                         modifiedDate: fileStats.mtime.toISOString(),
                         size: fileStats.size,
                     };
-                    this.logger.log(`Successfully processed file ${path.basename(file.downloadedFileName)} into ${processedFileName}`);
+                    this.logger.log(`Successfully processed file ${path.basename(file.downloadedFileName)} into ${processedFilePathName}`);
                 } catch (error) {
                     let errorMessage = error instanceof Error ? error.message : String(error);
                     errorMessage = `Failed to process file ${file.remoteFileMetadata.fileName}: ${errorMessage}`;
@@ -126,7 +118,7 @@ export class ConnectorImportProcessorService {
                 if (file.processedFileMetadata) {
                     const processedFilePath = path.posix.join(this.fileIOService.apiImportsDir, file.processedFileMetadata.fileName);
                     try {
-                        await this.observationImportService.importProcessedFilesToDatabase(processedFilePath);
+                        await this.observationImportService.importProcessedFileToDatabase(processedFilePath);
                     } catch (error) {
                         let errorMessage = error instanceof Error ? error.message : String(error);
                         errorMessage = `Failed to import file ${file.remoteFileMetadata.fileName}: ${errorMessage}`;
@@ -152,10 +144,10 @@ export class ConnectorImportProcessorService {
         if (lastKnownConnectorLog) {
             for (const executionActivity of (lastKnownConnectorLog.executionActivities as ImportFileServerExecutionActivityVo[])) {
                 for (const files of executionActivity.processedFiles) {
-                     // Skip files that had errors during last processing
-                    if(!files.errorMessage){
-                         lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
-                    }                  
+                    // Skip files that had errors during last processing
+                    if (!files.errorMessage) {
+                        lastProcessedRemoteFiles.set(files.remoteFileMetadata.fileName, files.remoteFileMetadata);
+                    }
                 }
             }
         }
@@ -321,12 +313,13 @@ export class ConnectorImportProcessorService {
                     fileProcessingResult.unchangedFile = true;
                 } else {
                     // Flatten directory structure by replacing path separators with underscores
-                    const flatFileName = remoteFile.fileName.replace(/\//g, '_');
-                    const localDownloadPath = path.posix.join(this.fileIOService.apiImportsDir, `import_${connector.id}_${spec.specificationId}_${flatFileName}`);
+                    const flatFileName: string = remoteFile.fileName.replace(/\//g, '_');
+                    const downloadedFileName: string = `import_${connector.id}_${spec.specificationId}_${flatFileName}`;
+                    const localDownloadFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, downloadedFileName);
                     try {
-                        await downloadFile(remoteFile.fileName, localDownloadPath);
-                        fileProcessingResult.downloadedFileName = localDownloadPath;
-                        this.logger.log(`Downloaded file ${remoteFile.fileName} to ${localDownloadPath}`);
+                        await downloadFile(remoteFile.fileName, localDownloadFilePathName);
+                        fileProcessingResult.downloadedFileName = downloadedFileName;
+                        this.logger.log(`Downloaded file ${remoteFile.fileName} to ${localDownloadFilePathName}`);
                     } catch (error) {
                         let errorMessage = error instanceof Error ? error.message : String(error);
                         errorMessage = `Failed to download file ${remoteFile.fileName}: ${errorMessage}`;

@@ -1,11 +1,11 @@
-import { Component, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { SourceTypeEnum } from 'src/app/metadata/source-specifications/models/source-type.enum';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
 import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { ImportEntryComponent } from '../import-entry/import-entry.component';
 
 @Component({
   selector: 'app-import-selection',
@@ -13,6 +13,7 @@ import { AppAuthService } from 'src/app/app-auth.service';
   styleUrls: ['./import-selection.component.scss']
 })
 export class ImportSelectionComponent implements OnDestroy {
+  @ViewChild('dlgImportEntry') dlgImportEntry!: ImportEntryComponent;
 
   protected importSources!: ViewSourceModel[];
   private destroy$ = new Subject<void>();
@@ -21,8 +22,7 @@ export class ImportSelectionComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private sourceCacheService: SourcesCacheService,
-    private router: Router,
-    private route: ActivatedRoute) {
+  ) {
     this.pagesDataService.setPageHeader('Select Import Source');
     // Get sources 
     this.sourceCacheService.cachedSources.pipe(
@@ -67,7 +67,7 @@ export class ImportSelectionComponent implements OnDestroy {
   protected onSearch(): void { }
 
   protected onSourceClick(source: ViewSourceModel): void {
-    this.router.navigate(['import-entry', source.id], { relativeTo: this.route.parent });
+    this.dlgImportEntry.openDialog(source);
   }
 
 }

@@ -1,55 +1,47 @@
-import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { Subject, take, takeUntil } from 'rxjs';
 import { NetworkAffiliationsCacheService } from '../services/network-affiliations-cache.service';
 import { ViewNetworkAffiliationModel } from '../models/view-network-affiliation.model';
 import { CreateUpdateNetworkAffiliationModel } from '../models/create-update-network-affiliation.model';
-import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
-  selector: 'app-network-affiliation-details',
-  templateUrl: './network-affiliation-details.component.html',
-  styleUrls: ['./network-affiliation-details.component.scss']
+  selector: 'app-network-affiliation-input-dialog',
+  templateUrl: './network-affiliation-input-dialog.component.html',
+  styleUrls: ['./network-affiliation-input-dialog.component.scss']
 })
-export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
+export class NetworkAffiliationInputDialogComponent implements OnDestroy {
+  @Output()
+  public ok = new EventEmitter<void>();
+
+  protected open: boolean = false;
+  protected title: string = '';
   protected viewNetworkAffiliations!: ViewNetworkAffiliationModel;
   protected errorMessage!: string;
-  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private appAuthService: AppAuthService,
     private networkAffiliationCacheService: NetworkAffiliationsCacheService,
-    private route: ActivatedRoute,
-    private location: Location,
   ) {
-    // Check on allowed options
-    this.appAuthService.user.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(user => {
-      this.isSystemAdmin = user && user.isSystemAdmin ? true : false;
-    });
   }
 
-  ngOnInit() {
-    const userId = this.route.snapshot.params['id'];
-    if (StringUtils.containsNumbersOnly(userId)) {
-      this.pagesDataService.setPageHeader('Edit Network Affiliation');
-      this.networkAffiliationCacheService.findOne(+userId).pipe(
+  public openDialog(networkAffiliationId?: number): void {
+    this.errorMessage = '';
+    this.open = true;
+
+    if (networkAffiliationId) {
+      this.title = 'Edit Network Affiliation';
+      this.networkAffiliationCacheService.findOne(networkAffiliationId).pipe(
         takeUntil(this.destroy$)
       ).subscribe((data) => {
         if (data) this.viewNetworkAffiliations = data;
       });
     } else {
-      this.pagesDataService.setPageHeader('New Network Affiliation');
+      this.title = 'New Network Affiliation';
       this.viewNetworkAffiliations = { id: 0, name: '', description: '', parentNetworkId: 0, extraMetadata: null, comment: null };
     }
-
   }
 
   ngOnDestroy() {
@@ -80,20 +72,18 @@ export class NetworkAffiliationDetailsComponent implements OnInit, OnDestroy {
 
     if (this.viewNetworkAffiliations.id > 0) {
       this.networkAffiliationCacheService.update(this.viewNetworkAffiliations.id, createUser).pipe(take(1)).subscribe(data => {
-          this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
-          this.location.back();
+        this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();
       });
 
     } else {
       this.networkAffiliationCacheService.create(createUser).pipe(take(1)).subscribe(data => {
-          this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
-          this.location.back();
-      
+        this.pagesDataService.showToast({ title: 'Network Affiliation Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.ok.emit();
       });
     }
   }
 
-  protected onCancelClick(): void {
-    this.location.back();
-  }
 }

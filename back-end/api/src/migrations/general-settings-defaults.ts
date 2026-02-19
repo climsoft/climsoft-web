@@ -26,7 +26,7 @@ export class GeneralSettingsDefaults {
         {
             id: 3,
             name: 'Scheduler',
-            description: 'Settings related to the scheduler that runs the connectors, QC and alerts.',
+            description: 'Settings related to the scheduler that runs the connectors, QC, cleaning up of session files and alerts.',
             parameters: {
                 utcOffset: 0,
                 isValid: () => true

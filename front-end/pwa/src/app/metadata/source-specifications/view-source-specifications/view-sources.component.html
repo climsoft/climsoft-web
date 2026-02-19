@@ -93,4 +93,8 @@
     [itemType]="'source specification'" [isCurrentlyDisabled]="selectedSource?.disabled || false"
     [operationType]="selectedSource?.sourceTypeName || ''"
     [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+
+  <!-- Source Input Dialogs -->
+  <app-form-source-input-dialog #dlgFormEdit />
+  <app-import-source-input-dialog #dlgImportEdit />
 </div>

@@ -1,5 +1,5 @@
 import { Transform, Type } from 'class-transformer';
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { StringUtils } from 'src/shared/utils/string.utils'; 
 import { FormSourceDTO as FormSourceDto } from './form-source.dto';
@@ -51,6 +51,7 @@ export class CreateSourceSpecificationDto {
 * If false, entry date time will be converted to UTC before being sent to sever
 */
   @IsInt()
+  @Min(0)
   utcOffset: number;
 
   /**
@@ -71,10 +72,10 @@ export class CreateSourceSpecificationDto {
   @Transform(({ value }) => value ? StringUtils.mapBooleanStringToBoolean(value.toString()) : false)
   scaleValues?: boolean;
 
-  /** Sample paper image that resembles the source design */
+  /** Sample file name that resembles the source design (can be form image, pdf or import file csv, dat). Note this stores the file name without the path. */
   @IsOptional()
   @IsString()
-  sampleImage?: string;
+  sampleFileName?: string;
 
   @IsOptional()
   @Type(() => String) // Required to stop transformer from converting the value type to boolean

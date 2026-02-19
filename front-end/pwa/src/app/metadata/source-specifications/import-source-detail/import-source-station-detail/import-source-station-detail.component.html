@@ -11,25 +11,48 @@
                     [value]="stationDefinition.stationsToFetch !==undefined"
                     (valueChange)="onFetchStationsChange($event)" />
             </div>
-            <table *ngIf="stationDefinition.stationsToFetch" class="table table-sm ms-2">
-                <thead>
-                    <tr>
-                        <th>Source ID</th>
-                        <th>Database ID</th>
-                    </tr>
-                </thead>
-                <tbody class="table-group-divider">
-                    <tr *ngFor="let item of fetchStationsHolder; let i = index;">
-                        <td>
-                            <app-text-input [id]="i + '_source_station_id'" [(value)]="item.sourceId" (valueChange)="onStationToFetchEntry()" />
-                        </td>
-                        <td>
-                            <app-station-selector-single [id]="i + '_database_station_id'" [(selectedId)]="item.databaseId"
-                                (selectedIdChange)="onStationToFetchEntry()" />
-                        </td>                        
-                    </tr>                   
-                </tbody>
-            </table>
+            <div *ngIf="stationDefinition.stationsToFetch" class="ms-2">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-primary"
+                        (click)="onAddStationMapping()">
+                        Add Mapping
+                    </button>
+                </div>
+
+                <div *ngIf="stationDefinition.stationsToFetch.length === 0"
+                    class="text-muted text-center py-2">
+                    No station mappings configured. Click "Add Mapping" to create one.
+                </div>
+
+                <table *ngIf="stationDefinition.stationsToFetch.length > 0"
+                    class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Source ID</th>
+                            <th>Database ID</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let item of stationDefinition.stationsToFetch; let i = index;">
+                            <td>
+                                <app-text-input [id]="i + '_source_station_id'"
+                                    [(value)]="item.sourceId" />
+                            </td>
+                            <td>
+                                <app-station-selector-single [id]="i + '_database_station_id'"
+                                    [(selectedId)]="item.databaseId" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveStationMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>

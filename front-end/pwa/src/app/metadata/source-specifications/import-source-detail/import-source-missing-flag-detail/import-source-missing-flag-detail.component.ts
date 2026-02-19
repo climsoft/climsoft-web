@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-
 @Component({
   selector: 'app-import-source-missing-flag-detail',
   templateUrl: './import-source-missing-flag-detail.component.html',

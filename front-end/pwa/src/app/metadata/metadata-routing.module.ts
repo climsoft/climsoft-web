@@ -2,16 +2,12 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component'; 
-import { FormSourceDetailComponent } from './source-specifications/form-source-detail/form-source-detail.component';
-import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component'; 
-import { ImportSourceDetailComponent } from './source-specifications/import-source-detail/import-source-detail.component';
+import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ViewExportSpecificationsComponent } from './export-specifications/view-export-specifications/view-export-specifications.component';
 import { ViewConnectorSpecificationsComponent } from './connector-specifications/view-connector-specifications/view-connector-specifications.component';
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
-import { OrganisationDetailsComponent } from './organisations/organisation-details/organisation-details.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
-import { NetworkAffiliationDetailsComponent } from './network-affiliations/network-affiliation-details/network-affiliation-details.component';
 import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
 
 const routes: Routes = [
@@ -31,28 +27,12 @@ const routes: Routes = [
         component: ViewElementsComponent,
       },
       {
-        path: 'form-source-detail/:id',
-        component: FormSourceDetailComponent
-      },
-      {
-        path: 'import-source-detail/:id',
-        component: ImportSourceDetailComponent
-      },
-      {
         path: 'view-network-affiliations',
         component: ViewNetworkAffiliationsComponent
       },
       {
-        path: 'network-affiliation-details/:id',
-        component: NetworkAffiliationDetailsComponent
-      },
-      {
         path: 'view-organisations',
         component: ViewOrganisationsComponent
-      },
-      {
-        path: 'organisation-details/:id',
-        component: OrganisationDetailsComponent
       },
       {
         path: 'view-regions',

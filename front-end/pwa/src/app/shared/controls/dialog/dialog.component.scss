@@ -11,6 +11,11 @@
   z-index: 1500; // 1500 chosen because we want dialogs to have the highest z-index with the exception of the toast
 }
 
+.dialog-container {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
 .max-vh-80 {
   max-height: 80vh; // Some content may be long so always limit to 80vh at most
 }

@@ -4,7 +4,7 @@ import { SourceTypeEnum } from "./source-type.enum";
 
 export type SourceParameters = FormSourceModel | ImportSourceModel;
 
-export interface CreateSourceModel {
+export interface CreateSourceSpecificationModel {
   name: string;
   description: string;
   sourceType: SourceTypeEnum;
@@ -30,7 +30,7 @@ export interface CreateSourceModel {
   scaleValues: boolean;
 
   /** Sample paper image that resembles the source design */
-  sampleImage: string;
+  sampleFileName: string;
 
   disabled: boolean;
   comment: string | null;

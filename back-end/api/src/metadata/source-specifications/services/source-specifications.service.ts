@@ -86,7 +86,7 @@ export class SourceSpecificationsService {
         entity.utcOffset = dto.utcOffset;
         entity.allowMissingValue = dto.allowMissingValue ? true : false;
         entity.scaleValues = dto.scaleValues ? true : false;
-        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
+        entity.sampleFileName = dto.sampleFileName ? dto.sampleFileName : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
@@ -110,7 +110,7 @@ export class SourceSpecificationsService {
         entity.utcOffset = dto.utcOffset;
         entity.allowMissingValue = dto.allowMissingValue ? true : false;
         entity.scaleValues = dto.scaleValues ? true : false;
-        entity.sampleImage = dto.sampleImage ? dto.sampleImage : null;
+        entity.sampleFileName = dto.sampleFileName ? dto.sampleFileName : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
@@ -147,13 +147,22 @@ export class SourceSpecificationsService {
             sourceType: entity.sourceType,
             utcOffset: entity.utcOffset,
             allowMissingValue: entity.allowMissingValue,
-            sampleImage: entity.sampleImage ? entity.sampleImage : '',
+            sampleFileName: entity.sampleFileName ? entity.sampleFileName : '',
             parameters: entity.parameters,
             scaleValues: entity.scaleValues,
             disabled: entity.disabled,
             comment: entity.comment ? entity.comment : '',
         }
         return dto;
+    }
+
+    public async findAllReferencedSampleFiles(): Promise<Set<string>> {
+        const entities = await this.sourceRepo.find({
+            select: ['sampleFileName'],
+        });
+        return new Set(
+            entities.map(e => e.sampleFileName).filter((f): f is string => !!f)
+        );
     }
 
     public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {

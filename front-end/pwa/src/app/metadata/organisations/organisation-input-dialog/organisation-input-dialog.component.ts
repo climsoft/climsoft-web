@@ -1,53 +1,47 @@
-import { Location } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { Subject, take, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 import { OrganisationsCacheService } from '../services/organisations-cache.service';
 import { ViewOrganisationModel } from '../models/view-organisation.model';
 import { CreateUpdateOrganisationModel } from '../models/create-update-organisation.model';
-import { AppAuthService } from 'src/app/app-auth.service';
 
 @Component({
-  selector: 'app-organisation-details',
-  templateUrl: './organisation-details.component.html',
-  styleUrls: ['./organisation-details.component.scss']
+  selector: 'app-organisation-input-dialog',
+  templateUrl: './organisation-input-dialog.component.html',
+  styleUrls: ['./organisation-input-dialog.component.scss']
 })
-export class OrganisationDetailsComponent implements OnInit, OnDestroy {
+export class OrganisationInputDialogComponent implements OnDestroy {
+  @Output()
+  public ok = new EventEmitter<void>();
+
+  protected open: boolean = false;
+  protected title: string = '';
   protected viewOrganisation!: ViewOrganisationModel;
   protected errorMessage!: string;
-  protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private appAuthService: AppAuthService,
     private organisationsCacheService: OrganisationsCacheService,
-    private route: ActivatedRoute,
-    private location: Location,
   ) {
-    // Check on allowed options
-    this.appAuthService.user.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(user => {
-      this.isSystemAdmin = user && user.isSystemAdmin ? true : false;
-    });
   }
 
-  ngOnInit() {
-    const userId = this.route.snapshot.params['id'];
-    if (StringUtils.containsNumbersOnly(userId)) {
-      this.pagesDataService.setPageHeader('Edit Organisation');
-      this.organisationsCacheService.findOne(+userId).pipe(take(1)).subscribe((data) => {
+  public openDialog(organisationId?: number): void {
+    this.errorMessage = '';
+    this.open = true;
+
+    if (organisationId) {
+      this.title = 'Edit Organisation';
+      this.organisationsCacheService.findOne(organisationId).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe((data) => {
         if (data) this.viewOrganisation = data;
       });
     } else {
-      this.pagesDataService.setPageHeader('New Organisation');
+      this.title = 'New Organisation';
       this.viewOrganisation = { id: 0, name: '', description: '', extraMetadata: null, comment: null };
     }
-
   }
 
   ngOnDestroy() {
@@ -56,7 +50,6 @@ export class OrganisationDetailsComponent implements OnInit, OnDestroy {
   }
 
   protected onSaveClick(): void {
-    // TODO. do validations
     this.errorMessage = '';
 
     if (!this.viewOrganisation.name) {
@@ -75,7 +68,8 @@ export class OrganisationDetailsComponent implements OnInit, OnDestroy {
       this.organisationsCacheService.update(this.viewOrganisation.id, createUser).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({ title: 'Organisation Details', message: `${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
-          this.location.back();
+          this.open = false;
+          this.ok.emit();
         }
       });
 
@@ -83,14 +77,11 @@ export class OrganisationDetailsComponent implements OnInit, OnDestroy {
       this.organisationsCacheService.create(createUser).subscribe((data) => {
         if (data) {
           this.pagesDataService.showToast({ title: 'Organisation Details', message: `${data.name} saved`, type: ToastEventTypeEnum.SUCCESS });
-          this.location.back();
+          this.open = false;
+          this.ok.emit();
         }
       });
     }
-
   }
 
-  protected onCancelClick(): void {
-    this.location.back();
-  }
 }
