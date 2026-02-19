@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as mariadb from 'mariadb';
-import { ObservationEntity } from '../entities/observation.entity';
+import { ObservationEntity } from '../../../entities/observation.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';

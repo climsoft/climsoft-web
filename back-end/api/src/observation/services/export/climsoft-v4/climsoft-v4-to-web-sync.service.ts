@@ -1,15 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
-import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../dtos/climsoft-v4-import-parameters.dto';
+import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../../../dtos/climsoft-v4-import-parameters.dto';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
-import { ObservationsService } from './observations.service';
-import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { ObservationsService } from '../../observations.service';
+import { CreateObservationDto } from '../../../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { FlagEnum } from '../enums/flag.enum';
+import { FlagEnum } from '../../../enums/flag.enum';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import * as mariadb from 'mariadb';
-import { QCStatusEnum } from '../enums/qc-status.enum';
+import { QCStatusEnum } from '../../../enums/qc-status.enum';
 
 @Injectable()
 export class ClimsoftV4ToWebSyncService {
