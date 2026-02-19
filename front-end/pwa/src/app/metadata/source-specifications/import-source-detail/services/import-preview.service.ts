@@ -34,7 +34,7 @@ export class ImportPreviewHttpService {
     }
 
     public previewStep(sessionId: string, sourceDefinition: CreateSourceSpecificationModel, stationId?: string): Observable<StepPreviewResponse> {
-        return this.http.post<StepPreviewResponse>(`${this.endPointUrl}/process/${sessionId}`, {
+        return this.http.post<StepPreviewResponse>(`${this.endPointUrl}/process-for-sample-import/${sessionId}`, {
             sourceDefinition,
             stationId,
         });
