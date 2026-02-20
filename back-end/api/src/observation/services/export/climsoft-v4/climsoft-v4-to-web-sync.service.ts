@@ -252,7 +252,7 @@ export class ClimsoftV4ToWebSyncService {
         // Get last imported date
         const lastImportDate: string = importParameters.fromEntryDate.replace('T', ' ').replace('Z', '');
 
-        this.logger.log('Import starting from date time: ' + lastImportDate);
+        this.logger.log(`Import starting from date time: ${lastImportDate}`);
         let anyFoundObservationSaved: boolean = false;
         for (const stationId of stationIds) {
             for (const element of importParameters.elements) {
@@ -383,7 +383,8 @@ export class ClimsoftV4ToWebSyncService {
             }
 
             // Save the version 4 observations to web database 
-            this.logger.log('Saving v4 observations ' + v4Observations.length + ' for station ' + stationId + ' and element ' + element.elementId);
+            this.logger.log(`Saving v4 observations ${v4Observations.length} for station ${stationId} and element ' ${element.elementId}`);
+          
             await this.observationsService.bulkPut(obsDtos, this.userId, QCStatusEnum.NONE, true);
 
             return true;

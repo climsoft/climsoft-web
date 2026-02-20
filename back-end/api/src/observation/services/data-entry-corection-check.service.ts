@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
@@ -29,37 +29,39 @@ interface ValidationErrorMessage {
 }
 
 @Injectable()
-export class DataEntryAndCorrectionCheckService {
+export class DataEntryAndCorrectionCheckService implements OnModuleInit {
     private readonly logger = new Logger(DataEntryAndCorrectionCheckService.name);
     private sourceParameters: Map<number, EntryFormValidation> = new Map();
 
-    constructor(
-        private sourceService: SourceSpecificationsService,) {
-        this.resetFormParameters();
+    constructor(private sourceService: SourceSpecificationsService,) {
+    }
+
+    async onModuleInit(): Promise<void> {
+        await this.reloadFormParameters();
     }
 
     @OnEvent('source.created')
     handleSourceCreated(payload: { id: number; dto: any }) {
-        console.log(`Source created: ID ${payload.id}`);
-        this.resetFormParameters();
+        this.logger.log(`Source created: ID ${payload.id}`);
+        this.reloadFormParameters();
     }
 
     @OnEvent('source.updated')
     handleSourceUpdated(payload: { id: number; dto: any }) {
-        console.log(`Source updated: ID ${payload.id}`);
-        this.resetFormParameters();
+        this.logger.log(`Source updated: ID ${payload.id}`);
+        this.reloadFormParameters();
     }
 
     @OnEvent('source.deleted')
     handleSourceDeleted(payload: { id: number }) {
-        console.log(`Source deleted: ID ${payload.id}`);
-        this.resetFormParameters();
+        this.logger.log(`Source deleted: ID ${payload.id}`);
+        this.reloadFormParameters();
     }
 
-    private async resetFormParameters() {
+    private async reloadFormParameters() {
         this.sourceParameters.clear();
-        const sourceTemplates: ViewSourceSpecificationDto[] = await this.sourceService.findAll();
-        for (const source of sourceTemplates) {
+        const sources: ViewSourceSpecificationDto[] = await this.sourceService.findAll();
+        for (const source of sources) {
             if (source.sourceType === SourceTypeEnum.FORM) {
                 const form = source.parameters as FormSourceDTO;
                 // If the form utc setting is not 0, then use the utc setting to adjust the hours to utc.
@@ -81,10 +83,12 @@ export class DataEntryAndCorrectionCheckService {
                 throw new Error('Developer error: Source type not recognised')
             }
         }
+        this.logger.log('Form sources for data entry checking reloaded');
     }
 
     public async checkData(observationDtos: CreateObservationDto[] | DeleteObservationDto[], user: LoggedInUserDto, operation: 'data-entry' | 'data-deletion'): Promise<void> {
-        const startTime = new Date().getTime();
+        const startTime = Date.now();
+
         let errorMessage: ValidationErrorMessage;
         this.logger.log(`checking ${observationDtos.length} observations from user: ${user.id} - ${user.name} - ${user.email}`);
         // Validate all observations entered
@@ -216,7 +220,7 @@ export class DataEntryAndCorrectionCheckService {
             //-------------------------------------------------------------------------------
         }
 
-        this.logger.log(`observations checks took: ${new Date().getTime() - startTime} milliseconds`);
+        this.logger.log(`observations checks took: ${Date.now() - startTime} milliseconds`);
     }
 
 

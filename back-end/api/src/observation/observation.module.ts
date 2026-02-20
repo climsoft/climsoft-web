@@ -15,7 +15,7 @@ import { ClimsoftWebToV4SyncService } from './services/export/climsoft-v4/climso
 import { ObservationsExportService } from './services/export/observations-export.service';
 import { ClimsoftV4WebSyncSetUpService } from './services/export/climsoft-v4/climsoft-v4-web-sync-set-up.service';
 import { ClimsoftV4ToWebSyncService } from './services/export/climsoft-v4/climsoft-v4-to-web-sync.service';
-import { DataEntryAndCorrectionCheckService } from './services/data-entry-check.service';
+import { DataEntryAndCorrectionCheckService } from './services/data-entry-corection-check.service';
 import { BufrExportService } from './services/export/bufr-export.service';
 import { ImportPreviewService } from './services/import-preview.service';
 import { ImportPreviewController } from './controllers/import-preview.controller';
