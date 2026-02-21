@@ -38,4 +38,3 @@ EXPOSE 3000
 # Set the entrypoint and command to run the application in production
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["npm", "run", "start:prod"]
-

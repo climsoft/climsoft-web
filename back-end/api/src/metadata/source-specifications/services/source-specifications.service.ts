@@ -9,6 +9,7 @@ import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/meta
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
+import { AppConfig } from 'src/app.config';
 
 @Injectable()
 export class SourceSpecificationsService implements OnModuleInit {

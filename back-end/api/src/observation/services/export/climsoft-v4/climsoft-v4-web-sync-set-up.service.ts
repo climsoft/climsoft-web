@@ -114,7 +114,7 @@ export class ClimsoftV4WebSyncSetUpService {
 
             this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
-            this.logger.log('creating connection pool for: ', AppConfig.v4DbCredentials.host);
+            this.logger.log('creating connection pool for: ', AppConfig.v4DbCredentials.host, ' at port: ',  AppConfig.v4DbCredentials.port);
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
