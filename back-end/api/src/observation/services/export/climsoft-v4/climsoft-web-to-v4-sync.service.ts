@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as mariadb from 'mariadb';
-import { ObservationEntity } from '../entities/observation.entity';
+import { ObservationEntity } from '../../../entities/observation.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { NumberUtils } from 'src/shared/utils/number.utils';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import { ClimsoftV4WebSyncSetUpService, V4ElementModel } from './climsoft-v4-web-sync-set-up.service';
 import { AppConfig } from 'src/app.config';
+import { QCStatusEnum } from 'src/observation/enums/qc-status.enum';
 
 @Injectable()
 export class ClimsoftWebToV4SyncService {
@@ -49,10 +50,13 @@ export class ClimsoftWebToV4SyncService {
         // Set is saving to true to prevent any further saving to v4 requests
         this.isSaving = true;
 
-        // Check if there is observations that have not been uploaded to v4
+        // Check if there is observations that have passed qc and not been saved to v4
         // If there are, then attempt to save them
         const obsEntities: ObservationEntity[] = await this.observationRepo.find({
-            where: { savedToV4: false },
+            where: {
+                qcStatus: QCStatusEnum.PASSED,
+                savedToV4: false
+            },
             order: { entryDateTime: "ASC" },
             take: 1000,// Monitor this valuue for performance. The idea is to not keep nodeJS work thread for long when saving to v4 model
         });
@@ -79,9 +83,9 @@ export class ClimsoftWebToV4SyncService {
 
         // Bulk delete when soft delete happens
         if (deletedEntities.length > 0) {
-            if (await this.deleteSoftDeletedV5DataFromV4DB(this.climsoftV4WebSetupService.v4DBPool, deletedEntities)) {
+            if (await this.deleteSoftDeletedWebDbDataFromV4DB(this.climsoftV4WebSetupService.v4DBPool, deletedEntities)) {
                 // Update the save to v4 column in the V5 database.
-                await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
+                await this.updateWebDBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
             }
         }
 
@@ -89,7 +93,7 @@ export class ClimsoftWebToV4SyncService {
         if (insertedOrUpdatedEntities.length > 0) {
             if (await this.insertOrUpdateWebDataToV4DB(this.climsoftV4WebSetupService.v4DBPool, insertedOrUpdatedEntities)) {
                 // Update the save to v4 column in the V5 database.
-                await this.updateV5DBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
+                await this.updateWebDBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
             }
         }
 
@@ -105,7 +109,7 @@ export class ClimsoftWebToV4SyncService {
         const connection = await v4DBPool.getConnection();
         try {
             const upsertStatement = `
-            INSERT INTO observationinitial (
+            INSERT INTO observationfinal (
                 recordedFrom, 
                 describedBy, 
                 obsDatetime, 
@@ -124,7 +128,10 @@ export class ClimsoftWebToV4SyncService {
                 obsValue = VALUES(obsValue),
                 flag = VALUES(flag),
                 period = VALUES(period),
+                qcStatus = VALUES(qcStatus),
                 qcTypeLog = VALUES(qcTypeLog),
+                acquisitionType = VALUES(acquisitionType),
+                dataForm = VALUES(dataForm),
                 capturedBy = VALUES(capturedBy)
         `;
 
@@ -144,7 +151,7 @@ export class ClimsoftWebToV4SyncService {
                 }
 
                 let sourceName: string | undefined = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
-                // if source name not found then a new user was added. So refetch v5 sources and attempt to find the source name again
+                // if source name not found then a new source was added. So refetch v5 sources and attempt to find the source name again
                 if (!sourceName) {
                     await this.climsoftV4WebSetupService.setupV5Sources();
                     sourceName = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
@@ -164,14 +171,26 @@ export class ClimsoftWebToV4SyncService {
                     entity.elementId,
                     v4ValueMap.v4DBDatetime,
                     v4ValueMap.v4Level,
-                    v4ValueMap.v4ScaledValue,
+                    v4ValueMap.v4Value,
                     v4ValueMap.v4Flag,
-                    v4ValueMap.v4DBPeriod, // period
-                    0, // qcStatus
-                    null, // qcTypeLog
-                    7, // acquisitionType
-                    sourceName, // dataForm.  
-                    userEmail  // capturedBy. T
+                    v4ValueMap.v4DBPeriod,
+
+                    // V4 qcStatus 1 means data was quality controlled
+                    1,
+
+                    // Web database qc log is not supported by v4 qcTypeLog
+                    null,
+
+                    // V4 acquisitionType 7 means data came from climsoft web 
+                    7,
+
+                    // Technically, sourceName will never be null
+                    // But put null here to make sure the userEmail goes to the correct column
+                    // This will be mapped to dataForm
+                    sourceName ? sourceName : null,
+
+                    // V4 capturedBy supports upto 30 characters only  
+                    userEmail ? userEmail.substring(0, 30) : null,
                 ]);
 
             }
@@ -198,26 +217,22 @@ export class ClimsoftWebToV4SyncService {
         }
     }
 
-    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4ScaledValue: number | string | null, v4Flag: string | null, v4DBDatetime: string } {
+    private getV4ValueMapping(v4Element: V4ElementModel, entity: ObservationEntity): { v4Level: string, v4DBPeriod: number | null, v4Value: number | null, v4Flag: string | null, v4DBDatetime: string } {
         // V4 database model expects empty for null values
-        let period: number = 1;
+        let period: number | null = null;
+
         // If element is daily and period is greater than 1 day then calculate the period using day as scale.
-        // V4 period supports cumulation at daily interval only.
+        // V4 period supports period at daily interval only.
         if (v4Element.elementType === 'daily' && entity.interval > 1440) {
             // Important to round off due to precision errors
             period = NumberUtils.roundOff(entity.interval / 1440, 4);
         }
         // Important to round off due to precision errors
-        let scaledValue: number | null | string = (entity.value && v4Element.elementScale) ? NumberUtils.roundOff(entity.value / v4Element.elementScale, 4) : entity.value;
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const level: string = entity.level === 0 ? 'surface' : `${entity.level}`;
         const flag: string = entity.flag ? entity.flag[0].toUpperCase() : '';
 
-        // V4 database model expects empty for null values
-        if (scaledValue === null) {
-            scaledValue = '';
-        }
-        return { v4Level: level, v4DBPeriod: period, v4ScaledValue: scaledValue, v4Flag: flag, v4DBDatetime: adjustedDatetime };
+        return { v4Level: level, v4DBPeriod: period, v4Value: entity.value, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }
 
     private getV4AdjustedDatetimeInDBFormat(date: Date): string {
@@ -226,20 +241,17 @@ export class ClimsoftWebToV4SyncService {
         return strAdjustedDate.replace('T', ' ').replace('Z', '');
     }
 
-    private async deleteSoftDeletedV5DataFromV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
+    private async deleteSoftDeletedWebDbDataFromV4DB(v4DBPool: mariadb.Pool, entities: ObservationEntity[]): Promise<boolean> {
         // Get a connection from the pool
         const connection = await v4DBPool.getConnection();
         try {
             // Define the DELETE statement using the composite keys
-            const deleteStatement = `
-            DELETE FROM observationinitial
+            const v4DeleteStatement = `
+            DELETE FROM observationfinal
             WHERE recordedFrom = ?
               AND describedBy = ?
               AND obsDatetime = ?
               AND obsLevel = ?
-              AND qcStatus = ?
-              AND acquisitionType = ?
-              AND dataForm = ?
           `;
 
             // Build an array of values for each row to delete.
@@ -260,27 +272,21 @@ export class ClimsoftWebToV4SyncService {
                     continue;
                 }
 
-                const sourceName: string | undefined = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
-
                 // Get the value mapping for the entity
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
 
-                // Populate the parameters for the composite key. 
-                // These should match the values that were inserted/updated originally.
+                // Populate the parameters for v4 observation final composite key.
                 values.push([
                     entity.stationId,            // recordedFrom
                     entity.elementId,            // describedBy
                     v4ValueMap.v4DBDatetime,     // obsDatetime
-                    v4ValueMap.v4Level,          // obsLevel
-                    0,                           // qcStatus (as used in the upsert)
-                    7,                           // acquisitionType (as used in the upsert)
-                    sourceName                   // source name (as used in the upsert)                            
+                    v4ValueMap.v4Level,          // obsLevel                          
                 ]);
             }
 
             // Execute the batch deletion.
             // Each set of parameters will run the DELETE statement.
-            const results: mariadb.UpsertResult[] = await connection.batch(deleteStatement, values);
+            const results: mariadb.UpsertResult[] = await connection.batch(v4DeleteStatement, values);
             const totalAffectedRows = results.reduce((sum, result) => sum + result.affectedRows, 0);
             this.logger.log(`V4 deleted rows: ${totalAffectedRows}`);
 
@@ -296,9 +302,9 @@ export class ClimsoftWebToV4SyncService {
         }
     }
 
-    public async updateV5DBWithNewV4SaveStatus(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]): Promise<UpdateResult> {
+    private async updateWebDBWithNewV4SaveStatus(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]): Promise<UpdateResult> {
         // Build an array of objects representing each composite primary key. 
-        const compositeKeys = observationsData.map((obs) => ({
+        const webDatabasecompositeKeys = observationsData.map((obs) => ({
             stationId: obs.stationId,
             elementId: obs.elementId,
             level: obs.level,
@@ -312,7 +318,7 @@ export class ClimsoftWebToV4SyncService {
             .createQueryBuilder()
             .update(ObservationEntity)
             .set({ savedToV4: true })
-            .whereInIds(compositeKeys)
+            .whereInIds(webDatabasecompositeKeys)
             .execute();
     }
 

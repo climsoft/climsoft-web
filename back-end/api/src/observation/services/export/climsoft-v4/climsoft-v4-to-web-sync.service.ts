@@ -1,15 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ClimsoftV4WebSyncSetUpService } from './climsoft-v4-web-sync-set-up.service';
-import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../dtos/climsoft-v4-import-parameters.dto';
+import { ClimsoftV4ImportParametersDto, ElementIntervalDto } from '../../../dtos/climsoft-v4-import-parameters.dto';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
-import { ObservationsService } from './observations.service';
-import { CreateObservationDto } from '../dtos/create-observation.dto';
+import { ObservationsService } from '../../observations.service';
+import { CreateObservationDto } from '../../../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { FlagEnum } from '../enums/flag.enum';
+import { FlagEnum } from '../../../enums/flag.enum';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import * as mariadb from 'mariadb';
-import { QCStatusEnum } from '../enums/qc-status.enum';
+import { QCStatusEnum } from '../../../enums/qc-status.enum';
 
 @Injectable()
 export class ClimsoftV4ToWebSyncService {
@@ -33,7 +33,7 @@ export class ClimsoftV4ToWebSyncService {
      * @returns 
      */
     public async getV4ImportParameters(): Promise<ClimsoftV4ImportParametersDto> {
-        const existingClimsoftV4Source = await this.climsoftV4WebSetupService.getClimsoftImportSource();
+        const existingClimsoftV4Source = this.climsoftV4WebSetupService.getClimsoftImportSource();
         if (!existingClimsoftV4Source) {
             throw new NotFoundException(`not_found`);
         }
@@ -252,7 +252,7 @@ export class ClimsoftV4ToWebSyncService {
         // Get last imported date
         const lastImportDate: string = importParameters.fromEntryDate.replace('T', ' ').replace('Z', '');
 
-        this.logger.log('Import starting from date time: ' + lastImportDate);
+        this.logger.log(`Import starting from date time: ${lastImportDate}`);
         let anyFoundObservationSaved: boolean = false;
         for (const stationId of stationIds) {
             for (const element of importParameters.elements) {
@@ -383,7 +383,8 @@ export class ClimsoftV4ToWebSyncService {
             }
 
             // Save the version 4 observations to web database 
-            this.logger.log('Saving v4 observations ' + v4Observations.length + ' for station ' + stationId + ' and element ' + element.elementId);
+            this.logger.log(`Saving v4 observations ${v4Observations.length} for station ${stationId} and element ' ${element.elementId}`);
+          
             await this.observationsService.bulkPut(obsDtos, this.userId, QCStatusEnum.NONE, true);
 
             return true;

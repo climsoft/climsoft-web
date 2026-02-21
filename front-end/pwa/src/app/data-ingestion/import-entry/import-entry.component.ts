@@ -6,6 +6,7 @@ import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/v
 import { AppAuthService } from 'src/app/app-auth.service';
 import { ImportPreviewHttpService } from 'src/app/metadata/source-specifications/import-source-detail/services/import-preview.service';
 import { RawPreviewResponse, StepPreviewResponse, PreviewWarning, PreviewError } from 'src/app/metadata/source-specifications/models/import-preview.model';
+import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 
 enum ImportStage {
   IDLE = 'idle',
@@ -69,6 +70,7 @@ export class ImportEntryComponent implements OnDestroy {
   constructor(
     private appAuthService: AppAuthService,
     private importPreviewHttpService: ImportPreviewHttpService,
+    private pagesDataService: PagesDataService,
   ) {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
@@ -121,10 +123,7 @@ export class ImportEntryComponent implements OnDestroy {
     }
   }
 
-  protected closeDialog(): void {
-    this.cleanupSession();
-    this.open = false;
-  }
+ 
 
   ngOnDestroy(): void {
     this.cleanupSession();
@@ -224,10 +223,12 @@ export class ImportEntryComponent implements OnDestroy {
         if (stepResponse.error) {
           this.importStage = ImportStage.ERROR;
           this.importMessage = 'Preview completed with errors. Please fix the issues and try again.';
+          this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
         } else {
           this.importStage = ImportStage.IDLE;
-          this.importMessage = '';
+          this.importMessage = 'File ready for import. Click Confirm Import button to imort the file.';
           this.showConfirmImport = true;
+          this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.INFO })
         }
       },
       error: (err) => {
@@ -235,6 +236,7 @@ export class ImportEntryComponent implements OnDestroy {
         this.disableUpload = false;
         this.importStage = ImportStage.ERROR;
         this.importMessage = err.error?.message || 'Failed to process file. Please try again.';
+        this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
       }
     });
   }
@@ -282,23 +284,21 @@ export class ImportEntryComponent implements OnDestroy {
         this.importMessage = 'File successfully imported!';
         this.disableUpload = false;
         this.sessionId = null;
+        this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.SUCCESS })
       },
       error: (err) => {
         this.importStage = ImportStage.ERROR;
         this.importMessage = err.error?.message || 'Import failed. Please try again.';
         this.disableUpload = false;
+        this.pagesDataService.showToast({ title: 'File Import', message: this.importMessage, type: ToastEventTypeEnum.ERROR })
       }
     });
   }
 
-  // protected onCancelImport(): void {
-  //   this.cleanupSession();
-  //   this.resetUploadPreview();
-  //   this.importStage = ImportStage.IDLE;
-  //   this.importMessage = '';
-  //   this.showConfirmImport = false;
-  //   this.disableUpload = false;
-  // }
+   protected closeDialog(): void {
+    this.cleanupSession();
+    this.open = false;
+  }
 
   private cleanupSession(): void {
     if (this.sessionId) {

@@ -19,12 +19,12 @@ export class NetworkAffiliationsController {
   }
 
   @Get('id/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) : Promise<ViewNetworkAffiliationDto> {
+  findOne(@Param('id', ParseIntPipe) id: number) : ViewNetworkAffiliationDto {
     return this.networkAffiliationsService.findOne(id);
   }
 
   @Get('count')
-  count(@Query() viewRegionQueryDto: ViewNetworkAffiliationQueryDTO) : Promise<number>{
+  count(@Query() viewRegionQueryDto: ViewNetworkAffiliationQueryDTO) : number {
     return this.networkAffiliationsService.count(viewRegionQueryDto);
   }
 

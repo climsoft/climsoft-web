@@ -19,13 +19,13 @@ export class ElementsController {
 
   @Get()
   find(
-    @Query() viewQueryDto: ViewElementQueryDTO): Promise<CreateViewElementDto[]> {
+    @Query() viewQueryDto: ViewElementQueryDTO): CreateViewElementDto[] {
     return this.elementsService.find(viewQueryDto);
   }
 
   @Get('id/:id')
   findOne(
-    @Param('id', ParseIntPipe) id: number): Promise<CreateViewElementDto> {
+    @Param('id', ParseIntPipe) id: number): CreateViewElementDto {
     return this.elementsService.findOne(id);
   }
 

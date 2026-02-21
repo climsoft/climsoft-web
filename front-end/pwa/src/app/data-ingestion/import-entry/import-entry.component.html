@@ -1,6 +1,6 @@
 <ng-container *ngIf="open && viewSource">
   <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport" [okButtonLabel]="'Confirm Import'"
-    [closeOnOkClick]="false" (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
+    [closeOnOkClick]="false" [closeOnCancelClick]="false"  (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
 
     <div>
 

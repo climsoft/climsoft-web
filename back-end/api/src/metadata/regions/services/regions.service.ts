@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm'; 
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { RegionTypeEnum } from '../enums/region-types.enum';
 import { ViewRegionDto } from '../dtos/view-region.dto';
@@ -8,68 +8,80 @@ import { ViewRegionQueryDTO } from '../dtos/view-region-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { RegionEntity } from '../entities/region.entity';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class RegionsService {
+export class RegionsService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewRegionDto>;
 
     constructor(
         @InjectRepository(RegionEntity) private regionsRepo: Repository<RegionEntity>,
         private fileUploadService: FileIOService
-    ) { }
+    ) {
+        this.cache = new MetadataCache<ViewRegionDto>(
+            'Regions',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
+    }
 
-    private async findEntity(id: number): Promise<RegionEntity> {
-        const entity = await this.regionsRepo.findOneBy({
-            id: id,
-        });
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
 
-        if (!entity) {
+    private async loadCacheData(): Promise<CacheLoadResult<ViewRegionDto>> {
+        const entities = await this.regionsRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewRegionDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public findOne(id: number): ViewRegionDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
             throw new NotFoundException(`Source #${id} not found`);
         }
-        return entity;
+        return dto;
     }
 
-    public async findOne(id: number): Promise<ViewRegionDto> {
-        const entity = await this.findEntity(id);
-        return this.createViewRegionDto(entity);
-    }
-
-    public async find(viewRegionQueryDto?: ViewRegionQueryDTO): Promise<ViewRegionDto[]> {
-        const findOptions: FindManyOptions<RegionEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
+    public find(viewRegionQueryDto?: ViewRegionQueryDTO): ViewRegionDto[] {
+        let results = this.cache.getAll();
 
         if (viewRegionQueryDto) {
-            findOptions.where = this.getFilter(viewRegionQueryDto);
-            // If page and page size provided, skip and limit accordingly
+            if (viewRegionQueryDto.regionIds) {
+                const idSet = new Set(viewRegionQueryDto.regionIds);
+                results = results.filter(dto => idSet.has(dto.id));
+            }
+
+            if (viewRegionQueryDto.regionType) {
+                results = results.filter(dto => dto.regionType === viewRegionQueryDto.regionType);
+            }
+
+            // Apply pagination
             if (viewRegionQueryDto.page && viewRegionQueryDto.page > 0 && viewRegionQueryDto.pageSize) {
-                findOptions.skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
-                findOptions.take = viewRegionQueryDto.pageSize;
+                const skip = (viewRegionQueryDto.page - 1) * viewRegionQueryDto.pageSize;
+                results = results.slice(skip, skip + viewRegionQueryDto.pageSize);
             }
         }
 
-        return (await this.regionsRepo.find(findOptions)).map(entity => {
-            return this.createViewRegionDto(entity);
-        });
+        return results;
     }
 
-    public async count(viewRegionQueryDto: ViewRegionQueryDTO): Promise<number> {
-        return this.regionsRepo.countBy(this.getFilter(viewRegionQueryDto));
-    }
-
-    private getFilter(viewRegionQueryDto: ViewRegionQueryDTO): FindOptionsWhere<RegionEntity> {
-        const whereOptions: FindOptionsWhere<RegionEntity> = {};
+    public count(viewRegionQueryDto: ViewRegionQueryDTO): number {
+        let results = this.cache.getAll();
 
         if (viewRegionQueryDto.regionIds) {
-            whereOptions.id = viewRegionQueryDto.regionIds.length === 1 ? viewRegionQueryDto.regionIds[0] : In(viewRegionQueryDto.regionIds);
+            const idSet = new Set(viewRegionQueryDto.regionIds);
+            results = results.filter(dto => idSet.has(dto.id));
         }
 
         if (viewRegionQueryDto.regionType) {
-            whereOptions.regionType = viewRegionQueryDto.regionType;
+            results = results.filter(dto => dto.regionType === viewRegionQueryDto.regionType);
         }
 
-        return whereOptions
+        return results.length;
     }
 
     public async extractAndsaveRegions(regionType: RegionTypeEnum, file: Express.Multer.File, userId: number) {
@@ -105,12 +117,18 @@ export class RegionsService {
         }
 
         await this.regionsRepo.save(regionsToSave);
+        await this.cache.invalidate();
 
         this.fileUploadService.deleteFile(filePathName);
     }
 
     public async delete(id: number): Promise<number> {
-        await this.regionsRepo.remove(await this.findEntity(id));
+        const entity = await this.regionsRepo.findOneBy({ id: id });
+        if (!entity) {
+            throw new NotFoundException(`Source #${id} not found`);
+        }
+        await this.regionsRepo.remove(entity);
+        await this.cache.invalidate();
         return id;
     }
 
@@ -118,6 +136,7 @@ export class RegionsService {
         const entities: RegionEntity[] = await this.regionsRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.regionsRepo.remove(entities);
+        await this.cache.invalidate();
         return true;
     }
 
@@ -131,33 +150,8 @@ export class RegionsService {
         };
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.regionsRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<RegionEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.regionsRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.find();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

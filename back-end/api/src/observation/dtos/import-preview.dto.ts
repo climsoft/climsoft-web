@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 
 export class UpdateBaseParamsDto {
@@ -9,11 +9,13 @@ export class UpdateBaseParamsDto {
 
     @IsOptional()
     @IsString()
+    @IsNotEmpty()
     delimiter?: string;
 }
 
 export class InitFromFileDto {
     @IsString()
+    @IsNotEmpty()
     fileName: string;
 
     @IsInt()
@@ -22,6 +24,7 @@ export class InitFromFileDto {
 
     @IsOptional()
     @IsString()
+    @IsNotEmpty()
     delimiter?: string;
 }
 
@@ -37,10 +40,12 @@ export class ProcessPreviewDto {
 
 export class PreviewForImportDto {
     @IsInt()
+    @Min(1)
     sourceId: number;
 
     @IsOptional()
     @IsString()
+    @IsNotEmpty()
     stationId?: string;
 }
 

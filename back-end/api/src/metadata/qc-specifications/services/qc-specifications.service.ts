@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Equal, FindManyOptions, FindOptionsWhere, In, MoreThan, Repository } from 'typeorm';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QCSpecificationEntity } from '../entities/qc-specification.entity';
 import { QCTestTypeEnum } from '../entities/qc-test-type.enum';
@@ -8,79 +8,69 @@ import { FindQCSpecificationQueryDto } from '../dtos/find-qc-specification-query
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { ViewQCSpecificationDto } from '../dtos/view-qc-specification.dto';
-
-// TODO refactor this service later
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class QCSpecificationsService {
+export class QCSpecificationsService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewQCSpecificationDto>;
 
-    constructor(@InjectRepository(QCSpecificationEntity) private readonly qcTestsRepo: Repository<QCSpecificationEntity>) { }
+    constructor(@InjectRepository(QCSpecificationEntity) private readonly qcTestsRepo: Repository<QCSpecificationEntity>) {
+        this.cache = new MetadataCache<ViewQCSpecificationDto>(
+            'QCSpecifications',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
+    }
 
-    public async find(findQCQuery?: FindQCSpecificationQueryDto): Promise<ViewQCSpecificationDto[]> {
-        const selectOptions: FindOptionsWhere<QCSpecificationEntity> = {};
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
+
+    private async loadCacheData(): Promise<CacheLoadResult<ViewQCSpecificationDto>> {
+        const entities = await this.qcTestsRepo.find({ order: { id: "ASC" } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public find(findQCQuery?: FindQCSpecificationQueryDto): ViewQCSpecificationDto[] {
+        let results = this.cache.getAll();
 
         if (findQCQuery) {
-            if (findQCQuery.observationInterval) {
-                selectOptions.observationInterval = Equal(findQCQuery.observationInterval)
+            if (findQCQuery.observationInterval !== undefined) {
+                results = results.filter(dto => dto.observationInterval === findQCQuery.observationInterval);
             }
 
-            if (findQCQuery.qcTestTypes) {
-                selectOptions.qcTestType = In(findQCQuery.qcTestTypes)
+            if (findQCQuery.qcTestTypes && findQCQuery.qcTestTypes.length > 0) {
+                const typeSet = new Set(findQCQuery.qcTestTypes);
+                results = results.filter(dto => typeSet.has(dto.qcTestType));
             }
 
-            if (findQCQuery.elementIds) {
-                selectOptions.elementId = In(findQCQuery.elementIds)
+            if (findQCQuery.elementIds && findQCQuery.elementIds.length > 0) {
+                const elementIdSet = new Set(findQCQuery.elementIds);
+                results = results.filter(dto => elementIdSet.has(dto.elementId));
             }
         }
-        return this.findInternal(selectOptions);
+
+        return results;
     }
 
-    public async findById(id: number): Promise<ViewQCSpecificationDto> {
-        return this.createViewDto(await this.findEntity(id));
-    }
-
-    public async findQCTestByType(qcTestType: QCTestTypeEnum): Promise<ViewQCSpecificationDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCSpecificationEntity> = {
-            qcTestType: qcTestType
-        };
-        return this.findInternal(findOptionsWhere);
-    }
-
-    public async findQCTestByElement(elementId: number): Promise<ViewQCSpecificationDto[]> {
-        const findOptionsWhere: FindOptionsWhere<QCSpecificationEntity> = {
-            elementId: elementId
-        };
-        return this.findInternal(findOptionsWhere);
-    }
-
-    private async findEntity(id: number): Promise<QCSpecificationEntity> {
-        const entity = await this.qcTestsRepo.findOneBy({
-            id: id,
-        });
-
-        if (!entity) {
+    public findById(id: number): ViewQCSpecificationDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
             throw new NotFoundException(`QC Test #${id} not found`);
         }
-        return entity;
+        return dto;
     }
 
-    private async findInternal(selectOptions?: FindOptionsWhere<QCSpecificationEntity>): Promise<ViewQCSpecificationDto[]> {
-        const findOptions: FindManyOptions<QCSpecificationEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
+    public findQCTestByType(qcTestType: QCTestTypeEnum): ViewQCSpecificationDto[] {
+        return this.cache.getAll().filter(dto => dto.qcTestType === qcTestType);
+    }
 
-        if (selectOptions) {
-            findOptions.where = selectOptions;
-        }
-
-        const sourceEntities = await this.qcTestsRepo.find(findOptions);
-        const dtos: ViewQCSpecificationDto[] = [];
-        for (const entity of sourceEntities) {
-            dtos.push(await this.createViewDto(entity));
-        }
-        return dtos;
+    public findQCTestByElement(elementId: number): ViewQCSpecificationDto[] {
+        return this.cache.getAll().filter(dto => dto.elementId === elementId);
     }
 
     public async create(dto: CreateQCSpecificationDto, userId: number): Promise<ViewQCSpecificationDto> {
@@ -99,12 +89,13 @@ export class QCSpecificationsService {
         });
 
         await this.qcTestsRepo.save(entity);
+        await this.cache.invalidate();
 
         return this.createViewDto(entity);
 
     }
 
-    public async update(id: number, dto: CreateQCSpecificationDto, userId: number) {
+    public async update(id: number, dto: CreateQCSpecificationDto, userId: number): Promise<ViewQCSpecificationDto> {
         const qctest = await this.findEntity(id);
         qctest.name = dto.name;
         qctest.description = dto.description ? dto.description : null;
@@ -116,21 +107,38 @@ export class QCSpecificationsService {
         qctest.disabled = dto.disabled;
         qctest.comment = dto.comment ? dto.comment : null;
         qctest.entryUserId = userId;
-        return this.qcTestsRepo.save(qctest);
+
+        await this.qcTestsRepo.save(qctest);
+        await this.cache.invalidate();
+
+        return this.createViewDto(qctest);
     }
 
     public async delete(id: number): Promise<number> {
         const source = await this.findEntity(id);
         await this.qcTestsRepo.remove(source);
+        await this.cache.invalidate();
         return id;
     }
 
     public async deleteAll(): Promise<void> {
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.qcTestsRepo.remove(await this.qcTestsRepo.find());
+        await this.cache.invalidate();
     }
 
-    private async createViewDto(entity: QCSpecificationEntity): Promise<ViewQCSpecificationDto> {
+    private async findEntity(id: number): Promise<QCSpecificationEntity> {
+        const entity = await this.qcTestsRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            throw new NotFoundException(`QC Test #${id} not found`);
+        }
+        return entity;
+    }
+
+    private createViewDto(entity: QCSpecificationEntity): ViewQCSpecificationDto {
         return {
             id: entity.id,
             name: entity.name,
@@ -145,33 +153,8 @@ export class QCSpecificationsService {
         };
     }
 
-    public async checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): Promise<MetadataUpdatesDto> {
-        let changesDetected: boolean = false;
-
-        const serverCount = await this.qcTestsRepo.count();
-
-        if (serverCount !== updatesQueryDto.lastModifiedCount) {
-            // If number of records in server are not the same as those in the client then changes detected
-            changesDetected = true;
-        } else {
-            const whereOptions: FindOptionsWhere<QCSpecificationEntity> = {};
-
-            if (updatesQueryDto.lastModifiedDate) {
-                whereOptions.entryDateTime = MoreThan(new Date(updatesQueryDto.lastModifiedDate));
-            }
-
-            // If there was any changed record then changes detected
-            changesDetected = (await this.qcTestsRepo.count({ where: whereOptions })) > 0
-        }
-
-        if (changesDetected) {
-            // If any changes detected then return all records 
-            const allRecords = await this.findInternal();
-            return { metadataChanged: true, metadataRecords: allRecords }
-        } else {
-            // If no changes detected then indicate no metadata changed
-            return { metadataChanged: false }
-        }
+    public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {
+        return this.cache.checkUpdates(updatesQueryDto);
     }
 
 }

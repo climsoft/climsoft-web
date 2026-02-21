@@ -11,9 +11,7 @@ import { UsersService } from 'src/user/services/users.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
-import { FindOptionsWhere } from 'typeorm';
-import { SourceSpecificationEntity } from 'src/metadata/source-specifications/entities/source-specification.entity';
-import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
+import { ClimsoftV4ImportParametersDto } from '../../../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
@@ -487,17 +485,14 @@ export class ClimsoftV4WebSyncSetUpService {
         return true;
     }
 
-    public async getClimsoftImportSource(): Promise<ViewSourceSpecificationDto | null> {
-        const selectOptions: FindOptionsWhere<SourceSpecificationEntity> = {
-            name: 'climsoft_v4',
-        };
-        await this.sourcesService.findAll(selectOptions);
-        const existingClimsoftV4Source = await this.sourcesService.findAll(selectOptions);
+    public getClimsoftImportSource(): ViewSourceSpecificationDto | null {
+        const allSources = this.sourcesService.findAll();
+        const existingClimsoftV4Source = allSources.filter(s => s.name === 'climsoft_v4');
         return existingClimsoftV4Source.length > 0 ? existingClimsoftV4Source[0] : null;
     }
 
     public async saveClimsoftImportParameters(importParameters: ClimsoftV4ImportParametersDto, userId: number): Promise<ViewSourceSpecificationDto> {
-        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = await this.getClimsoftImportSource();
+        const existingClimsoftV4Source: ViewSourceSpecificationDto | null = this.getClimsoftImportSource();
         if (existingClimsoftV4Source) {
             existingClimsoftV4Source.parameters = importParameters;
             return await this.sourcesService.update(existingClimsoftV4Source.id, existingClimsoftV4Source, userId);

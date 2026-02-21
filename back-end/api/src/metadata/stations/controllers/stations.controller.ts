@@ -21,13 +21,13 @@ export class StationsController {
 
   @Get()
   find(
-    @Query() viewQueryDto: ViewStationQueryDTO): Promise<CreateStationDto[]> {
+    @Query() viewQueryDto: ViewStationQueryDTO): CreateStationDto[] {
     return this.stationsService.find(viewQueryDto);
   }
 
   @Get('id/:id')
   findOne(
-    @Param('id') id: string): Promise<CreateStationDto> {
+    @Param('id') id: string): CreateStationDto {
     return this.stationsService.findOne(id);
   }
 

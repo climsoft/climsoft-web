@@ -8,7 +8,7 @@ import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
-import { ClimsoftWebToV4SyncService } from './climsoft-web-to-v4-sync.service';
+import { ClimsoftWebToV4SyncService } from './export/climsoft-v4/climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';

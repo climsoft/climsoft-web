@@ -1,57 +1,59 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOptionsWhere, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { ConnectorSpecificationEntity } from '../entities/connector-specifications.entity';
-import { CreateConnectorSpecificationDto, ImportFileServerParametersDto } from '../dtos/create-connector-specification.dto';
+import { CreateConnectorSpecificationDto } from '../dtos/create-connector-specification.dto';
 import { ViewConnectorSpecificationDto } from '../dtos/view-connector-specification.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class ConnectorSpecificationsService {
-    private readonly logger = new Logger(ConnectorSpecificationsService.name);
+export class ConnectorSpecificationsService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewConnectorSpecificationDto>;
 
     constructor(
         @InjectRepository(ConnectorSpecificationEntity)
         private connectorRepo: Repository<ConnectorSpecificationEntity>,
         private eventEmitter: EventEmitter2,
-    ) { }
-
-    public async find(id: number, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto> {
-        const entity = await this.findEntity(id);
-        return this.createViewDto(entity, maskPassword);
+    ) {
+        this.cache = new MetadataCache<ViewConnectorSpecificationDto>(
+            'ConnectorSpecifications',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
+        );
     }
 
-    public async findAll(selectOptions?: FindOptionsWhere<ConnectorSpecificationEntity>, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto[]> {
-        const findOptions: FindManyOptions<ConnectorSpecificationEntity> = {
-            order: {
-                id: "ASC"
-            }
-        };
-
-        if (selectOptions) {
-            findOptions.where = selectOptions;
-        }
-
-        const entities = await this.connectorRepo.find(findOptions);
-        const dtos: ViewConnectorSpecificationDto[] = [];
-        for (const entity of entities) {
-            dtos.push(await this.createViewDto(entity, maskPassword)); // Don't decrypt for list view
-        }
-        return dtos;
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
     }
 
-    public async findActiveConnectors(maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto[]> {
-        return this.findAll({ disabled: false }, maskPassword);
+    private async loadCacheData(): Promise<CacheLoadResult<ViewConnectorSpecificationDto>> {
+        const entities = await this.connectorRepo.find({ order: { id: "ASC" } });
+        // Cache stores records with encrypted (not masked) passwords
+        const records = entities.map(entity => this.createViewDtoFromEntity(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
     }
 
-    private async findEntity(id: number): Promise<ConnectorSpecificationEntity> {
-        const entity = await this.connectorRepo.findOneBy({ id });
-
-        if (!entity) {
+    public find(id: number, maskPassword: boolean = false): ViewConnectorSpecificationDto {
+        const dto = this.cache.getById(id);
+        if (!dto) {
             throw new NotFoundException(`Connector specification #${id} not found`);
         }
-        return entity;
+        return maskPassword ? this.withMaskedPassword(dto) : dto;
+    }
+
+    public findAll(maskPassword: boolean = false): ViewConnectorSpecificationDto[] {
+        const all = this.cache.getAll();
+        return maskPassword ? all.map(dto => this.withMaskedPassword(dto)) : all;
+    }
+
+    public findActiveConnectors(maskPassword: boolean = false): ViewConnectorSpecificationDto[] {
+        const active = this.cache.getAll().filter(dto => !dto.disabled);
+        return maskPassword ? active.map(dto => this.withMaskedPassword(dto)) : active;
     }
 
     public async create(dto: CreateConnectorSpecificationDto, userId: number): Promise<ViewConnectorSpecificationDto> {
@@ -84,14 +86,15 @@ export class ConnectorSpecificationsService {
         dto.parameters.password = await EncryptionUtils.encrypt(dto.parameters.password);
 
         entity.parameters = dto.parameters;
-        dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
+        entity.orderNumber = dto.orderNumber || null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
 
         await this.connectorRepo.save(entity);
+        await this.cache.invalidate();
 
-        const viewDto = await this.createViewDto(entity);
+        const viewDto = this.createViewDtoFromEntity(entity);
 
         this.eventEmitter.emit('connector.created', { id: entity.id, viewDto });
 
@@ -117,14 +120,15 @@ export class ConnectorSpecificationsService {
         entity.maxAttempts = dto.maxAttempts;
         entity.cronSchedule = dto.cronSchedule;
         entity.parameters = dto.parameters;
-        dto.orderNumber ? entity.orderNumber = dto.orderNumber : null;
+        entity.orderNumber = dto.orderNumber ? dto.orderNumber : null;
         entity.disabled = dto.disabled ? true : false;
         entity.comment = dto.comment || null;
         entity.entryUserId = userId;
 
         await this.connectorRepo.save(entity);
+        await this.cache.invalidate();
 
-        const viewDto = await this.createViewDto(entity);
+        const viewDto = this.createViewDtoFromEntity(entity);
 
         this.eventEmitter.emit('connector.updated', { id, viewDto });
 
@@ -134,6 +138,7 @@ export class ConnectorSpecificationsService {
     public async delete(id: number): Promise<number> {
         const entity = await this.findEntity(id);
         await this.connectorRepo.remove(entity);
+        await this.cache.invalidate();
         this.eventEmitter.emit('connector.deleted', { id });
         return id;
     }
@@ -141,37 +146,23 @@ export class ConnectorSpecificationsService {
     public async deleteAll(): Promise<boolean> {
         const entities = await this.connectorRepo.find();
         await this.connectorRepo.remove(entities);
+        await this.cache.invalidate();
         this.eventEmitter.emit('connector.deleted', {});
         return true;
     }
 
-    /**
-     * Update the log field of a connector
-     */
-    public async updateLog(id: number, logEntry: any): Promise<void> {
-        const entity = await this.findEntity(id);
+    private async findEntity(id: number): Promise<ConnectorSpecificationEntity> {
+        const entity = await this.connectorRepo.findOneBy({ id });
 
-        // Initialize log array if it doesn't exist
-        if (!entity.log) {
-            entity.log = [];
+        if (!entity) {
+            throw new NotFoundException(`Connector specification #${id} not found`);
         }
-
-        // Append the new log entry
-        entity.log.push(logEntry);
-
-        // Save the entity with updated log
-        await this.connectorRepo.save(entity);
-
-        this.logger.log(`Updated log for connector ${id}`);
+        return entity;
     }
 
-    /**
-     * Create view DTO from entity
-     * @param entity - The connector entity
-     * @param decryptPassword - Whether to decrypt the password (true for usage, false for API responses)
-     */
-    private async createViewDto(entity: ConnectorSpecificationEntity, maskPassword: boolean = false): Promise<ViewConnectorSpecificationDto> {
-        const dto: ViewConnectorSpecificationDto = {
+    /** Creates a view DTO from entity. Stores encrypted (not masked) password. */
+    private createViewDtoFromEntity(entity: ConnectorSpecificationEntity): ViewConnectorSpecificationDto {
+        return {
             id: entity.id,
             name: entity.name,
             description: entity.description ? entity.description : '',
@@ -188,12 +179,14 @@ export class ConnectorSpecificationsService {
             entryUserId: entity.entryUserId,
             log: entity.log,
         };
+    }
 
-        if (maskPassword) {
-            // Mask password for API responses
-            dto.parameters.password = '***ENCRYPTED***';
-        }
-        return dto;
+    /** Returns a copy of the DTO with the password masked. Does not mutate the original. */
+    private withMaskedPassword(dto: ViewConnectorSpecificationDto): ViewConnectorSpecificationDto {
+        return {
+            ...dto,
+            parameters: { ...dto.parameters, password: '***ENCRYPTED***' },
+        };
     }
 
 }

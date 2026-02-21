@@ -6,7 +6,7 @@ import { ViewObservationQueryDTO } from 'src/observation/dtos/view-observation-q
 import { EntryFormObservationQueryDto } from 'src/observation/dtos/entry-form-observation-query.dto';
 import { ViewStationQueryDTO } from 'src/metadata/stations/dtos/view-station-query.dto';
 import { CreateObservationDto } from 'src/observation/dtos/create-observation.dto';
-import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto'; 
+import { DeleteObservationDto } from 'src/observation/dtos/delete-observation.dto';
 import { UserPermissionDto } from '../dtos/permissions/user-permission.dto';
 import { StationStatusQueryDto } from 'src/observation/dtos/station-status-query.dto';
 import { DataAvailabilitySummaryQueryDto } from 'src/observation/dtos/data-availability-summary-query.dto';
@@ -58,17 +58,7 @@ export class AuthorisedStationsPipe implements PipeTransform {
           return this.handleMonitoringString(value, user.permissions);
         }
 
-        // TODO. delete these
-        // if (this.request.method === 'PATCH') {
-        //   // Used by stations controller when updating station characteristics
-        //   return this.handleStationMetadataEdits(value, user.permissions);
-        // } else if (this.request.method === 'POST') {
-        //   // Used by observations controller when importing data
-        //   return this.handleStationMetadataEdits(value, user.permissions);
-        // }
-
         return value;
-
       case ViewStationQueryDTO.name:
         // All stations metadata are freely available to any user that has access to Climsoft, so no need to validate here.
         //return this.handleViewStationQueryDTO(value as ViewStationQueryDTO, authorisedStationIds);
@@ -87,16 +77,17 @@ export class AuthorisedStationsPipe implements PipeTransform {
         } else {
           throw new BadRequestException('Observations route path not authorised');
         }
+      case DeleteObservationDto.name:
+        return this.handleCreateObservationQueryDto(value as DeleteObservationDto, user.permissions);
       case StationStatusQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as StationStatusQueryDto, user.permissions);
       case DataAvailabilitySummaryQueryDto.name:
-          return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilitySummaryQueryDto, user.permissions);
+        return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilitySummaryQueryDto, user.permissions);
       case DataAvailabilityDetailsQueryDto.name:
         return this.handleMonitoringViewObservationQueryDTO(value as DataAvailabilityDetailsQueryDto, user.permissions);
       case DataFlowQueryDto.name:
-        return this.handleMonitoringViewObservationQueryDTO(value as DataFlowQueryDto, user.permissions); 
-      case DeleteObservationDto.name:
-        return this.handleCreateObservationQueryDto(value as CreateObservationDto, user.permissions);
+        return this.handleMonitoringViewObservationQueryDTO(value as DataFlowQueryDto, user.permissions);
+
       default:
         throw new BadRequestException('Could not determine how to authorize stations');
     }

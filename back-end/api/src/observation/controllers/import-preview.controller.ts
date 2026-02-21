@@ -47,7 +47,7 @@ export class ImportPreviewController {
         return this.importPreviewService.updateBaseParamsAndPreviewRawFile(sessionId, dto.rowsToSkip, dto.delimiter);
     }
 
-    @Post('process/:sessionId')
+    @Post('process-for-sample-import/:sessionId')
     public async processPreview(
         @Param('sessionId') sessionId: string,
         @Body() dto: ProcessPreviewDto,
@@ -58,23 +58,18 @@ export class ImportPreviewController {
     @Post('process-for-import/:sessionId')
     public async previewForImport(
         @Param('sessionId') sessionId: string,
-        @Body() dto: PreviewForImportDto,
+        @Body() dto: PreviewForImportDto, // TODO. Validate that the user has import rights for the source and station
     ) {
-        // TODO. Should  come cache.
-        const viewSourceDef = await this.sourcesService.find(dto.sourceId);
-
-        return this.importPreviewService.transformAndPreviewFile(sessionId, viewSourceDef, dto.stationId);
+        return this.importPreviewService.transformAndPreviewFile(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId);
     }
 
     @Post('confirm-import/:sessionId')
     public async confirmImport(
         @Req() request: Request,
         @Param('sessionId') sessionId: string,
-        @Body() dto: PreviewForImportDto, // TODO. Authenticate.
+        @Body() dto: PreviewForImportDto, // TODO. Validate that the user has import rights for the source and station
     ) {
-        
-        await this.importPreviewService.importFile(sessionId, dto,  AuthUtil.getLoggedInUserId(request));
-
+        await this.importPreviewService.importFile(sessionId, dto, AuthUtil.getLoggedInUserId(request));
         return this.importPreviewService.destroySession(sessionId);
     }
 
