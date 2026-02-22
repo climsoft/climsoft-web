@@ -4,11 +4,14 @@ import { Repository } from 'typeorm';
 import { ObservationEntity } from '../entities/observation.entity';
 import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { DateUtils } from 'src/shared/utils/date.utils';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class QCTestAssessmentsService {
 
-    constructor(@InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,) { }
+    constructor(
+        @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
+        private eventEmitter: EventEmitter2,) { }
 
     public async findSameObsWithDiffSources(selectObsevationDto: ViewObservationQueryDTO) {
         // TODO. This is a temporary check. Find out how we can do this at the dto validation level.
@@ -97,6 +100,9 @@ export class QCTestAssessmentsService {
         // postgres seems to lock the table as well. So it is important to narrow the selection as much as possible.
         const results = await this.observationRepo.query(query);
         const qcFails: number = results ? results[0].qc_fails : 0;
+
+        this.eventEmitter.emit('observations.quality-controlled');
+
         return { message: 'success', qcFails: qcFails };
     }
 
@@ -128,15 +134,6 @@ export class QCTestAssessmentsService {
     }
 
     private getQueryDateFilter(queryDto: ViewObservationQueryDTO): string | null {
-        // Important. limit the date selection to 10 years for perfomance reasons.
-        if (queryDto.fromDate && queryDto.toDate) {
-            if (DateUtils.isMoreThanMaxCalendarYears(new Date(queryDto.fromDate), new Date(queryDto.toDate), 11)) {
-                throw new BadRequestException('Date range exceeds 10 years');
-            }
-        } else {
-            throw new BadRequestException('Date range required');
-        }
-
         let dateOperator: string | null = null;
         const dateColToUse: string = queryDto.useEntryDate ? 'entry_date_time' : 'date_time';
         const strFromDate: string = queryDto.fromDate ? queryDto.fromDate.replace('T', ' ').replace('Z', '') : '';

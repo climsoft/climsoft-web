@@ -8,7 +8,6 @@ import { ViewObservationDto } from '../dtos/view-observation.dto';
 import { QCStatusEnum } from '../enums/qc-status.enum';
 import { EntryFormObservationQueryDto } from '../dtos/entry-form-observation-query.dto';
 import { DeleteObservationDto } from '../dtos/delete-observation.dto';
-import { ClimsoftWebToV4SyncService } from './export/climsoft-v4/climsoft-web-to-v4-sync.service';
 import { UsersService } from 'src/user/services/users.service';
 import { StationStatusQueryDto } from '../dtos/station-status-query.dto';
 import { StationStatusDataQueryDto } from '../dtos/station-status-data-query.dto';
@@ -20,51 +19,24 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import { DataFlowQueryDto } from '../dtos/data-flow-query.dto';
 import { ViewObservationLogDto } from '../dtos/view-observation-log.dto';
 import { ViewUserDto } from 'src/user/dtos/view-user.dto';
-import { OnEvent } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { DataAvailabilityDetailsQueryDto } from '../dtos/data-availability-details-query.dto';
 import { DataAvailaibilityDetailsDto } from '../dtos/data-availability-details.dto';
 
 @Injectable()
 export class ObservationsService {
     private readonly logger = new Logger(ObservationsService.name);
-    private users: Map<number, ViewUserDto> = new Map();
 
     constructor(
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
         private dataSource: DataSource,
-        private climsoftV4Service: ClimsoftWebToV4SyncService,
         private usersService: UsersService,
         private generalSettingsService: GeneralSettingsService,
+        private eventEmitter: EventEmitter2,
     ) {
-        this.resetLoadedusers();
     }
 
-    @OnEvent('user.created')
-    handleSourceCreated(payload: { id: number; dto: any }) {
-        console.log(`user created: ID ${payload.id}`);
-
-        this.resetLoadedusers();
-    }
-
-    @OnEvent('user.updated')
-    handleSourceUpdated(payload: { id: number; dto: any }) {
-        console.log(`user updated: ID ${payload.id}`);
-        this.resetLoadedusers();
-    }
-
-    @OnEvent('user.deleted')
-    handleSourceDeleted(payload: { id: number }) {
-        console.log(`user deleted: ID ${payload.id}`);
-        this.resetLoadedusers();
-    }
-
-    private async resetLoadedusers() {
-        this.users.clear();
-        const newUsers: ViewUserDto[] = await this.usersService.findAll();
-        for (const user of newUsers) {
-            this.users.set(user.id, user);
-        }
-    }
+ 
 
     public async findFormData(queryDto: EntryFormObservationQueryDto): Promise<ViewObservationDto[]> {
         const entities: ObservationEntity[] = await this.observationRepo.findBy({
@@ -194,7 +166,7 @@ export class ObservationsService {
         let user: ViewUserDto | undefined;
         if (entity.log) {
             for (const logItem of entity.log) {
-                user = this.users.get(logItem.entryUserId);
+                user = this.usersService.findOne(logItem.entryUserId);
                 viewLogDto.push({
                     value: logItem.value,
                     flag: logItem.flag,
@@ -210,7 +182,7 @@ export class ObservationsService {
 
         // Include the current values as log.
         // Important because present values should be part of the record history
-        user = this.users.get(entity.entryUserId);
+        user = this.usersService.findOne(entity.entryUserId);
         const currentValuesAsLogObj: ViewObservationLogDto = {
             value: entity.value,
             flag: entity.flag,
@@ -245,7 +217,7 @@ export class ObservationsService {
      * @param ignoreV4Saving When true, observations will be indicated as already saved to v4 and they will not be uploaded to version 4 databse
      */
     public async bulkPut(createObservationDtos: CreateObservationDto[], userId: number, qcStatus = QCStatusEnum.NONE, ignoreV4Saving: boolean = false): Promise<void> {
-        let startTime = new Date().getTime();
+        let startTime: number = Date.now();
 
         // Transform dtos to entities
         const obsEntities: ObservationEntity[] = [];
@@ -268,55 +240,53 @@ export class ObservationsService {
 
             obsEntities.push(entity);
         }
-        this.logger.log(`DTO transformation took: ${(new Date().getTime() - startTime)} milliseconds`);
+        this.logger.log(`DTO transformation took: ${(Date.now() - startTime)} milliseconds`);
 
         // Save in batches of 1000 to minimise excess payload errors when saving to postgres
         this.logger.log(`Saving ${obsEntities.length} entities from user - ${userId}`);
-        startTime = new Date().getTime();
+        startTime = Date.now();
         const batchSize = 1000; // batch size of 1000 seems to be safer (incase there are comments) and faster.
         for (let i = 0; i < obsEntities.length; i += batchSize) {
             const batch = obsEntities.slice(i, i + batchSize);
-            await this.insertOrUpdateObsValues(this.observationRepo, batch);
+            //await this.insertOrUpdateObsValues(this.observationRepo, batch);
+
+
+            await this.observationRepo
+                .createQueryBuilder()
+                .insert()
+                .into(ObservationEntity)
+                .values(batch)
+                .orUpdate(
+                    [
+                        "value",
+                        "flag",
+                        "qc_status",
+                        "comment",
+                        "deleted",
+                        "saved_to_v4",
+                        "entry_user_id",
+                    ],
+                    [
+                        "station_id",
+                        "element_id",
+                        "level",
+                        "source_id",
+                        "date_time",
+                        "interval",
+                    ],
+                    {
+                        skipUpdateIfNoValuesChanged: true,
+                    }
+                )
+                .execute();
+
+
             this.logger.log(`${batch.length} entities from user - ${userId} successfully saved!`);
         }
-        this.logger.log(`Saving entities from user - ${userId}, took: ${(new Date().getTime() - startTime)} milliseconds`);
+        this.logger.log(`Saving entities from user - ${userId}, took: ${(Date.now() - startTime)} milliseconds`);
 
-        if (!ignoreV4Saving) {
-            // Initiate saving to version 4 database as well
-            this.climsoftV4Service.saveWebObservationstoV4DB();
-        }
+        this.eventEmitter.emit('observations.saved');
 
-    }
-
-    private async insertOrUpdateObsValues(observationRepo: Repository<ObservationEntity>, observationsData: ObservationEntity[]) {
-        return observationRepo
-            .createQueryBuilder()
-            .insert()
-            .into(ObservationEntity)
-            .values(observationsData)
-            .orUpdate(
-                [
-                    "value",
-                    "flag",
-                    "qc_status",
-                    "comment",
-                    "deleted",
-                    "saved_to_v4",
-                    "entry_user_id",
-                ],
-                [
-                    "station_id",
-                    "element_id",
-                    "level",
-                    "source_id",
-                    "date_time",
-                    "interval",
-                ],
-                {
-                    skipUpdateIfNoValuesChanged: true,
-                }
-            )
-            .execute();
     }
 
     public async softDelete(obsDtos: DeleteObservationDto[], userId: number): Promise<number> {
@@ -351,7 +321,7 @@ export class ObservationsService {
             .whereInIds(compositeKeys)
             .execute();
 
-        this.climsoftV4Service.saveWebObservationstoV4DB();
+        this.eventEmitter.emit(deletedStatus ? 'observations.deleted' : 'observations.restored');
 
         // If affected results not supported then just return the dtos length.
         // Note, affected results will always be defined because the API uses postgres.
@@ -381,7 +351,7 @@ export class ObservationsService {
 
     // NOTE. Left here for future reference. In fututure we want to be able to delete by station id and source id. 
     // This will be useful code to reuse.
-    public async hardDeleteBy(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
+    private async hardDeleteBy(deleteObsDtos: DeleteObservationDto[]): Promise<number> {
         let succesfulChanges: number = 0;
         for (const dto of deleteObsDtos) {
             const result = await this.observationRepo.createQueryBuilder()

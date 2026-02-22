@@ -12,6 +12,7 @@ import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-spec
 import { DataSource } from 'typeorm';
 import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError } from '../dtos/import-preview.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ObservationImportService {
@@ -22,6 +23,7 @@ export class ObservationImportService {
         private dataSource: DataSource,
         private sourcesService: SourceSpecificationsService,
         private elementsService: ElementsService,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
@@ -175,6 +177,8 @@ export class ObservationImportService {
             await queryRunner.commitTransaction();
 
             this.logger.log(`Successfully imported ${filePathName} into database`);
+
+             this.eventEmitter.emit('observations.saved');
 
         } catch (error) {
             // Rollback transaction on error
