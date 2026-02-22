@@ -7,23 +7,23 @@ import { AuthUtil } from 'src/user/services/auth.util';
 
 @Controller('quality-control')
 export class QualityControlController {
-  constructor(private readonly sourceCheckService: QCTestAssessmentsService) { }
+  constructor(private readonly qcTestAssessmentsService: QCTestAssessmentsService) { }
 
   @Get('duplicates')
   findObservationsWithDuplicates(@Query(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {
-    return this.sourceCheckService.findSameObsWithDiffSources(queryDto);
+    return this.qcTestAssessmentsService.findSameObsWithDiffSources(queryDto);
   }
 
   @Get('count-duplicates')
   countObservationsWithDuplicates(@Query(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {
-    return this.sourceCheckService.countSameObsWithDiffSources(queryDto);
+    return this.qcTestAssessmentsService.countSameObsWithDiffSources(queryDto);
   }
 
   @Post('perform-qc')
   performQC(
     @Req() request: Request,
     @Body(AuthorisedStationsPipe) queryDto: ViewObservationQueryDTO) {
-    return this.sourceCheckService.performQC(queryDto, AuthUtil.getLoggedInUserId(request));
+    return this.qcTestAssessmentsService.performQC(queryDto, AuthUtil.getLoggedInUserId(request));
   }
 
 }

@@ -7,7 +7,6 @@ import { CreateStationDto } from 'src/metadata/stations/dtos/create-update-stati
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/station-obs-processing-method.enum';
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
-import { UsersService } from 'src/user/services/users.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
@@ -57,10 +56,6 @@ export class ClimsoftV4WebSyncSetUpService {
     public v4UtcOffset: number = 0;
     public readonly v4Elements: Map<number, V4ElementModel> = new Map(); // Using map because of performance. 
     public readonly v4Stations: Set<string> = new Set();
-    public readonly webSources: Map<number, string> = new Map();
-    public readonly webUsers: Map<number, string> = new Map();
-    public readonly webStations: Set<string> = new Set();
-    public readonly webElements: Set<number> = new Set();
     public readonly v4Conflicts: string[] = [];
 
     constructor(
@@ -68,7 +63,6 @@ export class ClimsoftV4WebSyncSetUpService {
         private qcTestsService: QCSpecificationsService,
         private stationsService: StationsService,
         private sourcesService: SourceSpecificationsService,
-        private usersService: UsersService,
     ) {
     }
 
@@ -114,7 +108,7 @@ export class ClimsoftV4WebSyncSetUpService {
 
             this.v4UtcOffset = AppConfig.v4DbCredentials.utcOffset;
 
-            this.logger.log('creating connection pool for: ', AppConfig.v4DbCredentials.host, ' at port: ',  AppConfig.v4DbCredentials.port);
+            this.logger.log(`creating connection pool for ${AppConfig.v4DbCredentials.host} at port ${AppConfig.v4DbCredentials.port}`);
 
             // create v4 database connection pool
             this.v4DBPool = mariadb.createPool({
@@ -136,14 +130,6 @@ export class ClimsoftV4WebSyncSetUpService {
             // set up v4 stations used to check if v4 has stations that are in v5 database
             await this.setupV4StationsChecking();
 
-            await this.setupV5Sources();
-
-            await this.setupWebUsers();
-
-            await this.setupWebStationsChecking();
-
-            await this.setupWebElementsChecking();
-
         } catch (error) {
             this.logger.error('Setting up V4 database connection failed: ', error);
             this.v4DBPool = null;
@@ -158,26 +144,6 @@ export class ClimsoftV4WebSyncSetUpService {
     private async setupV4StationsChecking(): Promise<void> {
         this.v4Stations.clear();
         (await this.getV4Stations()).forEach((item) => this.v4Stations.add(item.stationId));
-    }
-
-    public async setupV5Sources(): Promise<void> {
-        this.webSources.clear();
-        (await this.sourcesService.findAll()).forEach(item => this.webSources.set(item.id, item.name));
-    }
-
-    public async setupWebUsers(): Promise<void> {
-        this.webUsers.clear();
-        (await this.usersService.findAll()).forEach(item => this.webUsers.set(item.id, item.email));
-    }
-
-    private async setupWebStationsChecking(): Promise<void> {
-        this.webStations.clear();
-        (await this.stationsService.find()).forEach((item) => this.webStations.add(item.id));
-    }
-
-    private async setupWebElementsChecking(): Promise<void> {
-        this.webElements.clear();
-        (await this.elementsService.find()).forEach((item) => this.webElements.add(item.id));
     }
 
     public async disconnect(): Promise<void> {
@@ -272,7 +238,6 @@ export class ClimsoftV4WebSyncSetUpService {
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of elements or changes in v4 configuration
         this.setupV4ElementsForV5MappingAndChecking();
-        this.setupWebElementsChecking();
         return true;
     }
 
@@ -480,8 +445,7 @@ export class ClimsoftV4WebSyncSetUpService {
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of stations or changes in v4 configuration
         this.setupV4StationsChecking();
-        this.setupWebStationsChecking();
-
+  
         return true;
     }
 

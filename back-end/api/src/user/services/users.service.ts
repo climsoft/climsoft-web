@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { Repository } from 'typeorm';
@@ -8,36 +8,51 @@ import { LogInCredentialsDto } from '../dtos/login-credentials.dto';
 import { ChangePasswordDto } from '../dtos/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnModuleInit {
+    private readonly cache: MetadataCache<ViewUserDto>;
+
     constructor(
         @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-        private eventEmitter: EventEmitter2,) { }
-
-    public async count(): Promise<number> {
-        return this.userRepo.count()
-    }
-
-    public async findAll(): Promise<ViewUserDto[]> {
-        const userEntities = await this.userRepo.find(
-            {
-                order: {
-                    id: 'ASC'
-                }
-            }
+        private eventEmitter: EventEmitter2,) {
+        this.cache = new MetadataCache<ViewUserDto>(
+            'Users',
+            () => this.loadCacheData(),
+            (dto) => dto.id,
         );
-        return userEntities.map(entity => this.createViewDto(entity));
     }
 
-    public async findOne(userId: number): Promise<ViewUserDto> {
-        const userEntity = await this.userRepo.findOneBy({ id: userId });
+    async onModuleInit(): Promise<void> {
+        await this.cache.init();
+    }
 
-        if (!userEntity) {
-            throw new BadRequestException('no such user');
+    private async loadCacheData(): Promise<CacheLoadResult<ViewUserDto>> {
+        const entities = await this.userRepo.find({ order: { id: 'ASC' } });
+        const records = entities.map(entity => this.createViewDto(entity));
+        const lastModifiedDate = entities.length > 0
+            ? entities.reduce((max, e) => e.entryDateTime > max ? e.entryDateTime : max, entities[0].entryDateTime)
+            : null;
+        return { records, lastModifiedDate };
+    }
+
+    public count(): number {
+        return this.cache.getCount();
+    }
+
+    public findAll(): ViewUserDto[] {
+        return this.cache.getAll();
+    }
+
+    public findOne(userId: number): ViewUserDto {
+        const dto = this.cache.getById(userId);
+
+        if (!dto) {
+            throw new NotFoundException('no such user');
         }
 
-        return this.createViewDto(userEntity);
+        return dto;
     }
 
     public async create(createUserDto: CreateUserDto): Promise<ViewUserDto> {
@@ -56,7 +71,8 @@ export class UsersService {
         // TODO. In future email password to  user
         entity.hashedPassword = await this.hashPassword(this.generateRandomPassword());
 
-        await this.userRepo.save(entity)
+        await this.userRepo.save(entity);
+        await this.cache.invalidate();
 
         const viewDto: ViewUserDto = this.createViewDto(entity)
 
@@ -86,10 +102,11 @@ export class UsersService {
             throw new NotFoundException('no user found');
         }
 
-        // TODO. Check if email and phone number already used in database 
+        // TODO. Check if email and phone number already used in database
         this.updateEntityWithDtoInfo(entity, createUserDto);
 
-        await this.userRepo.save(entity)
+        await this.userRepo.save(entity);
+        await this.cache.invalidate();
 
         const viewDto: ViewUserDto = this.createViewDto(entity);
 
@@ -158,7 +175,7 @@ export class UsersService {
     }
 
     private async hashPassword(password: string): Promise<string> {
-        const saltRounds = 10; // You can adjust the salt rounds based on your security requirements
+        const saltRounds = 10; // TODO. In future this should come from the env file
         return await bcrypt.hash(password, saltRounds);
     }
 }

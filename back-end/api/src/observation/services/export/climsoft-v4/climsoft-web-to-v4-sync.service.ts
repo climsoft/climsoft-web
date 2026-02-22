@@ -8,6 +8,9 @@ import { DateUtils } from 'src/shared/utils/date.utils';
 import { ClimsoftV4WebSyncSetUpService, V4ElementModel } from './climsoft-v4-web-sync-set-up.service';
 import { AppConfig } from 'src/app.config';
 import { QCStatusEnum } from 'src/observation/enums/qc-status.enum';
+import { OnEvent } from '@nestjs/event-emitter';
+import { UsersService } from 'src/user/services/users.service';
+import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 
 @Injectable()
 export class ClimsoftWebToV4SyncService {
@@ -15,14 +18,47 @@ export class ClimsoftWebToV4SyncService {
     private isSaving: boolean = false;
 
     constructor(
-        private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
         @InjectRepository(ObservationEntity) private observationRepo: Repository<ObservationEntity>,
+        private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
+        private sourcesService: SourceSpecificationsService,
+        private usersService: UsersService,
+
     ) {
+    }
+
+    @OnEvent('observations.saved')
+    handleObservationsSaved() {
+        this.logger.log(`initiating web to v4 save after observations have been saved`);
+        this.saveWebObservationstoV4DB();
+    }
+
+    @OnEvent('observations.quality-controlled')
+    handleObservationsQC() {
+        this.logger.log(`initiating web to v4 save after observations have been quality controlled`);
+        this.saveWebObservationstoV4DB();
+    }
+
+    @OnEvent('observations.deleted')
+    handleObservationsDeleted() {
+        this.logger.log(`initiating web to v4 save after observation deleted`);
+        this.saveWebObservationstoV4DB();
+    }
+
+    @OnEvent('observations.restored')
+    handleObservationsRestored() {
+        this.logger.log(`initiating web to v4 save after observation have been restored`);
+        this.saveWebObservationstoV4DB();
     }
 
     public async saveWebObservationstoV4DB(): Promise<void> {
         // If saving to v4 is not allowed thhen just return
         if (!AppConfig.v4DbCredentials.v4Save) {
+            return;
+        }
+
+        // If still saving then just return
+        if (this.isSaving) {
+            this.logger.log('Aborting saving. There is still an ongoing saving. ');
             return;
         }
 
@@ -35,11 +71,6 @@ export class ClimsoftWebToV4SyncService {
             return;
         }
 
-        // If still saving then just return
-        if (this.isSaving) {
-            this.logger.log('Aborting saving. There is still an ongoing saving. ');
-            return;
-        }
 
         // If there are any conflicts with version 4 database then areturn
         if (this.climsoftV4WebSetupService.v4Conflicts.length > 0) {
@@ -52,37 +83,37 @@ export class ClimsoftWebToV4SyncService {
 
         // Check if there is observations that have passed qc and not been saved to v4
         // If there are, then attempt to save them
-        const obsEntities: ObservationEntity[] = await this.observationRepo.find({
+        const insertedOrUpdatedEntities: ObservationEntity[] = await this.observationRepo.find({
             where: {
+                deleted: false,
                 qcStatus: QCStatusEnum.PASSED,
-                savedToV4: false
+                savedToV4: false,
             },
             order: { entryDateTime: "ASC" },
             take: 1000,// Monitor this valuue for performance. The idea is to not keep nodeJS work thread for long when saving to v4 model
         });
 
-        if (obsEntities.length === 0) {
+
+        const deletedEntities: ObservationEntity[] = await this.observationRepo.find({
+            where: {
+                deleted: true,
+                savedToV4: false,
+            },
+            order: { entryDateTime: "ASC" },
+            take: 1000,// Monitor this valuue for performance. The idea is to not keep nodeJS work thread for long when saving to v4 model
+        });
+
+
+        if (insertedOrUpdatedEntities.length === 0 && deletedEntities.length === 0) {
             this.isSaving = false;
             this.logger.log('Aborting saving. No entities found.');
             return;
         }
 
-        this.logger.log('Saving changes to V4 database: ' + obsEntities.length);
-
-        const deletedEntities: ObservationEntity[] = [];
-        const insertedOrUpdatedEntities: ObservationEntity[] = [];
-
-        for (const entity of obsEntities) {
-            // Separate deleted data from inserted or updated data
-            if (entity.deleted) {
-                deletedEntities.push(entity);
-            } else {
-                insertedOrUpdatedEntities.push(entity);
-            }
-        }
 
         // Bulk delete when soft delete happens
         if (deletedEntities.length > 0) {
+            this.logger.log(`Deleting ${deletedEntities.length} to V4 database`);
             if (await this.deleteSoftDeletedWebDbDataFromV4DB(this.climsoftV4WebSetupService.v4DBPool, deletedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateWebDBWithNewV4SaveStatus(this.observationRepo, deletedEntities);
@@ -91,6 +122,7 @@ export class ClimsoftWebToV4SyncService {
 
         // Bulk insert or update when there are new inserts or updates
         if (insertedOrUpdatedEntities.length > 0) {
+            this.logger.log(`Saving ${insertedOrUpdatedEntities.length} to V4 database`);
             if (await this.insertOrUpdateWebDataToV4DB(this.climsoftV4WebSetupService.v4DBPool, insertedOrUpdatedEntities)) {
                 // Update the save to v4 column in the V5 database.
                 await this.updateWebDBWithNewV4SaveStatus(this.observationRepo, insertedOrUpdatedEntities);
@@ -150,19 +182,8 @@ export class ClimsoftWebToV4SyncService {
                     continue;
                 }
 
-                let sourceName: string | undefined = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
-                // if source name not found then a new source was added. So refetch v5 sources and attempt to find the source name again
-                if (!sourceName) {
-                    await this.climsoftV4WebSetupService.setupV5Sources();
-                    sourceName = this.climsoftV4WebSetupService.webSources.get(entity.sourceId);
-                }
-
-                let userEmail: string | undefined = this.climsoftV4WebSetupService.webUsers.get(entity.entryUserId);
-                // if email not found then a new user was added. So refetch v5 users and attempt to find the email again
-                if (!userEmail) {
-                    await this.climsoftV4WebSetupService.setupWebUsers();
-                    userEmail = this.climsoftV4WebSetupService.webUsers.get(entity.entryUserId);
-                }
+                const source = this.sourcesService.find(entity.sourceId);
+                const user = this.usersService.findOne(entity.entryUserId);
 
                 const v4ValueMap = this.getV4ValueMapping(v4Element, entity);
 
@@ -187,10 +208,10 @@ export class ClimsoftWebToV4SyncService {
                     // Technically, sourceName will never be null
                     // But put null here to make sure the userEmail goes to the correct column
                     // This will be mapped to dataForm
-                    sourceName ? sourceName : null,
+                    source.name,
 
                     // V4 capturedBy supports upto 30 characters only  
-                    userEmail ? userEmail.substring(0, 30) : null,
+                    user.email.substring(0, 30),
                 ]);
 
             }
