@@ -1,8 +1,11 @@
 import { Type } from "class-transformer";
-import { IsInt, IsString, ValidateNested } from "class-validator";
+import { IsInt, IsNotEmpty, IsString, ValidateNested } from "class-validator";
+import { IsCron } from "src/shared/validators/is-cron.validator";
 
 export class CleanupScheduleDto {
     @IsString()
+    @IsNotEmpty()
+    @IsCron()
     cronSchedule: string;
 
     @IsInt()

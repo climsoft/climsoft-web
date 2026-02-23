@@ -59,12 +59,12 @@ export class GeneralSettingInputDialogComponent {
     ).subscribe({
       next: (data) => {
         this.open = false;
-        this.pagesDataService.showToast({ title: 'Setting Details', message: `Setting ${data.name} updated`, type: ToastEventTypeEnum.SUCCESS });
+        this.pagesDataService.showToast({ title: 'Setting Details', message: `${data.name} setting updated`, type: ToastEventTypeEnum.SUCCESS });
         this.ok.emit();
       },
       error: (err) => {
         this.open = false;
-        this.pagesDataService.showToast({ title: 'Setting Details', message: `Error updating setting - ${err.message}`, type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Setting Details', message: `Error updating ${err.message} setting`, type: ToastEventTypeEnum.ERROR });
       }
     });
   }
