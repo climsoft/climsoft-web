@@ -5,6 +5,7 @@ import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delet
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { ViewConnectorSpecificationModel } from '../models/view-connector-specification.model';
 import { ConnectorSpecificationsService } from '../services/connector-specifications.service';
+import { ConnectorSpecificationInputDialogComponent } from '../connector-specification-input-dialog/connector-specification-input-dialog.component';
 
 @Component({
   selector: 'app-view-connectors',
@@ -12,6 +13,7 @@ import { ConnectorSpecificationsService } from '../services/connector-specificat
   styleUrls: ['./view-connector-specifications.component.scss']
 })
 export class ViewConnectorSpecificationsComponent {
+  @ViewChild('dlgConnectorInput') dlgConnectorInput!: ConnectorSpecificationInputDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
@@ -84,6 +86,15 @@ export class ViewConnectorSpecificationsComponent {
         });
       }
     });
+  }
+
+  protected onAddConnectorClick(): void{
+      this.dlgConnectorInput.showDialog();
+  }
+
+  protected onConnectorClick(connectorId: number, event: Event): void {
+    event.stopPropagation();
+    this.dlgConnectorInput.showDialog(connectorId);
   }
 
   protected onToggleDisabledClick(connector: ViewConnectorSpecificationModel, event: Event): void {
