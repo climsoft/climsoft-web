@@ -42,6 +42,7 @@ export class ImportSourceTabularParamsDto  {
 export class ValueDefinition {
 
     /** Value column position. */
+    @IsInt()
     valueColumnPosition: number;
 
     /** Flag column position. Optional */
