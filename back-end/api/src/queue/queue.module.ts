@@ -15,6 +15,8 @@ import { ConnectorExecutionLogEntity } from './entity/connector-execution-log.en
 import { ConnectorExecutionLogService } from './services/connector-execution-log.service';
 import { JobQueueController } from './controllers/job-queue.controller';
 import { ConnectorExecutionLogsController } from './controllers/connector-execution-logs.controller';
+import { CleanupSchedulerService } from './services/cleanup-scheduler.service';
+import { SettingsModule } from 'src/settings/settings.module';
 
 @Module({
     imports: [
@@ -24,6 +26,7 @@ import { ConnectorExecutionLogsController } from './controllers/connector-execut
         ]),
         SharedModule,
         UserModule,
+        SettingsModule,
         ConnectorSpecificationsModule,
         MetadataModule,
         ObservationModule,
@@ -39,6 +42,7 @@ import { ConnectorExecutionLogsController } from './controllers/connector-execut
         ConnectorExecutionLogService,
         ConnectorImportProcessorService,
         ConnectorExportProcessorService,
+        CleanupSchedulerService,
     ],
     exports: [
         JobQueueService,

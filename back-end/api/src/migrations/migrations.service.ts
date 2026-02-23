@@ -9,11 +9,13 @@ import { StationObsEnvService } from 'src/metadata/stations/services/station-obs
 import { StationObsFocusesService } from 'src/metadata/stations/services/station-obs-focuses.service';
 import { MetadataDefaults } from './metadata-defaults';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
-import { GeneralSettingsDefaults } from './general-settings-defaults';
+import { DEFAULT_GENERAL_SETTINGS } from './general-settings-defaults';
 import { SqlScriptsLoaderService } from 'src/sql-scripts/sql-scripts-loader.service';
 import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
 import { QCTestTypeEnum } from 'src/metadata/qc-specifications/entities/qc-test-type.enum';
 import { RangeThresholdQCTestParamsDto } from 'src/metadata/qc-specifications/dtos/qc-test-parameters/range-qc-test-params.dto';
+import { GeneralSettingParameters } from 'src/settings/dtos/update-general-setting-params.dto';
+import { ViewGeneralSettingModel } from 'src/settings/dtos/view-general-setting.model';
 
 @Injectable()
 export class MigrationsService {
@@ -149,17 +151,17 @@ export class MigrationsService {
   }
 
   private async seedGeneralSettings() {
-    const existingSettings = await this.generalSettingsService.findAll();
-    const allSettingsExist = GeneralSettingsDefaults.GENERAL_SETTINGS;
+    const existingSettings = this.generalSettingsService.findAll();
 
-    for (const defaultSetting of allSettingsExist) {
+    for (const defaultSetting of DEFAULT_GENERAL_SETTINGS) {
       //If any of the default settings do not exist in the server then add it. This is to make sure that new default settings added in the code will be added to existing installations after migration.
-      const settingExists = existingSettings.find(s => s.name === defaultSetting.name);
-      if (!settingExists) {
-        await this.generalSettingsService.bulkPut([defaultSetting], 1);
-        this.logger.log(`General setting added - ${defaultSetting.name}`);
-      }
+      const existingSetting = existingSettings.find(s => s.id === defaultSetting.id);
+      const params: GeneralSettingParameters = existingSetting ? existingSetting.parameters : defaultSetting.parameters;
+      await this.generalSettingsService.put(defaultSetting.id, defaultSetting.name, defaultSetting.description, params, 1);
     }
+
+
+    this.logger.log(`All general settings updated`);
   }
 
   // TODO. Temporary function to upgrade preview 2.0.4 and below releases

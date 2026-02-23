@@ -1,11 +1,9 @@
-import { SettingsParametersValidity } from "../update-general-setting.dto";
+import { IsInt, Min } from "class-validator";
 
-export class ClimsoftDisplayTimeZoneDto implements SettingsParametersValidity {
-    utcOffset: number; 
-    isValid(): boolean {
-        return true; // TODO.
-    }
+
+export class ClimsoftDisplayTimeZoneDto {
+    @IsInt()
+    @Min(0)
+    utcOffset: number;
 }
-
-
 

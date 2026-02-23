@@ -1,6 +1,6 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { Column, Entity, PrimaryColumn } from "typeorm";
-import { SettingsParametersValidity } from "../dtos/update-general-setting.dto";
+import { GeneralSettingParameters } from "../dtos/update-general-setting-params.dto";
 
 @Entity("general_settings")
 export class GeneralSettingEntity extends AppBaseEntity {
@@ -14,7 +14,7 @@ export class GeneralSettingEntity extends AppBaseEntity {
   description: string;
 
   @Column({ name: 'parameters', type: 'jsonb' })
-  parameters: SettingsParametersValidity; // will vary depending on the setting
+  parameters: GeneralSettingParameters; 
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
   comment: string | null;
