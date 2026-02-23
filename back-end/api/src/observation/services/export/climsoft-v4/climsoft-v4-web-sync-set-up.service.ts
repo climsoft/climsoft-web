@@ -3,7 +3,7 @@ import * as mariadb from 'mariadb';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { StationsService } from 'src/metadata/stations/services/stations.service';
-import { CreateStationDto } from 'src/metadata/stations/dtos/create-update-station.dto';
+import { CreateStationDto } from 'src/metadata/stations/dtos/create-station.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { StationObsProcessingMethodEnum } from 'src/metadata/stations/enums/station-obs-processing-method.enum';
 import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.enum';
@@ -410,20 +410,21 @@ export class ClimsoftV4WebSyncSetUpService {
             const dto: CreateStationDto = {
                 id: v4Station.stationId,
                 name: v4Station.stationName,
-                description: currentV5Station ? currentV5Station.description : null,
+                description: currentV5Station?.description || undefined,
                 longitude: v4Station.longitude,
                 latitude: v4Station.latitude,
-                elevation: StringUtils.containsNumbersOnly(v4Station.elevation) ? Number.parseFloat(v4Station.elevation) : null,
-                stationObsProcessingMethod: currentV5Station ? currentV5Station.stationObsProcessingMethod : StationObsProcessingMethodEnum.MANUAL, // TODO. Extrapolate from name?
-                stationObsEnvironmentId: currentV5Station ? currentV5Station.stationObsEnvironmentId : null,// Give fixed land by default?
-                stationObsFocusId: currentV5Station ? currentV5Station.stationObsFocusId : null, // extrapolate from qualifier?
-                organisationId: currentV5Station ? currentV5Station.organisationId : null,
-                wmoId: v4Station.wmoid,
+                elevation: StringUtils.containsNumbersOnly(v4Station.elevation) ? Number.parseFloat(v4Station.elevation) : undefined,
+                stationObsProcessingMethod: currentV5Station?.stationObsProcessingMethod || StationObsProcessingMethodEnum.MANUAL, // TODO. Extrapolate from name?
+                stationObsEnvironmentId: currentV5Station?.stationObsEnvironmentId || undefined,// Give fixed land by default?
+                stationObsFocusId: currentV5Station?.stationObsFocusId || undefined, // extrapolate from qualifier?
+                ownerId: currentV5Station?.ownerId || undefined,
+                operatorId: currentV5Station?.operatorId || undefined,
+                wmoId: v4Station.wmoid || undefined,
                 wigosId: v4Station.wsi,
                 icaoId: v4Station.icaoid,
                 status: v4Station.stationOperational ? StationStatusEnum.OPERATIONAL : StationStatusEnum.CLOSED,
-                dateEstablished: currentV5Station ? currentV5Station.dateEstablished : null, // TODO. Confirm the date format and convert accordingly
-                dateClosed: currentV5Station ? currentV5Station.dateClosed : null, // TODO. Confirm the date format and convert accordingly
+                dateEstablished: currentV5Station?.dateEstablished || undefined, // TODO. Confirm the date format and convert accordingly
+                dateClosed: currentV5Station?.dateClosed || undefined, // TODO. Confirm the date format and convert accordingly
                 comment: 'pulled from v4 model',
             };
 
@@ -445,7 +446,7 @@ export class ClimsoftV4WebSyncSetUpService {
 
         // Important to do this just incase observations were not being saved to v4 database due to lack of stations or changes in v4 configuration
         this.setupV4StationsChecking();
-  
+
         return true;
     }
 

@@ -9,18 +9,17 @@ import { StationProcessingMethodEnum } from '../models/station-processing-method
 import { UpdateStationModel } from '../models/update-station.model';
 
 @Component({
-  selector: 'app-edit-station-dialog',
-  templateUrl: './edit-station-dialog.component.html',
-  styleUrls: ['./edit-station-dialog.component.scss']
+  selector: 'app-station-input-dialog',
+  templateUrl: './station-input-dialog.component.html',
+  styleUrls: ['./station-input-dialog.component.scss']
 })
-export class EditStationDialogComponent {
+export class StationInputDialogComponent {
   @Output() public ok = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
   protected open: boolean = false;
   protected title!: string;
   protected station!: CreateStationModel;
-  protected bNew: boolean = false;
 
   constructor(
     private stationsCacheService: StationsCacheService,
@@ -28,59 +27,52 @@ export class EditStationDialogComponent {
     private locationService: AppLocationService,) { }
 
   public showDialog(stationId?: string): void {
+    this.open = true;
     if (stationId) {
       this.title = "Edit Station";
       this.stationsCacheService.findOne(stationId).pipe(
         take(1),
-      ).subscribe(foundStation => {
-        if (foundStation) {
-          this.bNew = false;
+      ).subscribe(station => {
+        if (station) {
           this.station = {
-            id: foundStation.id,
-            name: foundStation.name,
-            description: foundStation.description,
-            longitude: foundStation.location ? foundStation.location.longitude : null,
-            latitude: foundStation.location ? foundStation.location.latitude : null,
-            elevation: foundStation.elevation,
-            stationObsProcessingMethod: foundStation.stationObsProcessingMethod,
-            stationObsEnvironmentId: foundStation.stationObsEnvironmentId,
-            stationObsFocusId: foundStation.stationObsFocusId,
-            organisationId: foundStation.organisationId,
-            wmoId: foundStation.wmoId,
-            wigosId: foundStation.wigosId,
-            icaoId: foundStation.icaoId,
-            status: foundStation.status,
-            dateEstablished: foundStation.dateEstablished,
-            dateClosed: foundStation.dateClosed,
-            comment: foundStation.comment,
+            id: station.id,
+            name: station.name,
+            description: station.description,
+            longitude: station.location?.longitude,
+            latitude: station.location?.latitude,
+            elevation: station.elevation || undefined,
+            stationObsProcessingMethod: station.stationObsProcessingMethod,
+            stationObsEnvironmentId: station.stationObsEnvironmentId,
+            stationObsFocusId: station.stationObsFocusId,
+            ownerId: station.ownerId,
+            operatorId: station.operatorId,
+            wmoId: station.wmoId,
+            wigosId: station.wigosId,
+            icaoId: station.icaoId,
+            status: station.status || undefined,
+            dateEstablished: station.dateEstablished,
+            dateClosed: station.dateClosed,
+            comment: station.comment,
           };
         }
       });
     } else {
-      this.bNew = true;
       this.title = "New Station";
       this.station = {
-        id: "",
-        name: "",
-        description: "",
-        longitude: 0,
-        latitude: 0,
-        elevation: 0,
+        id: '',
+        name: '',
         stationObsProcessingMethod: StationProcessingMethodEnum.AUTOMATIC,
-        stationObsEnvironmentId: 0,
-        stationObsFocusId: 0,
-        organisationId: 0,
-        wmoId: null,
-        wigosId: null,
-        icaoId: null,
-        status: null,
-        dateEstablished: '',
-        dateClosed: '',
-        comment: '',
       };
     }
 
-    this.open = true;
+  }
+
+  protected onLatitudeChange(latitude: number | null | undefined): void {
+    this.station.latitude = latitude ?? undefined;
+  }
+
+  protected onLongitudeChange(longitude: number | null | undefined): void {
+    this.station.longitude = longitude ?? undefined;
   }
 
   protected requestLocation(): void {
@@ -95,12 +87,17 @@ export class EditStationDialogComponent {
     });
   }
 
-  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | null): void {
-    this.station.stationObsProcessingMethod = stationObservationMethodEnum ? stationObservationMethodEnum : StationProcessingMethodEnum.AUTOMATIC;
+  protected onElevationChange(longitude: number | null | undefined): void {
+    this.station.longitude = longitude ?? undefined;
   }
 
 
-  protected onStationStatusChange(status: StationStatusEnum | null): void {
+  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | null): void {
+    this.station.stationObsProcessingMethod =  stationObservationMethodEnum || StationProcessingMethodEnum.AUTOMATIC;
+  }
+
+
+  protected onStationStatusChange(status: StationStatusEnum | undefined): void {
 
     // TODO. Enforce not allowing date closed when the station status is indicated as closed
     if (status && status === StationStatusEnum.CLOSED) {
@@ -140,43 +137,39 @@ export class EditStationDialogComponent {
       longitude: this.station.longitude,
       elevation: this.station.elevation,
       stationObsProcessingMethod: this.station.stationObsProcessingMethod,
-      stationObsEnvironmentId: this.station.stationObsEnvironmentId ? this.station.stationObsEnvironmentId : null,
-      stationObsFocusId: this.station.stationObsFocusId ? this.station.stationObsFocusId : null,
-      organisationId: this.station.organisationId ? this.station.organisationId : null,
-      wmoId: this.station.wmoId ? this.station.wmoId : null,
-      wigosId: this.station.wigosId ? this.station.wigosId : null,
-      icaoId: this.station.icaoId ? this.station.icaoId : null,
-      status: this.station.status ? this.station.status : null,
-      dateEstablished: dateEstablished,
-      dateClosed: dateClosed,
-      comment: this.station.comment ? this.station.comment : null,
+      stationObsEnvironmentId: this.station.stationObsEnvironmentId || undefined,
+      stationObsFocusId: this.station.stationObsFocusId || undefined,
+      ownerId: this.station.ownerId || undefined,
+      operatorId: this.station.operatorId || undefined,
+      wmoId: this.station.wmoId || undefined,
+      wigosId: this.station.wigosId || undefined,
+      icaoId: this.station.icaoId || undefined,
+      status: this.station.status || undefined,
+      dateEstablished: dateEstablished || undefined,
+      dateClosed: dateClosed || undefined,
+      comment: this.station.comment || undefined,
     }
 
     let saveSubscription: Observable<CreateStationModel>;
-    if (this.bNew) {
-      saveSubscription = this.stationsCacheService.create({ ...updateStation, id: this.station.id });
-    } else {
+    if (this.station.id) {
       saveSubscription = this.stationsCacheService.update(this.station.id, updateStation);
+    } else {
+      saveSubscription = this.stationsCacheService.create({ ...updateStation, id: this.station.id });
     }
 
     saveSubscription.pipe(
       take(1)
-    ).subscribe((data) => {
-      let message: string;
-      let messageType: ToastEventTypeEnum;
-      if (data) {
-        message = this.bNew ? "New Station Created" : "Station Updated";
-        messageType = ToastEventTypeEnum.SUCCESS;
-      } else {
-        message = "Error in saving station";
-        messageType = ToastEventTypeEnum.ERROR;
-        //return;
+    ).subscribe({
+      next: (data) => {
+        this.pagesDataService.showToast({ title: 'Station Characteristics', message: this.station.id ? 'New Station Created' : 'Station Updated', type: ToastEventTypeEnum.SUCCESS });
+        this.open = false;
+        this.stationsCacheService.checkForUpdates();
+        this.ok.emit();
+      },
+      error: (err) => {
+        console.error(err)
+        this.pagesDataService.showToast({ title: 'Station Characteristics', message: 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       }
-
-      this.pagesDataService.showToast({ title: "Station Characteristics", message: message, type: messageType });
-      this.open = false;
-      this.stationsCacheService.checkForUpdates();
-      this.ok.emit();
     });
   }
 

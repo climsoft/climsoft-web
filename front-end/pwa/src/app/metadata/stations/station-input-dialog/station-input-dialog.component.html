@@ -30,10 +30,12 @@
             </div>
             <div class="d-flex mt-2">
                 <div>
-                    <app-number-input [label]="'Latitude'" [(value)]="station.latitude" />
+                    <app-number-input [label]="'Latitude'" [value]="station.latitude"
+                        (valueChange)="onLatitudeChange($event)" />
                 </div>
                 <div class="ms-2">
-                    <app-number-input [label]="'Longitude'" [(value)]="station.longitude" />
+                    <app-number-input [label]="'Longitude'" [value]="station.longitude"
+                        (valueChange)="onLongitudeChange($event)" />
                 </div>
             </div>
         </div>
@@ -41,7 +43,8 @@
         <hr />
 
         <div>
-            <app-number-input [label]="'Elevation'" [(value)]="station.elevation" />
+            <app-number-input [label]="'Elevation'" [value]="station.elevation"
+                (valueChange)="onElevationChange($event)" />
         </div>
 
         <hr />
@@ -69,7 +72,13 @@
         <hr />
 
         <div>
-            <app-organisation-selector-single-single [label]="'Organisation'" [(selectedId)]="station.organisationId" />
+            <app-organisation-selector-single-single [label]="'Owner'" [(selectedId)]="station.ownerId" />
+        </div>
+
+        <hr />
+
+        <div>
+            <app-organisation-selector-single-single [label]="'Operator'" [(selectedId)]="station.operatorId" />
         </div>
 
         <hr />

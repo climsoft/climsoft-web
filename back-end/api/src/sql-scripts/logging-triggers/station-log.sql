@@ -9,7 +9,8 @@ BEGIN
             NEW.observation_processing_method IS DISTINCT FROM OLD.observation_processing_method OR 
             NEW.observation_environment_id IS DISTINCT FROM OLD.observation_environment_id OR 
             NEW.observation_focus_id IS DISTINCT FROM OLD.observation_focus_id OR 
-            NEW.organisation_id IS DISTINCT FROM OLD.organisation_id OR
+            NEW.owner_id IS DISTINCT FROM OLD.owner_id OR
+            NEW.operator_id IS DISTINCT FROM OLD.operator_id OR
             NEW.wmo_id IS DISTINCT FROM OLD.wmo_id OR 
             NEW.wigos_id IS DISTINCT FROM OLD.wigos_id OR 
             NEW.icao_id IS DISTINCT FROM OLD.icao_id OR 
@@ -26,7 +27,8 @@ BEGIN
             'observation_processing_method', OLD.observation_processing_method,
             'observation_environment_id', OLD.observation_environment_id,
             'observation_focus_id', OLD.observation_focus_id,
-            'organisation_id', OLD.organisation_id,
+            'owner_id', OLD.owner_id,
+            'operator_id', OLD.operator_id,
             'wmo_id', OLD.wmo_id,
             'icao_id', OLD.icao_id,
             'status', OLD.status,

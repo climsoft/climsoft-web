@@ -88,11 +88,13 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     }
   }
 
-  protected onEditNetworkAffiliation(networkAff: View): void {
+  protected onEditNetworkAffiliation(networkAff: View, event: Event): void {
+    event.stopPropagation();
     this.dlgNetworkDetails.openDialog(networkAff.id);
   }
 
-  protected onAssignStationsClicked(selectedSource: View) {
+  protected onAssignStationsClicked(selectedSource: View, event: Event) {
+    event.stopPropagation();
     this.selectedNetwork = selectedSource;
     this.stationNetworkAffiliationsService.getStationsAssignedToNetworkAffiliations([selectedSource.id]).pipe(
       take(1),

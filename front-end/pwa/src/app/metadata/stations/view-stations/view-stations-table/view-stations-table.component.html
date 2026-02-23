@@ -21,8 +21,8 @@
             <td><i class="bi bi-cursor"></i></td>
             <td>{{ station.id }}</td>
             <td>{{ station.name }}</td>
-            <td>{{ station.location? station.location.latitude: '' }}</td>
-            <td>{{ station.location? station.location.longitude: '' }}</td>
+            <td>{{ station.location?.latitude?? '' }}</td>
+            <td>{{ station.location?.longitude?? '' }}</td>
             <td>{{ station.stationObsProcessingMethodName }}</td>
             <td>{{ station.stationObsEnvironmentName }}</td>
             <td>{{ station.stationObsFocusName }}</td>
@@ -31,6 +31,6 @@
         </tbody>
       </table>
     </div>
-    <app-edit-station-dialog #dlgStationEdit />
+    <app-station-input-dialog #dlgStationEdit />
   </div>
 </div>

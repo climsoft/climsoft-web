@@ -40,7 +40,7 @@ export class NetworkAffiliationInputDialogComponent implements OnDestroy {
       });
     } else {
       this.title = 'New Network Affiliation';
-      this.viewNetworkAffiliations = { id: 0, name: '', description: '', parentNetworkId: 0, extraMetadata: null, comment: null };
+      this.viewNetworkAffiliations = { id: 0, name: '', description: '' };
     }
   }
 
@@ -65,9 +65,8 @@ export class NetworkAffiliationInputDialogComponent implements OnDestroy {
     const createUser: CreateUpdateNetworkAffiliationModel = {
       name: this.viewNetworkAffiliations.name,
       description: this.viewNetworkAffiliations.description,
-      parentNetworkId: this.viewNetworkAffiliations.parentNetworkId ? this.viewNetworkAffiliations.parentNetworkId : null,
       extraMetadata: this.viewNetworkAffiliations.extraMetadata,
-      comment: this.viewNetworkAffiliations.comment ? this.viewNetworkAffiliations.comment : null,
+      comment: this.viewNetworkAffiliations.comment || undefined,
     }
 
     if (this.viewNetworkAffiliations.id > 0) {

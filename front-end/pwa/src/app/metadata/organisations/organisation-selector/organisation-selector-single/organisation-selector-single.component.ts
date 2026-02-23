@@ -13,7 +13,7 @@ export class OrganisationSelectorSingleComponent implements OnChanges, OnDestroy
   @Input() public label!: string;
   @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: number[];
-  @Input() public selectedId!: number | null;
+  @Input() public selectedId!: number | null | undefined;
   @Output() public selectedIdChange = new EventEmitter<number>();
 
   protected allOrganisations: ViewOrganisationModel[] = [];

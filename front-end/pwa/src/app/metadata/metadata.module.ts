@@ -10,8 +10,8 @@ import { ViewSourcesComponent } from './source-specifications/view-source-specif
 import { FormSourceInputDialogComponent } from './source-specifications/form-source-detail/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from './source-specifications/import-source-detail/import-source-input-dialog.component';
 import { ViewStationsComponent } from './stations/view-stations/view-stations.component'; 
-import { EditStationDialogComponent } from './stations/edit-station-dialog/edit-station-dialog.component';
-import { ImportStationsDialogComponent } from './stations/import-stations-dialog/import-stations-dialog.component'; 
+import { StationInputDialogComponent } from './stations/station-input-dialog/station-input-dialog.component';
+import { StationsImportDialogComponent } from './stations/stations-import-dialog/stations-import-dialog.component'; 
 import { ViewElementsComponent } from './elements/view-elements/view-elements.component';  
 import { ImportSourceStationDetailComponent } from './source-specifications/import-source-detail/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementDetailComponent } from './source-specifications/import-source-detail/import-source-element-detail/import-source-element-detail.component';
@@ -106,8 +106,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ImportSourceInputDialogComponent,
 
     ViewStationsComponent, 
-    EditStationDialogComponent,
-    ImportStationsDialogComponent,
+    StationInputDialogComponent,
+    StationsImportDialogComponent,
 
     StationObsProcessingSingleSelectorComponent,
     StationObsProcessingSelectorMultipleComponent,

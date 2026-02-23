@@ -134,10 +134,9 @@ export class NetworkAffiliationsService implements OnModuleInit {
 
     private updateEntity(entity: NetworkAffiliationEntity, dto: CreateUpdateNetworkAffiliationDto, userId: number): void {
         entity.name = dto.name;
-        entity.description = dto.description ? dto.description : null;
-        entity.parentNetworkId = dto.parentNetworkId;
-        entity.extraMetadata = dto.extraMetadata ? dto.extraMetadata : null;
-        entity.comment = dto.comment ? dto.comment : null;
+        entity.description = dto.description || null;
+        entity.extraMetadata = dto.extraMetadata || null;
+        entity.comment = dto.comment || null;
         entity.entryUserId = userId;
     }
 
@@ -145,10 +144,9 @@ export class NetworkAffiliationsService implements OnModuleInit {
         return {
             id: entity.id,
             name: entity.name,
-            description: entity.description,
-            parentNetworkId: entity.parentNetworkId,
-            extraMetadata: entity.extraMetadata,
-            comment: entity.comment,
+            description: entity.description || undefined,
+            extraMetadata: entity.extraMetadata || undefined,
+            comment: entity.comment || undefined,
         };
     }
 

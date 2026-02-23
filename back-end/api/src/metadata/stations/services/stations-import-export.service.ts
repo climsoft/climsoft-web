@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { StationsService } from './stations.service';
-import { CreateStationDto } from '../dtos/create-update-station.dto';
+import { CreateStationDto } from '../dtos/create-station.dto';
 import { StationObsEnvService } from './station-obs-env.service';
 import { StationObsFocusesService } from './station-obs-focuses.service';
 import { StationStatusEnum } from '../enums/station-status.enum';
@@ -55,19 +55,19 @@ export class StationsImportExportService {
             alterSQLs = alterSQLs + this.getAlterIdColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + this.getAlterNameColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + this.getAlterDescriptionColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterObsProcMethodColumnSQL(tmpTableName)
+            alterSQLs = alterSQLs + this.getAlterObsProcMethodColumnSQL(tmpTableName)
             alterSQLs = alterSQLs + this.getAlterLatLongElevationColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + await this.getAlterObsEnvColumnSQL(tmpTableName);
             alterSQLs = alterSQLs + await this.getAlterObsFocusColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterWMO_WIGOS_ICAO_IDSColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterStatusColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlter_Established_Closed_DatesColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs +  this.getAlterCommentsColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlterWMO_WIGOS_ICAO_IDSColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlterStatusColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlter_Established_Closed_DatesColumnSQL(tmpTableName);
+            alterSQLs = alterSQLs + this.getAlterCommentsColumnSQL(tmpTableName);
 
             // Execute the duckdb DDL SQL commands
             await this.fileIOService.duckDbConn.run(alterSQLs);
 
-             //check for duplicate ids
+            //check for duplicate ids
             const duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ID_PROPERTY);
             if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
             //check for duplicate names
@@ -114,7 +114,7 @@ export class StationsImportExportService {
         return `ALTER TABLE ${tableName} RENAME column2 TO ${this.DESCRIPTION_PROPERTY};`;
     }
 
-    private  getAlterObsProcMethodColumnSQL(tableName: string): string {
+    private getAlterObsProcMethodColumnSQL(tableName: string): string {
         let sql: string = '';
         sql = sql + `ALTER TABLE ${tableName} RENAME column3 TO ${this.OBS_PROC_METHOD_PROPERTY};`;
 
@@ -189,7 +189,7 @@ export class StationsImportExportService {
         return sql;
     }
 
-    private  getAlterStatusColumnSQL(tableName: string): string{
+    private getAlterStatusColumnSQL(tableName: string): string {
         let sql: string = '';
         sql = sql + `ALTER TABLE ${tableName} RENAME column12 TO ${this.STATUS_PROPERTY};`;
 
@@ -246,20 +246,20 @@ export class StationsImportExportService {
                 await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.insert, {
                     1: station.id,
                     2: station.name,
-                    3: station.description !== null ? station.description : '',
+                    3: station.description || '',
                     4: station.stationObsProcessingMethod,
-                    5: station.latitude !== null ? station.latitude : '',
-                    6: station.longitude !== null ? station.longitude : '',
-                    7: station.elevation !== null ? station.elevation : '',
-                    8: stationObsEnv ? stationObsEnv.name.toLowerCase() : '',
-                    9: stationObsFocus ? stationObsFocus.name.toLowerCase() : '',
-                    10: station.wmoId !== null ? station.wmoId : '',
-                    11: station.wigosId !== null ? station.wigosId : '',
-                    12: station.icaoId !== null ? station.icaoId : '',
-                    13: station.status ? station.status : null,
-                    14: station.dateEstablished ? station.dateEstablished.substring(0, 10) : null,
-                    15: station.dateClosed ? station.dateClosed.substring(0, 10) : null,
-                    16: station.comment !== null ? station.comment : ''
+                    5: station.latitude || '',
+                    6: station.longitude || '',
+                    7: station.elevation || '',
+                    8: stationObsEnv?.name.toLowerCase() || '',
+                    9: stationObsFocus?.name.toLowerCase() || '',
+                    10: station.wmoId || '',
+                    11: station.wigosId || '',
+                    12: station.icaoId || '',
+                    13: station.status || '',
+                    14: station.dateEstablished?.substring(0, 10) || '',
+                    15: station.dateClosed?.substring(0, 10) || '',
+                    16: station.comment || ''
                 });
             }
 

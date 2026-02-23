@@ -1,5 +1,5 @@
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
-import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity("network_affiliations")
 @Check("CHK_network_affiliation_name_not_empty", `"name" <> ''`)
@@ -13,19 +13,6 @@ export class NetworkAffiliationEntity extends AppBaseEntity {
   @Column({ name: "description", type: 'varchar', nullable: true })
   description: string | null;
 
-  //---------------
-  @Column({ name: "parent_network_id", type: 'int', nullable: true })
-  @Index()
-  parentNetworkId: number | null;
-
-  @ManyToOne(() => NetworkAffiliationEntity, {
-    nullable: true,
-    onDelete: "SET NULL",
-  })
-  @JoinColumn({ name: "parent_network_id" })
-  parentNetwork: NetworkAffiliationEntity | null;
-  //---------------
-
   @Column({ name: "color", type: "varchar", nullable: true })
   color: string | null;
 
@@ -34,7 +21,7 @@ export class NetworkAffiliationEntity extends AppBaseEntity {
   orderNumber: number | null;
 
   @Column({ name: "extra_metadata", type: 'jsonb', nullable: true })
-  extraMetadata: string | null;
+  extraMetadata: Record<string, any> | null;
 
   @Column({ name: "comment", type: 'varchar', nullable: true })
   comment: string | null;

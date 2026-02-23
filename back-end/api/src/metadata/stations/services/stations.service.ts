@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StationEntity } from '../entities/station.entity';
 import { UpdateStationDto } from '../dtos/update-station.dto';
-import { CreateStationDto } from '../dtos/create-update-station.dto';
+import { CreateStationDto } from '../dtos/create-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
@@ -153,23 +153,24 @@ export class StationsService implements OnModuleInit {
 
     private updateEntity(entity: StationEntity, dto: UpdateStationDto, userId: number): void {
         entity.name = dto.name;
-        entity.description = dto.description ? dto.description : '';
+        entity.description = dto.description || '';
         entity.location = (dto.longitude !== undefined && dto.longitude !== null) && (dto.latitude !== undefined && dto.latitude !== null) ? {
             type: "Point",
             coordinates: [dto.longitude, dto.latitude],
         } : null;
-        entity.elevation = (dto.elevation !== undefined && dto.elevation !== null) ? dto.elevation : null;
+        entity.elevation = dto.elevation ?? null;
         entity.obsProcessingMethod = dto.stationObsProcessingMethod;
-        entity.obsEnvironmentId = dto.stationObsEnvironmentId ? dto.stationObsEnvironmentId : null;
-        entity.obsFocusId = dto.stationObsFocusId ? dto.stationObsFocusId : null;
-        entity.organisationId = dto.organisationId ? dto.organisationId : null;
-        entity.wmoId = dto.wmoId ? dto.wmoId : null;
-        entity.wigosId = dto.wigosId ? dto.wigosId : null;
-        entity.icaoId = dto.icaoId ? dto.icaoId : null;
-        entity.status = dto.status ? dto.status : null;
+        entity.obsEnvironmentId = dto.stationObsEnvironmentId || null;
+        entity.obsFocusId = dto.stationObsFocusId || null;
+        entity.ownerId = dto.ownerId || null;
+        entity.operatorId = dto.operatorId || null;
+        entity.wmoId = dto.wmoId || null;
+        entity.wigosId = dto.wigosId || null;
+        entity.icaoId = dto.icaoId || null;
+        entity.status = dto.status || null;
         entity.dateEstablished = dto.dateEstablished ? new Date(dto.dateEstablished) : null;
         entity.dateClosed = dto.dateClosed ? new Date(dto.dateClosed) : null;
-        entity.comment = dto.comment ? dto.comment : null;
+        entity.comment = dto.comment || null;
         entity.entryUserId = userId;
     }
 
@@ -177,28 +178,29 @@ export class StationsService implements OnModuleInit {
         return {
             id: entity.id,
             name: entity.name,
-            description: entity.description,
-            longitude: entity.location ? entity.location.coordinates[0] : null,
-            latitude: entity.location ? entity.location.coordinates[1] : null,
-            elevation: entity.elevation,
-            stationObsProcessingMethod: entity.obsProcessingMethod,
-            stationObsEnvironmentId: entity.obsEnvironmentId,
-            stationObsFocusId: entity.obsFocusId,
-            organisationId: entity.organisationId,
-            wmoId: entity.wmoId,
-            wigosId: entity.wigosId,
-            icaoId: entity.icaoId,
-            status: entity.status,
-            dateEstablished: entity.dateEstablished ? entity.dateEstablished.toISOString() : null,
-            dateClosed: entity.dateClosed ? entity.dateClosed.toISOString() : null,
-            comment: entity.comment,
+            description: entity.description || undefined,
+            longitude: entity.location?.coordinates[0] || undefined,
+            latitude: entity.location?.coordinates[1] || undefined,
+            elevation: entity.elevation || undefined,
+            stationObsProcessingMethod: entity.obsProcessingMethod || undefined,
+            stationObsEnvironmentId: entity.obsEnvironmentId || undefined,
+            stationObsFocusId: entity.obsFocusId || undefined,
+            ownerId: entity.ownerId || undefined,
+            operatorId: entity.operatorId || undefined,
+            wmoId: entity.wmoId || undefined,
+            wigosId: entity.wigosId || undefined,
+            icaoId: entity.icaoId || undefined,
+            status: entity.status || undefined,
+            dateEstablished: entity.dateEstablished?.toISOString() || undefined,
+            dateClosed: entity.dateClosed?.toISOString() || undefined,
+            comment: entity.comment || undefined,
         }
     }
 
     public async bulkPut(dtos: CreateStationDto[], userId: number) {
         const entities: StationEntity[] = [];
         for (const dto of dtos) {
-            const entity: StationEntity = await this.stationRepo.create({
+            const entity: StationEntity = this.stationRepo.create({
                 id: dto.id,
             });
 

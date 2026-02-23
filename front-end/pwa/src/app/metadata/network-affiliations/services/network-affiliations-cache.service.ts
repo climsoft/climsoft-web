@@ -11,8 +11,6 @@ export interface NetworkAffiliationCacheModel {
     id: number;
     name: string;
     description: string;
-    parentNetworkId: number;
-    parentNetworkName: string;
     extraMetadata: string;
     comment: string;
 }
@@ -36,20 +34,12 @@ export class NetworkAffiliationsCacheService {
         const networksFromServer: ViewNetworkAffiliationModel[] = await AppDatabase.instance.networkAffiliations.toArray();
         const newCachedNetworks: NetworkAffiliationCacheModel[] = [];
         for (const network of networksFromServer) {
-            let parentNetworkName = '';
-            if (network.parentNetworkId) {
-                const networkFromServer = networksFromServer.find(item => item.id === network.parentNetworkId);
-                if (networkFromServer) parentNetworkName = networkFromServer.name;
-            }
-
             newCachedNetworks.push({
                 id: network.id,
                 name: network.name,
-                description: network.description ? network.description : '',
-                parentNetworkId: network.parentNetworkId ? network.parentNetworkId : 0,
-                parentNetworkName: parentNetworkName,
-                extraMetadata: network.extraMetadata ? network.extraMetadata : '',
-                comment: network.comment ? network.comment : '',
+                description: network.description || '',
+                extraMetadata: network.extraMetadata || '',
+                comment: network.comment || '',
             });
         }
 

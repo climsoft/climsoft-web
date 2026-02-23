@@ -62,16 +62,32 @@ export class StationEntity extends AppBaseEntity {
   //---------------
 
   //---------------
-  @Column({ name: "organisation_id", type: "int", nullable: true })
+  //organisation that owns the station.
+  //---------------
+  @Column({ name: "owner_id", type: "int", nullable: true })
   @Index()
-  organisationId: number | null; // name of organisation that owns the station.
+  ownerId: number | null; // name of 
 
   @ManyToOne(() => OrganisationEntity, {
     nullable: true,
     onDelete: "SET NULL",
   })
-  @JoinColumn({ name: "organisation_id" })
-  organisation: OrganisationEntity | null;
+  @JoinColumn({ name: "owner_id" })
+  owner: OrganisationEntity | null;
+  //---------------
+  //---------------
+  //organisation that owns the station.
+  //---------------
+  @Column({ name: "operator_id", type: "int", nullable: true })
+  @Index()
+  operatorId: number | null; // name of 
+
+  @ManyToOne(() => OrganisationEntity, {
+    nullable: true,
+    onDelete: "SET NULL",
+  })
+  @JoinColumn({ name: "operator_id" })
+  operator: OrganisationEntity | null;
   //---------------
 
   @Column({ name: "wmo_id", type: 'varchar', nullable: true, unique: true })
@@ -100,7 +116,6 @@ export class StationEntity extends AppBaseEntity {
 
   @Column({ name: "log", type: 'jsonb', nullable: true })
   log: StationLogVo[] | null;
-
 }
 
 export interface StationLogVo extends BaseLogVo {

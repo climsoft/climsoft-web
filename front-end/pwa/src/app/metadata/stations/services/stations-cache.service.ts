@@ -24,12 +24,14 @@ export interface StationCacheModel {
     elevation: number | null;
     stationObsProcessingMethod: StationProcessingMethodEnum;
     stationObsProcessingMethodName: string;
-    stationObsEnvironmentId: number | null;
+    stationObsEnvironmentId: number;
     stationObsEnvironmentName: string;
-    stationObsFocusId: number | null;
+    stationObsFocusId: number;
     stationObsFocusName: string;
-    organisationId: number | null;
-    organisationName: string;
+    ownerId: number;
+    ownerName: string;
+    operatorId: number;
+    operatorName: string;
     wmoId: string;
     wigosId: string;
     icaoId: string;
@@ -69,32 +71,35 @@ export class StationsCacheService {
         for (const station of localDBStations) {
             const obsEnv = obsEnvs.find(item => item.id === station.stationObsEnvironmentId);
             const obsFocus = obsFocuses.find(item => item.id === station.stationObsFocusId);
-            const organisation = organisations.find(item => item.id === station.organisationId);
+            const owner = organisations.find(item => item.id === station.ownerId);
+            const operator = organisations.find(item => item.id === station.operatorId);
             const location = station.longitude && station.latitude ? { longitude: station.longitude, latitude: station.latitude } : null;
 
             newCachedStations.push(
                 {
                     id: station.id,
                     name: station.name,
-                    description: station.description,
+                    description: station.description || '',
                     location: location,
-                    elevation: station.elevation? station.elevation : null,
+                    elevation: station.elevation || null,
                     stationObsProcessingMethod: station.stationObsProcessingMethod,
                     stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
-                    stationObsEnvironmentId: obsEnv ? obsEnv.id : null,
-                    stationObsEnvironmentName: obsEnv ? obsEnv.name : '',
-                    stationObsFocusId: obsFocus ? obsFocus.id : null,
-                    stationObsFocusName: obsFocus ? obsFocus.name : '',
-                    organisationId: organisation ? organisation.id : null,
-                    organisationName: organisation ? organisation.name : '',
+                    stationObsEnvironmentId: obsEnv?.id || 0,
+                    stationObsEnvironmentName: obsEnv?.name || '',
+                    stationObsFocusId: obsFocus?.id || 0,
+                    stationObsFocusName: obsFocus?.name || '',
+                    ownerId: owner?.id || 0,
+                    ownerName: owner?.name || '',
+                    operatorId: operator?.id || 0,
+                    operatorName: owner?.name || '',
                     wmoId: station.wmoId ? station.wmoId : '',
                     wigosId: station.wigosId ? station.wigosId : '',
-                    icaoId: station.icaoId ? station.icaoId : '',
-                    status: station.status? station.status: null,
+                    icaoId:   station?.icaoId || '',
+                    status:   station?.status || null,
                     statusName: station.status ? StringUtils.formatEnumForDisplay(station.status) : '',
-                    dateEstablished: station.dateEstablished ? station.dateEstablished.substring(0, 10) : '',
-                    dateClosed: station.dateClosed ? station.dateClosed.substring(0, 10) : '',
-                    comment: station.comment ? station.comment : '',
+                    dateEstablished: station.dateEstablished?.substring(0, 10) || '',
+                    dateClosed: station.dateClosed?.substring(0, 10) || '',
+                    comment: station.comment || '',
                 });
         }
         this._cachedStations.next(newCachedStations);
@@ -121,7 +126,7 @@ export class StationsCacheService {
                 if (res) {
                     this.loadStations();
                 }
-            }            ,
+            },
             error: err => {
                 this.checkingForUpdates = false;
             }

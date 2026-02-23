@@ -2,7 +2,7 @@ import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeVa
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
-import { CreateStationDto } from '../dtos/create-update-station.dto';
+import { CreateStationDto } from '../dtos/create-station.dto';
 import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';

@@ -8,62 +8,66 @@ export class UpdateStationDto {
 
     @IsOptional()
     @IsString()
-    description: string | null;
+    description?: string;
 
     @IsOptional()
     @IsNumber()
-    longitude: number | null;
+    longitude?: number;
 
     @IsOptional()
     @IsNumber()
-    latitude: number | null;
+    latitude?: number;
 
     @IsOptional()
     @IsNumber()
-    elevation: number | null; //from and to. Elevation of station above mean sea level.  todo. discuss on oscar and openCDMS
+    elevation?: number; // Elevation of station above mean sea level. 
 
     @IsEnum(StationObsProcessingMethodEnum, { message: 'Station observing method must be a valid value' })
     stationObsProcessingMethod: StationObsProcessingMethodEnum;
 
     @IsOptional()
     @IsInt()
-    stationObsEnvironmentId: number | null;
+    stationObsEnvironmentId?: number;
 
     @IsOptional()
     @IsInt()
-    stationObsFocusId: number | null;
+    stationObsFocusId?: number;
 
     @IsOptional()
     @IsInt()
-    organisationId: number | null;
+    ownerId?: number;
+
+    @IsOptional()
+    @IsInt()
+    operatorId?: number;
+
+    @IsOptional()
+    @IsString() // TODO. Add validation for WMO station identifier
+    wmoId?: string ;
+
+    @IsOptional()
+    @IsString() // TODO. Add validation for WMO wigos station identifier
+    wigosId?: string | null;
 
     @IsOptional()
     @IsString()
-    wmoId: string | null;
-
-    @IsOptional()
-    @IsString()
-    wigosId: string | null;
-
-    @IsOptional()
-    @IsString()
-    icaoId: string | null;
+    icaoId?: string | null;
 
     @IsOptional()
     @IsEnum(StationStatusEnum, { message: 'Station status must be a valid value' })
-    status: StationStatusEnum | null;
+    status?: StationStatusEnum;
 
     @IsOptional()
     @IsDateString()
-    dateEstablished: string | null;
+    dateEstablished?: string;
 
     @IsOptional()
     @IsDateString()
-    dateClosed: string | null;
+    dateClosed?: string;
 
     @IsOptional()
     @IsString()
-    comment: string | null;
+    comment?: string;
 
 }
 

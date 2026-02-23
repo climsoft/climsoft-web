@@ -8,14 +8,14 @@ import { StationsCacheService } from 'src/app/metadata/stations/services/station
   styleUrls: ['./station-focus-selector-single.component.scss']
 })
 export class StationFocusSelectorSingleComponent implements OnInit, OnChanges {
-  @Input() public label!: string ;
-  @Input() public errorMessage!: string ;
+  @Input() public label!: string;
+  @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: number[];
-  @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Input() public selectedId!: number | null | undefined;
+  @Output() public selectedIdChange = new EventEmitter<number | undefined>();
 
   protected options!: ViewStationObsFocusModel[];
-  protected selectedOption!: ViewStationObsFocusModel | null;
+  protected selectedOption!: ViewStationObsFocusModel | undefined;
 
   constructor(private stationsCacheService: StationsCacheService) {
   }
@@ -41,7 +41,7 @@ export class StationFocusSelectorSingleComponent implements OnInit, OnChanges {
   private setInputSelectedOption(): void {
     if (this.options && this.selectedId) {
       const found = this.options.find(data => data.id === this.selectedId);
-      this.selectedOption = found ? found : null;
+      this.selectedOption = found ? found : undefined;
     }
   }
 
@@ -50,13 +50,14 @@ export class StationFocusSelectorSingleComponent implements OnInit, OnChanges {
   }
 
   protected onSelectedOptionChange(selectedOption: ViewStationObsFocusModel | null) {
-    //console.log('focus change: ', selectedOption);
-    this.selectedOption = selectedOption;
     if (selectedOption) {
+      this.selectedOption = selectedOption;
       this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
     } else {
-      this.selectedIdChange.emit(null);
+      this.selectedOption = undefined;
+      this.selectedId = 0;
+      this.selectedIdChange.emit(undefined);
     }
 
   }

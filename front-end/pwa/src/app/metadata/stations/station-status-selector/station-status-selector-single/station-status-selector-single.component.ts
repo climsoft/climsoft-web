@@ -11,8 +11,8 @@ export class StationStatusSelectorSingleComponent implements OnChanges {
   @Input() public label: string = 'Status';
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: StationStatusEnum[];
-  @Input() public selectedId!: StationStatusEnum | null| undefined;
-  @Output() public selectedIdChange = new EventEmitter<StationStatusEnum | null>();
+  @Input() public selectedId!: StationStatusEnum | undefined;
+  @Output() public selectedIdChange = new EventEmitter<StationStatusEnum | undefined>();
 
   protected options!: StationStatusEnum[];
   protected selectedOption!: StationStatusEnum | null;
@@ -53,7 +53,7 @@ export class StationStatusSelectorSingleComponent implements OnChanges {
     if (selectedOption) {
       this.selectedIdChange.emit(selectedOption);
     } else {
-      this.selectedIdChange.emit(null);
+      this.selectedIdChange.emit(undefined);
     }
 
   }

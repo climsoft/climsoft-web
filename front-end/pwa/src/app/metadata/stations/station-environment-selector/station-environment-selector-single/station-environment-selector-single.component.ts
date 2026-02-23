@@ -11,8 +11,8 @@ export class StationEnvironmentSelectorSingleComponent implements OnInit, OnChan
   @Input() public label!: string;
   @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: number[];
-  @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Input() public selectedId!: number | null | undefined;
+  @Output() public selectedIdChange = new EventEmitter<number | undefined>();
 
   protected options!: ViewStationObsEnvModel[];
   protected selectedOption!: ViewStationObsEnvModel | null;
@@ -52,12 +52,15 @@ export class StationEnvironmentSelectorSingleComponent implements OnInit, OnChan
   }
 
   protected onSelectedOptionChange(selectedOption: ViewStationObsEnvModel | null) {
-    this.selectedOption = selectedOption;
+
     if (selectedOption) {
+      this.selectedOption = selectedOption;
       this.selectedId = selectedOption.id;
       this.selectedIdChange.emit(selectedOption.id);
     } else {
-      this.selectedIdChange.emit(null);
+      this.selectedOption = null;
+      this.selectedId = 0;
+      this.selectedIdChange.emit(undefined);
     }
   }
 }

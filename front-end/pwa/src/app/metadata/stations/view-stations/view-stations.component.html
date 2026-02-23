@@ -24,14 +24,14 @@
           (click)="dlgAddStation.showDialog()">
           Add
         </button>
-        <app-edit-station-dialog #dlgAddStation />
+        <app-station-input-dialog #dlgAddStation />
       </div>
       <div>
         <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
           (click)="dlgImportStations.showDialog()">
           Import
         </button>
-        <app-import-stations-dialog #dlgImportStations />
+        <app-stations-import-dialog #dlgImportStations />
       </div>
       <div *ngIf="activeTab !== 'treemap'" class="ms-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">

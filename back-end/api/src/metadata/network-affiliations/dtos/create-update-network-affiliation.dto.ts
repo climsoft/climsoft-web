@@ -6,17 +6,13 @@ export class CreateUpdateNetworkAffiliationDto {
 
     @IsOptional()
     @IsString()
-    description: string | null;
-
-    @IsOptional()
-    @IsInt()
-    parentNetworkId: number | null;
+    description?: string;
 
     @IsOptional()
     @IsString()
-    extraMetadata: string | null;
+    extraMetadata?: Record<string, any>;
 
     @IsOptional()
     @IsString()
-    comment: string | null;
+    comment?: string;
 }

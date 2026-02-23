@@ -6,11 +6,11 @@ import { StationsCacheService } from '../services/stations-cache.service';
 import { AppConfigService } from 'src/app/app-config.service';
 
 @Component({
-  selector: 'app-import-stations-dialog',
-  templateUrl: './import-stations-dialog.component.html',
-  styleUrls: ['./import-stations-dialog.component.scss']
+  selector: 'app-stations-import-dialog',
+  templateUrl: './stations-import-dialog.component.html',
+  styleUrls: ['./stations-import-dialog.component.scss']
 })
-export class ImportStationsDialogComponent {
+export class StationsImportDialogComponent {
   @Output() public okClick = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
@@ -32,12 +32,12 @@ export class ImportStationsDialogComponent {
   }
 
   public showDialog(): void {
-    this.uploadMessage = "";
+    this.uploadMessage = '';
     this.uploadError = false;
     this.uploadProgress = 0;
     this.disableUpload = false;
     this.fileInputEvent = undefined;
-    this.fileName = "";
+    this.fileName = '';
     this.open = true;
   }
 

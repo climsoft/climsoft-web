@@ -147,7 +147,7 @@ export class ViewStationsTreeMapComponent implements AfterViewInit, OnDestroy {
     for (const organisation of this.organisations) {
       let value: number = 0;
       for (const station of this.filteredStations) {
-        if (station.organisationId === organisation.id) {
+        if (station.ownerId === organisation.id) {
           value = value + 1;
         }
       }

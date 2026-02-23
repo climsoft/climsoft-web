@@ -27,20 +27,19 @@
             <th></th>
             <th>Name</th>
             <th>Description</th>
-            <th>Parent Network</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let network of networkAffiliations">
-            <td (click)="onEditNetworkAffiliation(network)"><i class="bi bi-arrow-right-short"></i></td>
-            <td (click)="onEditNetworkAffiliation(network)">{{ network.name }}</td>
-            <td (click)="onEditNetworkAffiliation(network)">{{ network.description }}</td>
-            <td (click)="onEditNetworkAffiliation(network)">{{ network.parentNetworkName }}</td>
+          <tr class="app-cursor-pointer" *ngFor="let network of networkAffiliations"
+            (click)="onEditNetworkAffiliation(network, $event)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ network.name }}</td>
+            <td>{{ network.description }}</td>
             <td>
               <div class="d-flex align-items-center">
                 <button type="button" class="btn btn-outline-secondary btn-sm"
-                  (click)="onAssignStationsClicked(network)">Assign Stations</button>
+                  (click)="onAssignStationsClicked(network, $event)">Assign Stations</button>
                 <div class="ms-2">{{ network.assignedStations }}</div>
               </div>
             </td>
@@ -48,9 +47,9 @@
         </tbody>
       </table>
     </div>
-    <app-stations-search-dialog #appSearchAssignedStations
-      (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
   </div>
 
+  <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
+  
   <app-network-affiliation-input-dialog #dlgNetworkDetails />
 </div>

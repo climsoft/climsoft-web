@@ -331,9 +331,9 @@ export class StationsSearchDialogComponent implements OnDestroy {
 
       // Filter by organisation
       if (filter.organisationIds.length > 0) {
-        if (!item.organisationId) {
+        if (!item.ownerId) {
           return false;
-        } else if (!filter.organisationIds.includes(item.organisationId)) {
+        } else if (!filter.organisationIds.includes(item.ownerId)) {
           return false;
         }
       }
