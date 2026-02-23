@@ -2,10 +2,11 @@ import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
 import { AdminRoutingModule } from './admin-routing.module';
 import { ViewGeneralSettingsComponent } from './general-settings/view-general-settings/view-general-settings.component';
-import { EditGeneralSettingComponent } from './general-settings/edit-general-setting/edit-general-setting.component';
-import { ClimsoftBoundaryComponent } from './general-settings/edit-general-setting/climsoft-boundary/climsoft-boundary.component';
+import { GeneralSettingInputDialogComponent } from './general-settings/general-setting-dialog/general-setting-input-dialog.component';
+import { ClimsoftBoundaryComponent } from './general-settings/general-setting-dialog/climsoft-boundary/climsoft-boundary.component';
 import { MetadataModule } from '../metadata/metadata.module';
-import { ClimsoftDisplayTimezoneComponent } from './general-settings/edit-general-setting/climsoft-display-timezone/climsoft-display-timezone.component';
+import { ClimsoftDisplayTimezoneComponent } from './general-settings/general-setting-dialog/climsoft-display-timezone/climsoft-display-timezone.component';
+import { SchedulerSettingComponent } from './general-settings/general-setting-dialog/scheduler-setting/scheduler-setting.component';
 import { ViewUsersComponent } from './users/view-users/view-users.component';
 import { UserDetailsComponent } from './users/user-details/user-details.component';
 import { UserGroupSelectorSingleComponent } from './users/user-group-selector-single/user-group-selector-single.component';
@@ -32,9 +33,10 @@ import { JobTriggerSelectorSingleComponent } from './job-queue/components/job-tr
 @NgModule({
   declarations: [
     ViewGeneralSettingsComponent,
-    EditGeneralSettingComponent,
+    GeneralSettingInputDialogComponent,
     ClimsoftBoundaryComponent,
     ClimsoftDisplayTimezoneComponent,
+    SchedulerSettingComponent,
     ClimsoftV4Component,
 
     ViewUserGroupsComponent,

@@ -15,7 +15,7 @@
    </div>
 
    <div class="card-body px-0">
-      <div class="app-table-container" style="height: 80vh;">
+      <div class="app-table-container" style="max-height: 80vh;">
          <table class="table table-hover table-sm">
             <colgroup>
                <col style="width: 2%;" />
@@ -41,7 +41,7 @@
             </thead>
             <tbody>
                <tr class="app-cursor-pointer" *ngFor="let connector of connectors"
-                  [class.connector-disabled]="connector.disabled" (click)="dlgConnectorInput.showDialog(connector.id)">
+                  [class.connector-disabled]="connector.disabled" (click)="onConnectorClick(connector.id, $event)">
                   <td><i class="bi bi-arrow-right-short"></i></td>
                   <td>{{ connector.name }}</td>
                   <td>
@@ -74,6 +74,8 @@
          </table>
       </div>
    </div>
+
+   <!-- Connector Input Dialog -->
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
 
    <!-- Delete Confirmation Dialog -->

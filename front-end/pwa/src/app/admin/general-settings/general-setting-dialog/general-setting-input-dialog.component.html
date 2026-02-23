@@ -1,6 +1,7 @@
-<div *ngIf="setting" class="card border-0">
+<ng-container *ngIf="open && setting">
+  <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [closeOnOkClick]="false"
+    (okClick)="onSaveClick()">
 
-  <div class="card-body p-0">
     <div>
       <div class="mb-3">
         <app-label-input [label]="'Name'" [value]="setting.name" />
@@ -16,16 +17,9 @@
       <div class="card-body">
         <app-climsoft-boundary *ngIf="setting.id === 1" [settingParameter]="setting.parameters" />
         <app-climsoft-display-timezone *ngIf="setting.id === 2" [settingParameter]="setting.parameters" />
+        <app-scheduler-setting *ngIf="setting.id === 3" [settingParameter]="setting.parameters" />
       </div>
     </div>
 
-  </div>
-
-  <div class="card-footer bg-transparent d-flex justify-content-end px-0 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-primary me-2" (click)="onSaveClick()">
-      Save
-    </button>
-    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="onCancelClick()">Cancel</button>
-  </div>
-
-</div>
+  </app-dialog>
+</ng-container>
