@@ -92,7 +92,6 @@ export class GeneralSettingsService implements OnModuleInit {
         const saved = await this.generalSettingRepo.save(entity);
         await this.cache.invalidate();
         const viewDto = this.createViewDto(saved);
-        console.log('emitting dto ')
         this.eventEmitter.emit('setting.updated', { id, viewDto });
         return viewDto;
     }

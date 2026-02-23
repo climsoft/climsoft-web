@@ -25,7 +25,7 @@ export const DEFAULT_GENERAL_SETTINGS: ViewGeneralSettingModel[] = [
     {
         id: 3,
         name: 'Scheduler',
-        description: 'Settings related to the scheduler that runs the connectors, QC, cleaning up of session files and alerts.',
+        description: 'Settings related to the scheduler that runs the connectors, QC, cleaning up of stale files and alerts.',
         parameters: {
             jobQueueCleanup: { cronSchedule: '0 3 * * *', daysOld: 30 },
             connectorLogCleanup: { cronSchedule: '0 3 * * *', daysOld: 30 },

@@ -1,35 +1,41 @@
 <div *ngIf="scheduler">
 
-    <div class="mb-4">
-        <h6 class="fw-bold">Job Queue Cleanup</h6>
-        <div class="mb-2">
-            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
-                [(value)]="scheduler.jobQueueCleanup.cronSchedule" />
-        </div>
-        <div class="mb-2">
-            <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.jobQueueCleanup.daysOld" [min]="1" />
-        </div>
-    </div>
-
-    <div class="mb-4">
-        <h6 class="fw-bold">Connector Log Cleanup</h6>
-        <div class="mb-2">
-            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
-                [(value)]="scheduler.connectorLogCleanup.cronSchedule" />
-        </div>
-        <div class="mb-2">
-            <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.connectorLogCleanup.daysOld" [min]="1" />
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary bg-opacity-10 text-primary fw-bold">Job Queue Cleanup</div>
+        <div class="card-body">
+            <div class="mb-2">
+                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                    [(value)]="scheduler.jobQueueCleanup.cronSchedule" />
+            </div>
+            <div>
+                <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.jobQueueCleanup.daysOld" [min]="1" />
+            </div>
         </div>
     </div>
 
-    <div class="mb-4">
-        <h6 class="fw-bold">File Cleanup</h6>
-        <div class="mb-2">
-            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
-                [(value)]="scheduler.fileCleanup.cronSchedule" />
+    <div class="card mb-3 border-info">
+        <div class="card-header bg-info bg-opacity-10 text-info fw-bold">Connector Log Cleanup</div>
+        <div class="card-body">
+            <div class="mb-2">
+                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                    [(value)]="scheduler.connectorLogCleanup.cronSchedule" />
+            </div>
+            <div>
+                <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.connectorLogCleanup.daysOld" [min]="1" />
+            </div>
         </div>
-        <div class="mb-2">
-            <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.fileCleanup.daysOld" [min]="1" />
+    </div>
+
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning bg-opacity-10 text-warning fw-bold">File Cleanup</div>
+        <div class="card-body">
+            <div class="mb-2">
+                <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                    [(value)]="scheduler.fileCleanup.cronSchedule" />
+            </div>
+            <div>
+                <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.fileCleanup.daysOld" [min]="1" />
+            </div>
         </div>
     </div>
 

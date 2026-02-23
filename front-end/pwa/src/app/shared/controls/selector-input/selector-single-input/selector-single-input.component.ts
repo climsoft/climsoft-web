@@ -13,6 +13,8 @@ export class SelectorSingleInputComponent<T> implements OnChanges {
 
   @Input() public label!: string;
 
+   @Input() public labelSuperScript!: string;
+
   @Input() public placeholder!: string;
 
   @Input() public displayCancelOption!: boolean;

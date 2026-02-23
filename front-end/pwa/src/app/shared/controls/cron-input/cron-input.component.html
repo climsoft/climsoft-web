@@ -60,8 +60,9 @@
             <!-- Daily at time -->
             <ng-container *ngIf="selectedFrequency.id === 'daily'">
                 <div class="col-6">
-                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                    <app-selector-single-input [label]="'At hour'" [labelSuperScript]="'utc'" [options]="hours"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHour"
+                        (selectedOptionChange)="onHourChange($event)" />
                 </div>
                 <div class="col-6">
                     <app-selector-single-input [label]="'Minute'" [options]="minutes"
@@ -79,8 +80,9 @@
                     <span class="form-text ms-2">days</span>
                 </div>
                 <div class="col-6">
-                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                    <app-selector-single-input [label]="'At hour'" [labelSuperScript]="'utc'" [options]="hours"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHour"
+                        (selectedOptionChange)="onHourChange($event)" />
                 </div>
                 <div class="col-6">
                     <app-selector-single-input [label]="'Minute'" [options]="minutes"
@@ -102,8 +104,9 @@
                     </div>
                 </div>
                 <div class="col-6">
-                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                    <app-selector-single-input [label]="'At hour'" [labelSuperScript]="'utc'" [options]="hours"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHour"
+                        (selectedOptionChange)="onHourChange($event)" />
                 </div>
                 <div class="col-6">
                     <app-selector-single-input [label]="'Minute'" [options]="minutes"
@@ -120,8 +123,9 @@
                         (selectedOptionChange)="onDayOfMonthChange($event)" />
                 </div>
                 <div class="col-6">
-                    <app-selector-single-input [label]="'At hour'" [options]="hours" [optionDisplayFn]="numberDisplayFn"
-                        [selectedOption]="selectedHour" (selectedOptionChange)="onHourChange($event)" />
+                    <app-selector-single-input [label]="'At hour'" [labelSuperScript]="'utc'" [options]="hours"
+                        [optionDisplayFn]="numberDisplayFn" [selectedOption]="selectedHour"
+                        (selectedOptionChange)="onHourChange($event)" />
                 </div>
                 <div class="col-6">
                     <app-selector-single-input [label]="'Minute'" [options]="minutes"
