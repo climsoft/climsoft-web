@@ -3,7 +3,8 @@
     <div class="mb-4">
         <h6 class="fw-bold">Job Queue Cleanup</h6>
         <div class="mb-2">
-            <app-text-input [label]="'Cron Schedule'" [(value)]="scheduler.jobQueueCleanup.cronSchedule" />
+            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                [(value)]="scheduler.jobQueueCleanup.cronSchedule" />
         </div>
         <div class="mb-2">
             <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.jobQueueCleanup.daysOld" [min]="1" />
@@ -13,7 +14,8 @@
     <div class="mb-4">
         <h6 class="fw-bold">Connector Log Cleanup</h6>
         <div class="mb-2">
-            <app-text-input [label]="'Cron Schedule'" [(value)]="scheduler.connectorLogCleanup.cronSchedule" />
+            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                [(value)]="scheduler.connectorLogCleanup.cronSchedule" />
         </div>
         <div class="mb-2">
             <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.connectorLogCleanup.daysOld" [min]="1" />
@@ -23,7 +25,8 @@
     <div class="mb-4">
         <h6 class="fw-bold">File Cleanup</h6>
         <div class="mb-2">
-            <app-text-input [label]="'Cron Schedule'" [(value)]="scheduler.fileCleanup.cronSchedule" />
+            <app-cron-input [label]="'Schedule'" [labelSuperScript]="'cron expression'"
+                [(value)]="scheduler.fileCleanup.cronSchedule" />
         </div>
         <div class="mb-2">
             <app-number-input [label]="'Days Old'" [(numValue)]="scheduler.fileCleanup.daysOld" [min]="1" />
