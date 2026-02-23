@@ -1,8 +1,8 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { PagesDataService } from 'src/app/core/services/pages-data.service';
-import { CreateViewGeneralSettingModel } from '../models/create-view-general-setting.model';
-import { GeneralSettingsService } from '../services/general-settings.service';
+import { ViewGeneralSettingModel } from '../models/view-general-setting.model';
+import { GeneralSettingsCacheService } from '../services/general-settings.service';
 import { GeneralSettingInputDialogComponent } from '../general-setting-dialog/general-setting-input-dialog.component';
 import { SettingIdEnum } from '../models/setting-id.enum';
 
@@ -14,12 +14,12 @@ import { SettingIdEnum } from '../models/setting-id.enum';
 export class ViewGeneralSettingsComponent implements OnDestroy {
   @ViewChild('dlgEditSetting') dlgEditSetting!: GeneralSettingInputDialogComponent;
 
-  protected settings: CreateViewGeneralSettingModel[] = [];
+  protected settings: ViewGeneralSettingModel[] = [];
   private destroy$ = new Subject<void>();
 
   constructor(
     private pagesDataService: PagesDataService,
-    private generalSettingsService: GeneralSettingsService,
+    private generalSettingsService: GeneralSettingsCacheService,
   ) {
     this.pagesDataService.setPageHeader('General Settings');
     this.loadSettings();

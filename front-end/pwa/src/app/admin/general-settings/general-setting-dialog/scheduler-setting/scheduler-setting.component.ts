@@ -1,5 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { SettingsParametersValidity } from '../../models/update-general-setting.model';
+import { Component, Input } from '@angular/core';
 import { SchedulerSettingModel } from '../../models/settings/scheduler-setting.model';
 
 @Component({
@@ -7,16 +6,9 @@ import { SchedulerSettingModel } from '../../models/settings/scheduler-setting.m
   templateUrl: './scheduler-setting.component.html',
   styleUrls: ['./scheduler-setting.component.scss']
 })
-export class SchedulerSettingComponent implements OnChanges {
-
+export class SchedulerSettingComponent {
   @Input()
-  public settingParameter!: SettingsParametersValidity;
+  public scheduler!: SchedulerSettingModel;
 
-  protected scheduler!: SchedulerSettingModel;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.settingParameter) {
-      this.scheduler = this.settingParameter as SchedulerSettingModel;
-    }
-  }
+   
 }

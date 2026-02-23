@@ -27,7 +27,7 @@ export class GeneralSettingController {
     public async update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
-        @Body() createSourceDto: UpdateGeneralSettingParametersDto) { // TODO. Validate the dto
+        @Body() createSourceDto: UpdateGeneralSettingParametersDto) {
         return this.generalSettingsService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 

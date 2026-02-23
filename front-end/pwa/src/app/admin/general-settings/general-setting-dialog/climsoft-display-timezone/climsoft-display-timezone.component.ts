@@ -1,5 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { SettingsParametersValidity } from '../../models/update-general-setting.model';
+import { Component, Input } from '@angular/core';
 import { ClimsoftDisplayTimeZoneModel } from '../../models/settings/climsoft-display-timezone.model';
 
 
@@ -8,16 +7,8 @@ import { ClimsoftDisplayTimeZoneModel } from '../../models/settings/climsoft-dis
   templateUrl: './climsoft-display-timezone.component.html',
   styleUrls: ['./climsoft-display-timezone.component.scss']
 })
-export class ClimsoftDisplayTimezoneComponent implements OnChanges {
-
+export class ClimsoftDisplayTimezoneComponent   {
   @Input()
-  public settingParameter!: SettingsParametersValidity;
-
-  protected displayTimezone!: ClimsoftDisplayTimeZoneModel;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.settingParameter) {
-      this.displayTimezone = this.settingParameter as ClimsoftDisplayTimeZoneModel;
-    }
-  }
+  public displayTimezone!: ClimsoftDisplayTimeZoneModel;
+ 
 }

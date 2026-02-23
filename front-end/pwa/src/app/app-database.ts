@@ -12,7 +12,7 @@ import { CachedObservationModel } from "./data-ingestion/services/observations.s
 import { CreateStationModel } from "./metadata/stations/models/create-station.model";
 import { ViewOrganisationModel } from "./metadata/organisations/models/view-organisation.model";
 import { ViewNetworkAffiliationModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
-import { CreateViewGeneralSettingModel } from "./admin/general-settings/models/create-view-general-setting.model";
+import { ViewGeneralSettingModel } from "./admin/general-settings/models/view-general-setting.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -68,7 +68,7 @@ export class AppDatabase extends Dexie {
     elementTypes!: Table<ViewElementTypeModel, number>;
     elements!: Table<CreateViewElementModel, number>;
     sourceTemplates!: Table<ViewSourceModel, number>;
-    generalSettings!: Table<CreateViewGeneralSettingModel, number>;
+    generalSettings!: Table<ViewGeneralSettingModel, number>;
 
 
     // cached differently

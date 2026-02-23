@@ -1,6 +1,5 @@
-import { SettingsParametersValidity } from "../update-general-setting.model";
 
-export interface ClimsoftDisplayTimeZoneModel extends SettingsParametersValidity {
+export interface ClimsoftDisplayTimeZoneModel  {
     utcOffset: number; 
 }
 

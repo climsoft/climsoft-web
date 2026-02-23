@@ -5,7 +5,7 @@ import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elemen
 import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
 import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
-import { GeneralSettingsService } from 'src/app/admin/general-settings/services/general-settings.service';
+import { GeneralSettingsCacheService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { SettingIdEnum } from 'src/app/admin/general-settings/models/setting-id.enum';
@@ -47,7 +47,7 @@ export class StationDataComponent implements OnDestroy {
   constructor(
     private elementsCacheService: ElementsCacheService,
     private sourcesCacheService: SourcesCacheService,
-    private generalSettingsService: GeneralSettingsService,
+    private generalSettingsService: GeneralSettingsCacheService,
     private observationsService: ObservationsService,
   ) {
     this.elementsCacheService.cachedElements.pipe(

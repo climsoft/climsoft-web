@@ -1,11 +1,7 @@
-import { SettingsParametersValidity } from "../update-general-setting.model";
 
-export interface ClimsoftBoundaryModel extends SettingsParametersValidity  {
+export interface ClimsoftBoundaryModel  {
     longitude: number;
     latitude: number;
     zoomLevel: number;
     boundary: number[][][][] | undefined; // multipolygon 
 }
-
-
-

@@ -1,6 +1,5 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { ClimsoftBoundaryModel } from 'src/app/admin/general-settings/models/settings/climsoft-boundary.model';
-import { SettingsParametersValidity } from '../../models/update-general-setting.model';
 import * as turf from "@turf/turf";
 
 @Component({
@@ -8,21 +7,14 @@ import * as turf from "@turf/turf";
   templateUrl: './climsoft-boundary.component.html',
   styleUrls: ['./climsoft-boundary.component.scss']
 })
-export class ClimsoftBoundaryComponent implements OnChanges {
+export class ClimsoftBoundaryComponent {
   @Input()
-  public settingParameter!: SettingsParametersValidity;
+  public climsoftBoundary!: ClimsoftBoundaryModel;
 
-  protected climsoftBoundary!: ClimsoftBoundaryModel;
   protected fileName: string = '';
   protected errorMessage: string = '';
 
   constructor() { }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (this.settingParameter) {
-      this.climsoftBoundary = this.settingParameter as ClimsoftBoundaryModel;
-    }
-  }
 
   protected onFileSelected(fileInputEvent: any): void {
     this.errorMessage = '';
@@ -52,7 +44,7 @@ export class ClimsoftBoundaryComponent implements OnChanges {
         const geoJsonData = JSON.parse(reader.result as string);
         this.climsoftBoundary.boundary = geoJsonData.features[0].geometry.coordinates;
 
-        console.log(this.climsoftBoundary.boundary)
+        //console.log(this.climsoftBoundary.boundary)
 
         // TODO left hear. Decode the json object and set the default lat and long using turf js.
 
