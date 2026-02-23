@@ -154,7 +154,7 @@ export class CleanupSchedulerService implements OnModuleInit {
             this.fileIOService.apiImportsDir,
             referencedFiles,
             cutoffDate,
-            (fileName) => !fileName.startsWith('preview_') && fileName !== 'duckdb',
+            (fileName) => fileName !== 'duckdb',
         );
 
         // Clean export directory

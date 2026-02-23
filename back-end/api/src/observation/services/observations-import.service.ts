@@ -28,7 +28,8 @@ export class ObservationImportService {
 
     public async processManualImport(sourceId: number, file: Express.Multer.File, userId: number, stationId?: string) {
         try {
-            const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_upload_${new Date().getTime()}${path.extname(file.originalname)}`);
+            const timestamp = Date.now();
+            const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, `user_${userId}_obs_upload_${timestamp}${path.extname(file.originalname)}`);
 
             // Save file from memory
             await fs.promises.writeFile(importFilePathName, file.buffer);
@@ -38,14 +39,6 @@ export class ObservationImportService {
 
             // Import to database
             await this.importProcessedFileToDatabase(processedFilePathName);
-
-            try {
-                // Delete created files
-                fs.promises.unlink(importFilePathName);
-                fs.promises.unlink(processedFilePathName);
-            } catch (error) {
-                this.logger.error(`Failed to delete uploaded file ${importFilePathName} and processed file ${processedFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
-            }
 
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
