@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
-import { Cron, Interval } from '@nestjs/schedule';
+import { Interval } from '@nestjs/schedule';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as crypto from 'node:crypto';
@@ -7,7 +7,6 @@ import { FileIOService } from 'src/shared/services/file-io.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError, PreviewForImportDto, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
-import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
@@ -33,7 +32,6 @@ export class ImportPreviewService implements OnModuleDestroy {
     constructor(
         private fileIOService: FileIOService,
         private observationImportService: ObservationImportService,
-        private sourcesService: SourceSpecificationsService,
         private elementsService: ElementsService,
     ) { }
 
@@ -51,50 +49,6 @@ export class ImportPreviewService implements OnModuleDestroy {
                 this.logger.log(`Cleaning up stale preview session: ${sessionId}`);
                 await this.destroySession(sessionId);
             }
-        }
-    }
-
-    @Cron('0 2 * * *')
-    public async cleanupOrphanedPreviewFiles(): Promise<void> {
-        try {
-            this.logger.log('Running orphaned preview file cleanup task');
-            const importsDir = this.fileIOService.apiImportsDir;
-
-            const allFiles: string[] = await fs.promises.readdir(importsDir);
-            const previewFiles = allFiles.filter(f => f.startsWith('preview_'));
-
-            if (previewFiles.length === 0) return;
-
-            // Get all sample files referenced by saved specifications
-            const referencedFiles = await this.sourcesService.findAllReferencedSampleFiles();
-
-            // Collect files from active sessions (still in use)
-            const activeSessionFiles = new Set<string>();
-            for (const session of this.sessions.values()) {
-                activeSessionFiles.add(path.basename(session.fileName));
-            }
-
-            // Delete orphaned files
-            let deletedCount = 0;
-            for (const file of previewFiles) {
-                if (!referencedFiles.has(file) && !activeSessionFiles.has(file)) {
-                    try {
-                        await fs.promises.unlink(path.posix.join(importsDir, file));
-                        deletedCount++;
-                    } catch (e) {
-                        this.logger.warn(`Could not delete orphaned preview file ${file}: ${e}`);
-                    }
-                }
-            }
-
-            if (deletedCount > 0) {
-                this.logger.log(`Cleaned up ${deletedCount} orphaned preview file(s)`);
-            }
-
-            this.logger.log('Orphaned preview file cleanup task completed');
-
-        } catch (e) {
-            this.logger.warn(`Error during orphaned file cleanup: ${e}`);
         }
     }
 
@@ -197,13 +151,6 @@ export class ImportPreviewService implements OnModuleDestroy {
         const processedFilePathName: string = await this.observationImportService.processFileForImport(dto.sourceId, importFilePathName, userId, dto.stationId);
 
         await this.observationImportService.importProcessedFileToDatabase(processedFilePathName);
-
-        try {
-            // Delete created file
-            fs.promises.unlink(processedFilePathName);
-        } catch (error) {
-            this.logger.error(`Failed to delete processed file ${processedFilePathName}: ${error instanceof Error ? error.message : String(error)}`);
-        }
     }
 
     public async destroySession(sessionId: string): Promise<void> {
@@ -218,7 +165,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         }
 
         // Files are NOT deleted here — they may be referenced by saved specifications.
-        // Orphaned files are cleaned up by the daily `cleanupOrphanedPreviewFiles()` job.
+        // Orphaned files are cleaned up by the CleanupSchedulerService.
 
         this.sessions.delete(sessionId);
     }

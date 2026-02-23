@@ -1,21 +1,24 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateViewGeneralSettingDto } from '../dtos/create-view-general-setting.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ViewGeneralSettingModel } from '../dtos/view-general-setting.model';
 import { GeneralSettingEntity } from '../entities/general-setting.entity';
-import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';
+import { GeneralSettingParameters, UpdateGeneralSettingParametersDto } from '../dtos/update-general-setting-params.dto';
 import { MetadataUpdatesQueryDto } from 'src/metadata/metadata-updates/dtos/metadata-updates-query.dto';
 import { MetadataUpdatesDto } from 'src/metadata/metadata-updates/dtos/metadata-updates.dto';
 import { CacheLoadResult, MetadataCache } from 'src/shared/cache/metadata-cache';
+import { SettingIdEnum } from '../dtos/setting-id.enum';
 
 @Injectable()
 export class GeneralSettingsService implements OnModuleInit {
-    private readonly cache: MetadataCache<CreateViewGeneralSettingDto>;
+    private readonly cache: MetadataCache<ViewGeneralSettingModel>;
 
     constructor(
-        @InjectRepository(GeneralSettingEntity) private generalSettingRepo: Repository<GeneralSettingEntity>
+        @InjectRepository(GeneralSettingEntity) private generalSettingRepo: Repository<GeneralSettingEntity>,
+        private eventEmitter: EventEmitter2,
     ) {
-        this.cache = new MetadataCache<CreateViewGeneralSettingDto>(
+        this.cache = new MetadataCache<ViewGeneralSettingModel>(
             'GeneralSettings',
             () => this.loadCacheData(),
             (dto) => dto.id,
@@ -26,7 +29,7 @@ export class GeneralSettingsService implements OnModuleInit {
         await this.cache.init();
     }
 
-    private async loadCacheData(): Promise<CacheLoadResult<CreateViewGeneralSettingDto>> {
+    private async loadCacheData(): Promise<CacheLoadResult<ViewGeneralSettingModel>> {
         const entities = await this.generalSettingRepo.find({ order: { id: "ASC" } });
         const records = entities.map(entity => this.createViewDto(entity));
         const lastModifiedDate = entities.length > 0
@@ -35,7 +38,7 @@ export class GeneralSettingsService implements OnModuleInit {
         return { records, lastModifiedDate };
     }
 
-    public find(id: number): CreateViewGeneralSettingDto {
+    public findOne(id: number): ViewGeneralSettingModel {
         const dto = this.cache.getById(id);
         if (!dto) {
             throw new NotFoundException(`Entity #${id} not found`);
@@ -43,66 +46,61 @@ export class GeneralSettingsService implements OnModuleInit {
         return dto;
     }
 
-    public findAll(): CreateViewGeneralSettingDto[] {
+    public findAll(): ViewGeneralSettingModel[] {
         return this.cache.getAll();
     }
 
     /**
      * Used when user is updating the settings parameters
      */
-    public async update(id: number, dto: UpdateGeneralSettingDto, userId: number): Promise<CreateViewGeneralSettingDto> {
-        const entity = await this.findEntity(id);
+    public async update(id: SettingIdEnum, dto: UpdateGeneralSettingParametersDto, userId: number): Promise<ViewGeneralSettingModel> {
+        const entity = await this.generalSettingRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            throw new NotFoundException(`Setting #${id} not found`);
+        }
         entity.parameters = dto.parameters;
         entity.entryUserId = userId;
         const saved = await this.generalSettingRepo.save(entity);
         await this.cache.invalidate();
-        return this.createViewDto(saved);
+        const viewDto = this.createViewDto(saved);
+        this.eventEmitter.emit('setting.updated', { id, viewDto });
+        return viewDto;
     }
 
     /**
      * Used by migration service to save default settings
      */
-    public async bulkPut(dtos: CreateViewGeneralSettingDto[], userId: number): Promise<number> {
-        const entities: GeneralSettingEntity[] = [];
-        for (const dto of dtos) {
-            let entity = await this.generalSettingRepo.findOneBy({
-                id: dto.id,
+    public async put(id: SettingIdEnum, name: string, description: string, parameters: GeneralSettingParameters, userId: number): Promise<ViewGeneralSettingModel> {
+        let entity = await this.generalSettingRepo.findOneBy({
+            id: id,
+        });
+
+        if (!entity) {
+            entity = this.generalSettingRepo.create({
+                id: id,
             });
-
-            if (!entity) {
-                entity = await this.generalSettingRepo.create({
-                    id: dto.id,
-                });
-            }
-
-            entity.name = dto.name;
-            entity.description = dto.description;
-            entity.parameters = dto.parameters;
-            entity.entryUserId = userId;
-            entities.push(entity);
         }
 
-        const savedEntities = await this.generalSettingRepo.save(entities);
+        entity.name = name;
+        entity.description = description;
+        entity.parameters = parameters;
+        entity.entryUserId = userId;
+
+        const saved = await this.generalSettingRepo.save(entity);
         await this.cache.invalidate();
-        return savedEntities.length;
+        const viewDto = this.createViewDto(saved);
+        this.eventEmitter.emit('setting.updated', { id, viewDto });
+        return viewDto;
     }
 
     public count(): number {
         return this.cache.getCount();
     }
 
-    private async findEntity(id: number): Promise<GeneralSettingEntity> {
-        const entity = await this.generalSettingRepo.findOneBy({
-            id: id,
-        });
-
-        if (!entity) {
-            throw new NotFoundException(`Entity #${id} not found`);
-        }
-        return entity;
-    }
-
-    private createViewDto(entity: GeneralSettingEntity): CreateViewGeneralSettingDto {
+    private createViewDto(entity: GeneralSettingEntity): ViewGeneralSettingModel {
         return {
             id: entity.id,
             name: entity.name,

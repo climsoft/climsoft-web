@@ -3,7 +3,7 @@ import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { GeneralSettingsService } from '../services/general-settings.service';
-import { UpdateGeneralSettingDto } from '../dtos/update-general-setting.dto';  
+import { UpdateGeneralSettingParametersDto } from '../dtos/update-general-setting-params.dto';  
 
 @Controller('general-settings')
 export class GeneralSettingController {
@@ -19,7 +19,7 @@ export class GeneralSettingController {
 
     @Get(':id')
     public find(@Param('id', ParseIntPipe) id: number) { 
-        return this.generalSettingsService.find(id);
+        return this.generalSettingsService.findOne(id);
     }
 
     @Admin()
@@ -27,7 +27,7 @@ export class GeneralSettingController {
     public async update(
         @Req() request: Request,
         @Param('id', ParseIntPipe) id: number,
-        @Body() createSourceDto: UpdateGeneralSettingDto) { // TODO. Validate the dto
+        @Body() createSourceDto: UpdateGeneralSettingParametersDto) {
         return this.generalSettingsService.update(id, createSourceDto, AuthUtil.getLoggedInUserId(request));
     }
 

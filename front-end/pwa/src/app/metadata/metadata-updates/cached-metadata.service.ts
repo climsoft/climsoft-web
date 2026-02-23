@@ -5,10 +5,10 @@ import { SourcesCacheService } from "../source-specifications/services/source-ca
 import { ViewSourceModel } from "../source-specifications/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
 import { QCTestCacheModel, QCTestsCacheService } from "../qc-tests/services/qc-tests-cache.service";
-import { GeneralSettingsService } from "src/app/admin/general-settings/services/general-settings.service";
+import { GeneralSettingsCacheService } from "src/app/admin/general-settings/services/general-settings.service";
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
-import { CreateViewGeneralSettingModel } from "src/app/admin/general-settings/models/create-view-general-setting.model";
+import { ViewGeneralSettingModel } from "src/app/admin/general-settings/models/view-general-setting.model";
 
 
 @Injectable({
@@ -19,7 +19,7 @@ export class CachedMetadataService {
     private _elementsMetadata!: ElementCacheModel[];
     private _sourcesMetadata!: ViewSourceModel[];
     private _qcTestsMetadata!: QCTestCacheModel[];
-    private _generalSettingsMetadata!: CreateViewGeneralSettingModel[];
+    private _generalSettingsMetadata!: ViewGeneralSettingModel[];
     private readonly _allMetadataLoaded: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
     private checkingForUpdates: boolean = false;
 
@@ -28,7 +28,7 @@ export class CachedMetadataService {
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourcesCacheService,
         private qcTestsCacheService: QCTestsCacheService,
-        private generalSettingsCacheService: GeneralSettingsService,
+        private generalSettingsCacheService: GeneralSettingsCacheService,
     ) {
 
         this.stationsCacheService.cachedStations.subscribe(data => {
@@ -106,7 +106,7 @@ export class CachedMetadataService {
         return this._qcTestsMetadata;
     }
 
-    public get generalSettingsMetadata(): CreateViewGeneralSettingModel[] {
+    public get generalSettingsMetadata(): ViewGeneralSettingModel[] {
         if (!this._allMetadataLoaded.value) throw new Error('Developer error. General setings metadata not yet loaded.');
         return this._generalSettingsMetadata;
     }
@@ -178,7 +178,7 @@ export class CachedMetadataService {
         return qcTests;
     }
 
-    public getGeneralSetting(settingId: SettingIdEnum): CreateViewGeneralSettingModel {
+    public getGeneralSetting(settingId: SettingIdEnum): ViewGeneralSettingModel {
         if (!this._allMetadataLoaded.value) {
             throw new Error(`Developer error: Metadata not full loaded. General setting not usable.`);
         }

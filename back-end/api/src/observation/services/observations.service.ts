@@ -450,7 +450,7 @@ export class ObservationsService {
         }
 
         // TODO. this setting should be retrived from the cache
-        const utcOffset: number = ((await this.generalSettingsService.find(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
+        const utcOffset: number = ((await this.generalSettingsService.findOne(SettingIdEnum.DISPLAY_TIME_ZONE)).parameters as ClimsoftDisplayTimeZoneDto).utcOffset
         const strTimeZone: string = `'UTC+${utcOffset}'`;
 
         switch (filter.durationType) {

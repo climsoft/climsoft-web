@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, Subscription, tap, throwError } from 'rxjs';
 import { AppConfigService } from 'src/app/app-config.service';
-import { CreateViewGeneralSettingModel } from '../models/create-view-general-setting.model';
-import { UpdateGeneralSettingModel } from '../models/update-general-setting.model';
+import { ViewGeneralSettingModel } from '../models/view-general-setting.model';
+import { UpdateGeneralSettingParametersModel } from '../models/update-general-setting.model';
 import { SettingIdEnum } from '../models/setting-id.enum';
 import { AppDatabase } from 'src/app/app-database';
 import { MetadataUpdatesService } from 'src/app/metadata/metadata-updates/metadata-updates.service';
@@ -11,9 +11,9 @@ import { MetadataUpdatesService } from 'src/app/metadata/metadata-updates/metada
 @Injectable({
   providedIn: 'root'
 })
-export class GeneralSettingsService {
+export class GeneralSettingsCacheService {
   private endPointUrl: string;
-  private readonly _cachedGeneralSettings: BehaviorSubject<CreateViewGeneralSettingModel[]> = new BehaviorSubject<CreateViewGeneralSettingModel[]>([]);
+  private readonly _cachedGeneralSettings: BehaviorSubject<ViewGeneralSettingModel[]> = new BehaviorSubject<ViewGeneralSettingModel[]>([]);
   private checkUpdatesSubscription: Subscription = new Subscription();
   private checkingForUpdates: boolean = false;
 
@@ -50,12 +50,12 @@ export class GeneralSettingsService {
     });
   }
 
-  public get cachedGeneralSettings(): Observable<CreateViewGeneralSettingModel[]> {
+  public get cachedGeneralSettings(): Observable<ViewGeneralSettingModel[]> {
     this.checkForUpdates();
     return this._cachedGeneralSettings.asObservable();
   }
 
-  public findOne(id: SettingIdEnum): Observable<CreateViewGeneralSettingModel | undefined> {
+  public findOne(id: SettingIdEnum): Observable<ViewGeneralSettingModel | undefined> {
     return this.cachedGeneralSettings.pipe(
       map(settings => {
         return settings.find(item => item.id === id);
@@ -63,8 +63,8 @@ export class GeneralSettingsService {
     );
   }
 
-  public update(id: number, updateDto: UpdateGeneralSettingModel): Observable<CreateViewGeneralSettingModel> {
-    return this.http.patch<CreateViewGeneralSettingModel>(`${this.endPointUrl}/${id}`, updateDto)
+  public update(id: number, updateDto: UpdateGeneralSettingParametersModel): Observable<ViewGeneralSettingModel> {
+    return this.http.patch<ViewGeneralSettingModel>(`${this.endPointUrl}/${id}`, updateDto)
       .pipe(
         tap(() => {
           this.checkForUpdates();

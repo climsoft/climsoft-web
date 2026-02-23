@@ -1,0 +1,31 @@
+<ng-container *ngIf="open && setting">
+  <app-dialog [(open)]="open" [title]="'Edit General Setting'" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
+    (okClick)="onSaveClick()">
+
+    <div>
+      <div class="mb-3">
+        <app-label-input [label]="'Name'" [value]="setting.name" />
+      </div>
+
+      <div class="mb-3">
+        <app-label-input [label]="'Description'" [value]="setting.description" />
+      </div>
+    </div>
+
+    <div *ngIf="setting.parameters" class="mt-2 card border-0">
+      <div class="card-header fw-bold">Parameters</div>
+      <div class="card-body">
+
+        <app-climsoft-boundary *ngIf="setting.id === settingId.CLIMSOFT_BOUNDARY"
+          [climsoftBoundary]="climsoftBoundary" />
+
+        <app-climsoft-display-timezone *ngIf="setting.id === settingId.DISPLAY_TIME_ZONE"
+          [displayTimezone]="climsoftDisplayTimeZone" />
+
+        <app-scheduler-setting *ngIf="setting.id === settingId.SCHEDULER" [scheduler]="schedulerSetting" />
+
+      </div>
+    </div>
+
+  </app-dialog>
+</ng-container>

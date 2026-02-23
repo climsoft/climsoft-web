@@ -1,5 +1,5 @@
 <!-- show drop down when there is a click event or when the user is typing on the input. Note user may navigate using tab or enter keys -->
-<app-text-input #appSingleSelector [id]="id" [label]="label" [readonly]="true" [placeholder]="placeholder"
+<app-text-input #appSingleSelector [id]="id" [label]="label" [labelSuperScript]="labelSuperScript" [readonly]="true" [placeholder]="placeholder"
     [errorMessage]="errorMessage" [displayDropDownOption]="true" [displayCancelOption]="displayCancelOption"
     [value]="selectedOptionDisplay" (displayCancelOptionClick)="onCancelOptionClick()"
     (dropDownDisplayed)="onDropDownDisplayed()">

@@ -44,18 +44,6 @@ export class JobQueueProcessorService {
     }
 
     /**
-     * Clean up old finished jobs daily at 3 AM
-     */
-    @Cron('0 3 * * *', { name: 'prune-jobs-table' })
-    public async cleanupOldJobs() {
-        this.logger.log('Running cleanup of old finished jobs');
-        const deletedCount = await this.queueService.cleanupOldJobs(30);
-        this.logger.log(`Cleaned up ${deletedCount} old jobs`);
-
-        // TODO. Also clean up all the connector logs within the same timeframe. Including their associated files in the file system.
-    }
-
-    /**
      * Process a single job
      */
     private async processJob(job: JobQueueEntity): Promise<void> {

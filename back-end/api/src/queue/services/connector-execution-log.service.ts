@@ -1,7 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindManyOptions, FindOptionsWhere, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-import { ConnectorExecutionLogEntity, ExecutionActivity } from '../entity/connector-execution-log.entity';
+import * as path from 'node:path';
+import { ConnectorExecutionLogEntity, ExecutionActivity, ExportFileServerExecutionActivityVo, ImportFileServerExecutionActivityVo } from '../entity/connector-execution-log.entity';
 
 export interface CreateConnectorExecutionLogDto {
     connectorId: number;
@@ -264,5 +265,43 @@ export class ConnectorExecutionLogService {
         });
 
         return count > 0;
+    }
+
+    /**
+     * Get all file names referenced by execution logs.
+     * Used by the file cleanup scheduler to determine which files are still in use.
+     */
+    public async findAllReferencedFileNames(): Promise<Set<string>> {
+        const logs = await this.executionLogRepo.find();
+        const files = new Set<string>();
+
+        for (const log of logs) {
+            if (!log.executionActivities) {
+                continue;
+            }
+
+            for (const activity of log.executionActivities) {
+                if (this.isImportActivity(activity)) {
+                    for (const file of activity.processedFiles) {
+                        if (file.downloadedFileName) {
+                            files.add(file.downloadedFileName);
+                        }
+                        if (file.processedFileMetadata) {
+                            files.add(path.basename(file.processedFileMetadata.fileName));
+                        }
+                    }
+                } else {
+                    for (const file of activity.processedFiles) {
+                        files.add(file.fileName);
+                    }
+                }
+            }
+        }
+
+        return files;
+    }
+
+    private isImportActivity(activity: ExecutionActivity): activity is ImportFileServerExecutionActivityVo {
+        return 'stationId' in activity || (activity.processedFiles.length > 0 && 'remoteFileMetadata' in activity.processedFiles[0]);
     }
 }

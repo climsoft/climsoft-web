@@ -1,7 +1,7 @@
 <div class="card border-0">
    <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
       <div class="d-flex align-items-center">
-         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgConnectorInput.showDialog()">
+         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onAddConnectorClick()">
             Add
          </button>
          <div class="ms-2">
@@ -15,7 +15,7 @@
    </div>
 
    <div class="card-body px-0">
-      <div class="app-table-container" style="height: 80vh;">
+      <div class="app-table-container" style="max-height: 80vh;">
          <table class="table table-hover table-sm">
             <colgroup>
                <col style="width: 2%;" />
@@ -41,19 +41,20 @@
             </thead>
             <tbody>
                <tr class="app-cursor-pointer" *ngFor="let connector of connectors"
-                  [class.connector-disabled]="connector.disabled">
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)"><i class="bi bi-arrow-right-short"></i></td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.name }}</td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">
+                  [class.connector-disabled]="connector.disabled" (click)="onConnectorClick(connector.id, $event)">
+                  <td><i class="bi bi-arrow-right-short"></i></td>
+                  <td>{{ connector.name }}</td>
+                  <td>
                      <span class="badge" [ngClass]="connector.connectorType === 'import' ? 'bg-success' : 'bg-primary'">
-                        <i class="bi" [ngClass]="connector.connectorType === 'import' ? 'bi-download' : 'bi-upload'"></i>
+                        <i class="bi"
+                           [ngClass]="connector.connectorType === 'import' ? 'bi-download' : 'bi-upload'"></i>
                         {{ connector.connectorType }}
                      </span>
                   </td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.hostName }}</td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.cronSchedule }}</td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.orderNumber }}</td>
-                  <td (click)="dlgConnectorInput.showDialog(connector.id)">{{ connector.description }}</td>
+                  <td>{{ connector.hostName }}</td>
+                  <td>{{ connector.cronSchedule }}</td>
+                  <td>{{ connector.orderNumber }}</td>
+                  <td>{{ connector.description }}</td>
                   <td>
                      <div class="d-flex gap-2">
                         <button type="button" class="btn btn-sm"
@@ -73,15 +74,17 @@
          </table>
       </div>
    </div>
+
+   <!-- Connector Input Dialog -->
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
 
    <!-- Delete Confirmation Dialog -->
-   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''"
-      [itemType]="'connector'" (deleteConfirmed)="onDeleteConfirm()" />
+   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''" [itemType]="'connector'"
+      (deleteConfirmed)="onDeleteConfirm()" />
 
    <!-- Enable/Disable Confirmation Dialog -->
    <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedConnector?.name || ''"
       [itemType]="'connector'" [isCurrentlyDisabled]="selectedConnector?.disabled || false"
-      [operationType]="selectedConnector?.connectorType || ''"
-      [schedule]="selectedConnector?.cronSchedule || ''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+      [operationType]="selectedConnector?.connectorType || ''" [schedule]="selectedConnector?.cronSchedule || ''"
+      (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>
