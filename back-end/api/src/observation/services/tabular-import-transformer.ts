@@ -26,7 +26,6 @@ export class TabularImportTransformer {
     static readonly VALUE_PROPERTY_NAME: string = 'value';
     static readonly FLAG_PROPERTY_NAME: string = 'flag';
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
-    
      // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
