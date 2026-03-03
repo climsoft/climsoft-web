@@ -5,7 +5,7 @@ import { ObservationsService } from '../services/observations.service';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Intervals.util';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';

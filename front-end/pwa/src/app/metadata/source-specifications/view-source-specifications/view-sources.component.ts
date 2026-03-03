@@ -9,8 +9,8 @@ import { StationsSearchDialogComponent } from '../../stations/stations-search-di
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
-import { FormSourceInputDialogComponent } from '../form-source-detail/form-source-input-dialog.component';
-import { ImportSourceInputDialogComponent } from '../import-source-detail/import-source-input-dialog.component';
+import { FormSourceInputDialogComponent } from '../form-source-input-dialog/form-source-input-dialog.component';
+import { ImportSourceInputDialogComponent } from '../import-source-input-dialog/import-source-input-dialog.component';
 
 interface View extends ViewSourceModel {
   // Applicable to form source only

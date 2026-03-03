@@ -12,7 +12,7 @@ import { AllRangeThresholdModel, RangeThresholdQCTestParamsModel } from "src/app
 import { SpikeQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/spike-qc-test-params.model";
 import { RelationalQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/relational-qc-test-params.model";
 import { ContextualQCTestParamsModel } from "src/app/metadata/qc-tests/models/qc-test-parameters/contextual-qc-test-params.model";
-import { IntervalsUtil } from "src/app/shared/controls/period-input/Intervals.util";
+import { IntervalsUtil } from "src/app/shared/controls/interval-selector/Intervals.util";
 import { FlatLineQCTestParamsModel } from "../models/qc-test-parameters/flat-line-qc-test-params.model";
 
 export interface QCTestCacheModel {

@@ -52,7 +52,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: ProcessPreviewDto,
     ) {
-        return this.importPreviewService.transformAndPreviewFile(sessionId, dto.sourceDefinition, dto.stationId);
+        return this.importPreviewService.previewTransformedFile(sessionId, dto.sourceDefinition, dto.stationId);
     }
 
     @Post('process-for-import/:sessionId')
@@ -60,7 +60,7 @@ export class ImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: PreviewForImportDto, // TODO. Validate that the user has import rights for the source and station
     ) {
-        return this.importPreviewService.transformAndPreviewFile(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId);
+        return this.importPreviewService.previewTransformedFile(sessionId, this.sourcesService.find(dto.sourceId), dto.stationId);
     }
 
     @Post('confirm-import/:sessionId')

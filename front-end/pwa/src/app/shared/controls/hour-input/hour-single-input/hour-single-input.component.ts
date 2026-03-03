@@ -16,7 +16,7 @@ export class HourSingleInputComponent implements OnChanges {
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public showNavigationButtons!: boolean;
-  @Input() public selectedId!: number | null;
+  @Input() public selectedId!: number | null | undefined;
   @Output() public selectedIdChange = new EventEmitter<number | null>();
 
   protected options!: Hour[];

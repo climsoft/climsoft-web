@@ -1,0 +1,117 @@
+<ng-container *ngIf="open && viewSource">
+  <app-dialog [(open)]="open" [title]="title" [displayOkOption]="showConfirmImport"
+    [okButtonLabel]="'Confirm Import'" [closeOnOkClick]="false" [closeOnCancelClick]="false"
+    (okClick)="onConfirmImport()" (cancelClick)="closeDialog()">
+
+    <div>
+
+      <!-- Upload Controls -->
+      <div class="card border-primary">
+        <div class="card-header bg-primary bg-opacity-10 border-primary py-2">
+          <strong>Upload Controls</strong>
+          <small class="text-muted d-block">Select a station (if required) and upload your data file.</small>
+        </div>
+        <div class="card-body py-2 px-2">
+          <div *ngIf="showStationSelection" class="mb-2">
+            <app-station-selector-single [label]="'Station'" [includeOnlyIds]="onlyIncludeStationIds"
+              [(selectedId)]="selectedStationId" />
+          </div>
+          <app-file-input [label]="'File to Upload'" [buttonLabel]="'Upload File'" [disabled]="disableUpload"
+            [fileName]="uploadedFileName" (fileSelected)="onFileSelected($event)" />
+        </div>
+      </div>
+
+      <div>
+        <!-- Status message -->
+        <div *ngIf="importMessage" class="alert py-2 mt-3"
+          [ngClass]="{ 'alert-danger': importStage === ImportStage.ERROR, 'alert-success': importStage === ImportStage.SUCCESS, 'alert-info': importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING }">
+          <div class="d-flex align-items-center" style="gap: 8px;">
+            <div
+              *ngIf="importStage === ImportStage.UPLOADING || importStage === ImportStage.PREVIEWING || importStage === ImportStage.IMPORTING"
+              class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            {{ importMessage }}
+          </div>
+        </div>
+
+        <!-- Expected Format -  Sample File -->
+        <div class="card border-info mt-3">
+          <div class="card-header bg-info bg-opacity-10 border-info py-2">
+            <strong>Expected Format</strong>
+            <small class="text-muted d-block">
+              Sample data for the import. Use this to verify your file matches the expected structure.
+            </small>
+          </div>
+          <div class="card-body py-2 px-2">
+            <div class="mb-2">
+              <app-import-preview-table [title]="'Sample Raw Data Skipped Rows'"
+                [columns]="sampleFileRawPreviewResponse.skippedData.columns"
+                [rows]="sampleFileRawPreviewResponse.skippedData.rows"
+                [totalRowCount]="sampleFileRawPreviewResponse.skippedData.totalRowCount"
+                [hasFile]="!!sampleFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'No sample file available for this import specification'" [maxHeight]="'15vh'"
+                [loading]="sampleFileLoading" />
+            </div>
+
+            <div>
+              <app-import-preview-table [title]="'Sample Raw Data Preview'"
+                [columns]="sampleFileRawPreviewResponse.previewData.columns"
+                [rows]="sampleFileRawPreviewResponse.previewData.rows"
+                [totalRowCount]="sampleFileRawPreviewResponse.previewData.totalRowCount"
+                [hasFile]="!!sampleFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'No sample file available for this import specification'" [maxHeight]="'15vh'"
+                [loading]="sampleFileLoading" />
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Your Upload - both raw and transformed -->
+        <div class="card mt-3">
+          <div class="card-header py-2">
+            <strong>Your Upload</strong>
+            <small class="text-muted d-block">
+              Preview of the file you uploaded. Compare with the expected format above.
+            </small>
+          </div>
+          <div class="card-body py-2 px-2">
+            <div>
+              <app-import-preview-table [title]="'Uploaded Raw Data Skipped Rows'"
+                [columns]="uploadedFileRawPreviewResponse.skippedData.columns"
+                [rows]="uploadedFileRawPreviewResponse.skippedData.rows"
+                [totalRowCount]="uploadedFileRawPreviewResponse.skippedData.totalRowCount"
+                [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'Upload a file to see the skipped rows of the raw data'" [maxHeight]="'15vh'"
+                [loading]="uploadedFileLoading" />
+            </div>
+
+            <div class="mt-2">
+              <app-import-preview-table [title]="'Uploaded Raw Data Preview'"
+                [columns]="uploadedFileRawPreviewResponse.previewData.columns"
+                [rows]="uploadedFileRawPreviewResponse.previewData.rows"
+                [totalRowCount]="uploadedFileRawPreviewResponse.previewData.totalRowCount"
+                [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'Upload a file to see the raw data'" [maxHeight]="'15vh'"
+                [loading]="uploadedFileLoading" />
+            </div>
+
+            <div class="mt-2">
+              <app-import-preview-table [title]="'Uploaded Transformed Data Preview'"
+                [columns]="uploadedFileTransformedPreviewResponse.previewData.columns"
+                [rows]="uploadedFileTransformedPreviewResponse.previewData.rows"
+                [totalRowCount]="uploadedFileTransformedPreviewResponse.previewData.totalRowCount" [error]="uploadError"
+                [hasFile]="!!uploadedFileRawPreviewResponse.sessionId"
+                [noFileMessage]="'Upload a file to see a preview of the transformed data before importing'"
+                [maxHeight]="'15vh'" [loading]="transformedUploadedFileLoading" />
+            </div>
+
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+  </app-dialog>
+</ng-container>

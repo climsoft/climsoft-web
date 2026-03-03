@@ -1,51 +1,177 @@
-<app-dialog [(open)]="open" [title]="'Import Elements'" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
-  (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+<ng-container *ngIf="open">
+  <app-dialog [(open)]="open" [title]="'Import Elements'" [displayOkOption]="false" (cancelClick)="onCancelClick()">
 
-  <div *ngIf="open" class="card border-0">
-    <div class="card-body p-0">
+    <div class="d-flex" style="min-width: 900px; min-height: 500px;">
 
-      <div class="d-flex px-1 py-0 flex-column">
-        <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
-          <div class="me-2">
-            Select File
-          </div>
-          <div>
-            <input #fileUpload type="file" style="display: none;" [accept]="'text/csv'"
-              (change)="onFileSelected($event)">
-            <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
-              (click)="fileUpload.click()">
-              Select
-            </button>
-          </div>
-        </div>
-        <div class="ms-2 text-success" *ngIf="fileName">
-          {{ fileName }}
-        </div>
-      </div>
+      <!-- Left panel: wizard controls -->
+      <div class="d-flex flex-column p-2" style="min-width: 350px; max-width: 350px; border-right: 1px solid #dee2e6;">
 
-
-      <div class="d-flex flex-column align-items-center p-2 mt-2"
-        style="min-height:300px; min-width:300px; max-height: 300px; max-width: 500px; background-color:#e0f7fa;">
-        <div>
-          <div class="fw-bold">Expected Columns</div>
-          <div style="font-size: 12px;"> 
-            Id, Abbreviation, Name, Description, Units, Type, Entry scale factor, Comment
-          </div>
-        </div>
-        <div *ngIf="uploadMessage" class="mt-4" [class.text-danger]="uploadError">
-          {{ uploadMessage }}
+        <!-- Step indicators -->
+        <div class="d-flex mb-3">
+          <span class="badge me-1" [class.bg-primary]="isUploadStep" [class.bg-secondary]="!isUploadStep">1.
+            Upload</span>
+          <span class="badge me-1" [class.bg-primary]="isMappingStep"
+            [class.bg-secondary]="!isMappingStep">2. Mapping</span>
+          <span class="badge" [class.bg-primary]="isReviewStep" [class.bg-secondary]="!isReviewStep">3.
+            Review</span>
         </div>
 
-        <div class="mt-4 px-2 w-100" *ngIf="showUploadProgress">
-          <div class="progress">
-            <div class="progress-bar progress-bar-striped" style="width: 100%" [style.width.%]="uploadProgress">
-              {{ uploadProgress === 100? 'Processing...': uploadProgress + '%'}}
+        <!-- ─── Step 1: Upload ─── -->
+        <div *ngIf="isUploadStep" class="flex-grow-1 overflow-auto">
+          <div class="mb-3">
+            <label class="form-label fw-bold">Select CSV File</label>
+            <div>
+              <input #fileUpload type="file" style="display: none;" accept=".csv,.dat,.tsv,text/csv,text/plain"
+                (change)="onFileSelected($event)">
+              <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="loading"
+                (click)="fileUpload.click()">
+                Select File
+              </button>
+              <span *ngIf="fileName" class="ms-2 text-success small">{{ fileName }}</span>
             </div>
           </div>
+
+          <div class="mb-3">
+            <label class="form-label">Rows to Skip (header)</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="rowsToSkip" min="0"
+              (change)="onRowsToSkipChange()">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Delimiter</label>
+            <select class="form-select form-select-sm" [(ngModel)]="delimiter" (change)="onRowsToSkipChange()"
+              title="Delimiter">
+              <option value="">Auto-detect</option>
+              <option value=",">,</option>
+              <option value="|">|</option>
+            </select>
+          </div>
         </div>
 
-      </div>
-    </div>
-  </div>
+        <!-- ─── Step 2: Column Mapping ─── -->
+        <div *ngIf="isMappingStep" class="flex-grow-1 overflow-auto">
+          <div class="fw-bold mb-2">Column Positions (1-based)</div>
+          <div class="small text-muted mb-2">Available columns: {{ rawColumns.join(', ') }}</div>
 
-</app-dialog>
+          <!-- Required fields -->
+          <div class="mb-2">
+            <label class="form-label small mb-0">Id Column *</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="mapping.idColumnPosition" min="1">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-0">Abbreviation Column *</label>
+            <input type="number" class="form-control form-control-sm"
+              [(ngModel)]="mapping.abbreviationColumnPosition" min="1">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-0">Name Column *</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="mapping.nameColumnPosition" min="1">
+          </div>
+
+          <!-- Optional simple columns -->
+          <div class="mb-2">
+            <label class="form-label small mb-0">Description Column</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="mapping.descriptionColumnPosition"
+              min="1">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-0">Units Column</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="mapping.unitsColumnPosition"
+              min="1">
+          </div>
+
+          <!-- Element Type with value mapping -->
+          <hr class="my-2">
+          <div class="fw-bold small mb-2">Fields with Value Mapping</div>
+
+          <div class="mb-2 border rounded p-2">
+            <label class="form-label small mb-0 fw-bold">Element Type</label>
+            <div class="d-flex gap-2 mb-1">
+              <div class="flex-grow-1">
+                <label class="form-label small mb-0">Column</label>
+                <input type="number" class="form-control form-control-sm"
+                  [(ngModel)]="elementTypeMapping.columnPosition" min="1">
+              </div>
+              <div class="flex-grow-1">
+                <label class="form-label small mb-0">Or Default</label>
+                <input type="text" class="form-control form-control-sm"
+                  [(ngModel)]="elementTypeMapping.defaultValue">
+              </div>
+            </div>
+            <div *ngIf="elementTypeMapping.columnPosition">
+              <button type="button" class="btn btn-outline-secondary btn-sm mb-1"
+                (click)="initValueMappings(elementTypeMapping); addValueMapping(elementTypeMapping.valueMappings!)">
+                Add Value Mapping
+              </button>
+              <div *ngFor="let vm of elementTypeMapping.valueMappings; let i = index" class="d-flex gap-1 mb-1">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="vm.sourceId"
+                  placeholder="Source value">
+                <input type="text" class="form-control form-control-sm" [(ngModel)]="vm.databaseId"
+                  placeholder="Database ID">
+                <button type="button" class="btn btn-outline-danger btn-sm"
+                  (click)="removeValueMapping(elementTypeMapping.valueMappings!, i)">x</button>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-2">
+
+          <!-- Other optional columns -->
+          <div class="mb-2">
+            <label class="form-label small mb-0">Entry Scale Factor Column</label>
+            <input type="number" class="form-control form-control-sm"
+              [(ngModel)]="mapping.entryScaleFactorColumnPosition" min="1">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small mb-0">Comment Column</label>
+            <input type="number" class="form-control form-control-sm" [(ngModel)]="mapping.commentColumnPosition"
+              min="1">
+          </div>
+        </div>
+
+        <!-- ─── Step 3: Review ─── -->
+        <div *ngIf="isReviewStep" class="flex-grow-1 overflow-auto">
+          <div class="fw-bold mb-2">Review & Confirm</div>
+          <div class="small text-muted mb-2">Review the transformed preview. Click "Confirm Import" to import all
+            rows.</div>
+
+          <button type="button" class="btn btn-primary btn-sm" [disabled]="importing || previewError"
+            (click)="onConfirmImport()">
+            {{ importing ? 'Importing...' : 'Confirm Import' }}
+          </button>
+
+          <div *ngIf="importing" class="mt-2">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+              <span class="visually-hidden">Importing...</span>
+            </div>
+            <span class="ms-2 small">Processing all rows...</span>
+          </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="d-flex justify-content-between mt-2 pt-2 border-top">
+          <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="!canGoBack" (click)="onBack()">
+            Back
+          </button>
+          <button *ngIf="!isReviewStep" type="button" class="btn btn-primary btn-sm" [disabled]="!canGoNext"
+            (click)="onNext()">
+            {{ isMappingStep ? 'Preview' : 'Next' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Right panel: preview table -->
+      <div class="flex-grow-1 p-2 overflow-auto">
+        <app-import-preview-table [title]="isReviewStep ? 'Transformed Preview' : 'Raw File Preview'"
+          [columns]="isReviewStep ? previewColumns : rawColumns"
+          [rows]="isReviewStep ? previewRows : rawRows"
+          [totalRowCount]="isReviewStep ? previewTotalRowCount : rawTotalRowCount"
+          [rowsDropped]="isReviewStep ? previewRowsDropped : 0" [warnings]="isReviewStep ? previewWarnings : []"
+          [error]="isReviewStep ? previewError : null" [loading]="loading" [hasFile]="hasRawFile"
+          [noFileMessage]="'Upload a CSV file to see a preview'" [maxHeight]="'60vh'" />
+      </div>
+
+    </div>
+
+  </app-dialog>
+</ng-container>

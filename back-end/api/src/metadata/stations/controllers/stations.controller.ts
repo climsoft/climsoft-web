@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, Header, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, Query, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Patch, Post, Query, Req } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
@@ -7,7 +7,6 @@ import { ViewStationQueryDTO } from '../dtos/view-station-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Request } from 'express';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { StationsImportExportService } from '../services/stations-import-export.service';
 import { FileIOService } from 'src/shared/services/file-io.service';
 
@@ -56,26 +55,6 @@ export class StationsController {
     @Req() request: Request,
     @Body() item: CreateStationDto): Promise<CreateStationDto> {
     return this.stationsService.add(item, AuthUtil.getLoggedInUserId(request));
-  }
-
-  @Admin()
-  @Put('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async import(
-    @Req() request: Request,
-    @UploadedFile(new ParseFilePipe({
-      validators: [
-        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 1 }), // 1MB. 
-        new FileTypeValidator({ fileType: 'text/csv' }),
-      ]
-    })
-    ) file: Express.Multer.File) {
-    try {
-      await this.stationImportExportService.import(file, AuthUtil.getLoggedInUserId(request));
-      return { message: "success" };
-    } catch (error) {
-      return { message: `error: ${error}` };
-    }
   }
 
   @Patch(':id')

@@ -1,36 +1,8 @@
-import { FlagEnum } from "../../../data-ingestion/models/flag.enum"; 
+import { FlagEnum } from "../../../data-ingestion/models/flag.enum";
 
-export interface ImportSourceTabularParamsModel {
-
-    /** Whether to fetch station and its column position */
-    stationDefinition?: StationDefinition;
-
-    /**Whether to include elements or not */
-    elementDefinition: ElementDefinition;
-
-    /** Interval of the observation */
-    intervalDefinition: IntervalDefinition;
-
-    /** Whether to fetch level and its column position */
-    levelColumnPosition?: number;
-
-    /** Date time columns and formats */
-    datetimeDefinition: DateTimeDefinition;
-
-    valueDefinition?: ValueDefinition;
-
-    commentColumnPosition?: number;
-
-    /**
-     * Number of rows to skip.
-     */
-    rowsToSkip: number;
-
-    /**
-    * Applies to csv file formats onl e.g CSV, DAT, TSV.
-    */
-    delimiter?: ',' | '|'; // TODO find a way of including \t. This should eventually be an enumerator
-
+export interface FlagDefinition {
+    flagColumnPosition: number;
+    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
 }
 
 export interface ValueDefinition {
@@ -123,12 +95,12 @@ export interface ElementDefinition {
  */
 export interface IntervalDefinition {
     columnPosition?: number;
-    defaultInterval?: number;
+    defaultValue?: number;
 }
 
-export interface FlagDefinition {
-    flagColumnPosition: number;
-    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
+export interface LevelDefinition {
+    columnPosition?: number;
+    defaultValue?: number;
 }
 
 export type DateTimeFormatTypes = '%Y-%m-%d %H:%M:%S' |
@@ -147,6 +119,25 @@ export type DateTimeFormatTypes = '%Y-%m-%d %H:%M:%S' |
 export type DateFormatTypes = '%Y-%m-%d' | '%d-%m-%Y' | '%Y/%m/%d' | '%d/%m/%Y';
 
 export type TimeFormatTypes = '%H:%M:%S' | '%H:%M' | '%-H:%M' | '%H' | '%-H';
+
+/**
+ * Either time column or default hour must be provided, but not both.
+ */
+export interface HourDefinition {
+
+    /**
+    * If provided, then default hour will not be used.
+    */
+    timeColumn?: {
+        columnPosition: number;
+        timeFormat: TimeFormatTypes; // Optional when the time is just a hour integer
+    };
+
+    /**
+     * Should be provided when time column is not provided.
+     */
+    defaultHour?: number;
+}
 
 export interface DateTimeDefinition {
 
@@ -184,21 +175,35 @@ export interface DateTimeDefinition {
     };
 }
 
-/**
- * Either time column or default hour must be provided, but not both.
- */
-export interface HourDefinition {
+export interface ImportSourceTabularParamsModel {
+
+    /** Whether to fetch station and its column position */
+    stationDefinition?: StationDefinition;
+
+    /**Whether to include elements or not */
+    elementDefinition: ElementDefinition;
+
+    /** Interval of the observation */
+    intervalDefinition: IntervalDefinition;
+
+    /** level of observation */
+    levelDefinition: LevelDefinition;
+
+    /** Date time columns and formats */
+    datetimeDefinition: DateTimeDefinition;
+
+    valueDefinition?: ValueDefinition;
+
+    commentColumnPosition?: number;
 
     /**
-    * If provided, then default hour will not be used.
-    */
-    timeColumn?: {
-        columnPosition: number;
-        timeFormat: TimeFormatTypes; // Optional when the time is just a hour integer
-    };
-
-    /**
-     * Should be provided when time column is not provided.
+     * Number of rows to skip.
      */
-    defaultHour?: number;
+    rowsToSkip: number;
+
+    /**
+    * Applies to csv file formats onl e.g CSV, DAT, TSV.
+    */
+    delimiter?: string;
+
 }

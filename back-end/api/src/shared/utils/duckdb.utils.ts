@@ -10,10 +10,12 @@ export class DuckDBUtils {
 
         const params: string[] = [
             'header = false',
-            `skip = ${rowsToSkip}`,
             'all_varchar = true',
             'strict_mode = false',
         ];
+        if (rowsToSkip) {
+            params.push(`skip = ${rowsToSkip}`);
+        }
         if (delimiter) {
             params.push(`delim = '${delimiter}'`);
         }

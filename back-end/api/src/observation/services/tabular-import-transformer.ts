@@ -1,5 +1,5 @@
 import { FlagEnum } from '../enums/flag.enum';
-import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
@@ -27,12 +27,12 @@ export class TabularImportTransformer {
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
-    public static async loadTableFromFile(conn: DuckDBConnection, filePathName: string, rowsToSkip: number, maxRows: number, delimiter: string | undefined): Promise<string> {
+    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, rowsToSkip: number, maxRows: number, delimiter?: string): Promise<void> {
         // Read CSV with the configured params
         const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
         const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
         // Remove spaces and special characters from table name to ensure valid SQL identifier
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(filePathName);
+        // const tableName: string = DuckDBUtils.getTableNameFromFileName(filePathName);
 
         // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", etc. based on the column positions.
         const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
@@ -44,7 +44,7 @@ export class TabularImportTransformer {
         const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
         await conn.run(renameSQL);
 
-        return tableName;
+        //return tableName;
     }
 
     public static async executeTransformation(
@@ -199,19 +199,19 @@ export class TabularImportTransformer {
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} SET NOT NULL;`;
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.INTERVAL_PROPERTY_NAME} TYPE INTEGER;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.INTERVAL_PROPERTY_NAME} INTEGER DEFAULT ${source.intervalDefinition.defaultInterval};`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.INTERVAL_PROPERTY_NAME} INTEGER DEFAULT ${source.intervalDefinition.defaultValue};`;
         }
         return sql;
     }
 
     private static buildAlterLevelColumnSQL(source: ImportSourceTabularParamsDto, tableName: string): string {
         let sql: string;
-        if (source.levelColumnPosition !== undefined) {
-            sql = `ALTER TABLE ${tableName} RENAME column${source.levelColumnPosition} TO ${this.LEVEL_PROPERTY_NAME};`;
+        if (source.levelDefinition.columnPosition !== undefined) {
+            sql = `ALTER TABLE ${tableName} RENAME column${source.levelDefinition.columnPosition} TO ${this.LEVEL_PROPERTY_NAME};`;
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.LEVEL_PROPERTY_NAME} SET NOT NULL;`;
             sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.LEVEL_PROPERTY_NAME} TYPE INTEGER;`;
         } else {
-            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.LEVEL_PROPERTY_NAME} INTEGER DEFAULT 0;`;
+            sql = `ALTER TABLE ${tableName} ADD COLUMN ${this.LEVEL_PROPERTY_NAME} INTEGER DEFAULT ${source.levelDefinition.defaultValue};`;
         }
         return sql;
     }
@@ -337,7 +337,7 @@ export class TabularImportTransformer {
                 // Set the time format
                 timeFormat = timeColumn.timeFormat;
                 sql = sql + `ALTER TABLE ${tableName} RENAME COLUMN column${timeColumn.columnPosition} TO time_col;`;
-            } else if (hourDefination.defaultHour) {
+            } else if (hourDefination.defaultHour !== undefined) {
                 const strHour: string = `${StringUtils.addLeadingZero(hourDefination.defaultHour)}`;
                 sql = sql + `ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR;`;
                 sql = sql + `UPDATE ${tableName} SET time_col = '${strHour}:00:00';`;
@@ -381,58 +381,58 @@ export class TabularImportTransformer {
     }
 
     private static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string {
-        let sql: string = '';
+        const sql: string[] = [];
 
         if (tabularDef.valueDefinition !== undefined) {
             const valueDefinition: ValueDefinition = tabularDef.valueDefinition;
             //--------------------------
             // Value column
-            sql = sql + `ALTER TABLE ${tableName} RENAME column${valueDefinition.valueColumnPosition} TO ${this.VALUE_PROPERTY_NAME};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${valueDefinition.valueColumnPosition} TO ${this.VALUE_PROPERTY_NAME}`);
             //--------------------------
 
             //--------------------------
             // Flag column
             if (valueDefinition.flagDefinition !== undefined) {
-                const flagDefinition = valueDefinition.flagDefinition;
-                sql = sql + `ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME};`;
+                const flagDefinition: FlagDefinition = valueDefinition.flagDefinition;
+                sql.push(`ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
 
                 if (flagDefinition.flagsToFetch) {
-                    sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false);
+                    sql.push(DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false));
                 }
 
             } else {
-                sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`);
             }
             //--------------------------
 
         } else {
             // Just add the flag column because the value column should have been added when stacking elements of date columns
-            sql = sql + `ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`)
         }
 
 
-        const sourceMissingValueFlags: string = importDef.sourceMissingValueFlags;
-        const missingValueFlags: string[] = sourceMissingValueFlags ? sourceMissingValueFlags.split(',').map(f => f.trim()).filter(f => f) : [];
+        // Get all missing value indicators in quoted format
+        const missingValueIndicators: string[] = importDef.sourceMissingValueIndicators.split(',').map(f => `'${f}'`).filter(f => f);
 
-        let missingValueCondition = `${this.VALUE_PROPERTY_NAME} IS NULL`;
-        if (missingValueFlags.length > 0) {
-            const quotedFlags = missingValueFlags.map(f => `'${f}'`).join(',');
-            missingValueCondition = `${missingValueCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${quotedFlags})`;
+        let missingValueCondition: string = `${this.VALUE_PROPERTY_NAME} IS NULL`;
+        if (missingValueIndicators.length > 0) {
+            missingValueCondition = `${missingValueCondition} OR ${this.VALUE_PROPERTY_NAME} IN (${missingValueIndicators.join(',')})`;
         }
 
         if (sourceDef.allowMissingValue) {
             // Set missing flag if missing are allowed to be imported.
-            sql = sql + `UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${missingValueCondition};`;
+            sql.push(`UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${missingValueCondition}`);
         } else {
             // Delete all missing values if not allowed.
-            sql = sql + `DELETE FROM ${tableName} WHERE ${missingValueCondition};`;
+            sql.push(`DELETE FROM ${tableName} WHERE ${missingValueCondition}`);
         }
 
         // Convert the value column to double.
         // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE;`;
+        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE`);
 
-        return sql;
+        // TODO. This should basically return the array
+        return sql.join(';');
     }
 
     private static buildRemoveDuplicatesSQL(tableName: string): string {

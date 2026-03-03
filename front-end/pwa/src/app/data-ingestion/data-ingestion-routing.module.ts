@@ -3,10 +3,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { FormEntryComponent } from './data-entry/form-entry/form-entry.component';
 
 import { StationFormSelectionComponent } from './data-entry/station-form-selection/station-form-selection.component';
-import { ImportSelectionComponent } from './import-selection/import-selection.component';
-import { AutoImportSelectionComponent } from './auto-import-selection/auto-import-selection.component';
-import { DeletedDataComponent } from './deleted-data/deleted-data.component'; 
-import { DataCorrectionComponent } from './data-correction/data-correction.component';  
+import { ImportSelectionComponent } from './import-entry/import-source-selection/import-selection.component';
+import { DeletedDataComponent } from './deleted-data/deleted-data.component';
+import { DataCorrectionComponent } from './data-correction/data-correction.component';
 
 
 const routes: Routes = [
@@ -33,14 +32,6 @@ const routes: Routes = [
         path: 'manual-import-selection',
         component: ImportSelectionComponent
       },
-{
-        path: 'auto-import-selection',
-        component: AutoImportSelectionComponent
-      },
-      {
-        path: 'auto-import-selection',
-        component: AutoImportSelectionComponent
-      },
       {
         path: 'data-correction',
         component: DataCorrectionComponent
@@ -48,7 +39,7 @@ const routes: Routes = [
       {
         path: 'deleted-data',
         component: DeletedDataComponent
-      }, 
+      },
     ]
   }
 

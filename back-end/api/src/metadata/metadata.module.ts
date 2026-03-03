@@ -51,6 +51,8 @@ import { StationNetworkAffiliationsService } from './stations/services/station-n
 import { SettingsModule } from 'src/settings/settings.module';
 import { QCSpecificationEntity } from './qc-specifications/entities/qc-specification.entity';
 import { QCSpecificationsController } from './qc-specifications/controllers/qc-specifications.controller';
+import { MetadataImportPreviewController } from './controllers/metadata-import-preview.controller';
+import { MetadataImportPreviewService } from './services/metadata-import-preview.service';
 
 @Module({
     imports: [
@@ -105,6 +107,8 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
         ConnectorSpecificationsController,
 
         MetadataUpdatesController,
+
+        MetadataImportPreviewController,
     ],
     providers: [
         ElementSubdomainsService,
@@ -127,6 +131,7 @@ import { QCSpecificationsController } from './qc-specifications/controllers/qc-s
         RegionsService,
         StationsImportExportService,
         ElementsImportExportService,
+        MetadataImportPreviewService,
         ExportSpecificationsService,
 
         ConnectorSpecificationsService,

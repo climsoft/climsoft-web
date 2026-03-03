@@ -1,130 +1,307 @@
-import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
+import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationsCacheService } from '../services/stations-cache.service';
-import { AppConfigService } from 'src/app/app-config.service';
+import { MetadataImportPreviewHttpService } from '../../services/metadata-import-preview-http.service';
+import {
+  FieldMappingModel,
+  MetadataPreviewError,
+  MetadataPreviewWarning,
+  StationColumnMappingModel,
+  StationTransformModel,
+} from '../../models/metadata-import-preview.model';
+
+type WizardStep = 'upload' | 'basic' | 'obs-proc-method' | 'obs-environment' | 'obs-focus' | 'owner-operator' | 'status' | 'external-ids' | 'dates' | 'comment' | 'review';
 
 @Component({
   selector: 'app-stations-import-dialog',
   templateUrl: './stations-import-dialog.component.html',
   styleUrls: ['./stations-import-dialog.component.scss']
 })
-export class StationsImportDialogComponent {
+export class StationsImportDialogComponent implements OnDestroy {
   @Output() public okClick = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
   protected open: boolean = false;
-  protected uploadMessage: string = "";
-  protected uploadError: boolean = false;
-  protected showUploadProgress: boolean = false;
-  protected uploadProgress: number = 0;
+  protected activeStep: WizardStep = 'upload';
+  protected loading: boolean = false;
+  protected importing: boolean = false;
 
-  protected disableUpload: boolean = false;
-  private fileInputEvent: any;
-  protected fileName: string = "";
+  protected readonly wizardSteps: WizardStep[] = [
+    'upload', 'basic', 'obs-proc-method', 'obs-environment', 'obs-focus',
+    'owner-operator', 'status', 'external-ids', 'dates', 'comment', 'review'
+  ];
+
+  protected readonly stepLabels: Record<WizardStep, string> = {
+    'upload': 'Upload',
+    'basic': 'Basic Info',
+    'obs-proc-method': 'Obs Method',
+    'obs-environment': 'Environment',
+    'obs-focus': 'Obs Focus',
+    'owner-operator': 'Owner & Operator',
+    'status': 'Status',
+    'external-ids': 'External IDs',
+    'dates': 'Dates',
+    'comment': 'Comment',
+    'review': 'Review',
+  };
+
+  protected visitedSteps: Set<WizardStep> = new Set(['upload']);
+
+  // Upload step
+  protected fileName: string = '';
+  protected sessionId: string = '';
+  protected rowsToSkip: number = 1;
+  protected delimiter: string = '';
+
+  // Raw columns (for basic detail component)
+  protected rawColumns: string[] = [];
+  protected hasRawFile: boolean = false;
+
+  // Column mapping — single source of truth
+  protected mapping: StationColumnMappingModel = this.getDefaultMapping();
+
+  // Preview (always shows transformed data)
+  protected previewColumns: string[] = [];
+  protected previewRows: string[][] = [];
+  protected previewTotalRowCount: number = 0;
+  protected previewRowsDropped: number = 0;
+  protected previewWarnings: MetadataPreviewWarning[] = [];
+  protected previewError: MetadataPreviewError | null = null;
 
   constructor(
-    private appConfigService: AppConfigService,
-    private stationsCacheService: StationsCacheService,
     private pagesDataService: PagesDataService,
-    private http: HttpClient) {
+    private stationsCacheService: StationsCacheService,
+    private metadataPreviewService: MetadataImportPreviewHttpService,
+  ) { }
+
+  ngOnDestroy(): void {
+    this.cleanupSession();
   }
 
   public showDialog(): void {
-    this.uploadMessage = '';
-    this.uploadError = false;
-    this.uploadProgress = 0;
-    this.disableUpload = false;
-    this.fileInputEvent = undefined;
-    this.fileName = '';
+    this.reset();
     this.open = true;
   }
 
-  protected onFileSelected(fileInputEvent: any): void {
-    this.fileInputEvent = fileInputEvent;
-    const selectedFile = this.fileInputEvent.target.files.length === 0 ? undefined : this.fileInputEvent.target.files[0] as File;
-    this.fileName = selectedFile ? selectedFile.name : "Select file to upload";
+  // ─── Wizard Navigation ─────────────────────────────────────
+
+  protected onStepTabClick(step: WizardStep): void {
+    if (this.isStepDisabled(step)) return;
+    this.activeStep = step;
+    this.visitedSteps.add(step);
+    this.refreshPreview();
   }
 
-  protected onOkClick(): void {
-    if (!this.fileInputEvent || this.fileInputEvent.target.files.length === 0) {
-      return;
+  protected onNext(): void {
+    const idx = this.wizardSteps.indexOf(this.activeStep);
+    if (idx < this.wizardSteps.length - 1) {
+      this.activeStep = this.wizardSteps[idx + 1];
+      this.visitedSteps.add(this.activeStep);
+      this.refreshPreview();
     }
+  }
 
-    if (this.disableUpload) {
-      return;
+  protected onPrevious(): void {
+    const idx = this.wizardSteps.indexOf(this.activeStep);
+    if (idx > 0) {
+      this.activeStep = this.wizardSteps[idx - 1];
+      this.visitedSteps.add(this.activeStep);
+      this.refreshPreview();
     }
+  }
 
-    const selectedFile = this.fileInputEvent.target.files[0] as File;
+  protected isStepDisabled(step: WizardStep): boolean {
+    if (step === 'upload') return false;
+    return !this.sessionId;
+  }
 
-    this.disableUpload = true;
-    this.showUploadProgress = true;
-    this.uploadProgress = 0;
-    this.uploadError = false;
-    this.uploadMessage = "Uploading file..."
+  protected isStepValid(step: WizardStep): boolean {
+    switch (step) {
+      case 'upload':
+        return this.hasRawFile;
+      case 'basic':
+        return this.mapping.idColumnPosition > 0 && this.mapping.nameColumnPosition > 0;
+      default:
+        return true;
+    }
+  }
 
-    // Get the file and append it as the form data to be sent
+  protected hasStepBeenVisited(step: WizardStep): boolean {
+    return this.visitedSteps.has(step);
+  }
 
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+  protected getStepNumber(step: WizardStep): number {
+    return this.wizardSteps.indexOf(step) + 1;
+  }
 
-    const params = new HttpParams();
-    const url = `${this.appConfigService.apiBaseUrl}/stations/upload`;
+  // ─── Upload ────────────────────────────────────────────────
 
-    this.http.put(
-      url,
-      formData,
-      {
-        reportProgress: true,
-        observe: 'events',
-        params: params
-      }).pipe(
-        catchError(error => {
-          console.log("Error returned: ", error);
-          return throwError(() => new Error('Something bad happened. Please try again later.'));
-        })
-      ).subscribe(event => {
-        if (event.type === HttpEventType.UploadProgress) {
-          if (event.total) {
-            this.uploadProgress = Math.round(100 * (event.loaded / event.total));
-            this.uploadMessage = this.uploadProgress < 100 ? "Uploading file..." : "Processing file...";
-          }
-        } else if (event.type === HttpEventType.Response) {
-          this.disableUpload = false;
-          // Clear the file input
-          this.fileInputEvent.target.value = null;
+  protected onFileSelected(file: File): void {
+    this.fileName = file.name;
+    this.loading = true;
 
-          // Reset upload progress
-          this.showUploadProgress = false;
-          this.uploadProgress = 0;
-          this.uploadError = false;
+    this.metadataPreviewService.upload(file, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.sessionId = response.sessionId;
+        this.rawColumns = response.columns;
+        this.hasRawFile = true;
+        // Show raw data as initial preview
+        this.previewColumns = response.columns;
+        this.previewRows = response.previewRows;
+        this.previewTotalRowCount = response.totalRowCount;
+        this.previewRowsDropped = 0;
+        this.previewWarnings = [];
+        this.previewError = null;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
+        this.loading = false;
+      }
+    });
+  }
 
-          if (!event.body) {
-            this.uploadMessage = "Something went wrong!";
-            this.uploadError = true;
-            return;
-          }
+  protected onRowsToSkipChange(): void {
+    if (!this.sessionId) return;
+    this.loading = true;
+    this.metadataPreviewService.updateBaseParams(this.sessionId, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.rawColumns = response.columns;
+        // Update preview with raw data
+        this.previewColumns = response.columns;
+        this.previewRows = response.previewRows;
+        this.previewTotalRowCount = response.totalRowCount;
+        this.previewRowsDropped = 0;
+        this.previewWarnings = [];
+        this.previewError = null;
+        this.loading = false;
+      },
+      error: () => { this.loading = false; }
+    });
+  }
 
-          let response: string = (event.body as any).message;
-          if (response === "success") {
-            this.open = false; // close the dialog
-            this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: ToastEventTypeEnum.SUCCESS });
+  // ─── Preview ───────────────────────────────────────────────
 
-            // Refresh the cache
-            this.stationsCacheService.checkForUpdates();
-            this.okClick.emit();
-          } else {
-            this.uploadMessage = response;
-            this.uploadError = true;
-          }
-        }
-      });
+  protected refreshPreview(): void {
+    if (!this.sessionId) return;
 
+    this.loading = true;
+    this.previewError = null;
+    this.previewWarnings = [];
+
+    const transform = this.buildTransform();
+    this.metadataPreviewService.previewStations(this.sessionId, transform).pipe(take(1)).subscribe({
+      next: (response) => {
+        this.previewColumns = response.columns;
+        this.previewRows = response.previewRows;
+        this.previewTotalRowCount = response.totalRowCount;
+        this.previewRowsDropped = response.rowsDropped;
+        this.previewWarnings = response.warnings;
+        this.previewError = response.error || null;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.pagesDataService.showToast({ title: 'Preview Error', message: err.error?.message || 'Failed to generate preview', type: ToastEventTypeEnum.ERROR });
+        this.loading = false;
+      }
+    });
+  }
+
+  // ─── Import ────────────────────────────────────────────────
+
+  protected onConfirmImport(): void {
+    this.importing = true;
+
+    const transform = this.buildTransform();
+    this.metadataPreviewService.confirmStationImport(this.sessionId, transform).pipe(take(1)).subscribe({
+      next: () => {
+        this.importing = false;
+        this.open = false;
+        this.sessionId = '';
+        this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: ToastEventTypeEnum.SUCCESS });
+        this.stationsCacheService.checkForUpdates();
+        this.okClick.emit();
+      },
+      error: (err) => {
+        this.importing = false;
+        this.pagesDataService.showToast({ title: 'Import Error', message: err.error?.message || 'Failed to import stations', type: ToastEventTypeEnum.ERROR });
+      }
+    });
   }
 
   protected onCancelClick(): void {
+    this.cleanupSession();
+    this.open = false;
     this.cancelClick.emit();
   }
 
+  // ─── Private Helpers ───────────────────────────────────────
+
+  private buildTransform(): StationTransformModel {
+    return {
+      rowsToSkip: this.rowsToSkip,
+      delimiter: this.delimiter || undefined,
+      columnMapping: {
+        ...this.mapping,
+        obsProcMethod: this.cleanFieldMapping(this.mapping.obsProcMethod),
+        obsEnvironment: this.cleanFieldMapping(this.mapping.obsEnvironment),
+        obsFocus: this.cleanFieldMapping(this.mapping.obsFocus),
+        owner: this.cleanFieldMapping(this.mapping.owner),
+        operator: this.cleanFieldMapping(this.mapping.operator),
+        status: this.cleanFieldMapping(this.mapping.status),
+      },
+    };
+  }
+
+  private cleanFieldMapping(fm: FieldMappingModel | undefined): FieldMappingModel | undefined {
+    if (!fm) return undefined;
+
+    if (fm.columnPosition && fm.columnPosition > 0) {
+      const result: FieldMappingModel = { columnPosition: fm.columnPosition };
+      if (fm.valueMappings && fm.valueMappings.length > 0) {
+        result.valueMappings = fm.valueMappings.filter(m => m.sourceId && m.databaseId);
+      }
+      return result;
+    }
+    if (fm.defaultValue !== undefined && fm.defaultValue !== '') {
+      return { defaultValue: fm.defaultValue };
+    }
+    return undefined;
+  }
+
+  private getDefaultMapping(): StationColumnMappingModel {
+    return {
+      idColumnPosition: 1,
+      nameColumnPosition: 2,
+    };
+  }
+
+  private reset(): void {
+    this.cleanupSession();
+    this.activeStep = 'upload';
+    this.visitedSteps = new Set(['upload']);
+    this.loading = false;
+    this.importing = false;
+    this.fileName = '';
+    this.sessionId = '';
+    this.rowsToSkip = 1;
+    this.delimiter = '';
+    this.rawColumns = [];
+    this.hasRawFile = false;
+    this.mapping = this.getDefaultMapping();
+    this.previewColumns = [];
+    this.previewRows = [];
+    this.previewTotalRowCount = 0;
+    this.previewRowsDropped = 0;
+    this.previewWarnings = [];
+    this.previewError = null;
+  }
+
+  private cleanupSession(): void {
+    if (this.sessionId) {
+      this.metadataPreviewService.deleteSession(this.sessionId).pipe(take(1)).subscribe();
+      this.sessionId = '';
+    }
+  }
 }

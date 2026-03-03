@@ -35,7 +35,3 @@ export interface CreateSourceSpecificationModel {
   disabled: boolean;
   comment: string | null;
 }
-
-export interface SourceParametersValidity {
-  isValid(): boolean;
-}

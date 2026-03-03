@@ -23,7 +23,7 @@ import { SelectorSingleInputComponent } from './controls/selector-input/selector
 
 import { HourSingleInputComponent } from './controls/hour-input/hour-single-input/hour-single-input.component';
 import { HourMultipleInputComponent } from './controls/hour-input/hour-multiple-input/hour-multiple-input.component';
-import { IntervalSelectorSingleComponent } from './controls/period-input/interval-selector-single/interval-selector-single.component';
+import { IntervalSelectorSingleComponent } from './controls/interval-selector/interval-selector-single/interval-selector-single.component';
 import { LabelInputComponent } from './controls/label-input/label-input.component';
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
@@ -34,7 +34,7 @@ import { DropDownContainerComponent } from './controls/drop-down-container/drop-
 import { MapComponent } from './controls/map/map.component';
 import { DataStructureInputComponent } from './controls/data-structure-input/data-structure-input.component';
 import { DateRangeInputComponent } from './controls/date-range-input/date-range-input.component';
-import { IntervalSelectorMultipleComponent } from './controls/period-input/interval-selector-multiple/interval-selector-multiple.component';
+import { IntervalSelectorMultipleComponent } from './controls/interval-selector/interval-selector-multiple/interval-selector-multiple.component';
 import { YearSelectorMultipleComponent } from './controls/year-selector/year-selector-multiple/year-selector-multiple.component';
 import { YearSelectorSingleComponent } from './controls/year-selector/year-selector-single-input/year-selector-single.component';
 import { DatetimeFormatSelectorSingleComponent } from './controls/datetime-format-selectors/datetime-format-selector-single/datetime-format-selector-single.component';
@@ -45,6 +45,7 @@ import { CronInputComponent } from './controls/cron-input/cron-input.component';
 import { DeleteConfirmationDialogComponent } from './controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from './controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { FileInputComponent } from './controls/file-input/file-input.component';
+import { DelimeterSelectorComponent } from './controls/delimeter-selector/delimeter-selector.component';
 
 //--------------------------------
 
@@ -53,7 +54,7 @@ const angularModules = [
   ReactiveFormsModule,
   FormsModule,
   HttpClientModule,
-      DragDropModule,
+  DragDropModule,
 ];
 
 //--------------------------------
@@ -103,6 +104,7 @@ const controlsComponents = [
   DeleteConfirmationDialogComponent,
   ToggleDisabledConfirmationDialogComponent,
   FileInputComponent,
+  DelimeterSelectorComponent,
 ];
 
 const directives = [

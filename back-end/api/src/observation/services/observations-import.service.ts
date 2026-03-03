@@ -13,6 +13,7 @@ import { DataSource } from 'typeorm';
 import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError } from '../dtos/import-preview.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 
 @Injectable()
 export class ObservationImportService {
@@ -76,7 +77,8 @@ export class ObservationImportService {
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
         // Execute the duckdb DDL SQL commands
-        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(inputFilePathName);
+        await TabularImportTransformer.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
         // TODO. Will come from cache in later iterations
         const elements: CreateViewElementDto[] = await this.elementsService.find();
@@ -171,7 +173,7 @@ export class ObservationImportService {
 
             this.logger.log(`Successfully imported ${filePathName} into database`);
 
-             this.eventEmitter.emit('observations.saved');
+            this.eventEmitter.emit('observations.saved');
 
         } catch (error) {
             // Rollback transaction on error

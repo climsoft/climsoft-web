@@ -1,5 +1,4 @@
-import { ImportSourceTabularParamsModel } from "./import-source-tabular-params.model";
-import { SourceParametersValidity } from "./create-source-specification.model";
+import { ImportSourceTabularParamsModel } from "./import-source-tabular-params.model"; 
 
 export enum DataStructureTypeEnum {
     TABULAR = "tabular",
@@ -7,7 +6,7 @@ export enum DataStructureTypeEnum {
     BUFR = "bufr",
 }
 
-export interface ImportSourceModel extends SourceParametersValidity {
+export interface ImportSourceModel  {
 
     dataStructureType: DataStructureTypeEnum;
 
@@ -18,12 +17,5 @@ export interface ImportSourceModel extends SourceParametersValidity {
      * source values that represent missing.
      * Applicable only when import of missing values is allowed.
      */
-    sourceMissingValueFlags: string;
-
-}
-
-
-
-export interface DataStructureValidity {
-    isValid(): boolean;
+    sourceMissingValueIndicators: string;
 }

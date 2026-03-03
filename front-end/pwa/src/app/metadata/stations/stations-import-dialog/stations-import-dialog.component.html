@@ -1,52 +1,190 @@
-<app-dialog [(open)]="open" [title]="'Import Stations'" [okButtonLabel]="'Submit'" [closeOnOkClick]="false"
-  (okClick)="onOkClick()" (cancelClick)="onCancelClick()">
+<ng-container *ngIf="open">
+  <app-dialog [(open)]="open" [title]="'Import Stations'" [displayOkOption]="false" (cancelClick)="onCancelClick()">
 
-  <div *ngIf="open" class="card border-0">
-    <div class="card-body p-0">
+    <!-- Wizard Tab Navigation -->
+    <div class="mb-3">
+      <ul class="nav nav-tabs">
+        <li class="nav-item" *ngFor="let step of wizardSteps">
+          <button class="nav-link d-flex align-items-center gap-1" [class.active]="activeStep === step"
+            [class.disabled]="isStepDisabled(step)" (click)="onStepTabClick(step)">
+            <span class="step-badge"
+              [class.bg-success]="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step"
+              [class.bg-danger]="hasStepBeenVisited(step) && !isStepValid(step) && activeStep !== step"
+              [class.bg-primary]="activeStep === step"
+              [class.bg-secondary]="!hasStepBeenVisited(step) && activeStep !== step">
+              <ng-container
+                *ngIf="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step">&#10003;</ng-container>
+              <ng-container
+                *ngIf="!(hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step)">{{
+                getStepNumber(step) }}</ng-container>
+            </span>
+            {{ stepLabels[step] }}
+          </button>
+        </li>
+      </ul>
+    </div>
 
-      <div class="d-flex px-1 py-0 flex-column">
-        <div class="mt-1 mb-1 d-flex justify-content-between align-items-center">
-          <div class="me-2">
-            Select File
-          </div>
-          <div>
-            <input #fileUpload type="file" style="display: none;" [accept]="'text/csv'"
-              (change)="onFileSelected($event)">
-            <button type="button" class="btn btn-outline-secondary btn-sm" [disabled]="disableUpload"
-              (click)="fileUpload.click()">
-              Select
-            </button>
-          </div>
-        </div>
-        <div class="ms-2 text-success" *ngIf="fileName">
-          {{ fileName }}
-        </div>
-      </div>
+    <div class="row">
 
+      <!-- Left column: Step configuration controls -->
+      <div class="col-md-5 d-flex flex-column justify-content-between">
 
-      <div class="d-flex flex-column align-items-center p-2 mt-2"
-        style="min-height:300px; min-width:300px; max-height: 300px; max-width: 500px; background-color:#e0f7fa;">
-        <div>
-          <div class="fw-bold">Expected Columns</div>
-          <div style="font-size: 12px;">
-            Id, Name, Description, Observation processing method, Location, Elevation, Observation environment,
-            Observation focus, WMO ID, WIGOS ID, ICAO ID, Status, Date Established, Date Closed, Comment
-          </div>
-        </div>
-        <div *ngIf="uploadMessage" class="mt-4" [class.text-danger]="uploadError">
-          {{ uploadMessage }}
-        </div>
+        <div class="step-content">
 
-        <div class="mt-4 px-2 w-100" *ngIf="showUploadProgress">
-          <div class="progress">
-            <div class="progress-bar progress-bar-striped" style="width: 100%" [style.width.%]="uploadProgress">
-              {{ uploadProgress === 100? 'Processing...': uploadProgress + '%'}}
+          <!-- ─── Step 1: Upload ─── -->
+          <div *ngIf="activeStep === 'upload'">
+            <div class="mb-3">
+              <app-file-input [label]="'Select CSV File'" [buttonLabel]="'Upload File'" [fileName]="fileName"
+                [disabled]="loading" (fileSelected)="onFileSelected($event)" />
+            </div>
+
+            <hr />
+
+            <div class="mb-3">
+              <app-number-input [label]="'Rows to Skip (header)'" [(numValue)]="rowsToSkip"
+                (numValueChange)="onRowsToSkipChange()" />
+            </div>
+
+            <hr />
+
+            <div class="mb-3">
+              <label class="form-label">Delimiter</label>
+              <select class="form-select form-select-sm" [(ngModel)]="delimiter" (change)="onRowsToSkipChange()"
+                title="Delimiter">
+                <option value="">Auto-detect</option>
+                <option value=",">,</option>
+                <option value="|">|</option>
+              </select>
             </div>
           </div>
+
+          <!-- ─── Step 2: Basic Info ─── -->
+          <div *ngIf="activeStep === 'basic'">
+            <app-station-import-basic-detail [(mapping)]="mapping" [rawColumns]="rawColumns" />
+          </div>
+
+          <!-- ─── Step 3: Obs Processing Method ─── -->
+          <div *ngIf="activeStep === 'obs-proc-method'">
+            <app-station-import-obs-method-detail [(obsProcMethod)]="mapping.obsProcMethod" />
+          </div>
+
+          <!-- ─── Step 4: Obs Environment ─── -->
+          <div *ngIf="activeStep === 'obs-environment'">
+            <app-station-import-environment-detail [(obsEnvironment)]="mapping.obsEnvironment" />
+          </div>
+
+          <!-- ─── Step 5: Obs Focus ─── -->
+          <div *ngIf="activeStep === 'obs-focus'">
+            <app-station-import-focus-detail [(obsFocus)]="mapping.obsFocus" />
+          </div>
+
+          <!-- ─── Step 6: Owner & Operator ─── -->
+          <div *ngIf="activeStep === 'owner-operator'">
+            <app-station-import-owner-operator-detail [(owner)]="mapping.owner" [(operator)]="mapping.operator" />
+          </div>
+
+          <!-- ─── Step 7: Status ─── -->
+          <div *ngIf="activeStep === 'status'">
+            <app-station-import-status-detail [(status)]="mapping.status" />
+          </div>
+
+          <!-- ─── Step 8: External IDs ─── -->
+          <div *ngIf="activeStep === 'external-ids'">
+            <div class="mb-3">
+              <app-number-input [label]="'WMO ID Column Position'"
+                [value]="mapping.wmoIdColumnPosition"
+                (valueChange)="mapping.wmoIdColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+            <div class="mb-3">
+              <app-number-input [label]="'WIGOS ID Column Position'"
+                [value]="mapping.wigosIdColumnPosition"
+                (valueChange)="mapping.wigosIdColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+            <div class="mb-3">
+              <app-number-input [label]="'ICAO ID Column Position'"
+                [value]="mapping.icaoIdColumnPosition"
+                (valueChange)="mapping.icaoIdColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+          </div>
+
+          <!-- ─── Step 9: Dates ─── -->
+          <div *ngIf="activeStep === 'dates'">
+            <div class="mb-3">
+              <app-number-input [label]="'Date Established Column Position'"
+                [value]="mapping.dateEstablishedColumnPosition"
+                (valueChange)="mapping.dateEstablishedColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+            <div class="mb-3">
+              <app-number-input [label]="'Date Closed Column Position'"
+                [value]="mapping.dateClosedColumnPosition"
+                (valueChange)="mapping.dateClosedColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+          </div>
+
+          <!-- ─── Step 10: Comment ─── -->
+          <div *ngIf="activeStep === 'comment'">
+            <div class="mb-3">
+              <app-number-input [label]="'Comment Column Position'"
+                [value]="mapping.commentColumnPosition"
+                (valueChange)="mapping.commentColumnPosition = $event ?? undefined" [min]="1" />
+            </div>
+          </div>
+
+          <!-- ─── Step 11: Review ─── -->
+          <div *ngIf="activeStep === 'review'">
+            <div class="fw-bold mb-2">Review & Confirm</div>
+            <div class="small text-muted mb-2">Review the transformed preview on the right. Click "Confirm Import" to
+              import all rows.</div>
+
+            <button type="button" class="btn btn-primary btn-sm" [disabled]="importing || previewError"
+              (click)="onConfirmImport()">
+              {{ importing ? 'Importing...' : 'Confirm Import' }}
+            </button>
+
+            <div *ngIf="importing" class="mt-2">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Importing...</span>
+              </div>
+              <span class="ms-2 small">Processing all rows...</span>
+            </div>
+          </div>
+
         </div>
 
+        <!-- Navigation buttons -->
+        <div class="d-flex justify-content-end gap-1 mt-2 pt-2 border-top">
+          <button *ngIf="activeStep !== 'upload'" type="button" class="btn btn-sm btn-outline-secondary"
+            (click)="onPrevious()">
+            Previous
+          </button>
+          <button *ngIf="activeStep !== 'review'" type="button" class="btn btn-sm btn-outline-primary"
+            (click)="onNext()">
+            Next
+          </button>
+        </div>
       </div>
-    </div>
-  </div>
 
-</app-dialog>
+      <!-- Right column: Preview table (always shows transformed data) -->
+      <div class="col-md-7">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <small class="text-muted">Preview updates as you navigate steps</small>
+          <button type="button" class="btn btn-outline-info btn-sm" [disabled]="!sessionId"
+            (click)="refreshPreview()">
+            Refresh Preview
+          </button>
+        </div>
+
+        <app-import-preview-table [title]="'Preview'"
+          [columns]="previewColumns"
+          [rows]="previewRows"
+          [totalRowCount]="previewTotalRowCount"
+          [rowsDropped]="previewRowsDropped"
+          [warnings]="previewWarnings"
+          [error]="previewError" [loading]="loading" [hasFile]="hasRawFile"
+          [noFileMessage]="'Upload a CSV file to see a preview'" [maxHeight]="'60vh'" />
+      </div>
+
+    </div>
+
+  </app-dialog>
+</ng-container>

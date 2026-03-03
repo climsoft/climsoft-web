@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
-import { PreviewError, PreviewForImportDto, PreviewWarning, RawPreviewResponse, StepPreviewResponse } from '../dtos/import-preview.dto';
+import { PreviewError, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
@@ -25,8 +25,7 @@ interface PreviewSession {
 export class ImportPreviewService implements OnModuleDestroy {
     private readonly logger: Logger = new Logger(ImportPreviewService.name);
     private readonly sessions: Map<string, PreviewSession> = new Map();
-    private readonly MAX_PREVIEW_ROWS = 1000;
-    private readonly DISPLAY_ROWS = 200;
+    private readonly MAX_PREVIEW_ROWS = 200;
     private readonly SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
     constructor(
@@ -97,51 +96,44 @@ export class ImportPreviewService implements OnModuleDestroy {
     }
 
     public async previewRawFile(session: PreviewSession): Promise<RawPreviewResponse> {
-        // Load the file into DuckDB (resets to raw state for idempotent preview)
-        const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDbConn, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
+        // Load the whole file into DuckDB (resets to raw state for idempotent preview)
+        const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        await TabularImportTransformer.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
 
         // Get preview data
-        const columns = await this.getColumnNames(tableName);
-        const totalRowCount = await this.getRowCount(tableName);
-        const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
-        const skippedRows = await this.getSkippedRows(importFilePathName, session.rowsToSkip, session.delimiter);
+        const previewData: PreviewTableData = {
+            columns: await this.getColumnNames(tableName),
+            rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
+            totalRowCount: await this.getTotalRowCount(tableName),
+        };
+        const skippedData: PreviewTableData = await this.getSkippedData(importFilePathName, session.rowsToSkip, session.delimiter);
 
-        return { sessionId: session.sessionId, fileName: session.fileName, columns, totalRowCount, previewRows, skippedRows };
+        return { sessionId: session.sessionId, fileName: session.fileName, previewData, skippedData };
     }
 
-    public async transformAndPreviewFile(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<StepPreviewResponse> {
+    public async previewTransformedFile(sessionId: string, sourceDef: CreateSourceSpecificationDto, stationId?: string): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
         session.lastAccessedAt = Date.now();
 
         // Reset table to raw state for idempotent processing
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDbConn, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
-
-        const beforeCount: number = await this.getRowCount(tableName);
-
-        // TODO. Will come from cache in later iterations
-        const elements: CreateViewElementDto[] = await this.elementsService.find();
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        await TabularImportTransformer.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
 
         // Apply transformations based on the source definition.
+        const elements: CreateViewElementDto[] = this.elementsService.find();
         const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, 0, stationId);
 
-        // Return the current table state (includes all successful transformations)
-        const afterCount = await this.getRowCount(tableName);
-        const columns = await this.getColumnNames(tableName);
-        const previewRows = await this.getPreviewRows(tableName, this.DISPLAY_ROWS);
-        const rowsDropped = beforeCount - afterCount;
-        const warnings: PreviewWarning[] = await this.detectWarnings(tableName, columns);// Detect warnings on whatever columns exist so far
+        // Return the current table state (includes all successful transformations) 
+        const columns: string[] = await this.getColumnNames(tableName);
+        const previewData: PreviewTableData = {
+            columns: await this.getColumnNames(tableName),
+            rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
+            totalRowCount: await this.getTotalRowCount(tableName),
+        };
 
-        if (rowsDropped > 0) {
-            warnings.push({
-                type: 'NULL_VALUES',
-                message: `${rowsDropped} row(s) were removed during processing (due to NULL values, missing value handling, or invalid dates).`,
-                affectedRowCount: rowsDropped,
-            });
-        }
-
-        return { columns, previewRows, totalRowCount: afterCount, rowsDropped, warnings, error: error ? error : undefined };
+        return { previewData, error: error ? error : undefined };
     }
 
     public async importFile(sessionId: string, dto: PreviewForImportDto, userId: number): Promise<void> {
@@ -178,22 +170,12 @@ export class ImportPreviewService implements OnModuleDestroy {
         return session;
     }
 
-
-    private async getSkippedRows(importFilePathName: string, rowsToSkip: number, delimiter?: string): Promise<string[][]> {
-        if (rowsToSkip <= 0) return [];
-
-        const importParams = DuckDBUtils.buildCsvImportParams(0, delimiter);
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT * FROM read_csv('${importFilePathName}', ${importParams.join(', ')}) LIMIT ${rowsToSkip}`);
-
-        return this.convertTableDataToPreviewRows(reader.getRowObjects());
-    }
-
     private async getColumnNames(tableName: string): Promise<string[]> {
         const reader = await this.fileIOService.duckDbConn.runAndReadAll(`DESCRIBE ${tableName}`);
         return reader.getRowObjects().map((item: any) => item.column_name);
     }
 
-    private async getRowCount(tableName: string): Promise<number> {
+    private async getTotalRowCount(tableName: string): Promise<number> {
         const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName}`);
         const rows = reader.getRowObjects();
         return Number(rows[0]?.cnt ?? 0);
@@ -202,6 +184,21 @@ export class ImportPreviewService implements OnModuleDestroy {
     private async getPreviewRows(tableName: string, limit: number): Promise<string[][]> {
         const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT * FROM ${tableName} LIMIT ${limit}`);
         return this.convertTableDataToPreviewRows(reader.getRowObjects());
+    }
+
+    private async getSkippedData(importFilePathName: string, rowsToSkip: number, delimiter?: string): Promise<PreviewTableData> {
+        const skippedData: PreviewTableData = { totalRowCount: 0, columns: [], rows: [] };
+
+        if (rowsToSkip <= 0) return skippedData;
+
+        const tableName: string = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
+        await TabularImportTransformer.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, 0, rowsToSkip, delimiter);
+
+        skippedData.totalRowCount = await this.getTotalRowCount(tableName);
+        skippedData.columns = await this.getColumnNames(tableName);
+        skippedData.rows = await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS);
+
+        return skippedData;
     }
 
     private convertTableDataToPreviewRows(tableData: any[]): string[][] {
@@ -213,75 +210,4 @@ export class ImportPreviewService implements OnModuleDestroy {
             return val === null || val === undefined ? '' : String(val);
         }));
     }
-
-    private async detectWarnings(tableName: string, columns: string[]): Promise<PreviewWarning[]> {
-        const warnings: PreviewWarning[] = [];
-        // Check for NULL values in key columns
-        const keyColumns = [
-            TabularImportTransformer.STATION_ID_PROPERTY_NAME,
-            TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME,
-            TabularImportTransformer.LEVEL_PROPERTY_NAME,
-            TabularImportTransformer.DATE_TIME_PROPERTY_NAME,
-            TabularImportTransformer.INTERVAL_PROPERTY_NAME,
-
-        ];
-
-        for (const col of keyColumns) {
-            if (columns.includes(col)) {
-                try {
-                    const reader = await this.fileIOService.duckDbConn.runAndReadAll(
-                        `SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName} WHERE ${col} IS NULL`
-                    );
-                    const rows = reader.getRowObjects();
-                    const nullCount = Number(rows[0]?.cnt ?? 0);
-                    if (nullCount > 0) {
-                        warnings.push({
-                            type: 'NULL_VALUES',
-                            message: `${nullCount} row(s) have NULL values in the '${col}' column.`,
-                            affectedRowCount: nullCount,
-                        });
-                    }
-                } catch {
-                    // Column might not exist yet, skip
-                }
-            }
-        }
-
-        // Check for duplicates on composite key
-        const compositeKeyCols = [
-            TabularImportTransformer.STATION_ID_PROPERTY_NAME,
-            TabularImportTransformer.ELEMENT_ID_PROPERTY_NAME,
-            TabularImportTransformer.LEVEL_PROPERTY_NAME,
-            TabularImportTransformer.DATE_TIME_PROPERTY_NAME,
-            TabularImportTransformer.INTERVAL_PROPERTY_NAME,
-            TabularImportTransformer.SOURCE_ID_PROPERTY_NAME,
-        ];
-
-        if (compositeKeyCols.every(col => columns.includes(col))) {
-            try {
-                const reader = await this.fileIOService.duckDbConn.runAndReadAll(
-                    `SELECT COUNT(*)::INTEGER AS cnt FROM (
-                        SELECT ${compositeKeyCols.join(', ')}, COUNT(*) AS dup_count
-                        FROM ${tableName}
-                        GROUP BY ${compositeKeyCols.join(', ')}
-                        HAVING COUNT(*) > 1
-                    )`
-                );
-                const rows = reader.getRowObjects();
-                const dupGroupCount = Number(rows[0]?.cnt ?? 0);
-                if (dupGroupCount > 0) {
-                    warnings.push({
-                        type: 'DUPLICATE_ROWS',
-                        message: `${dupGroupCount} group(s) of duplicate rows found based on the composite key. Only the last occurrence of each duplicate will be kept.`,
-                        affectedRowCount: dupGroupCount,
-                    });
-                }
-            } catch {
-                // Columns might not all exist yet, skip
-            }
-        }
-
-        return warnings;
-    }
-
 }
