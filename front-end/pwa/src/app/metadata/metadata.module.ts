@@ -42,6 +42,9 @@ import { QCTestConditionInputComponent } from './qc-tests/qc-test-input-dialog/q
 import { ViewStationsGeoMapComponent } from './stations/view-stations/view-stations-geo-map/view-stations-geo-map.component';
 import { StationsSearchDialogComponent } from './stations/stations-search-dialog/stations-search-dialog.component';
 import { ImportElementsDialogComponent } from './elements/import-elements-dialog/import-elements-dialog.component';
+import { ElementImportBasicDetailComponent } from './elements/import-elements-dialog/element-import-basic-detail/element-import-basic-detail.component';
+import { ElementImportTypeDetailComponent } from './elements/import-elements-dialog/element-import-type-detail/element-import-type-detail.component';
+import { ElementImportExtrasDetailComponent } from './elements/import-elements-dialog/element-import-extras-detail/element-import-extras-detail.component';
 import { ElementsSearchDialogComponent } from './elements/elements-search-dialog/elements-search-dialog.component';
 import { ElementSelectorMultipleComponent } from './elements/element-selector/element-selector-multiple/element-selector-multiple.component';
 import { ElementSelectorSingleComponent } from './elements/element-selector/element-selector-single/element-selector-single.component';
@@ -156,8 +159,11 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ImportSourceFlagDetailComponent,
     ImportPreviewTableComponent,
 
-    EditElementDialogComponent, 
+    EditElementDialogComponent,
     ImportElementsDialogComponent,
+    ElementImportBasicDetailComponent,
+    ElementImportTypeDetailComponent,
+    ElementImportExtrasDetailComponent,
     ElementTypeSingleInputComponent,
     ElementsSearchDialogComponent,
 

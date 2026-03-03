@@ -56,7 +56,7 @@ export class ElementsService implements OnModuleInit {
 
             if (viewElementQueryDto.typeIds) {
                 const typeIdSet = new Set(viewElementQueryDto.typeIds);
-                results = results.filter(dto => typeIdSet.has(dto.typeId));
+                results = results.filter(dto => dto.typeId !== undefined && typeIdSet.has(dto.typeId));
             }
 
             // Apply pagination
@@ -79,7 +79,7 @@ export class ElementsService implements OnModuleInit {
 
         if (viewStationQueryDto.typeIds) {
             const typeIdSet = new Set(viewStationQueryDto.typeIds);
-            results = results.filter(dto => typeIdSet.has(dto.typeId));
+            results = results.filter(dto => dto.typeId !== undefined && typeIdSet.has(dto.typeId));
         }
 
         return results.length;
@@ -181,8 +181,8 @@ export class ElementsService implements OnModuleInit {
         entity.abbreviation = dto.abbreviation;
         entity.name = dto.name;
         entity.description = dto.description ? dto.description : null;
-        entity.units = dto.units;
-        entity.typeId = dto.typeId;
+        entity.units = dto.units || null;
+        entity.typeId = dto.typeId || null;
         entity.entryScaleFactor = dto.entryScaleFactor ? dto.entryScaleFactor : null;
         entity.comment = dto.comment ? dto.comment : null;
         entity.entryUserId = userId;
@@ -207,11 +207,11 @@ export class ElementsService implements OnModuleInit {
             id: entity.id,
             abbreviation: entity.abbreviation,
             name: entity.name,
-            description: entity.description,
-            units: entity.units,
-            typeId: entity.typeId,
-            entryScaleFactor: entity.entryScaleFactor,
-            comment: entity.comment,
+            description: entity.description || undefined,
+            units: entity.units || undefined,
+            typeId: entity.typeId || undefined,
+            entryScaleFactor: entity.entryScaleFactor || undefined,
+            comment: entity.comment || undefined,
         }
     }
 

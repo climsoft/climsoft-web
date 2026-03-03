@@ -7,16 +7,14 @@ import { FileIOService } from 'src/shared/services/file-io.service';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { StationImportTransformer } from '../stations/services/station-import-transformer';
 import { ElementImportTransformer } from '../elements/services/element-import-transformer';
-import { StationsService } from '../stations/services/stations.service';
-import { ElementsService } from '../elements/services/elements.service';
 import {
     StationColumnMappingDto,
     ElementColumnMappingDto,
 } from '../dtos/metadata-import-preview.dto';
-import { CreateStationDto } from '../stations/dtos/create-station.dto';
-import { CreateViewElementDto } from '../elements/dtos/elements/create-view-element.dto';
 import { PreviewError, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from 'src/observation/dtos/import-preview.dto';
 import { PreviewSession } from 'src/observation/services/import-preview.service';
+import { StationsImportExportService } from '../stations/services/stations-import-export.service';
+import { ElementsImportExportService } from '../elements/services/elements-import-export.service';
 
 
 @Injectable()
@@ -28,8 +26,8 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
     constructor(
         private fileIOService: FileIOService,
-        private stationsService: StationsService,
-        private elementsService: ElementsService,
+        private stationsImportExportService: StationsImportExportService,
+        private elementsImportExportService: ElementsImportExportService,
     ) { }
 
     public async onModuleDestroy() {
@@ -86,11 +84,11 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         // Load the whole file into DuckDB (resets to raw state for idempotent preview)
         const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         // Get preview data
         const previewData: PreviewTableData = {
-            columns: await this.getColumnNames(tableName),
+            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
             totalRowCount: await this.getTotalRowCount(tableName),
         };
@@ -107,13 +105,13 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping);
 
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
-            columns: await this.getColumnNames(tableName),
+            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
             totalRowCount: await this.getTotalRowCount(tableName),
         };
@@ -127,73 +125,38 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping);
+        const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping, userId);
         if (error) {
             throw new Error(`Station import transformation failed at step "${error.message}"`);
         }
 
         // Export to CSV
         const timestamp = Date.now();
-        const exportFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `stations_import_processed_${timestamp}.csv`);
-        await StationImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, exportFilePathName);
+        const processedFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `stations_import_processed_${timestamp}.csv`);
+        await StationImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, processedFilePathName);
         await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
 
-        // Import to PostgreSQL using bulkPut (reads CSV rows as DTOs)
-        await this.importStationsFromCsv(exportFilePathName, userId);
-    }
-
-    private async importStationsFromCsv(filePathName: string, userId: number): Promise<void> {
-        // Read the exported CSV back using DuckDB to get row objects
-        const tmpTableName = `stations_csv_read_${Date.now()}`;
-        await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${filePathName}', header = true, all_varchar = true);`);
-
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT * FROM ${tmpTableName};`);
-        const rows = reader.getRowObjects() as any[];
-
-        await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tmpTableName};`);
-
-        // Convert to DTOs and bulk upsert
-        const dtos: CreateStationDto[] = rows.map(row => ({
-            id: row[StationImportTransformer.ID_PROPERTY],
-            name: row[StationImportTransformer.NAME_PROPERTY],
-            description: row[StationImportTransformer.DESCRIPTION_PROPERTY] || undefined,
-            stationObsProcessingMethod: row[StationImportTransformer.OBS_PROC_METHOD_PROPERTY] || undefined,
-            latitude: row[StationImportTransformer.LATITUDE_PROPERTY] ? parseFloat(row[StationImportTransformer.LATITUDE_PROPERTY]) : undefined,
-            longitude: row[StationImportTransformer.LONGITUDE_PROPERTY] ? parseFloat(row[StationImportTransformer.LONGITUDE_PROPERTY]) : undefined,
-            elevation: row[StationImportTransformer.ELEVATION_PROPERTY] ? parseFloat(row[StationImportTransformer.ELEVATION_PROPERTY]) : undefined,
-            stationObsEnvironmentId: row[StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY] ? parseInt(row[StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY], 10) : undefined,
-            stationObsFocusId: row[StationImportTransformer.OBS_FOCUS_ID_PROPERTY] ? parseInt(row[StationImportTransformer.OBS_FOCUS_ID_PROPERTY], 10) : undefined,
-            ownerId: row[StationImportTransformer.OWNER_ID_PROPERTY] ? parseInt(row[StationImportTransformer.OWNER_ID_PROPERTY], 10) : undefined,
-            operatorId: row[StationImportTransformer.OPERATOR_ID_PROPERTY] ? parseInt(row[StationImportTransformer.OPERATOR_ID_PROPERTY], 10) : undefined,
-            wmoId: row[StationImportTransformer.WMO_ID_PROPERTY] || undefined,
-            wigosId: row[StationImportTransformer.WIGOS_ID_PROPERTY] || undefined,
-            icaoId: row[StationImportTransformer.ICAO_ID_PROPERTY] || undefined,
-            status: row[StationImportTransformer.STATUS_PROPERTY] || undefined,
-            dateEstablished: row[StationImportTransformer.DATE_ESTABLISHED_PROPERTY] || undefined,
-            dateClosed: row[StationImportTransformer.DATE_CLOSED_PROPERTY] || undefined,
-            comment: row[StationImportTransformer.COMMENT_PROPERTY] || undefined,
-        }));
-
-        await this.stationsService.bulkPut(dtos, userId);
+        // Import to PostgreSQL
+        await this.stationsImportExportService.importProcessedFileToDatabase(processedFilePathName);
     }
 
     // ─── Element Transform & Preview ─────────────────────────
 
-    public async previewTransformedElementsData(sessionId: string,   elementMapping: ElementColumnMappingDto): Promise<TransformedPreviewResponse> {
+    public async previewTransformedElementsData(sessionId: string, elementMapping: ElementColumnMappingDto): Promise<TransformedPreviewResponse> {
         const session = this.getSession(sessionId);
         session.lastAccessedAt = Date.now();
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping);
 
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
-            columns: await this.getColumnNames(tableName),
+            columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
             rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
             totalRowCount: await this.getTotalRowCount(tableName),
         };
@@ -206,47 +169,21 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        const error = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping);
+        const error = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
         if (error) {
             throw new Error(`Element import transformation failed at step "${error.message}"`);
         }
 
         // Export to CSV
         const timestamp = Date.now();
-        const exportFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `elements_import_processed_${timestamp}.csv`);
-        await ElementImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, exportFilePathName);
+        const processedFilePathName = path.posix.join(this.fileIOService.apiImportsDir, `elements_import_processed_${timestamp}.csv`);
+        await ElementImportTransformer.exportTransformedDataToFile(this.fileIOService.duckDbConn, tableName, processedFilePathName);
         await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
 
-        try {
-            await this.importElementsFromCsv(exportFilePathName, userId);
-        } finally {
-            this.fileIOService.deleteFile(exportFilePathName);
-        }
-    }
-
-    private async importElementsFromCsv(filePathName: string, userId: number): Promise<void> {
-        const tmpTableName = `elements_csv_read_${Date.now()}`;
-        await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${filePathName}', header = true, all_varchar = true);`);
-
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT * FROM ${tmpTableName};`);
-        const rows = reader.getRowObjects() as any[];
-
-        await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tmpTableName};`);
-
-        const dtos: CreateViewElementDto[] = rows.map(row => ({
-            id: parseInt(row[ElementImportTransformer.ID_PROPERTY], 10),
-            abbreviation: row[ElementImportTransformer.ABBREVIATION_PROPERTY],
-            name: row[ElementImportTransformer.NAME_PROPERTY],
-            description: row[ElementImportTransformer.DESCRIPTION_PROPERTY] || null,
-            units: row[ElementImportTransformer.UNITS_PROPERTY] || '',
-            typeId: row[ElementImportTransformer.TYPE_ID_PROPERTY] ? parseInt(row[ElementImportTransformer.TYPE_ID_PROPERTY], 10) : 0,
-            entryScaleFactor: row[ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY] ? parseFloat(row[ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY]) : null,
-            comment: row[ElementImportTransformer.COMMENT_PROPERTY] || null,
-        }));
-
-        await this.elementsService.bulkPut(dtos, userId);
+        // Import to PostgreSQL
+        await this.elementsImportExportService.importProcessedFileToDatabase(processedFilePathName);
     }
 
     // ─── Session Management ──────────────────────────────────
@@ -283,11 +220,6 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
     // ─── Helper Methods ──────────────────────────────────────
 
 
-    private async getColumnNames(tableName: string): Promise<string[]> {
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`DESCRIBE ${tableName}`);
-        return reader.getRowObjects().map((item: any) => item.column_name);
-    }
-
     private async getTotalRowCount(tableName: string): Promise<number> {
         const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName}`);
         const rows = reader.getRowObjects();
@@ -305,10 +237,10 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         if (rowsToSkip <= 0) return skippedData;
 
         const tableName: string = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, 0, rowsToSkip, delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
 
         skippedData.totalRowCount = await this.getTotalRowCount(tableName);
-        skippedData.columns = await this.getColumnNames(tableName);
+        skippedData.columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
         skippedData.rows = await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS);
 
         return skippedData;

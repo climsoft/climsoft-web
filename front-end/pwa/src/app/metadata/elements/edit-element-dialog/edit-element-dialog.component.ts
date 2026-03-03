@@ -39,7 +39,7 @@ export class EditElementDialogComponent {
             units: data.units,
             typeId: data.typeId,
             entryScaleFactor: data.entryScaleFactor,
-            comment: data.comment ? data.comment : null
+            comment: data.comment || '',
           };
         }
 
@@ -55,17 +55,19 @@ export class EditElementDialogComponent {
         units: '',
         typeId: 0,
         entryScaleFactor: 1,
-        comment: null,
+        comment: '',
       };
     }
 
     this.open = true;
   }
 
-  protected onTypeChange(typeId: number | null): void {
-    if (typeId) {
-      this.element.typeId = typeId;
-    }
+  protected onTypeChange(typeId: number | undefined): void {
+    this.element.typeId = typeId ?? undefined;
+  }
+
+  protected onEntryScaleFactorChange(entryScaleFactor: number | undefined | null): void {
+    this.element.entryScaleFactor = entryScaleFactor ?? undefined;
   }
 
   protected onOkClick(): void {
@@ -86,11 +88,11 @@ export class EditElementDialogComponent {
     const updatedElement: UpdateElementModel = {
       name: this.element.name,
       abbreviation: this.element.abbreviation,
-      description: this.element.description,
-      units: this.element.units,
-      typeId: this.element.typeId,
-      entryScaleFactor: this.element.entryScaleFactor,
-      comment: this.element.comment
+      description: this.element.description || undefined,
+      units: this.element.units || undefined,
+      typeId: this.element.typeId ?? undefined,
+      entryScaleFactor: this.element.entryScaleFactor ?? undefined,
+      comment: this.element.comment || undefined
     }
 
     let saveSubscription: Observable<CreateViewElementModel>;

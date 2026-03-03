@@ -10,7 +10,7 @@
         "watchAssets": true
       },
       {
-        "include": "observation/services/export/**/*.json",
+        "include": "observation/services/**/*.json",
         "watchAssets": true
       }
     ]

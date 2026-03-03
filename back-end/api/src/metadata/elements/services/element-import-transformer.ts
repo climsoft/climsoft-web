@@ -1,7 +1,6 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ElementColumnMappingDto } from 'src/metadata/dtos/metadata-import-preview.dto';
-import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
 import { PreviewError } from 'src/observation/dtos/import-preview.dto';
 
 /**
@@ -10,14 +9,18 @@ import { PreviewError } from 'src/observation/dtos/import-preview.dto';
  */
 export class ElementImportTransformer {
 
-    static readonly ID_PROPERTY: keyof CreateViewElementDto = 'id';
-    static readonly ABBREVIATION_PROPERTY: keyof CreateViewElementDto = 'abbreviation';
-    static readonly NAME_PROPERTY: keyof CreateViewElementDto = 'name';
-    static readonly DESCRIPTION_PROPERTY: keyof CreateViewElementDto = 'description';
-    static readonly UNITS_PROPERTY: keyof CreateViewElementDto = 'units';
-    static readonly TYPE_ID_PROPERTY: keyof CreateViewElementDto = 'typeId';
-    static readonly ENTRY_SCALE_FACTOR_PROPERTY: keyof CreateViewElementDto = 'entryScaleFactor';
-    static readonly COMMENT_PROPERTY: keyof CreateViewElementDto = 'comment';
+    // Column names matching ElementEntity @Column({ name }) values.
+    // Note: entry_user_id and entry_date_time come from AppBaseEntity, the base class of ElementEntity.
+    static readonly ID_PROPERTY: string = 'id';
+    static readonly ABBREVIATION_PROPERTY: string = 'abbreviation';
+    static readonly NAME_PROPERTY: string = 'name';
+    static readonly DESCRIPTION_PROPERTY: string = 'description';
+    static readonly UNITS_PROPERTY: string = 'units';
+    static readonly TYPE_ID_PROPERTY: string = 'type_id';
+    static readonly ENTRY_SCALE_FACTOR_PROPERTY: string = 'entry_scale_factor';
+    static readonly COMMENT_PROPERTY: string = 'comment';
+    // From AppBaseEntity
+    static readonly ENTRY_USER_ID_PROPERTY: string = 'entry_user_id';
 
     /** All final column names in order for SELECT and COPY. */
     static readonly ALL_COLUMNS: string[] = [
@@ -29,6 +32,7 @@ export class ElementImportTransformer {
         ElementImportTransformer.TYPE_ID_PROPERTY,
         ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY,
         ElementImportTransformer.COMMENT_PROPERTY,
+        ElementImportTransformer.ENTRY_USER_ID_PROPERTY,
     ];
 
 
@@ -37,6 +41,7 @@ export class ElementImportTransformer {
         conn: DuckDBConnection,
         tableName: string,
         mapping: ElementColumnMappingDto,
+        userId?: number,
     ): Promise<PreviewError | void> {
 
         const steps: { name: string; buildSql: () => string[] }[] = [
@@ -51,8 +56,11 @@ export class ElementImportTransformer {
             {
                 name: 'Finalize',
                 buildSql: () => {
-                    const existingCols = ElementImportTransformer.ALL_COLUMNS;
-                    return [`CREATE OR REPLACE TABLE ${tableName} AS SELECT ${existingCols.join(', ')} FROM ${tableName}`];
+                    return [
+                        `ALTER TABLE ${tableName} ADD COLUMN ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId ?? 'NULL'}`,
+                        ...ElementImportTransformer.buildRemoveDuplicatesSQL(tableName),
+                        `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${ElementImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,
+                    ];
                 }
             },
         ];
@@ -106,10 +114,7 @@ export class ElementImportTransformer {
 
     private static buildAlterUnitsColumnSQL(tableName: string, mapping: ElementColumnMappingDto): string[] {
         if (mapping.unitsColumnPosition !== undefined) {
-            return [
-                `ALTER TABLE ${tableName} RENAME column${mapping.unitsColumnPosition} TO ${this.UNITS_PROPERTY}`,
-                `ALTER TABLE ${tableName} ALTER COLUMN ${this.UNITS_PROPERTY} SET NOT NULL`,
-            ];
+            return [`ALTER TABLE ${tableName} RENAME column${mapping.unitsColumnPosition} TO ${this.UNITS_PROPERTY}`];
         }
         return [`ALTER TABLE ${tableName} ADD COLUMN ${this.UNITS_PROPERTY} VARCHAR DEFAULT NULL`];
     }
@@ -151,6 +156,24 @@ export class ElementImportTransformer {
             return [`ALTER TABLE ${tableName} RENAME column${mapping.commentColumnPosition} TO ${this.COMMENT_PROPERTY}`];
         }
         return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
+    }
+
+    private static buildRemoveDuplicatesSQL(tableName: string): string[] {
+        // Remove duplicates for each unique column (id, abbreviation, name).
+        // Keep the last occurrence by using row_number() ordered by rowid in descending order.
+        // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids.
+        // Each pass is run separately because a single row may be unique on one column but duplicate on another.
+        return [this.ID_PROPERTY, this.ABBREVIATION_PROPERTY, this.NAME_PROPERTY].map(col =>
+            `DELETE FROM ${tableName} WHERE rowid IN (
+                SELECT rowid FROM (
+                    SELECT rowid, ROW_NUMBER() OVER (
+                        PARTITION BY ${col}
+                        ORDER BY rowid DESC
+                    ) as rn
+                    FROM ${tableName}
+                ) WHERE rn > 1
+            )`
+        );
     }
 
     // ─── Error Classification ────────────────────────────────

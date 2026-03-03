@@ -6,14 +6,16 @@ import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';
-import { ElementsImportExportService } from '../services/elements-import-export.service'; 
+import { ElementsImportExportService } from '../services/elements-import-export.service';
+import { FileIOService } from 'src/shared/services/file-io.service';
 
 @Controller("elements")
 export class ElementsController {
 
   constructor(
     private elementsService: ElementsService,
-    private elementsImportExportService: ElementsImportExportService, 
+    private elementsImportExportService: ElementsImportExportService,
+    private fileIOService: FileIOService,
   ) { }
 
   @Get()
@@ -39,8 +41,8 @@ export class ElementsController {
   async downloadStationsCsv(
     @Req() request: Request,
   ) {
-    // Generate the CSV file and stream the file to the response
-    return await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
+    const csvFilePath = await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
+    return this.fileIOService.createStreamableFile(csvFilePath);
   }
 
   @Admin()

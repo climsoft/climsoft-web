@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { StationStatusEnum } from '../enums/station-status.enum';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 
@@ -29,31 +29,38 @@ export class UpdateStationDto {
 
     @IsOptional()
     @IsInt()
+    @Min(1)
     stationObsEnvironmentId?: number;
 
     @IsOptional()
     @IsInt()
+    @Min(1)
     stationObsFocusId?: number;
 
     @IsOptional()
     @IsInt()
+    @Min(1)
     ownerId?: number;
 
     @IsOptional()
     @IsInt()
+    @Min(1)
     operatorId?: number;
 
     @IsOptional()
     @IsString() // TODO. Add validation for WMO station identifier
+    @IsNotEmpty()
     wmoId?: string;
 
     @IsOptional()
     @IsString() // TODO. Add validation for WMO wigos station identifier
+    @IsNotEmpty()
     wigosId?: string;
 
     @IsOptional()
     @IsString()
-    icaoId?: string ;
+    @IsNotEmpty()
+    icaoId?: string;
 
     @IsOptional()
     @IsEnum(StationStatusEnum, { message: 'Station status must be a valid value' })

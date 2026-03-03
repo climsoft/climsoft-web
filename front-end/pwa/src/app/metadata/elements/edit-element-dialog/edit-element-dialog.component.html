@@ -38,7 +38,8 @@
     <hr class="border border-secondary border-1">
 
     <div>
-      <app-number-input [label]="'Entry scale factor'" [(numValue)]="element.entryScaleFactor" />
+      <app-number-input [label]="'Entry scale factor'" [value]="element.entryScaleFactor"
+        (valueChange)="onEntryScaleFactorChange($event)" />
     </div>
 
     <hr class="border border-secondary border-1">

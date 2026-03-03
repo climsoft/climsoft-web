@@ -10,7 +10,7 @@ import { StationStatusEnum } from 'src/metadata/stations/enums/station-status.en
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
 import { AppConfig } from 'src/app.config';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
-import { ClimsoftV4ImportParametersDto } from '../../../dtos/climsoft-v4-import-parameters.dto';
+import { ClimsoftV4ImportParametersDto } from '../dtos/climsoft-v4-import-parameters.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { QCSpecificationsService } from 'src/metadata/qc-specifications/services/qc-specifications.service';
@@ -227,7 +227,7 @@ export class ClimsoftV4WebSyncSetUpService {
                 description: v4Element.description,
                 units: v4Element.units,
                 typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
-                entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : null,
+                entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : undefined,
                 comment: 'pulled from v4 model',
             };
 

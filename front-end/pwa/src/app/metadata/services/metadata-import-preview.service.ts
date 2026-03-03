@@ -41,8 +41,8 @@ export class MetadataImportPreviewService {
         return this.http.post(`${this.endPointUrl}/confirm-station-import/${sessionId}`, transform);
     }
 
-    public previewElements(sessionId: string, transform: ElementColumnMappingModel): Observable<RawPreviewResponse> {
-        return this.http.post<RawPreviewResponse>(`${this.endPointUrl}/preview-elements/${sessionId}`, transform);
+    public previewElements(sessionId: string, transform: ElementColumnMappingModel): Observable<TransformedPreviewResponse> {
+        return this.http.post<TransformedPreviewResponse>(`${this.endPointUrl}/preview-elements/${sessionId}`, transform);
     }
 
     public confirmElementImport(sessionId: string, transform: ElementColumnMappingModel): Observable<any> {

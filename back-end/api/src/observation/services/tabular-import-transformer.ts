@@ -17,8 +17,7 @@ import { DuckDBConnection } from '@duckdb/node-api';
 export class TabularImportTransformer {
 
     // Column names matching ObservationEntity @Column({ name }) values.
-    // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
-    static readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
+     static readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
     static readonly ELEMENT_ID_PROPERTY_NAME: string = 'element_id';
     static readonly LEVEL_PROPERTY_NAME: string = 'level';
     static readonly DATE_TIME_PROPERTY_NAME: string = 'date_time';
@@ -27,6 +26,8 @@ export class TabularImportTransformer {
     static readonly VALUE_PROPERTY_NAME: string = 'value';
     static readonly FLAG_PROPERTY_NAME: string = 'flag';
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
+    
+     // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
     /** All final column names in order for SELECT and COPY. */

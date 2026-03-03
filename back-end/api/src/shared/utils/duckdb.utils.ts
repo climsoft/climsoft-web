@@ -3,28 +3,30 @@ import * as path from 'node:path';
 
 export class DuckDBUtils {
 
-    static buildCsvImportParams(rowsToSkip: number, delimiter?: string): string[] {
-        // Note.
-        // `header = false` is important because it makes sure that duckdb uses it's default column names instead of the headers that come with the file.
-        // As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
+    public static buildCsvImportParams(header: boolean, rowsToSkip: number, delimiter?: string): string[] {
 
-        const params: string[] = [
-            'header = false',
-            'all_varchar = true',
-            'strict_mode = false',
-        ];
+        const params: string[] = [];
+
+        params.push(header ? 'header = true' : 'header = false');
+
         if (rowsToSkip) {
             params.push(`skip = ${rowsToSkip}`);
         }
         if (delimiter) {
             params.push(`delim = '${delimiter}'`);
         }
+
+        // all as var char allows for rapid ingestion of data
+        params.push('all_varchar = true');
+
+        // Note.  As of 14/01/2026. `strict_mode = false` is important because large files(e.g 60 MB) throw a parse error when imported via duckdb
+        params.push('strict_mode = false');
         return params;
     }
 
-    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, rowsToSkip: number, maxRows: number, delimiter?: string): Promise<void> {
+    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, header: boolean, rowsToSkip: number, maxRows: number, delimiter?: string): Promise<void> {
         // Read CSV with the configured params
-        const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
+        const importParams = DuckDBUtils.buildCsvImportParams(header, rowsToSkip, delimiter);
         const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
 
         // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", or "column00", "column01", etc. based on the column positions.
@@ -32,9 +34,13 @@ export class DuckDBUtils {
 
         await conn.run(createSQL);
 
-        // Rename columns to normalized names (column0, column1, ...)
-        const renameSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
-        await conn.run(renameSQLs.join('; '));
+        if (!header) {
+            // If headers are not to be recognised then
+            // Rename columns to normalized names (column0, column1, ...)
+            const renameSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
+            await conn.run(renameSQLs.join('; '));
+        }
+
     }
 
 
@@ -47,13 +53,17 @@ export class DuckDBUtils {
         return path.basename(filePathName, path.extname(filePathName)).replace(/\s+/g, '_');
     }
 
-    static async getRenameDefaultColumnNamesSQL(conn: DuckDBConnection, tableName: string): Promise<string[]> {
+    public static async getColumnNames(conn: DuckDBConnection, tableName: string): Promise<string[]> {
+        const reader = await conn.runAndReadAll(`DESCRIBE ${tableName}`);
+        return reader.getRowObjects().map((item: any) => item.column_name);
+    }
+
+    public static async getRenameDefaultColumnNamesSQL(conn: DuckDBConnection, tableName: string): Promise<string[]> {
         // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
         // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'.
         // This function normalises column names to 1-based indices (column1, column2, ...) matching user expectations where columns are counted starting at 1.
 
-        const reader = await conn.runAndReadAll(`DESCRIBE ${tableName}`);
-        const sourceColumnNames: string[] = reader.getRowObjects().map((item: any) => item.column_name);
+        const sourceColumnNames: string[] = await DuckDBUtils.getColumnNames(conn, tableName);
 
         const sql: string[] = [];
         // Two-pass rename to avoid collisions (e.g. renaming column0 → column1 when column1 already exists).

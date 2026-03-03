@@ -10,7 +10,7 @@ import { ViewConnectorSpecificationDto } from 'src/metadata/connector-specificat
 import { EndPointTypeEnum, ExportFileServerParametersDto, FileServerProtocolEnum } from 'src/metadata/connector-specifications/dtos/create-connector-specification.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { ConnectorExecutionLogService, CreateConnectorExecutionLogDto } from './connector-execution-log.service';
-import { ObservationsExportService } from 'src/observation/services/export/observations-export.service';
+import { ObservationsExportService } from 'src/observation/services/observations-export.service';
 import { EncryptionUtils } from 'src/shared/utils/encryption.utils';
 import { ExportFileServerExecutionActivityVo, FileMetadataVo } from '../entity/connector-execution-log.entity';
 

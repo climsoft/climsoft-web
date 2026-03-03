@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, Logger, StreamableFile } from '@nestjs
 import { DataSource } from "typeorm"
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { ExportSpecificationsService } from 'src/metadata/export-specifications/services/export-specifications.service';
-import { ViewObservationQueryDTO } from '../../dtos/view-observation-query.dto';
+import { ViewObservationQueryDTO } from '../dtos/view-observation-query.dto';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneDto } from 'src/settings/dtos/settings/climsoft-display-timezone.dto';
 import { SettingIdEnum } from 'src/settings/dtos/setting-id.enum';

@@ -5,7 +5,7 @@ import * as path from 'node:path';
 import * as crypto from 'node:crypto';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { TabularImportTransformer } from './tabular-import-transformer';
-import { PreviewError,  PreviewForImportDto,  PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
+import { PreviewError, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
@@ -99,7 +99,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         // Load the whole file into DuckDB (resets to raw state for idempotent preview)
         const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         // Get preview data
         const previewData: PreviewTableData = {
@@ -119,7 +119,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         // Reset table to raw state for idempotent processing
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, session.rowsToSkip, 0, session.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         // Apply transformations based on the source definition.
         const elements: CreateViewElementDto[] = this.elementsService.find();
@@ -191,7 +191,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         if (rowsToSkip <= 0) return skippedData;
 
         const tableName: string = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, 0, rowsToSkip, delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
 
         skippedData.totalRowCount = await this.getTotalRowCount(tableName);
         skippedData.columns = await this.getColumnNames(tableName);

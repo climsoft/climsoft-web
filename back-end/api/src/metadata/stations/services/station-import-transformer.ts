@@ -31,6 +31,8 @@ export class StationImportTransformer {
     static readonly DATE_ESTABLISHED_PROPERTY: string = 'date_established';
     static readonly DATE_CLOSED_PROPERTY: string = 'date_closed';
     static readonly COMMENT_PROPERTY: string = 'comment';
+    // From AppBaseEntity
+    static readonly ENTRY_USER_ID_PROPERTY: string = 'entry_user_id';
 
     /** All final column names in order for SELECT and COPY. */
     static readonly ALL_COLUMNS: string[] = [
@@ -52,12 +54,14 @@ export class StationImportTransformer {
         StationImportTransformer.DATE_ESTABLISHED_PROPERTY,
         StationImportTransformer.DATE_CLOSED_PROPERTY,
         StationImportTransformer.COMMENT_PROPERTY,
+        StationImportTransformer.ENTRY_USER_ID_PROPERTY,
     ];
 
     public static async executeTransformation(
         conn: DuckDBConnection,
         tableName: string,
         mapping: StationColumnMappingDto,
+        userId?: number,
     ): Promise<PreviewError | void> {
 
         const steps: { name: string; buildSql: () => string[] }[] = [
@@ -78,6 +82,7 @@ export class StationImportTransformer {
                 name: 'Finalize',
                 buildSql: () => {
                     return [
+                        `ALTER TABLE ${tableName} ADD COLUMN ${StationImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId ?? 'NULL'}`,
                         StationImportTransformer.buildRemoveDuplicatesSQL(tableName),
                         // Select only the final columns we need, discarding unmapped CSV columns
                         `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${StationImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,
