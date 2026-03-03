@@ -2,6 +2,7 @@ import { FlagEnum } from '../enums/flag.enum';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { PreviewError } from '../dtos/import-preview.dto';
@@ -102,7 +103,7 @@ export class TabularImportTransformer {
                 }
             } catch (error) {
                 // Stop processing — later steps may depend on this one.
-                return TabularImportTransformer.classifyDuckDbError(error, step.name);
+                return ImportErrorUtils.classifyDuckDbError(error, step.name);
 
             }
         }
@@ -122,31 +123,6 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static classifyDuckDbError(error: unknown, stepName: string): PreviewError {
-        const msg = error instanceof Error ? error.message : String(error);
-
-        if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {
-            return {
-                type: 'COLUMN_NOT_FOUND',
-                message: `${stepName}: A column referenced in the specification was not found in the uploaded file. Check that the column positions are correct.`,
-                detail: msg,
-            };
-        }
-
-        if (msg.includes('out of range') || msg.includes('Binder Error')) {
-            return {
-                type: 'INVALID_COLUMN_POSITION',
-                message: `${stepName}: A column position is out of range. The file has fewer columns than expected.`,
-                detail: msg,
-            };
-        }
-
-        return {
-            type: 'SQL_EXECUTION_ERROR',
-            message: `${stepName}: An error occurred while processing the file with the current specification.`,
-            detail: msg,
-        };
-    }
 
     private static buildAlterStationColumnSQL(source: ImportSourceTabularParamsDto, tableName: string, stationId?: string): string[] {
         const sql: string[] = [];

@@ -1,7 +1,9 @@
 <ng-container *ngIf="open && importSource">
-    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="'Save'" [displayDeleteOption]="importSource.id > 0"
-        [closeOnOkClick]="false" [closeOnDeleteClick]="false" (okClick)="onSave()" (deleteClick)="onDelete()"
-        (cancelClick)="closeDialog()">
+    <app-dialog [(open)]="open" [title]="title" [okButtonLabel]="saving ? 'Saving...' : 'Save' "
+        [displayOkOption]="activeStep === 'review' && !transformedPreviewResponse.error"
+        [disableOkOption]="saving || !!transformedPreviewResponse.error" [closeOnOkClick]="false"
+        [displayDeleteOption]="importSource.id > 0" [closeOnOkClick]="false" [closeOnDeleteClick]="false"
+        (okClick)="onSave()" (deleteClick)="onDelete()" (cancelClick)="closeDialog()">
 
         <!-- Wizard Tab Navigation -->
         <div class="mb-3">

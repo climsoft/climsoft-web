@@ -50,6 +50,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     protected rawPreviewLoading: boolean = false;
     protected transformedPreviewLoading: boolean = false;
     protected uploadedFileName: string = '';
+    protected saving: boolean = false;
 
     private destroy$ = new Subject<void>();
 
@@ -448,6 +449,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             return;
         }
 
+        this.saving = true;
+
         const createUpdateSource: CreateSourceSpecificationModel = {
             name: this.importSource.name,
             description: this.importSource.description,
@@ -470,11 +473,13 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         saveSubscription.pipe(take(1)).subscribe({
             next: () => {
+                this.saving = false;
                 this.pagesDataService.showToast({ title: 'Import specification', message: this.importSource.id > 0 ? `Import specification updated` : `Import specification created`, type: ToastEventTypeEnum.SUCCESS });
                 this.closeDialog();
                 this.ok.emit();
             },
             error: err => {
+                this.saving = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Error in saving import specification';
                 this.pagesDataService.showToast({ title: 'Import specification', message: message, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
             }

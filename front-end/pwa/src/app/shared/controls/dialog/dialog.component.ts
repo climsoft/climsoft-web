@@ -22,6 +22,9 @@ export class DialogComponent {
   displayOkOption: boolean = true;
 
   @Input()
+  disableOkOption: boolean = false;
+
+  @Input()
   displayCancelOption: boolean = true;
 
   @Input()

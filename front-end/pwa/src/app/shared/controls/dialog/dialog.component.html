@@ -10,8 +10,8 @@
             </div>
 
             <div class="card-footer d-flex justify-content-end">
-                <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary"
-                    (click)="onOkClick()">
+                <button *ngIf="displayOkOption" [disabled]="disableOkOption" type="button"
+                    class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                     {{okButtonLabel}}
                 </button>
                 <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"

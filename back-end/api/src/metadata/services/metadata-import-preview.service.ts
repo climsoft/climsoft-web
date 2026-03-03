@@ -15,6 +15,7 @@ import { PreviewError, PreviewTableData, RawPreviewResponse, TransformedPreviewR
 import { PreviewSession } from 'src/observation/services/import-preview.service';
 import { StationsImportExportService } from '../stations/services/stations-import-export.service';
 import { ElementsImportExportService } from '../elements/services/elements-import-export.service';
+import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 
 
 @Injectable()
@@ -139,7 +140,12 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
 
         // Import to PostgreSQL
-        await this.stationsImportExportService.importProcessedFileToDatabase(processedFilePathName);
+        try {
+            await this.stationsImportExportService.importProcessedFileToDatabase(processedFilePathName);
+        } catch (dbError) {
+            const classified = ImportErrorUtils.classifyPostgresError(dbError);
+            throw new Error(classified.message);
+        }
     }
 
     // ─── Element Transform & Preview ─────────────────────────
@@ -171,7 +177,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
-        const error = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
+        const error: PreviewError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
         if (error) {
             throw new Error(`Element import transformation failed at step "${error.message}"`);
         }
@@ -183,7 +189,12 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         await this.fileIOService.duckDbConn.run(`DROP TABLE IF EXISTS ${tableName};`);
 
         // Import to PostgreSQL
-        await this.elementsImportExportService.importProcessedFileToDatabase(processedFilePathName);
+        try {
+            await this.elementsImportExportService.importProcessedFileToDatabase(processedFilePathName);
+        } catch (dbError) {
+            const classified = ImportErrorUtils.classifyPostgresError(dbError);
+            throw new Error(classified.message);
+        }
     }
 
     // ─── Session Management ──────────────────────────────────

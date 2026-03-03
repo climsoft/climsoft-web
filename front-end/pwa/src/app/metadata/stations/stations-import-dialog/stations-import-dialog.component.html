@@ -1,5 +1,9 @@
 <ng-container *ngIf="open">
-  <app-dialog [(open)]="open" [title]="'Import Stations'" [displayOkOption]="false" (cancelClick)="onCancelClick()">
+  <app-dialog [(open)]="open" [title]="'Import Stations'"
+    [okButtonLabel]="importing ? 'Importing...' : 'Confirm Import' "
+    [displayOkOption]="activeStep === 'review' && !transformedPreviewResponse.error"
+    [disableOkOption]="importing || !!transformedPreviewResponse.error" [closeOnOkClick]="false"
+    [closeOnCancelClick]="false" (okClick)="onConfirmImport()" (cancelClick)="onCancelClick()">
 
     <!-- Wizard Tab Navigation -->
     <div class="mb-3">
@@ -103,13 +107,9 @@
           <!-- ─── Step 11: Review ─── -->
           <div *ngIf="activeStep === 'review'">
             <div class="fw-bold mb-2">Review & Confirm</div>
-            <div class="small text-muted mb-2">Review the transformed preview on the right. Click "Confirm Import" to
-              import all rows.</div>
-
-            <button type="button" class="btn btn-primary btn-sm"
-              [disabled]="importing || transformedPreviewResponse.error" (click)="onConfirmImport()">
-              {{ importing ? 'Importing...' : 'Confirm Import' }}
-            </button>
+            <div class="small text-muted mb-2">
+              Review the transformed preview on the right. Click "Confirm Import" to import all rows.
+            </div>
 
             <div *ngIf="importing" class="mt-2">
               <div class="spinner-border spinner-border-sm text-primary" role="status">

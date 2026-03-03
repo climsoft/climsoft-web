@@ -4,6 +4,7 @@ import { StationColumnMappingDto } from 'src/metadata/dtos/metadata-import-previ
 import { DateTimeDefinition, HourDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { PreviewError } from 'src/observation/dtos/import-preview.dto';
+import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
  * imported CSV data into the stations table schema.
@@ -98,7 +99,7 @@ export class StationImportTransformer {
                     await conn.run(sqls.join('; '));
                 }
             } catch (error) {
-                return StationImportTransformer.classifyError(error, step.name);
+                return ImportErrorUtils.classifyDuckDbError(error, step.name);
             }
         }
     }
@@ -314,31 +315,4 @@ export class StationImportTransformer {
         )`;
     }
 
-    // ─── Error Classification ────────────────────────────────
-
-    private static classifyError(error: unknown, stepName: string): PreviewError {
-        const msg = error instanceof Error ? error.message : String(error);
-
-        if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {
-            return {
-                type: 'COLUMN_NOT_FOUND',
-                message: `${stepName}: A column referenced in the mapping was not found. Check that the column positions are correct.`,
-                detail: msg,
-            };
-        }
-
-        if (msg.includes('out of range') || msg.includes('Binder Error')) {
-            return {
-                type: 'INVALID_COLUMN_POSITION',
-                message: `${stepName}: A column position is out of range. The file has fewer columns than expected.`,
-                detail: msg,
-            };
-        }
-
-        return {
-            type: 'SQL_EXECUTION_ERROR',
-            message: `${stepName}: An error occurred while processing the file.`,
-            detail: msg,
-        };
-    }
 }
