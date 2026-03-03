@@ -1,0 +1,14 @@
+<div>
+    <div class="mb-3">
+        <app-number-input [label]="'WMO ID Column Position'" [value]="mapping.wmoIdColumnPosition"
+            (valueChange)="onWmoIdChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'WIGOS ID Column Position'" [value]="mapping.wigosIdColumnPosition"
+            (valueChange)="onWigosIdChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'ICAO ID Column Position'" [value]="mapping.icaoIdColumnPosition"
+            (valueChange)="onIcaoIdChange($event)" [min]="1" />
+    </div>
+</div>

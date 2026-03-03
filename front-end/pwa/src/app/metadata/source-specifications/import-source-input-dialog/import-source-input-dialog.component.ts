@@ -45,8 +45,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     protected visitedSteps: Set<WizardStep> = new Set(['upload']);
 
     // File Preview state
-    protected rawFilePreviewResponse!: RawPreviewResponse;
-    protected transformedFilePreviewResponse!: TransformedPreviewResponse;
+    protected rawPreviewResponse!: RawPreviewResponse;
+    protected transformedPreviewResponse!: TransformedPreviewResponse;
     protected rawPreviewLoading: boolean = false;
     protected transformedPreviewLoading: boolean = false;
     protected uploadedFileName: string = '';
@@ -169,7 +169,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (currentIndex < this.wizardSteps.length - 1) {
             this.activeStep = this.wizardSteps[currentIndex + 1];
             this.visitedSteps.add(this.activeStep);
-            if (this.rawFilePreviewResponse.sessionId) {
+            if (this.rawPreviewResponse.sessionId) {
                 this.refreshPreview();
             }
         }
@@ -187,7 +187,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     protected isStepDisabled(step: WizardStep): boolean {
         if (step === 'upload') return false;
         // Allow navigation when editing an existing spec or when a session exists
-        return !this.rawFilePreviewResponse.sessionId && !(this.importSource?.id > 0);
+        return !this.rawPreviewResponse.sessionId && !(this.importSource?.id > 0);
     }
 
     protected getStepNumber(step: WizardStep): number {
@@ -203,7 +203,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             case 'upload':
                 if (!this.importSource.name) errors.push('Name is required');
                 if (!this.importSource.description) errors.push('Description is required');
-                if (!this.rawFilePreviewResponse.sessionId) errors.push('Sample file is required');
+                if (!this.rawPreviewResponse.sessionId) errors.push('Sample file is required');
                 break;
             case 'station':
                 // Station is optional — no validation errors
@@ -250,7 +250,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         this.rawPreviewLoading = true;
         this.transformedPreviewLoading = true;
-        this.transformedFilePreviewResponse.error = undefined;
+        this.transformedPreviewResponse.error = undefined;
 
         this.importPreviewService.upload(
             file,
@@ -261,8 +261,8 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
                 this.importSource.sampleFileName = res.fileName;
-                this.rawFilePreviewResponse = res;
-                this.transformedFilePreviewResponse = {
+                this.rawPreviewResponse = res;
+                this.transformedPreviewResponse = {
                     previewData: res.previewData,
                 };
             },
@@ -270,7 +270,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to upload file.';
-                this.transformedFilePreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Preview upload error:', err);
             }
         });
@@ -292,10 +292,10 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             switchMap((rawResponse: RawPreviewResponse) => {
                 this.rawPreviewLoading = false;
                 this.uploadedFileName = rawResponse.fileName;
-                this.rawFilePreviewResponse = rawResponse;
+                this.rawPreviewResponse = rawResponse;
                 const previewDef = this.getTransformedPreviewDefinition();
                 return this.importPreviewService.previewStep(
-                    this.rawFilePreviewResponse.sessionId,
+                    this.rawPreviewResponse.sessionId,
                     previewDef[0],
                     previewDef[1],
                 );
@@ -303,7 +303,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         ).subscribe({
             next: (transformedResponse: TransformedPreviewResponse) => {
                 this.transformedPreviewLoading = false;
-                this.transformedFilePreviewResponse = transformedResponse;
+                this.transformedPreviewResponse = transformedResponse;
             },
             error: (err) => {
                 // File no longer exists on server — silently fall back to "upload a sample file" prompt
@@ -316,7 +316,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     private reLoadRawPreview(): void {
-        if (!this.rawFilePreviewResponse.sessionId) return;
+        if (!this.rawPreviewResponse.sessionId) return;
 
         if (this.rawPreviewLoading && this.transformedPreviewLoading) {
             // TODO. Display message showing that the 2 previews are still loading
@@ -325,18 +325,18 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
 
         this.rawPreviewLoading = true;
         this.transformedPreviewLoading = true;
-        this.transformedFilePreviewResponse.error = undefined;
+        this.transformedPreviewResponse.error = undefined;
 
         this.importPreviewService.updateBaseParams(
-            this.rawFilePreviewResponse.sessionId,
+            this.rawPreviewResponse.sessionId,
             this.tabularImportParams.rowsToSkip,
             this.tabularImportParams.delimiter,
         ).pipe(take(1)).subscribe({
             next: (res: RawPreviewResponse) => {
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
-                this.rawFilePreviewResponse = res;
-                this.transformedFilePreviewResponse = {
+                this.rawPreviewResponse = res;
+                this.transformedPreviewResponse = {
                     previewData: res.previewData,
                 };
             },
@@ -344,7 +344,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to load raw preview.';
-                this.transformedFilePreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Raw preview error:', err);
             }
         });
@@ -354,7 +354,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     // ─── Preview ───
 
     protected refreshPreview(): void {
-        if (!this.rawFilePreviewResponse.sessionId) return;
+        if (!this.rawPreviewResponse.sessionId) return;
 
         // If we're on the initial upload step, always refresh the raw preview without re-processing the file
         // Important when user needs to see the original preview even after changing parameters in the later steps
@@ -373,18 +373,18 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         const previewDef = this.getTransformedPreviewDefinition();
 
         this.importPreviewService.previewStep(
-            this.rawFilePreviewResponse.sessionId,
+            this.rawPreviewResponse.sessionId,
             previewDef[0],
             previewDef[1],
         ).pipe(take(1)).subscribe({
             next: (res: TransformedPreviewResponse) => {
                 this.transformedPreviewLoading = false;
-                this.transformedFilePreviewResponse = res;
+                this.transformedPreviewResponse = res;
             },
             error: (err) => {
                 this.transformedPreviewLoading = false;
                 const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to generate preview.';
-                this.transformedFilePreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
+                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
                 console.error('Preview step error:', err);
             }
         });
@@ -438,7 +438,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     protected get showNavigation(): boolean {
-        return !!this.rawFilePreviewResponse.sessionId || (this.importSource?.id > 0);
+        return !!this.rawPreviewResponse.sessionId || (this.importSource?.id > 0);
     }
 
     // ─── Save / Delete / Cancel ───
@@ -505,14 +505,14 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     private resetSamplePreview(): void {
-        this.rawFilePreviewResponse = {
+        this.rawPreviewResponse = {
             sessionId: '',
             fileName: '',
             previewData: { columns: [], rows: [], totalRowCount: 0 },
             skippedData: { columns: [], rows: [], totalRowCount: 0 },
         };
 
-        this.transformedFilePreviewResponse = {
+        this.transformedPreviewResponse = {
             previewData: { columns: [], rows: [], totalRowCount: 0 },
         };
 
@@ -521,11 +521,11 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
     }
 
     private cleanupSession(): void {
-        if (this.rawFilePreviewResponse.sessionId) {
-            this.importPreviewService.deleteSession(this.rawFilePreviewResponse.sessionId).pipe(take(1)).subscribe({
+        if (this.rawPreviewResponse.sessionId) {
+            this.importPreviewService.deleteSession(this.rawPreviewResponse.sessionId).pipe(take(1)).subscribe({
                 error: () => { /* best effort cleanup */ }
             });
-            this.rawFilePreviewResponse.sessionId = '';
+            this.rawPreviewResponse.sessionId = '';
         }
     }
 }

@@ -1,6 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { PreviewError } from '../../models/import-preview.model'; 
-import { MetadataPreviewWarning } from 'src/app/metadata/models/metadata-import-preview.model';
+import { PreviewError } from '../../models/import-preview.model';  
 
 @Component({
     selector: 'app-import-preview-table',
@@ -13,7 +12,7 @@ export class ImportPreviewTableComponent {
     @Input() rows: string[][] = [];
     @Input() totalRowCount: number = 0;
     @Input() rowsDropped: number = 0;
-    @Input() warnings: MetadataPreviewWarning[] = [];
+    @Input() warnings: any[] = []; // TODO.
     @Input() error: PreviewError | null | undefined ; // Todo remove null
     @Input() loading: boolean = false;
     @Input() maxHeight: string = '30vh';

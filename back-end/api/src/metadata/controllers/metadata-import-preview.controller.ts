@@ -1,10 +1,11 @@
 import { Body, Controller, Delete, FileTypeValidator, MaxFileSizeValidator, Param, ParseFilePipe, ParseIntPipe, Post, Req, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Request } from 'express';
-import { MetadataImportPreviewService } from '../services/metadata-import-preview.service';
-import { UpdateBaseParamsDto, StationTransformDto, ElementTransformDto } from '../dtos/metadata-import-preview.dto';
+import { MetadataImportPreviewService } from '../services/metadata-import-preview.service'; 
 import { AuthUtil } from 'src/user/services/auth.util';
 import { Admin } from 'src/user/decorators/admin.decorator';
+import { UpdateBaseParamsDto } from 'src/observation/dtos/import-preview.dto';
+import { ElementColumnMappingDto, StationColumnMappingDto } from '../dtos/metadata-import-preview.dto';
 
 @Admin()
 @Controller('metadata-import-preview')
@@ -28,7 +29,7 @@ export class MetadataImportPreviewController {
     ) {
         const skip: number = rowsToSkip > 0 ? rowsToSkip : 0;
         const delim: string | undefined = delimiter || undefined;
-        return this.metadataImportPreviewService.initAndPreviewRawFile(file, skip, delim);
+        return this.metadataImportPreviewService.initAndPreviewRawData(file, skip, delim);
     }
 
     @Post('base-params/:sessionId')
@@ -36,24 +37,24 @@ export class MetadataImportPreviewController {
         @Param('sessionId') sessionId: string,
         @Body() dto: UpdateBaseParamsDto,
     ) {
-        return this.metadataImportPreviewService.updateBaseParamsAndPreviewRawFile(sessionId, dto.rowsToSkip, dto.delimiter);
+        return this.metadataImportPreviewService.updateBaseParamsAndPreviewRawData(sessionId, dto.rowsToSkip, dto.delimiter);
     }
 
     @Post('preview-stations/:sessionId')
     public async previewStations(
         @Param('sessionId') sessionId: string,
-        @Body() dto: StationTransformDto,
+        @Body() dto: StationColumnMappingDto,
     ) {
-        return this.metadataImportPreviewService.transformAndPreviewStations(sessionId, dto.rowsToSkip, dto.delimiter, dto.columnMapping);
+        return this.metadataImportPreviewService.previewTransformedStationData(sessionId, dto);
     }
 
     @Post('confirm-station-import/:sessionId')
     public async confirmStationImport(
         @Req() request: Request,
         @Param('sessionId') sessionId: string,
-        @Body() dto: StationTransformDto,
+        @Body() dto: StationColumnMappingDto,
     ) {
-        await this.metadataImportPreviewService.confirmStationImport(sessionId, dto.rowsToSkip, dto.delimiter, dto.columnMapping, AuthUtil.getLoggedInUserId(request));
+        await this.metadataImportPreviewService.importStationData(sessionId, dto, AuthUtil.getLoggedInUserId(request));
         await this.metadataImportPreviewService.destroySession(sessionId);
         return { message: 'Station import completed successfully' };
     }
@@ -61,18 +62,18 @@ export class MetadataImportPreviewController {
     @Post('preview-elements/:sessionId')
     public async previewElements(
         @Param('sessionId') sessionId: string,
-        @Body() dto: ElementTransformDto,
+        @Body() dto: ElementColumnMappingDto,
     ) {
-        return this.metadataImportPreviewService.transformAndPreviewElements(sessionId, dto.rowsToSkip, dto.delimiter, dto.columnMapping);
+        return this.metadataImportPreviewService.previewTransformedElementsData(sessionId, dto );
     }
 
     @Post('confirm-element-import/:sessionId')
     public async confirmElementImport(
         @Req() request: Request,
         @Param('sessionId') sessionId: string,
-        @Body() dto: ElementTransformDto,
+        @Body() dto: ElementColumnMappingDto,
     ) {
-        await this.metadataImportPreviewService.confirmElementImport(sessionId, dto.rowsToSkip, dto.delimiter, dto.columnMapping, AuthUtil.getLoggedInUserId(request));
+        await this.metadataImportPreviewService.importElementsData(sessionId, dto , AuthUtil.getLoggedInUserId(request));
         await this.metadataImportPreviewService.destroySession(sessionId);
         return { message: 'Element import completed successfully' };
     }

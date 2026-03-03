@@ -420,8 +420,8 @@ export class ClimsoftV4WebSyncSetUpService {
                 ownerId: currentV5Station?.ownerId || undefined,
                 operatorId: currentV5Station?.operatorId || undefined,
                 wmoId: v4Station.wmoid || undefined,
-                wigosId: v4Station.wsi,
-                icaoId: v4Station.icaoid,
+                wigosId: v4Station.wsi || undefined,
+                icaoId: v4Station.icaoid || undefined,
                 status: v4Station.stationOperational ? StationStatusEnum.OPERATIONAL : StationStatusEnum.CLOSED,
                 dateEstablished: currentV5Station?.dateEstablished || undefined, // TODO. Confirm the date format and convert accordingly
                 dateClosed: currentV5Station?.dateClosed || undefined, // TODO. Confirm the date format and convert accordingly

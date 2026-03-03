@@ -1,0 +1,23 @@
+<div>
+    <div>
+        <div>
+            <app-check-box-input [label]="'Includes Date Established'" [value]="!!mapping.dateEstablishedDefinition"
+                (valueChange)="onDateEstablishedToggle($event)" />
+        </div>
+        <div *ngIf="mapping.dateEstablishedDefinition" class="mt-2">
+            <app-import-source-date-detail [(datetimeDefinition)]="mapping.dateEstablishedDefinition" />
+        </div>
+    </div>
+
+    <hr />
+
+    <div>
+        <div>
+            <app-check-box-input [label]="'Includes Date Closed'" [value]="!!mapping.dateClosedDefinition"
+                (valueChange)="onDateClosedToggle($event)" />
+        </div>
+        <div *ngIf="mapping.dateClosedDefinition" class="mt-2">
+            <app-import-source-date-detail [(datetimeDefinition)]="mapping.dateClosedDefinition" />
+        </div>
+    </div>
+</div>

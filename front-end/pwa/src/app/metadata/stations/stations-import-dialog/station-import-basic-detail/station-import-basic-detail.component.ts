@@ -10,8 +10,6 @@ export class StationImportBasicDetailComponent {
   @Input() public mapping!: StationColumnMappingModel;
   @Output() public mappingChange = new EventEmitter<StationColumnMappingModel>();
 
-  @Input() public rawColumns: string[] = [];
-
   protected onDescriptionChange(value: number | null): void {
     this.mapping.descriptionColumnPosition = value ?? undefined;
     this.mappingChange.emit(this.mapping);

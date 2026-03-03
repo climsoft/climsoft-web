@@ -20,9 +20,9 @@ export class StationEntity extends AppBaseEntity {
   @Column({ name: "description", type: 'varchar', nullable: true })
   description: string | null;
 
-  @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum })
+  @Column({ name: "observation_processing_method", type: "enum", enum: StationObsProcessingMethodEnum, nullable: true })
   @Index()
-  obsProcessingMethod: StationObsProcessingMethodEnum;
+  obsProcessingMethod: StationObsProcessingMethodEnum | null;
 
   // TODO. Create a separate table for station history. Important for tracking station movements
   // Reason as to why station location table is important when it comes to moving stations like aircrafts.

@@ -2,15 +2,13 @@ import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { ElementsCacheService } from '../services/elements-cache.service';
-import { MetadataImportPreviewHttpService } from '../../services/metadata-import-preview-http.service';
+import { MetadataImportPreviewService } from '../../services/metadata-import-preview.service';
 import {
-  ElementColumnMappingModel,
-  ElementTransformModel,
-  FieldMappingModel,
-  MetadataPreviewError,
-  MetadataPreviewWarning,
+  ElementColumnMappingModel, 
+  FieldMappingModel, 
   ValueMappingModel,
 } from '../../models/metadata-import-preview.model';
+import { PreviewError } from '../../source-specifications/models/import-preview.model';
 
 type WizardStep = 'upload' | 'mapping' | 'review';
 
@@ -51,15 +49,15 @@ export class ImportElementsDialogComponent implements OnDestroy {
   protected previewRows: string[][] = [];
   protected previewTotalRowCount: number = 0;
   protected previewRowsDropped: number = 0;
-  protected previewWarnings: MetadataPreviewWarning[] = [];
-  protected previewError: MetadataPreviewError | null = null;
+  protected previewWarnings: any[] = [];
+  protected previewError: PreviewError | null = null;
 
   protected hasRawFile: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
     private elementsCacheService: ElementsCacheService,
-    private metadataPreviewService: MetadataImportPreviewHttpService,
+    private metadataPreviewService: MetadataImportPreviewService,
   ) { }
 
   ngOnDestroy(): void {
@@ -101,10 +99,10 @@ export class ImportElementsDialogComponent implements OnDestroy {
     this.metadataPreviewService.upload(file, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
       next: (response) => {
         this.sessionId = response.sessionId;
-        this.rawColumns = response.columns;
-        this.rawRows = response.previewRows;
-        this.rawTotalRowCount = response.totalRowCount;
-        this.rawSkippedRows = response.skippedRows;
+        // this.rawColumns = response.columns;
+        // this.rawRows = response.previewRows;
+        // this.rawTotalRowCount = response.totalRowCount;
+        // this.rawSkippedRows = response.skippedRows;
         this.hasRawFile = true;
         this.loading = false;
       },
@@ -120,10 +118,10 @@ export class ImportElementsDialogComponent implements OnDestroy {
     this.loading = true;
     this.metadataPreviewService.updateBaseParams(this.sessionId, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
       next: (response) => {
-        this.rawColumns = response.columns;
-        this.rawRows = response.previewRows;
-        this.rawTotalRowCount = response.totalRowCount;
-        this.rawSkippedRows = response.skippedRows;
+        // this.rawColumns = response.columns;
+        // this.rawRows = response.previewRows;
+        // this.rawTotalRowCount = response.totalRowCount;
+        // this.rawSkippedRows = response.skippedRows;
         this.loading = false;
       },
       error: () => { this.loading = false; }
@@ -156,12 +154,12 @@ export class ImportElementsDialogComponent implements OnDestroy {
     const transform = this.buildTransform();
     this.metadataPreviewService.previewElements(this.sessionId, transform).pipe(take(1)).subscribe({
       next: (response) => {
-        this.previewColumns = response.columns;
-        this.previewRows = response.previewRows;
-        this.previewTotalRowCount = response.totalRowCount;
-        this.previewRowsDropped = response.rowsDropped;
-        this.previewWarnings = response.warnings;
-        this.previewError = response.error || null;
+        // this.previewColumns = response.columns;
+        // this.previewRows = response.previewRows;
+        // this.previewTotalRowCount = response.totalRowCount;
+        // this.previewRowsDropped = response.rowsDropped;
+        // this.previewWarnings = response.warnings;
+        // this.previewError = response.error || null;
         this.currentStep = 'review';
         this.loading = false;
       },
@@ -234,12 +232,8 @@ export class ImportElementsDialogComponent implements OnDestroy {
     return undefined;
   }
 
-  private buildTransform(): ElementTransformModel {
-    return {
-      rowsToSkip: this.rowsToSkip,
-      delimiter: this.delimiter || undefined,
-      columnMapping: this.mapping,
-    };
+  private buildTransform(): ElementColumnMappingModel {
+    return this.mapping;
   }
 
   private getDefaultMapping(): ElementColumnMappingModel {

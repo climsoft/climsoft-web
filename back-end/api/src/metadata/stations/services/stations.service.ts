@@ -48,17 +48,17 @@ export class StationsService implements OnModuleInit {
 
             if (viewStationQueryDto.obsProcessingMethods) {
                 const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
-                results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
+                results = results.filter(dto => dto.stationObsProcessingMethod !== undefined && methodSet.has(dto.stationObsProcessingMethod));
             }
 
             if (viewStationQueryDto.obsEnvironmentIds) {
                 const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
-                results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
+                results = results.filter(dto => dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
             }
 
             if (viewStationQueryDto.obsFocusIds) {
                 const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
-                results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
+                results = results.filter(dto => dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
             }
 
             // Apply pagination
@@ -81,17 +81,17 @@ export class StationsService implements OnModuleInit {
 
         if (viewStationQueryDto.obsProcessingMethods) {
             const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
-            results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
+            results = results.filter(dto => dto.stationObsProcessingMethod !== undefined && methodSet.has(dto.stationObsProcessingMethod));
         }
 
         if (viewStationQueryDto.obsEnvironmentIds) {
             const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
-            results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
+            results = results.filter(dto => dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
         }
 
         if (viewStationQueryDto.obsFocusIds) {
             const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
-            results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
+            results = results.filter(dto => dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
         }
 
         return results.length;
@@ -159,7 +159,7 @@ export class StationsService implements OnModuleInit {
             coordinates: [dto.longitude, dto.latitude],
         } : null;
         entity.elevation = dto.elevation ?? null;
-        entity.obsProcessingMethod = dto.stationObsProcessingMethod;
+        entity.obsProcessingMethod = dto.stationObsProcessingMethod || null;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId || null;
         entity.obsFocusId = dto.stationObsFocusId || null;
         entity.ownerId = dto.ownerId || null;

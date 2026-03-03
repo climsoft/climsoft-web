@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import { IsArray, IsInt, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator';
+import { DateTimeDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 
 // ─── Shared DTOs ─────────────────────────────────────────────
 
@@ -28,17 +29,6 @@ export class FieldMappingDto {
     @ValidateNested({ each: true })
     @Type(() => ValueMappingDto)
     valueMappings?: ValueMappingDto[];
-}
-
-export class UpdateBaseParamsDto {
-    @IsInt()
-    @Min(0)
-    rowsToSkip: number;
-
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    delimiter?: string;
 }
 
 // ─── Station Column Mapping ──────────────────────────────────
@@ -118,14 +108,14 @@ export class StationColumnMappingDto {
     status?: FieldMappingDto;
 
     @IsOptional()
-    @IsInt()
-    @Min(1)
-    dateEstablishedColumnPosition?: number;
+    @ValidateNested()
+    @Type(() => DateTimeDefinition)
+    dateEstablishedDefinition?: DateTimeDefinition;
 
     @IsOptional()
-    @IsInt()
-    @Min(1)
-    dateClosedColumnPosition?: number;
+    @ValidateNested()
+    @Type(() => DateTimeDefinition)
+    dateClosedDefinition?: DateTimeDefinition;
 
     @IsOptional()
     @IsInt()
@@ -172,68 +162,4 @@ export class ElementColumnMappingDto {
     @IsInt()
     @Min(1)
     commentColumnPosition?: number;
-}
-
-// ─── Transform DTOs (sent from frontend during wizard steps) ─
-
-export class StationTransformDto {
-    @IsInt()
-    @Min(0)
-    rowsToSkip: number;
-
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    delimiter?: string;
-
-    @ValidateNested()
-    @Type(() => StationColumnMappingDto)
-    columnMapping: StationColumnMappingDto;
-}
-
-export class ElementTransformDto {
-    @IsInt()
-    @Min(0)
-    rowsToSkip: number;
-
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    delimiter?: string;
-
-    @ValidateNested()
-    @Type(() => ElementColumnMappingDto)
-    columnMapping: ElementColumnMappingDto;
-}
-
-// ─── Response Interfaces ─────────────────────────────────────
-
-export interface MetadataPreviewWarning {
-    type: 'NULL_VALUES' | 'DUPLICATE_ROWS';
-    message: string;
-    affectedRowCount: number;
-}
-
-export interface MetadataPreviewError {
-    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
-    message: string;
-    detail?: string;
-}
-
-export interface MetadataRawPreviewResponse {
-    sessionId: string;
-    fileName: string;
-    columns: string[];
-    totalRowCount: number;
-    previewRows: string[][];
-    skippedRows: string[][];
-}
-
-export interface MetadataStepPreviewResponse {
-    columns: string[];
-    previewRows: string[][];
-    totalRowCount: number;
-    rowsDropped: number;
-    warnings: MetadataPreviewWarning[];
-    error?: MetadataPreviewError;
 }

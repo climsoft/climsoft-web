@@ -22,6 +22,21 @@ export class DuckDBUtils {
         return params;
     }
 
+    public static async createTableFromFile(conn: DuckDBConnection, filePathName: string, tableName: string, rowsToSkip: number, maxRows: number, delimiter?: string): Promise<void> {
+        // Read CSV with the configured params
+        const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
+        const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
+
+        // Note: The `read_csv` function in DuckDB automatically infers the column names as "column0", "column1", or "column00", "column01", etc. based on the column positions.
+        const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
+
+        await conn.run(createSQL);
+
+        // Rename columns to normalized names (column0, column1, ...)
+        const renameSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
+        await conn.run(renameSQLs.join('; '));
+    }
+
 
     /**
      * Gets a valid SQL table name from the uploaded file name by removing the extension and replacing special characters with underscores.
@@ -32,7 +47,7 @@ export class DuckDBUtils {
         return path.basename(filePathName, path.extname(filePathName)).replace(/\s+/g, '_');
     }
 
-    static async getRenameDefaultColumnNamesSQL(conn: DuckDBConnection, tableName: string): Promise<string> {
+    static async getRenameDefaultColumnNamesSQL(conn: DuckDBConnection, tableName: string): Promise<string[]> {
         // As of 12/08/2024 DuckDB uses different column suffixes on default column names depending on the number of columns of the csv file imported.
         // For instance, when columns are < 10, then default column name will be 'column0', and when > 10, default column name will be 'column00'.
         // This function normalises column names to 1-based indices (column1, column2, ...) matching user expectations where columns are counted starting at 1.
@@ -40,36 +55,37 @@ export class DuckDBUtils {
         const reader = await conn.runAndReadAll(`DESCRIBE ${tableName}`);
         const sourceColumnNames: string[] = reader.getRowObjects().map((item: any) => item.column_name);
 
-        let sql: string = '';
+        const sql: string[] = [];
         // Two-pass rename to avoid collisions (e.g. renaming column0 → column1 when column1 already exists).
         // Pass 1: rename all columns to temporary names
         for (let i = 0; i < sourceColumnNames.length; i++) {
-            sql = sql + `ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO __temp_col_${i};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME ${sourceColumnNames[i]} TO __temp_col_${i}`);
         }
         // Pass 2: rename temporary names to final 1-based names
         for (let i = 0; i < sourceColumnNames.length; i++) {
-            sql = sql + `ALTER TABLE ${tableName} RENAME __temp_col_${i} TO column${i + 1};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME __temp_col_${i} TO column${i + 1}`);
         }
         return sql;
     }
 
-    static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[], includeNullDeletes: boolean): string {
+    static getDeleteAndUpdateSQL(tableName: string, columnName: string, valuesToFetch: { sourceId: string, databaseId: string | number }[], includeNullDeletes: boolean): string[] {
         // Add single quotes that will be used for the alter sqls
-        valuesToFetch = valuesToFetch.map(item => {
+        const quotedValsToFetch = valuesToFetch.map(item => {
             return { sourceId: `'${item.sourceId}'`, databaseId: `'${item.databaseId}'` }
         });
 
-        // Delete any record that is not supposed to be fetched .    
-        let sql;
+        const sql: string[] = [];
+
+        // Delete any record that is not supposed to be fetched .
         if (includeNullDeletes) {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+            sql.push(`DELETE FROM ${tableName} WHERE ${columnName} NOT IN ( ${quotedValsToFetch.map(item => (item.sourceId)).join(', ')} )`);
         } else {
-            sql = `DELETE FROM ${tableName} WHERE ${columnName} IS NOT NULL AND ${columnName} NOT IN ( ${valuesToFetch.map(item => (item.sourceId)).join(', ')} );`;
+            sql.push(`DELETE FROM ${tableName} WHERE ${columnName} IS NOT NULL AND ${columnName} NOT IN ( ${quotedValsToFetch.map(item => (item.sourceId)).join(', ')} )`);
         }
 
         // Update the source element ids with the equivalent database ids
-        for (const value of valuesToFetch) {
-            sql = sql + `UPDATE ${tableName} SET ${columnName} = ${value.databaseId} WHERE ${columnName} = ${value.sourceId};`;
+        for (const value of quotedValsToFetch) {
+            sql.push(`UPDATE ${tableName} SET ${columnName} = ${value.databaseId} WHERE ${columnName} = ${value.sourceId}`);
         }
 
         return sql;

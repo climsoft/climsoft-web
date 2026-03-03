@@ -67,7 +67,8 @@
                         <hr />
 
                         <div>
-                            <app-delimeter-selector [(delimiter)]="tabularImportParams.delimiter" />
+                            <app-delimeter-selector [label]="'Delimeter'"
+                                [(delimiter)]="tabularImportParams.delimiter" />
                         </div>
 
                     </div>
@@ -239,38 +240,36 @@
             <!-- Right column: Preview tables -->
             <div class="col-md-7">
                 <div class="d-flex justify-content-end">
-                    <button type="button" class="btn btn-outline-info btn-sm"
-                        [disabled]="!rawFilePreviewResponse.sessionId" (click)="refreshPreview()">
+                    <button type="button" class="btn btn-outline-info btn-sm" [disabled]="!rawPreviewResponse.sessionId"
+                        (click)="refreshPreview()">
                         Refresh Preview
                     </button>
                 </div>
 
                 <div class="mt-2">
                     <app-import-preview-table [title]="'Skipped Rows Preview'"
-                        [columns]="rawFilePreviewResponse.skippedData.columns"
-                        [rows]="rawFilePreviewResponse.skippedData.rows"
-                        [totalRowCount]="rawFilePreviewResponse.skippedData.totalRowCount"
-                        [hasFile]="!!rawFilePreviewResponse.sessionId"
+                        [columns]="rawPreviewResponse.skippedData.columns" [rows]="rawPreviewResponse.skippedData.rows"
+                        [totalRowCount]="rawPreviewResponse.skippedData.totalRowCount"
+                        [hasFile]="!!rawPreviewResponse.sessionId"
                         [noFileMessage]="'Upload a sample file on the left to see a live preview of skipped rows of the raw data'"
                         [maxHeight]="'15vh'" [loading]="rawPreviewLoading" />
                 </div>
 
                 <div class="mt-3">
                     <app-import-preview-table [title]="'Raw Data Preview'"
-                        [columns]="rawFilePreviewResponse.previewData.columns"
-                        [rows]="rawFilePreviewResponse.previewData.rows"
-                        [totalRowCount]="rawFilePreviewResponse.previewData.totalRowCount"
-                        [hasFile]="!!rawFilePreviewResponse.sessionId"
+                        [columns]="rawPreviewResponse.previewData.columns" [rows]="rawPreviewResponse.previewData.rows"
+                        [totalRowCount]="rawPreviewResponse.previewData.totalRowCount"
+                        [hasFile]="!!rawPreviewResponse.sessionId"
                         [noFileMessage]="'Upload a sample file on the left to see a live preview of your raw data'"
                         [maxHeight]="'20vh'" [loading]="rawPreviewLoading" />
                 </div>
 
-                <div  class="mt-3">
+                <div class="mt-3">
                     <app-import-preview-table [title]="'Transformed Data Preview'"
-                        [columns]="transformedFilePreviewResponse.previewData.columns"
-                        [rows]="transformedFilePreviewResponse.previewData.rows"
-                        [totalRowCount]="transformedFilePreviewResponse.previewData.totalRowCount"
-                        [error]="transformedFilePreviewResponse.error" [hasFile]="!!rawFilePreviewResponse.sessionId"
+                        [columns]="transformedPreviewResponse.previewData.columns"
+                        [rows]="transformedPreviewResponse.previewData.rows"
+                        [totalRowCount]="transformedPreviewResponse.previewData.totalRowCount"
+                        [error]="transformedPreviewResponse.error" [hasFile]="!!rawPreviewResponse.sessionId"
                         [noFileMessage]="'Upload a sample file on the left to see a live preview of how your trnasformed data'"
                         [maxHeight]="'20vh'" [loading]="transformedPreviewLoading" />
                 </div>

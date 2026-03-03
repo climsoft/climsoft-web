@@ -41,7 +41,7 @@ export class StationInputDialogComponent {
             longitude: station.location?.longitude,
             latitude: station.location?.latitude,
             elevation: station.elevation || undefined,
-            stationObsProcessingMethod: station.stationObsProcessingMethod,
+            stationObsProcessingMethod: station.stationObsProcessingMethod || undefined,
             stationObsEnvironmentId: station.stationObsEnvironmentId,
             stationObsFocusId: station.stationObsFocusId,
             ownerId: station.ownerId,
@@ -87,13 +87,13 @@ export class StationInputDialogComponent {
     });
   }
 
-  protected onElevationChange(longitude: number | null | undefined): void {
-    this.station.longitude = longitude ?? undefined;
+  protected onElevationChange(elevation: number | null | undefined): void {
+    this.station.elevation = elevation ?? undefined;
   }
 
 
-  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | null): void {
-    this.station.stationObsProcessingMethod =  stationObservationMethodEnum || StationProcessingMethodEnum.AUTOMATIC;
+  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | undefined): void {
+    this.station.stationObsProcessingMethod = stationObservationMethodEnum;
   }
 
 

@@ -14,8 +14,7 @@
               [class.bg-secondary]="!hasStepBeenVisited(step) && activeStep !== step">
               <ng-container
                 *ngIf="hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step">&#10003;</ng-container>
-              <ng-container
-                *ngIf="!(hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step)">{{
+              <ng-container *ngIf="!(hasStepBeenVisited(step) && isStepValid(step) && activeStep !== step)">{{
                 getStepNumber(step) }}</ng-container>
             </span>
             {{ stepLabels[step] }}
@@ -35,7 +34,7 @@
           <div *ngIf="activeStep === 'upload'">
             <div class="mb-3">
               <app-file-input [label]="'Select CSV File'" [buttonLabel]="'Upload File'" [fileName]="fileName"
-                [disabled]="loading" (fileSelected)="onFileSelected($event)" />
+                [disabled]="rawPreviewLoading" (fileSelected)="onFileSelected($event)" />
             </div>
 
             <hr />
@@ -48,19 +47,14 @@
             <hr />
 
             <div class="mb-3">
-              <label class="form-label">Delimiter</label>
-              <select class="form-select form-select-sm" [(ngModel)]="delimiter" (change)="onRowsToSkipChange()"
-                title="Delimiter">
-                <option value="">Auto-detect</option>
-                <option value=",">,</option>
-                <option value="|">|</option>
-              </select>
+              <app-delimeter-selector [label]="'Delimiter'" [(delimiter)]="delimiter"
+                (delimiterChange)="onRowsToSkipChange()" />
             </div>
           </div>
 
           <!-- ─── Step 2: Basic Info ─── -->
           <div *ngIf="activeStep === 'basic'">
-            <app-station-import-basic-detail [(mapping)]="mapping" [rawColumns]="rawColumns" />
+            <app-station-import-basic-detail [(mapping)]="mapping" />
           </div>
 
           <!-- ─── Step 3: Obs Processing Method ─── -->
@@ -90,42 +84,18 @@
 
           <!-- ─── Step 8: External IDs ─── -->
           <div *ngIf="activeStep === 'external-ids'">
-            <div class="mb-3">
-              <app-number-input [label]="'WMO ID Column Position'"
-                [value]="mapping.wmoIdColumnPosition"
-                (valueChange)="mapping.wmoIdColumnPosition = $event ?? undefined" [min]="1" />
-            </div>
-            <div class="mb-3">
-              <app-number-input [label]="'WIGOS ID Column Position'"
-                [value]="mapping.wigosIdColumnPosition"
-                (valueChange)="mapping.wigosIdColumnPosition = $event ?? undefined" [min]="1" />
-            </div>
-            <div class="mb-3">
-              <app-number-input [label]="'ICAO ID Column Position'"
-                [value]="mapping.icaoIdColumnPosition"
-                (valueChange)="mapping.icaoIdColumnPosition = $event ?? undefined" [min]="1" />
-            </div>
+            <app-station-import-external-ids-detail [(mapping)]="mapping" />
           </div>
 
           <!-- ─── Step 9: Dates ─── -->
           <div *ngIf="activeStep === 'dates'">
-            <div class="mb-3">
-              <app-number-input [label]="'Date Established Column Position'"
-                [value]="mapping.dateEstablishedColumnPosition"
-                (valueChange)="mapping.dateEstablishedColumnPosition = $event ?? undefined" [min]="1" />
-            </div>
-            <div class="mb-3">
-              <app-number-input [label]="'Date Closed Column Position'"
-                [value]="mapping.dateClosedColumnPosition"
-                (valueChange)="mapping.dateClosedColumnPosition = $event ?? undefined" [min]="1" />
-            </div>
+            <app-station-import-dates-detail [(mapping)]="mapping" />
           </div>
 
           <!-- ─── Step 10: Comment ─── -->
           <div *ngIf="activeStep === 'comment'">
             <div class="mb-3">
-              <app-number-input [label]="'Comment Column Position'"
-                [value]="mapping.commentColumnPosition"
+              <app-number-input [label]="'Comment Column Position'" [value]="mapping.commentColumnPosition"
                 (valueChange)="mapping.commentColumnPosition = $event ?? undefined" [min]="1" />
             </div>
           </div>
@@ -136,8 +106,8 @@
             <div class="small text-muted mb-2">Review the transformed preview on the right. Click "Confirm Import" to
               import all rows.</div>
 
-            <button type="button" class="btn btn-primary btn-sm" [disabled]="importing || previewError"
-              (click)="onConfirmImport()">
+            <button type="button" class="btn btn-primary btn-sm"
+              [disabled]="importing || transformedPreviewResponse.error" (click)="onConfirmImport()">
               {{ importing ? 'Importing...' : 'Confirm Import' }}
             </button>
 
@@ -164,24 +134,41 @@
         </div>
       </div>
 
-      <!-- Right column: Preview table (always shows transformed data) -->
+      <!-- Right column: Preview tables -->
       <div class="col-md-7">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <small class="text-muted">Preview updates as you navigate steps</small>
-          <button type="button" class="btn btn-outline-info btn-sm" [disabled]="!sessionId"
+        <div class="d-flex justify-content-end">
+          <button type="button" class="btn btn-outline-info btn-sm" [disabled]="!rawPreviewResponse.sessionId"
             (click)="refreshPreview()">
             Refresh Preview
           </button>
         </div>
 
-        <app-import-preview-table [title]="'Preview'"
-          [columns]="previewColumns"
-          [rows]="previewRows"
-          [totalRowCount]="previewTotalRowCount"
-          [rowsDropped]="previewRowsDropped"
-          [warnings]="previewWarnings"
-          [error]="previewError" [loading]="loading" [hasFile]="hasRawFile"
-          [noFileMessage]="'Upload a CSV file to see a preview'" [maxHeight]="'60vh'" />
+        <div class="mt-2">
+          <app-import-preview-table [title]="'Skipped Rows Preview'" [columns]="rawPreviewResponse.skippedData.columns"
+            [rows]="rawPreviewResponse.skippedData.rows" [totalRowCount]="rawPreviewResponse.skippedData.totalRowCount"
+            [hasFile]="!!rawPreviewResponse.sessionId"
+            [noFileMessage]="'Upload a CSV file to see a preview of skipped rows'" [maxHeight]="'15vh'"
+            [loading]="rawPreviewLoading" />
+        </div>
+
+        <div class="mt-3">
+          <app-import-preview-table [title]="'Raw Data Preview'" [columns]="rawPreviewResponse.previewData.columns"
+            [rows]="rawPreviewResponse.previewData.rows" [totalRowCount]="rawPreviewResponse.previewData.totalRowCount"
+            [hasFile]="!!rawPreviewResponse.sessionId"
+            [noFileMessage]="'Upload a CSV file to see a preview of your raw data'" [maxHeight]="'20vh'"
+            [loading]="rawPreviewLoading" />
+        </div>
+
+        <div class="mt-3">
+          <app-import-preview-table [title]="'Transformed Data Preview'"
+            [columns]="transformedPreviewResponse.previewData.columns"
+            [rows]="transformedPreviewResponse.previewData.rows"
+            [totalRowCount]="transformedPreviewResponse.previewData.totalRowCount"
+            [error]="transformedPreviewResponse.error" [hasFile]="!!rawPreviewResponse.sessionId"
+            [noFileMessage]="'Upload a CSV file to see a preview of the transformed data'" [maxHeight]="'20vh'"
+            [loading]="transformedPreviewLoading" />
+        </div>
+
       </div>
 
     </div>

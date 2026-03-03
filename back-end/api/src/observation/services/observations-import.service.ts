@@ -78,7 +78,7 @@ export class ObservationImportService {
 
         // Execute the duckdb DDL SQL commands
         const tableName: string = DuckDBUtils.getTableNameFromFileName(inputFilePathName);
-        await TabularImportTransformer.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
         // TODO. Will come from cache in later iterations
         const elements: CreateViewElementDto[] = await this.elementsService.find();

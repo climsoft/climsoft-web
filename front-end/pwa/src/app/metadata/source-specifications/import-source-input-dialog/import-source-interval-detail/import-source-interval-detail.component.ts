@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { IntervalDefinition } from '../../models/import-source-tabular-params.model';
 
 @Component({
@@ -7,8 +7,11 @@ import { IntervalDefinition } from '../../models/import-source-tabular-params.mo
   styleUrls: ['./import-source-interval-detail.component.scss']
 })
 export class ImportSourceIntervalDetailComponent {
-  @Input()  
+  @Input()
   public intervalDefinition!: IntervalDefinition;
+  
+  @Output()
+  public intervalDefinitionChange = new EventEmitter<IntervalDefinition>();
 
   protected onIntervalStatusSelection(status: string): void {
     this.intervalDefinition.columnPosition = undefined;
@@ -19,12 +22,15 @@ export class ImportSourceIntervalDetailComponent {
     } else if (status === 'Does Not Include Interval') {
       this.intervalDefinition.defaultValue = 0;
     }
+
+    this.intervalDefinitionChange.emit(this.intervalDefinition);
   }
 
-  protected onIntervalSelected(selected: number | null): void{
-    if(selected !== null){
+  protected onIntervalSelected(selected: number | null): void {
+    if (selected !== null) {
       this.intervalDefinition.defaultValue = selected;
     }
+    this.intervalDefinitionChange.emit(this.intervalDefinition);
   }
 
 }

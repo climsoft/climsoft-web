@@ -1,9 +1,10 @@
-import { IsDateString, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { StationStatusEnum } from '../enums/station-status.enum';
 import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
 
 export class UpdateStationDto {
     @IsString()
+    @IsNotEmpty()
     name: string;
 
     @IsOptional()
@@ -22,8 +23,9 @@ export class UpdateStationDto {
     @IsNumber()
     elevation?: number; // Elevation of station above mean sea level. 
 
+    @IsOptional()
     @IsEnum(StationObsProcessingMethodEnum, { message: 'Station observing method must be a valid value' })
-    stationObsProcessingMethod: StationObsProcessingMethodEnum;
+    stationObsProcessingMethod?: StationObsProcessingMethodEnum;
 
     @IsOptional()
     @IsInt()
@@ -43,15 +45,15 @@ export class UpdateStationDto {
 
     @IsOptional()
     @IsString() // TODO. Add validation for WMO station identifier
-    wmoId?: string ;
+    wmoId?: string;
 
     @IsOptional()
     @IsString() // TODO. Add validation for WMO wigos station identifier
-    wigosId?: string | null;
+    wigosId?: string;
 
     @IsOptional()
     @IsString()
-    icaoId?: string | null;
+    icaoId?: string ;
 
     @IsOptional()
     @IsEnum(StationStatusEnum, { message: 'Station status must be a valid value' })
@@ -68,6 +70,4 @@ export class UpdateStationDto {
     @IsOptional()
     @IsString()
     comment?: string;
-
 }
-

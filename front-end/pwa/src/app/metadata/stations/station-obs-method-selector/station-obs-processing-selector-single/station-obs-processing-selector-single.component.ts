@@ -7,12 +7,12 @@ import { StationProcessingMethodEnum } from '../../models/station-processing-met
   templateUrl: './station-obs-processing-selector-single.component.html',
   styleUrls: ['./station-obs-processing-selector-single.component.scss']
 })
-export class StationObsProcessingSingleSelectorComponent implements OnInit, OnChanges {
-  @Input() public label!: string ;
-  @Input() public errorMessage!: string ;
+export class StationObsProcessingSingleSelectorComponent implements OnChanges {
+  @Input() public label!: string;
+  @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: StationProcessingMethodEnum[];
-  @Input() public selectedId!: StationProcessingMethodEnum | null;
-  @Output() public selectedIdChange = new EventEmitter<StationProcessingMethodEnum | null>();
+  @Input() public selectedId!: StationProcessingMethodEnum | undefined;
+  @Output() public selectedIdChange = new EventEmitter<StationProcessingMethodEnum | undefined>();
 
   protected options!: StationProcessingMethodEnum[];
   protected selectedOption!: StationProcessingMethodEnum | null;
@@ -20,12 +20,9 @@ export class StationObsProcessingSingleSelectorComponent implements OnInit, OnCh
   constructor() {
 
   }
-
-  ngOnInit(): void {
-  }
+ 
 
   ngOnChanges(changes: SimpleChanges): void {
-
 
     //load options once
     if (!this.options) {
@@ -54,13 +51,7 @@ export class StationObsProcessingSingleSelectorComponent implements OnInit, OnCh
   }
 
   protected onSelectedOptionChange(selectedOption: StationProcessingMethodEnum | null) {
-    this.selectedOption = selectedOption;
-    if (selectedOption) {
-      this.selectedId = selectedOption;
-      this.selectedIdChange.emit(selectedOption);
-    } else {
-      this.selectedIdChange.emit(null);
-    }
-
+    this.selectedId = selectedOption || undefined;
+    this.selectedIdChange.emit(this.selectedId);
   }
 }

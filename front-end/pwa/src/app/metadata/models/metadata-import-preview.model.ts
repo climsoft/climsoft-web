@@ -1,3 +1,5 @@
+import { DateTimeDefinition } from '../source-specifications/models/import-source-tabular-params.model';
+
 // ─── Shared Types ────────────────────────────────────────────
 
 export interface ValueMappingModel {
@@ -29,8 +31,8 @@ export interface StationColumnMappingModel {
     wigosIdColumnPosition?: number;
     icaoIdColumnPosition?: number;
     status?: FieldMappingModel;
-    dateEstablishedColumnPosition?: number;
-    dateClosedColumnPosition?: number;
+    dateEstablishedDefinition?: DateTimeDefinition;
+    dateClosedDefinition?: DateTimeDefinition;
     commentColumnPosition?: number;
 }
 
@@ -45,50 +47,4 @@ export interface ElementColumnMappingModel {
     elementType?: FieldMappingModel;
     entryScaleFactorColumnPosition?: number;
     commentColumnPosition?: number;
-}
-
-// ─── Transform Models ────────────────────────────────────────
-
-export interface StationTransformModel {
-    rowsToSkip: number;
-    delimiter?: string;
-    columnMapping: StationColumnMappingModel;
-}
-
-export interface ElementTransformModel {
-    rowsToSkip: number;
-    delimiter?: string;
-    columnMapping: ElementColumnMappingModel;
-}
-
-// ─── Response Interfaces ─────────────────────────────────────
-
-export interface MetadataPreviewWarning {
-    type: 'NULL_VALUES' | 'DUPLICATE_ROWS';
-    message: string;
-    affectedRowCount: number;
-}
-
-export interface MetadataPreviewError {
-    type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
-    message: string;
-    detail?: string;
-}
-
-export interface MetadataRawPreviewResponse {
-    sessionId: string;
-    fileName: string;
-    columns: string[];
-    totalRowCount: number;
-    previewRows: string[][];
-    skippedRows: string[][];
-}
-
-export interface MetadataStepPreviewResponse {
-    columns: string[];
-    previewRows: string[][];
-    totalRowCount: number;
-    rowsDropped: number;
-    warnings: MetadataPreviewWarning[];
-    error?: MetadataPreviewError;
 }

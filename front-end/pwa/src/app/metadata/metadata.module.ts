@@ -18,7 +18,9 @@ import { StationImportEnvironmentDetailComponent } from './stations/stations-imp
 import { StationImportFocusDetailComponent } from './stations/stations-import-dialog/station-import-focus-detail/station-import-focus-detail.component';
 import { StationImportOwnerOperatorDetailComponent } from './stations/stations-import-dialog/station-import-owner-operator-detail/station-import-owner-operator-detail.component';
 import { StationImportStatusDetailComponent } from './stations/stations-import-dialog/station-import-status-detail/station-import-status-detail.component';
-import { ViewElementsComponent } from './elements/view-elements/view-elements.component';  
+import { StationImportExternalIdsDetailComponent } from './stations/stations-import-dialog/station-import-external-ids-detail/station-import-external-ids-detail.component';
+import { StationImportDatesDetailComponent } from './stations/stations-import-dialog/station-import-dates-detail/station-import-dates-detail.component';
+import { ViewElementsComponent } from './elements/view-elements/view-elements.component';
 import { ImportSourceStationDetailComponent } from './source-specifications/import-source-input-dialog/import-source-station-detail/import-source-station-detail.component';
 import { ImportSourceElementDetailComponent } from './source-specifications/import-source-input-dialog/import-source-element-detail/import-source-element-detail.component';
 import { ImportSourceIntervalDetailComponent } from './source-specifications/import-source-input-dialog/import-source-interval-detail/import-source-interval-detail.component';
@@ -119,6 +121,8 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     StationImportFocusDetailComponent,
     StationImportOwnerOperatorDetailComponent,
     StationImportStatusDetailComponent,
+    StationImportExternalIdsDetailComponent,
+    StationImportDatesDetailComponent,
 
     StationObsProcessingSingleSelectorComponent,
     StationObsProcessingSelectorMultipleComponent,

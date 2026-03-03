@@ -1,32 +1,36 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { StationColumnMappingDto, MetadataPreviewError } from 'src/metadata/dtos/metadata-import-preview.dto';
-import { CreateStationDto } from '../dtos/create-station.dto';
-
+import { StationColumnMappingDto } from 'src/metadata/dtos/metadata-import-preview.dto';
+import { DateTimeDefinition, HourDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { StringUtils } from 'src/shared/utils/string.utils';
+import { PreviewError } from 'src/observation/dtos/import-preview.dto';
 /**
  * Static utility class that builds DuckDB SQL statements for transforming
  * imported CSV data into the stations table schema.
  */
 export class StationImportTransformer {
 
-    static readonly ID_PROPERTY: keyof CreateStationDto = 'id';
-    static readonly NAME_PROPERTY: keyof CreateStationDto = 'name';
-    static readonly DESCRIPTION_PROPERTY: keyof CreateStationDto = 'description';
-    static readonly LATITUDE_PROPERTY: keyof CreateStationDto = 'latitude';
-    static readonly LONGITUDE_PROPERTY: keyof CreateStationDto = 'longitude';
-    static readonly ELEVATION_PROPERTY: keyof CreateStationDto = 'elevation';
-    static readonly OBS_PROC_METHOD_PROPERTY: keyof CreateStationDto = 'stationObsProcessingMethod';
-    static readonly OBS_ENVIRONMENT_ID_PROPERTY: keyof CreateStationDto = 'stationObsEnvironmentId';
-    static readonly OBS_FOCUS_ID_PROPERTY: keyof CreateStationDto = 'stationObsFocusId';
-    static readonly OWNER_ID_PROPERTY: keyof CreateStationDto = 'ownerId';
-    static readonly OPERATOR_ID_PROPERTY: keyof CreateStationDto = 'operatorId';
-    static readonly WMO_ID_PROPERTY: keyof CreateStationDto = 'wmoId';
-    static readonly WIGOS_ID_PROPERTY: keyof CreateStationDto = 'wigosId';
-    static readonly ICAO_ID_PROPERTY: keyof CreateStationDto = 'icaoId';
-    static readonly STATUS_PROPERTY: keyof CreateStationDto = 'status';
-    static readonly DATE_ESTABLISHED_PROPERTY: keyof CreateStationDto = 'dateEstablished';
-    static readonly DATE_CLOSED_PROPERTY: keyof CreateStationDto = 'dateClosed';
-    static readonly COMMENT_PROPERTY: keyof CreateStationDto = 'comment';
+    // Column names matching StationEntity @Column({ name }) values.
+    // Note: latitude/longitude don't map directly to entity columns (entity uses a single `location` Point column).
+    // They are kept as separate columns here and will need special handling at the PostgreSQL import stage.
+    static readonly ID_PROPERTY: string = 'id';
+    static readonly NAME_PROPERTY: string = 'name';
+    static readonly DESCRIPTION_PROPERTY: string = 'description';
+    static readonly LATITUDE_PROPERTY: string = 'latitude';
+    static readonly LONGITUDE_PROPERTY: string = 'longitude';
+    static readonly ELEVATION_PROPERTY: string = 'elevation';
+    static readonly OBS_PROC_METHOD_PROPERTY: string = 'observation_processing_method';
+    static readonly OBS_ENVIRONMENT_ID_PROPERTY: string = 'observation_environment_id';
+    static readonly OBS_FOCUS_ID_PROPERTY: string = 'observation_focus_id';
+    static readonly OWNER_ID_PROPERTY: string = 'owner_id';
+    static readonly OPERATOR_ID_PROPERTY: string = 'operator_id';
+    static readonly WMO_ID_PROPERTY: string = 'wmo_id';
+    static readonly WIGOS_ID_PROPERTY: string = 'wigos_id';
+    static readonly ICAO_ID_PROPERTY: string = 'icao_id';
+    static readonly STATUS_PROPERTY: string = 'status';
+    static readonly DATE_ESTABLISHED_PROPERTY: string = 'date_established';
+    static readonly DATE_CLOSED_PROPERTY: string = 'date_closed';
+    static readonly COMMENT_PROPERTY: string = 'comment';
 
     /** All final column names in order for SELECT and COPY. */
     static readonly ALL_COLUMNS: string[] = [
@@ -50,27 +54,13 @@ export class StationImportTransformer {
         StationImportTransformer.COMMENT_PROPERTY,
     ];
 
-    public static async loadTableFromFile(conn: DuckDBConnection, filePathName: string, rowsToSkip: number, maxRows: number, delimiter: string | undefined): Promise<string> {
-        const importParams = DuckDBUtils.buildCsvImportParams(rowsToSkip, delimiter);
-        const limitClause = maxRows > 0 ? ` LIMIT ${maxRows}` : '';
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(filePathName);
-
-        const createSQL = `CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM read_csv('${filePathName}', ${importParams.join(', ')})${limitClause};`;
-        await conn.run(createSQL);
-
-        const renameSQL = await DuckDBUtils.getRenameDefaultColumnNamesSQL(conn, tableName);
-        await conn.run(renameSQL);
-
-        return tableName;
-    }
-
     public static async executeTransformation(
         conn: DuckDBConnection,
         tableName: string,
         mapping: StationColumnMappingDto,
-    ): Promise<MetadataPreviewError | void> {
+    ): Promise<PreviewError | void> {
 
-        const steps: { name: string; buildSql: () => string }[] = [
+        const steps: { name: string; buildSql: () => string[] }[] = [
             { name: 'Id', buildSql: () => StationImportTransformer.buildAlterIdColumnSQL(tableName, mapping) },
             { name: 'Name', buildSql: () => StationImportTransformer.buildAlterNameColumnSQL(tableName, mapping) },
             { name: 'Description', buildSql: () => StationImportTransformer.buildAlterDescriptionColumnSQL(tableName, mapping) },
@@ -87,18 +77,20 @@ export class StationImportTransformer {
             {
                 name: 'Finalize',
                 buildSql: () => {
-                    // Select only the final columns we need, discarding unmapped CSV columns
-                    const existingCols = StationImportTransformer.ALL_COLUMNS;
-                    return `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${existingCols.join(', ')} FROM ${tableName};`;
+                    return [
+                        StationImportTransformer.buildRemoveDuplicatesSQL(tableName),
+                        // Select only the final columns we need, discarding unmapped CSV columns
+                        `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${StationImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,
+                    ];
                 }
             },
         ];
 
         for (const step of steps) {
             try {
-                const sql = step.buildSql();
-                if (sql) {
-                    await conn.run(sql);
+                const sqls = step.buildSql();
+                if (sqls.length > 0) {
+                    await conn.run(sqls.join('; '));
                 }
             } catch (error) {
                 return StationImportTransformer.classifyError(error, step.name);
@@ -112,47 +104,49 @@ export class StationImportTransformer {
 
     // ─── Step Builders ───────────────────────────────────────
 
-    private static buildAlterIdColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
-        let sql = `ALTER TABLE ${tableName} RENAME column${mapping.idColumnPosition} TO ${this.ID_PROPERTY};`;
-        sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.ID_PROPERTY} SET NOT NULL;`;
-        return sql;
+    private static buildAlterIdColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+        return [
+            `ALTER TABLE ${tableName} RENAME column${mapping.idColumnPosition} TO ${this.ID_PROPERTY}`,
+            `ALTER TABLE ${tableName} ALTER COLUMN ${this.ID_PROPERTY} SET NOT NULL`,
+        ];
     }
 
-    private static buildAlterNameColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
-        let sql = `ALTER TABLE ${tableName} RENAME column${mapping.nameColumnPosition} TO ${this.NAME_PROPERTY};`;
-        sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.NAME_PROPERTY} SET NOT NULL;`;
-        return sql;
+    private static buildAlterNameColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+        return [
+            `ALTER TABLE ${tableName} RENAME column${mapping.nameColumnPosition} TO ${this.NAME_PROPERTY}`,
+            `ALTER TABLE ${tableName} ALTER COLUMN ${this.NAME_PROPERTY} SET NOT NULL`,
+        ];
     }
 
-    private static buildAlterDescriptionColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
+    private static buildAlterDescriptionColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
         if (mapping.descriptionColumnPosition !== undefined) {
-            return `ALTER TABLE ${tableName} RENAME column${mapping.descriptionColumnPosition} TO ${this.DESCRIPTION_PROPERTY};`;
+            return [`ALTER TABLE ${tableName} RENAME column${mapping.descriptionColumnPosition} TO ${this.DESCRIPTION_PROPERTY}`];
         }
-        return `ALTER TABLE ${tableName} ADD COLUMN ${this.DESCRIPTION_PROPERTY} VARCHAR DEFAULT NULL;`;
+        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.DESCRIPTION_PROPERTY} VARCHAR DEFAULT NULL`];
     }
 
-    private static buildAlterLatLongElevationColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
-        let sql = '';
+    private static buildAlterLatLongElevationColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+        const sql: string[] = [];
 
         if (mapping.latitudeColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.latitudeColumnPosition} TO ${this.LATITUDE_PROPERTY};`;
-            sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.LATITUDE_PROPERTY} TYPE DOUBLE;`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.latitudeColumnPosition} TO ${this.LATITUDE_PROPERTY}`);
+            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.LATITUDE_PROPERTY} TYPE DOUBLE`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.LATITUDE_PROPERTY} DOUBLE DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.LATITUDE_PROPERTY} DOUBLE DEFAULT NULL`);
         }
 
         if (mapping.longitudeColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.longitudeColumnPosition} TO ${this.LONGITUDE_PROPERTY};`;
-            sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.LONGITUDE_PROPERTY} TYPE DOUBLE;`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.longitudeColumnPosition} TO ${this.LONGITUDE_PROPERTY}`);
+            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.LONGITUDE_PROPERTY} TYPE DOUBLE`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.LONGITUDE_PROPERTY} DOUBLE DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.LONGITUDE_PROPERTY} DOUBLE DEFAULT NULL`);
         }
 
         if (mapping.elevationColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.elevationColumnPosition} TO ${this.ELEVATION_PROPERTY};`;
-            sql += `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION_PROPERTY} TYPE DOUBLE;`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.elevationColumnPosition} TO ${this.ELEVATION_PROPERTY}`);
+            sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION_PROPERTY} TYPE DOUBLE`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION_PROPERTY} DOUBLE DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.ELEVATION_PROPERTY} DOUBLE DEFAULT NULL`);
         }
 
         return sql;
@@ -162,82 +156,162 @@ export class StationImportTransformer {
      * Generic builder for fields that support value mapping and defaults.
      * Handles three cases: column mapped (with optional value mappings), default value, or not included (NULL).
      */
-    private static buildAlterFieldMappingColumnSQL(tableName: string, propertyName: string, fieldMapping?: { columnPosition?: number; defaultValue?: string; valueMappings?: { sourceId: string; databaseId: string }[] }): string {
+    private static buildAlterFieldMappingColumnSQL(tableName: string, propertyName: string, fieldMapping?: { columnPosition?: number; defaultValue?: string; valueMappings?: { sourceId: string; databaseId: string }[] }): string[] {
         if (!fieldMapping) {
-            return `ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL;`;
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
         }
 
         if (fieldMapping.columnPosition !== undefined) {
-            let sql = `ALTER TABLE ${tableName} RENAME column${fieldMapping.columnPosition} TO ${propertyName};`;
+            const sql: string[] = [`ALTER TABLE ${tableName} RENAME column${fieldMapping.columnPosition} TO ${propertyName}`];
 
             if (fieldMapping.valueMappings && fieldMapping.valueMappings.length > 0) {
-                sql += DuckDBUtils.getDeleteAndUpdateSQL(tableName, propertyName, fieldMapping.valueMappings, false);
+                sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, propertyName, fieldMapping.valueMappings, false));
             }
 
             return sql;
         }
 
         if (fieldMapping.defaultValue !== undefined) {
-            return `ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT '${fieldMapping.defaultValue}';`;
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT '${fieldMapping.defaultValue}'`];
         }
 
-        return `ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL;`;
+        return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
     }
 
-    private static buildAlterIdColumnsSQL(tableName: string, mapping: StationColumnMappingDto): string {
-        let sql = '';
+    private static buildAlterIdColumnsSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+        const sql: string[] = [];
 
         if (mapping.wmoIdColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.wmoIdColumnPosition} TO ${this.WMO_ID_PROPERTY};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.wmoIdColumnPosition} TO ${this.WMO_ID_PROPERTY}`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.WMO_ID_PROPERTY} VARCHAR DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.WMO_ID_PROPERTY} VARCHAR DEFAULT NULL`);
         }
 
         if (mapping.wigosIdColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.wigosIdColumnPosition} TO ${this.WIGOS_ID_PROPERTY};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.wigosIdColumnPosition} TO ${this.WIGOS_ID_PROPERTY}`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.WIGOS_ID_PROPERTY} VARCHAR DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.WIGOS_ID_PROPERTY} VARCHAR DEFAULT NULL`);
         }
 
         if (mapping.icaoIdColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.icaoIdColumnPosition} TO ${this.ICAO_ID_PROPERTY};`;
+            sql.push(`ALTER TABLE ${tableName} RENAME column${mapping.icaoIdColumnPosition} TO ${this.ICAO_ID_PROPERTY}`);
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.ICAO_ID_PROPERTY} VARCHAR DEFAULT NULL;`;
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.ICAO_ID_PROPERTY} VARCHAR DEFAULT NULL`);
         }
 
         return sql;
     }
 
-    private static buildAlterDatesColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
-        let sql = '';
+    private static buildAlterDatesColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+        return [
+            ...this.buildAlterDateColumnSQL(tableName, this.DATE_ESTABLISHED_PROPERTY, mapping.dateEstablishedDefinition),
+            ...this.buildAlterDateColumnSQL(tableName, this.DATE_CLOSED_PROPERTY, mapping.dateClosedDefinition),
+        ];
+    }
 
-        if (mapping.dateEstablishedColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.dateEstablishedColumnPosition} TO ${this.DATE_ESTABLISHED_PROPERTY};`;
-            sql += `UPDATE ${tableName} SET ${this.DATE_ESTABLISHED_PROPERTY} = strftime(${this.DATE_ESTABLISHED_PROPERTY}::DATE, '%Y-%m-%dT%H:%M:%S.%g') || 'Z' WHERE ${this.DATE_ESTABLISHED_PROPERTY} IS NOT NULL;`;
-        } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.DATE_ESTABLISHED_PROPERTY} VARCHAR DEFAULT NULL;`;
+    /**
+     * Builds SQL to transform a single date column using DateTimeDefinition.
+     * Follows the same try_strptime pattern as TabularImportTransformer.buildAlterDateTimeColumnSQL,
+     * but station dates are optional so NULLs are kept (no DELETE WHERE NULL, no SET NOT NULL),
+     * no UTC offset conversion, and no UNPIVOT for day columns (single day column only).
+     */
+    private static buildAlterDateColumnSQL(tableName: string, propertyName: string, definition?: DateTimeDefinition): string[] {
+        if (!definition) {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
         }
 
-        if (mapping.dateClosedColumnPosition !== undefined) {
-            sql += `ALTER TABLE ${tableName} RENAME column${mapping.dateClosedColumnPosition} TO ${this.DATE_CLOSED_PROPERTY};`;
-            sql += `UPDATE ${tableName} SET ${this.DATE_CLOSED_PROPERTY} = strftime(${this.DATE_CLOSED_PROPERTY}::DATE, '%Y-%m-%dT%H:%M:%S.%g') || 'Z' WHERE ${this.DATE_CLOSED_PROPERTY} IS NOT NULL;`;
+        const sql: string[] = [];
+        let expectedDatetimeFormat: string;
+
+        if (definition.dateTimeInSingleColumn !== undefined) {
+            const dateTimeDef = definition.dateTimeInSingleColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition} TO ${propertyName}`);
+            expectedDatetimeFormat = dateTimeDef.datetimeFormat;
+
+        } else if (definition.dateTimeInTwoColumns !== undefined) {
+            const dateTimeDef = definition.dateTimeInTwoColumns;
+            const dateCol = `${propertyName}_date_col`;
+            const timeCol = `${propertyName}_time_col`;
+
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateColumn.columnPosition} TO ${dateCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeColumn.columnPosition} TO ${timeCol}`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${dateCol} || ' ' || ${timeCol}`);
+
+            expectedDatetimeFormat = `${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}`;
+
+        } else if (definition.dateTimeInMultipleColumns !== undefined) {
+            const dateFormat = '%Y-%m-%d';
+            let timeFormat = '%H:%M:%S';
+            const multiDef = definition.dateTimeInMultipleColumns;
+
+            const yearCol = `${propertyName}_year_col`;
+            const monthCol = `${propertyName}_month_col`;
+            const dayCol = `${propertyName}_day_col`;
+            const timeCol = `${propertyName}_time_col`;
+
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${multiDef.yearColumnPosition} TO ${yearCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${multiDef.monthColumnPosition} TO ${monthCol}`);
+
+            // Single day column only (no UNPIVOT for station dates)
+            const dayColumnPosition = parseInt(multiDef.dayColumnPosition, 10);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO ${dayCol}`);
+            sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
+
+            // Hour definition
+            const hourDefinition: HourDefinition = multiDef.hourDefinition;
+            if (hourDefinition.timeColumn !== undefined) {
+                timeFormat = hourDefinition.timeColumn.timeFormat;
+                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${hourDefinition.timeColumn.columnPosition} TO ${timeCol}`);
+            } else if (hourDefinition.defaultHour !== undefined) {
+                const strHour = StringUtils.addLeadingZero(hourDefinition.defaultHour);
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${timeCol} VARCHAR`);
+                sql.push(`UPDATE ${tableName} SET ${timeCol} = '${strHour}:00:00'`);
+            }
+
+            // Combine into a single date time column
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${yearCol} || '-' || ${monthCol} || '-' || ${dayCol} || ' ' || ${timeCol}`);
+
+            expectedDatetimeFormat = `${dateFormat} ${timeFormat}`;
+
         } else {
-            sql += `ALTER TABLE ${tableName} ADD COLUMN ${this.DATE_CLOSED_PROPERTY} VARCHAR DEFAULT NULL;`;
+            throw new Error("Date time interpretation not valid");
         }
+
+        // Convert to valid timestamp using try_strptime (safe for messy data)
+        // Station dates are optional, so keep NULLs (no DELETE, no SET NOT NULL)
+        sql.push(`UPDATE ${tableName} SET ${propertyName} = try_strptime(${propertyName}, '${expectedDatetimeFormat}')`);
+        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${propertyName} TYPE TIMESTAMP USING strptime(${propertyName}, '%Y-%m-%d %H:%M:%S')`);
 
         return sql;
     }
 
-    private static buildAlterCommentColumnSQL(tableName: string, mapping: StationColumnMappingDto): string {
+    private static buildAlterCommentColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
         if (mapping.commentColumnPosition !== undefined) {
-            return `ALTER TABLE ${tableName} RENAME column${mapping.commentColumnPosition} TO ${this.COMMENT_PROPERTY};`;
+            return [`ALTER TABLE ${tableName} RENAME column${mapping.commentColumnPosition} TO ${this.COMMENT_PROPERTY}`];
         }
-        return `ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL;`;
+        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
+    }
+
+    private static buildRemoveDuplicatesSQL(tableName: string): string {
+        // Remove duplicates based on the primary key (id).
+        // Keep the last occurrence by using row_number() ordered by rowid in descending order.
+        // DuckDB automatically assigns a rowid to each row, with later rows having higher rowids.
+        return `DELETE FROM ${tableName} WHERE rowid IN (
+            SELECT rowid FROM (
+                SELECT rowid, ROW_NUMBER() OVER (
+                    PARTITION BY ${this.ID_PROPERTY}
+                    ORDER BY rowid DESC
+                ) as rn
+                FROM ${tableName}
+            ) WHERE rn > 1
+        )`;
     }
 
     // ─── Error Classification ────────────────────────────────
 
-    private static classifyError(error: unknown, stepName: string): MetadataPreviewError {
+    private static classifyError(error: unknown, stepName: string): PreviewError {
         const msg = error instanceof Error ? error.message : String(error);
 
         if (msg.includes('does not have a column named') || msg.includes('Referenced column') || msg.includes('not found in FROM clause')) {

@@ -2,14 +2,12 @@ import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { take } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationsCacheService } from '../services/stations-cache.service';
-import { MetadataImportPreviewHttpService } from '../../services/metadata-import-preview-http.service';
+import { MetadataImportPreviewService } from '../../services/metadata-import-preview.service';
 import {
   FieldMappingModel,
-  MetadataPreviewError,
-  MetadataPreviewWarning,
   StationColumnMappingModel,
-  StationTransformModel,
 } from '../../models/metadata-import-preview.model';
+import { RawPreviewResponse, TransformedPreviewResponse } from '../../source-specifications/models/import-preview.model';
 
 type WizardStep = 'upload' | 'basic' | 'obs-proc-method' | 'obs-environment' | 'obs-focus' | 'owner-operator' | 'status' | 'external-ids' | 'dates' | 'comment' | 'review';
 
@@ -24,7 +22,6 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   protected open: boolean = false;
   protected activeStep: WizardStep = 'upload';
-  protected loading: boolean = false;
   protected importing: boolean = false;
 
   protected readonly wizardSteps: WizardStep[] = [
@@ -50,30 +47,25 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   // Upload step
   protected fileName: string = '';
-  protected sessionId: string = '';
   protected rowsToSkip: number = 1;
-  protected delimiter: string = '';
-
-  // Raw columns (for basic detail component)
-  protected rawColumns: string[] = [];
-  protected hasRawFile: boolean = false;
+  protected delimiter: string | undefined;
 
   // Column mapping — single source of truth
   protected mapping: StationColumnMappingModel = this.getDefaultMapping();
 
-  // Preview (always shows transformed data)
-  protected previewColumns: string[] = [];
-  protected previewRows: string[][] = [];
-  protected previewTotalRowCount: number = 0;
-  protected previewRowsDropped: number = 0;
-  protected previewWarnings: MetadataPreviewWarning[] = [];
-  protected previewError: MetadataPreviewError | null = null;
+  // File Preview state
+  protected rawPreviewResponse!: RawPreviewResponse;
+  protected transformedPreviewResponse!: TransformedPreviewResponse;
+  protected rawPreviewLoading: boolean = false;
+  protected transformedPreviewLoading: boolean = false;
 
   constructor(
     private pagesDataService: PagesDataService,
     private stationsCacheService: StationsCacheService,
-    private metadataPreviewService: MetadataImportPreviewHttpService,
-  ) { }
+    private metadataPreviewService: MetadataImportPreviewService,
+  ) {
+    this.resetPreviews();
+  }
 
   ngOnDestroy(): void {
     this.cleanupSession();
@@ -98,7 +90,9 @@ export class StationsImportDialogComponent implements OnDestroy {
     if (idx < this.wizardSteps.length - 1) {
       this.activeStep = this.wizardSteps[idx + 1];
       this.visitedSteps.add(this.activeStep);
-      this.refreshPreview();
+      if (this.rawPreviewResponse.sessionId) {
+        this.refreshPreview();
+      }
     }
   }
 
@@ -113,13 +107,13 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   protected isStepDisabled(step: WizardStep): boolean {
     if (step === 'upload') return false;
-    return !this.sessionId;
+    return !this.rawPreviewResponse.sessionId;
   }
 
   protected isStepValid(step: WizardStep): boolean {
     switch (step) {
       case 'upload':
-        return this.hasRawFile;
+        return !!this.rawPreviewResponse.sessionId;
       case 'basic':
         return this.mapping.idColumnPosition > 0 && this.mapping.nameColumnPosition > 0;
       default:
@@ -139,71 +133,81 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   protected onFileSelected(file: File): void {
     this.fileName = file.name;
-    this.loading = true;
+    this.rawPreviewLoading = true;
+    this.transformedPreviewLoading = true;
+    this.transformedPreviewResponse.error = undefined;
 
     this.metadataPreviewService.upload(file, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
-      next: (response) => {
-        this.sessionId = response.sessionId;
-        this.rawColumns = response.columns;
-        this.hasRawFile = true;
-        // Show raw data as initial preview
-        this.previewColumns = response.columns;
-        this.previewRows = response.previewRows;
-        this.previewTotalRowCount = response.totalRowCount;
-        this.previewRowsDropped = 0;
-        this.previewWarnings = [];
-        this.previewError = null;
-        this.loading = false;
+      next: (response: RawPreviewResponse) => {
+        this.rawPreviewLoading = false;
+        this.transformedPreviewLoading = false;
+        this.rawPreviewResponse = response;
+        this.transformedPreviewResponse = { previewData: response.previewData };
       },
       error: (err) => {
+        this.rawPreviewLoading = false;
+        this.transformedPreviewLoading = false;
         this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
-        this.loading = false;
       }
     });
   }
 
   protected onRowsToSkipChange(): void {
-    if (!this.sessionId) return;
-    this.loading = true;
-    this.metadataPreviewService.updateBaseParams(this.sessionId, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
-      next: (response) => {
-        this.rawColumns = response.columns;
-        // Update preview with raw data
-        this.previewColumns = response.columns;
-        this.previewRows = response.previewRows;
-        this.previewTotalRowCount = response.totalRowCount;
-        this.previewRowsDropped = 0;
-        this.previewWarnings = [];
-        this.previewError = null;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
+    this.reLoadRawPreview();
   }
 
   // ─── Preview ───────────────────────────────────────────────
 
   protected refreshPreview(): void {
-    if (!this.sessionId) return;
+    if (!this.rawPreviewResponse.sessionId) return;
 
-    this.loading = true;
-    this.previewError = null;
-    this.previewWarnings = [];
+    if (this.activeStep === 'upload') {
+      this.reLoadRawPreview();
+      return;
+    }
+
+    if (this.transformedPreviewLoading) {
+      return;
+    }
+
+    this.transformedPreviewLoading = true;
 
     const transform = this.buildTransform();
-    this.metadataPreviewService.previewStations(this.sessionId, transform).pipe(take(1)).subscribe({
-      next: (response) => {
-        this.previewColumns = response.columns;
-        this.previewRows = response.previewRows;
-        this.previewTotalRowCount = response.totalRowCount;
-        this.previewRowsDropped = response.rowsDropped;
-        this.previewWarnings = response.warnings;
-        this.previewError = response.error || null;
-        this.loading = false;
+    this.metadataPreviewService.previewStations(this.rawPreviewResponse.sessionId, transform).pipe(take(1)).subscribe({
+      next: (response: TransformedPreviewResponse) => {
+        this.transformedPreviewLoading = false;
+        this.transformedPreviewResponse = response;
       },
       error: (err) => {
+        this.transformedPreviewLoading = false;
         this.pagesDataService.showToast({ title: 'Preview Error', message: err.error?.message || 'Failed to generate preview', type: ToastEventTypeEnum.ERROR });
-        this.loading = false;
+      }
+    });
+  }
+
+  private reLoadRawPreview(): void {
+    if (!this.rawPreviewResponse.sessionId) return;
+
+    if (this.rawPreviewLoading && this.transformedPreviewLoading) {
+      return;
+    }
+
+    this.rawPreviewLoading = true;
+    this.transformedPreviewLoading = true;
+    this.transformedPreviewResponse.error = undefined;
+
+    this.metadataPreviewService.updateBaseParams(this.rawPreviewResponse.sessionId, this.rowsToSkip, this.delimiter || undefined).pipe(take(1)).subscribe({
+      next: (response: RawPreviewResponse) => {
+        this.rawPreviewLoading = false;
+        this.transformedPreviewLoading = false;
+        this.rawPreviewResponse = response;
+        this.transformedPreviewResponse = { previewData: response.previewData };
+      },
+      error: (err) => {
+        this.rawPreviewLoading = false;
+        this.transformedPreviewLoading = false;
+        const message = err.error?.message || 'Failed to load raw preview.';
+        this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
       }
     });
   }
@@ -214,11 +218,11 @@ export class StationsImportDialogComponent implements OnDestroy {
     this.importing = true;
 
     const transform = this.buildTransform();
-    this.metadataPreviewService.confirmStationImport(this.sessionId, transform).pipe(take(1)).subscribe({
+    this.metadataPreviewService.confirmStationImport(this.rawPreviewResponse.sessionId, transform).pipe(take(1)).subscribe({
       next: () => {
         this.importing = false;
         this.open = false;
-        this.sessionId = '';
+        this.rawPreviewResponse.sessionId = '';
         this.pagesDataService.showToast({ title: 'Stations Import', message: 'Stations imported successfully', type: ToastEventTypeEnum.SUCCESS });
         this.stationsCacheService.checkForUpdates();
         this.okClick.emit();
@@ -238,11 +242,8 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   // ─── Private Helpers ───────────────────────────────────────
 
-  private buildTransform(): StationTransformModel {
+  private buildTransform(): StationColumnMappingModel {
     return {
-      rowsToSkip: this.rowsToSkip,
-      delimiter: this.delimiter || undefined,
-      columnMapping: {
         ...this.mapping,
         obsProcMethod: this.cleanFieldMapping(this.mapping.obsProcMethod),
         obsEnvironment: this.cleanFieldMapping(this.mapping.obsEnvironment),
@@ -250,8 +251,7 @@ export class StationsImportDialogComponent implements OnDestroy {
         owner: this.cleanFieldMapping(this.mapping.owner),
         operator: this.cleanFieldMapping(this.mapping.operator),
         status: this.cleanFieldMapping(this.mapping.status),
-      },
-    };
+      }
   }
 
   private cleanFieldMapping(fm: FieldMappingModel | undefined): FieldMappingModel | undefined {
@@ -281,27 +281,33 @@ export class StationsImportDialogComponent implements OnDestroy {
     this.cleanupSession();
     this.activeStep = 'upload';
     this.visitedSteps = new Set(['upload']);
-    this.loading = false;
     this.importing = false;
     this.fileName = '';
-    this.sessionId = '';
     this.rowsToSkip = 1;
-    this.delimiter = '';
-    this.rawColumns = [];
-    this.hasRawFile = false;
+    this.delimiter = undefined;
     this.mapping = this.getDefaultMapping();
-    this.previewColumns = [];
-    this.previewRows = [];
-    this.previewTotalRowCount = 0;
-    this.previewRowsDropped = 0;
-    this.previewWarnings = [];
-    this.previewError = null;
+    this.resetPreviews();
+  }
+
+  private resetPreviews(): void {
+     this.rawPreviewResponse = {
+            sessionId: '',
+            fileName: '',
+            previewData: { columns: [], rows: [], totalRowCount: 0 },
+            skippedData: { columns: [], rows: [], totalRowCount: 0 },
+        };
+
+        this.transformedPreviewResponse = {
+            previewData: { columns: [], rows: [], totalRowCount: 0 },
+        };
+    this.rawPreviewLoading = false;
+    this.transformedPreviewLoading = false;
   }
 
   private cleanupSession(): void {
-    if (this.sessionId) {
-      this.metadataPreviewService.deleteSession(this.sessionId).pipe(take(1)).subscribe();
-      this.sessionId = '';
+    if (this.rawPreviewResponse.sessionId) {
+      this.metadataPreviewService.deleteSession(this.rawPreviewResponse.sessionId).pipe(take(1)).subscribe();
+      this.rawPreviewResponse.sessionId = '';
     }
   }
 }
