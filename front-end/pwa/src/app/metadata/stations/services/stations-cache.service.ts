@@ -130,9 +130,7 @@ export class StationsCacheService {
             error: err => {
                 this.checkingForUpdates = false;
             }
-        }
-
-        );
+        } );
     }
 
     public get cachedStations(): Observable<StationCacheModel[]> {

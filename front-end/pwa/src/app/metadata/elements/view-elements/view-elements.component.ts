@@ -1,8 +1,7 @@
 import { Component, OnDestroy } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
-import { CreateViewElementModel } from 'src/app/metadata/elements/models/create-view-element.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { ElementsCacheService } from '../services/elements-cache.service';
+import { ElementCacheModel, ElementsCacheService } from '../services/elements-cache.service';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { OptionEnum } from 'src/app/shared/options.enum';
 
@@ -12,8 +11,8 @@ import { OptionEnum } from 'src/app/shared/options.enum';
   styleUrls: ['./view-elements.component.scss']
 })
 export class ViewElementsComponent implements OnDestroy {
-  protected allElements: CreateViewElementModel[] = [];
-  protected elements: CreateViewElementModel[] = [];
+  protected allElements: ElementCacheModel[] = [];
+  protected elements: ElementCacheModel[] = [];
   protected searchedIds: number[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
@@ -40,7 +39,6 @@ export class ViewElementsComponent implements OnDestroy {
         this.dropDownItems.push(OptionEnum.DELETE_ALL);
       }
     });
-
 
     this.elementsCacheService.cachedElements.pipe(
       takeUntil(this.destroy$),
