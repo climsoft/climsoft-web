@@ -121,7 +121,7 @@ export class StationsService implements OnModuleInit {
         this.updateEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
 
         return this.findOne(entity.id);
     }
@@ -130,13 +130,13 @@ export class StationsService implements OnModuleInit {
         const entity: StationEntity = await this.getEntity(id);
         this.updateEntity(entity, updateDto, userId);
         await this.stationRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return this.createViewDto(entity);
     }
 
     public async delete(id: string): Promise<string> {
         await this.stationRepo.remove(await this.getEntity(id));
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return id;
     }
 
@@ -214,7 +214,7 @@ export class StationsService implements OnModuleInit {
             await this.insertOrUpdateValues(batch);
         }
 
-        await this.cache.invalidate();
+        await this.invalidateCache();
     }
 
     private async insertOrUpdateValues(entities: StationEntity[]): Promise<void> {
@@ -255,8 +255,12 @@ export class StationsService implements OnModuleInit {
         const entities: StationEntity[] = await this.stationRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.stationRepo.remove(entities);
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return true;
+    }
+
+    public async invalidateCache(): Promise<void> {
+        await this.cache.invalidate();
     }
 
     public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {

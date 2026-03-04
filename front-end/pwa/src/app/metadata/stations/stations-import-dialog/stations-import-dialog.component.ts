@@ -147,7 +147,8 @@ export class StationsImportDialogComponent implements OnDestroy {
       error: (err) => {
         this.rawPreviewLoading = false;
         this.transformedPreviewLoading = false;
-        this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        console.error('Preview upload error:', err);
       }
     });
   }
@@ -180,7 +181,8 @@ export class StationsImportDialogComponent implements OnDestroy {
       },
       error: (err) => {
         this.transformedPreviewLoading = false;
-        this.pagesDataService.showToast({ title: 'Preview Error', message: err.error?.message || 'Failed to generate preview', type: ToastEventTypeEnum.ERROR });
+        const message = err.error?.message || 'Failed to generate preview';
+        this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
       }
     });
   }
@@ -229,7 +231,7 @@ export class StationsImportDialogComponent implements OnDestroy {
       },
       error: (err) => {
         this.importing = false;
-        this.pagesDataService.showToast({ title: 'Import Error', message: err.error?.message || 'Failed to import stations', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Import Error', message: err.error?.message || 'Failed to import stations', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }
@@ -244,14 +246,14 @@ export class StationsImportDialogComponent implements OnDestroy {
 
   private buildTransform(): StationColumnMappingModel {
     return {
-        ...this.mapping,
-        obsProcMethod: this.cleanFieldMapping(this.mapping.obsProcMethod),
-        obsEnvironment: this.cleanFieldMapping(this.mapping.obsEnvironment),
-        obsFocus: this.cleanFieldMapping(this.mapping.obsFocus),
-        owner: this.cleanFieldMapping(this.mapping.owner),
-        operator: this.cleanFieldMapping(this.mapping.operator),
-        status: this.cleanFieldMapping(this.mapping.status),
-      }
+      ...this.mapping,
+      obsProcMethod: this.cleanFieldMapping(this.mapping.obsProcMethod),
+      obsEnvironment: this.cleanFieldMapping(this.mapping.obsEnvironment),
+      obsFocus: this.cleanFieldMapping(this.mapping.obsFocus),
+      owner: this.cleanFieldMapping(this.mapping.owner),
+      operator: this.cleanFieldMapping(this.mapping.operator),
+      status: this.cleanFieldMapping(this.mapping.status),
+    }
   }
 
   private cleanFieldMapping(fm: FieldMappingModel | undefined): FieldMappingModel | undefined {
@@ -290,16 +292,16 @@ export class StationsImportDialogComponent implements OnDestroy {
   }
 
   private resetPreviews(): void {
-     this.rawPreviewResponse = {
-            sessionId: '',
-            fileName: '',
-            previewData: { columns: [], rows: [], totalRowCount: 0 },
-            skippedData: { columns: [], rows: [], totalRowCount: 0 },
-        };
+    this.rawPreviewResponse = {
+      sessionId: '',
+      fileName: '',
+      previewData: { columns: [], rows: [], totalRowCount: 0 },
+      skippedData: { columns: [], rows: [], totalRowCount: 0 },
+    };
 
-        this.transformedPreviewResponse = {
-            previewData: { columns: [], rows: [], totalRowCount: 0 },
-        };
+    this.transformedPreviewResponse = {
+      previewData: { columns: [], rows: [], totalRowCount: 0 },
+    };
     this.rawPreviewLoading = false;
     this.transformedPreviewLoading = false;
   }

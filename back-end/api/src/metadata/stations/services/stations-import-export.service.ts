@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
 import { StationImportTransformer } from './station-import-transformer';
+import { StationsService } from './stations.service';
 import * as path from 'node:path';
 import { DataSource } from 'typeorm';
 
@@ -11,6 +12,7 @@ export class StationsImportExportService {
     constructor(
         private fileIOService: FileIOService,
         private dataSource: DataSource,
+        private stationsService: StationsService,
     ) { }
 
     /**
@@ -138,6 +140,7 @@ export class StationsImportExportService {
 
             // Step 4: Commit transaction - staging table is automatically dropped (ON COMMIT DROP)
             await queryRunner.commitTransaction();
+            await this.stationsService.invalidateCache();
 
             this.logger.log(`Successfully imported ${path.basename(filePathName)} into database`);
 

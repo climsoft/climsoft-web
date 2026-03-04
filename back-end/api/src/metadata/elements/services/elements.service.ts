@@ -101,7 +101,7 @@ export class ElementsService implements OnModuleInit {
         this.updateEntity(entity, createDto, userId);
 
         await this.elementRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
 
         return this.findOne(entity.id);
 
@@ -113,14 +113,14 @@ export class ElementsService implements OnModuleInit {
         this.updateEntity(entity, updateDto, userId);
 
         await this.elementRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
 
         return this.createViewDto(entity);
     }
 
     public async delete(id: number): Promise<number> {
         await this.elementRepo.remove(await this.findEntity(id));
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return id;
     }
 
@@ -141,7 +141,7 @@ export class ElementsService implements OnModuleInit {
             await this.insertOrUpdateValues(batch);
         }
 
-        await this.cache.invalidate();
+        await this.invalidateCache();
     }
 
     private async insertOrUpdateValues(entities: ElementEntity[]): Promise<void> {
@@ -173,7 +173,7 @@ export class ElementsService implements OnModuleInit {
         const entities: ElementEntity[] = await this.elementRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.elementRepo.remove(entities);
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return true;
     }
 
@@ -213,6 +213,10 @@ export class ElementsService implements OnModuleInit {
             entryScaleFactor: entity.entryScaleFactor || undefined,
             comment: entity.comment || undefined,
         }
+    }
+
+    public async invalidateCache(): Promise<void> {
+        await this.invalidateCache();
     }
 
     public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {

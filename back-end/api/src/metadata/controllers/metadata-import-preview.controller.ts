@@ -55,8 +55,7 @@ export class MetadataImportPreviewController {
         @Body() dto: StationColumnMappingDto,
     ) {
         await this.metadataImportPreviewService.importStationData(sessionId, dto, AuthUtil.getLoggedInUserId(request));
-        await this.metadataImportPreviewService.destroySession(sessionId);
-        return { message: 'Station import completed successfully' };
+        await this.metadataImportPreviewService.destroySession(sessionId); 
     }
 
     @Post('preview-elements/:sessionId')
@@ -74,8 +73,7 @@ export class MetadataImportPreviewController {
         @Body() dto: ElementColumnMappingDto,
     ) {
         await this.metadataImportPreviewService.importElementsData(sessionId, dto , AuthUtil.getLoggedInUserId(request));
-        await this.metadataImportPreviewService.destroySession(sessionId);
-        return { message: 'Element import completed successfully' };
+        await this.metadataImportPreviewService.destroySession(sessionId); 
     }
 
     @Delete(':sessionId')

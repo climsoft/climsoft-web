@@ -143,6 +143,7 @@ export class ImportElementsDialogComponent implements OnDestroy {
         this.rawPreviewLoading = false;
         this.transformedPreviewLoading = false;
         this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
+        console.error('Preview upload error:', err);
       }
     });
   }
@@ -175,7 +176,8 @@ export class ImportElementsDialogComponent implements OnDestroy {
       },
       error: (err) => {
         this.transformedPreviewLoading = false;
-        this.pagesDataService.showToast({ title: 'Preview Error', message: err.error?.message || 'Failed to generate preview', type: ToastEventTypeEnum.ERROR });
+        const message = err.error?.message || 'Failed to generate preview';
+        this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
       }
     });
   }
@@ -224,7 +226,7 @@ export class ImportElementsDialogComponent implements OnDestroy {
       },
       error: (err) => {
         this.importing = false;
-        this.pagesDataService.showToast({ title: 'Import Error', message: err.error?.message || 'Failed to import elements', type: ToastEventTypeEnum.ERROR });
+        this.pagesDataService.showToast({ title: 'Import Error', message: err.error?.message || 'Failed to import elements', type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }

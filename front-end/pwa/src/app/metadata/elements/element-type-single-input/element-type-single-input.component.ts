@@ -16,7 +16,8 @@ interface ElementTypeView {
   styleUrls: ['./element-type-single-input.component.scss']
 })
 export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Type';
+  @Input() public id!: string;
+  @Input() public label!: string;
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
   @Input() public selectedId!: number | undefined;

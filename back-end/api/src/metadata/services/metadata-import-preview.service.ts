@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -130,7 +130,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping, userId);
         if (error) {
-            throw new Error(`Station import transformation failed at step "${error.message}"`);
+            throw new BadRequestException(`Station import transformation failed at step "${error.message}"`);
         }
 
         // Export to CSV
@@ -144,7 +144,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
             await this.stationsImportExportService.importProcessedFileToDatabase(processedFilePathName);
         } catch (dbError) {
             const classified = ImportErrorUtils.classifyPostgresError(dbError);
-            throw new Error(classified.message);
+            throw new BadRequestException(classified.message);
         }
     }
 
@@ -179,7 +179,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
 
         const error: PreviewError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
         if (error) {
-            throw new Error(`Element import transformation failed at step "${error.message}"`);
+            throw new BadRequestException(`Element import transformation failed at step "${error.message}"`);
         }
 
         // Export to CSV
@@ -193,7 +193,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
             await this.elementsImportExportService.importProcessedFileToDatabase(processedFilePathName);
         } catch (dbError) {
             const classified = ImportErrorUtils.classifyPostgresError(dbError);
-            throw new Error(classified.message);
+            throw new BadRequestException(classified.message);
         }
     }
 

@@ -43,8 +43,8 @@ export class ImportErrorUtils {
      */
     public static classifyPostgresError(error: unknown): PreviewError {
         const msg = error instanceof Error ? error.message : String(error);
-        const code = (error as any)?.code as string | undefined;
-
+        const code = (error as any)?.code as string | undefined;      
+      
         if (code === '23505' || msg.includes('duplicate key')) {
             return {
                 type: 'SQL_EXECUTION_ERROR',

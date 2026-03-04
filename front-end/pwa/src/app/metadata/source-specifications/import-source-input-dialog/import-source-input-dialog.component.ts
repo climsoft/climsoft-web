@@ -270,8 +270,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
             error: (err) => {
                 this.rawPreviewLoading = false;
                 this.transformedPreviewLoading = false;
-                const message = err instanceof HttpErrorResponse ? err.error?.message : 'Failed to upload file.';
-                this.transformedPreviewResponse.error = { type: 'SQL_EXECUTION_ERROR', message };
+                this.pagesDataService.showToast({ title: 'Upload Error', message: err.error?.message || 'Failed to upload file', type: ToastEventTypeEnum.ERROR });
                 console.error('Preview upload error:', err);
             }
         });

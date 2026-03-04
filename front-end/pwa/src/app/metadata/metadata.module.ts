@@ -91,6 +91,8 @@ import { ConnectorTypeSelectorSingleComponent } from './connector-specifications
 import { ExportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/export-file-server-params/export-file-server-params.component';
 import { ImportFileServerParamsComponent } from './connector-specifications/connector-specification-input-dialog/file-server-params/import-file-server-params/import-file-server-params.component';
 import { ConnectorSpecificationSelectorSingleComponent } from './connector-specifications/connector-specification-selector-single/connector-specification-selector-single.component';
+import { BulkEditElementsDialogComponent } from './elements/bulk-edit-elements-dialog/bulk-edit-elements-dialog.component';
+import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-dialog/bulk-edit-stations-dialog.component';
 
 @NgModule({
   declarations: [ 
@@ -126,6 +128,7 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     StationImportStatusDetailComponent,
     StationImportExternalIdsDetailComponent,
     StationImportDatesDetailComponent,
+    BulkEditStationsDialogComponent,
 
     StationObsProcessingSingleSelectorComponent,
     StationObsProcessingSelectorMultipleComponent,
@@ -165,6 +168,7 @@ import { ConnectorSpecificationSelectorSingleComponent } from './connector-speci
     ElementImportTypeDetailComponent,
     ElementImportExtrasDetailComponent,
     ElementTypeSingleInputComponent,
+    BulkEditElementsDialogComponent,
     ElementsSearchDialogComponent,
 
     ElementSelectorSingleComponent,
