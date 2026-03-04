@@ -1,0 +1,58 @@
+<ng-container *ngIf="open">
+  <app-dialog [(open)]="open" [title]="'Bulk Edit Elements'"
+    [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
+    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0"
+    [closeOnOkClick]="false" [closeOnCancelClick]="false"
+    (okClick)="onSave()" (cancelClick)="onCancelClick()">
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-bold">{{ changedCount }} of {{ editableElements.length }} record(s) changed</span>
+      <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+    </div>
+
+    <div class="table-responsive" style="max-height: 70vh; overflow: auto;">
+      <table class="table table-sm table-bordered align-middle">
+        <thead class="table-light sticky-top">
+          <tr>
+            <th>Id</th>
+            <th>Abbreviation</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Units</th>
+            <th style="min-width: 200px;">Type</th>
+            <th>Scale Factor</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let el of pageItems; let i = index" [class.row-changed]="isRowChanged(pageStartIndex + i)">
+            <td class="text-muted">{{ el.id }}</td>
+            <td>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.abbreviation">
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.name">
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.description">
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.units">
+            </td>
+            <td>
+              <app-element-type-single-input [selectedId]="el.typeId"
+                (selectedIdChange)="el.typeId = $event ?? undefined" />
+            </td>
+            <td>
+              <input type="number" class="form-control form-control-sm" [(ngModel)]="el.entryScaleFactor" min="1">
+            </td>
+            <td>
+              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.comment">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </app-dialog>
+</ng-container>
