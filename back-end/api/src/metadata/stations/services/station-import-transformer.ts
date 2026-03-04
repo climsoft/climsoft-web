@@ -83,7 +83,7 @@ export class StationImportTransformer {
                 name: 'Finalize',
                 buildSql: () => {
                     return [
-                        `ALTER TABLE ${tableName} ADD COLUMN ${StationImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId ?? 'NULL'}`,
+                        `ALTER TABLE ${tableName} ADD COLUMN ${StationImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId || 'NULL'}`,
                         StationImportTransformer.buildRemoveDuplicatesSQL(tableName),
                         // Select only the final columns we need, discarding unmapped CSV columns
                         `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${StationImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,

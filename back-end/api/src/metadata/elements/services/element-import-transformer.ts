@@ -58,7 +58,7 @@ export class ElementImportTransformer {
                 name: 'Finalize',
                 buildSql: () => {
                     return [
-                        `ALTER TABLE ${tableName} ADD COLUMN ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId ?? 'NULL'}`,
+                        `ALTER TABLE ${tableName} ADD COLUMN ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER DEFAULT ${userId || 'NULL'}`,
                         ...ElementImportTransformer.buildRemoveDuplicatesSQL(tableName),
                         `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${ElementImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,
                     ];

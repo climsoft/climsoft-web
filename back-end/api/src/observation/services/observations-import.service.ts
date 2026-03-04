@@ -81,8 +81,8 @@ export class ObservationImportService {
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, false, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
         // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
-          const elements: CreateViewElementDto[] =  this.elementsService.find();
-        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, userId, stationId);
+        const elements: CreateViewElementDto[] = this.elementsService.find();
+        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, stationId, userId);
 
         // TODO. throw errors if any.
         if (errors) {

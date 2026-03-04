@@ -18,7 +18,7 @@ import { DuckDBConnection } from '@duckdb/node-api';
 export class TabularImportTransformer {
 
     // Column names matching ObservationEntity @Column({ name }) values.
-     static readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
+    static readonly STATION_ID_PROPERTY_NAME: string = 'station_id';
     static readonly ELEMENT_ID_PROPERTY_NAME: string = 'element_id';
     static readonly LEVEL_PROPERTY_NAME: string = 'level';
     static readonly DATE_TIME_PROPERTY_NAME: string = 'date_time';
@@ -27,7 +27,7 @@ export class TabularImportTransformer {
     static readonly VALUE_PROPERTY_NAME: string = 'value';
     static readonly FLAG_PROPERTY_NAME: string = 'flag';
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
-     // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
+    // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
 
     /** All final column names in order for SELECT and COPY. */
@@ -50,8 +50,8 @@ export class TabularImportTransformer {
         sourceId: number,
         sourceDef: CreateSourceSpecificationDto,
         elements: CreateViewElementDto[],
-        userId: number,
         stationId?: string,
+        userId?: number,
     ): Promise<PreviewError | void> {
 
         const importDef = sourceDef.parameters as ImportSourceDto;
@@ -84,8 +84,8 @@ export class TabularImportTransformer {
                 name: 'Finalize',
                 buildSql: () => {
                     return [
-                        `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId}`,
-                        `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId}`,
+                        `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.SOURCE_ID_PROPERTY_NAME} INTEGER DEFAULT ${sourceId || 'NULL'}`,
+                        `ALTER TABLE ${tableName} ADD COLUMN ${TabularImportTransformer.ENTRY_USER_ID_PROPERTY_NAME} INTEGER DEFAULT ${userId || 'NULL'}`,
                         TabularImportTransformer.buildRemoveDuplicatesSQL(tableName),
                         // Select only the final columns we need, discarding unmapped CSV columns 
                         `CREATE OR REPLACE TABLE ${tableName} AS SELECT ${TabularImportTransformer.ALL_COLUMNS.join(', ')} FROM ${tableName}`,

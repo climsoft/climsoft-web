@@ -84,16 +84,16 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
     public async previewRawData(session: PreviewSession): Promise<RawPreviewResponse> {
         // Load the whole file into DuckDB (resets to raw state for idempotent preview)
         const importFilePathName: string = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         // Get preview data
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await this.getTotalRowCount(tableName),
+            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
+            totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
         };
-        const skippedData: PreviewTableData = await this.getSkippedData(importFilePathName, session.rowsToSkip, session.delimiter);
+        const skippedData: PreviewTableData = await DuckDBUtils.getSkippedData(this.fileIOService.duckDbConn, importFilePathName, session.rowsToSkip, this.MAX_PREVIEW_ROWS, session.delimiter);
 
         return { sessionId: session.sessionId, fileName: session.fileName, previewData, skippedData };
     }
@@ -105,7 +105,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         session.lastAccessedAt = Date.now();
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping);
@@ -113,11 +113,11 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await this.getTotalRowCount(tableName),
+            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
+            totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
         };
 
-        return { previewData, error: error ? error : undefined };
+        return { previewData, error: error || undefined };
 
     }
 
@@ -125,7 +125,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         const session = this.getSession(sessionId);
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await StationImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, stnMapping, userId);
@@ -155,7 +155,7 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         session.lastAccessedAt = Date.now();
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping);
@@ -163,18 +163,18 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {
             columns: await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName),
-            rows: await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS),
-            totalRowCount: await this.getTotalRowCount(tableName),
+            rows: await DuckDBUtils.getPreviewRows(this.fileIOService.duckDbConn, tableName, this.MAX_PREVIEW_ROWS),
+            totalRowCount: await DuckDBUtils.getPreviewRowCount(this.fileIOService.duckDbConn, tableName),
         };
 
-        return { previewData, error: error ? error : undefined };
+        return { previewData, error: error || undefined };
     }
 
     public async importElementsData(sessionId: string, elementMapping: ElementColumnMappingDto, userId: number): Promise<void> {
         const session = this.getSession(sessionId);
 
         const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
-        const tableName: string = DuckDBUtils.getTableNameFromFileName(importFilePathName);
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(session.fileName);
         await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, session.rowsToSkip, 0, session.delimiter);
 
         const error: PreviewError | void = await ElementImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, elementMapping, userId);
@@ -211,6 +211,8 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         }
 
         try {
+            // No need to wait for CleanupSchedulerService to clean up the file. 
+            // Since metadata preview files are never referenced anywhere, just delete them as soon as the session is destroyed
             const importFilePathName = path.posix.join(this.fileIOService.apiImportsDir, session.fileName);
             this.fileIOService.deleteFile(importFilePathName);
         } catch (e) {
@@ -228,42 +230,4 @@ export class MetadataImportPreviewService implements OnModuleDestroy {
         return session;
     }
 
-    // ─── Helper Methods ──────────────────────────────────────
-
-
-    private async getTotalRowCount(tableName: string): Promise<number> {
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName}`);
-        const rows = reader.getRowObjects();
-        return Number(rows[0]?.cnt ?? 0);
-    }
-
-    private async getPreviewRows(tableName: string, limit: number): Promise<string[][]> {
-        const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT * FROM ${tableName} LIMIT ${limit}`);
-        return this.convertTableDataToPreviewRows(reader.getRowObjects());
-    }
-
-    private async getSkippedData(importFilePathName: string, rowsToSkip: number, delimiter?: string): Promise<PreviewTableData> {
-        const skippedData: PreviewTableData = { totalRowCount: 0, columns: [], rows: [] };
-
-        if (rowsToSkip <= 0) return skippedData;
-
-        const tableName: string = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
-        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
-
-        skippedData.totalRowCount = await this.getTotalRowCount(tableName);
-        skippedData.columns = await DuckDBUtils.getColumnNames(this.fileIOService.duckDbConn, tableName);
-        skippedData.rows = await this.getPreviewRows(tableName, this.MAX_PREVIEW_ROWS);
-
-        return skippedData;
-    }
-
-    private convertTableDataToPreviewRows(tableData: any[]): string[][] {
-        if (tableData.length === 0) return [];
-
-        const keys = Object.keys(tableData[0]);
-        return tableData.map((row: any) => keys.map(key => {
-            const val = row[key];
-            return val === null || val === undefined ? '' : String(val);
-        }));
-    }
 }

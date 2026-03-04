@@ -111,4 +111,48 @@ export class DuckDBUtils {
         return reader.getRowObjects();
     }
 
+    // ─── Preview Helpers ─────────────────────────────────────
+    // Used by ImportPreviewService and MetadataImportPreviewService to build table previews.
+
+    static async getPreviewRowCount(conn: DuckDBConnection, tableName: string): Promise<number> {
+        const reader = await conn.runAndReadAll(`SELECT COUNT(*)::INTEGER AS cnt FROM ${tableName}`);
+        const rows = reader.getRowObjects();
+        return Number(rows[0]?.cnt ?? 0);
+    }
+
+    static async getPreviewRows(conn: DuckDBConnection, tableName: string, limit: number): Promise<string[][]> {
+        const reader = await conn.runAndReadAll(`SELECT * FROM ${tableName} LIMIT ${limit}`);
+        return DuckDBUtils.convertToPreviewRows(reader.getRowObjects());
+    }
+
+    static convertToPreviewRows(tableData: any[]): string[][] {
+        if (tableData.length === 0) return [];
+        const keys = Object.keys(tableData[0]);
+        return tableData.map((row: any) => keys.map(key => {
+            const val = row[key];
+            return val === null || val === undefined ? '' : String(val);
+        }));
+    }
+
+    static async getSkippedData(
+        conn: DuckDBConnection,
+        importFilePathName: string,
+        rowsToSkip: number,
+        maxPreviewRows: number,
+        delimiter?: string,
+    ): Promise<{ columns: string[]; rows: string[][]; totalRowCount: number }> {
+        const skippedData = { totalRowCount: 0, columns: [] as string[], rows: [] as string[][] };
+
+        if (rowsToSkip <= 0) return skippedData;
+
+        const tableName = `${DuckDBUtils.getTableNameFromFileName(importFilePathName)}_skipped_data`;
+        await DuckDBUtils.createTableFromFile(conn, importFilePathName, tableName, false, 0, rowsToSkip, delimiter);
+
+        skippedData.totalRowCount = await DuckDBUtils.getPreviewRowCount(conn, tableName);
+        skippedData.columns = await DuckDBUtils.getColumnNames(conn, tableName);
+        skippedData.rows = await DuckDBUtils.getPreviewRows(conn, tableName, maxPreviewRows);
+
+        return skippedData;
+    }
+
 }
