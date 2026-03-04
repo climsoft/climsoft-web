@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Req } from '@nestjs/common';
 import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
 import { ElementsService } from '../services/elements.service';
 import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
@@ -43,6 +43,14 @@ export class ElementsController {
   ) {
     const csvFilePath = await this.elementsImportExportService.export(AuthUtil.getLoggedInUser(request).id);
     return this.fileIOService.createStreamableFile(csvFilePath);
+  }
+
+  @Admin()
+  @Put('bulk')
+  async bulkPut(
+    @Req() request: Request,
+    @Body() items: CreateViewElementDto[]): Promise<void> {
+    await this.elementsService.bulkPut(items, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()

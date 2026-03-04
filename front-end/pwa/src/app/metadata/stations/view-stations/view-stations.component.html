@@ -33,6 +33,13 @@
         </button>
         <app-stations-import-dialog #dlgImportStations />
       </div>
+      <div>
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
+          (click)="onBulkEditClick()">
+          Bulk Edit
+        </button>
+        <app-bulk-edit-stations-dialog #dlgBulkEditStations />
+      </div>
       <div *ngIf="activeTab !== 'treemap'" class="ms-2">
         <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
           Search

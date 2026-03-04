@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Header, Param, Patch, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Patch, Post, Put, Query, Req } from '@nestjs/common';
 import { StationsService } from '../services/stations.service';
 import { AuthorisedStationsPipe } from 'src/user/pipes/authorised-stations.pipe';
 import { UpdateStationDto } from '../dtos/update-station.dto';
@@ -47,6 +47,14 @@ export class StationsController {
 
     // Stream the file to the response
     return this.fileIOService.createStreamableFile(csvFilePath);
+  }
+
+  @Admin()
+  @Put('bulk')
+  async bulkPut(
+    @Req() request: Request,
+    @Body() items: CreateStationDto[]): Promise<void> {
+    await this.stationsService.bulkPut(items, AuthUtil.getLoggedInUserId(request));
   }
 
   @Admin()

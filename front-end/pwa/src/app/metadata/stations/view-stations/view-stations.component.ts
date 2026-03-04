@@ -1,9 +1,11 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { StationCacheModel, StationsCacheService } from 'src/app/metadata/stations/services/stations-cache.service';
 import { Subject, take, takeUntil } from 'rxjs';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { OptionEnum } from 'src/app/shared/options.enum';
+import { CreateStationModel } from '../models/create-station.model';
+import { BulkEditStationsDialogComponent } from '../bulk-edit-stations-dialog/bulk-edit-stations-dialog.component';
 
 type tab = 'table' | 'geomap' | 'treemap';
 
@@ -13,6 +15,8 @@ type tab = 'table' | 'geomap' | 'treemap';
   styleUrls: ['./view-stations.component.scss']
 })
 export class ViewStationsComponent implements OnDestroy {
+  @ViewChild('dlgBulkEditStations') dlgBulkEditStations!: BulkEditStationsDialogComponent;
+
   protected activeTab: tab = 'table';
   protected allStations: StationCacheModel[] = [];
   protected stations: StationCacheModel[] = [];
@@ -92,6 +96,30 @@ export class ViewStationsComponent implements OnDestroy {
       default:
         break;
     }
+  }
+
+  protected onBulkEditClick(): void {
+    const createModels: CreateStationModel[] = this.stations.map(s => ({
+      id: s.id,
+      name: s.name,
+      description: s.description || undefined,
+      latitude: s.location?.latitude,
+      longitude: s.location?.longitude,
+      elevation: s.elevation ?? undefined,
+      stationObsProcessingMethod: s.stationObsProcessingMethod ?? undefined,
+      stationObsEnvironmentId: s.stationObsEnvironmentId || undefined,
+      stationObsFocusId: s.stationObsFocusId || undefined,
+      ownerId: s.ownerId || undefined,
+      operatorId: s.operatorId || undefined,
+      wmoId: s.wmoId || undefined,
+      wigosId: s.wigosId || undefined,
+      icaoId: s.icaoId || undefined,
+      status: s.status ?? undefined,
+      dateEstablished: s.dateEstablished || undefined,
+      dateClosed: s.dateClosed || undefined,
+      comment: s.comment || undefined,
+    }));
+    this.dlgBulkEditStations.showDialog(createModels);
   }
 
   protected get downloadLink(): string {

@@ -11,6 +11,13 @@
         </button>
         <app-import-elements-dialog #dlgImportElements />
       </div>
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="dlgBulkEditElements.showDialog(elements)">
+          Bulk Edit
+        </button>
+        <app-bulk-edit-elements-dialog #dlgBulkEditElements />
+      </div>
       <div class="ms-2">
         <button type="button" class="btn btn-outline-secondary btn-sm"
           (click)="dlgSearchElements.showDialog(searchedIds)">

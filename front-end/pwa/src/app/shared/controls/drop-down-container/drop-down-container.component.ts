@@ -6,16 +6,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
   styleUrls: ['./drop-down-container.component.scss']
 })
 export class DropDownContainerComponent {
-  @Input() 
-  public maxHeight: number = 200;
+  @Input() public maxHeight: number = 200;
+  @Input() public minWidth: number = 0;
+  @Input() public displayDropDown: boolean = false;
+  @Input() public offSetRight: boolean = false;
 
-  @Input() 
-  public displayDropDown: boolean = false;
+  @Output() public displayDropDownChange = new EventEmitter<boolean>();
 
-  @Output() 
-  public displayDropDownChange = new EventEmitter<boolean>();
-
-  protected closeDropdown(): void{
+  protected closeDropdown(): void {
     this.displayDropDown = false;
     this.displayDropDownChange.emit(this.displayDropDown);
   }

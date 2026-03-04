@@ -1,13 +1,12 @@
 <ng-container *ngIf="open">
-  <app-dialog [(open)]="open" [title]="'Bulk Edit Elements'"
-    [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
-    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0"
-    [closeOnOkClick]="false" [closeOnCancelClick]="false"
-    (okClick)="onSave()" (cancelClick)="onCancelClick()">
+  <app-dialog [(open)]="open" [title]="'Bulk Edit Elements'" [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
+    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0" [closeOnOkClick]="false"
+    [closeOnCancelClick]="false" (okClick)="onSave()" (cancelClick)="onCancelClick()">
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="fw-bold">{{ changedCount }} of {{ editableElements.length }} record(s) changed</span>
+    <div class="d-flex justify-content-end align-items-center mb-2">
       <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      <div *ngIf="changedCount" class="vr mx-2"></div>
+      <span *ngIf="changedCount" class="ms-2 text-success">{{ changedCount }} record(s) changed</span>
     </div>
 
     <div class="table-responsive" style="max-height: 70vh; overflow: auto;">

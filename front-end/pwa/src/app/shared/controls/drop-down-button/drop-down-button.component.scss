@@ -1,9 +1,0 @@
-.app-drop-down-button {
-    position: absolute;
-    overflow: auto;
-    z-index: 1003; // Use 10003 instead of say 10002 because of leaflet and components on leaflet
-}
-
-.app-drop-down-button-right-offset {
-    right: 10px;
-}
