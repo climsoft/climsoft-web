@@ -148,9 +148,6 @@ export class ImportElementsDialogComponent implements OnDestroy {
     });
   }
 
-  protected onRowsToSkipChange(): void {
-    this.reLoadRawPreview();
-  }
 
   // ─── Preview ───────────────────────────────────────────────
 
@@ -182,7 +179,7 @@ export class ImportElementsDialogComponent implements OnDestroy {
     });
   }
 
-  private reLoadRawPreview(): void {
+  protected reLoadRawPreview(): void {
     if (!this.rawPreviewResponse.sessionId) return;
 
     if (this.rawPreviewLoading && this.transformedPreviewLoading) {

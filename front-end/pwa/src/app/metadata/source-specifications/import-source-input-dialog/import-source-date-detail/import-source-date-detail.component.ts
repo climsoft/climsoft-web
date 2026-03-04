@@ -16,62 +16,47 @@ export class ImportSourceDateDetailComponent {
   protected onDatetimeSelection(selection: string): void {
     // Reset all definitions first
     this.datetimeDefinition.dateTimeInSingleColumn = undefined;
+    this.datetimeDefinition.dateInSingleColumn = undefined;
     this.datetimeDefinition.dateTimeInTwoColumns = undefined;
     this.datetimeDefinition.dateTimeInMultipleColumns = undefined;
+    this.datetimeDefinition.dateInMultipleColumns = undefined;
 
     if (selection === 'Date Time in Single Column') {
       this.datetimeDefinition.dateTimeInSingleColumn = {
         columnPosition: 0,
         datetimeFormat: '%Y-%m-%d %H:%M:%S'
       };
+    } else if (selection === 'Date in Single Column') {
+      this.datetimeDefinition.dateInSingleColumn = {
+        columnPosition: 0,
+        dateFormat: '%Y-%m-%d',
+        defaultHour: 0
+      };
     } else if (selection === 'Date Time in Two Columns') {
       this.datetimeDefinition.dateTimeInTwoColumns = {
-        dateColumn: {
-          columnPosition: 0,
-          dateFormat: '%Y-%m-%d'
-        },
-        timeColumn: {
-          columnPosition: 0,
-          timeFormat: '%H:%M:%S'
-        }
+        dateColumnPosition: 0,
+        dateFormat: '%Y-%m-%d',
+        timeColumnPosition: 0,
+        timeFormat: '%H:%M:%S'
       };
     } else if (selection === 'Date Time in Multiple Columns') {
       this.datetimeDefinition.dateTimeInMultipleColumns = {
         yearColumnPosition: 0,
         monthColumnPosition: 0,
         dayColumnPosition: '0',
-        hourDefinition: {
-          timeColumn: {
-            columnPosition: 0,
-            timeFormat: '%H:%M:%S'
-          }
-        }
+        timeColumnPosition: 0,
+        timeFormat: '%H:%M:%S'
+      };
+    } else if (selection === 'Date in Multiple Columns') {
+      this.datetimeDefinition.dateInMultipleColumns = {
+        yearColumnPosition: 0,
+        monthColumnPosition: 0,
+        dayColumnPosition: '0',
+        defaultHour: 0
       };
     }
 
     this.datetimeDefinitionChange.emit(this.datetimeDefinition);
-  }
-
-  protected onHourDefinitionSelection(selection: string): void {
-    if (!this.datetimeDefinition.dateTimeInMultipleColumns) return;
-
-    // Reset hour definitions
-    this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.timeColumn = undefined;
-    this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.defaultHour = undefined;
-
-    if (selection === 'Time in Column') {
-      this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.timeColumn = {
-        columnPosition: 0,
-        timeFormat: '%H:%M:%S'
-      };
-    } else if (selection === 'Default Hour') {
-      this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.defaultHour = 0;
-    }
-  }
-
-  protected onDefaultHourSelected(selectedHour: number | null): void {
-    if (!this.datetimeDefinition.dateTimeInMultipleColumns) return;
-    this.datetimeDefinition.dateTimeInMultipleColumns.hourDefinition.defaultHour = selectedHour ?? undefined;
   }
 
 }

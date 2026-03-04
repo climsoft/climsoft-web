@@ -124,6 +124,15 @@ export class ElementsCacheService {
         );
     }
 
+    public bulkPut(items: CreateViewElementModel[]): Observable<void> {
+        return this.http.put<void>(`${this.endPointUrl}/bulk`, items)
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+            );
+    }
+
     public add(createDto: CreateViewElementModel): Observable<CreateViewElementModel> {
         return this.http.post<CreateViewElementModel>(`${this.endPointUrl}`, createDto)
             .pipe(

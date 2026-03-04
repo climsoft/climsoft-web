@@ -121,11 +121,7 @@ export class ElementImportTransformer {
     }
 
     private static buildAlterElementTypeColumnSQL(tableName: string, mapping: ElementColumnMappingDto): string[] {
-        if (!mapping.elementType) {
-            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.TYPE_ID_PROPERTY} VARCHAR DEFAULT NULL`];
-        }
-
-        if (mapping.elementType.columnPosition !== undefined) {
+        if (mapping.elementType?.columnPosition !== undefined) {
             const sql: string[] = [`ALTER TABLE ${tableName} RENAME column${mapping.elementType.columnPosition} TO ${this.TYPE_ID_PROPERTY}`];
 
             if (mapping.elementType.valueMappings && mapping.elementType.valueMappings.length > 0) {
@@ -133,30 +129,31 @@ export class ElementImportTransformer {
             }
 
             return sql;
+        } else if (mapping.elementType?.defaultValue !== undefined) {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.TYPE_ID_PROPERTY} INTEGER DEFAULT ${mapping.elementType.defaultValue}`];
+        } else {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.TYPE_ID_PROPERTY} INTEGER DEFAULT NULL`];
         }
-
-        if (mapping.elementType.defaultValue !== undefined) {
-            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.TYPE_ID_PROPERTY} VARCHAR DEFAULT '${mapping.elementType.defaultValue}'`];
-        }
-
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.TYPE_ID_PROPERTY} VARCHAR DEFAULT NULL`];
     }
 
     private static buildAlterEntryScaleFactorColumnSQL(tableName: string, mapping: ElementColumnMappingDto): string[] {
         if (mapping.entryScaleFactorColumnPosition !== undefined) {
             return [
                 `ALTER TABLE ${tableName} RENAME column${mapping.entryScaleFactorColumnPosition} TO ${this.ENTRY_SCALE_FACTOR_PROPERTY}`,
-                `ALTER TABLE ${tableName} ALTER COLUMN ${this.ENTRY_SCALE_FACTOR_PROPERTY} TYPE DOUBLE`,
+                `ALTER TABLE ${tableName} ALTER COLUMN ${this.ENTRY_SCALE_FACTOR_PROPERTY} TYPE INTEGER`,
             ];
+        } else {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.ENTRY_SCALE_FACTOR_PROPERTY} INTEGER DEFAULT NULL`];
         }
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.ENTRY_SCALE_FACTOR_PROPERTY} DOUBLE DEFAULT NULL`];
+
     }
 
     private static buildAlterCommentColumnSQL(tableName: string, mapping: ElementColumnMappingDto): string[] {
         if (mapping.commentColumnPosition !== undefined) {
             return [`ALTER TABLE ${tableName} RENAME column${mapping.commentColumnPosition} TO ${this.COMMENT_PROPERTY}`];
+        } else {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
         }
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
     }
 
     private static buildRemoveDuplicatesSQL(tableName: string): string[] {

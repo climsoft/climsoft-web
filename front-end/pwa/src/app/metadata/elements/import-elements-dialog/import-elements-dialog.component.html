@@ -45,14 +45,14 @@
 
             <div class="mb-3">
               <app-number-input [label]="'Rows to Skip (header)'" [(numValue)]="rowsToSkip"
-                (numValueChange)="onRowsToSkipChange()" />
+                (numValueChange)="reLoadRawPreview()" />
             </div>
 
             <hr />
 
             <div class="mb-3">
               <app-delimeter-selector [label]="'Delimiter'" [(delimiter)]="delimiter"
-                (delimiterChange)="onRowsToSkipChange()" />
+                (delimiterChange)="reLoadRawPreview()" />
             </div>
           </div>
 

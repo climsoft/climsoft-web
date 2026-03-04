@@ -219,8 +219,10 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
                 break;
             case 'datetime':
                 if (!params.datetimeDefinition.dateTimeInSingleColumn &&
+                    !params.datetimeDefinition.dateInSingleColumn &&
                     !params.datetimeDefinition.dateTimeInTwoColumns &&
-                    !params.datetimeDefinition.dateTimeInMultipleColumns) {
+                    !params.datetimeDefinition.dateTimeInMultipleColumns &&
+                    !params.datetimeDefinition.dateInMultipleColumns) {
                     errors.push('Date/time definition is required');
                 }
                 break;
@@ -315,7 +317,7 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         });
     }
 
-    private reLoadRawPreview(): void {
+    protected reLoadRawPreview(): void {
         if (!this.rawPreviewResponse.sessionId) return;
 
         if (this.rawPreviewLoading && this.transformedPreviewLoading) {
@@ -419,8 +421,12 @@ export class ImportSourceInputDialogComponent implements OnDestroy {
         if (sourceParameters.elementDefinition.hasElement && sourceParameters.elementDefinition.hasElement.multipleColumn) {
             sourceParameters.valueDefinition = undefined;
         } else if (sourceParameters.datetimeDefinition.dateTimeInMultipleColumns) {
-            const dateTimeInMultiDef = sourceParameters.datetimeDefinition.dateTimeInMultipleColumns;
-            const dayColumns: string[] = dateTimeInMultiDef.dayColumnPosition.split('-');
+            const dayColumns = sourceParameters.datetimeDefinition.dateTimeInMultipleColumns.dayColumnPosition.split('-');
+            if (dayColumns.length > 1) {
+                sourceParameters.valueDefinition = undefined;
+            }
+        } else if (sourceParameters.datetimeDefinition.dateInMultipleColumns) {
+            const dayColumns = sourceParameters.datetimeDefinition.dateInMultipleColumns.dayColumnPosition.split('-');
             if (dayColumns.length > 1) {
                 sourceParameters.valueDefinition = undefined;
             }

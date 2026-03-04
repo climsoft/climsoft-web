@@ -1,5 +1,5 @@
 import { FlagEnum } from '../enums/flag.enum';
-import { ImportSourceTabularParamsDto, DateTimeDefinition, HourDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ImportSourceTabularParamsDto, DateTimeDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
@@ -225,89 +225,50 @@ export class TabularImportTransformer {
         const sql: string[] = [];
         let expectedDatetimeFormat: string;
         const datetimeDefinition: DateTimeDefinition = importDef.datetimeDefinition;
+
         if (datetimeDefinition.dateTimeInSingleColumn !== undefined) {
-            const dateTimeDef = datetimeDefinition.dateTimeInSingleColumn;
-            // Rename the date time column
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition} TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            const def = datetimeDefinition.dateTimeInSingleColumn;
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            expectedDatetimeFormat = def.datetimeFormat;
 
-            expectedDatetimeFormat = dateTimeDef.datetimeFormat;
-
-        } else if (datetimeDefinition.dateTimeInTwoColumns !== undefined) {
-            const dateTimeDef = datetimeDefinition.dateTimeInTwoColumns;
-            // Rename the date and time columns
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateColumn.columnPosition} TO date_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeColumn.columnPosition} TO time_col`);
-
-            // Combine the date and time columns and give the combined column the expected name
+        } else if (datetimeDefinition.dateInSingleColumn !== undefined) {
+            const def = datetimeDefinition.dateInSingleColumn;
+            const strHour = StringUtils.addLeadingZero(def.defaultHour);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO date_col`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR DEFAULT '${strHour}:00:00'`);
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
             sql.push(`UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col`);
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            expectedDatetimeFormat = `${def.dateFormat} %H:%M:%S`;
 
-            expectedDatetimeFormat = `${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}`;
+        } else if (datetimeDefinition.dateTimeInTwoColumns !== undefined) {
+            const def = datetimeDefinition.dateTimeInTwoColumns;
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.dateColumnPosition} TO date_col`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO time_col`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET combined_date_time_col = date_col || ' ' || time_col`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            expectedDatetimeFormat = `${def.dateFormat} ${def.timeFormat}`;
 
         } else if (datetimeDefinition.dateTimeInMultipleColumns !== undefined) {
-            const dateFormat: string = '%Y-%m-%d';
-            let timeFormat: string = '%H:%M:%S';
-            const dateTimeInMultiDef = datetimeDefinition.dateTimeInMultipleColumns;
-
-            // Rename the date and time columns
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeInMultiDef.yearColumnPosition} TO year_col`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeInMultiDef.monthColumnPosition} TO month_col`);
-
-            // ---------------------------------------------------------------
-            // Get the day columns
-            // ---------------------------------------------------------------
-            const dayColumns: string[] = dateTimeInMultiDef.dayColumnPosition.split('-');
-            if (dayColumns.length === 1) {
-                const dayColumnPosition: number = parseInt(dayColumns[0], 10);
-                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO day_col`);
-                // Zero-pad the day values to ensure they are two digits (e.g., '1' becomes '01').
-                sql.push(`UPDATE ${tableName} SET day_col = lpad(day_col, 2, '0')`);
-            } else {
-                const startCol: number = parseInt(dayColumns[0], 10);
-                const endCol: number = parseInt(dayColumns[1], 10);
-                const dayColumnNames: string[] = [];
-                for (let i = startCol; i <= endCol; i++) {
-                    dayColumnNames.push(`column${i}`);
-                }
-
-                // Unpivot the day columns to create 'day_col' and a new 'value' column.
-                // Note. Nulls are not included because they represent a non-existsent day like Feb 31st which must be excluded.
-                sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}))`);
-
-                // Extract the numeric day part from the column name (e.g., 'column5' -> 5) and zero-pad it
-                sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${startCol} + 1, 2, '0')`);
-            }
-            // ---------------------------------------------------------------
-
-            // ---------------------------------------------------------------
-            // Get the `time_col`
-            // ---------------------------------------------------------------
-            const hourDefination: HourDefinition = dateTimeInMultiDef.hourDefinition;
-            if (hourDefination.timeColumn !== undefined) {
-                const timeColumn = hourDefination.timeColumn;
-                // Set the time format
-                timeFormat = timeColumn.timeFormat;
-                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${timeColumn.columnPosition} TO time_col`);
-            } else if (hourDefination.defaultHour !== undefined) {
-                const strHour: string = `${StringUtils.addLeadingZero(hourDefination.defaultHour)}`;
-                sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR`);
-                sql.push(`UPDATE ${tableName} SET time_col = '${strHour}:00:00'`);
-            }
-            // ---------------------------------------------------------------
-
-            // ---------------------------------------------------------------
-            // Create a combined date time column to be used for combining the multiple date time columns
-            // Then combine the date and time columns and give the combined column the expected name
+            const def = datetimeDefinition.dateTimeInMultipleColumns;
+            sql.push(...this.buildYearMonthDaySQL(tableName, def.yearColumnPosition, def.monthColumnPosition, def.dayColumnPosition));
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO time_col`);
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
             sql.push(`UPDATE ${tableName} SET combined_date_time_col = year_col || '-' || month_col || '-' || day_col || ' ' || time_col`);
-
-            // Rename the name of the column to the desired column name.
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            expectedDatetimeFormat = `%Y-%m-%d ${def.timeFormat}`;
 
-            expectedDatetimeFormat = `${dateFormat} ${timeFormat}`;
+        } else if (datetimeDefinition.dateInMultipleColumns !== undefined) {
+            const def = datetimeDefinition.dateInMultipleColumns;
+            const strHour = StringUtils.addLeadingZero(def.defaultHour);
+            sql.push(...this.buildYearMonthDaySQL(tableName, def.yearColumnPosition, def.monthColumnPosition, def.dayColumnPosition));
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN time_col VARCHAR DEFAULT '${strHour}:00:00'`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN combined_date_time_col VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET combined_date_time_col = year_col || '-' || month_col || '-' || day_col || ' ' || time_col`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN combined_date_time_col TO ${this.DATE_TIME_PROPERTY_NAME}`);
+            expectedDatetimeFormat = `%Y-%m-%d %H:%M:%S`;
 
-            // ---------------------------------------------------------------
         } else {
             throw new Error("Date time interpretation not valid");
         }
@@ -381,6 +342,33 @@ export class TabularImportTransformer {
         // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))
         sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.VALUE_PROPERTY_NAME} TYPE DOUBLE`);
 
+        return sql;
+    }
+
+    private static buildYearMonthDaySQL(tableName: string, yearColPos: number, monthColPos: number, dayColPos: string): string[] {
+        const sql: string[] = [];
+        sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${yearColPos} TO year_col`);
+        sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${monthColPos} TO month_col`);
+
+        const dayColumns = dayColPos.split('-');
+        if (dayColumns.length === 1) {
+            const dayColumnPosition = parseInt(dayColumns[0], 10);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO day_col`);
+            // Zero-pad the day values to ensure they are two digits (e.g., '1' becomes '01').
+            sql.push(`UPDATE ${tableName} SET day_col = lpad(day_col, 2, '0')`);
+        } else {
+            const startCol = parseInt(dayColumns[0], 10);
+            const endCol = parseInt(dayColumns[1], 10);
+            const dayColumnNames: string[] = [];
+            for (let i = startCol; i <= endCol; i++) {
+                dayColumnNames.push(`column${i}`);
+            }
+            // Unpivot the day columns to create 'day_col' and a new 'value' column.
+            // Nulls are excluded because they represent non-existent days (e.g. Feb 31st).
+            sql.push(`CREATE OR REPLACE TABLE ${tableName} AS SELECT * FROM ${tableName} UNPIVOT (${this.VALUE_PROPERTY_NAME} FOR day_col IN (${dayColumnNames.join(', ')}))`);
+            // Extract the numeric day part from the column name (e.g. 'column5' -> 5) and zero-pad it.
+            sql.push(`UPDATE ${tableName} SET day_col = lpad(substr(day_col, 7)::INTEGER - ${startCol} + 1, 2, '0')`);
+        }
         return sql;
     }
 

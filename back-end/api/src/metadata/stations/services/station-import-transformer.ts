@@ -1,7 +1,7 @@
 import { DuckDBConnection } from '@duckdb/node-api';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { StationColumnMappingDto } from 'src/metadata/dtos/metadata-import-preview.dto';
-import { DateTimeDefinition, HourDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { DateTimeDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { PreviewError } from 'src/observation/dtos/import-preview.dto';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
@@ -75,7 +75,7 @@ export class StationImportTransformer {
             { name: 'Obs Focus', buildSql: () => StationImportTransformer.buildAlterFieldMappingColumnSQL(tableName, StationImportTransformer.OBS_FOCUS_ID_PROPERTY, mapping.obsFocus) },
             { name: 'Owner', buildSql: () => StationImportTransformer.buildAlterFieldMappingColumnSQL(tableName, StationImportTransformer.OWNER_ID_PROPERTY, mapping.owner) },
             { name: 'Operator', buildSql: () => StationImportTransformer.buildAlterFieldMappingColumnSQL(tableName, StationImportTransformer.OPERATOR_ID_PROPERTY, mapping.operator) },
-            { name: 'WMO/WIGOS/ICAO IDs', buildSql: () => StationImportTransformer.buildAlterIdColumnsSQL(tableName, mapping) },
+            { name: 'WMO/WIGOS/ICAO IDs', buildSql: () => StationImportTransformer.buildAlterExternalIdsColumnsSQL(tableName, mapping) },
             { name: 'Status', buildSql: () => StationImportTransformer.buildAlterFieldMappingColumnSQL(tableName, StationImportTransformer.STATUS_PROPERTY, mapping.status) },
             { name: 'Date Established/Closed', buildSql: () => StationImportTransformer.buildAlterDatesColumnSQL(tableName, mapping) },
             { name: 'Comment', buildSql: () => StationImportTransformer.buildAlterCommentColumnSQL(tableName, mapping) },
@@ -127,8 +127,9 @@ export class StationImportTransformer {
     private static buildAlterDescriptionColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
         if (mapping.descriptionColumnPosition !== undefined) {
             return [`ALTER TABLE ${tableName} RENAME column${mapping.descriptionColumnPosition} TO ${this.DESCRIPTION_PROPERTY}`];
+        } else {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.DESCRIPTION_PROPERTY} VARCHAR DEFAULT NULL`];
         }
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.DESCRIPTION_PROPERTY} VARCHAR DEFAULT NULL`];
     }
 
     private static buildAlterLatLongElevationColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
@@ -163,11 +164,7 @@ export class StationImportTransformer {
      * Handles three cases: column mapped (with optional value mappings), default value, or not included (NULL).
      */
     private static buildAlterFieldMappingColumnSQL(tableName: string, propertyName: string, fieldMapping?: { columnPosition?: number; defaultValue?: string; valueMappings?: { sourceId: string; databaseId: string }[] }): string[] {
-        if (!fieldMapping) {
-            return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
-        }
-
-        if (fieldMapping.columnPosition !== undefined) {
+        if (fieldMapping?.columnPosition !== undefined) {
             const sql: string[] = [`ALTER TABLE ${tableName} RENAME column${fieldMapping.columnPosition} TO ${propertyName}`];
 
             if (fieldMapping.valueMappings && fieldMapping.valueMappings.length > 0) {
@@ -175,16 +172,14 @@ export class StationImportTransformer {
             }
 
             return sql;
-        }
-
-        if (fieldMapping.defaultValue !== undefined) {
+        } else if (fieldMapping?.defaultValue !== undefined) {
             return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT '${fieldMapping.defaultValue}'`];
+        } else {
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
         }
-
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR DEFAULT NULL`];
     }
 
-    private static buildAlterIdColumnsSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
+    private static buildAlterExternalIdsColumnsSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
         const sql: string[] = [];
 
         if (mapping.wmoIdColumnPosition !== undefined) {
@@ -234,52 +229,57 @@ export class StationImportTransformer {
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.columnPosition} TO ${propertyName}`);
             expectedDatetimeFormat = dateTimeDef.datetimeFormat;
 
+        } else if (definition.dateInSingleColumn !== undefined) {
+            const def = definition.dateInSingleColumn;
+            const dateCol = `${propertyName}_date_col`;
+            const strHour = StringUtils.addLeadingZero(def.defaultHour);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.columnPosition} TO ${dateCol}`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${dateCol} || ' ' || '${strHour}:00:00'`);
+            expectedDatetimeFormat = `${def.dateFormat} %H:%M:%S`;
+
         } else if (definition.dateTimeInTwoColumns !== undefined) {
-            const dateTimeDef = definition.dateTimeInTwoColumns;
+            const def = definition.dateTimeInTwoColumns;
             const dateCol = `${propertyName}_date_col`;
             const timeCol = `${propertyName}_time_col`;
-
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.dateColumn.columnPosition} TO ${dateCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dateTimeDef.timeColumn.columnPosition} TO ${timeCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.dateColumnPosition} TO ${dateCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO ${timeCol}`);
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
             sql.push(`UPDATE ${tableName} SET ${propertyName} = ${dateCol} || ' ' || ${timeCol}`);
-
-            expectedDatetimeFormat = `${dateTimeDef.dateColumn.dateFormat} ${dateTimeDef.timeColumn.timeFormat}`;
+            expectedDatetimeFormat = `${def.dateFormat} ${def.timeFormat}`;
 
         } else if (definition.dateTimeInMultipleColumns !== undefined) {
-            const dateFormat = '%Y-%m-%d';
-            let timeFormat = '%H:%M:%S';
-            const multiDef = definition.dateTimeInMultipleColumns;
-
+            const def = definition.dateTimeInMultipleColumns;
             const yearCol = `${propertyName}_year_col`;
             const monthCol = `${propertyName}_month_col`;
             const dayCol = `${propertyName}_day_col`;
             const timeCol = `${propertyName}_time_col`;
-
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${multiDef.yearColumnPosition} TO ${yearCol}`);
-            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${multiDef.monthColumnPosition} TO ${monthCol}`);
-
             // Single day column only (no UNPIVOT for station dates)
-            const dayColumnPosition = parseInt(multiDef.dayColumnPosition, 10);
+            const dayColumnPosition = parseInt(def.dayColumnPosition, 10);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.yearColumnPosition} TO ${yearCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.monthColumnPosition} TO ${monthCol}`);
             sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO ${dayCol}`);
             sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
-
-            // Hour definition
-            const hourDefinition: HourDefinition = multiDef.hourDefinition;
-            if (hourDefinition.timeColumn !== undefined) {
-                timeFormat = hourDefinition.timeColumn.timeFormat;
-                sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${hourDefinition.timeColumn.columnPosition} TO ${timeCol}`);
-            } else if (hourDefinition.defaultHour !== undefined) {
-                const strHour = StringUtils.addLeadingZero(hourDefinition.defaultHour);
-                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${timeCol} VARCHAR`);
-                sql.push(`UPDATE ${tableName} SET ${timeCol} = '${strHour}:00:00'`);
-            }
-
-            // Combine into a single date time column
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.timeColumnPosition} TO ${timeCol}`);
             sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
             sql.push(`UPDATE ${tableName} SET ${propertyName} = ${yearCol} || '-' || ${monthCol} || '-' || ${dayCol} || ' ' || ${timeCol}`);
+            expectedDatetimeFormat = `%Y-%m-%d ${def.timeFormat}`;
 
-            expectedDatetimeFormat = `${dateFormat} ${timeFormat}`;
+        } else if (definition.dateInMultipleColumns !== undefined) {
+            const def = definition.dateInMultipleColumns;
+            const yearCol = `${propertyName}_year_col`;
+            const monthCol = `${propertyName}_month_col`;
+            const dayCol = `${propertyName}_day_col`;
+            const strHour = StringUtils.addLeadingZero(def.defaultHour);
+            // Single day column only (no UNPIVOT for station dates)
+            const dayColumnPosition = parseInt(def.dayColumnPosition, 10);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.yearColumnPosition} TO ${yearCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${def.monthColumnPosition} TO ${monthCol}`);
+            sql.push(`ALTER TABLE ${tableName} RENAME COLUMN column${dayColumnPosition} TO ${dayCol}`);
+            sql.push(`UPDATE ${tableName} SET ${dayCol} = lpad(${dayCol}, 2, '0')`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${propertyName} VARCHAR`);
+            sql.push(`UPDATE ${tableName} SET ${propertyName} = ${yearCol} || '-' || ${monthCol} || '-' || ${dayCol} || ' ' || '${strHour}:00:00'`);
+            expectedDatetimeFormat = `%Y-%m-%d %H:%M:%S`;
 
         } else {
             throw new Error("Date time interpretation not valid");
@@ -296,8 +296,9 @@ export class StationImportTransformer {
     private static buildAlterCommentColumnSQL(tableName: string, mapping: StationColumnMappingDto): string[] {
         if (mapping.commentColumnPosition !== undefined) {
             return [`ALTER TABLE ${tableName} RENAME column${mapping.commentColumnPosition} TO ${this.COMMENT_PROPERTY}`];
-        }
-        return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
+        }else{
+            return [`ALTER TABLE ${tableName} ADD COLUMN ${this.COMMENT_PROPERTY} VARCHAR DEFAULT NULL`];
+        }        
     }
 
     private static buildRemoveDuplicatesSQL(tableName: string): string {

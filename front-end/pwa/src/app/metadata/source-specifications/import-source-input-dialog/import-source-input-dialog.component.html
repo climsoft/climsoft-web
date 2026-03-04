@@ -63,14 +63,15 @@
                         <hr />
 
                         <div>
-                            <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportParams.rowsToSkip" />
+                            <app-number-input [label]="'Rows to Skip'" [(numValue)]="tabularImportParams.rowsToSkip"
+                                (numValueChange)="reLoadRawPreview()" />
                         </div>
 
                         <hr />
 
                         <div>
-                            <app-delimeter-selector [label]="'Delimeter'"
-                                [(delimiter)]="tabularImportParams.delimiter" />
+                            <app-delimeter-selector [label]="'Delimeter'" [(delimiter)]="tabularImportParams.delimiter"
+                                (delimiterChange)="reLoadRawPreview()" />
                         </div>
 
                     </div>

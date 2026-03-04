@@ -153,10 +153,6 @@ export class StationsImportDialogComponent implements OnDestroy {
     });
   }
 
-  protected onRowsToSkipChange(): void {
-    this.reLoadRawPreview();
-  }
-
   // ─── Preview ───────────────────────────────────────────────
 
   protected refreshPreview(): void {
@@ -187,7 +183,7 @@ export class StationsImportDialogComponent implements OnDestroy {
     });
   }
 
-  private reLoadRawPreview(): void {
+  protected reLoadRawPreview(): void {
     if (!this.rawPreviewResponse.sessionId) return;
 
     if (this.rawPreviewLoading && this.transformedPreviewLoading) {

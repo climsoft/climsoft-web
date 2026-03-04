@@ -216,7 +216,7 @@ export class ElementsService implements OnModuleInit {
     }
 
     public async invalidateCache(): Promise<void> {
-        await this.invalidateCache();
+         await this.cache.invalidate() ;
     }
 
     public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {

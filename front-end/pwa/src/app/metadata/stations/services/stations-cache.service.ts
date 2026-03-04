@@ -156,6 +156,15 @@ export class StationsCacheService {
         );
     }
 
+    public bulkPut(items: CreateStationModel[]): Observable<void> {
+        return this.http.put<void>(`${this.endPointUrl}/bulk`, items)
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+            );
+    }
+
     public create(createDto: CreateStationModel): Observable<CreateStationModel> {
         return this.http.post<CreateStationModel>(`${this.endPointUrl}`, createDto)
             .pipe(

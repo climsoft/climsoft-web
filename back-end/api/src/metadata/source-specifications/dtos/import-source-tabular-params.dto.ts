@@ -156,65 +156,49 @@ export type DateFormatTypes = '%Y-%m-%d' | '%d-%m-%Y' | '%Y/%m/%d' | '%d/%m/%Y';
 
 export type TimeFormatTypes = '%H:%M:%S' | '%H:%M' | '%-H:%M' | '%H' | '%-H';
 
-/**
- * Either time column or default hour must be provided, but not both.
- */
-export class HourDefinition {
-
-    /**
-    * If provided, then default hour will not be used.
-    */
-    @IsOptional()
-    timeColumn?: {
-        columnPosition: number;
-        timeFormat: TimeFormatTypes;
-    };
-
-    /**
-     * Should be provided when time column is not provided.
-     */
-    @IsOptional()
-    @IsInt()
-    @Min(0)
-    defaultHour?: number;
-}
-
 export class DateTimeDefinition {
 
-    /**
-    * The date time column position
-    * Expected format example: 'yyyy-mm-dd hh:mm:ss'
-    */
+    /** A single column contains both date and time (e.g. '2024-01-15 08:00:00'). */
     @IsOptional()
     dateTimeInSingleColumn?: {
         columnPosition: number;
         datetimeFormat: DateTimeFormatTypes;
     };
 
-    /**
-     * The date and time are in two separate columns.
-     */
+    /** A single column contains only the date. A default hour supplies the time component. */
     @IsOptional()
-    dateTimeInTwoColumns?: {
-        dateColumn: {
-            columnPosition: number;
-            dateFormat: DateFormatTypes;
-        };
-        timeColumn: {
-            columnPosition: number;
-            timeFormat: TimeFormatTypes;
-        };
+    dateInSingleColumn?: {
+        columnPosition: number;
+        dateFormat: DateFormatTypes;
+        defaultHour: number;
     };
 
-    /**
-     * The date and time are split across multiple columns (e.g., Year, Month, Day, Hour).
-     */
+    /** Date and time are in two separate columns. */
+    @IsOptional()
+    dateTimeInTwoColumns?: {
+        dateColumnPosition: number;
+        dateFormat: DateFormatTypes;
+        timeColumnPosition: number;
+        timeFormat: TimeFormatTypes;
+    };
+
+    /** Date and time are split across year, month, day and time columns. */
     @IsOptional()
     dateTimeInMultipleColumns?: {
         yearColumnPosition: number;
         monthColumnPosition: number;
         dayColumnPosition: string; // For multiple columns format will be like columnPosX-columnPosY
-        hourDefinition: HourDefinition;
+        timeColumnPosition: number;
+        timeFormat: TimeFormatTypes;
+    };
+
+    /** Date is split across year, month, day columns. A default hour supplies the time component. */
+    @IsOptional()
+    dateInMultipleColumns?: {
+        yearColumnPosition: number;
+        monthColumnPosition: number;
+        dayColumnPosition: string; // For multiple columns format will be like columnPosX-columnPosY
+        defaultHour: number;
     };
 }
 
