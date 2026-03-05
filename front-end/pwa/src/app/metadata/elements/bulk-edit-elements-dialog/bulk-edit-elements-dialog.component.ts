@@ -80,6 +80,40 @@ export class BulkEditElementsDialogComponent {
     });
   }
 
+  protected onEnterKey(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target.tagName !== 'INPUT' || target.readOnly) return;
+
+    const td = target.closest('td');
+    if (!td) return;
+    const tr = td.closest('tr');
+    if (!tr) return;
+
+    const colIndex = Array.from(tr.children).indexOf(td);
+    const nextRow = tr.nextElementSibling;
+
+    if (nextRow) {
+      event.preventDefault();
+      const nextCell = nextRow.children[colIndex] as HTMLElement;
+      const nextInput = nextCell?.querySelector('input:not([readonly])') as HTMLInputElement;
+      if (nextInput) {
+        nextInput.focus();
+      }
+    } else if (this.pageInputDefinition.page < this.pageInputDefinition.totalPages) {
+      event.preventDefault();
+      this.pageInputDefinition.onNext();
+      setTimeout(() => {
+        const tbody = (event.target as HTMLElement).closest('table')?.querySelector('tbody');
+        const firstRow = tbody?.querySelector('tr');
+        if (firstRow) {
+          const cell = firstRow.children[colIndex] as HTMLElement;
+          const input = cell?.querySelector('input:not([readonly])') as HTMLInputElement;
+          if (input) input.focus();
+        }
+      }, 0);
+    }
+  }
+
   protected onCancelClick(): void {
     this.open = false;
   }

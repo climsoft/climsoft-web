@@ -48,7 +48,7 @@ export interface StationCacheModel {
 export class StationsCacheService {
     private endPointUrl: string;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(

@@ -6,7 +6,7 @@ import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
 import { StringUtils } from 'src/shared/utils/string.utils';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { PreviewError } from '../dtos/import-preview.dto';
-import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBConnection } from '@duckdb/node-api';
 
 /**

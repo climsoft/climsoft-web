@@ -23,7 +23,6 @@ export class ViewStationsComponent implements OnDestroy {
   protected searchedIds: string[] = [];
 
   protected dropDownItems: OptionEnum[] = [];
-  protected optionTypeEnum: typeof OptionEnum = OptionEnum;
   protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
@@ -41,7 +40,7 @@ export class ViewStationsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems = [OptionEnum.SORT_BY_ID, OptionEnum.SORT_BY_NAME, OptionEnum.DOWNLOAD];
+      this.dropDownItems = [OptionEnum.DOWNLOAD];
       if (this.isSystemAdmin) {
         this.dropDownItems.push(OptionEnum.DELETE_ALL);
       }
@@ -77,12 +76,6 @@ export class ViewStationsComponent implements OnDestroy {
 
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
-      case OptionEnum.SORT_BY_ID:
-        this.stations.sort((a, b) => a.id.localeCompare(b.id));
-        break;
-      case OptionEnum.SORT_BY_NAME:
-        this.stations.sort((a, b) => a.name.localeCompare(b.name));
-        break;
       case OptionEnum.DELETE_ALL:
         // TODO. Check if operation is doable first
         this.stationsCacheService.deleteAll().pipe(
@@ -99,27 +92,29 @@ export class ViewStationsComponent implements OnDestroy {
   }
 
   protected onBulkEditClick(): void {
-    const createModels: CreateStationModel[] = this.stations.map(s => ({
-      id: s.id,
-      name: s.name,
-      description: s.description || undefined,
-      latitude: s.location?.latitude,
-      longitude: s.location?.longitude,
-      elevation: s.elevation ?? undefined,
-      stationObsProcessingMethod: s.stationObsProcessingMethod ?? undefined,
-      stationObsEnvironmentId: s.stationObsEnvironmentId || undefined,
-      stationObsFocusId: s.stationObsFocusId || undefined,
-      ownerId: s.ownerId || undefined,
-      operatorId: s.operatorId || undefined,
-      wmoId: s.wmoId || undefined,
-      wigosId: s.wigosId || undefined,
-      icaoId: s.icaoId || undefined,
-      status: s.status ?? undefined,
-      dateEstablished: s.dateEstablished || undefined,
-      dateClosed: s.dateClosed || undefined,
-      comment: s.comment || undefined,
-    }));
-    this.dlgBulkEditStations.showDialog(createModels);
+    if (this.isSystemAdmin) {
+      const createModels: CreateStationModel[] = this.stations.map(s => ({
+        id: s.id,
+        name: s.name,
+        description: s.description || undefined,
+        latitude: s.location?.latitude,
+        longitude: s.location?.longitude,
+        elevation: s.elevation ?? undefined,
+        stationObsProcessingMethod: s.stationObsProcessingMethod ?? undefined,
+        stationObsEnvironmentId: s.stationObsEnvironmentId || undefined,
+        stationObsFocusId: s.stationObsFocusId || undefined,
+        ownerId: s.ownerId || undefined,
+        operatorId: s.operatorId || undefined,
+        wmoId: s.wmoId || undefined,
+        wigosId: s.wigosId || undefined,
+        icaoId: s.icaoId || undefined,
+        status: s.status ?? undefined,
+        dateEstablished: s.dateEstablished || undefined,
+        dateClosed: s.dateClosed || undefined,
+        comment: s.comment || undefined,
+      }));
+      this.dlgBulkEditStations.showDialog(createModels);
+    }
   }
 
   protected get downloadLink(): string {

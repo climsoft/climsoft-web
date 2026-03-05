@@ -1,5 +1,6 @@
-import { Component, OnInit, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, SimpleChanges, OnChanges, ViewChild } from '@angular/core';
 import { StringUtils } from '../../utils/string.utils';
+import { TextInputComponent } from '../text-input/text-input.component';
 
 @Component({
   selector: 'app-date-input',
@@ -7,6 +8,8 @@ import { StringUtils } from '../../utils/string.utils';
   styleUrls: ['./date-input.component.scss']
 })
 export class DateInputComponent implements OnChanges {
+  @ViewChild('appTextInput') textInputComponent!: TextInputComponent;
+
   @Input() public id!: string;
   @Input() public label!: string;
   @Input() public disabled!: boolean;
@@ -16,6 +19,7 @@ export class DateInputComponent implements OnChanges {
   @Input() public maxDate!: string;
   @Input() public minDate!: string;
   @Input() public value!: string | null | undefined;
+  @Input() public simulateTabOnEnter: boolean = true;
   @Output() public valueChange = new EventEmitter<string>();
   @Output() public inputClick = new EventEmitter<string>();
   @Output() public inputEnterKeyPress = new EventEmitter<string>();
@@ -37,6 +41,10 @@ export class DateInputComponent implements OnChanges {
       // Always set maximum date to prevent future dates selections by default   
       //this.maxDate = this.getDateString(new Date());
     //}
+  }
+
+  public focus(): void {
+    this.textInputComponent.focus();
   }
 
   protected onValueChange(value: string) {

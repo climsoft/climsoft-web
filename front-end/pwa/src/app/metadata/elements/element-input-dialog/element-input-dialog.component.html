@@ -2,7 +2,7 @@
   (cancelClick)="onCancelClick()">
   <div *ngIf="element">
     <div>
-      <app-number-input [label]="'Id'" [disabled]="!bNew" [(numValue)]="element.id" />
+      <app-number-input [label]="'Id'" [disabled]="element.id > 0" [(numValue)]="element.id" />
     </div>
 
     <hr class="border border-secondary border-1">

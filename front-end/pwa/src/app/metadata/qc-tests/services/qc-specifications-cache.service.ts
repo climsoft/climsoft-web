@@ -35,10 +35,10 @@ export interface QCTestCacheModel {
 @Injectable({
     providedIn: 'root'
 })
-export class QCTestsCacheService {
+export class QCSpecificationsCacheService {
     private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<QCTestCacheModel[]> = new BehaviorSubject<QCTestCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(

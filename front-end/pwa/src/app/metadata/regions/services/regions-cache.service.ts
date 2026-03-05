@@ -13,7 +13,8 @@ import { AppConfigService } from "src/app/app-config.service";
 export class RegionsCacheService {
     private endPointUrl: string;
     private readonly _cachedRegions: BehaviorSubject<ViewRegionModel[]> = new BehaviorSubject<ViewRegionModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
+    private checkingForUpdates: boolean = false;
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -27,13 +28,20 @@ export class RegionsCacheService {
     }
 
     public checkForUpdates(): void {
+        if (this.checkingForUpdates) return;
         console.log('checking regions updates');
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('regions').subscribe(res => {
-            console.log('regions-cache response', res);
-            if (res) {
-                this.loadRegions();
-            }
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('regions').subscribe({
+            next: res => {
+                console.log('regions-cache response', res);
+                this.checkingForUpdates = false;
+                if (res) {
+                    this.loadRegions();
+                }
+            },
+            error: err => {
+                this.checkingForUpdates = false;
+            },
         });
     }
 

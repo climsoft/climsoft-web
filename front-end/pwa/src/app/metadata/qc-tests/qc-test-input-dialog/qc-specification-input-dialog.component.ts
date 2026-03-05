@@ -9,7 +9,7 @@ import { SpikeQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test
 import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.enum';
 import { ViewQCTestModel } from 'src/app/metadata/qc-tests/models/view-qc-test.model';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { QCTestsCacheService } from '../services/qc-tests-cache.service';
+import { QCSpecificationsCacheService } from '../services/qc-specifications-cache.service';
 import { FlatLineQCTestParamsModel } from '../models/qc-test-parameters/flat-line-qc-test-params.model';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
@@ -31,7 +31,7 @@ export class QCSpecificationInputDialogComponent {
   protected updateQcTest!: ViewQCTestModel;
 
   constructor(
-    private qcTestscacheService: QCTestsCacheService,
+    private qcTestscacheService: QCSpecificationsCacheService,
     private pagesDataService: PagesDataService) { }
 
   public openDialog(elementQCTestId?: number): void {
@@ -42,7 +42,7 @@ export class QCSpecificationInputDialogComponent {
       this.qcTestscacheService.findOne(elementQCTestId).pipe(
         take(1)
       ).subscribe((data) => {
-        if (!data) throw new Error('QC test not found');
+        if (!data) throw new Error('QC specification not found');
         this.updateQcTest = {
           id: data.id,
           name: data.name,

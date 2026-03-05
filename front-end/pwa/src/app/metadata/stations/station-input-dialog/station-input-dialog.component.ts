@@ -33,28 +33,27 @@ export class StationInputDialogComponent {
       this.stationsCacheService.findOne(stationId).pipe(
         take(1),
       ).subscribe(station => {
-        if (station) {
-          this.station = {
-            id: station.id,
-            name: station.name,
-            description: station.description,
-            longitude: station.location?.longitude,
-            latitude: station.location?.latitude,
-            elevation: station.elevation || undefined,
-            stationObsProcessingMethod: station.stationObsProcessingMethod || undefined,
-            stationObsEnvironmentId: station.stationObsEnvironmentId,
-            stationObsFocusId: station.stationObsFocusId,
-            ownerId: station.ownerId,
-            operatorId: station.operatorId,
-            wmoId: station.wmoId,
-            wigosId: station.wigosId,
-            icaoId: station.icaoId,
-            status: station.status || undefined,
-            dateEstablished: station.dateEstablished,
-            dateClosed: station.dateClosed,
-            comment: station.comment,
-          };
-        }
+        if (!station) throw new Error('station not found');
+        this.station = {
+          id: station.id,
+          name: station.name,
+          description: station.description,
+          longitude: station.location?.longitude,
+          latitude: station.location?.latitude,
+          elevation: station.elevation || undefined,
+          stationObsProcessingMethod: station.stationObsProcessingMethod || undefined,
+          stationObsEnvironmentId: station.stationObsEnvironmentId,
+          stationObsFocusId: station.stationObsFocusId,
+          ownerId: station.ownerId,
+          operatorId: station.operatorId,
+          wmoId: station.wmoId,
+          wigosId: station.wigosId,
+          icaoId: station.icaoId,
+          status: station.status || undefined,
+          dateEstablished: station.dateEstablished,
+          dateClosed: station.dateClosed,
+          comment: station.comment,
+        };
       });
     } else {
       this.title = "New Station";

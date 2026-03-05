@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Header, Param, ParseIntPipe, Patch, Post, Put, Query, Req } from '@nestjs/common';
-import { UpdateElementDto } from 'src/metadata/elements/dtos/elements/update-element.dto';
+import { UpdateElementDto } from 'src/metadata/elements/dtos/update-element.dto';
 import { ElementsService } from '../services/elements.service';
-import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
-import { ViewElementQueryDTO } from '../dtos/elements/view-element-query.dto';
+import { CreateViewElementDto } from '../dtos/create-view-element.dto';
+import { ViewElementQueryDTO } from '../dtos/view-element-query.dto';
 import { Admin } from 'src/user/decorators/admin.decorator';
 import { Request } from 'express';
 import { AuthUtil } from 'src/user/services/auth.util';

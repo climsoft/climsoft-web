@@ -21,7 +21,8 @@ export interface NetworkAffiliationCacheModel {
 export class NetworkAffiliationsCacheService {
     private endPointUrl: string;
     private readonly _cachedNetworkAffiliations: BehaviorSubject<NetworkAffiliationCacheModel[]> = new BehaviorSubject<NetworkAffiliationCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
+    private checkingForUpdates: boolean = false;
     constructor(
         private appConfigService: AppConfigService,
         private metadataUpdatesService: MetadataUpdatesService,
@@ -47,13 +48,21 @@ export class NetworkAffiliationsCacheService {
     }
 
     public checkForUpdates(): void {
+        // If still checking for updates just return
+        if (this.checkingForUpdates) return;
         console.log('checking network-affiliations updates');
         this.checkUpdatesSubscription.unsubscribe();
-        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('networkAffiliations').subscribe(res => {
-            console.log('network-affiliations-cache response', res);
-            if (res) {
-                this.loadNetworkAffiliations();
-            }
+        this.checkUpdatesSubscription = this.metadataUpdatesService.checkUpdates('networkAffiliations').subscribe({
+            next: res => {
+                console.log('network-affiliations-cache response', res);
+                this.checkingForUpdates = false;
+                if (res) {
+                    this.loadNetworkAffiliations();
+                }
+            },
+            error: err => {
+                this.checkingForUpdates = false;
+            },
         });
     }
 

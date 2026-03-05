@@ -33,7 +33,7 @@ export interface ElementCacheModel {
 export class ElementsCacheService {
     private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<ElementCacheModel[]> = new BehaviorSubject<ElementCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(
@@ -67,7 +67,7 @@ export class ElementsCacheService {
                     subdomainName: elementSubdomain ? elementSubdomain.name : '',
                     domain: domain,
                     domainName: StringUtils.formatEnumForDisplay(domain),
-                    entryScaleFactor: element.entryScaleFactor || 1,
+                    entryScaleFactor: element.entryScaleFactor || 1, // should never be zero
                     comment: element.comment ? element.comment : '',
                 }
             );

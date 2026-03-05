@@ -9,6 +9,7 @@ import { StationObservationFocusEntity } from "./station-observation-focus.entit
 @Entity("stations")
 @Check("CHK_stations_id_not_empty", `"id" <> ''`) // Not empty CHECK constraint
 @Check("CHK_stations_name_not_empty", `"name" <> ''`)// Not empty CHECK constraint
+@Check("CHK_stations_operational_no_close_date", `"status" <> 'operational' OR "date_closed" IS NULL`) // operational stations should not have a closed date
 export class StationEntity extends AppBaseEntity {
   @PrimaryColumn({ name: "id", type: 'varchar' })
   id: string;

@@ -35,7 +35,7 @@ export class ConnectorSpecificationInputDialogComponent {
       this.connectorSpecificationsService.findOne(connectorId).pipe(
         take(1),
       ).subscribe(data => {
-        this.connector = data;
+        this.connector = { ...data };
       });
     } else {
       this.title = 'New Connector Specification';

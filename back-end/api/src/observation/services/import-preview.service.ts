@@ -8,7 +8,7 @@ import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError, PreviewForImportDto, PreviewTableData, RawPreviewResponse, TransformedPreviewResponse } from '../dtos/import-preview.dto';
 import { CreateSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/create-source-specification.dto';
 import { ElementsService } from 'src/metadata/elements/services/elements.service';
-import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ObservationImportService } from './observations-import.service';
 

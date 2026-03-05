@@ -13,7 +13,7 @@ import { CreateUpdateOrganisationModel } from "../models/create-update-organisat
 export class OrganisationsCacheService {
     private endPointUrl: string;
     private readonly _cachedOrganisations: BehaviorSubject<ViewOrganisationModel[]> = new BehaviorSubject<ViewOrganisationModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(

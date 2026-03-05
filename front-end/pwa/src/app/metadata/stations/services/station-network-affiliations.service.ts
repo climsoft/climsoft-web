@@ -5,6 +5,7 @@ import { AppDatabase } from 'src/app/app-database';
 import { AppConfigService } from 'src/app/app-config.service';
 import { ViewNetworkAffiliationModel } from '../../network-affiliations/models/view-network-affiliation.model';
 import { StationCountPerNetworkAffiliationCount } from '../models/station-count-per-network-affiliation-count';
+import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 
 @Injectable({
   providedIn: 'root'
@@ -74,9 +75,8 @@ export class StationNetworkAffiliationsService {
 
 
   // TODO. Push to another class 
-  private handleError(error: HttpErrorResponse
-  ) {
-    if (error.status === 0) {
+  private handleError(error: HttpErrorResponse) {
+    if (AppAuthInterceptor.isKnownNetworkError(error)) {
       // A client-side or network error occurred. Handle it accordingly.
       console.error('An error occurred:', error.error);
     } else {

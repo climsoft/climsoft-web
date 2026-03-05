@@ -1,7 +1,7 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
+import { QCTestCacheModel, QCSpecificationsCacheService } from '../services/qc-specifications-cache.service';
 import { QCSpecificationInputDialogComponent } from '../qc-test-input-dialog/qc-specification-input-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
@@ -46,7 +46,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private elementsCacheService: ElementsCacheService,
-    private qCTestsCacheService: QCTestsCacheService,) {
+    private qCTestsCacheService: QCSpecificationsCacheService,) {
 
     this.pagesDataService.setPageHeader('QC Specifications');
 

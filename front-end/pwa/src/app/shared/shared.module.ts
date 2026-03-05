@@ -17,6 +17,7 @@ import { ToggleChevronComponent } from './controls/toggle-chevron/toggle-chevron
 import { InputDialogComponent } from './controls/input-dialog/input-dialog.component';
 import { SimulateTabOnEnterDirective } from '../shared/simulate-tab-on-enter.directive';
 import { CloseDropDownDirective } from './close-drop-down.directive';
+import { SortableHeaderDirective } from './sortable-header.directive';
 import { YearMonthInputComponent } from './controls/year-month-input/year-month-input.component';
 import { SelectorMultipleInputComponent } from './controls/selector-input/selector-multiple-input/selector-multiple-input.component';
 import { SelectorSingleInputComponent } from './controls/selector-input/selector-single-input/selector-single-input.component';
@@ -110,6 +111,7 @@ const controlsComponents = [
 const directives = [
   SimulateTabOnEnterDirective,
   CloseDropDownDirective,
+  SortableHeaderDirective,
 ]
 
 @NgModule({

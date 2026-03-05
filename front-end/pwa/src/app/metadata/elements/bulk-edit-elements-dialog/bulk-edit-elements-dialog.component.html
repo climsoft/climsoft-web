@@ -9,9 +9,9 @@
       <span *ngIf="changedCount" class="ms-2 text-success">{{ changedCount }} record(s) changed</span>
     </div>
 
-    <div class="table-responsive" style="max-height: 70vh; overflow: auto;">
-      <table class="table table-sm table-bordered align-middle">
-        <thead class="table-light sticky-top">
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-sm table-bordered align-middle" (keydown.enter)="onEnterKey($event)">
+        <thead>
           <tr>
             <th>Id</th>
             <th>Abbreviation</th>
@@ -27,26 +27,29 @@
           <tr *ngFor="let el of pageItems; let i = index" [class.row-changed]="isRowChanged(pageStartIndex + i)">
             <td class="text-muted">{{ el.id }}</td>
             <td>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.abbreviation">
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.abbreviation"
+                (valueChange)="el.abbreviation = $event" />
             </td>
             <td>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.name">
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.name" (valueChange)="el.name = $event" />
             </td>
             <td>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.description">
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.description"
+                (valueChange)="el.description = $event" />
             </td>
             <td>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.units">
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.units" (valueChange)="el.units = $event" />
             </td>
             <td>
               <app-element-type-single-input [selectedId]="el.typeId"
                 (selectedIdChange)="el.typeId = $event ?? undefined" />
             </td>
             <td>
-              <input type="number" class="form-control form-control-sm" [(ngModel)]="el.entryScaleFactor" min="1">
+              <app-number-input [simulateTabOnEnter]="false" [value]="el.entryScaleFactor" [min]="1"
+                (valueChange)="el.entryScaleFactor = $event ?? undefined" />
             </td>
             <td>
-              <input type="text" class="form-control form-control-sm" [(ngModel)]="el.comment">
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.comment" (valueChange)="el.comment = $event" />
             </td>
           </tr>
         </tbody>

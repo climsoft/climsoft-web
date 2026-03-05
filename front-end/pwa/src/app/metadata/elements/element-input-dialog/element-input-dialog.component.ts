@@ -6,17 +6,16 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ElementsCacheService } from '../services/elements-cache.service';
 
 @Component({
-  selector: 'app-edit-element-dialog',
-  templateUrl: './edit-element-dialog.component.html',
-  styleUrls: ['./edit-element-dialog.component.scss']
+  selector: 'app-element-input-dialog',
+  templateUrl: './element-input-dialog.component.html',
+  styleUrls: ['./element-input-dialog.component.scss']
 })
-export class EditElementDialogComponent {
+export class ElementInputDialogComponent {
   @Output() public ok = new EventEmitter<void>();
   @Output() public cancelClick = new EventEmitter<void>();
 
   protected open!: boolean;
   protected title: string = '';
-  protected bNew: boolean = false;
   protected element!: CreateViewElementModel;
 
   constructor(
@@ -26,27 +25,23 @@ export class EditElementDialogComponent {
   public showDialog(elementId?: number): void {
     if (elementId) {
       this.title = "Edit Element";
-      this.bNew = false;
       this.elementsCacheService.findOne(elementId).pipe(
         take(1)
       ).subscribe((data) => {
-        if (data) {
-          this.element = {
-            id: data.id,
-            abbreviation: data.abbreviation,
-            name: data.name,
-            description: data.description,
-            units: data.units,
-            typeId: data.typeId,
-            entryScaleFactor: data.entryScaleFactor,
-            comment: data.comment || '',
-          };
-        }
-
+        if (!data) throw new Error('Element not found');
+        this.element = {
+          id: data.id,
+          abbreviation: data.abbreviation,
+          name: data.name,
+          description: data.description,
+          units: data.units,
+          typeId: data.typeId,
+          entryScaleFactor: data.entryScaleFactor || undefined,
+          comment: data.comment || undefined,
+        };
       });
     } else {
       this.title = "New Element";
-      this.bNew = true;
       this.element = {
         id: 0,
         abbreviation: '',
@@ -96,7 +91,7 @@ export class EditElementDialogComponent {
     }
 
     let saveSubscription: Observable<CreateViewElementModel>;
-    if (this.bNew) {
+    if (this.element.id === 0) {
       saveSubscription = this.elementsCacheService.add({ ...updatedElement, id: this.element.id });
     } else {
       saveSubscription = this.elementsCacheService.update(this.element.id, updatedElement);
@@ -108,7 +103,7 @@ export class EditElementDialogComponent {
       let message: string;
       let messageType: ToastEventTypeEnum;
       if (data) {
-        message = this.bNew ? `${data.name} created` : `${data.name} updated`;
+        message = this.element.id === 0 ? `${data.name} created` : `${data.name} updated`;
         messageType = ToastEventTypeEnum.SUCCESS;
       } else {
         message = "Error in saving element";

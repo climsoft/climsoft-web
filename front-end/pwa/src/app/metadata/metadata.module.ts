@@ -30,7 +30,7 @@ import { ImportSourceCommentDetailComponent } from './source-specifications/impo
 import { ImportSourceMissingValueDetailComponent } from './source-specifications/import-source-input-dialog/import-source-missing-value-detail/import-source-missing-value-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-input-dialog/import-source-flag-detail/import-source-flag-detail.component';
 import { ImportPreviewTableComponent } from './source-specifications/import-source-input-dialog/import-preview-table/import-preview-table.component';
-import { EditElementDialogComponent } from './elements/edit-element-dialog/edit-element-dialog.component'; 
+import { ElementInputDialogComponent } from './elements/element-input-dialog/element-input-dialog.component'; 
 import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
 import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
@@ -162,7 +162,7 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
     ImportSourceFlagDetailComponent,
     ImportPreviewTableComponent,
 
-    EditElementDialogComponent,
+    ElementInputDialogComponent,
     ImportElementsDialogComponent,
     ElementImportBasicDetailComponent,
     ElementImportTypeDetailComponent,
