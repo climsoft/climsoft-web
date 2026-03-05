@@ -3,8 +3,6 @@ import { SharedModule } from '../shared/shared.module';
 import { MetadataRoutingModule } from './metadata-routing.module'; 
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
-import { ViewRegionsMapComponent } from './regions/view-regions/view-regions-map/view-regions-map.component';
-import { ViewRegionsTableComponent } from './regions/view-regions/view-regions-table/view-regions-table.component';
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
 import { FormSourceInputDialogComponent } from './source-specifications/form-source-input-dialog/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from './source-specifications/import-source-input-dialog/import-source-input-dialog.component';
@@ -107,8 +105,6 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
     OrganisationSelectorMultipleComponent,
 
     ViewRegionsComponent,
-    ViewRegionsTableComponent,
-    ViewRegionsMapComponent,
     RegionTypeInputComponent,
     RegionSelectorMultipleComponent,
 

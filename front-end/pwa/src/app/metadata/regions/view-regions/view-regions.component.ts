@@ -4,6 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.model';
 import { AppAuthService } from 'src/app/app-auth.service';
+import * as L from 'leaflet';
 
 type optionsType = 'Import' | 'Delete All';
 
@@ -14,13 +15,13 @@ type optionsType = 'Import' | 'Delete All';
 })
 export class ViewRegionsComponent implements OnDestroy {
 
-  protected activeTab: 'table' | 'map' = 'table';
-
   protected regions!: ViewRegionModel[];
 
   protected optionClicked: optionsType | undefined;
   protected isSystemAdmin: boolean = false;
-  
+  protected showMapDialog = false;
+  protected regionMapLayerGroup: L.LayerGroup = L.layerGroup();
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -35,25 +36,22 @@ export class ViewRegionsComponent implements OnDestroy {
     this.appAuthService.user.pipe(
       takeUntil(this.destroy$),
     ).subscribe(user => {
-            if (!user) return;
+      if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
     });
 
-    // Get all regions 
+    // Get all regions
     this.regionsService.cachedRegions.pipe(
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.regions = data;
+      this.setupMap();
     });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  protected onTabClick(selectedTab: 'table' | 'map'): void {
-    this.activeTab = selectedTab;
   }
 
   protected onSearch(): void {
@@ -75,6 +73,37 @@ export class ViewRegionsComponent implements OnDestroy {
     this.optionClicked = undefined;
   }
 
+  protected onVisualiseClick(): void {
+    this.showMapDialog = true;
+  }
 
+  private setupMap(): void {
+    this.regionMapLayerGroup = L.layerGroup();
+    const regionsFeatureCollection: any = {
+      "type": "FeatureCollection",
+      "features": this.regions.map(item => {
+        return {
+          "type": "Feature",
+          "properties": {
+            "name": item.name,
+          },
+          "geometry": {
+            "type": "MultiPolygon",
+            "coordinates": item.boundary
+          }
+        };
+      })
+    };
+
+    // TODO.  In future the region types will each have different colors
+    L.geoJSON(regionsFeatureCollection, {
+      style: { fillColor: 'transparent', color: 'blue', weight: 0.5 },
+      onEachFeature: this.onEachRegionFeature,
+    }).addTo(this.regionMapLayerGroup);
+  }
+
+  private onEachRegionFeature(feature: any, layer: any) {
+    layer.bindPopup(`<p>${feature.properties.name} </p>`);
+  }
 
 }
