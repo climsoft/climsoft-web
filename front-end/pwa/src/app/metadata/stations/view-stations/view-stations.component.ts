@@ -6,8 +6,8 @@ import { AppAuthService } from 'src/app/app-auth.service';
 import { OptionEnum } from 'src/app/shared/options.enum';
 import { CreateStationModel } from '../models/create-station.model';
 import { BulkEditStationsDialogComponent } from '../bulk-edit-stations-dialog/bulk-edit-stations-dialog.component';
-
-type tab = 'table' | 'geomap' | 'treemap';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { StationInputDialogComponent } from '../station-input-dialog/station-input-dialog.component';
 
 @Component({
   selector: 'app-view-stations',
@@ -16,13 +16,21 @@ type tab = 'table' | 'geomap' | 'treemap';
 })
 export class ViewStationsComponent implements OnDestroy {
   @ViewChild('dlgBulkEditStations') dlgBulkEditStations!: BulkEditStationsDialogComponent;
+  @ViewChild('dlgStationInput') dlgStationInput!: StationInputDialogComponent;
 
-  protected activeTab: tab = 'table';
   protected allStations: StationCacheModel[] = [];
   protected stations: StationCacheModel[] = [];
   protected searchedIds: string[] = [];
 
+  protected sortedStations: StationCacheModel[] = [];
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
+
   protected dropDownItems: OptionEnum[] = [];
+  protected visualiseItems: string[] = ['Geo Map', 'Tree Map'];
+  protected showGeoMapDialog = false;
+  protected showTreeMapDialog = false;
   protected isSystemAdmin: boolean = false;
 
   private destroy$ = new Subject<void>();
@@ -50,7 +58,7 @@ export class ViewStationsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe(data => {
       this.allStations = data;
-      // Always call filtered seacrh ids because when the caches refreshes, the selected ids will not be the ones shown
+      // Always call filtered search ids because when the cache refreshes, the selected ids will not be the ones shown
       this.filterSearchedIds();
     });
   }
@@ -60,8 +68,12 @@ export class ViewStationsComponent implements OnDestroy {
     this.destroy$.complete();
   }
 
-  protected onTabClick(selectedTab: tab): void {
-    this.activeTab = selectedTab;
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): StationCacheModel[] {
+    return this.sortedStations.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
   }
 
   protected onSearchInput(searchedIds: string[]): void {
@@ -70,8 +82,65 @@ export class ViewStationsComponent implements OnDestroy {
   }
 
   private filterSearchedIds(): void {
-    this.stations = this.searchedIds && this.searchedIds.length > 0 ?
-      this.allStations.filter(item => this.searchedIds.includes(item.id)) : [...this.allStations];
+    this.stations = this.searchedIds?.length > 0
+      ? this.allStations.filter(item => this.searchedIds.includes(item.id))
+      : [...this.allStations];
+    this.sortedStations = [...this.stations];
+    this.applySort();
+    this.updatePaging();
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setTotalRowCount(this.sortedStations.length);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.sortedStations.sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+      if (this.sortColumn === 'latitude') {
+        aVal = a.location?.latitude;
+        bVal = b.location?.latitude;
+      } else if (this.sortColumn === 'longitude') {
+        aVal = a.location?.longitude;
+        bVal = b.location?.longitude;
+      } else {
+        aVal = (a as any)[this.sortColumn];
+        bVal = (b as any)[this.sortColumn];
+      }
+      if (aVal == null && bVal == null) return 0;
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal).localeCompare(String(bVal)) * dir;
+    });
+  }
+
+  protected onAddClick(): void {
+    if (this.isSystemAdmin) {
+      this.dlgStationInput.showDialog();
+    }
+  }
+
+  protected onEditClick(stationId: string): void {
+    if (this.isSystemAdmin) {
+      this.dlgStationInput.showDialog(stationId);
+    }
   }
 
   protected onOptionsClick(option: OptionEnum): void {
@@ -114,6 +183,14 @@ export class ViewStationsComponent implements OnDestroy {
         comment: s.comment || undefined,
       }));
       this.dlgBulkEditStations.showDialog(createModels);
+    }
+  }
+
+  protected onVisualiseClick(option: string): void {
+    if (option === 'Geo Map') {
+      this.showGeoMapDialog = true;
+    } else if (option === 'Tree Map') {
+      this.showTreeMapDialog = true;
     }
   }
 

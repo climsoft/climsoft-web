@@ -1,30 +1,11 @@
 <div class="card border-0">
-  <!-- tab header -->
-  <div class="card-header d-flex justify-content-between align-items-end px-1">
-    <ul class="nav nav-tabs card-header-tabs">
-      <li class="nav-item">
-        <button class="nav-link active" [class.active]="activeTab === 'table'" (click)="onTabClick('table')">
-          Table
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab === 'geomap'" (click)="onTabClick('geomap')">
-          Geo Map
-        </button>
-      </li>
-      <li class="nav-item">
-        <button class="nav-link" [class.active]="activeTab === 'treemap'" (click)="onTabClick('treemap')">
-          Tree Map
-        </button>
-      </li>
-    </ul>
+  <div class="card-header d-flex justify-content-end align-items-end px-1">
     <div class="d-flex align-items-end">
       <div>
         <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="dlgAddStation.showDialog()">
+          (click)="onAddClick()">
           Add
         </button>
-        <app-station-input-dialog #dlgAddStation />
       </div>
       <div>
         <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm ms-2"
@@ -40,11 +21,16 @@
         </button>
         <app-bulk-edit-stations-dialog #dlgBulkEditStations />
       </div>
-      <div *ngIf="activeTab !== 'treemap'" class="ms-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
+      <div class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="stationSearch.showDialog(searchedIds)">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
+      </div>
+      <div class="ms-2">
+        <app-drop-down-button [buttonText]="'Visualise'" [dropDownItems]="visualiseItems"
+          (dropDownOptionClick)="onVisualiseClick($event)" />
       </div>
       <div class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
@@ -55,6 +41,9 @@
         <a [hidden]="true" #stnDownloadLink [href]="downloadLink"></a>
 
       </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
       <div *ngIf="stations" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
         (click)="onSearchInput([])">
         [{{ stations.length | number:'1.0-0' }}]
@@ -62,10 +51,70 @@
     </div>
   </div>
 
-  <!-- selected tab contents -->
   <div class="card-body p-0">
-    <app-view-stations-table *ngIf="activeTab === 'table'" [stations]="stations" />
-    <app-view-stations-geo-map *ngIf="activeTab === 'geomap'" [stations]="stations" />
-    <app-view-stations-tree-map *ngIf="activeTab === 'treemap'" />
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <thead>
+          <tr>
+            <th style="width: 2%;"></th>
+            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Id</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="latitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Latitude</th>
+            <th appSortableHeader="longitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Longitude</th>
+            <th appSortableHeader="elevation" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Elevation</th>
+            <th appSortableHeader="stationObsProcessingMethodName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Obs Method</th>
+            <th appSortableHeader="stationObsEnvironmentName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Environment</th>
+            <th appSortableHeader="stationObsFocusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Focus</th>
+            <th appSortableHeader="ownerName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Owner</th>
+            <th appSortableHeader="operatorName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Operator</th>
+            <th appSortableHeader="wmoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">WMO ID</th>
+            <th appSortableHeader="wigosId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">WIGOS ID</th>
+            <th appSortableHeader="icaoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">ICAO ID</th>
+            <th appSortableHeader="statusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 120px;">Status</th>
+            <th appSortableHeader="dateEstablished" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Date Established</th>
+            <th appSortableHeader="dateClosed" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Date Closed</th>
+            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="app-cursor-pointer" *ngFor="let station of pageItems"
+            (click)="onEditClick(station.id)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td class="text-nowrap">{{ station.id }}</td>
+            <td>{{ station.name }}</td>
+            <td>{{ station.description }}</td>
+            <td>{{ station.location?.latitude ?? '' }}</td>
+            <td>{{ station.location?.longitude ?? '' }}</td>
+            <td>{{ station.elevation ?? '' }}</td>
+            <td>{{ station.stationObsProcessingMethodName }}</td>
+            <td>{{ station.stationObsEnvironmentName }}</td>
+            <td>{{ station.stationObsFocusName }}</td>
+            <td>{{ station.ownerName }}</td>
+            <td>{{ station.operatorName }}</td>
+            <td>{{ station.wmoId }}</td>
+            <td>{{ station.wigosId }}</td>
+            <td>{{ station.icaoId }}</td>
+            <td>{{ station.statusName }}</td>
+            <td class="text-nowrap">{{ station.dateEstablished }}</td>
+            <td class="text-nowrap">{{ station.dateClosed }}</td>
+            <td>{{ station.comment }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <app-station-input-dialog #dlgStationInput />
   </div>
 </div>
+
+<ng-container *ngIf="showGeoMapDialog">
+  <app-dialog [(open)]="showGeoMapDialog" [title]="'Geo Map'">
+    <app-view-stations-geo-map [stations]="stations" [mapHeight]="'70vh'" />
+  </app-dialog>
+</ng-container>
+
+<ng-container *ngIf="showTreeMapDialog">
+  <app-dialog [(open)]="showTreeMapDialog" [title]="'Tree Map'">
+    <app-view-stations-tree-map />
+  </app-dialog>
+</ng-container>
