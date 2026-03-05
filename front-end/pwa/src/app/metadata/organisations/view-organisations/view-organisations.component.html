@@ -5,21 +5,43 @@
       <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
         (click)="onOptionsClicked('Add')">
         Add
-      </button>     
+      </button>
       <div *ngIf="isSystemAdmin" class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked('Delete All')" [offSetRight]="true" />
       </div>
-       <div *ngIf="organisations" class="d-flex mx-2">
-          [{{ organisations.length | number:'1.0-0' }}]
-      </div> 
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
+      <div *ngIf="organisations" class="d-flex mx-2">
+        [{{ organisations.length | number:'1.0-0' }}]
+      </div>
     </div>
   </div>
 
   <div *ngIf="organisations" class="card-body px-0">
-    <app-table-view [clickable]="true"
-      [columnsData]="[ {id: 'name', name: 'Name'} ,  {id: 'description', name: 'Description'} ]"
-      [rowsData]="organisations" (rowDataClicked)="onEditOrganisation($event)" />
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="app-cursor-pointer" *ngFor="let org of pageItems"
+            (click)="onEditOrganisation(org)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ org.name }}</td>
+            <td>{{ org.description }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <app-organisation-input-dialog #dlgOrganisationDetails />

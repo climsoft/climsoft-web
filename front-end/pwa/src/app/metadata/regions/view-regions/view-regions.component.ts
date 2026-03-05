@@ -4,6 +4,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { RegionsCacheService } from '../services/regions-cache.service';
 import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.model';
 import { AppAuthService } from 'src/app/app-auth.service';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import * as L from 'leaflet';
 
 type optionsType = 'Import' | 'Delete All';
@@ -15,12 +16,15 @@ type optionsType = 'Import' | 'Delete All';
 })
 export class ViewRegionsComponent implements OnDestroy {
 
-  protected regions!: ViewRegionModel[];
+  protected regions: ViewRegionModel[] = [];
 
   protected optionClicked: optionsType | undefined;
   protected isSystemAdmin: boolean = false;
   protected showMapDialog = false;
   protected regionMapLayerGroup: L.LayerGroup = L.layerGroup();
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
 
   private destroy$ = new Subject<void>();
 
@@ -45,6 +49,8 @@ export class ViewRegionsComponent implements OnDestroy {
       takeUntil(this.destroy$),
     ).subscribe((data) => {
       this.regions = data;
+      this.applySort();
+      this.updatePaging();
       this.setupMap();
     });
   }
@@ -104,6 +110,42 @@ export class ViewRegionsComponent implements OnDestroy {
 
   private onEachRegionFeature(feature: any, layer: any) {
     layer.bindPopup(`<p>${feature.properties.name} </p>`);
+  }
+
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): ViewRegionModel[] {
+    return this.regions.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.regions.sort((a, b) => {
+      const aVal = (a as any)[this.sortColumn];
+      const bVal = (b as any)[this.sortColumn];
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal ?? '').localeCompare(String(bVal ?? '')) * dir;
+    });
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setTotalRowCount(this.regions.length);
   }
 
 }

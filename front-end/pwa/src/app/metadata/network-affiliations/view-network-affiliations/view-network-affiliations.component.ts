@@ -6,6 +6,7 @@ import { NetworkAffiliationCacheModel, NetworkAffiliationsCacheService } from '.
 import { StationNetworkAffiliationsService } from '../../stations/services/station-network-affiliations.service';
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { NetworkAffiliationInputDialogComponent } from '../network-affiliation-input-dialog/network-affiliation-input-dialog.component';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -21,9 +22,12 @@ interface View extends NetworkAffiliationCacheModel {
 export class ViewNetworkAffiliationsComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
   @ViewChild('dlgNetworkDetails') dlgNetworkDetails!: NetworkAffiliationInputDialogComponent;
-  protected networkAffiliations!: View[];
+  protected networkAffiliations: View[] = [];
   protected selectedNetwork!: View;
   protected isSystemAdmin: boolean = false;
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
 
   private destroy$ = new Subject<void>();
 
@@ -52,6 +56,8 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
       this.networkAffiliations = data.map(item => {
         return { ...item, assignedStations: 0 }
       });
+      this.applySort();
+      this.updatePaging();
 
       // Get number of stations assigned to use form
       this.stationNetworkAffiliationsService.getStationCountPerNetworkAffiliation().pipe(
@@ -109,6 +115,42 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     ).subscribe(data => {
       this.selectedNetwork.assignedStations = data.length;
     });
+  }
+
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): View[] {
+    return this.networkAffiliations.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.networkAffiliations.sort((a, b) => {
+      const aVal = (a as any)[this.sortColumn];
+      const bVal = (b as any)[this.sortColumn];
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal ?? '').localeCompare(String(bVal ?? '')) * dir;
+    });
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setTotalRowCount(this.networkAffiliations.length);
   }
 
 }

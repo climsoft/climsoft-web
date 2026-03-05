@@ -9,6 +9,9 @@
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
       <div *ngIf="sources" class="d-flex mx-2">
         [{{ sources.length | number:'1.0-0' }}]
       </div>
@@ -16,7 +19,7 @@
   </div>
 
   <div class="card-body px-0">
-    <div class="app-table-container" style="height: 80vh;">
+    <div class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -29,15 +32,15 @@
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="sourceTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
             <th>Stations</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let source of sources"
+          <tr class="app-cursor-pointer" *ngFor="let source of pageItems"
             [class.source-disabled]="source.disabled"
             (click)="onEditSource(source)">
             <td><i class="bi bi-arrow-right-short"></i></td>

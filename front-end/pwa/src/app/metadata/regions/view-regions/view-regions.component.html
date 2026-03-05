@@ -1,5 +1,5 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-end align-items-center px-1">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
       <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
         (click)="onOptionsClicked('Import')">
@@ -14,6 +14,9 @@
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
       <div *ngIf="regions" class="d-flex mx-2">
         [{{ regions.length | number:'1.0-0' }}]
       </div>
@@ -22,10 +25,25 @@
     </div>
   </div>
 
-  <div *ngIf="regions" class="card-body p-0">
-    <app-table-view [clickable]="true"
-      [columnsData]="[ {id: 'name', name: 'Name'} , {id: 'regionType', name: 'Type'}, {id: 'description', name: 'Description'} ]"
-      [rowsData]="regions" />
+  <div *ngIf="regions" class="card-body px-0">
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <thead>
+          <tr>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="regionType" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let region of pageItems">
+            <td>{{ region.name }}</td>
+            <td>{{ region.regionType }}</td>
+            <td>{{ region.description }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

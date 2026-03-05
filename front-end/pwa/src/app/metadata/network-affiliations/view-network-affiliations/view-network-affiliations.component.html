@@ -10,6 +10,9 @@
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked('Delete All')" [offSetRight]="true" />
       </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
       <div *ngIf="networkAffiliations" class="d-flex mx-2">
         [{{ networkAffiliations.length | number:'1.0-0' }}]
       </div>
@@ -17,7 +20,7 @@
   </div>
 
   <div class="card-body px-0">
-    <div class="app-table-container" style="height: 80vh;">
+    <div class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -25,13 +28,13 @@
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let network of networkAffiliations"
+          <tr class="app-cursor-pointer" *ngFor="let network of pageItems"
             (click)="onEditNetworkAffiliation(network, $event)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ network.name }}</td>
@@ -50,6 +53,6 @@
   </div>
 
   <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
-  
+
   <app-network-affiliation-input-dialog #dlgNetworkDetails />
 </div>

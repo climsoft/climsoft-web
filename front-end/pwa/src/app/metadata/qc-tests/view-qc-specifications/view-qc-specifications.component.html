@@ -12,9 +12,12 @@
         </button>
         <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
       </div>
-      <div class="ms-2">
+      <div *ngIf="isSystemAdmin" class="ms-2">
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="dropDownItems"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
+      </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
       <div *ngIf="qCSpecifications" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
         (click)="onSearchInput([])">
@@ -24,7 +27,7 @@
   </div>
 
   <div class="card-body px-0">
-    <div class="app-table-container" style="height: 80vh;">
+    <div class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -39,17 +42,17 @@
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Element</th>
-            <th>Level</th>
-            <th>Interval</th>
-            <th>Type</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="elementName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Element</th>
+            <th appSortableHeader="observationLevel" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Level</th>
+            <th appSortableHeader="observationIntervalName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Interval</th>
+            <th appSortableHeader="qcTestTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
             <th>Parameters</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let qcTestParam of qCSpecifications"
+          <tr class="app-cursor-pointer" *ngFor="let qcTestParam of pageItems"
             [class.qc-disabled]="qcTestParam.disabled">
             <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''"><i class="bi bi-arrow-right-short"></i></td>
             <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.name }}</td>
