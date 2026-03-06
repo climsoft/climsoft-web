@@ -8,8 +8,9 @@ import { StringUtils } from 'src/app/shared/utils/string.utils';
   styleUrls: ['./station-status-selector-single.component.scss']
 })
 export class StationStatusSelectorSingleComponent implements OnChanges {
-  @Input() public label: string = 'Status';
-  @Input() public errorMessage: string = '';
+  @Input() public id!: string;
+  @Input() public label!: string;
+  @Input() public errorMessage!: string;
   @Input() public includeOnlyIds!: StationStatusEnum[];
   @Input() public selectedId!: StationStatusEnum | undefined;
   @Output() public selectedIdChange = new EventEmitter<StationStatusEnum | undefined>();
@@ -17,9 +18,6 @@ export class StationStatusSelectorSingleComponent implements OnChanges {
   protected options!: StationStatusEnum[];
   protected selectedOption!: StationStatusEnum | null;
 
-  constructor() {
-
-  }
 
   ngOnChanges(changes: SimpleChanges): void {
 

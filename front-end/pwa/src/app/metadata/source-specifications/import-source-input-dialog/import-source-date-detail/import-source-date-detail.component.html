@@ -1,0 +1,111 @@
+<div *ngIf="datetimeDefinition">
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'dateDefinition'" [groupItems]="[
+        { label:'Date Time in Single Column', checked: datetimeDefinition.dateTimeInSingleColumn !== undefined},
+        { label:'Date in Single Column', checked: datetimeDefinition.dateInSingleColumn !== undefined},
+        { label:'Date Time in Two Columns', checked: datetimeDefinition.dateTimeInTwoColumns !== undefined},
+        { label:'Date Time in Multiple Columns', checked: datetimeDefinition.dateTimeInMultipleColumns !== undefined},
+        { label:'Date in Multiple Columns', checked: datetimeDefinition.dateInMultipleColumns !== undefined}]"
+        (checkedValueChange)="onDatetimeSelection($event)" />
+
+    <div class="ms-4">
+
+        <div *ngIf="datetimeDefinition.dateTimeInSingleColumn !== undefined">
+            <div class="mb-2">
+                <app-number-input [id]="'date_time_single_col_pos'" [label]="'Column Position'"
+                    [(numValue)]="datetimeDefinition.dateTimeInSingleColumn.columnPosition" />
+            </div>
+            <div>
+                <app-datetime-format-selector-single [id]="'date_time_single_time_format'" [label]="'Date time format'"
+                    [(selectedId)]="datetimeDefinition.dateTimeInSingleColumn.datetimeFormat" />
+            </div>
+        </div>
+
+        <div *ngIf="datetimeDefinition.dateInSingleColumn !== undefined">
+            <div class="mb-2">
+                <app-number-input [id]="'date_single_col_pos'" [label]="'Column Position'"
+                    [(numValue)]="datetimeDefinition.dateInSingleColumn.columnPosition" />
+            </div>
+            <div class="mb-2">
+                <app-date-format-selector-single [id]="'date_single_date_format'" [label]="'Date format'"
+                    [(selectedId)]="datetimeDefinition.dateInSingleColumn.dateFormat" />
+            </div>
+            <div>
+                <app-hour-single-input [id]="'date_single_default_hour'" [label]="'Default Hour'"
+                    [selectedId]="datetimeDefinition.dateInSingleColumn.defaultHour"
+                    (selectedIdChange)="datetimeDefinition.dateInSingleColumn.defaultHour = $event ?? 0" />
+            </div>
+        </div>
+
+        <div *ngIf="datetimeDefinition.dateTimeInTwoColumns !== undefined">
+            <div class="mb-3">
+                <div class="mb-2">
+                    <app-number-input [id]="'date_time_two_date_col_pos'" [label]="'Date Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInTwoColumns.dateColumnPosition" />
+                </div>
+                <div>
+                    <app-date-format-selector-single [id]="'date_time_two_date_format'" [label]="'Date format'"
+                        [(selectedId)]="datetimeDefinition.dateTimeInTwoColumns.dateFormat" />
+                </div>
+            </div>
+            <div>
+                <div class="mb-2">
+                    <app-number-input [id]="'date_time_two_time_col_pos'" [label]="'Time Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInTwoColumns.timeColumnPosition" />
+                </div>
+                <div>
+                    <app-time-format-selector-single [id]="'date_time_two_time_format'" [label]="'Time format'"
+                        [(selectedId)]="datetimeDefinition.dateTimeInTwoColumns.timeFormat" />
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="datetimeDefinition.dateTimeInMultipleColumns !== undefined">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <app-number-input [id]="'date_time_multiple_year_col_pos'" [label]="'Year Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.yearColumnPosition" />
+                </div>
+                <div class="col-md-4 mb-2">
+                    <app-number-input [id]="'date_time_multiple_month_col_pos'" [label]="'Month Column Position'"
+                        [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.monthColumnPosition" />
+                </div>
+                <div class="col-md-4 mb-2">
+                    <app-text-input [id]="'date_time_multiple_day_col_pos'" [label]="'Day Column Position'"
+                        [(value)]="datetimeDefinition.dateTimeInMultipleColumns.dayColumnPosition" />
+                </div>
+            </div>
+            <div class="mb-2">
+                <app-number-input [id]="'date_time_multiple_time_col_pos'" [label]="'Time Column Position'"
+                    [(numValue)]="datetimeDefinition.dateTimeInMultipleColumns.timeColumnPosition" />
+            </div>
+            <div>
+                <app-time-format-selector-single [id]="'date_time_multiple_time_format'" [label]="'Time format'"
+                    [(selectedId)]="datetimeDefinition.dateTimeInMultipleColumns.timeFormat" />
+            </div>
+        </div>
+
+        <div *ngIf="datetimeDefinition.dateInMultipleColumns !== undefined">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <app-number-input [id]="'date_multiple_year_col_pos'" [label]="'Year Column Position'"
+                        [(numValue)]="datetimeDefinition.dateInMultipleColumns.yearColumnPosition" />
+                </div>
+                <div class="col-md-4 mb-2">
+                    <app-number-input [id]="'date_multiple_month_col_pos'" [label]="'Month Column Position'"
+                        [(numValue)]="datetimeDefinition.dateInMultipleColumns.monthColumnPosition" />
+                </div>
+                <div class="col-md-4 mb-2">
+                    <app-text-input [id]="'date_multiple_day_col_pos'" [label]="'Day Column Position'"
+                        [(value)]="datetimeDefinition.dateInMultipleColumns.dayColumnPosition" />
+                </div>
+            </div>
+            <div>
+                <app-hour-single-input [id]="'date_multiple_default_hour'" [label]="'Default Hour'"
+                    [selectedId]="datetimeDefinition.dateInMultipleColumns.defaultHour"
+                    (selectedIdChange)="datetimeDefinition.dateInMultipleColumns.defaultHour = $event ?? 0" />
+            </div>
+        </div>
+
+    </div>
+
+</div>

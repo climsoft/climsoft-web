@@ -19,20 +19,22 @@ export class ElementEntity extends AppBaseEntity {
   description: string | null;
 
   @Column({ type: "varchar", name: "units", nullable: true })
-  units: string;
+  units: string | null;
 
   //---------------------------
-  @Column({ type: "int", name: "type_id" })
+  @Column({ type: "int", name: "type_id", nullable: true })
   @Index()
-  typeId: number;
+  typeId: number | null;
   // ManyToOne relationship with ElementTypeEntity
   @ManyToOne(() => ElementTypeEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "type_id" })
-  elementType: ElementTypeEntity;
+  elementType: ElementTypeEntity | null;
   //---------------------------
 
   @Column({ type: "int", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
+
+  // TODO. Add a `entry_digits` column that will be used for re-inforcing the number of digits that an entry clerk has to type in.
 
   @Column({ type: "varchar", name: "comment", nullable: true })
   comment: string | null;

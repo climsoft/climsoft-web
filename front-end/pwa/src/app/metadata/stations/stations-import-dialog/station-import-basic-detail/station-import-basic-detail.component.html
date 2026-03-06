@@ -1,0 +1,24 @@
+<div>
+    <div class="mb-3">
+        <app-number-input [label]="'Id Column Position *'" [(numValue)]="mapping.idColumnPosition" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Name Column Position *'" [(numValue)]="mapping.nameColumnPosition" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Description Column Position'" [value]="mapping.descriptionColumnPosition"
+            (valueChange)="onDescriptionChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Latitude Column Position'" [value]="mapping.latitudeColumnPosition"
+            (valueChange)="onLatitudeChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Longitude Column Position'" [value]="mapping.longitudeColumnPosition"
+            (valueChange)="onLongitudeChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Elevation Column Position'" [value]="mapping.elevationColumnPosition"
+            (valueChange)="onElevationChange($event)" [min]="1" />
+    </div>
+</div>

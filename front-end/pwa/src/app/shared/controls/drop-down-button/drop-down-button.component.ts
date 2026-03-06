@@ -10,7 +10,7 @@ export class DropDownButtonComponent<T extends string> {
   @Input() public dropDownItems!: T[];
   @Input() public offSetRight: boolean = true;
   @Input() public maxHeight: number = 200;
-  @Output()  public dropDownOptionClick = new EventEmitter<T>();
+  @Output() public dropDownOptionClick = new EventEmitter<T>();
 
   protected displayDropDown: boolean = false;
 

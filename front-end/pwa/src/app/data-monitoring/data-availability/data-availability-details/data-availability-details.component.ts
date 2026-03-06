@@ -5,7 +5,7 @@ import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/page
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
 import { DataAvailabilityDetailsQueryModel } from '../models/data-availability-details-query.model';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Intervals.util';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { DataAvailabilityFilterModel } from '../data-availability-filter-selection-general/data-availability-filter-selection-general.component';
  

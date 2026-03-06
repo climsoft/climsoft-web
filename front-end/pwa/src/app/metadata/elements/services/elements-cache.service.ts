@@ -33,7 +33,7 @@ export interface ElementCacheModel {
 export class ElementsCacheService {
     private endPointUrl: string;
     private readonly _cachedElements: BehaviorSubject<ElementCacheModel[]> = new BehaviorSubject<ElementCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(
@@ -59,15 +59,15 @@ export class ElementsCacheService {
                     id: element.id,
                     abbreviation: element.abbreviation,
                     name: element.name,
-                    description: element.description,
-                    units: element.units,
-                    typeId: element.typeId,
+                    description: element.description || '',
+                    units: element.units || '',
+                    typeId: element.typeId || 0,
                     typeName: elementType ? elementType.name : '',
                     subdomainId: (elementSubdomain ? elementSubdomain.id : 0),
                     subdomainName: elementSubdomain ? elementSubdomain.name : '',
                     domain: domain,
                     domainName: StringUtils.formatEnumForDisplay(domain),
-                    entryScaleFactor: element.entryScaleFactor,
+                    entryScaleFactor: element.entryScaleFactor || 1, // should never be zero
                     comment: element.comment ? element.comment : '',
                 }
             );
@@ -122,6 +122,15 @@ export class ElementsCacheService {
                 return response.find(item => item.id === id);
             })
         );
+    }
+
+    public bulkPut(items: CreateViewElementModel[]): Observable<void> {
+        return this.http.put<void>(`${this.endPointUrl}/bulk`, items)
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+            );
     }
 
     public add(createDto: CreateViewElementModel): Observable<CreateViewElementModel> {

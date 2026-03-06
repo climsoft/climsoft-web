@@ -1,17 +1,19 @@
-import { IsEnum, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsOptional, IsString, ValidateNested } from "class-validator";
 import { ImportSourceTabularParamsDto } from "./import-source-tabular-params.dto";
+import { Type } from "class-transformer";
 
 export enum DataStructureTypeEnum {
-    TABULAR = "tabular",
-    KEY_VALUE = "key_value",
-    BUFR = "bufr",
+    TABULAR = 'tabular',
+    KEY_VALUE = 'key_value',
 }
 
-export class ImportSourceDto  {
+export class ImportSourceDto {
     @IsEnum(DataStructureTypeEnum, { message: 'Data structure type must be valid' })
     dataStructureType: DataStructureTypeEnum;
 
-    @IsOptional() // TODO. Validate nested
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => ImportSourceTabularParamsDto) // In future this should support others like key value which is used for http oriented data exchanges
     dataStructureParameters: ImportSourceTabularParamsDto;
 
     /**
@@ -20,6 +22,6 @@ export class ImportSourceDto  {
      * Multiple missing values should be separated by commas. This means commas are not supported.
      */
     @IsString()
-    sourceMissingValueFlags: string;
+    sourceMissingValueIndicators: string;
 }
 

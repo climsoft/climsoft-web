@@ -1,304 +1,203 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
+import { StationImportTransformer } from './station-import-transformer';
 import { StationsService } from './stations.service';
-import { CreateStationDto } from '../dtos/create-station.dto';
-import { StationObsEnvService } from './station-obs-env.service';
-import { StationObsFocusesService } from './station-obs-focuses.service';
-import { StationStatusEnum } from '../enums/station-status.enum';
-import { StationObsProcessingMethodEnum } from '../enums/station-obs-processing-method.enum';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
+import * as path from 'node:path';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class StationsImportExportService {
-    private readonly ID_PROPERTY: keyof CreateStationDto = "id";
-    private readonly NAME_PROPERTY: keyof CreateStationDto = "name";
-    private readonly DESCRIPTION_PROPERTY: keyof CreateStationDto = "description";
-    private readonly LATITUDE_PROPERTY: keyof CreateStationDto = "latitude";
-    private readonly LONGITUDE_PROPERTY: keyof CreateStationDto = "longitude";
-    private readonly ELEVATION_PROPERTY: keyof CreateStationDto = "elevation";
-    private readonly OBS_PROC_METHOD_PROPERTY: keyof CreateStationDto = "stationObsProcessingMethod";
-    private readonly OBS_ENVIRONMENT_ID_PROPERTY: keyof CreateStationDto = "stationObsEnvironmentId";
-    private readonly OBS_FOCUS_ID_PROPERTY: keyof CreateStationDto = "stationObsFocusId";
-    private readonly WMO_ID_PROPERTY: keyof CreateStationDto = "wmoId";
-    private readonly WIGOS_ID_PROPERTY: keyof CreateStationDto = "wigosId";
-    private readonly ICAO_ID_PROPERTY: keyof CreateStationDto = "icaoId";
-    private readonly STATUS_PROPERTY: keyof CreateStationDto = "status";
-    private readonly DATE_ESTABLISHED_PROPERTY: keyof CreateStationDto = "dateEstablished";
-    private readonly DATE_CLOSED_PROPERTY: keyof CreateStationDto = "dateClosed";
-    private readonly COMMENT_PROPERTY: keyof CreateStationDto = "comment";
+    private readonly logger: Logger = new Logger(StationsImportExportService.name);
 
     constructor(
         private fileIOService: FileIOService,
-        private stationService: StationsService,
-        private stationObsEnvService: StationObsEnvService,
-        private stationObsFocusService: StationObsFocusesService,
+        private dataSource: DataSource,
+        private stationsService: StationsService,
     ) { }
 
-    public async import(file: Express.Multer.File, userId: number) {
-        const tmpTableName = `stations_upload_user_${userId}_${new Date().getTime()}`;
-        const tmpFilePathName: string = `${this.fileIOService.apiImportsDir}/${tmpTableName}.csv`;
-        // Save the file to the temporary directory
-        await this.fileIOService.saveFile(file, tmpFilePathName);
+    /**
+     * Import processed CSV file to database using PostgreSQL COPY command.
+     * Uses a staging table approach to handle duplicates efficiently.
+     * The file is expected to contain columns matching StationImportTransformer.ALL_COLUMNS.
+     */
+    public async importProcessedFileToDatabase(filePathName: string): Promise<void> {
+        const startTime = Date.now();
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
+            this.logger.log(`Importing file ${path.basename(filePathName)} into database`);
+            const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(filePathName));
 
-            // Read csv to duckdb and create table.
-            await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
+            const stagingTableName = `stn_staging_${Date.now()}`;
 
-            // Make sure there are no empty ids and names
-            //await this.validateIdAndNameValues(tmpStationTableName);
+            // Step 1: Create temporary staging table (no constraints for fast COPY)
+            const createStagingTableQuery = `
+                CREATE TEMP TABLE ${stagingTableName} (
+                    ${StationImportTransformer.ID_PROPERTY} VARCHAR NOT NULL,
+                    ${StationImportTransformer.NAME_PROPERTY} VARCHAR NOT NULL,
+                    ${StationImportTransformer.DESCRIPTION_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.OBS_PROC_METHOD_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.LATITUDE_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.LONGITUDE_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.ELEVATION_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY} INTEGER,
+                    ${StationImportTransformer.OBS_FOCUS_ID_PROPERTY} INTEGER,
+                    ${StationImportTransformer.OWNER_ID_PROPERTY} INTEGER,
+                    ${StationImportTransformer.OPERATOR_ID_PROPERTY} INTEGER,
+                    ${StationImportTransformer.WMO_ID_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.WIGOS_ID_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.ICAO_ID_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.STATUS_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.DATE_ESTABLISHED_PROPERTY} TIMESTAMPTZ,
+                    ${StationImportTransformer.DATE_CLOSED_PROPERTY} TIMESTAMPTZ,
+                    ${StationImportTransformer.COMMENT_PROPERTY} VARCHAR,
+                    ${StationImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER NOT NULL
+                ) ON COMMIT DROP;
+            `;
 
-            let alterSQLs: string;
-            // Rename all columns to use the expected suffix column indices
-            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDbConn, tmpTableName);
+            await queryRunner.query(createStagingTableQuery);
 
-            alterSQLs = alterSQLs + this.getAlterIdColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterNameColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterDescriptionColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterObsProcMethodColumnSQL(tmpTableName)
-            alterSQLs = alterSQLs + this.getAlterLatLongElevationColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + await this.getAlterObsEnvColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + await this.getAlterObsFocusColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterWMO_WIGOS_ICAO_IDSColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterStatusColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlter_Established_Closed_DatesColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterCommentsColumnSQL(tmpTableName);
+            // Step 2: COPY data into staging table
+            const allColumns = StationImportTransformer.ALL_COLUMNS.join(', ');
+            const copyQuery = `
+                COPY ${stagingTableName} (${allColumns})
+                FROM '${dbFilePathName}'
+                WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+            `;
 
-            // Execute the duckdb DDL SQL commands
-            await this.fileIOService.duckDbConn.run(alterSQLs);
+            await queryRunner.query(copyQuery);
 
-            //check for duplicate ids
-            const duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ID_PROPERTY);
-            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
-            //check for duplicate names
-            // duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.NAME_PROPERTY);
-            // if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
+            // Step 3: Insert from staging to stations with ON CONFLICT handling.
+            // Latitude and longitude are converted to a PostGIS Point geometry on insert.
+            // Enum columns are cast to their PostgreSQL enum types.
+            const upsertQuery = `
+                INSERT INTO stations (
+                    ${StationImportTransformer.ID_PROPERTY},
+                    ${StationImportTransformer.NAME_PROPERTY},
+                    ${StationImportTransformer.DESCRIPTION_PROPERTY},
+                    ${StationImportTransformer.OBS_PROC_METHOD_PROPERTY},
+                    location,
+                    ${StationImportTransformer.ELEVATION_PROPERTY},
+                    ${StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY},
+                    ${StationImportTransformer.OBS_FOCUS_ID_PROPERTY},
+                    ${StationImportTransformer.OWNER_ID_PROPERTY},
+                    ${StationImportTransformer.OPERATOR_ID_PROPERTY},
+                    ${StationImportTransformer.WMO_ID_PROPERTY},
+                    ${StationImportTransformer.WIGOS_ID_PROPERTY},
+                    ${StationImportTransformer.ICAO_ID_PROPERTY},
+                    ${StationImportTransformer.STATUS_PROPERTY},
+                    ${StationImportTransformer.DATE_ESTABLISHED_PROPERTY},
+                    ${StationImportTransformer.DATE_CLOSED_PROPERTY},
+                    ${StationImportTransformer.COMMENT_PROPERTY},
+                    ${StationImportTransformer.ENTRY_USER_ID_PROPERTY}
+                )
+                SELECT
+                    ${StationImportTransformer.ID_PROPERTY},
+                    ${StationImportTransformer.NAME_PROPERTY},
+                    ${StationImportTransformer.DESCRIPTION_PROPERTY},
+                    ${StationImportTransformer.OBS_PROC_METHOD_PROPERTY}::stations_observation_processing_method_enum,
+                    CASE WHEN ${StationImportTransformer.LATITUDE_PROPERTY} IS NOT NULL AND ${StationImportTransformer.LONGITUDE_PROPERTY} IS NOT NULL
+                        THEN ST_SetSRID(ST_MakePoint(${StationImportTransformer.LONGITUDE_PROPERTY}::DOUBLE PRECISION, ${StationImportTransformer.LATITUDE_PROPERTY}::DOUBLE PRECISION), 4326)
+                        ELSE NULL END,
+                    ${StationImportTransformer.ELEVATION_PROPERTY}::DOUBLE PRECISION,
+                    ${StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY},
+                    ${StationImportTransformer.OBS_FOCUS_ID_PROPERTY},
+                    ${StationImportTransformer.OWNER_ID_PROPERTY},
+                    ${StationImportTransformer.OPERATOR_ID_PROPERTY},
+                    ${StationImportTransformer.WMO_ID_PROPERTY},
+                    ${StationImportTransformer.WIGOS_ID_PROPERTY},
+                    ${StationImportTransformer.ICAO_ID_PROPERTY},
+                    ${StationImportTransformer.STATUS_PROPERTY}::stations_status_enum,
+                    ${StationImportTransformer.DATE_ESTABLISHED_PROPERTY},
+                    ${StationImportTransformer.DATE_CLOSED_PROPERTY},
+                    ${StationImportTransformer.COMMENT_PROPERTY},
+                    ${StationImportTransformer.ENTRY_USER_ID_PROPERTY}
+                FROM ${stagingTableName}
+                ON CONFLICT (${StationImportTransformer.ID_PROPERTY})
+                DO UPDATE SET
+                    ${StationImportTransformer.NAME_PROPERTY} = EXCLUDED.${StationImportTransformer.NAME_PROPERTY},
+                    ${StationImportTransformer.DESCRIPTION_PROPERTY} = EXCLUDED.${StationImportTransformer.DESCRIPTION_PROPERTY},
+                    ${StationImportTransformer.OBS_PROC_METHOD_PROPERTY} = EXCLUDED.${StationImportTransformer.OBS_PROC_METHOD_PROPERTY},
+                    location = EXCLUDED.location,
+                    ${StationImportTransformer.ELEVATION_PROPERTY} = EXCLUDED.${StationImportTransformer.ELEVATION_PROPERTY},
+                    ${StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.OBS_ENVIRONMENT_ID_PROPERTY},
+                    ${StationImportTransformer.OBS_FOCUS_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.OBS_FOCUS_ID_PROPERTY},
+                    ${StationImportTransformer.OWNER_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.OWNER_ID_PROPERTY},
+                    ${StationImportTransformer.OPERATOR_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.OPERATOR_ID_PROPERTY},
+                    ${StationImportTransformer.WMO_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.WMO_ID_PROPERTY},
+                    ${StationImportTransformer.WIGOS_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.WIGOS_ID_PROPERTY},
+                    ${StationImportTransformer.ICAO_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.ICAO_ID_PROPERTY},
+                    ${StationImportTransformer.STATUS_PROPERTY} = EXCLUDED.${StationImportTransformer.STATUS_PROPERTY},
+                    ${StationImportTransformer.DATE_ESTABLISHED_PROPERTY} = EXCLUDED.${StationImportTransformer.DATE_ESTABLISHED_PROPERTY},
+                    ${StationImportTransformer.DATE_CLOSED_PROPERTY} = EXCLUDED.${StationImportTransformer.DATE_CLOSED_PROPERTY},
+                    ${StationImportTransformer.COMMENT_PROPERTY} = EXCLUDED.${StationImportTransformer.COMMENT_PROPERTY},
+                    ${StationImportTransformer.ENTRY_USER_ID_PROPERTY} = EXCLUDED.${StationImportTransformer.ENTRY_USER_ID_PROPERTY};
+            `;
 
-            // Get all the data imported
-            const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT ${this.ID_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.OBS_PROC_METHOD_PROPERTY}, ${this.LATITUDE_PROPERTY}, ${this.LONGITUDE_PROPERTY}, ${this.ELEVATION_PROPERTY}, ${this.OBS_ENVIRONMENT_ID_PROPERTY}, ${this.OBS_FOCUS_ID_PROPERTY}, ${this.WMO_ID_PROPERTY}, ${this.WIGOS_ID_PROPERTY}, ${this.ICAO_ID_PROPERTY}, ${this.STATUS_PROPERTY}, ${this.DATE_ESTABLISHED_PROPERTY}, ${this.DATE_CLOSED_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
-            const rows = reader.getRowObjects() as any[];
+            await queryRunner.query(upsertQuery);
 
-            // Delete the stations table
-            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
+            // Step 4: Commit transaction - staging table is automatically dropped (ON COMMIT DROP)
+            await queryRunner.commitTransaction();
+            await this.stationsService.invalidateCache();
 
-            // Save the stations
-            await this.stationService.bulkPut(rows as CreateStationDto[], userId);
+            this.logger.log(`Successfully imported ${path.basename(filePathName)} into database`);
 
         } catch (error) {
-            console.error("File Import Failed: ", error)
-            throw new BadRequestException("Error: File Import Failed: " + error.message);
+            await queryRunner.rollbackTransaction();
+
+            let errorMessage = error instanceof Error ? error.message : String(error);
+            errorMessage = `Database import failed for ${path.basename(filePathName)}: ${errorMessage}`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
         } finally {
-            this.fileIOService.deleteFile(tmpFilePathName);
+            await queryRunner.release();
         }
-    }
 
-    private getAlterIdColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column0 TO ${this.ID_PROPERTY};`;
-
-        // null ids not allowed
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ID_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private getAlterNameColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column1 TO ${this.NAME_PROPERTY};`;
-
-        // null names not allowed 
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.NAME_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private getAlterDescriptionColumnSQL(tableName: string): string {
-        return `ALTER TABLE ${tableName} RENAME column2 TO ${this.DESCRIPTION_PROPERTY};`;
-    }
-
-    private getAlterObsProcMethodColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column3 TO ${this.OBS_PROC_METHOD_PROPERTY};`;
-
-        // Convert all contents to lower case
-        sql = sql + `UPDATE ${tableName} SET ${this.OBS_PROC_METHOD_PROPERTY} = lower(${this.OBS_PROC_METHOD_PROPERTY});`;
-
-        // Get rows that have supported observation processing method only
-        const obsProcMethods = Object.values(StationObsProcessingMethodEnum).map(item => {
-            return { sourceId: item, databaseId: item };
-        });
-        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.OBS_PROC_METHOD_PROPERTY, obsProcMethods, true);
-
-        return sql;
-    }
-
-    private getAlterLatLongElevationColumnSQL(tableName: string): string {
-        let sql: string = '';
-
-        // Latitude
-        sql = sql + `ALTER TABLE ${tableName} RENAME column4 TO ${this.LATITUDE_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.LATITUDE_PROPERTY} TYPE DOUBLE;`;
-
-        // Longitude
-        sql = sql + `ALTER TABLE ${tableName} RENAME column5 TO ${this.LONGITUDE_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.LONGITUDE_PROPERTY} TYPE DOUBLE;`;
-
-        // Elevation
-        sql = sql + `ALTER TABLE ${tableName} RENAME column6 TO ${this.ELEVATION_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ELEVATION_PROPERTY} TYPE DOUBLE;`;
-
-        return sql;
-    }
-
-    private async getAlterObsEnvColumnSQL(tableName: string): Promise<string> {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column7 TO ${this.OBS_ENVIRONMENT_ID_PROPERTY};`;
-
-        // Convert all contents to lower case
-        sql = sql + `UPDATE ${tableName} SET ${this.OBS_ENVIRONMENT_ID_PROPERTY} = lower(${this.OBS_ENVIRONMENT_ID_PROPERTY});`;
-
-        // Get rows that have supported observation environment and nulls only
-        const obsEnv = (await this.stationObsEnvService.find()).map(item => {
-            return { sourceId: item.name.toLowerCase(), databaseId: item.id };
-        });
-        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.OBS_ENVIRONMENT_ID_PROPERTY, obsEnv, false);
-
-        return sql;
-    }
-
-    private async getAlterObsFocusColumnSQL(tableName: string): Promise<string> {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column8 TO ${this.OBS_FOCUS_ID_PROPERTY};`;
-
-        // Convert all contents to lower case
-        sql = sql + `UPDATE ${tableName} SET ${this.OBS_FOCUS_ID_PROPERTY} = lower(${this.OBS_FOCUS_ID_PROPERTY});`;
-
-        // Get rows that have supported observation focus and nulls only
-        const obsFocus = (await this.stationObsFocusService.find()).map(item => {
-            return { sourceId: item.name.toLowerCase(), databaseId: item.id };
-        });
-        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.OBS_FOCUS_ID_PROPERTY, obsFocus, false);
-
-        return sql;
-    }
-
-    private getAlterWMO_WIGOS_ICAO_IDSColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column9 TO ${this.WMO_ID_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} RENAME column10 TO ${this.WIGOS_ID_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} RENAME column11 TO ${this.ICAO_ID_PROPERTY};`;
-
-        return sql;
-    }
-
-    private getAlterStatusColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column12 TO ${this.STATUS_PROPERTY};`;
-
-        // Convert all contents to lower case
-        sql = sql + `UPDATE ${tableName} SET ${this.STATUS_PROPERTY} = lower(${this.STATUS_PROPERTY});`;
-
-        // Get rows that have supported status and nulls only
-        const statuses = Object.values(StationStatusEnum).map(item => {
-            return { sourceId: item, databaseId: item };
-        });
-        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.STATUS_PROPERTY, statuses, false);
-
-        return sql;
-    }
-
-    private getAlter_Established_Closed_DatesColumnSQL(tableName: string): string {
-        let sql: string = '';
-
-        // Rename the date columns
-        sql = sql + `ALTER TABLE ${tableName} RENAME column13 TO ${this.DATE_ESTABLISHED_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} RENAME column14 TO ${this.DATE_CLOSED_PROPERTY};`;
-
-        // Format the strings to javascript expected iso format e.g `1981-01-01T06:00:00.000Z`
-        sql = sql + `UPDATE ${tableName} SET ${this.DATE_ESTABLISHED_PROPERTY} = strftime(${this.DATE_ESTABLISHED_PROPERTY}::DATE, '%Y-%m-%dT%H:%M:%S.%g') || 'Z' WHERE ${this.DATE_ESTABLISHED_PROPERTY} IS NOT NULL;`;
-        sql = sql + `UPDATE ${tableName} SET ${this.DATE_CLOSED_PROPERTY} = strftime(${this.DATE_CLOSED_PROPERTY}::DATE, '%Y-%m-%dT%H:%M:%S.%g') || 'Z' WHERE ${this.DATE_CLOSED_PROPERTY} IS NOT NULL;`;
-
-        return sql;
-    }
-
-    private getAlterCommentsColumnSQL(tableName: string): string {
-        return `ALTER TABLE ${tableName} RENAME column15 TO ${this.COMMENT_PROPERTY};`;
+        this.logger.log(`PostgreSQL import took ${Date.now() - startTime} milliseconds`);
     }
 
     //------------------------------------
     // EXPORT FUNCTIONAILTY
 
     public async export(userId: number): Promise<string> {
+        const tmpTableName = `stations_download_user_${userId}_${Date.now()}`;
+        const dbFilePathName = path.posix.join(this.fileIOService.dbExportsDir, `${tmpTableName}.csv`);
+        const apiFilePathName = path.posix.join(this.fileIOService.apiExportsDir, `${tmpTableName}.csv`);
+
         try {
-            const allStations = await this.stationService.find();
-            const allStationObsEnv = await this.stationObsEnvService.find();
-            const allStationObsFocus = await this.stationObsFocusService.find();
+            await this.dataSource.query(`
+                COPY (
+                    SELECT
+                        st.id,
+                        st.name,
+                        st.description,
+                        st.observation_processing_method,
+                        ST_Y(st.location) AS latitude,
+                        ST_X(st.location) AS longitude,
+                        st.elevation,
+                        LOWER(env.name) AS observation_environment,
+                        LOWER(foc.name) AS observation_focus,
+                        st.wmo_id,
+                        st.wigos_id,
+                        st.icao_id,
+                        st.status,
+                        st.date_established::date AS date_established,
+                        st.date_closed::date AS date_closed,
+                        st.comment
+                    FROM stations st
+                    LEFT JOIN station_observation_environments env ON st.observation_environment_id = env.id
+                    LEFT JOIN station_observation_focuses foc ON st.observation_focus_id = foc.id
+                    ORDER BY st.id ASC
+                ) TO '${dbFilePathName}' WITH (FORMAT csv, HEADER true, DELIMITER ',');
+            `);
 
-            const tmpTableName = `stations_download_user_${userId}_${new Date().getTime()}`;
-            const createTableAndInserSQLs = this.getCreateTableAndInsertSQL(tmpTableName);
-
-            // Create a DuckDB table for stations
-            await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.createTable);
-
-            // Insert the data into DuckDB
-            for (const station of allStations) {
-                const stationObsEnv = allStationObsEnv.find(item => item.id === station.stationObsEnvironmentId);
-                const stationObsFocus = allStationObsFocus.find(item => item.id === station.stationObsFocusId);
-
-                await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.insert, {
-                    1: station.id,
-                    2: station.name,
-                    3: station.description || '',
-                    4: station.stationObsProcessingMethod,
-                    5: station.latitude || '',
-                    6: station.longitude || '',
-                    7: station.elevation || '',
-                    8: stationObsEnv?.name.toLowerCase() || '',
-                    9: stationObsFocus?.name.toLowerCase() || '',
-                    10: station.wmoId || '',
-                    11: station.wigosId || '',
-                    12: station.icaoId || '',
-                    13: station.status || '',
-                    14: station.dateEstablished?.substring(0, 10) || '',
-                    15: station.dateClosed?.substring(0, 10) || '',
-                    16: station.comment || ''
-                });
-            }
-
-            // Export the DuckDB data into a CSV file
-            const filePathName: string = `${this.fileIOService.apiExportsDir}/${tmpTableName}.csv`;
-            await this.fileIOService.duckDbConn.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
-
-            // Delete the stations table
-            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
-
-            // Return the path of the generated CSV file
-            return filePathName;
+            return apiFilePathName;
         } catch (error) {
-            console.error("Stations Export Failed: ", error);
-            throw new BadRequestException("File export Failed");
+            this.logger.error('Stations Export Failed: ', error);
+            throw new BadRequestException('File export Failed');
         }
-
     }
-
-    private getCreateTableAndInsertSQL(tableName: string): { createTable: string, insert: string } {
-        const fields: string[] = [
-            'id', 'name', 'description', 'observation_processing_method',
-            'latitude', 'longitude', 'elevation',
-            'observation_environment', 'observation_focus',
-            'wmo_id', 'wigos_id', 'icao_id',
-            'status', 'date_established', 'date_closed',
-            'comment'
-        ];
-
-        const createColumns = fields.map(item => `${item} VARCHAR`).join(', ');
-        const insertColumns = fields.join(', ');
-        const placeholders = fields.map(() => '?').join(', ');
-
-        const createTableSQL = `  CREATE OR REPLACE TABLE ${tableName} (${createColumns}); `;
-        const insertSQL = `INSERT INTO ${tableName} (${insertColumns}) VALUES (${placeholders});`;
-
-        return { createTable: createTableSQL, insert: insertSQL };
-    }
-
-
 
 }

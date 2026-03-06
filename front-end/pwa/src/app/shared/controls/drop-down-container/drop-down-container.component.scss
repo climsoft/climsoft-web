@@ -1,22 +1,11 @@
-.custom-drop-down {
+.drop-down-container {
     position: absolute;
     overflow: auto;
-    /* Show dropdown on top of other content */
-    z-index: 1003; // Use 10003 instead of say 10002 because of leaflet and components on leaflet
-    //transform: translate(-50%, 1%);
+    z-index: 1003;   /* Show dropdown on top of other content. Use 10003 instead of say 10002 because of leaflet and components on leaflet */
     min-width: 100%;
 }
 
-.min-w-100 {
-    min-width: 100%;
+/* Used by drop downs that are located in the far right end */
+.right-offset-drop-down-container {
+    right: 10px;
 }
-
-// .translate-x {
-//     // TODO. 
-//     // Y axis translation done for drop down buttons
-//     // Investigate why the drop down used in the text control doesn't need to be translated on the y axis.
-
-//     // X translations necessar for drop buttons that are tlocated at the far right end.
-//     // Helps to put them within the viewable port
-//     translate: -50% 1%;
-// }

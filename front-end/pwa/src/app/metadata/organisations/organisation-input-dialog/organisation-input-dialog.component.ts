@@ -36,7 +36,8 @@ export class OrganisationInputDialogComponent implements OnDestroy {
       this.organisationsCacheService.findOne(organisationId).pipe(
         takeUntil(this.destroy$)
       ).subscribe((data) => {
-        if (data) this.viewOrganisation = data;
+        if (!data) throw new Error('orgabisation not found');
+        this.viewOrganisation = { ...data };
       });
     } else {
       this.title = 'New Organisation';

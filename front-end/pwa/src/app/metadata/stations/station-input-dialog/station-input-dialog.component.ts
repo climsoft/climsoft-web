@@ -33,28 +33,27 @@ export class StationInputDialogComponent {
       this.stationsCacheService.findOne(stationId).pipe(
         take(1),
       ).subscribe(station => {
-        if (station) {
-          this.station = {
-            id: station.id,
-            name: station.name,
-            description: station.description,
-            longitude: station.location?.longitude,
-            latitude: station.location?.latitude,
-            elevation: station.elevation || undefined,
-            stationObsProcessingMethod: station.stationObsProcessingMethod,
-            stationObsEnvironmentId: station.stationObsEnvironmentId,
-            stationObsFocusId: station.stationObsFocusId,
-            ownerId: station.ownerId,
-            operatorId: station.operatorId,
-            wmoId: station.wmoId,
-            wigosId: station.wigosId,
-            icaoId: station.icaoId,
-            status: station.status || undefined,
-            dateEstablished: station.dateEstablished,
-            dateClosed: station.dateClosed,
-            comment: station.comment,
-          };
-        }
+        if (!station) throw new Error('station not found');
+        this.station = {
+          id: station.id,
+          name: station.name,
+          description: station.description,
+          longitude: station.location?.longitude,
+          latitude: station.location?.latitude,
+          elevation: station.elevation || undefined,
+          stationObsProcessingMethod: station.stationObsProcessingMethod || undefined,
+          stationObsEnvironmentId: station.stationObsEnvironmentId,
+          stationObsFocusId: station.stationObsFocusId,
+          ownerId: station.ownerId,
+          operatorId: station.operatorId,
+          wmoId: station.wmoId,
+          wigosId: station.wigosId,
+          icaoId: station.icaoId,
+          status: station.status || undefined,
+          dateEstablished: station.dateEstablished,
+          dateClosed: station.dateClosed,
+          comment: station.comment,
+        };
       });
     } else {
       this.title = "New Station";
@@ -87,13 +86,13 @@ export class StationInputDialogComponent {
     });
   }
 
-  protected onElevationChange(longitude: number | null | undefined): void {
-    this.station.longitude = longitude ?? undefined;
+  protected onElevationChange(elevation: number | null | undefined): void {
+    this.station.elevation = elevation ?? undefined;
   }
 
 
-  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | null): void {
-    this.station.stationObsProcessingMethod =  stationObservationMethodEnum || StationProcessingMethodEnum.AUTOMATIC;
+  protected onStationObsMethodChange(stationObservationMethodEnum: StationProcessingMethodEnum | undefined): void {
+    this.station.stationObsProcessingMethod = stationObservationMethodEnum;
   }
 
 

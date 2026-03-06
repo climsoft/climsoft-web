@@ -1,23 +1,16 @@
 import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
-import { QCTestCacheModel, QCTestsCacheService } from '../services/qc-tests-cache.service';
+import { QCTestCacheModel, QCSpecificationsCacheService } from '../services/qc-specifications-cache.service';
 import { QCSpecificationInputDialogComponent } from '../qc-test-input-dialog/qc-specification-input-dialog.component';
 import { AppAuthService } from 'src/app/app-auth.service';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
 import { ElementsCacheService } from '../../elements/services/elements-cache.service';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 interface ElementQCSpecView extends QCTestCacheModel {
   elementName: string;
-}
-
-enum OptionEnum {
-  SORT_BY_QC_NAME = 'Sort by QC Name',
-  SORT_BY_ELEMENT_ID = 'Sort by Element Id',
-  SORT_BY_ELEMENT_NAME = 'Sort by Element Name',
-  SORT_BY_QC_TYPE = 'Sort by QC Type',
-  DELETE_ALL = 'Delete All',
 }
 
 @Component({
@@ -36,9 +29,11 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   protected searchedIds: number[] = [];
   protected selectedQcTest: ElementQCSpecView | null = null;
 
-  protected dropDownItems: OptionEnum[] = [];
-  protected optionTypeEnum: typeof OptionEnum = OptionEnum;
+  protected dropDownItems: string[] = [];
   protected isSystemAdmin: boolean = false;
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
 
   private destroy$ = new Subject<void>();
 
@@ -46,7 +41,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
     private pagesDataService: PagesDataService,
     private appAuthService: AppAuthService,
     private elementsCacheService: ElementsCacheService,
-    private qCTestsCacheService: QCTestsCacheService,) {
+    private qCTestsCacheService: QCSpecificationsCacheService,) {
 
     this.pagesDataService.setPageHeader('QC Specifications');
 
@@ -56,9 +51,8 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
     ).subscribe(user => {
       if (!user) return;
       this.isSystemAdmin = user.isSystemAdmin;
-      this.dropDownItems = [OptionEnum.SORT_BY_QC_NAME, OptionEnum.SORT_BY_ELEMENT_ID, OptionEnum.SORT_BY_ELEMENT_NAME, OptionEnum.SORT_BY_QC_TYPE];
       if (this.isSystemAdmin) {
-        this.dropDownItems.push(OptionEnum.DELETE_ALL)
+        this.dropDownItems = ['Delete All'];
       }
     });
 
@@ -95,33 +89,54 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   private filterSearchedIds(): void {
     this.qCSpecifications = this.searchedIds && this.searchedIds.length > 0 ?
       this.allQCSpecifications.filter(item => this.searchedIds.includes(item.elementId)) : [...this.allQCSpecifications];
+    this.applySort();
+    this.updatePaging();
   }
 
-  protected onOptionsClicked(option: OptionEnum) {
-    switch (option) {
-      case OptionEnum.SORT_BY_QC_NAME:
-        this.qCSpecifications.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case OptionEnum.SORT_BY_ELEMENT_ID:
-        this.qCSpecifications.sort((a, b) => a.elementId - b.elementId);
-        break;
-      case OptionEnum.SORT_BY_ELEMENT_NAME:
-        this.qCSpecifications.sort((a, b) => a.elementName.localeCompare(b.elementName));
-        break;
-      case OptionEnum.SORT_BY_QC_TYPE:
-        this.qCSpecifications.sort((a, b) => a.qcTestTypeName.localeCompare(b.qcTestTypeName));
-        break;
-      case OptionEnum.DELETE_ALL:
-        this.qCTestsCacheService.deleteAll().pipe(
-          take(1),
-        ).subscribe(() => {
-          this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
-        });
-        return;
-      default:
-        throw new Error('Developer error, option not supported');
+  protected onOptionsClicked(option: string) {
+    if (option === 'Delete All') {
+      this.qCTestsCacheService.deleteAll().pipe(
+        take(1),
+      ).subscribe(() => {
+        this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
+      });
     }
+  }
 
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): ElementQCSpecView[] {
+    return this.qCSpecifications.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.qCSpecifications.sort((a, b) => {
+      const aVal = (a as any)[this.sortColumn];
+      const bVal = (b as any)[this.sortColumn];
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal ?? '').localeCompare(String(bVal ?? '')) * dir;
+    });
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setTotalRowCount(this.qCSpecifications.length);
   }
 
   protected onDeleteClick(qcTest: ElementQCSpecView, event: Event): void {

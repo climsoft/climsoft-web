@@ -1,6 +1,6 @@
-import { ElementDomainEnum } from "src/metadata/elements/dtos/elements/element-domain.enum";
-import { ViewElementSubdomainDto } from "src/metadata/elements/dtos/elements/view-element-subdomain.dto"; 
-import { ViewElementTypeDto } from "src/metadata/elements/dtos/elements/view-element-type.dto";
+import { ElementDomainEnum } from "src/metadata/elements/dtos/element-domain.enum";
+import { ViewElementSubdomainDto } from "src/metadata/elements/dtos/view-element-subdomain.dto"; 
+import { ViewElementTypeDto } from "src/metadata/elements/dtos/view-element-type.dto";
 import { StationObservationEnvironmentDto } from "src/metadata/stations/dtos/view-station-obs-env.dto";
 import { StationObservationFocusDto } from "src/metadata/stations/dtos/view-station-obs-focus.dto";
 

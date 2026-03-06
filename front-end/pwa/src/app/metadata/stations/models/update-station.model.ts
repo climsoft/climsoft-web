@@ -8,7 +8,7 @@ export interface UpdateStationModel {
   longitude?: number;
   latitude?: number;
   elevation?: number;
-  stationObsProcessingMethod: StationProcessingMethodEnum;
+  stationObsProcessingMethod?: StationProcessingMethodEnum;
   stationObsEnvironmentId?: number;
   stationObsFocusId?: number;
   ownerId?: number;

@@ -16,11 +16,12 @@ interface ElementTypeView {
   styleUrls: ['./element-type-single-input.component.scss']
 })
 export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
-  @Input() public label: string = 'Type';
+  @Input() public id!: string;
+  @Input() public label!: string;
   @Input() public errorMessage: string = '';
   @Input() public includeOnlyIds!: number[];
-  @Input() public selectedId!: number | null;
-  @Output() public selectedIdChange = new EventEmitter<number | null>();
+  @Input() public selectedId!: number | undefined;
+  @Output() public selectedIdChange = new EventEmitter<number | undefined>();
 
   protected options!: ElementTypeView[];
   protected selectedOption!: ElementTypeView | null;
@@ -60,14 +61,14 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
       if (!subDomain) {
         // TODO. throw error
         continue;
-      }     
+      }
 
       elementTypeView.push({
         elementTypeModel: elementType,
         elementDomainName: StringUtils.formatEnumForDisplay(subDomain.domain),
-        elementSubdomainName: subDomain.name, 
+        elementSubdomainName: subDomain.name,
       });
-      
+
     }
 
     this.options = elementTypeView;
@@ -89,7 +90,8 @@ export class ElementTypeSingleInputComponent implements OnInit, OnChanges {
   }
 
   protected onSelectedOptionChange(selectedOption: ElementTypeView | null) {
-    this.selectedIdChange.emit(selectedOption ? selectedOption.elementTypeModel.id : null);
+    this.selectedId = selectedOption ? selectedOption.elementTypeModel.id : undefined
+    this.selectedIdChange.emit(this.selectedId);
   }
 
 }

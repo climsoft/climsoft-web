@@ -1,213 +1,153 @@
-import { BadRequestException, Injectable, StreamableFile } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
-import { CreateViewElementDto } from '../dtos/elements/create-view-element.dto';
+import { ElementImportTransformer } from './element-import-transformer';
 import { ElementsService } from './elements.service';
-import { ElementTypesService } from './element-types.service';
+import * as path from 'node:path';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ElementsImportExportService {
-    private readonly ID_PROPERTY: keyof CreateViewElementDto = "id";
-    private readonly ABBREVIATION_PROPERTY: keyof CreateViewElementDto = "abbreviation";
-    private readonly NAME_PROPERTY: keyof CreateViewElementDto = "name";
-    private readonly DESCRIPTION_PROPERTY: keyof CreateViewElementDto = "description";
-    private readonly UNITS_PROPERTY: keyof CreateViewElementDto = "units";
-    private readonly TYPE_ID_PROPERTY: keyof CreateViewElementDto = "typeId";
-    private readonly ENTRY_SCALE_FACTOR_PROPERTY: keyof CreateViewElementDto = "entryScaleFactor";
-    private readonly COMMENT_PROPERTY: keyof CreateViewElementDto = "comment";
+    private readonly logger: Logger = new Logger(ElementsImportExportService.name);
 
     constructor(
         private fileIOService: FileIOService,
+        private dataSource: DataSource,
         private elementsService: ElementsService,
-        private elementTypesService: ElementTypesService,
     ) { }
 
-    public async import(file: Express.Multer.File, userId: number) {
-        const tmpTableName = `elements_upload_user_${userId}_${new Date().getTime()}`;
-        const tmpFilePathName: string = `${this.fileIOService.apiImportsDir}/${tmpTableName}.csv`;
-        // Save the file to the temporary directory
-        await this.fileIOService.saveFile(file, tmpFilePathName);
+    /**
+     * Import processed CSV file to database using PostgreSQL COPY command.
+     * Uses a staging table approach to handle duplicates efficiently.
+     * The file is expected to contain columns matching ElementImportTransformer.ALL_COLUMNS.
+     */
+    public async importProcessedFileToDatabase(filePathName: string): Promise<void> {
+        const startTime = Date.now();
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
         try {
+            this.logger.log(`Importing file ${path.basename(filePathName)} into database`);
+            const dbFilePathName: string = path.posix.join(this.fileIOService.dbImportsDir, path.basename(filePathName));
 
-            // Read csv to duckdb and create table.
-            await this.fileIOService.duckDbConn.run(`CREATE OR REPLACE TABLE ${tmpTableName} AS SELECT * FROM read_csv('${tmpFilePathName}', header = false, skip = 1, all_varchar = true, delim = ',');`);
+            const stagingTableName = `elem_staging_${Date.now()}`;
 
-            // Make sure there are no empty ids and names
-            //await this.validateIdAndNameValues(tmpStationTableName);
+            // Step 1: Create temporary staging table (no constraints for fast COPY)
+            const createStagingTableQuery = `
+                CREATE TEMP TABLE ${stagingTableName} (
+                    ${ElementImportTransformer.ID_PROPERTY} INTEGER NOT NULL,
+                    ${ElementImportTransformer.ABBREVIATION_PROPERTY} VARCHAR NOT NULL,
+                    ${ElementImportTransformer.NAME_PROPERTY} VARCHAR NOT NULL,
+                    ${ElementImportTransformer.DESCRIPTION_PROPERTY} VARCHAR,
+                    ${ElementImportTransformer.UNITS_PROPERTY} VARCHAR,
+                    ${ElementImportTransformer.TYPE_ID_PROPERTY} INTEGER,
+                    ${ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY} INTEGER,
+                    ${ElementImportTransformer.COMMENT_PROPERTY} VARCHAR,
+                    ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY} INTEGER NOT NULL
+                ) ON COMMIT DROP;
+            `;
 
-            let alterSQLs: string;
-            // Rename all columns to use the expected suffix column indices
-            alterSQLs = await DuckDBUtils.getRenameDefaultColumnNamesSQL(this.fileIOService.duckDbConn, tmpTableName);
+            await queryRunner.query(createStagingTableQuery);
 
-            alterSQLs = alterSQLs + this.getAlterIdColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterAbbreviationColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterNameColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterDescriptionColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterUnitsColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + await this.getAlterElementTypesColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterEntryScaleFactorColumnSQL(tmpTableName);
-            alterSQLs = alterSQLs + this.getAlterCommentsColumnSQL(tmpTableName);
+            // Step 2: COPY data into staging table
+            const allColumns = ElementImportTransformer.ALL_COLUMNS.join(', ');
+            const copyQuery = `
+                COPY ${stagingTableName} (${allColumns})
+                FROM '${dbFilePathName}'
+                WITH (FORMAT csv, HEADER true, DELIMITER ',', NULL '');
+            `;
 
-            // Execute the duckdb DDL SQL commands
-            await this.fileIOService.duckDbConn.run(alterSQLs);
+            await queryRunner.query(copyQuery);
 
-            let duplicates: any[];
-            //check for duplicate ids
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ID_PROPERTY);
-            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
-            //check for abbreviations names
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.ABBREVIATION_PROPERTY);
-            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
-            //check for duplicate names
-            duplicates = await DuckDBUtils.getDuplicateCount(this.fileIOService.duckDbConn, tmpTableName, this.NAME_PROPERTY);
-            if (duplicates.length > 0) throw new Error(`Error: ${JSON.stringify(duplicates)}`);
+            // Step 3: Insert from staging to elements with ON CONFLICT handling
+            const upsertQuery = `
+                INSERT INTO elements (
+                    ${ElementImportTransformer.ID_PROPERTY},
+                    ${ElementImportTransformer.ABBREVIATION_PROPERTY},
+                    ${ElementImportTransformer.NAME_PROPERTY},
+                    ${ElementImportTransformer.DESCRIPTION_PROPERTY},
+                    ${ElementImportTransformer.UNITS_PROPERTY},
+                    ${ElementImportTransformer.TYPE_ID_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY},
+                    ${ElementImportTransformer.COMMENT_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY}
+                )
+                SELECT
+                    ${ElementImportTransformer.ID_PROPERTY},
+                    ${ElementImportTransformer.ABBREVIATION_PROPERTY},
+                    ${ElementImportTransformer.NAME_PROPERTY},
+                    ${ElementImportTransformer.DESCRIPTION_PROPERTY},
+                    ${ElementImportTransformer.UNITS_PROPERTY},
+                    ${ElementImportTransformer.TYPE_ID_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY},
+                    ${ElementImportTransformer.COMMENT_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY}
+                FROM ${stagingTableName}
+                ON CONFLICT (${ElementImportTransformer.ID_PROPERTY})
+                DO UPDATE SET
+                    ${ElementImportTransformer.ABBREVIATION_PROPERTY} = EXCLUDED.${ElementImportTransformer.ABBREVIATION_PROPERTY},
+                    ${ElementImportTransformer.NAME_PROPERTY} = EXCLUDED.${ElementImportTransformer.NAME_PROPERTY},
+                    ${ElementImportTransformer.DESCRIPTION_PROPERTY} = EXCLUDED.${ElementImportTransformer.DESCRIPTION_PROPERTY},
+                    ${ElementImportTransformer.UNITS_PROPERTY} = EXCLUDED.${ElementImportTransformer.UNITS_PROPERTY},
+                    ${ElementImportTransformer.TYPE_ID_PROPERTY} = EXCLUDED.${ElementImportTransformer.TYPE_ID_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY} = EXCLUDED.${ElementImportTransformer.ENTRY_SCALE_FACTOR_PROPERTY},
+                    ${ElementImportTransformer.COMMENT_PROPERTY} = EXCLUDED.${ElementImportTransformer.COMMENT_PROPERTY},
+                    ${ElementImportTransformer.ENTRY_USER_ID_PROPERTY} = EXCLUDED.${ElementImportTransformer.ENTRY_USER_ID_PROPERTY};
+            `;
 
-            // Get all the data imported
-            const reader = await this.fileIOService.duckDbConn.runAndReadAll(`SELECT ${this.ID_PROPERTY}, ${this.ABBREVIATION_PROPERTY}, ${this.NAME_PROPERTY}, ${this.DESCRIPTION_PROPERTY}, ${this.UNITS_PROPERTY}, ${this.TYPE_ID_PROPERTY}, ${this.ENTRY_SCALE_FACTOR_PROPERTY}, ${this.COMMENT_PROPERTY} FROM ${tmpTableName};`);
-            const rows = reader.getRowObjects() as any[];
+            await queryRunner.query(upsertQuery);
 
-            // Delete the elements table
-            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
+            // Step 4: Commit transaction - staging table is automatically dropped (ON COMMIT DROP)
+            await queryRunner.commitTransaction();
+            await this.elementsService.invalidateCache();
 
-            // Save the elements
-            await this.elementsService.bulkPut(rows as CreateViewElementDto[], userId);
+            this.logger.log(`Successfully imported ${path.basename(filePathName)} into database`);
 
         } catch (error) {
-            console.error("File Import Failed: ", error)
-            throw new BadRequestException("Error: File Import Failed: " + error.message);
+            await queryRunner.rollbackTransaction();
+
+            let errorMessage = error instanceof Error ? error.message : String(error);
+            errorMessage = `Database import failed for ${path.basename(filePathName)}: ${errorMessage}`;
+            this.logger.error(errorMessage);
+            throw new Error(errorMessage);
         } finally {
-            this.fileIOService.deleteFile(tmpFilePathName);
+            await queryRunner.release();
         }
-    }
 
-
-    private getAlterIdColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column0 TO ${this.ID_PROPERTY};`;
-
-        // null ids not allowed
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ID_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private getAlterAbbreviationColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column1 TO ${this.ABBREVIATION_PROPERTY};`;
-
-        // null names not allowed 
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ABBREVIATION_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private getAlterNameColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column2 TO ${this.NAME_PROPERTY};`;
-
-        // null names not allowed 
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.NAME_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private getAlterDescriptionColumnSQL(tableName: string): string {
-        return `ALTER TABLE ${tableName} RENAME column3 TO ${this.DESCRIPTION_PROPERTY};`;
-    }
-
-    private getAlterUnitsColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column4 TO ${this.UNITS_PROPERTY};`;
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.UNITS_PROPERTY} SET NOT NULL;`;
-        return sql;
-    }
-
-    private async getAlterElementTypesColumnSQL(tableName: string): Promise<string> {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column5 TO ${this.TYPE_ID_PROPERTY};`;
-
-        // Convert all contents to lower case
-        sql = sql + `UPDATE ${tableName} SET ${this.TYPE_ID_PROPERTY} = lower(${this.TYPE_ID_PROPERTY});`;
-
-        // Get rows that have supported observation environment and nulls only
-        const elementTypes = (await this.elementTypesService.find()).map(item => {
-            return { sourceId: item.name.toLowerCase(), databaseId: item.id };
-        });
-        sql = sql + DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.TYPE_ID_PROPERTY, elementTypes, false);
-
-        return sql;
-    }
-
-    private getAlterEntryScaleFactorColumnSQL(tableName: string): string {
-        let sql: string = '';
-        sql = sql + `ALTER TABLE ${tableName} RENAME column6 TO ${this.ENTRY_SCALE_FACTOR_PROPERTY};`
-        sql = sql + `ALTER TABLE ${tableName} ALTER COLUMN ${this.ENTRY_SCALE_FACTOR_PROPERTY} TYPE DOUBLE;`;
-        return sql;
-    }
-
-    private getAlterCommentsColumnSQL(tableName: string): string {
-        return `ALTER TABLE ${tableName} RENAME column7 TO ${this.COMMENT_PROPERTY};`;
+        this.logger.log(`PostgreSQL import took ${Date.now() - startTime} milliseconds`);
     }
 
     //------------------------------------
     // EXPORT FUNCTIONAILTY
 
-    public async export(userId: number): Promise<StreamableFile> {
+    public async export(userId: number): Promise<string> {
+        const tmpTableName = `elements_download_user_${userId}_${Date.now()}`;
+        const dbFilePathName = path.posix.join(this.fileIOService.dbExportsDir, `${tmpTableName}.csv`);
+        const apiFilePathName = path.posix.join(this.fileIOService.apiExportsDir, `${tmpTableName}.csv`);
+
         try {
-            const allElements = await this.elementsService.find();
-            const allElementTypes = await this.elementTypesService.find();
+            await this.dataSource.query(`
+                COPY (
+                    SELECT
+                        el.id,
+                        el.abbreviation,
+                        el.name,
+                        el.description,
+                        el.units,
+                        LOWER(et.name) AS element_type,
+                        el.entry_scale_factor,
+                        el.comment
+                    FROM elements el
+                    LEFT JOIN element_types et ON el.type_id = et.id
+                    ORDER BY el.id ASC
+                ) TO '${dbFilePathName}' WITH (FORMAT csv, HEADER true, DELIMITER ',');
+            `);
 
-            const tmpTableName = `elements_download_user_${userId}_${new Date().getTime()}`;
-            const createTableAndInserSQLs = this.getCreateTableAndInsertSQL(tmpTableName);
-
-            // Create a DuckDB table for stations
-            await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.createTable);
-
-            // Insert the data into DuckDB
-            for (const element of allElements) {
-                const elementType = allElementTypes.find(item => item.id === element.typeId);
-
-                await this.fileIOService.duckDbConn.run(createTableAndInserSQLs.insert, {
-                    1: element.id,
-                    2: element.abbreviation,
-                    3: element.name,
-                    4: element.description !== null ? element.description : '',
-                    5: element.units !== null ? element.units : '',
-                    6: elementType ? elementType.name.toLowerCase() : '',
-                    7: element.entryScaleFactor !== null ? element.entryScaleFactor : '',
-                    8: element.comment !== null ? element.comment : '',
-                });
-            }
-
-            // Export the DuckDB data into a CSV file
-            const filePathName: string = `${this.fileIOService.apiExportsDir}/${tmpTableName}.csv`;
-            await this.fileIOService.duckDbConn.run(`COPY (SELECT * FROM ${tmpTableName}) TO '${filePathName}' WITH (HEADER, DELIMITER ',');`);
-
-            // Delete the stations table
-            this.fileIOService.duckDbConn.run(`DROP TABLE ${tmpTableName};`);
-
-            // Return the generated CSV file
-            return this.fileIOService.createStreamableFile(filePathName);
+            return apiFilePathName;
         } catch (error) {
-            console.error("Elements Export Failed: ", error);
-            throw new BadRequestException("File export Failed");
+            this.logger.error('Elements Export Failed: ', error);
+            throw new BadRequestException('File export Failed');
         }
-
     }
-
-    private getCreateTableAndInsertSQL(tableName: string): { createTable: string, insert: string } {
-        const fields: string[] = [
-            'id', 'abbreviation', 'name', 'description', 'units', 'element_type', 'entry_scale_factor', 'comment'
-        ];
-
-        const createColumns = fields.map(item => `${item} VARCHAR`).join(', ');
-        const insertColumns = fields.join(', ');
-        const placeholders = fields.map(() => '?').join(', ');
-
-        const createTableSQL = `  CREATE OR REPLACE TABLE ${tableName} (${createColumns}); `;
-        const insertSQL = `INSERT INTO ${tableName} (${insertColumns}) VALUES (${placeholders});`;
-
-        return { createTable: createTableSQL, insert: insertSQL };
-    }
-
-
 
 }

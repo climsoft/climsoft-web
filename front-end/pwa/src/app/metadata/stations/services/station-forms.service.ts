@@ -63,29 +63,29 @@ export class StationFormsService {
    * @returns 
    */
   public getStationsAssignedToUseForm(formId: number): Observable<string[]> {
-      // Step 1: Observable for fetching from the local database
-      const localData$ = from(AppDatabase.instance.formStations.get(formId)).pipe(
-        map(localData => {
-          // If no cached data is found, emit an empty observable
-          return localData ? localData.stationIds : [];
-        })
-      );
-  
-      // Step 2: Observable for fetching from the server
-      const serverData$ = this.http.get<string[]>(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`).pipe(
-        take(1), // Ensure serverData$ emits once and completes
-        tap(serverData => {
-          // Save the server data to the local database. This ensures that the local database is in sync with the server database.
-          AppDatabase.instance.formStations.put({ formId: formId, stationIds: serverData });
-        }),
-        catchError(this.handleError)
-      );
-  
-      // Step 3: Emit both cached and server data
-      return concat(
-        localData$, // Emit cached data first
-        serverData$ // Then emit server data next
-      );
+    // Step 1: Observable for fetching from the local database
+    const localData$ = from(AppDatabase.instance.formStations.get(formId)).pipe(
+      map(localData => {
+        // If no cached data is found, emit an empty observable
+        return localData ? localData.stationIds : [];
+      })
+    );
+
+    // Step 2: Observable for fetching from the server
+    const serverData$ = this.http.get<string[]>(`${this.endPointUrl}/stations-assigned-to-use-form/${formId}`).pipe(
+      take(1), // Ensure serverData$ emits once and completes
+      tap(serverData => {
+        // Save the server data to the local database. This ensures that the local database is in sync with the server database.
+        AppDatabase.instance.formStations.put({ formId: formId, stationIds: serverData });
+      }),
+      catchError(this.handleError)
+    );
+
+    // Step 3: Emit both cached and server data
+    return concat(
+      localData$, // Emit cached data first
+      serverData$ // Then emit server data next
+    );
   }
 
   public putStationsAssignedToUseForm(formId: number, stationIds: string[]): Observable<string[]> {
@@ -96,11 +96,10 @@ export class StationFormsService {
   }
 
   // TODO. Push to another class 
-  private handleError(error: HttpErrorResponse
-  ) {
+  private handleError(error: HttpErrorResponse) {
     if (AppAuthInterceptor.isKnownNetworkError(error)) {
       // A client-side or network error occurred. Handle it accordingly.
-       console.log('A known network error was detected');
+      console.log('A known network error was detected');
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong.

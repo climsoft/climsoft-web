@@ -1,19 +1,25 @@
 <div class="card border-0">
-  <div class="card-header d-flex justify-content-end align-items-center align-items-center px-1 py-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
     <div class="d-flex align-items-center">
-      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
-        (click)="dlgEditElement.showDialog()">
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm" (click)="onAddClick()">
         Add
       </button>
       <div *ngIf="isSystemAdmin" class="ms-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dlgImportElements.showDialog()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onImportClick()">
           Import
         </button>
         <app-import-elements-dialog #dlgImportElements />
       </div>
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <button type="button" class="btn btn-outline-secondary btn-sm"
+          (click)="onBulkEditClick()">
+          Bulk Edit
+        </button>
+        <app-bulk-edit-elements-dialog #dlgBulkEditElements />
+      </div>
       <div class="ms-2">
         <button type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="dlgSearchElements.showDialog(searchedIds)">
+          (click)="onSearchClick()">
           Search
         </button>
         <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
@@ -26,6 +32,9 @@
         <!-- TODO. find a way of doing this through the drop down in future -->
         <a [hidden]="true" #elementDownloadLink [href]="downloadLink"></a>
       </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
       <div *ngIf="elements" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
         (click)="onSearchInput([])">
         [{{ elements.length | number:'1.0-0' }}]
@@ -34,31 +43,36 @@
   </div>
 
   <div class="card-body px-0">
-    <div class="app-table-container" style="height: 80vh;">
+    <div class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <thead>
           <tr>
             <th style="width: 2%;"></th>
-            <th>Id</th>
-            <th>Abbreviation</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Units</th>
+            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Id</th>
+            <th appSortableHeader="abbreviation" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Abbreviation</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="units" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Units</th>
+            <th appSortableHeader="typeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="entryScaleFactor" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Scale Factor</th>
+            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Comment</th>
           </tr>
         </thead>
-        <tbody class="table-group-divider">
-          <tr *ngFor="let element of elements" class="app-cursor-pointer"
-            (click)="isSystemAdmin? dlgEditElement.showDialog(element.id): ''">
-            <td><i class="bi bi-cursor"></i></td>
+        <tbody>
+          <tr *ngFor="let element of pageItems" class="app-cursor-pointer" (click)="onEditClick(element.id)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ element.id }}</td>
             <td>{{ element.abbreviation }}</td>
             <td>{{ element.name }}</td>
             <td>{{ element.description }}</td>
             <td>{{ element.units }}</td>
+            <td>{{ element.typeName }}</td>
+            <td>{{ element.entryScaleFactor }}</td>
+            <td>{{ element.comment }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
-  <app-edit-element-dialog #dlgEditElement />
+  <app-element-input-dialog #dlgInputElement />
 </div>

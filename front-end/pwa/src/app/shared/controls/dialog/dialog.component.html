@@ -5,13 +5,13 @@
                 <div>{{ title }}</div>
                 <button type="button" class="btn-close" (click)="onCancelClick()"></button>
             </div>
-            <div class="card-body max-vh-80 min-vw-50 overflow-auto">
+            <div class="card-body dialog-container-body">
                 <ng-content></ng-content>
             </div>
 
             <div class="card-footer d-flex justify-content-end">
-                <button *ngIf="displayOkOption" type="button" class="btn btn-sm btn-outline-primary"
-                    (click)="onOkClick()">
+                <button *ngIf="displayOkOption" [disabled]="disableOkOption" type="button"
+                    class="btn btn-sm btn-outline-primary" (click)="onOkClick()">
                     {{okButtonLabel}}
                 </button>
                 <button *ngIf="displayCancelOption" type="button" class="btn btn-sm btn-outline-secondary ms-2"

@@ -1,0 +1,61 @@
+<div>
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'elementType'" [groupItems]="[
+            { label: 'Includes Element Type', checked: isIncludes },
+            { label: 'Does Not Include Element Type', checked: isNotIncludes }
+        ]" (checkedValueChange)="onStatusSelection($event)" />
+
+    <div class="ms-4 mt-3">
+        <!-- Includes: column position + optional mapping -->
+        <div *ngIf="isIncludes && elementType">
+            <div class="mb-3">
+                <app-number-input [label]="'Column Position'" [value]="elementType.columnPosition"
+                    (valueChange)="onColumnPositionChange($event)" [min]="1" />
+            </div>
+            <div>
+                <app-check-box-input [label]="'Fetch Specific Items'"
+                    [value]="elementType.valueMappings !== undefined"
+                    (valueChange)="onFetchSpecificChange($event)" />
+            </div>
+            <div *ngIf="elementType.valueMappings" class="ms-2 mt-2">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-primary" (click)="onAddMapping()">Add
+                        Mapping</button>
+                </div>
+                <div *ngIf="elementType.valueMappings.length === 0" class="text-muted text-center py-2">
+                    No mappings configured. Click "Add Mapping" to create one.
+                </div>
+                <table *ngIf="elementType.valueMappings.length > 0" class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Source ID</th>
+                            <th>Database ID</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let vm of elementType.valueMappings; let i = index">
+                            <td><app-text-input [(value)]="vm.sourceId" /></td>
+                            <td>
+                                <app-element-type-single-input [selectedId]="$any(vm.databaseId)"
+                                    (selectedIdChange)="vm.databaseId = $event?.toString() || ''" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Does Not Include: default selector -->
+        <div *ngIf="isNotIncludes && elementType">
+            <app-element-type-single-input [label]="'Default Value'"
+                [selectedId]="$any(elementType.defaultValue)"
+                (selectedIdChange)="onDefaultValueChange($event)" />
+        </div>
+    </div>
+</div>

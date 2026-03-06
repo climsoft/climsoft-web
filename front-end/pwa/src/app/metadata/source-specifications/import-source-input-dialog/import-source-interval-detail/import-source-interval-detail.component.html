@@ -1,0 +1,17 @@
+<div *ngIf="intervalDefinition">
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'interval_status'" [groupItems]="[
+        { label:'Includes Interval', checked: intervalDefinition.columnPosition !== undefined},
+        { label:'Does Not Include Interval', checked: intervalDefinition.defaultValue !== undefined}
+        ]" (checkedValueChange)="onIntervalStatusSelection($event)" />
+
+    <div class="ms-4">
+
+        <app-number-input *ngIf="intervalDefinition.columnPosition !== undefined" [label]="'Column Position'"
+            [labelSuperScript]="'values in mins'" [(numValue)]="intervalDefinition.columnPosition" />
+
+        <app-interval-selector-single *ngIf="intervalDefinition.defaultValue !== undefined"
+            [label]="'Default Interval'" [selectedId]="intervalDefinition.defaultValue"
+            (selectedIdChange)="onIntervalSelected($event)" />
+
+    </div>
+</div>

@@ -1,6 +1,7 @@
 <div class="d-flex">
-  <app-text-input [type]="'date'" [id]="id" [label]="label" [disabled]="disabled" [max]="maxDate" [min]="minDate" [value]="value"
-    [errorMessage]="errorMessage" [hintMessage]="hintMessage" (valueChange)="onValueChange($event)"
+  <app-text-input #appTextInput [type]="'date'" [id]="id" [label]="label" [disabled]="disabled" [max]="maxDate" [min]="minDate" [value]="value"
+    [errorMessage]="errorMessage" [hintMessage]="hintMessage" [simulateTabOnEnter]="simulateTabOnEnter"
+    (valueChange)="onValueChange($event)"
     (inputClick)="onInputClick()" (inputEnterKeyPress)="onEnterKeyPressed()" (inputBlur)="onInputBlur()" />
 
   <div *ngIf="showNavigationButtons" class="d-flex">

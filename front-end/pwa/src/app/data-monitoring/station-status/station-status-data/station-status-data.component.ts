@@ -4,7 +4,7 @@ import { StationCacheModel } from 'src/app/metadata/stations/services/stations-c
 import { ElementCacheModel, ElementsCacheService } from 'src/app/metadata/elements/services/elements-cache.service';
 import { SourcesCacheService } from 'src/app/metadata/source-specifications/services/source-cache.service';
 import { ViewSourceModel } from 'src/app/metadata/source-specifications/models/view-source.model';
-import { IntervalsUtil } from 'src/app/shared/controls/period-input/Intervals.util';
+import { IntervalsUtil } from 'src/app/shared/controls/interval-selector/Intervals.util';
 import { GeneralSettingsCacheService } from 'src/app/admin/general-settings/services/general-settings.service';
 import { ClimsoftDisplayTimeZoneModel } from 'src/app/admin/general-settings/models/settings/climsoft-display-timezone.model';
 import { DateUtils } from 'src/app/shared/utils/date.utils';

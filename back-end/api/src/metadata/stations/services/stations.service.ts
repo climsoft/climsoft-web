@@ -48,17 +48,17 @@ export class StationsService implements OnModuleInit {
 
             if (viewStationQueryDto.obsProcessingMethods) {
                 const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
-                results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
+                results = results.filter(dto => dto.stationObsProcessingMethod !== undefined && methodSet.has(dto.stationObsProcessingMethod));
             }
 
             if (viewStationQueryDto.obsEnvironmentIds) {
                 const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
-                results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
+                results = results.filter(dto => dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
             }
 
             if (viewStationQueryDto.obsFocusIds) {
                 const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
-                results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
+                results = results.filter(dto => dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
             }
 
             // Apply pagination
@@ -81,17 +81,17 @@ export class StationsService implements OnModuleInit {
 
         if (viewStationQueryDto.obsProcessingMethods) {
             const methodSet = new Set(viewStationQueryDto.obsProcessingMethods);
-            results = results.filter(dto => methodSet.has(dto.stationObsProcessingMethod));
+            results = results.filter(dto => dto.stationObsProcessingMethod !== undefined && methodSet.has(dto.stationObsProcessingMethod));
         }
 
         if (viewStationQueryDto.obsEnvironmentIds) {
             const envIdSet = new Set(viewStationQueryDto.obsEnvironmentIds);
-            results = results.filter(dto => dto.stationObsEnvironmentId !== null && dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
+            results = results.filter(dto => dto.stationObsEnvironmentId !== undefined && envIdSet.has(dto.stationObsEnvironmentId));
         }
 
         if (viewStationQueryDto.obsFocusIds) {
             const focusIdSet = new Set(viewStationQueryDto.obsFocusIds);
-            results = results.filter(dto => dto.stationObsFocusId !== null && dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
+            results = results.filter(dto => dto.stationObsFocusId !== undefined && focusIdSet.has(dto.stationObsFocusId));
         }
 
         return results.length;
@@ -121,7 +121,7 @@ export class StationsService implements OnModuleInit {
         this.updateEntity(entity, createDto, userId);
 
         await this.stationRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
 
         return this.findOne(entity.id);
     }
@@ -130,13 +130,13 @@ export class StationsService implements OnModuleInit {
         const entity: StationEntity = await this.getEntity(id);
         this.updateEntity(entity, updateDto, userId);
         await this.stationRepo.save(entity);
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return this.createViewDto(entity);
     }
 
     public async delete(id: string): Promise<string> {
         await this.stationRepo.remove(await this.getEntity(id));
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return id;
     }
 
@@ -159,7 +159,7 @@ export class StationsService implements OnModuleInit {
             coordinates: [dto.longitude, dto.latitude],
         } : null;
         entity.elevation = dto.elevation ?? null;
-        entity.obsProcessingMethod = dto.stationObsProcessingMethod;
+        entity.obsProcessingMethod = dto.stationObsProcessingMethod || null;
         entity.obsEnvironmentId = dto.stationObsEnvironmentId || null;
         entity.obsFocusId = dto.stationObsFocusId || null;
         entity.ownerId = dto.ownerId || null;
@@ -214,7 +214,7 @@ export class StationsService implements OnModuleInit {
             await this.insertOrUpdateValues(batch);
         }
 
-        await this.cache.invalidate();
+        await this.invalidateCache();
     }
 
     private async insertOrUpdateValues(entities: StationEntity[]): Promise<void> {
@@ -232,7 +232,8 @@ export class StationsService implements OnModuleInit {
                     "elevation",
                     "observation_environment_id",
                     "observation_focus_id",
-                    "organisation_id",
+                    "owner_id",
+                    "operator_id",
                     "wmo_id",
                     "wigos_id",
                     "icao_id",
@@ -254,8 +255,12 @@ export class StationsService implements OnModuleInit {
         const entities: StationEntity[] = await this.stationRepo.find();
         // Note, don't use .clear() because truncating a table referenced in a foreign key constraint is not supported
         await this.stationRepo.remove(entities);
-        await this.cache.invalidate();
+        await this.invalidateCache();
         return true;
+    }
+
+    public async invalidateCache(): Promise<void> {
+        await this.cache.invalidate();
     }
 
     public checkUpdates(updatesQueryDto: MetadataUpdatesQueryDto): MetadataUpdatesDto {

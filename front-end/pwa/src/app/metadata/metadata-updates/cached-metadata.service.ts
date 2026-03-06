@@ -4,7 +4,7 @@ import { ElementCacheModel, ElementsCacheService } from "../elements/services/el
 import { SourcesCacheService } from "../source-specifications/services/source-cache.service";
 import { ViewSourceModel } from "../source-specifications/models/view-source.model";
 import { StationCacheModel, StationsCacheService } from "../stations/services/stations-cache.service";
-import { QCTestCacheModel, QCTestsCacheService } from "../qc-tests/services/qc-tests-cache.service";
+import { QCTestCacheModel, QCSpecificationsCacheService } from "../qc-tests/services/qc-specifications-cache.service";
 import { GeneralSettingsCacheService } from "src/app/admin/general-settings/services/general-settings.service";
 import { SettingIdEnum } from "src/app/admin/general-settings/models/setting-id.enum";
 import { ClimsoftDisplayTimeZoneModel } from "src/app/admin/general-settings/models/settings/climsoft-display-timezone.model";
@@ -27,7 +27,7 @@ export class CachedMetadataService {
         private stationsCacheService: StationsCacheService,
         private elementsCacheService: ElementsCacheService,
         private sourcesCacheService: SourcesCacheService,
-        private qcTestsCacheService: QCTestsCacheService,
+        private qcTestsCacheService: QCSpecificationsCacheService,
         private generalSettingsCacheService: GeneralSettingsCacheService,
     ) {
 

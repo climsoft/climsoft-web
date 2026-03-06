@@ -45,6 +45,30 @@ body {
     border-top-color: #ddd;
 }
 
+.app-sortable-header {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background-color 0.15s;
+
+    .sort-preview {
+        display: none;
+        opacity: 0.35;
+    }
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.075);
+
+        .sort-active {
+            display: none;
+        }
+
+        .sort-preview {
+            display: inline;
+        }
+    }
+}
+
 .app-value-flag-container {
     //max-width: 6.875rem; // 110px
     max-width: 7.8125rem; // 125px
@@ -54,6 +78,7 @@ body {
     font-size: 12px;
 }
 
+// Move this to Text Input Component?
 .app-label-super-script {
   vertical-align: super;
   font-size: 0.6875rem; // 10px 

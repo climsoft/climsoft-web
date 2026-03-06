@@ -1,0 +1,11 @@
+<div>
+    <div class="mb-3">
+        <app-number-input [label]="'Entry Scale Factor Column Position'"
+            [value]="mapping.entryScaleFactorColumnPosition"
+            (valueChange)="onEntryScaleFactorChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Comment Column Position'" [value]="mapping.commentColumnPosition"
+            (valueChange)="onCommentChange($event)" [min]="1" />
+    </div>
+</div>

@@ -1,5 +1,5 @@
 import { Check, Column, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
-import { ElementDomainEnum } from "../dtos/elements/element-domain.enum";
+import { ElementDomainEnum } from "../dtos/element-domain.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 
 @Entity("element_subdomains")

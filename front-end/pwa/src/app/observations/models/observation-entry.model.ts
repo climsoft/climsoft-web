@@ -1,5 +1,5 @@
 import { ViewObservationModel } from "src/app/data-ingestion/models/view-observation.model";
-import { QCTestCacheModel } from "src/app/metadata/qc-tests/services/qc-tests-cache.service";
+import { QCTestCacheModel } from "src/app/metadata/qc-tests/services/qc-specifications-cache.service";
 
 export interface ObservationEntry {
   observation: ViewObservationModel;

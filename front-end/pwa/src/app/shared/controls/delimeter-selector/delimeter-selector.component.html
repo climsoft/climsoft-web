@@ -1,0 +1,4 @@
+<app-selector-single-input [id]="id" [label]="label" [placeholder]="'Auto-detect'"
+    [displayCancelOption]="true" [options]="options" [optionDisplayFn]="optionDisplayFunction"
+    [(selectedOption)]="selectedOption"
+    (selectedOptionChange)="onSelectedOptionChange($event)" />

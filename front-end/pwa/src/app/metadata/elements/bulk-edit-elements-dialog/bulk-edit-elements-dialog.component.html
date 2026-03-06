@@ -1,0 +1,60 @@
+<ng-container *ngIf="open">
+  <app-dialog [(open)]="open" [title]="'Bulk Edit Elements'" [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
+    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0" [closeOnOkClick]="false"
+    [closeOnCancelClick]="false" (okClick)="onSave()" (cancelClick)="onCancelClick()">
+
+    <div class="d-flex justify-content-end align-items-center mb-2">
+      <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      <div *ngIf="changedCount" class="vr mx-2"></div>
+      <span *ngIf="changedCount" class="ms-2 text-success">{{ changedCount }} record(s) changed</span>
+    </div>
+
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-sm table-bordered align-middle" (keydown.enter)="onEnterKey($event)">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Abbreviation</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Units</th>
+            <th style="min-width: 200px;">Type</th>
+            <th>Scale Factor</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let el of pageItems; let i = index" [class.row-changed]="isRowChanged(pageStartIndex + i)">
+            <td class="text-muted">{{ el.id }}</td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.abbreviation"
+                (valueChange)="el.abbreviation = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.name" (valueChange)="el.name = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.description"
+                (valueChange)="el.description = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.units" (valueChange)="el.units = $event" />
+            </td>
+            <td>
+              <app-element-type-single-input [selectedId]="el.typeId"
+                (selectedIdChange)="el.typeId = $event ?? undefined" />
+            </td>
+            <td>
+              <app-number-input [simulateTabOnEnter]="false" [value]="el.entryScaleFactor" [min]="1"
+                (valueChange)="el.entryScaleFactor = $event ?? undefined" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="el.comment" (valueChange)="el.comment = $event" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </app-dialog>
+</ng-container>

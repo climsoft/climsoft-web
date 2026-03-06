@@ -1,0 +1,107 @@
+<ng-container *ngIf="open">
+  <app-dialog [(open)]="open" [title]="'Bulk Edit Stations'" [okButtonLabel]="saving ? 'Saving...' : 'Save Changes'"
+    [displayOkOption]="true" [disableOkOption]="saving || changedCount === 0" [closeOnOkClick]="false"
+    [closeOnCancelClick]="false" (okClick)="onSave()" (cancelClick)="onCancelClick()">
+
+    <div class="d-flex justify-content-end align-items-center mb-2">
+      <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      <div *ngIf="changedCount" class="vr mx-2"></div>
+      <span *ngIf="changedCount" class="ms-2 text-success">{{ changedCount }} record(s) changed</span>
+    </div>
+
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-sm table-bordered align-middle" (keydown.enter)="onEnterKey($event)">
+        <thead>
+          <tr>
+            <th style="min-width: 180px;">Id</th>
+            <th style="min-width: 180px;">Name</th>
+            <th style="min-width: 180px;">Description</th>
+            <th style="min-width: 180px;">Latitude</th>
+            <th style="min-width: 180px;">Longitude</th>
+            <th style="min-width: 180px;">Elevation</th>
+            <th style="min-width: 180px;">Obs Method</th>
+            <th style="min-width: 180px;">Environment</th>
+            <th style="min-width: 180px;">Focus</th>
+            <th style="min-width: 180px;">Owner</th>
+            <th style="min-width: 180px;">Operator</th>
+            <th style="min-width: 180px;">WMO ID</th>
+            <th style="min-width: 180px;">WIGOS ID</th>
+            <th style="min-width: 180px;">ICAO ID</th>
+            <th style="min-width: 150px;">Status</th>
+            <th style="min-width: 180px;">Date Established</th>
+            <th style="min-width: 180px;">Date Closed</th>
+            <th style="min-width: 180px;">Comment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stn of pageItems; let i = index" [class.row-changed]="isRowChanged(pageStartIndex + i)">
+            <td class="text-muted text-nowrap">{{ stn.id }}</td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.name" (valueChange)="stn.name = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.description"
+                (valueChange)="stn.description = $event" />
+            </td>
+            <td>
+              <app-number-input [simulateTabOnEnter]="false" [value]="stn.latitude"
+                (valueChange)="stn.latitude = $event ?? undefined" />
+            </td>
+            <td>
+              <app-number-input [simulateTabOnEnter]="false" [value]="stn.longitude"
+                (valueChange)="stn.longitude = $event ?? undefined" />
+            </td>
+            <td>
+              <app-number-input [simulateTabOnEnter]="false" [value]="stn.elevation"
+                (valueChange)="stn.elevation = $event ?? undefined" />
+            </td>
+            <td>
+              <app-station-obs-processing-single-selector [selectedId]="stn.stationObsProcessingMethod"
+                (selectedIdChange)="stn.stationObsProcessingMethod = $event" />
+            </td>
+            <td>
+              <app-station-environment-selector-single [selectedId]="stn.stationObsEnvironmentId"
+                (selectedIdChange)="stn.stationObsEnvironmentId = $event" />
+            </td>
+            <td>
+              <app-station-focus-selector-single [selectedId]="stn.stationObsFocusId"
+                (selectedIdChange)="stn.stationObsFocusId = $event" />
+            </td>
+            <td>
+              <app-organisation-selector-single-single [selectedId]="stn.ownerId"
+                (selectedIdChange)="stn.ownerId = $event" />
+            </td>
+            <td>
+              <app-organisation-selector-single-single [selectedId]="stn.operatorId"
+                (selectedIdChange)="stn.operatorId = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.wmoId" (valueChange)="stn.wmoId = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.wigosId" (valueChange)="stn.wigosId = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.icaoId" (valueChange)="stn.icaoId = $event" />
+            </td>
+            <td>
+              <app-station-status-selector-single [selectedId]="stn.status" (selectedIdChange)="stn.status = $event" />
+            </td>
+            <td>
+              <app-date-input [simulateTabOnEnter]="false" [value]="stn.dateEstablished"
+                (valueChange)="stn.dateEstablished = $event" />
+            </td>
+            <td>
+              <app-date-input [simulateTabOnEnter]="false" [value]="stn.dateClosed"
+                (valueChange)="stn.dateClosed = $event" />
+            </td>
+            <td>
+              <app-text-input [simulateTabOnEnter]="false" [value]="stn.comment" (valueChange)="stn.comment = $event" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </app-dialog>
+</ng-container>

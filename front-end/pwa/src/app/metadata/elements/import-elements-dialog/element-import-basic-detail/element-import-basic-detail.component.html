@@ -1,0 +1,20 @@
+<div>
+    <div class="mb-3">
+        <app-number-input [label]="'Id Column Position *'" [(numValue)]="mapping.idColumnPosition" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Abbreviation Column Position *'" [(numValue)]="mapping.abbreviationColumnPosition"
+            [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Name Column Position *'" [(numValue)]="mapping.nameColumnPosition" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Description Column Position'" [value]="mapping.descriptionColumnPosition"
+            (valueChange)="onDescriptionChange($event)" [min]="1" />
+    </div>
+    <div class="mb-3">
+        <app-number-input [label]="'Units Column Position'" [value]="mapping.unitsColumnPosition"
+            (valueChange)="onUnitsChange($event)" [min]="1" />
+    </div>
+</div>

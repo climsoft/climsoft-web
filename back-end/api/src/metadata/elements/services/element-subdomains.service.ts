@@ -4,7 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { MetadataUpdatesQueryDto } from "src/metadata/metadata-updates/dtos/metadata-updates-query.dto";
 import { MetadataUpdatesDto } from "src/metadata/metadata-updates/dtos/metadata-updates.dto";
 import { ElementSubdomainEntity } from "../entities/element-subdomain.entity";
-import { ViewElementSubdomainDto } from "../dtos/elements/view-element-subdomain.dto";
+import { ViewElementSubdomainDto } from "../dtos/view-element-subdomain.dto";
 import { CacheLoadResult, MetadataCache } from "src/shared/cache/metadata-cache";
 
 @Injectable()

@@ -9,8 +9,9 @@ import { StationsSearchDialogComponent } from '../../stations/stations-search-di
 import { StringUtils } from 'src/app/shared/utils/string.utils';
 import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 import { ToggleDisabledConfirmationDialogComponent } from 'src/app/shared/controls/toggle-disabled-confirmation-dialog/toggle-disabled-confirmation-dialog.component';
-import { FormSourceInputDialogComponent } from '../form-source-detail/form-source-input-dialog.component';
-import { ImportSourceInputDialogComponent } from '../import-source-detail/import-source-input-dialog.component';
+import { FormSourceInputDialogComponent } from '../form-source-input-dialog/form-source-input-dialog.component';
+import { ImportSourceInputDialogComponent } from '../import-source-input-dialog/import-source-input-dialog.component';
+import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 
 interface View extends ViewSourceModel {
   // Applicable to form source only
@@ -30,8 +31,11 @@ export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('dlgFormEdit') dlgFormEdit!: FormSourceInputDialogComponent;
   @ViewChild('dlgImportEdit') dlgImportEdit!: ImportSourceInputDialogComponent;
 
-  protected sources!: View[];
+  protected sources: View[] = [];
   protected selectedSource: View | null = null;
+  protected pageInputDefinition: PagingParameters = new PagingParameters();
+  protected sortColumn: string = '';
+  protected sortDirection: 'asc' | 'desc' = 'asc';
 
   private destroy$ = new Subject<void>();
 
@@ -53,6 +57,8 @@ export class ViewSourcesComponent implements OnDestroy {
 
       // Remove version 4 source from display. It's not editable by user
       this.sources = this.sources.filter(item => item.name !== 'climsoft_v4');
+      this.applySort();
+      this.updatePaging();
 
       // Get number of stations assigned to use form
       this.stationFormsService.getStationCountPerForm().pipe(
@@ -166,6 +172,42 @@ export class ViewSourcesComponent implements OnDestroy {
         this.pagesDataService.showToast({ title: 'Source Specification', message: `Error updating source specification - ${err.message}`, type: ToastEventTypeEnum.ERROR });
       }
     });
+  }
+
+  protected get pageStartIndex(): number {
+    return (this.pageInputDefinition.page - 1) * this.pageInputDefinition.pageSize;
+  }
+
+  protected get pageItems(): View[] {
+    return this.sources.slice(this.pageStartIndex, this.pageStartIndex + this.pageInputDefinition.pageSize);
+  }
+
+  protected onSort(column: string): void {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applySort();
+    this.pageInputDefinition.onFirst();
+  }
+
+  private applySort(): void {
+    if (!this.sortColumn) return;
+    const dir = this.sortDirection === 'asc' ? 1 : -1;
+    this.sources.sort((a, b) => {
+      const aVal = (a as any)[this.sortColumn];
+      const bVal = (b as any)[this.sortColumn];
+      if (typeof aVal === 'number' && typeof bVal === 'number') return (aVal - bVal) * dir;
+      return String(aVal ?? '').localeCompare(String(bVal ?? '')) * dir;
+    });
+  }
+
+  private updatePaging(): void {
+    this.pageInputDefinition = new PagingParameters();
+    this.pageInputDefinition.setPageSize(30);
+    this.pageInputDefinition.setTotalRowCount(this.sources.length);
   }
 
 }

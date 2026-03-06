@@ -4,11 +4,11 @@ import { Directive, ElementRef, HostListener } from '@angular/core';
   selector: '[appSimulateTabOnEnter]'
 })
 export class SimulateTabOnEnterDirective {
-  constructor(private el: ElementRef) {}
+  constructor(private el: ElementRef) { }
 
   @HostListener('keydown.enter', ['$event'])
- public onEnterPress(event: KeyboardEvent) {
-   // Prevent the default Enter key action
+  public onEnterPress(event: Event) {
+    // Prevent the default Enter key action
     event.preventDefault();
 
     // Find the next focusable element and focus it
@@ -27,4 +27,3 @@ export class SimulateTabOnEnterDirective {
     nextElement?.focus();
   }
 }
-

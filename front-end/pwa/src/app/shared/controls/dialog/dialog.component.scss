@@ -16,10 +16,8 @@
   margin-right: 10px;
 }
 
-.max-vh-80 {
-  max-height: 80vh; // Some content may be long so always limit to 80vh at most
-}
-
-.min-vw-50 {
-  min-width: 50vw; // TODO. Counter check if this applies in mobile phones
+.dialog-container-body {
+  max-height: 85vh; // Some content may be long so always limit to 85vh at most
+  min-width: 50vw;
+  overflow: auto;
 }

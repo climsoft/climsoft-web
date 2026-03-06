@@ -6,13 +6,14 @@ import * as path from 'node:path';
 import { ViewSourceSpecificationDto } from 'src/metadata/source-specifications/dtos/view-source-specification.dto';
 import { ImportSourceTabularParamsDto } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
 import { FileIOService } from 'src/shared/services/file-io.service';
-import { CreateViewElementDto } from 'src/metadata/elements/dtos/elements/create-view-element.dto';
+import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { SourceTypeEnum } from 'src/metadata/source-specifications/enums/source-type.enum';
 import { DataStructureTypeEnum, ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DataSource } from 'typeorm';
 import { TabularImportTransformer } from './tabular-import-transformer';
 import { PreviewError } from '../dtos/import-preview.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 
 @Injectable()
 export class ObservationImportService {
@@ -49,7 +50,7 @@ export class ObservationImportService {
 
     public async processFileForImport(sourceId: number, importFilePathName: string, userId: number, stationId?: string): Promise<string> {
         // Get the source definition using the source id
-        const sourceDef = await this.sourcesService.find(sourceId);
+        const sourceDef = this.sourcesService.find(sourceId);
 
         if (sourceDef.sourceType !== SourceTypeEnum.IMPORT) {
             throw new Error('Source is not an import source');
@@ -76,13 +77,12 @@ export class ObservationImportService {
         const tabularDef: ImportSourceTabularParamsDto = importDef.dataStructureParameters as ImportSourceTabularParamsDto;
 
         // Execute the duckdb DDL SQL commands
-        const tableName: string = await TabularImportTransformer.loadTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
-
-        // TODO. Will come from cache in later iterations
-        const elements: CreateViewElementDto[] = await this.elementsService.find();
+        const tableName: string = DuckDBUtils.getTableNameFromFileName(inputFilePathName);
+        await DuckDBUtils.createTableFromFile(this.fileIOService.duckDbConn, inputFilePathName, tableName, false, tabularDef.rowsToSkip, 0, tabularDef.delimiter);
 
         // This transformation step is where all the data mapping and validation logic happens, implemented in ImportSqlBuilder
-        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, userId, stationId);
+        const elements: CreateViewElementDto[] = this.elementsService.find();
+        const errors: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, sourceId, sourceDef, elements, stationId, userId);
 
         // TODO. throw errors if any.
         if (errors) {
@@ -171,7 +171,7 @@ export class ObservationImportService {
 
             this.logger.log(`Successfully imported ${filePathName} into database`);
 
-             this.eventEmitter.emit('observations.saved');
+            this.eventEmitter.emit('observations.saved');
 
         } catch (error) {
             // Rollback transaction on error

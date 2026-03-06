@@ -11,7 +11,7 @@ import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.en
 import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/defintitions/form-entry.definition';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
-import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-tests-cache.service';
+import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';
 
 /**
  * Component for data entry of observations

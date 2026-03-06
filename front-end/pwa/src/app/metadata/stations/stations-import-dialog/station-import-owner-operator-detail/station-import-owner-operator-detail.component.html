@@ -1,0 +1,125 @@
+<div>
+    <!-- Owner -->
+    <div class="fw-bold mb-2">Owner</div>
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'owner'" [groupItems]="[
+            { label: 'Includes Owner', checked: isOwnerIncludes },
+            { label: 'Does Not Include Owner', checked: isOwnerNotIncludes }
+        ]" (checkedValueChange)="onOwnerStatusSelection($event)" />
+
+    <div class="ms-4 mt-3">
+        <div *ngIf="isOwnerIncludes && owner">
+            <div class="mb-3">
+                <app-number-input [label]="'Column Position'" [value]="owner.columnPosition"
+                    (valueChange)="onOwnerColumnPositionChange($event)" [min]="1" />
+            </div>
+            <div>
+                <app-check-box-input [label]="'Fetch Specific Items'"
+                    [value]="owner.valueMappings !== undefined"
+                    (valueChange)="onOwnerFetchSpecificChange($event)" />
+            </div>
+            <div *ngIf="owner.valueMappings" class="ms-2 mt-2">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-primary" (click)="onAddOwnerMapping()">Add
+                        Mapping</button>
+                </div>
+                <div *ngIf="owner.valueMappings.length === 0" class="text-muted text-center py-2">
+                    No mappings configured. Click "Add Mapping" to create one.
+                </div>
+                <table *ngIf="owner.valueMappings.length > 0" class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Source ID</th>
+                            <th>Database ID</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let vm of owner.valueMappings; let i = index">
+                            <td><app-text-input [(value)]="vm.sourceId" /></td>
+                            <td>
+                                <app-organisation-selector-single-single
+                                    [selectedId]="vm.databaseId ? +vm.databaseId : null"
+                                    (selectedIdChange)="vm.databaseId = $event.toString()" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveOwnerMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div *ngIf="isOwnerNotIncludes && owner">
+            <app-organisation-selector-single-single [label]="'Default Value'"
+                [selectedId]="owner.defaultValue ? +owner.defaultValue : null"
+                (selectedIdChange)="onOwnerDefaultValueChange($event)" />
+        </div>
+    </div>
+
+    <hr class="my-3" />
+
+    <!-- Operator -->
+    <div class="fw-bold mb-2">Operator</div>
+    <app-radio-buttons-input [inline]="true" [asButtons]="true" [groupName]="'operator'" [groupItems]="[
+            { label: 'Includes Operator', checked: isOperatorIncludes },
+            { label: 'Does Not Include Operator', checked: isOperatorNotIncludes }
+        ]" (checkedValueChange)="onOperatorStatusSelection($event)" />
+
+    <div class="ms-4 mt-3">
+        <div *ngIf="isOperatorIncludes && operator">
+            <div class="mb-3">
+                <app-number-input [label]="'Column Position'" [value]="operator.columnPosition"
+                    (valueChange)="onOperatorColumnPositionChange($event)" [min]="1" />
+            </div>
+            <div>
+                <app-check-box-input [label]="'Fetch Specific Items'"
+                    [value]="operator.valueMappings !== undefined"
+                    (valueChange)="onOperatorFetchSpecificChange($event)" />
+            </div>
+            <div *ngIf="operator.valueMappings" class="ms-2 mt-2">
+                <div class="d-flex justify-content-end mb-2">
+                    <button type="button" class="btn btn-sm btn-primary" (click)="onAddOperatorMapping()">Add
+                        Mapping</button>
+                </div>
+                <div *ngIf="operator.valueMappings.length === 0" class="text-muted text-center py-2">
+                    No mappings configured. Click "Add Mapping" to create one.
+                </div>
+                <table *ngIf="operator.valueMappings.length > 0" class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Source ID</th>
+                            <th>Database ID</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-group-divider">
+                        <tr *ngFor="let vm of operator.valueMappings; let i = index">
+                            <td><app-text-input [(value)]="vm.sourceId" /></td>
+                            <td>
+                                <app-organisation-selector-single-single
+                                    [selectedId]="vm.databaseId ? +vm.databaseId : null"
+                                    (selectedIdChange)="vm.databaseId = $event.toString()" />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                    (click)="onRemoveOperatorMapping(i)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div *ngIf="isOperatorNotIncludes && operator">
+            <app-organisation-selector-single-single [label]="'Default Value'"
+                [selectedId]="operator.defaultValue ? +operator.defaultValue : null"
+                (selectedIdChange)="onOperatorDefaultValueChange($event)" />
+        </div>
+    </div>
+</div>

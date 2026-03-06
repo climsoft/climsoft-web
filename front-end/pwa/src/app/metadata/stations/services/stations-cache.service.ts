@@ -22,7 +22,7 @@ export interface StationCacheModel {
         latitude: number;
     } | null,
     elevation: number | null;
-    stationObsProcessingMethod: StationProcessingMethodEnum;
+    stationObsProcessingMethod: StationProcessingMethodEnum | null;
     stationObsProcessingMethodName: string;
     stationObsEnvironmentId: number;
     stationObsEnvironmentName: string;
@@ -48,7 +48,7 @@ export interface StationCacheModel {
 export class StationsCacheService {
     private endPointUrl: string;
     private readonly _cachedStations: BehaviorSubject<StationCacheModel[]> = new BehaviorSubject<StationCacheModel[]>([]);
-    private checkUpdatesSubscription: Subscription = new Subscription();
+    private checkUpdatesSubscription: Subscription = new Subscription(); // Deprecate this
     private checkingForUpdates: boolean = false;
 
     constructor(
@@ -82,8 +82,8 @@ export class StationsCacheService {
                     description: station.description || '',
                     location: location,
                     elevation: station.elevation || null,
-                    stationObsProcessingMethod: station.stationObsProcessingMethod,
-                    stationObsProcessingMethodName: StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod),
+                    stationObsProcessingMethod: station.stationObsProcessingMethod || null,
+                    stationObsProcessingMethodName: station.stationObsProcessingMethod ? StringUtils.formatEnumForDisplay(station.stationObsProcessingMethod) : '',
                     stationObsEnvironmentId: obsEnv?.id || 0,
                     stationObsEnvironmentName: obsEnv?.name || '',
                     stationObsFocusId: obsFocus?.id || 0,
@@ -94,8 +94,8 @@ export class StationsCacheService {
                     operatorName: owner?.name || '',
                     wmoId: station.wmoId ? station.wmoId : '',
                     wigosId: station.wigosId ? station.wigosId : '',
-                    icaoId:   station?.icaoId || '',
-                    status:   station?.status || null,
+                    icaoId: station?.icaoId || '',
+                    status: station?.status || null,
                     statusName: station.status ? StringUtils.formatEnumForDisplay(station.status) : '',
                     dateEstablished: station.dateEstablished?.substring(0, 10) || '',
                     dateClosed: station.dateClosed?.substring(0, 10) || '',
@@ -130,9 +130,7 @@ export class StationsCacheService {
             error: err => {
                 this.checkingForUpdates = false;
             }
-        }
-
-        );
+        } );
     }
 
     public get cachedStations(): Observable<StationCacheModel[]> {
@@ -154,6 +152,15 @@ export class StationsCacheService {
                 return response.find(item => item.id === id);
             })
         );
+    }
+
+    public bulkPut(items: CreateStationModel[]): Observable<void> {
+        return this.http.put<void>(`${this.endPointUrl}/bulk`, items)
+            .pipe(
+                tap(() => {
+                    this.checkForUpdates();
+                }),
+            );
     }
 
     public create(createDto: CreateStationModel): Observable<CreateStationModel> {

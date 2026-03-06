@@ -38,6 +38,7 @@ export class ProcessPreviewDto {
     stationId?: string;
 }
 
+
 export class PreviewForImportDto {
     @IsInt()
     @Min(1)
@@ -49,33 +50,26 @@ export class PreviewForImportDto {
     stationId?: string;
 }
 
-export interface PreviewWarning {
-    type: 'NULL_VALUES' | 'FORMAT_MISMATCH' | 'UNMAPPED_IDS' | 'DUPLICATE_ROWS';
-    message: string;
-    affectedRowCount: number;
-    sampleValues?: string[];
-}
-
 export interface PreviewError {
     type: 'COLUMN_NOT_FOUND' | 'INVALID_COLUMN_POSITION' | 'SQL_EXECUTION_ERROR';
     message: string;
     detail?: string;
 }
 
+export interface PreviewTableData {
+    columns: string[];
+    rows: string[][]; // Preview rows
+    totalRowCount: number; // All rows count
+}
+
 export interface RawPreviewResponse {
     sessionId: string;
     fileName: string;
-    columns: string[];
-    totalRowCount: number;
-    previewRows: string[][];
-    skippedRows: string[][];
+    previewData: PreviewTableData;
+    skippedData: PreviewTableData;
 }
 
-export interface StepPreviewResponse {
-    columns: string[];
-    previewRows: string[][];
-    totalRowCount: number;
-    rowsDropped: number;
-    warnings: PreviewWarning[];
+export interface TransformedPreviewResponse {
+    previewData: PreviewTableData;
     error?: PreviewError;
 }
