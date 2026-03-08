@@ -170,7 +170,7 @@ export class ClimsoftV4WebSyncSetUpService {
         let conn;
         try {
             conn = await this.v4DBPool.getConnection();
-            const rows: V4ElementModel[] = await conn.query("SELECT elementId as elementId, abbreviation as abbreviation, elementName as elementName, description as description, elementScale as elementScale, upperLimit as upperLimit, lowerLimit as lowerLimit, units as units, elementtype as elementType, qcTotalRequired as qcTotalRequired, selected as selected FROM obselement WHERE selected = 1");
+            const rows: V4ElementModel[] = await conn.query("SELECT elementId as elementId, abbreviation as abbreviation, elementName as elementName, description as description, elementScale as elementScale, upperLimit as upperLimit, lowerLimit as lowerLimit, units as units, elementtype as elementType, qcTotalRequired as qcTotalRequired, selected as selected FROM obselement");
             rows.forEach(item => {
                 item.elementId = Number(item.elementId); // version 4 stores element ids as BigInt, so convert to number (int)
                 item.elementType = item.elementType.trim().toLowerCase();
@@ -226,7 +226,7 @@ export class ClimsoftV4WebSyncSetUpService {
                 name: v4Element.elementName,
                 description: v4Element.description,
                 units: v4Element.units,
-                typeId: currentV5Element ? currentV5Element.typeId : 1, // V4 does not support GCOS ECV structure so just assume it's type id 1             
+                typeId: undefined, // V4 does not support GCOS ECV structure           
                 entryScaleFactor: v4Element.elementScale ? this.convertv4EntryScaleDecimalTov5WholeNumber(v4Element.elementScale) : undefined,
                 comment: 'pulled from v4 model',
             };
