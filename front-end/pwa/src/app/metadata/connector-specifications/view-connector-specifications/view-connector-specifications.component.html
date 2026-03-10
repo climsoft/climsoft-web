@@ -8,9 +8,6 @@
             <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
                (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
          </div>
-         <div *ngIf="connectors" class="d-flex mx-2">
-            [{{ connectors.length | number:'1.0-0' }}]
-         </div>
       </div>
    </div>
 

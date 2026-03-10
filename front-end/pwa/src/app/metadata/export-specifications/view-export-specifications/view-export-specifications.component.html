@@ -9,9 +9,6 @@
         <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
           (dropDownOptionClick)="onOptionsClicked($event)" [offSetRight]="true" />
       </div>
-      <div *ngIf="exports" class="d-flex mx-2">
-        [{{ exports.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 

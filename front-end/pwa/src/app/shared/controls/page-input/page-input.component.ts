@@ -62,7 +62,7 @@ export class PageInputComponent implements OnChanges {
   }
 
   protected onPageSizeSelection(pageSizeSelection: string): void {
-    this.pageInputDefinition.setPageSize(pageSizeSelection === '31' ? 31 : 365)
+    this.pageInputDefinition.setPageSize(Number(pageSizeSelection))
     this.closeVisibleRowsDropDown();
     this.pageInputDefinitionChange.emit();
   }

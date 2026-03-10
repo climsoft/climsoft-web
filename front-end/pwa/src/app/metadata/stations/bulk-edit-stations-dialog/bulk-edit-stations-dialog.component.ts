@@ -29,7 +29,7 @@ export class BulkEditStationsDialogComponent {
     this.editableStations = stations.map(s => ({ ...s }));
     this.saving = false;
     this.pageInputDefinition = new PagingParameters();
-    this.pageInputDefinition.setPageSize(10);
+    this.pageInputDefinition.setPageSize(10); // Important to note that beyond 10 stations, the tab starts hanging. Possibly due to angular change detection system
     this.pageInputDefinition.setTotalRowCount(stations.length);
     this.open = true;
   }

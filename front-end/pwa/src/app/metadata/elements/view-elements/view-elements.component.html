@@ -35,10 +35,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="elements" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
-        (click)="onSearchInput([])">
-        [{{ elements.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 

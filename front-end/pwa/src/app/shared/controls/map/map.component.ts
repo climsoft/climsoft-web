@@ -14,7 +14,6 @@ export class MapComponent implements AfterViewInit, OnChanges {
   @Input() public mapHeight: string = '80vh';
   @Input() public contentLayersGroup!: L.LayerGroup;
 
-
   // Generate a random map id to make user it's alway unique
   protected mapContainerId: string = `map_${Math.random().toString()}`;
 
@@ -27,7 +26,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
   protected climsoftBoundary!: ClimsoftBoundaryModel;
   private map!: L.Map;
 
-   private destroy$ = new Subject<void>();
+  private destroy$ = new Subject<void>();
 
   constructor(private cachedMetadataService: CachedMetadataService) { }
 
@@ -58,7 +57,7 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
   }
 
-   ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
