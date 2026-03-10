@@ -25,13 +25,14 @@
         <thead>
           <tr>
             <th></th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let org of pageItems"
-            (click)="onEditOrganisation(org)">
+          <tr class="app-cursor-pointer" *ngFor="let org of pageItems" (click)="onEditOrganisation(org)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ org.name }}</td>
             <td>{{ org.description }}</td>
@@ -42,4 +43,8 @@
   </div>
 
   <app-organisation-input-dialog #dlgOrganisationDetails />
+
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'organisation'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
+
 </div>

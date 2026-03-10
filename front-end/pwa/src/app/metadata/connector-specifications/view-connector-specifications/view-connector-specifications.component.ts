@@ -15,6 +15,7 @@ import { ConnectorSpecificationInputDialogComponent } from '../connector-specifi
 export class ViewConnectorSpecificationsComponent {
   @ViewChild('dlgConnectorInput') dlgConnectorInput!: ConnectorSpecificationInputDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
   protected connectors!: ViewConnectorSpecificationModel[];
@@ -40,17 +41,21 @@ export class ViewConnectorSpecificationsComponent {
   protected onOptionsClicked(option: 'Delete All') {
     switch (option) {
       case 'Delete All':
-        this.connectorSpecificationsService.deleteAll().pipe(
-          take(1)
-        ).subscribe(() => {
-          this.pagesDataService.showToast({ title: "Sources Deleted", message: `All sources deleted`, type: ToastEventTypeEnum.SUCCESS });
-          this.loadConnectorSpecifications();
-        });
+        this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
         break;
     }
 
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.connectorSpecificationsService.deleteAll().pipe(
+      take(1)
+    ).subscribe(() => {
+      this.pagesDataService.showToast({ title: "Source Specifications Deleted", message: `All source specifications deleted`, type: ToastEventTypeEnum.SUCCESS });
+      this.loadConnectorSpecifications();
+    });
   }
 
   protected onConnectorInput(): void {
@@ -60,7 +65,7 @@ export class ViewConnectorSpecificationsComponent {
   protected onDeleteClick(connector: ViewConnectorSpecificationModel, event: Event): void {
     event.stopPropagation();
     this.selectedConnector = connector;
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {
@@ -88,8 +93,8 @@ export class ViewConnectorSpecificationsComponent {
     });
   }
 
-  protected onAddConnectorClick(): void{
-      this.dlgConnectorInput.showDialog();
+  protected onAddConnectorClick(): void {
+    this.dlgConnectorInput.showDialog();
   }
 
   protected onConnectorClick(connectorId: number, event: Event): void {

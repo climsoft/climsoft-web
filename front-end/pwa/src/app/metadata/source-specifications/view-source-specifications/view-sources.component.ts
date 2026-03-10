@@ -27,6 +27,7 @@ interface View extends ViewSourceModel {
 export class ViewSourcesComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
   @ViewChild('dlgFormEdit') dlgFormEdit!: FormSourceInputDialogComponent;
   @ViewChild('dlgImportEdit') dlgImportEdit!: ImportSourceInputDialogComponent;
@@ -89,15 +90,19 @@ export class ViewSourcesComponent implements OnDestroy {
         this.dlgImportEdit.openDialog();
         break;
       case 'Delete All':
-        this.sourcesCacheService.deleteAll().pipe(
-          take(1)
-        ).subscribe(data => {
-          this.pagesDataService.showToast({ title: "Sources Deleted", message: `All sources deleted`, type: ToastEventTypeEnum.SUCCESS });
-        });
+        this.dlgDeleteAllConfirm.openDialog();
         return;
       default:
         throw new Error('Developer error, option not supported');
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.sourcesCacheService.deleteAll().pipe(
+      take(1)
+    ).subscribe(data => {
+      this.pagesDataService.showToast({ title: "Source Specifications Deleted", message: `All source specifications deleted`, type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected onEditSource(source: ViewSourceModel): void {
@@ -137,7 +142,7 @@ export class ViewSourcesComponent implements OnDestroy {
   protected onDeleteClick(source: View, event: Event): void {
     event.stopPropagation();
     this.selectedSource = source;
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {

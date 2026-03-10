@@ -13,6 +13,7 @@ import { ViewExportSpecificationModel } from '../models/view-export-specificatio
 })
 export class ViewExportSpecificationsComponent {
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
 
   protected exports!: ViewExportSpecificationModel[];
@@ -36,16 +37,20 @@ export class ViewExportSpecificationsComponent {
   protected onOptionsClicked(option: 'Delete All') {
     switch (option) {
       case 'Delete All':
-        this.exportsService.deleteAll().pipe(
-          take(1),
-        ).subscribe(() => {
-          this.pagesDataService.showToast({ title: "Exports Deleted", message: `All exports deleted`, type: ToastEventTypeEnum.SUCCESS });
-          this.loadExportSpecifications();
-        });
+        this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
         throw new Error('Developer Error. Option not supported');
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.exportsService.deleteAll().pipe(
+      take(1),
+    ).subscribe(() => {
+      this.pagesDataService.showToast({ title: "Export Specifications Deleted", message: `All export specifications deleted`, type: ToastEventTypeEnum.SUCCESS });
+      this.loadExportSpecifications();
+    });
   }
 
   protected onExportInput(): void {
@@ -55,7 +60,7 @@ export class ViewExportSpecificationsComponent {
   protected onDeleteClick(exportSpec: ViewExportSpecificationModel, event: Event): void {
     event.stopPropagation();
     this.selectedExport = exportSpec;
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {

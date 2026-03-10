@@ -129,3 +129,6 @@
     <app-view-stations-tree-map />
   </app-dialog>
 </ng-container>
+
+<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'station'"
+  (deleteConfirmed)="onDeleteAllConfirm()" />

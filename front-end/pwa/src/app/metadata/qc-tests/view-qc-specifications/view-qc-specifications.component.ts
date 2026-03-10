@@ -22,7 +22,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   @ViewChild('dlgQcEdit') appQCEditDialog!: QCSpecificationInputDialogComponent;
   @ViewChild('dlgDeleteConfirm') dlgDeleteConfirm!: DeleteConfirmationDialogComponent;
   @ViewChild('dlgToggleDisabled') dlgToggleDisabled!: ToggleDisabledConfirmationDialogComponent;
-
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
 
   protected allQCSpecifications: ElementQCSpecView[] = [];
   protected qCSpecifications: ElementQCSpecView[] = [];
@@ -95,12 +95,16 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
 
   protected onOptionsClicked(option: string) {
     if (option === 'Delete All') {
-      this.qCTestsCacheService.deleteAll().pipe(
-        take(1),
-      ).subscribe(() => {
-        this.pagesDataService.showToast({ title: 'QC Tests Deleted', message: 'All QC tests deleted', type: ToastEventTypeEnum.SUCCESS });
-      });
+      this.dlgDeleteAllConfirm.openDialog();
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.qCTestsCacheService.deleteAll().pipe(
+      take(1),
+    ).subscribe(() => {
+      this.pagesDataService.showToast({ title: 'QC Specifications Deleted', message: 'All QC specifications deleted', type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected get pageStartIndex(): number {
@@ -142,7 +146,7 @@ export class ViewQCSpecificationsComponent implements OnDestroy {
   protected onDeleteClick(qcTest: ElementQCSpecView, event: Event): void {
     event.stopPropagation();
     this.selectedQcTest = qcTest;
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {

@@ -202,7 +202,7 @@ export class QCSpecificationInputDialogComponent {
   }
 
   protected onDeleteClick(): void {
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {

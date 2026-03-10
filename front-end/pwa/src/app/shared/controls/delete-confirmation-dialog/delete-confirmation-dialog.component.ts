@@ -12,7 +12,7 @@ export class DeleteConfirmationDialogComponent {
 
   protected open: boolean = false;
 
-  public showDialog(): void {
+  public openDialog(): void {
     this.open = true;
   }
 

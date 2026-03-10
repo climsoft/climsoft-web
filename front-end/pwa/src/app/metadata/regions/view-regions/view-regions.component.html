@@ -27,9 +27,12 @@
       <table class="table table-hover table-sm">
         <thead>
           <tr>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="regionType" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="regionType" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
           </tr>
         </thead>
         <tbody>
@@ -51,3 +54,6 @@
     </div>
   </app-dialog>
 </ng-container>
+
+<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'region'"
+  (deleteConfirmed)="onDeleteAllConfirm()" />
