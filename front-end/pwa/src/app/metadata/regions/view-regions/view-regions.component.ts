@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import { Subject, take, takeUntil } from 'rxjs';
 import { PagesDataService, ToastEventTypeEnum } from 'src/app/core/services/pages-data.service';
 import { RegionsCacheService } from '../services/regions-cache.service';
@@ -6,6 +6,7 @@ import { ViewRegionModel } from 'src/app/metadata/regions/models/view-region.mod
 import { AppAuthService } from 'src/app/app-auth.service';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import * as L from 'leaflet';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 type optionsType = 'Import' | 'Delete All';
 
@@ -15,6 +16,7 @@ type optionsType = 'Import' | 'Delete All';
   styleUrls: ['./view-regions.component.scss']
 })
 export class ViewRegionsComponent implements OnDestroy {
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
 
   protected regions: ViewRegionModel[] = [];
 
@@ -67,12 +69,14 @@ export class ViewRegionsComponent implements OnDestroy {
   protected onOptionsClicked(option: optionsType): void {
     this.optionClicked = option;
     if (option === 'Delete All') {
-      this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
-        if (data) {
-          this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: ToastEventTypeEnum.SUCCESS });
-        }
-      });
+      this.dlgDeleteAllConfirm.openDialog();
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.regionsService.deleteAll().pipe(take(1)).subscribe(data => {
+      this.pagesDataService.showToast({ title: "Regions Deleted", message: `All regions deleted`, type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected onOptionsDialogClosed(): void {

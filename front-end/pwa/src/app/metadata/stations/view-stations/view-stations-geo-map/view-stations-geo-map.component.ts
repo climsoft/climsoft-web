@@ -28,7 +28,7 @@ export class ViewStationsGeoMapComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['stationIds'] && this.stationIds) {
-      this.stations = this.cachedMetadataService.stationsMetadata.filter(station=> this.stationIds.includes(station.id));
+      this.stations = this.cachedMetadataService.stationsMetadata.filter(station => this.stationIds.includes(station.id));
       this.setupMap();
     }
 
@@ -56,11 +56,9 @@ export class ViewStationsGeoMapComponent implements OnChanges {
         case StationStatusEnum.CLOSED:
           this.numOfClosedStations = this.numOfClosedStations + 1;
           break;
-        case StationStatusEnum.UKNOWNN:
+        default:
           this.numOfUnknownStations = this.numOfUnknownStations + 1;
           break;
-        default:
-          throw new Error(`Developer error: Station with unrecognised status: ${station.id}`);
       }
 
     }
@@ -102,11 +100,9 @@ export class ViewStationsGeoMapComponent implements OnChanges {
       case StationStatusEnum.CLOSED:
         colorValue = '#C6C6C6';//'#1330BF'; 
         break;
-      case StationStatusEnum.UKNOWNN:
+      default:
         colorValue = '#F73E25';
         break;
-      default:
-        throw new Error(`Developer error: Station status unknown: ${station.id}`);
     }
 
     //console.log("latlong", latlng, feature);

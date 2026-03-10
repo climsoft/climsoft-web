@@ -13,9 +13,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="networkAffiliations" class="d-flex mx-2">
-        [{{ networkAffiliations.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 
@@ -28,8 +25,10 @@
         <thead>
           <tr>
             <th></th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
             <th></th>
           </tr>
         </thead>
@@ -55,4 +54,8 @@
   <app-stations-search-dialog #appSearchAssignedStations (searchedIdsChange)="onAssignNetworkToStationsInput($event)" />
 
   <app-network-affiliation-input-dialog #dlgNetworkDetails />
+
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'network affiliation'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
+
 </div>

@@ -7,6 +7,7 @@ import { StationNetworkAffiliationsService } from '../../stations/services/stati
 import { StationsSearchDialogComponent } from '../../stations/stations-search-dialog/stations-search-dialog.component';
 import { NetworkAffiliationInputDialogComponent } from '../network-affiliation-input-dialog/network-affiliation-input-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -22,6 +23,8 @@ interface View extends NetworkAffiliationCacheModel {
 export class ViewNetworkAffiliationsComponent implements OnDestroy {
   @ViewChild('appSearchAssignedStations') appStationSearchDialog!: StationsSearchDialogComponent;
   @ViewChild('dlgNetworkDetails') dlgNetworkDetails!: NetworkAffiliationInputDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
+
   protected networkAffiliations: View[] = [];
   protected selectedNetwork!: View;
   protected isSystemAdmin: boolean = false;
@@ -86,12 +89,14 @@ export class ViewNetworkAffiliationsComponent implements OnDestroy {
     if (option === 'Add') {
       this.dlgNetworkDetails.openDialog();
     } else if (option === 'Delete All') {
-      this.networkAffiliationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
-        if (data) {
-          this.pagesDataService.showToast({ title: 'Network Affiliation Deleted', message: 'All network affiliation deleted', type: ToastEventTypeEnum.SUCCESS });
-        }
-      });
+      this.dlgDeleteAllConfirm.openDialog();
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.networkAffiliationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+      this.pagesDataService.showToast({ title: 'Network Affiliation Deleted', message: 'All network affiliation deleted', type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected onEditNetworkAffiliation(networkAff: View, event: Event): void {

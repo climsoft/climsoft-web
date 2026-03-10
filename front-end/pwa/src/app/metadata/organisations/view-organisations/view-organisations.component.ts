@@ -6,6 +6,7 @@ import { ViewOrganisationModel } from '../models/view-organisation.model';
 import { OrganisationsCacheService } from '../services/organisations-cache.service';
 import { OrganisationInputDialogComponent } from '../organisation-input-dialog/organisation-input-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 type optionsType = 'Add' | 'Delete All';
 
@@ -16,6 +17,7 @@ type optionsType = 'Add' | 'Delete All';
 })
 export class ViewOrganisationsComponent implements OnDestroy {
   @ViewChild('dlgOrganisationDetails') dlgOrganisationDetails!: OrganisationInputDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
   protected organisations: ViewOrganisationModel[] = [];
   protected isSystemAdmin: boolean = false;
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -63,12 +65,14 @@ export class ViewOrganisationsComponent implements OnDestroy {
     if (option === 'Add') {
       this.dlgOrganisationDetails.openDialog();
     } else if (option === 'Delete All') {
-      this.organisationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
-        if (data) {
-          this.pagesDataService.showToast({ title: "Organisations Deleted", message: `All organisations deleted`, type: ToastEventTypeEnum.SUCCESS });
-        }
-      });
+      this.dlgDeleteAllConfirm.openDialog();
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.organisationsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+      this.pagesDataService.showToast({ title: "Organisations Deleted", message: `All organisations deleted`, type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected onEditOrganisation(organisation: ViewOrganisationModel): void {

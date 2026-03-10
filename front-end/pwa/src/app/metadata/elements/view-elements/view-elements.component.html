@@ -11,15 +11,13 @@
         <app-import-elements-dialog #dlgImportElements />
       </div>
       <div *ngIf="isSystemAdmin" class="ms-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="onBulkEditClick()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onBulkEditClick()">
           Bulk Edit
         </button>
         <app-bulk-edit-elements-dialog #dlgBulkEditElements />
       </div>
       <div class="ms-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="onSearchClick()">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="onSearchClick()">
           Search
         </button>
         <app-elements-search-dialog #dlgSearchElements (searchedIdsChange)="onSearchInput($event)" />
@@ -35,10 +33,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="elements" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
-        (click)="onSearchInput([])">
-        [{{ elements.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 
@@ -48,14 +42,22 @@
         <thead>
           <tr>
             <th style="width: 2%;"></th>
-            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Id</th>
-            <th appSortableHeader="abbreviation" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Abbreviation</th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
-            <th appSortableHeader="units" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Units</th>
-            <th appSortableHeader="typeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
-            <th appSortableHeader="entryScaleFactor" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Scale Factor</th>
-            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Comment</th>
+            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Id</th>
+            <th appSortableHeader="abbreviation" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Abbreviation</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="units" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Units</th>
+            <th appSortableHeader="typeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="entryScaleFactor" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Scale Factor</th>
+            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Comment</th>
           </tr>
         </thead>
         <tbody>
@@ -75,4 +77,7 @@
     </div>
   </div>
   <app-element-input-dialog #dlgInputElement />
+
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'element'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
 </div>

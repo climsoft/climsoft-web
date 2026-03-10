@@ -16,7 +16,7 @@
   </div>
 
   <div class="card-body px-0">
-    <div *ngIf="exports" class="app-table-container" style="height: 80vh;">
+    <div *ngIf="exports" class="app-table-container" style="max-height: 80vh;">
       <table class="table table-hover table-sm">
         <colgroup>
           <col style="width: 2%;" />
@@ -72,6 +72,9 @@
   <!-- Delete Confirmation Dialog -->
   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedExport?.name || ''"
     [itemType]="'export specification'" (deleteConfirmed)="onDeleteConfirm()" />
+
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'export specification'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
 
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedExport?.name || ''"

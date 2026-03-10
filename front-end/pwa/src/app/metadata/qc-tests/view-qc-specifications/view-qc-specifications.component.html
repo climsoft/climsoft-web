@@ -19,10 +19,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="qCSpecifications" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
-        (click)="onSearchInput([])">
-        [{{ qCSpecifications.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 
@@ -42,11 +38,16 @@
         <thead>
           <tr>
             <th></th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="elementName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Element</th>
-            <th appSortableHeader="observationLevel" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Level</th>
-            <th appSortableHeader="observationIntervalName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Interval</th>
-            <th appSortableHeader="qcTestTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="elementName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Element</th>
+            <th appSortableHeader="observationLevel" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Level</th>
+            <th appSortableHeader="observationIntervalName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Interval</th>
+            <th appSortableHeader="qcTestTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Type</th>
             <th>Parameters</th>
             <th>Actions</th>
           </tr>
@@ -54,11 +55,15 @@
         <tbody class="table-group-divider">
           <tr class="app-cursor-pointer" *ngFor="let qcTestParam of pageItems"
             [class.qc-disabled]="qcTestParam.disabled">
-            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''"><i class="bi bi-arrow-right-short"></i></td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''"><i
+                class="bi bi-arrow-right-short"></i></td>
             <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.name }}</td>
-            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.elementId + '-' + qcTestParam.elementName }}</td>
-            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationLevel }}</td>
-            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationIntervalName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.elementId + '-' +
+              qcTestParam.elementName }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationLevel }}
+            </td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.observationIntervalName
+              }}</td>
             <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">
               <span class="badge" [ngClass]="{
                 'bg-primary': qcTestParam.qcTestType === 'range_threshold',
@@ -71,7 +76,8 @@
                 {{ qcTestParam.qcTestTypeName }}
               </span>
             </td>
-            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.formattedParameters }}</td>
+            <td (click)="isSystemAdmin? dlgQcEdit.openDialog(qcTestParam.id): ''">{{ qcTestParam.formattedParameters }}
+            </td>
             <td>
               <div *ngIf="isSystemAdmin" class="d-flex gap-2">
                 <button type="button" class="btn btn-sm"
@@ -97,9 +103,12 @@
   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedQcTest?.name || ''"
     [itemType]="'QC specification'" (deleteConfirmed)="onDeleteConfirm()" />
 
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'QC specification'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
+
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedQcTest?.name || ''"
     [itemType]="'QC specification'" [isCurrentlyDisabled]="selectedQcTest?.disabled || false"
-    [operationType]="selectedQcTest?.qcTestTypeName + ' QC' || ''"
-    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+    [operationType]="selectedQcTest?.qcTestTypeName + ' QC' || ''" [schedule]="''"
+    (toggleConfirmed)="onToggleDisabledConfirm()" />
 </div>

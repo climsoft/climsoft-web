@@ -10,6 +10,7 @@ import { ElementInputDialogComponent } from '../element-input-dialog/element-inp
 import { BulkEditElementsDialogComponent } from '../bulk-edit-elements-dialog/bulk-edit-elements-dialog.component';
 import { ElementsSearchDialogComponent } from '../elements-search-dialog/elements-search-dialog.component';
 import { CreateViewElementModel } from '../models/create-view-element.model';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 @Component({
   selector: 'app-view-elements',
@@ -21,6 +22,7 @@ export class ViewElementsComponent implements OnDestroy {
   @ViewChild('dlgImportElements') dlgImportElements!: ImportElementsDialogComponent;
   @ViewChild('dlgBulkEditElements') dlgBulkEditElements!: BulkEditElementsDialogComponent;
   @ViewChild('dlgSearchElements') dlgSearchElements!: ElementsSearchDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
 
   protected allElements: ElementCacheModel[] = [];
   protected elements: ElementCacheModel[] = [];
@@ -157,15 +159,17 @@ export class ViewElementsComponent implements OnDestroy {
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
       case 'Delete All':
-        this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
-          if (data) {
-            this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
-          }
-        });
+        this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
         break;
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.elementsCacheService.deleteAll().pipe(take(1)).subscribe(data => {
+      this.pagesDataService.showToast({ title: "Elements Deleted", message: `All elements deleted`, type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected get downloadLink(): string {

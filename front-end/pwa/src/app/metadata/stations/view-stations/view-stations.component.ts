@@ -8,6 +8,7 @@ import { CreateStationModel } from '../models/create-station.model';
 import { BulkEditStationsDialogComponent } from '../bulk-edit-stations-dialog/bulk-edit-stations-dialog.component';
 import { PagingParameters } from 'src/app/shared/controls/page-input/paging-parameters';
 import { StationInputDialogComponent } from '../station-input-dialog/station-input-dialog.component';
+import { DeleteConfirmationDialogComponent } from 'src/app/shared/controls/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 @Component({
   selector: 'app-view-stations',
@@ -17,6 +18,7 @@ import { StationInputDialogComponent } from '../station-input-dialog/station-inp
 export class ViewStationsComponent implements OnDestroy {
   @ViewChild('dlgBulkEditStations') dlgBulkEditStations!: BulkEditStationsDialogComponent;
   @ViewChild('dlgStationInput') dlgStationInput!: StationInputDialogComponent;
+  @ViewChild('dlgDeleteAllConfirm') dlgDeleteAllConfirm!: DeleteConfirmationDialogComponent;
 
   protected allStations: StationCacheModel[] = [];
   protected stations: StationCacheModel[] = [];
@@ -146,18 +148,19 @@ export class ViewStationsComponent implements OnDestroy {
   protected onOptionsClick(option: OptionEnum): void {
     switch (option) {
       case OptionEnum.DELETE_ALL:
-        // TODO. Check if operation is doable first
-        this.stationsCacheService.deleteAll().pipe(
-          take(1),
-        ).subscribe(data => {
-          if (data) {
-            this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
-          }
-        });
+        this.dlgDeleteAllConfirm.openDialog();
         break;
       default:
         break;
     }
+  }
+
+  protected onDeleteAllConfirm(): void {
+    this.stationsCacheService.deleteAll().pipe(
+      take(1),
+    ).subscribe(data => {
+      this.pagesDataService.showToast({ title: "Stations Deleted", message: `All stations deleted`, type: ToastEventTypeEnum.SUCCESS });
+    });
   }
 
   protected onBulkEditClick(): void {

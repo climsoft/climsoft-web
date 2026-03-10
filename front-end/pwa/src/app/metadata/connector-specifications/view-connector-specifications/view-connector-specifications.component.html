@@ -79,8 +79,11 @@
    <app-connector-specification-input-dialog #dlgConnectorInput (ok)="onConnectorInput()" />
 
    <!-- Delete Confirmation Dialog -->
-   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''" [itemType]="'connector'"
-      (deleteConfirmed)="onDeleteConfirm()" />
+   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedConnector?.name || ''"
+      [itemType]="'connector specification'" (deleteConfirmed)="onDeleteConfirm()" />
+
+   <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'connector specification'"
+      (deleteConfirmed)="onDeleteAllConfirm()" />
 
    <!-- Enable/Disable Confirmation Dialog -->
    <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedConnector?.name || ''"

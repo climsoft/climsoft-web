@@ -134,7 +134,7 @@ export class ExportSpecificationInputDialogComponent {
   }
 
   protected onDeleteButtonClick(): void {
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {

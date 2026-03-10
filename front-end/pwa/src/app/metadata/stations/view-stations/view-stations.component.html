@@ -2,8 +2,7 @@
   <div class="card-header d-flex justify-content-end align-items-end px-1">
     <div class="d-flex align-items-end">
       <div>
-        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="onAddClick()">
+        <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm" (click)="onAddClick()">
           Add
         </button>
       </div>
@@ -22,8 +21,7 @@
         <app-bulk-edit-stations-dialog #dlgBulkEditStations />
       </div>
       <div class="ms-2">
-        <button type="button" class="btn btn-outline-secondary btn-sm"
-          (click)="stationSearch.showDialog(searchedIds)">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="stationSearch.showDialog(searchedIds)">
           Search
         </button>
         <app-stations-search-dialog #stationSearch (searchedIdsChange)="onSearchInput($event)" />
@@ -44,10 +42,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="stations" class="d-flex mx-2 app-cursor-pointer" [class.text-success]="searchedIds.length > 0"
-        (click)="onSearchInput([])">
-        [{{ stations.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 
@@ -57,29 +51,46 @@
         <thead>
           <tr>
             <th style="width: 2%;"></th>
-            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Id</th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
-            <th appSortableHeader="latitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Latitude</th>
-            <th appSortableHeader="longitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Longitude</th>
-            <th appSortableHeader="elevation" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Elevation</th>
-            <th appSortableHeader="stationObsProcessingMethodName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Obs Method</th>
-            <th appSortableHeader="stationObsEnvironmentName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Environment</th>
-            <th appSortableHeader="stationObsFocusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Focus</th>
-            <th appSortableHeader="ownerName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Owner</th>
-            <th appSortableHeader="operatorName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Operator</th>
-            <th appSortableHeader="wmoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">WMO ID</th>
-            <th appSortableHeader="wigosId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">WIGOS ID</th>
-            <th appSortableHeader="icaoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">ICAO ID</th>
-            <th appSortableHeader="statusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 120px;">Status</th>
-            <th appSortableHeader="dateEstablished" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Date Established</th>
-            <th appSortableHeader="dateClosed" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Date Closed</th>
-            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Comment</th>
+            <th appSortableHeader="id" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Id</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="latitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Latitude</th>
+            <th appSortableHeader="longitude" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Longitude</th>
+            <th appSortableHeader="elevation" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Elevation</th>
+            <th appSortableHeader="stationObsProcessingMethodName" [sortColumn]="sortColumn"
+              [sortDirection]="sortDirection" (sort)="onSort($event)" style="min-width: 150px;">Obs Method</th>
+            <th appSortableHeader="stationObsEnvironmentName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)" style="min-width: 150px;">Environment</th>
+            <th appSortableHeader="stationObsFocusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)" style="min-width: 150px;">Focus</th>
+            <th appSortableHeader="ownerName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)" style="min-width: 150px;">Owner</th>
+            <th appSortableHeader="operatorName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)" style="min-width: 150px;">Operator</th>
+            <th appSortableHeader="wmoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">WMO ID</th>
+            <th appSortableHeader="wigosId" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">WIGOS ID</th>
+            <th appSortableHeader="icaoId" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">ICAO ID</th>
+            <th appSortableHeader="statusName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)" style="min-width: 120px;">Status</th>
+            <th appSortableHeader="dateEstablished" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Date Established</th>
+            <th appSortableHeader="dateClosed" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Date Closed</th>
+            <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Comment</th>
           </tr>
         </thead>
         <tbody>
-          <tr class="app-cursor-pointer" *ngFor="let station of pageItems"
-            (click)="onEditClick(station.id)">
+          <tr class="app-cursor-pointer" *ngFor="let station of pageItems" (click)="onEditClick(station.id)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td class="text-nowrap">{{ station.id }}</td>
             <td>{{ station.name }}</td>
@@ -118,3 +129,6 @@
     <app-view-stations-tree-map />
   </app-dialog>
 </ng-container>
+
+<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'station'"
+  (deleteConfirmed)="onDeleteAllConfirm()" />

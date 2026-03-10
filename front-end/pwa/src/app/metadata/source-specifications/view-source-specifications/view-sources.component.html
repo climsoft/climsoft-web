@@ -12,9 +12,6 @@
       <div class="ms-2">
         <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
       </div>
-      <div *ngIf="sources" class="d-flex mx-2">
-        [{{ sources.length | number:'1.0-0' }}]
-      </div>
     </div>
   </div>
 
@@ -32,16 +29,18 @@
         <thead>
           <tr>
             <th></th>
-            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Name</th>
-            <th appSortableHeader="sourceTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Type</th>
-            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection" (sort)="onSort($event)">Description</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="sourceTypeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Type</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
             <th>Stations</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody class="table-group-divider">
-          <tr class="app-cursor-pointer" *ngFor="let source of pageItems"
-            [class.source-disabled]="source.disabled"
+          <tr class="app-cursor-pointer" *ngFor="let source of pageItems" [class.source-disabled]="source.disabled"
             (click)="onEditSource(source)">
             <td><i class="bi bi-arrow-right-short"></i></td>
             <td>{{ source.name }}</td>
@@ -55,11 +54,9 @@
             </td>
             <td>{{ source.description }}</td>
             <td>
-              <button *ngIf="source.sourceType === 'form'"
-                type="button"
+              <button *ngIf="source.sourceType === 'form'" type="button"
                 class="btn btn-outline-secondary btn-sm position-relative"
-                (click)="onAssignStationsClicked(source, $event)"
-                title="Allocate/Deallocate Stations">
+                (click)="onAssignStationsClicked(source, $event)" title="Allocate/Deallocate Stations">
                 <i class="bi bi-building"></i>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary">
                   {{ source.assignedStations }}
@@ -91,11 +88,14 @@
   <app-delete-confirmation-dialog #dlgDeleteConfirm [itemName]="selectedSource?.name || ''"
     [itemType]="'source specification'" (deleteConfirmed)="onDeleteConfirm()" />
 
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'source specification'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
+
   <!-- Enable/Disable Confirmation Dialog -->
   <app-toggle-disabled-confirmation-dialog #dlgToggleDisabled [itemName]="selectedSource?.name || ''"
     [itemType]="'source specification'" [isCurrentlyDisabled]="selectedSource?.disabled || false"
-    [operationType]="selectedSource?.sourceTypeName || ''"
-    [schedule]="''" (toggleConfirmed)="onToggleDisabledConfirm()" />
+    [operationType]="selectedSource?.sourceTypeName || ''" [schedule]="''"
+    (toggleConfirmed)="onToggleDisabledConfirm()" />
 
   <!-- Source Input Dialogs -->
   <app-form-source-input-dialog #dlgFormEdit />

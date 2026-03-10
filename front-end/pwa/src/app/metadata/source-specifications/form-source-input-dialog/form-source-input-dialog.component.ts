@@ -296,7 +296,7 @@ export class FormSourceInputDialogComponent implements OnDestroy {
   }
 
   protected onDelete(): void {
-    this.dlgDeleteConfirm.showDialog();
+    this.dlgDeleteConfirm.openDialog();
   }
 
   protected onDeleteConfirm(): void {
