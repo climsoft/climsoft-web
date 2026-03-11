@@ -19,17 +19,8 @@ import { HttpErrorResponse } from '@angular/common/http';
   styleUrls: ['./deleted-data.component.scss']
 })
 export class DeletedDataComponent implements OnDestroy {
-  protected stationId: string | null = null;
-  protected sourceId: number | null = null;
-  protected elementId: number | null = null;
-  protected interval: number | null = null;
-  protected level: number | null = null;
-  protected fromDate: string | null = null;
-  protected toDate: string | null = null;
-  protected hour: number | null = null;
-  protected useEntryDate: boolean = false;
+ 
   protected observationsEntries: ObservationEntry[] = [];
-
   protected pageInputDefinition: PagingParameters = new PagingParameters();
   private queryFilter!: ViewObservationQueryModel;
   protected enableSaveButton: boolean = false;

@@ -36,7 +36,6 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
   protected useUnstackedViewer: boolean = false;
   protected changedCount: number = 0;
 
-
   private destroy$ = new Subject<void>();
 
   constructor(
