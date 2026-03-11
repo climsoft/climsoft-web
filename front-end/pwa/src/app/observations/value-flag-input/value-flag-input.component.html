@@ -55,7 +55,7 @@
                             <tbody>
                                 <tr *ngFor="let row of viewObservationLog">
                                     <td>{{ row.value }}</td>
-                                    <td>{{row.flag}}</td>
+                                    <td>{{getFlagAbbreviation(row.flagId)}}</td>
                                     <td>{{ row.qcStatus }}</td>
                                     <td>{{ row.comment }}</td>
                                     <td>
@@ -89,7 +89,7 @@
                             <tbody>
                                 <tr *ngFor="let row of duplicateObservationLog">
                                     <td>{{ row.value }}</td>
-                                    <td>{{row.flag}}</td>
+                                    <td>{{getFlagAbbreviation(row.flagId)}}</td>
                                     <td>{{ row.qcStatus }}</td>
                                     <td>{{ row.comment }}</td>
                                     <td>

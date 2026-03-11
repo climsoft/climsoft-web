@@ -5,5 +5,5 @@ export interface LastStationActivityObservation{
     interval: number;
     sourceId: number;
     value: number | null;
-    flag: string | null;
+    flagId: number | null;
 }

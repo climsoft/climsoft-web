@@ -1,0 +1,179 @@
+<ng-container *ngIf="open">
+    <app-dialog [(open)]="open" [title]="'QC Test Failure Details'" [displayOkOption]="false"
+        [cancelButtonLabel]="'Close'">
+
+        <!-- Test Name Badge -->
+        <div class="mb-3">
+            <span class="badge" [ngClass]="{
+                'bg-primary': testType === 'range_threshold',
+                'bg-info': testType === 'flat_line',
+                'bg-warning text-dark': testType === 'spike',
+                'bg-secondary': testType === 'relational_comparison',
+                'bg-success': testType === 'contextual_consistency'
+            }">{{ testName }}</span>
+        </div>
+
+        <!-- No context available (legacy data) -->
+        <div *ngIf="!hasContext" class="alert alert-secondary">
+            Detailed context is not available for this QC test result.
+            Re-run QC to generate detailed failure context.
+        </div>
+
+        <!-- Range Threshold -->
+        <div *ngIf="hasContext && testType === 'range_threshold'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Observed Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Lower Threshold</th>
+                        <td>{{ context.lowerThreshold }}</td>
+                    </tr>
+                    <tr>
+                        <th>Upper Threshold</th>
+                        <td>{{ context.upperThreshold }}</td>
+                    </tr>
+                    <tr>
+                        <th>Violation</th>
+                        <td class="text-danger fw-bold">
+                            <span *ngIf="context.observedValue < context.lowerThreshold">
+                                Below lower threshold by {{ context.lowerThreshold - context.observedValue }}
+                            </span>
+                            <span *ngIf="context.observedValue > context.upperThreshold">
+                                Above upper threshold by {{ context.observedValue - context.upperThreshold }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Flat Line -->
+        <div *ngIf="hasContext && testType === 'flat_line'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Current Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Consecutive Records Required</th>
+                        <td>{{ context.specification?.consecutiveRecords }}</td>
+                    </tr>
+                    <tr>
+                        <th>Flat Line Threshold</th>
+                        <td>&plusmn; {{ context.specification?.flatLineThreshold }}</td>
+                    </tr>
+                    <tr>
+                        <th>Previous Values</th>
+                        <td>{{ context.lastValues?.join(', ') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Spike -->
+        <div *ngIf="hasContext && testType === 'spike'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Current Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Previous Value</th>
+                        <td>{{ context.previousValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Difference</th>
+                        <td class="text-danger fw-bold">{{ context.difference }}</td>
+                    </tr>
+                    <tr>
+                        <th>Spike Threshold</th>
+                        <td>{{ context.specification?.spikeThreshold }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Relational Comparison -->
+        <div *ngIf="hasContext && testType === 'relational_comparison'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Element</th>
+                        <td>{{ elementName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Observed Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Condition</th>
+                        <td>{{ context.specification?.condition }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference Element</th>
+                        <td>{{ referenceElementName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference Value</th>
+                        <td>{{ context.referenceValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Result</th>
+                        <td class="text-danger fw-bold">
+                            {{ context.observedValue }} {{ context.specification?.condition }} {{ context.referenceValue
+                            }} evaluated to TRUE
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Contextual Consistency -->
+        <div *ngIf="hasContext && testType === 'contextual_consistency'">
+            <table class="table table-sm table-bordered mb-0">
+                <tbody>
+                    <tr>
+                        <th class="w-50">Element</th>
+                        <td>{{ elementName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Observed Value</th>
+                        <td>{{ context.observedValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Primary Check</th>
+                        <td class="text-danger">
+                            {{ context.observedValue }} {{ context.specification?.primaryCheck?.condition }} {{
+                            context.specification?.primaryCheck?.value }} is TRUE
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Reference Element</th>
+                        <td>{{ referenceElementName }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference Value</th>
+                        <td>{{ context.referenceValue }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference Check</th>
+                        <td class="text-danger">
+                            {{ context.referenceValue }} {{ context.specification?.referenceCheck?.condition }} {{
+                            context.specification?.referenceCheck?.value }} is TRUE
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Result</th>
+                        <td class="text-danger fw-bold">Both conditions satisfied simultaneously</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </app-dialog>
+</ng-container>

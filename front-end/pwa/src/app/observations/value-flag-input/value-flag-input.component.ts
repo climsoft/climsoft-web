@@ -5,13 +5,13 @@ import { ViewObservationModel, ViewQCTestLog } from 'src/app/data-ingestion/mode
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { StringUtils } from 'src/app/shared/utils/string.utils';
-import { FlagEnum } from 'src/app/data-ingestion/models/flag.enum';
 import { RangeThresholdQCTestParamsModel } from 'src/app/metadata/qc-tests/models/qc-test-parameters/range-qc-test-params.model';
 import { QCTestTypeEnum } from 'src/app/metadata/qc-tests/models/qc-test-type.enum';
 import { FormEntryDefinition } from 'src/app/data-ingestion/data-entry/form-entry/defintitions/form-entry.definition';
 import { ObservationEntry } from '../models/observation-entry.model';
 import { ElementCacheModel } from 'src/app/metadata/elements/services/elements-cache.service';
 import { QCTestCacheModel } from 'src/app/metadata/qc-tests/services/qc-specifications-cache.service';
+import { ViewFlagModel } from 'src/app/metadata/flags/models/view-flag.model';
 
 /**
  * Component for data entry of observations
@@ -87,7 +87,7 @@ export class ValueFlagInputComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['observationEntry'] && this.observationEntry) {
       this.element = this.cachedMetadataService.getElement(this.observationEntry.observation.elementId);
-      this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flag);
+      this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flagId);
       this.comment = this.observationEntry.observation.comment ? this.observationEntry.observation.comment : '';
       // set original database values for future comparison
       this.originalValues = `${this.valueFlagInput}-${this.comment}`;
@@ -102,7 +102,7 @@ export class ValueFlagInputComponent implements OnChanges {
 
         // If there is no value flag, e.g it's an attempt to enter a new record, then show the duplicate values
         if (this.valueFlagInput === '') {
-          this.valueFlagInput = this.getValueFlagString(this.duplicateObservation.value, this.duplicateObservation.flag);
+          this.valueFlagInput = this.getValueFlagString(this.duplicateObservation.value, this.duplicateObservation.flagId);
           this.comment = this.duplicateObservation.comment ? this.duplicateObservation.comment : '';
         }
       }
@@ -110,24 +110,37 @@ export class ValueFlagInputComponent implements OnChanges {
 
   }
 
-  private getValueFlagString(value: number | null, flag: FlagEnum | null): string {
+  private getValueFlagString(value: number | null, flagId: number | null): string {
     let valueStr;
-    const flagStr = flag === null ? '' : flag[0].toUpperCase();
+    const flagStr = flagId ? this.cachedMetadataService.getFlag(flagId).abbreviation : '';
 
     // If scaling is on and entry scale factor is >=10 then just add zero.
-    // TODO this could be implemented later to factor when the scale is like 100
     if (value === null) {
       valueStr = '';
     } else if (this.scaleUserInputValue) {
       valueStr = FormEntryDefinition.getUnScaledValue(this.element, value).toString();
-      if (this.element.entryScaleFactor >= 10 && valueStr.length === 1) {
+
+      if (this.element.entryScaleFactor === 10 && valueStr.length === 1) {
         valueStr = `0${valueStr}`;
+      } else if (this.element.entryScaleFactor === 100) {
+        if (valueStr.length === 1) {
+          valueStr = `00${valueStr}`;
+        } else if (valueStr.length === 2) {
+          valueStr = `0${valueStr}`;
+        }
       }
+
+
     } else {
       valueStr = value.toString();
     }
 
     return `${valueStr}${flagStr}`;
+  }
+
+  protected getFlagAbbreviation(flagId: number | null): string {
+    if (!flagId) return '';
+    return this.cachedMetadataService.getFlag(flagId).abbreviation;
   }
 
   public focus(): void {
@@ -153,6 +166,12 @@ export class ValueFlagInputComponent implements OnChanges {
     if (!this.valueFlagInput) {
       this.onInputEntry('M');
     }
+
+    // If its a valid change the reformat the input appropriately
+    if (this.observationEntry.change === 'valid_change') {
+      this.valueFlagInput = this.getValueFlagString(this.observationEntry.observation.value, this.observationEntry.observation.flagId)
+    }
+
 
     // Emit the enter key press event
     this.enterKeyPress.emit();
@@ -252,7 +271,6 @@ export class ValueFlagInputComponent implements OnChanges {
     return this.cachedMetadataService.getSource(sourceId).name;
   }
 
-
   /**
    * Checks validity of the value flag input and if valid sets it as the new value for observation value and flag.
    * Updates it's internal state depending on the validity of the value flag input
@@ -267,64 +285,48 @@ export class ValueFlagInputComponent implements OnChanges {
     this.validationWarningMessage = '';
 
     // Validate input format validity. If there is a response then entry is invalid
-    this.validationErrorMessage = this.checkInputFormatValidity(newValueFlagInput);
+    const validatedInput = this.validateAndSeparate(newValueFlagInput);
+    this.validationErrorMessage = validatedInput.errorMessage;
     if (this.validationErrorMessage !== '') {
       this.observationEntry.change = 'invalid_change';
       return;
     }
 
-    // Extract and set the value and flag
-    const extractedScaledValFlag = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(newValueFlagInput);
+    // Extract and set the value and flag 
 
-    let value: number | null;
-    if (this.scaleUserInputValue && extractedScaledValFlag[0] !== null) { 
-      value = this.element.entryScaleFactor ? extractedScaledValFlag[0] / this.element.entryScaleFactor : extractedScaledValFlag[0];
+    let valueInput: number | null;
+    if (this.scaleUserInputValue && validatedInput.value !== null) {
+      valueInput = this.element.entryScaleFactor ? (validatedInput.value / this.element.entryScaleFactor) : validatedInput.value;
     } else {
-      value = extractedScaledValFlag[0];
+      valueInput = validatedInput.value;
     }
 
-    // Transform the flag letter
-    const flagLetter: string | null = extractedScaledValFlag[1] === null ? null : extractedScaledValFlag[1].toUpperCase();
-
     // If there is a value input then check if it's within the range thresholds
-    if (value !== null && this.rangeThresholdToUse) {
+    if (valueInput !== null && this.rangeThresholdToUse) {
       // Get the scale factor to use. 
       // if no need to scale the value or the element does not have a scale factor. Just use 1 to show real threshold otherwise multiple by the scale factor
       const scaleFactor: number = this.scaleUserInputValue && this.element.entryScaleFactor ? this.element.entryScaleFactor : 1;
 
-      if (value < this.rangeThresholdToUse.lowerThreshold) {
+      if (valueInput < this.rangeThresholdToUse.lowerThreshold) {
         this.validationWarningMessage = `Value less than lower limit ${this.rangeThresholdToUse.lowerThreshold * scaleFactor}`;
       }
 
-      if (value > this.rangeThresholdToUse.upperThreshold) {
+      if (valueInput > this.rangeThresholdToUse.upperThreshold) {
         this.validationWarningMessage = `Value higher than upper limit ${this.rangeThresholdToUse.upperThreshold * scaleFactor}`;
       }
     }
 
-    // If there is a flag input then validate
-    if (flagLetter !== null) {
-      this.validationErrorMessage = this.checkFlagLetterValidity(value, flagLetter);
-      if (this.validationErrorMessage !== '') {
-        this.observationEntry.change = 'invalid_change';
-        return;
-      }
-    }
-
     // Set the value and flag to the observation model 
-    this.observationEntry.observation.value = value;
-    this.observationEntry.observation.flag = flagLetter ? this.findFlag(flagLetter) : null;
-
-
-    if (commentInput !== undefined) {
-      this.observationEntry.observation.comment = commentInput.trim();
-    }
+    this.observationEntry.observation.value = valueInput;
+    this.observationEntry.observation.flagId = validatedInput.flag?.id ?? null;
+    this.observationEntry.observation.comment = commentInput ?? this.observationEntry.observation.comment;
 
     this.valueFlagInput = newValueFlagInput;
-    this.comment = this.observationEntry.observation.comment ? this.observationEntry.observation.comment : '';
+    this.comment = this.observationEntry.observation.comment || '';
 
     if (`${this.valueFlagInput}-${this.comment}` === this.originalValues) {
       this.observationEntry.change = 'no_change';
-    } else if (this.observationEntry.observation.value === null && this.observationEntry.observation.flag === null) {
+    } else if (this.observationEntry.observation.value === null && this.observationEntry.observation.flagId === null) {
       this.validationErrorMessage = 'Value and flag cannot be both empty. To clear the field, clear the comment'
       this.observationEntry.change = 'invalid_change';
     } else {
@@ -332,77 +334,54 @@ export class ValueFlagInputComponent implements OnChanges {
     }
   }
 
-  /**
-   * Validates a value flag input by checking on acceptible input formats
-   * @param valueFlagInput 
-   * @returns empty string if valid
-   */
-  private checkInputFormatValidity(valueFlagInput: string): string {
-    // Check if it's all string. Applies when its flag M entered.
-    if (StringUtils.doesNotContainNumericCharacters(valueFlagInput)) {
-      return '';
+  private validateAndSeparate(input: string): { errorMessage: string, value: number | null, flag: ViewFlagModel | null } {
+    const response: { errorMessage: string, value: number | null, flag: ViewFlagModel | null } = {
+      errorMessage: '', value: null, flag: null
+    };
+
+    // 1. Check if it matches a flag. This should be a first step because some flags can be numeric and also some flags don't need values
+    const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(input);
+    if (flagFound) {
+      response.flag = flagFound;
+      response.value = null;
+      return response;
     }
 
-    // Check for correct input format.
-    if (!StringUtils.containsNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)) {
-      return 'Incorrect input format not allowed';
+    // 2. Check if it's a pure integer (no decimals). key entry form does not expect decimals
+    if (/^\d+$/.test(input)) {
+      response.flag = null;
+      response.value = parseInt(input, 10);
+      return response;
     }
 
-    // Check for any decimals.
-    const splitNum: number | null = StringUtils.splitNumbersAndTrailingNonNumericCharactersOnly(valueFlagInput)[0];
-    if (splitNum !== null) {
-      if (this.scaleUserInputValue && String(splitNum).includes('.')) return 'Decimals not allowed';
+    // 3. Check if it starts with digits followed by alphanumeric/special chars. Values should strictly follow the number first then character format.
+    const mixed = input.match(/^(\d+)([^0-9].*)$/);
+    if (mixed) {
+      const flagFound = this.cachedMetadataService.getFlagByAbbreviationOrName(mixed[2]);
+      if (flagFound) {
+        const isMissing = flagFound.name.toLowerCase() === 'missing';
+        if (!this.cachedMetadataService.getSource(this.observationEntry.observation.sourceId).allowMissingValue && isMissing) {
+          response.errorMessage = 'Missing value not allowed';
+          return response;
+        }
+
+        if (isMissing) {
+          response.errorMessage = 'Invalid Flag. Missing is used for missing observations ONLY e.g when no observation was made.';
+          return response;
+        }
+
+        response.flag = flagFound;
+        response.value = parseInt(mixed[1], 10);
+        return response;
+      } else {
+        response.errorMessage = 'Invalid Flag';
+
+        return response;
+      }
     }
 
-    return '';
-  }
-
-  /**
-   * Validates the flag letter. 
-   * @param value 
-   * @param flagLetter 
-   * @returns empty string if valid
-   */
-  private checkFlagLetterValidity(value: number | null, flagLetter: string): string {
-    if (flagLetter.length > 1) {
-      return 'Invalid Flag, single letter expected';
-    }
-
-    const flagFound: FlagEnum | null = this.findFlag(flagLetter);
-    if (!flagFound) {
-      return 'Invalid Flag';
-    }
-
-    if (!this.cachedMetadataService.getSource(this.observationEntry.observation.sourceId).allowMissingValue && flagFound === FlagEnum.MISSING) {
-      return 'Missing value not allowed';
-    }
-
-    if (value !== null && flagFound === FlagEnum.MISSING) {
-      return 'Invalid Flag, M is used for missing observations ONLY e.g when no observation was made.';
-    }
-
-    if (value !== null && flagFound === FlagEnum.OBSCURED) {
-      return 'Invalid Flag, O or / is used for obscured observations ONLY e.g obscured middle and higher level cloud';
-    }
-
-    if (value !== null && flagFound === FlagEnum.VARIABLE) {
-      return 'Invalid Flag, V is used for variable observations ONLY e.g variable wind';
-    }
-
-    if (value === null && flagFound !== FlagEnum.MISSING && flagFound !== FlagEnum.OBSCURED && flagFound !== FlagEnum.VARIABLE) {
-      return 'Invalid Flag, use M for missing, O or / for obscure and V for variable observation';
-    }
-
-    return '';
-  }
-
-
-  private findFlag(inputFlag: string): FlagEnum | null {
-    if (inputFlag === '/') {
-      inputFlag = FlagEnum.OBSCURED;
-    }
-
-    return Object.values<FlagEnum>(FlagEnum).find(f => f[0].toLowerCase() === inputFlag[0].toLowerCase()) || null;
+    response.errorMessage = 'Incorrect input format not allowed';
+    return response;
   }
 
   //-------------------------------------------------- 

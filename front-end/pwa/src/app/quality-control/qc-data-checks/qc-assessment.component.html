@@ -72,12 +72,18 @@
                                     </td>
                                     <td>{{ obsEntry.observation.comment }}</td>
                                     <td>
-                                        <div>
-                                            <div *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed"
-                                                class="d-flex flex-row">
-                                                <div><i class="bi bi-arrow-right-short"></i></div>
-                                                <div>{{qcTestLogItem.name}}</div>
-                                            </div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            <span
+                                                *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed; let j = index"
+                                                class="badge app-cursor-pointer" [ngClass]="{
+                                                    'bg-primary': qcTestLogItem.qcTestType === 'range_threshold',
+                                                    'bg-info': qcTestLogItem.qcTestType === 'flat_line',
+                                                    'bg-warning text-dark': qcTestLogItem.qcTestType === 'spike',
+                                                    'bg-secondary': qcTestLogItem.qcTestType === 'relational_comparison',
+                                                    'bg-success': qcTestLogItem.qcTestType === 'contextual_consistency'
+                                                }" (click)="onQCTestBadgeClick(obsEntry, j)">
+                                                {{ qcTestLogItem.name }}
+                                            </span>
                                         </div>
                                     </td>
                                     <td>
@@ -107,5 +113,6 @@
 
     </div>
 
+    <app-qc-fail-detail-dialog #qcFailDetailDialog />
 
 </div>

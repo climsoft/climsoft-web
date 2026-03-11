@@ -1,12 +1,12 @@
 import { NgModule } from '@angular/core';
 import { SharedModule } from '../shared/shared.module';
-import { MetadataRoutingModule } from './metadata-routing.module'; 
+import { MetadataRoutingModule } from './metadata-routing.module';
 import { ViewRegionsComponent } from './regions/view-regions/view-regions.component';
 import { ImportRegionsDialogComponent } from './regions/import-regions-dialog/import-regions-dialog.component';
 import { ViewSourcesComponent } from './source-specifications/view-source-specifications/view-sources.component';
 import { FormSourceInputDialogComponent } from './source-specifications/form-source-input-dialog/form-source-input-dialog.component';
 import { ImportSourceInputDialogComponent } from './source-specifications/import-source-input-dialog/import-source-input-dialog.component';
-import { ViewStationsComponent } from './stations/view-stations/view-stations.component'; 
+import { ViewStationsComponent } from './stations/view-stations/view-stations.component';
 import { StationInputDialogComponent } from './stations/station-input-dialog/station-input-dialog.component';
 import { StationsImportDialogComponent } from './stations/stations-import-dialog/stations-import-dialog.component';
 import { StationImportBasicDetailComponent } from './stations/stations-import-dialog/station-import-basic-detail/station-import-basic-detail.component';
@@ -27,7 +27,7 @@ import { ImportSourceCommentDetailComponent } from './source-specifications/impo
 import { ImportSourceMissingValueDetailComponent } from './source-specifications/import-source-input-dialog/import-source-missing-value-detail/import-source-missing-value-detail.component';
 import { ImportSourceFlagDetailComponent } from './source-specifications/import-source-input-dialog/import-source-flag-detail/import-source-flag-detail.component';
 import { ImportPreviewTableComponent } from './source-specifications/import-source-input-dialog/import-preview-table/import-preview-table.component';
-import { ElementInputDialogComponent } from './elements/element-input-dialog/element-input-dialog.component'; 
+import { ElementInputDialogComponent } from './elements/element-input-dialog/element-input-dialog.component';
 import { QCSpecificationInputDialogComponent } from './qc-tests/qc-test-input-dialog/qc-specification-input-dialog.component';
 import { QCTestTypeSingleSelectorComponent } from './qc-tests/qc-test-type-selector/qc-test-type-selector-single/qc-test-type-selector-single.component';
 import { QCTestRangeThresholdParamsComponent } from './qc-tests/qc-test-input-dialog/qc-test-range-threshold-params/qc-test-range-threshold-params.component';
@@ -65,7 +65,7 @@ import { StationEnvironmentSelectorSingleComponent } from './stations/station-en
 import { RegionTypeInputComponent } from './regions/region-type-selector/region-type-input.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { NetworkAffiliationInputDialogComponent } from './network-affiliations/network-affiliation-input-dialog/network-affiliation-input-dialog.component';
-import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component'; 
+import { OrganisationSelectorSingleComponent } from './organisations/organisation-selector/organisation-selector-single/organisation-selector-single.component';
 import { ElementTypeSingleInputComponent } from './elements/element-type-single-input/element-type-single-input.component';
 import { ViewStationsTreeMapComponent } from './stations/view-stations/view-stations-tree-map/view-stations-tree-map.component';
 import { QCStatusSelectorSingleComponent } from './qc-tests/qc-status-selector-single/qc-status-selector-single.component';
@@ -90,12 +90,13 @@ import { ImportFileServerParamsComponent } from './connector-specifications/conn
 import { ConnectorSpecificationSelectorSingleComponent } from './connector-specifications/connector-specification-selector-single/connector-specification-selector-single.component';
 import { BulkEditElementsDialogComponent } from './elements/bulk-edit-elements-dialog/bulk-edit-elements-dialog.component';
 import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-dialog/bulk-edit-stations-dialog.component';
-
+import { ViewFlagsComponent } from './flags/view-flags/view-flags.component';
+import { FlagInputDialogComponent } from './flags/flag-input-dialog/flag-input-dialog.component';
+import { FlagSelectorSingleComponent } from './flags/flag-selector-single/flag-selector-single.component';
 @NgModule({
-  declarations: [ 
-
+  declarations: [
     ViewNetworkAffiliationsComponent,
-    NetworkAffiliationInputDialogComponent, 
+    NetworkAffiliationInputDialogComponent,
     NetworkAffiliationsSelectorMultipleComponent,
     NetworkAffiliationsSelectorSingleComponent,
 
@@ -139,11 +140,11 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
 
     ViewStationsGeoMapComponent,
     ViewStationsTreeMapComponent,
- 
+
 
     StationsSearchDialogComponent,
- 
-    ViewElementsComponent,  
+
+    ViewElementsComponent,
 
     ImportSourceStationDetailComponent,
     ImportSourceElementDetailComponent,
@@ -176,7 +177,7 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
     SourceSelectorSingleComponent,
     SourceSelectorMultipleComponent,
 
-    ViewQCSpecificationsComponent, 
+    ViewQCSpecificationsComponent,
     QCSpecificationInputDialogComponent,
     QCTestTypeSingleSelectorComponent,
     QCTestRangeThresholdParamsComponent,
@@ -208,6 +209,10 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
     NetworkAffiliationsSelectorSingleComponent,
 
     ConnectorSpecificationSelectorSingleComponent,
+
+    ViewFlagsComponent,
+    FlagInputDialogComponent,
+    FlagSelectorSingleComponent,
 
   ],
   imports: [
@@ -264,6 +269,8 @@ import { BulkEditStationsDialogComponent } from './stations/bulk-edit-stations-d
     ConnectorSpecificationSelectorSingleComponent,
 
     ImportPreviewTableComponent,
+    FlagSelectorSingleComponent,
+
   ]
 })
 export class MetadataModule { } 

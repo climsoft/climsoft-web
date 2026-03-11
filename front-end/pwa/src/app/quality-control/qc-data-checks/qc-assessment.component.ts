@@ -17,6 +17,7 @@ import { ObservationEntry } from 'src/app/observations/models/observation-entry.
 import { AppAuthInterceptor } from 'src/app/app-auth.interceptor';
 import { QuerySelectionComponent } from 'src/app/observations/query-selection/query-selection.component';
 import { PerformQCDialogComponent } from './perform-qc-dialog/perform-qc-dialog.component';
+import { QCFailDetailDialogComponent } from './qc-fail-detail-dialog/qc-fail-detail-dialog.component';
 
 @Component({
   selector: 'app-qc-assessment',
@@ -26,6 +27,7 @@ import { PerformQCDialogComponent } from './perform-qc-dialog/perform-qc-dialog.
 export class QCAssessmentComponent implements OnInit, OnDestroy {
   @ViewChild('querySelection') querySelection!: QuerySelectionComponent;
   @ViewChild('performQCDialog') performQCDialog!: PerformQCDialogComponent;
+  @ViewChild('qcFailDetailDialog') qcFailDetailDialog!: QCFailDetailDialogComponent;
 
   protected observationsEntries: ObservationEntry[] = [];
   protected pageInputDefinition: PagingParameters = new PagingParameters();
@@ -141,10 +143,12 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
-          const qcTestLogMetadata = observation.qcTestLog ?
-            observation.qcTestLog.filter(qcLogItem => qcLogItem.qcStatus == QCStatusEnum.FAILED).map(qcLogItem => {
-              return this.cachedMetadataSearchService.getQCTest(qcLogItem.qcTestId);
-            }) : [];
+          const failedLogItems = observation.qcTestLog
+            ? observation.qcTestLog.filter(item => item.qcStatus === QCStatusEnum.FAILED)
+            : [];
+          const qcTestLogMetadata = failedLogItems.map(item =>
+            this.cachedMetadataSearchService.getQCTest(item.qcTestId)
+          );
 
           const entry: ObservationEntry = {
             observation: observation,
@@ -159,6 +163,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.cachedMetadataSearchService.utcOffSet),
             intervalName: IntervalsUtil.getIntervalName(observation.interval),
             qcTestsFailed: qcTestLogMetadata,
+            qcTestLogItems: failedLogItems,
           }
           return entry;
 
@@ -241,7 +246,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           datetime: obsEntry.observation.datetime,
           interval: obsEntry.observation.interval,
           value: obsEntry.observation.value,
-          flag: obsEntry.observation.flag,
+          flagId: obsEntry.observation.flagId,
           comment: obsEntry.observation.comment
         });
       } else if (obsEntry.change === 'invalid_change') {
@@ -309,6 +314,14 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
       // Log the error for tracing purposes
       console.log('data entry error: ', err);
       this.pagesDataService.showToast({ title: 'QC Assessment', message: `Something wrong happened. Contact admin.`, type: ToastEventTypeEnum.ERROR });
+    }
+  }
+
+  protected onQCTestBadgeClick(obsEntry: ObservationEntry, failedIndex: number): void {
+    const qcTest = obsEntry.qcTestsFailed![failedIndex];
+    const logItem = obsEntry.qcTestLogItems?.[failedIndex];
+    if (qcTest && logItem) {
+      this.qcFailDetailDialog.showDialog(qcTest, logItem);
     }
   }
 

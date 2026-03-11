@@ -11,6 +11,7 @@ import { ElementsService } from 'src/metadata/elements/services/elements.service
 import { CreateViewElementDto } from 'src/metadata/elements/dtos/create-view-element.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ObservationImportService } from './observations-import.service';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
 
 export interface PreviewSession {
     sessionId: string;
@@ -32,6 +33,7 @@ export class ImportPreviewService implements OnModuleDestroy {
         private fileIOService: FileIOService,
         private observationImportService: ObservationImportService,
         private elementsService: ElementsService,
+        private flagsService: FlagsService,
     ) { }
 
     public async onModuleDestroy() {
@@ -123,7 +125,8 @@ export class ImportPreviewService implements OnModuleDestroy {
 
         // Apply transformations based on the source definition.
         const elements: CreateViewElementDto[] = this.elementsService.find();
-        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, stationId);
+        const flags = this.flagsService.find();
+        const error: PreviewError | void = await TabularImportTransformer.executeTransformation(this.fileIOService.duckDbConn, tableName, 0, sourceDef, elements, flags, stationId);
 
         // Return the current table state (includes all successful transformations) 
         const previewData: PreviewTableData = {

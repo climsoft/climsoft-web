@@ -55,7 +55,7 @@
             <th appSortableHeader="typeName" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Type</th>
             <th appSortableHeader="entryScaleFactor" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
-              (sort)="onSort($event)">Scale Factor</th>
+              (sort)="onSort($event)" [title]="'Value entered by user will be divided by this factor before storage'">Scale Factor</th>
             <th appSortableHeader="comment" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
               (sort)="onSort($event)">Comment</th>
           </tr>

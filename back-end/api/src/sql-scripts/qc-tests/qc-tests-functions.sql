@@ -115,7 +115,14 @@ BEGIN
 
     -- Perform the range check and create the qc test log
     IF lower_threshold IS NOT NULL AND (observation_record.value < lower_threshold OR observation_record.value > upper_threshold) THEN
-        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'lowerThreshold', lower_threshold,
+                'upperThreshold', upper_threshold));
 	ELSE
 		 qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;
@@ -165,8 +172,14 @@ BEGIN
         END LOOP;
 
         -- If match found then it's a fail
-        IF match_count >= (consecutive_records - 1) THEN 
-        	qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+        IF match_count >= (consecutive_records - 1) THEN
+        	qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+                'context', jsonb_build_object(
+                    'testName', qc_test.name,
+                    'testType', qc_test.qc_test_type,
+                    'specification', qc_test.parameters,
+                    'observedValue', observation_record.value,
+                    'lastValues', to_jsonb(last_values)));
 		ELSE
         	qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
         END IF;
@@ -227,8 +240,15 @@ BEGIN
     LIMIT 1; -- Note date_time < observation_record.date_time already skips current record
 
      -- Check if the third previous value exists and the absolute difference exceeds the threshold
-    IF last_value IS NOT NULL AND ABS(observation_record.value - last_value) >= spike_threshold THEN 
-        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+    IF last_value IS NOT NULL AND ABS(observation_record.value - last_value) >= spike_threshold THEN
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'previousValue', last_value,
+                'difference', ABS(observation_record.value - last_value)));
 	ELSE
 		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;
@@ -268,10 +288,16 @@ BEGIN
     END IF;
 
 	-- Evaluate the condition and create the qc test log
-	IF func_eval_condition(observation_record.value, reference_condition, reference_value) THEN 
-		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+	IF func_eval_condition(observation_record.value, reference_condition, reference_value) THEN
+		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'referenceValue', reference_value));
 	ELSE
-		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');	
+		qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
 	END IF;
 
 	RETURN qc_test_log;
@@ -329,7 +355,13 @@ BEGIN
 
     -- Contextual rule: if BOTH conditions are satisfied, the observation fails
     IF primary_matches AND reference_matches THEN
-        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed');
+        qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'failed',
+            'context', jsonb_build_object(
+                'testName', qc_test.name,
+                'testType', qc_test.qc_test_type,
+                'specification', qc_test.parameters,
+                'observedValue', observation_record.value,
+                'referenceValue', reference_value));
     ELSE
         qc_test_log := jsonb_build_object('qcTestId', qc_test.id, 'qcStatus', 'passed');
     END IF;

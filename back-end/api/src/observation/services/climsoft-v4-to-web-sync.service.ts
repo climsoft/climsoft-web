@@ -6,7 +6,7 @@ import { ObservationsService } from './observations.service';
 import { CreateObservationDto } from '../dtos/create-observation.dto';
 import { AppConfig } from 'src/app.config';
 import { StringUtils } from 'src/shared/utils/string.utils';
-import { FlagEnum } from '../enums/flag.enum';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
 import { DateUtils } from 'src/shared/utils/date.utils';
 import * as mariadb from 'mariadb';
 import { QCStatusEnum } from '../enums/qc-status.enum';
@@ -22,8 +22,8 @@ export class ClimsoftV4ToWebSyncService {
     constructor(
         private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
         private observationsService: ObservationsService,
-
         private stationsService: StationsService,
+        private flagsService: FlagsService,
     ) {
     }
 
@@ -363,9 +363,9 @@ export class ClimsoftV4ToWebSyncService {
                 const webInterval: number = element.interval;
                 //---------------------------------------------
                 const webValue: number | null = this.getWebvalue(v4Observation.obsValue);
-                const webFlag: FlagEnum | null = this.getWebFlag(v4Observation.flag);
+                const webFlagId: number | null = this.getWebFlagId(v4Observation.flag);
 
-                if (webValue === null && webFlag === null) {
+                if (webValue === null && webFlagId === null) {
                     continue; // Web database does not accept this. So likely an error on the version 4 database
                 }
 
@@ -377,7 +377,7 @@ export class ClimsoftV4ToWebSyncService {
                     datetime: webDatetime,
                     interval: webInterval,
                     value: webValue,
-                    flag: webFlag,
+                    flagId: webFlagId,
                     comment: null
                 }
 
@@ -425,15 +425,15 @@ export class ClimsoftV4ToWebSyncService {
         return isNaN(num) ? null : num;
     }
 
-    private getWebFlag(v4Flag: string | null): FlagEnum | null {
+    private getWebFlagId(v4Flag: string | null): number | null {
         if (!v4Flag) {
             return null;
         }
 
-        const webFlags: FlagEnum[] = Object.values(FlagEnum);
-        for (const webFlag of webFlags) {
-            if (webFlag[0].toLowerCase() === v4Flag[0].toLowerCase()) {
-                return webFlag;
+        const flags = this.flagsService.find();
+        for (const flag of flags) {
+            if (flag.abbreviation[0].toLowerCase() === v4Flag[0].toLowerCase()) {
+                return flag.id;
             }
         }
         return null;

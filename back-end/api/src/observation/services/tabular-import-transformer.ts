@@ -1,5 +1,5 @@
-import { FlagEnum } from '../enums/flag.enum';
 import { ImportSourceTabularParamsDto, DateTimeDefinition, ValueDefinition, FlagDefinition } from 'src/metadata/source-specifications/dtos/import-source-tabular-params.dto';
+import { ViewFlagDto } from 'src/metadata/flags/dtos/view-flag.dto';
 import { ImportSourceDto } from 'src/metadata/source-specifications/dtos/import-source.dto';
 import { DuckDBUtils } from 'src/shared/utils/duckdb.utils';
 import { ImportErrorUtils } from 'src/shared/utils/import-error.utils';
@@ -25,7 +25,7 @@ export class TabularImportTransformer {
     static readonly INTERVAL_PROPERTY_NAME: string = 'interval';
     static readonly SOURCE_ID_PROPERTY_NAME: string = 'source_id';
     static readonly VALUE_PROPERTY_NAME: string = 'value';
-    static readonly FLAG_PROPERTY_NAME: string = 'flag';
+    static readonly FLAG_PROPERTY_NAME: string = 'flag_id';
     static readonly COMMENT_PROPERTY_NAME: string = 'comment';
     // Note: entry_user_id comes from AppBaseEntity, the base class of ObservationEntity.
     static readonly ENTRY_USER_ID_PROPERTY_NAME: string = 'entry_user_id';
@@ -50,6 +50,7 @@ export class TabularImportTransformer {
         sourceId: number,
         sourceDef: CreateSourceSpecificationDto,
         elements: CreateViewElementDto[],
+        flags: ViewFlagDto[],
         stationId?: string,
         userId?: number,
     ): Promise<PreviewError | void> {
@@ -69,7 +70,7 @@ export class TabularImportTransformer {
             { name: 'Level', buildSql: () => TabularImportTransformer.buildAlterLevelColumnSQL(tabularDef, tableName) },
             { name: 'Date/Time', buildSql: () => TabularImportTransformer.buildAlterDateTimeColumnSQL(sourceDef, tabularDef, tableName) },
             { name: 'Interval', buildSql: () => TabularImportTransformer.buildAlterIntervalColumnSQL(tabularDef, tableName) },
-            { name: 'Value & Flag', buildSql: () => TabularImportTransformer.buildAlterValueColumnSQL(sourceDef, importDef, tabularDef, tableName) },
+            { name: 'Value & Flag', buildSql: () => TabularImportTransformer.buildAlterValueColumnSQL(sourceDef, importDef, tabularDef, tableName, flags) },
             {
                 name: 'Scale Values',
                 buildSql: () => {
@@ -292,7 +293,7 @@ export class TabularImportTransformer {
         return sql;
     }
 
-    private static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string): string[] {
+    private static buildAlterValueColumnSQL(sourceDef: CreateSourceSpecificationDto, importDef: ImportSourceDto, tabularDef: ImportSourceTabularParamsDto, tableName: string, flags: ViewFlagDto[]): string[] {
         const sql: string[] = [];
 
         if (tabularDef.valueDefinition !== undefined) {
@@ -309,17 +310,24 @@ export class TabularImportTransformer {
                 sql.push(`ALTER TABLE ${tableName} RENAME column${flagDefinition.flagColumnPosition} TO ${this.FLAG_PROPERTY_NAME}`);
 
                 if (flagDefinition.flagsToFetch) {
+                    // flagsToFetch databaseId is already a flag table id (integer), use directly
                     sql.push(...DuckDBUtils.getDeleteAndUpdateSQL(tableName, this.FLAG_PROPERTY_NAME, flagDefinition.flagsToFetch, false));
+                } else {
+                    // No explicit mapping — map string abbreviations to integer IDs using a CASE statement
+                    const caseParts = flags.map(f => `WHEN UPPER(${this.FLAG_PROPERTY_NAME}) = '${f.abbreviation.toUpperCase()}' THEN ${f.id}`);
+                    if (caseParts.length > 0) {
+                        sql.push(`UPDATE ${tableName} SET ${this.FLAG_PROPERTY_NAME} = CASE ${caseParts.join(' ')} ELSE NULL END WHERE ${this.FLAG_PROPERTY_NAME} IS NOT NULL`);
+                    }
                 }
 
             } else {
-                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`);
+                sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} INTEGER DEFAULT NULL`);
             }
             //--------------------------
 
         } else {
             // Just add the flag column because the value column should have been added when stacking elements of date columns
-            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} VARCHAR DEFAULT NULL`);
+            sql.push(`ALTER TABLE ${tableName} ADD COLUMN ${this.FLAG_PROPERTY_NAME} INTEGER DEFAULT NULL`);
         }
 
         // Get all missing value indicators in quoted format
@@ -332,11 +340,16 @@ export class TabularImportTransformer {
 
         if (sourceDef.allowMissingValue) {
             // Set missing flag if missing are allowed to be imported.
-            sql.push(`UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = '${FlagEnum.MISSING}' WHERE ${missingValueCondition}`);
+            const missingFlag = flags.find(f => f.name.toLowerCase() === 'missing');
+            const missingFlagId = missingFlag ? missingFlag.id : 'NULL';
+            sql.push(`UPDATE ${tableName} SET ${this.VALUE_PROPERTY_NAME} = NULL, ${this.FLAG_PROPERTY_NAME} = ${missingFlagId} WHERE ${missingValueCondition}`);
         } else {
             // Delete all missing values if not allowed.
             sql.push(`DELETE FROM ${tableName} WHERE ${missingValueCondition}`);
         }
+
+        // Convert the flag column to integer
+        sql.push(`ALTER TABLE ${tableName} ALTER COLUMN ${this.FLAG_PROPERTY_NAME} TYPE INTEGER`);
 
         // Convert the value column to double.
         // Note, important to use DOUBLE to align the precision between DuckDB and Node.js (64-bit double-precision floating-point format (IEEE 754))

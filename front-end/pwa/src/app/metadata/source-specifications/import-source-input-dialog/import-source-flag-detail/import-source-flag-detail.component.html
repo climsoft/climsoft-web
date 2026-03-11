@@ -26,7 +26,7 @@
                                     (valueChange)="onFlagsToFetchEntry()" />
                             </td>
                             <td>
-                                <app-flag-single-input [id]="i + '_database_flag_id'"
+                                <app-flag-selector-single [id]="i + '_database_flag_id'"
                                     [selectedId]="item.databaseId"
                                     (selectedIdChange)="onFlagEntry( i, $event)" />
                             </td>

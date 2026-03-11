@@ -1,14 +1,26 @@
 import { Check, Column, Entity, Index, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
-import { FlagEnum } from "../enums/flag.enum";
 import { QCStatusEnum } from "../enums/qc-status.enum";
 import { AppBaseEntity, BaseLogVo } from "src/shared/entity/app-base-entity";
 import { StationEntity } from "src/metadata/stations/entities/station.entity";
 import { ElementEntity } from "src/metadata/elements/entities/element.entity";
 import { SourceSpecificationEntity } from "src/metadata/source-specifications/entities/source-specification.entity";
+import { FlagEntity } from "src/metadata/flags/entities/flag.entity";
+
+//TODO. Deprecate this enum after preview 3 release
+export enum FlagEnum {
+  MISSING = "missing",
+  ESTIMATE = "estimate",
+  DUBIOUS = "dubious",
+  GENERATED = "generated",
+  CUMULATIVE = "cumulative",
+  TRACE = "trace",
+  OBSCURED = "obscured",
+  VARIABLE = "variable",
+}
 
 // TODO. Investigate if a constraints check for interval to always be greater than 0 is necessary
 @Entity("observations")
-@Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag" IS NOT NULL`)
+@Check("CHK_observations_both_value_and_flag_not_null", `"value" IS NOT NULL OR "flag_id" IS NOT NULL`)
 //@Check("CHK_observations_both_value_null_and_flag_missing", `"value" IS NULL AND "flag" IS 'missing'`) // TODO. Investigate if this check will ever be necessary before adding it. Flag settings may change within the preview rleases
 //@Check("CHK_observations_no_future_dates", `"date_time" <= NOW()`) // TODO. Investigate why this is refusing current date
 export class ObservationEntity extends AppBaseEntity {
@@ -45,7 +57,7 @@ export class ObservationEntity extends AppBaseEntity {
   @Index()
   interval: number;
 
-  //------------------
+  //------------------------------------
   @PrimaryColumn({ name: "source_id", type: "int" })
   @Index()
   sourceId: number;
@@ -53,15 +65,25 @@ export class ObservationEntity extends AppBaseEntity {
   @ManyToOne(() => SourceSpecificationEntity, { onDelete: "RESTRICT" })
   @JoinColumn({ name: "source_id" })
   source: SourceSpecificationEntity;
-  //------------------
+  //------------------------------------
 
   // Note, as of 14/01/2026, TypeORM `float` translates to Postgres `DOUBLE PRECISION`. Used `float` here because TYPEORM does not support `double`
-  @Column({ name: "value", type: "float", nullable: true }) 
+  @Column({ name: "value", type: "float", nullable: true })
   value: number | null;
+
+  //------------------------------------
+  @Column({ name: "flag_id", type: "int", nullable: true })
+  @Index()
+  flagId: number | null;
+
+  @ManyToOne(() => FlagEntity, { onDelete: "RESTRICT" })
+  @JoinColumn({ name: "flag_id" })
+  flagEntity: FlagEntity;
 
   @Column({ name: "flag", type: "enum", enum: FlagEnum, nullable: true })
   @Index()
-  flag: FlagEnum | null;
+  flag: FlagEnum | null; // TODO. Deprecate this column after preview 3 release
+  //------------------------------------
 
   @Column({ name: "qc_status", type: "enum", enum: QCStatusEnum, default: QCStatusEnum.NONE })
   @Index()
@@ -89,7 +111,7 @@ export class ObservationEntity extends AppBaseEntity {
 
 export interface ObservationLogVo extends BaseLogVo {
   value: number | null;
-  flag: FlagEnum | null;
+  flagId: number | null;
   qcStatus: QCStatusEnum;
   comment: string | null;
   deleted: boolean;
@@ -98,4 +120,11 @@ export interface ObservationLogVo extends BaseLogVo {
 export interface QCTestLogVo {
   qcTestId: number;
   qcStatus: QCStatusEnum;
+  context?: {
+    testName: string;
+    testType: string;
+    specification: Record<string, any>;
+    observedValue: number;
+    [key: string]: any;
+  };
 }

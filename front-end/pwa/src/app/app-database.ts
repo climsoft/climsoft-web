@@ -13,6 +13,7 @@ import { CreateStationModel } from "./metadata/stations/models/create-station.mo
 import { ViewOrganisationModel } from "./metadata/organisations/models/view-organisation.model";
 import { ViewNetworkAffiliationModel } from "./metadata/network-affiliations/models/view-network-affiliation.model";
 import { ViewGeneralSettingModel } from "./admin/general-settings/models/view-general-setting.model";
+import { ViewFlagModel } from "./metadata/flags/models/view-flag.model";
 
 export interface MetadataModificationLogModel {
     metadataName: keyof AppDatabase; // Except metadataModificationLog
@@ -69,6 +70,7 @@ export class AppDatabase extends Dexie {
     elements!: Table<CreateViewElementModel, number>;
     sourceTemplates!: Table<ViewSourceModel, number>;
     generalSettings!: Table<ViewGeneralSettingModel, number>;
+    flags!: Table<ViewFlagModel, number>;
 
 
     // cached differently
@@ -92,7 +94,7 @@ export class AppDatabase extends Dexie {
         // Database name
         super('climsoft_preview_db');
 
-        this.version(1).stores({
+        this.version(2).stores({
             metadataModificationLog: 'metadataName',
             organisations: `id, name`,
             networkAffiliations: `id, name`,
@@ -109,6 +111,7 @@ export class AppDatabase extends Dexie {
             formStations: `formId`,
             qcTests: 'id, name, elementId, qcTestType, observationLevel, observationInterval, [elementId+qcTestType+observationLevel+observationInterval]',
             generalSettings: 'id, name',
+            flags: 'id, abbreviation, name',
 
             // Note. Compoud key [stationId+elementId+level+datetime+interval+sourceId] is used for putting and deleting data in the local database. 
             // Note. Compound index [stationId+sourceId+level+elementId+datetime] is used by entry forms.

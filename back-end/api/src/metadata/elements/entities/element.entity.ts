@@ -31,6 +31,9 @@ export class ElementEntity extends AppBaseEntity {
   elementType: ElementTypeEntity | null;
   //---------------------------
 
+  // Stored as a whole number (divisor) rather than a decimal multiplier to avoid
+  // floating point precision issues. E.g. a scale factor of 10 means user enters
+  // 250 and 25.0 is stored (value / 10), not 0.1 which risks rounding errors.
   @Column({ type: "int", name: "entry_scale_factor", nullable: true })
   entryScaleFactor: number | null;
 

@@ -29,7 +29,6 @@ import { LabelInputComponent } from './controls/label-input/label-input.componen
 import { DropDownButtonComponent } from './controls/drop-down-button/drop-down-button.component';
 import { CheckBoxInputComponent } from './controls/check-box-input/check-box-input.component';
 import { RadioButtonsInputComponent } from './controls/radio-buttons-input/radio-buttons-input.component';
-import { FlagSingleInputComponent } from './controls/flag-input/flag-single-input/flag-single-input.component';
 import { PageInputComponent } from './controls/page-input/page-input.component';
 import { DropDownContainerComponent } from './controls/drop-down-container/drop-down-container.component';
 import { MapComponent } from './controls/map/map.component';
@@ -82,8 +81,7 @@ const controlsComponents = [
   YearMonthInputComponent,
   IntervalSelectorSingleComponent,
 
-  DropDownButtonComponent,
-  FlagSingleInputComponent,
+  DropDownButtonComponent, 
   PageInputComponent,
   DropDownContainerComponent,
 

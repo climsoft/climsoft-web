@@ -1,0 +1,53 @@
+<div class="card border-0">
+  <div class="card-header d-flex justify-content-end align-items-center px-1 py-0">
+
+    <div class="d-flex align-items-center">
+      <button *ngIf="isSystemAdmin" type="button" class="btn btn-outline-secondary btn-sm"
+        (click)="onOptionsClicked('Add')">
+        Add
+      </button>
+      <div *ngIf="isSystemAdmin" class="ms-2">
+        <app-drop-down-button [buttonText]="'Options'" [dropDownItems]="['Delete All']"
+          (dropDownOptionClick)="onOptionsClicked('Delete All')" [offSetRight]="true" />
+      </div>
+      <div class="ms-2">
+        <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="0" />
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="flags" class="card-body px-0">
+    <div class="app-table-container" style="max-height: 80vh;">
+      <table class="table table-hover table-sm">
+        <colgroup>
+          <col style="width: 2%;" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th></th>
+            <th appSortableHeader="abbreviation" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Abbreviation</th>
+            <th appSortableHeader="name" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Name</th>
+            <th appSortableHeader="description" [sortColumn]="sortColumn" [sortDirection]="sortDirection"
+              (sort)="onSort($event)">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="app-cursor-pointer" *ngFor="let flag of pageItems" (click)="onEditFlag(flag)">
+            <td><i class="bi bi-arrow-right-short"></i></td>
+            <td>{{ flag.abbreviation }}</td>
+            <td>{{ flag.name }}</td>
+            <td>{{ flag.description }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <app-flag-input-dialog #dlgFlagDetails />
+
+  <app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'flag'"
+    (deleteConfirmed)="onDeleteAllConfirm()" />
+
+</div>

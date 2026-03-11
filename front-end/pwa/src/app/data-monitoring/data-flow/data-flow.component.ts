@@ -12,7 +12,7 @@ interface DataFlowView {
   stationId: string
   stationName: string;
   value: number | null;
-  flag: string | null;
+  flagId: number | null;
   datetime: string;
   formattedDatetime: string; 
 }
@@ -80,7 +80,7 @@ export class DataFlowComponent implements OnDestroy {
             stationId: observation.stationId,
             stationName: stationMetadata.name,
             value: observation.value,
-            flag: observation.flag,
+            flagId: observation.flagId,
             datetime: DateUtils.getDatetimesBasedOnUTCOffset( observation.datetime, this.utcOffset, 'add'),
             formattedDatetime: DateUtils.getPresentableDatetime(observation.datetime, this.utcOffset),
           }

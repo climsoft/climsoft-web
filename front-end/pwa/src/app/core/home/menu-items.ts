@@ -40,6 +40,7 @@ export enum SubMenuNameEnum {
     //SCHEDULED_EXPORT = 'Scheduled Export',
 
     ELEMENTS = 'Elements',
+    FLAGS = 'Flags',
     ORGANISATIONS = 'Organisations',
     NETWORK_AFFILIATIONS = 'Network Affiliations',
     REGIONS = 'Regions',
@@ -169,6 +170,10 @@ export class MenuItemsUtil {
                 {
                     name: SubMenuNameEnum.ELEMENTS,
                     url: '/view-elements',
+                },                
+                {
+                    name: SubMenuNameEnum.FLAGS,
+                    url: '/view-flags',
                 },
                 {
                     name: SubMenuNameEnum.ORGANISATIONS,

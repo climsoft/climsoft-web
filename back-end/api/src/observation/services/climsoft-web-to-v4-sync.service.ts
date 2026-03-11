@@ -11,6 +11,7 @@ import { QCStatusEnum } from 'src/observation/enums/qc-status.enum';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UsersService } from 'src/user/services/users.service';
 import { SourceSpecificationsService } from 'src/metadata/source-specifications/services/source-specifications.service';
+import { FlagsService } from 'src/metadata/flags/services/flags.service';
 
 @Injectable()
 export class ClimsoftWebToV4SyncService {
@@ -22,6 +23,7 @@ export class ClimsoftWebToV4SyncService {
         private climsoftV4WebSetupService: ClimsoftV4WebSyncSetUpService,
         private sourcesService: SourceSpecificationsService,
         private usersService: UsersService,
+        private flagsService: FlagsService,
 
     ) {
     }
@@ -251,7 +253,11 @@ export class ClimsoftWebToV4SyncService {
         // Important to round off due to precision errors
         const adjustedDatetime: string = this.getV4AdjustedDatetimeInDBFormat(entity.datetime);
         const level: string = entity.level === 0 ? 'surface' : `${entity.level}`;
-        const flag: string = entity.flag ? entity.flag[0].toUpperCase() : '';
+        let flag: string = '';
+        if (entity.flagId) {
+            const flagDto = this.flagsService.findOne(entity.flagId);
+            flag = flagDto ? flagDto.abbreviation.toUpperCase() : '';
+        }
 
         return { v4Level: level, v4DBPeriod: period, v4Value: entity.value, v4Flag: flag, v4DBDatetime: adjustedDatetime };
     }

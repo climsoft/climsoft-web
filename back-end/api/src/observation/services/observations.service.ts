@@ -149,7 +149,7 @@ export class ObservationsService {
                 interval: obsEntity.interval,
                 datetime: obsEntity.datetime.toISOString(),
                 value: obsEntity.value,
-                flag: obsEntity.flag,
+                flagId: obsEntity.flagId,
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: obsEntity.qcTestLog,
@@ -169,7 +169,7 @@ export class ObservationsService {
                 user = this.usersService.findOne(logItem.entryUserId);
                 viewLogDto.push({
                     value: logItem.value,
-                    flag: logItem.flag,
+                    flagId: logItem.flagId,
                     qcStatus: logItem.qcStatus,
                     comment: logItem.comment,
                     deleted: logItem.deleted,
@@ -185,7 +185,7 @@ export class ObservationsService {
         user = this.usersService.findOne(entity.entryUserId);
         const currentValuesAsLogObj: ViewObservationLogDto = {
             value: entity.value,
-            flag: entity.flag,
+            flagId: entity.flagId,
             qcStatus: entity.qcStatus,
             comment: entity.comment,
             deleted: entity.deleted,
@@ -230,7 +230,7 @@ export class ObservationsService {
                 datetime: new Date(dto.datetime),
                 interval: dto.interval,
                 value: dto.value,
-                flag: dto.flag,
+                flagId: dto.flagId,
                 qcStatus: qcStatus,
                 comment: dto.comment ? dto.comment : null,
                 entryUserId: userId,
@@ -259,7 +259,7 @@ export class ObservationsService {
                 .orUpdate(
                     [
                         "value",
-                        "flag",
+                        "flag_id",
                         "qc_status",
                         "comment",
                         "deleted",
@@ -396,7 +396,7 @@ export class ObservationsService {
         return results.map((item: { station_id: any; }) => item.station_id);
     }
 
-    public async findStationsStatusData(stationId: string, stationStatusQuery: StationStatusDataQueryDto): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flag: string | null }[]> {
+    public async findStationsStatusData(stationId: string, stationStatusQuery: StationStatusDataQueryDto): Promise<{ elementId: number, level: number, datetime: string, interval: number, sourceId: number, value: number | null, flagId: number | null }[]> {
         const durationType: 'HOURS' | 'DAYS' = stationStatusQuery.durationType === 'hours' ? 'HOURS' : 'DAYS';
         const duration: number = stationStatusQuery.duration;
 
@@ -408,7 +408,7 @@ export class ObservationsService {
         // TODO. use parameterised queries
         const results = await this.dataSource.manager.query(
             `
-            SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag AS "flag" 
+            SELECT o.element_id AS "elementId", o."level" AS "level", o.date_time AS "datetime", o."interval" AS "interval", o.source_id AS "sourceId", o.value AS "value", o.flag_id AS "flagId"
             FROM observations o 
             WHERE o.station_id = '${stationId}' ${extraSQLCondition} AND o.date_time >= NOW() - INTERVAL '${duration} ${durationType}' AND o.deleted = FALSE 
             ORDER BY o.element_id, o.date_time;
@@ -556,7 +556,7 @@ export class ObservationsService {
                 interval: obsEntity.interval,
                 datetime: obsEntity.datetime.toISOString(),
                 value: obsEntity.value,
-                flag: obsEntity.flag,
+                flagId: obsEntity.flagId,
                 comment: obsEntity.comment,
                 qcStatus: obsEntity.qcStatus,
                 qcTestLog: null,

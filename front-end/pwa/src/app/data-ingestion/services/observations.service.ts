@@ -116,7 +116,7 @@ export class ObservationsService {
       datetime: cachedObservation.datetime,
       interval: cachedObservation.interval,
       value: cachedObservation.value,
-      flag: cachedObservation.flag,
+      flagId: cachedObservation.flagId,
       comment: cachedObservation.comment,
       qcStatus: QCStatusEnum.NONE,
       qcTestLog: null,
@@ -186,7 +186,7 @@ export class ObservationsService {
       datetime: cachedObservation.datetime,
       interval: cachedObservation.interval,
       value: cachedObservation.value,
-      flag: cachedObservation.flag,
+      flagId: cachedObservation.flagId,
       comment: cachedObservation.comment,
     }));
 

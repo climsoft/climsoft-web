@@ -9,7 +9,7 @@ import { ViewConnectorSpecificationsComponent } from './connector-specifications
 import { ViewOrganisationsComponent } from './organisations/view-organisations/view-organisations.component';
 import { ViewNetworkAffiliationsComponent } from './network-affiliations/view-network-affiliations/view-network-affiliations.component';
 import { ViewQCSpecificationsComponent } from './qc-tests/view-qc-specifications/view-qc-specifications.component';
-
+import { ViewFlagsComponent } from './flags/view-flags/view-flags.component';
 const routes: Routes = [
   {
     path: '',
@@ -57,6 +57,10 @@ const routes: Routes = [
       {
         path: 'view-connector-specifications',
         component: ViewConnectorSpecificationsComponent
+      },
+      {
+        path: 'view-flags',
+        component: ViewFlagsComponent
       },
     ]
   }

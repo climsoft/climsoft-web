@@ -1,8 +1,6 @@
-import { FlagEnum } from "../../../data-ingestion/models/flag.enum";
-
 export interface FlagDefinition {
     flagColumnPosition: number;
-    flagsToFetch?: { sourceId: string, databaseId: FlagEnum }[];
+    flagsToFetch?: { sourceId: string, databaseId: number }[];
 }
 
 export interface ValueDefinition {

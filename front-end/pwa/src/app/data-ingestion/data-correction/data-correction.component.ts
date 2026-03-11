@@ -206,7 +206,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
           datetime: obsEntry.observation.datetime,
           interval: obsEntry.observation.interval,
           value: obsEntry.observation.value,
-          flag: obsEntry.observation.flag,
+          flagId: obsEntry.observation.flagId,
           comment: obsEntry.observation.comment
         });
       } else if (obsEntry.change === 'invalid_change') {

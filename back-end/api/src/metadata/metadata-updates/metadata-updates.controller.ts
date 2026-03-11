@@ -14,6 +14,7 @@ import { OrganisationsService } from '../organisations/services/organisations.se
 import { NetworkAffiliationsService } from '../network-affiliations/services/network-affiliations.service';
 import { QCSpecificationsService } from '../qc-specifications/services/qc-specifications.service';
 import { GeneralSettingsService } from 'src/settings/services/general-settings.service';
+import { FlagsService } from '../flags/services/flags.service';
 
 // TODO. Move this controller to a module responsible for handling cached data
 
@@ -32,6 +33,7 @@ export class MetadataUpdatesController {
     private elementsService: ElementsService,
     private qcTestsService: QCSpecificationsService,
     private generalSettingsService: GeneralSettingsService,
+    private flagsService: FlagsService,
   ) { }
 
   @Get('organisations')
@@ -135,6 +137,12 @@ export class MetadataUpdatesController {
   async generalSettingsUpdates(
     @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
     return this.generalSettingsService.checkUpdates(updatesQueryDto);
+  }
+
+  @Get('flags')
+  async flagUpdates(
+    @Query() updatesQueryDto: MetadataUpdatesQueryDto) {
+    return this.flagsService.checkUpdates(updatesQueryDto);
   }
 
 }

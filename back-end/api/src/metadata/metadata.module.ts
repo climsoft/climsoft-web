@@ -53,6 +53,9 @@ import { QCSpecificationEntity } from './qc-specifications/entities/qc-specifica
 import { QCSpecificationsController } from './qc-specifications/controllers/qc-specifications.controller';
 import { MetadataImportPreviewController } from './controllers/metadata-import-preview.controller';
 import { MetadataImportPreviewService } from './services/metadata-import-preview.service';
+import { FlagEntity } from './flags/entities/flag.entity';
+import { FlagsService } from './flags/services/flags.service';
+import { FlagsController } from './flags/controllers/flags.controller';
 
 @Module({
     imports: [
@@ -79,6 +82,8 @@ import { MetadataImportPreviewService } from './services/metadata-import-preview
             ExportSpecificationEntity,
 
             ConnectorSpecificationEntity,
+
+            FlagEntity,
         ]),
         SharedModule,
         UserModule,
@@ -105,6 +110,8 @@ import { MetadataImportPreviewService } from './services/metadata-import-preview
         ExportSpecificationsController,
 
         ConnectorSpecificationsController,
+
+        FlagsController,
 
         MetadataUpdatesController,
 
@@ -135,6 +142,8 @@ import { MetadataImportPreviewService } from './services/metadata-import-preview
         ExportSpecificationsService,
 
         ConnectorSpecificationsService,
+
+        FlagsService,
     ],
 
     exports: [
@@ -151,6 +160,7 @@ import { MetadataImportPreviewService } from './services/metadata-import-preview
         RegionsService,
         ExportSpecificationsService,
         ConnectorSpecificationsService,
+        FlagsService,
     ]
 })
 export class MetadataModule { }

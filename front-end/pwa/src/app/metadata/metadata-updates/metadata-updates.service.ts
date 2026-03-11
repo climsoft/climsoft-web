@@ -97,6 +97,8 @@ export class MetadataUpdatesService {
                 return 'source-specifications';
             case 'generalSettings':
                 return 'general-settings';
+            case 'flags':
+                return 'flags';
             default:
                 throw new Error('Developer error: metadata name not recognised');
         }
