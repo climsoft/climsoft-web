@@ -8,6 +8,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class DeleteConfirmationDialogComponent {
   @Input() public itemName: string = '';
   @Input() public itemType: string = 'item';
+   @Input() public deleteButtonLabel: string = 'Delete';
   @Output() public deleteConfirmed = new EventEmitter<void>();
 
   protected open: boolean = false;

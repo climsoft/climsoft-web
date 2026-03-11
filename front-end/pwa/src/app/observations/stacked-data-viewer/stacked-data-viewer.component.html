@@ -12,7 +12,7 @@
                 <th>Value & Flag</th>
                 <th>Comment</th>
                 <th>QC Status</th>
-                <th>Delete</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -27,16 +27,27 @@
                 <td>{{ obsEntry.sourceName }}</td>
                 <td>
                     <div class="app-value-flag-container">
-                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true" [scaleUserInputValue]="false"
-                            [observationEntry]="obsEntry" [disableValueFlagEntry]="obsEntry.delete"
-                            (userInputVF)="onUserInput($event)" />
+                        <app-value-flag-input [id]="i + '_vf'" [displayExtraInfoOption]="true"
+                            [scaleUserInputValue]="false" [observationEntry]="obsEntry"
+                            [disableValueFlagEntry]="obsEntry.delete" (userInputVF)="onUserInput($event)" />
                     </div>
                 </td>
                 <td>{{ obsEntry.observation.comment }}</td>
-                <td>{{ obsEntry.observation.qcStatus }}</td>
                 <td>
-                    <app-check-box-input [id]="i + '_delete'" [value]="obsEntry.delete"
-                        (valueChange)="onUserDeleteClick(obsEntry)" />
+                    <span class="badge" [ngClass]="{ 
+                        'bg-secondary': obsEntry.observation.qcStatus === 'none', 
+                        'bg-success': obsEntry.observation.qcStatus === 'passed', 
+                        'bg-danger': obsEntry.observation.qcStatus === 'failed' }">
+                        {{ obsEntry.observation.qcStatus }}
+                    </span>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm"
+                        [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
+                        [disabled]="obsEntry.change !== 'no_change'" title="Delete"
+                        (click)="onUserDeleteClick(obsEntry)">
+                        <i class="bi bi-trash"></i>
+                    </button>
                 </td>
             </tr>
         </tbody>

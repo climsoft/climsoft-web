@@ -19,8 +19,8 @@
         </div>
 
         <div class="card-body p-0 mt-2">
-            <div class="manage-data-table-container">
-                <table class="table table-striped table-sm manage-data-table">
+            <div class="app-table-container">
+                <table class="table table-hover table-sm">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -35,7 +35,7 @@
                             <th>Hard Delete</th>
                         </tr>
                     </thead>
-                    <tbody class="table-group-divider overflow-y-scroll">
+                    <tbody>
 
                         <tr *ngFor="let obsEntry of observationsEntries; let i = index;">
                             <td>{{i + 1}}</td>
