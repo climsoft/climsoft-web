@@ -11,9 +11,9 @@
                     (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
-                <div *ngIf="numOfChanges" class="d-flex align-items-center">
+                <div *ngIf="changedCount" class="d-flex align-items-center">
                     <div class="vr mx-2"></div>
-                    <div class=" text-success me-2">Total Changes: {{numOfChanges}}</div>
+                    <div class=" text-success me-2">Total Changes: {{changedCount}}</div>
                 </div>
             </div>
         </div>

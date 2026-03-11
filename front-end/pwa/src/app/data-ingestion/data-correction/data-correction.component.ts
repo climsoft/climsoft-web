@@ -111,13 +111,13 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         next: count => {
           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
-          if (!count) {
+          if (count === 0) {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
         },
         error: err => {
           this.enableQueryButton = true;
-          this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
+          this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         },
       });
 
@@ -151,9 +151,9 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
 
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
         this.enableSaveButton = false;
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
     });
   }

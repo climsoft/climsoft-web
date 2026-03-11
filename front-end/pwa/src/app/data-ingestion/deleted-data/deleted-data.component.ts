@@ -34,8 +34,7 @@ export class DeletedDataComponent implements OnDestroy {
   private queryFilter!: ViewObservationQueryModel;
   protected enableSaveButton: boolean = false;
   protected enableQueryButton: boolean = true;
-  protected numOfChanges: number = 0;
-  protected allBoundariesIndices: number[] = [];
+  protected changedCount: number = 0;
   private utcOffset: number = 0;
   private destroy$ = new Subject<void>();
 
@@ -52,7 +51,7 @@ export class DeletedDataComponent implements OnDestroy {
       //console.log('cached: ', data)
       if (!data) return;
       this.utcOffset = this.cachedMetadataSearchService.utcOffSet;
-      this.queryData();
+      this.loadData();
     });
 
   }
@@ -70,47 +69,39 @@ export class DeletedDataComponent implements OnDestroy {
     // Get the data based on the selection filter
     this.queryFilter = observationFilter;
     this.queryFilter.deleted = true;
-    this.queryData();
+    this.loadData();
   }
 
-  private queryData(): void {
+  protected loadData(): void {
     if (!(this.queryFilter && this.utcOffset !== undefined)) {
       return;
     }
-    this.observationsEntries = [];
-    this.pageInputDefinition.setTotalRowCount(0);
+
     this.enableQueryButton = false;
+    this.enableSaveButton = false;
+    this.changedCount = 0;
+    this.observationsEntries = [];
+    this.queryFilter.deleted = true; // important
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+
     this.observationService.count(this.queryFilter).pipe(
       take(1)
     ).subscribe({
       next: count => {
+        this.enableQueryButton = true;
         this.pageInputDefinition.setTotalRowCount(count);
-        if (count > 0) {
-          this.loadData();
-        } else {
+        if (count === 0) {
           this.pagesDataService.showToast({ title: 'Delete Data', message: 'No data', type: ToastEventTypeEnum.INFO });
           this.enableSaveButton = false;
         }
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
         this.enableQueryButton = true;
-      }
+        this.pagesDataService.showToast({ title: 'Delete Data', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
     });
 
-  }
-
-  protected loadData(): void {
-    this.enableQueryButton = false;
-    this.enableSaveButton = false;
-    this.numOfChanges = 0;
-    this.allBoundariesIndices = [];
-    this.observationsEntries = [];
-    this.queryFilter.deleted = true;
-    this.queryFilter.page = this.pageInputDefinition.page;
-    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
     ).subscribe({
@@ -139,13 +130,12 @@ export class DeletedDataComponent implements OnDestroy {
 
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Delete Data', message: err, type: ToastEventTypeEnum.ERROR });
-      },
-      complete: () => {
         this.enableQueryButton = true;
         this.enableSaveButton = true;
-      }
+        this.pagesDataService.showToast({ title: 'Delete Data', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
+      },
     });
+
   }
 
   protected onOptionsSelected(optionSlected: 'Restore All' | 'Hard Delete All'): void {
@@ -164,10 +154,10 @@ export class DeletedDataComponent implements OnDestroy {
   }
 
   protected onUserInput() {
-    this.numOfChanges = 0;
+    this.changedCount = 0;
     for (const obsEntry of this.observationsEntries) {
       if (obsEntry.restore || obsEntry.hardDelete) {
-        this.numOfChanges++;
+        this.changedCount++;
       }
     }
   }
@@ -219,7 +209,7 @@ export class DeletedDataComponent implements OnDestroy {
         if (changedObs.length > 0) {
           this.restoreObservations(changedObs);
         } else {
-          this.queryData();
+          this.loadData();
         }
       },
       error: err => {
@@ -237,7 +227,7 @@ export class DeletedDataComponent implements OnDestroy {
         this.enableSaveButton = true;
         const obsMessage: string = `${restoredObs.length} observation${restoredObs.length === 1 ? '' : 's'}`;
         this.pagesDataService.showToast({ title: 'Delete Data', message: `${obsMessage} restored`, type: ToastEventTypeEnum.SUCCESS });
-        this.queryData();
+        this.loadData();
       },
       error: err => {
         this.enableSaveButton = true;

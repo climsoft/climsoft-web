@@ -13,7 +13,7 @@ export class StackedDataViewerComponent implements OnChanges {
 
   @Input() public observationsEntries!: ObservationEntry[];
 
-  @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>; 
+  @Output() public valueChange: EventEmitter<ObservationEntry> = new EventEmitter<ObservationEntry>;
 
   protected allBoundariesIndices: number[] = [];
 
@@ -22,19 +22,15 @@ export class StackedDataViewerComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.pageInputDefinition && this.observationsEntries) {
-      this.loadData();
+      this.setRowBoundaryLineSettings(this.observationsEntries);
     }
-  }
-
-  private loadData(): void {
-    this.setRowBoundaryLineSettings(this.observationsEntries);
   }
 
   protected onUserInput(observationEntry: ObservationEntry) {
     this.valueChange.emit(observationEntry);
   }
 
-   protected onUserDeleteClick(observationEntry: ObservationEntry) {
+  protected onUserDeleteClick(observationEntry: ObservationEntry) {
     observationEntry.delete = !observationEntry.delete;
     this.onUserInput(observationEntry);
   }

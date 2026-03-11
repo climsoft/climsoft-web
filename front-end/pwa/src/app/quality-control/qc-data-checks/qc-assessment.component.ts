@@ -107,14 +107,14 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
           this.enableSaveButton = false;
-          if (!count) {
+          if (count === 0) {
             this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
         },
         error: err => {
           this.enableQueryButton = true;
           this.enableSaveButton = true;
-          this.pagesDataService.showToast({ title: 'QC Data Checks', message: err, type: ToastEventTypeEnum.ERROR });
+          this.pagesDataService.showToast({ title: 'QC Data Checks', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
         },
       });
 
@@ -156,9 +156,9 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
 
       },
       error: err => {
-        this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
         this.enableSaveButton = true;
+        this.pagesDataService.showToast({ title: 'Data Correction', message: err.error?.message || 'Something bad happened', type: ToastEventTypeEnum.ERROR });
       },
 
     });
