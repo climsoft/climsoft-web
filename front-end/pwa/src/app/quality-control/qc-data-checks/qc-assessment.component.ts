@@ -39,7 +39,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected queryFilter: ViewObservationQueryModel = { qcStatus: QCStatusEnum.FAILED };
   private allMetadataLoaded: boolean = false;
   protected useUnstackedViewer: boolean = false;
-  protected numOfChanges: number = 0;
+  protected changedCount: number = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -75,7 +75,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected onQueryQCClick(queryFilter: ViewObservationQueryModel): void {
     // Get the data based on the selection filter
     this.queryFilter = { ...this.querySelection.getFilter(), qcStatus: QCStatusEnum.FAILED }; // TODO. Temporary
-    this.queryData();
+    this.loadData();
   }
 
   protected onShowPerformQCDialog(): void {
@@ -86,34 +86,30 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   protected onQCPerformedClick(): void {
     // Get the data based on the selection filter
     this.queryFilter = { ...this.querySelection.getFilter(), qcStatus: QCStatusEnum.FAILED }; // TODO. Temporary
-    this.queryData();
+    this.loadData();
   }
 
-  private queryData(): void {
+  protected loadData(): void {
     if (!(this.allMetadataLoaded && this.queryFilter)) {
       return;
     }
 
-    console.log('querying data...');
-
-    this.observationsEntries = [];
-    this.numOfChanges = 0;
-    this.enableSaveButton = false;
-    this.pageInputDefinition.setTotalRowCount(0);
     this.enableQueryButton = false;
     this.enableSaveButton = false;
+    this.changedCount = 0;
+    this.observationsEntries = [];
+    this.queryFilter.page = this.pageInputDefinition.page;
+    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
+
     this.observationService.count(this.queryFilter).pipe(take(1)).subscribe(
       {
         next: count => {
           this.enableQueryButton = true;
           this.pageInputDefinition.setTotalRowCount(count);
-          if (count > 0) {
-            this.loadData();
-          } else {
-            this.enableSaveButton = false;
-            this.pagesDataService.showToast({ title: 'QC Data Checks', message: 'No data', type: ToastEventTypeEnum.INFO });
+          this.enableSaveButton = false;
+          if (!count) {
+            this.pagesDataService.showToast({ title: 'Data Correction', message: 'No data', type: ToastEventTypeEnum.INFO });
           }
-
         },
         error: err => {
           this.enableQueryButton = true;
@@ -121,17 +117,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           this.pagesDataService.showToast({ title: 'QC Data Checks', message: err, type: ToastEventTypeEnum.ERROR });
         },
       });
-  }
-
-  protected loadData(): void {
-    this.enableQueryButton = false;
-    this.enableSaveButton = false;
-    this.observationsEntries = [];
-    this.numOfChanges = 0;
-    this.allBoundariesIndices = [];
-    this.observationsEntries = [];
-    this.queryFilter.page = this.pageInputDefinition.page;
-    this.queryFilter.pageSize = this.pageInputDefinition.pageSize;
 
     this.observationService.findProcessed(this.queryFilter).pipe(
       take(1)
@@ -143,9 +128,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
           const sourceMetadata = this.cachedMetadataSearchService.getSource(observation.sourceId);
-          const failedLogItems = observation.qcTestLog
-            ? observation.qcTestLog.filter(item => item.qcStatus === QCStatusEnum.FAILED)
-            : [];
+          const failedLogItems = observation.qcTestLog ? observation.qcTestLog.filter(item => item.qcStatus === QCStatusEnum.FAILED) : [];
           const qcTestLogMetadata = failedLogItems.map(item =>
             this.cachedMetadataSearchService.getQCTest(item.qcTestId)
           );
@@ -181,7 +164,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     });
   }
 
-
   protected onOptionsSelected(optionSlected: 'Stack/Unstack' | 'Confirm All' | 'Delete All'): void {
     switch (optionSlected) {
       case 'Stack/Unstack':
@@ -192,14 +174,14 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
           entry.confirmAsCorrect = true;
           entry.delete = false;
         }
-        this.numOfChanges = this.observationsEntries.length;
+        this.changedCount = this.observationsEntries.length;
         break;
       case 'Delete All':
         for (const entry of this.observationsEntries) {
           entry.confirmAsCorrect = false;
           entry.delete = true;
         }
-        this.numOfChanges = this.observationsEntries.length;
+        this.changedCount = this.observationsEntries.length;
         break;
       default:
         throw new Error("Developer error. Option not supported");
@@ -207,10 +189,10 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
   }
 
   protected onUserInput() {
-    this.numOfChanges = 0;
+    this.changedCount = 0;
     for (const entry of this.observationsEntries) {
       if (entry.delete || entry.confirmAsCorrect || entry.change === 'valid_change' || entry.change === 'invalid_change')
-        this.numOfChanges++;
+        this.changedCount++;
     }
   }
 
@@ -276,7 +258,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
         if (changedObs.length > 0) {
           this.updatedObservations(changedObs);
         } else {
-          this.queryData();
+          this.loadData();
         }
       },
       error: err => {
@@ -294,7 +276,7 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
         this.enableSaveButton = true;
         const obsMessage: string = `${changedObs.length} observation${changedObs.length === 1 ? '' : 's'}`;
         this.pagesDataService.showToast({ title: 'QC Assessment', message: `${obsMessage} saved`, type: ToastEventTypeEnum.SUCCESS });
-        this.queryData();
+        this.loadData();
       },
       error: err => {
         this.enableSaveButton = true;

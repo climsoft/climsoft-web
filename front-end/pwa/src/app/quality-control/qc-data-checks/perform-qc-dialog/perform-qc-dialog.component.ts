@@ -75,7 +75,7 @@ export class PerformQCDialogComponent {
       },
       error: err => {
         this.open = false;
-        this.pagesDataService.showToast({ title: "QC Tests", message: `Error in saving qc test - ${err}`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
+        this.pagesDataService.showToast({ title: "QC Tests", message:  err.error?.message || `Error in performing qc test`, type: ToastEventTypeEnum.ERROR, timeout: 8000 });
       }
     });
   }

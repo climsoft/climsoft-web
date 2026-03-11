@@ -14,7 +14,7 @@
         </div>
         <div class="card border-0 p-0 mt-2">
             <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
-                <div class="fw-bold ms-1">Showing Entries</div>
+                <div class="fw-bold ms-1">Entries</div>
                 <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
                     <app-drop-down-button [buttonText]="'More Options'"
                         [dropDownItems]="['Stack/Unstack','Confirm All', 'Delete All']"
@@ -22,9 +22,9 @@
                     <div class="vr mx-2"></div>
                     <app-page-input [pageInputDefinition]="pageInputDefinition"
                         (pageInputDefinitionChange)="loadData()" />
-                    <div *ngIf="numOfChanges" class="d-flex align-items-center">
+                    <div *ngIf="changedCount" class="d-flex align-items-center">
                         <div class="vr mx-2"></div>
-                        <div class=" text-success me-2">Total Changes: {{numOfChanges}}</div>
+                        <div class=" text-success me-2">{{changedCount}} record(s) changed</div>
                     </div>
                 </div>
             </div>
@@ -49,8 +49,7 @@
                                     <th>Value & Flag</th>
                                     <th>Comment</th>
                                     <th>QC Tests Failed</th>
-                                    <th>Confirm as Correct</th>
-                                    <th>Delete</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,14 +86,22 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <app-check-box-input [id]="i + '_confirm'" [value]="obsEntry.confirmAsCorrect"
-                                            [disabled]="obsEntry.delete"
-                                            (valueChange)="onUserConfirmAsCorrectClick (obsEntry)" />
-                                    </td>
-                                    <td>
-                                        <app-check-box-input [id]="i + '_delete'" [value]="obsEntry.delete"
-                                            [disabled]="obsEntry.confirmAsCorrect"
-                                            (valueChange)="onUserDeleteClick(obsEntry)" />
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm"
+                                                [ngClass]="obsEntry.confirmAsCorrect ? 'btn-success' : 'btn-outline-success'"
+                                                [disabled]="obsEntry.delete"
+                                                title="Confirm as Correct"
+                                                (click)="onUserConfirmAsCorrectClick(obsEntry)">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm"
+                                                [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
+                                                [disabled]="obsEntry.confirmAsCorrect"
+                                                title="Delete"
+                                                (click)="onUserDeleteClick(obsEntry)">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

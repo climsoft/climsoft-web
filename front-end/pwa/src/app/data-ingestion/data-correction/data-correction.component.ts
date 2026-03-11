@@ -98,6 +98,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     }
 
     this.enableQueryButton = false;
+    this.enableSaveButton = false;
     this.changedCount = 0;
     this.observationsEntries = [];
     this.queryFilter.page = this.pageInputDefinition.page;
@@ -125,6 +126,7 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: data => {
         this.enableQueryButton = true;
+        this.enableSaveButton = true;
         const observationsEntries: ObservationEntry[] = data.map(observation => {
           const stationMetadata = this.cachedMetadataSearchService.getStation(observation.stationId);
           const elementMetadata = this.cachedMetadataSearchService.getElement(observation.elementId);
@@ -146,11 +148,12 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
         });
 
         this.observationsEntries = observationsEntries;
-        this.enableSaveButton = true;
+
       },
       error: err => {
         this.pagesDataService.showToast({ title: 'Data Correction', message: err, type: ToastEventTypeEnum.ERROR });
         this.enableQueryButton = true;
+        this.enableSaveButton = false;
       },
     });
   }
