@@ -16,9 +16,15 @@
             <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
                 <div class="fw-bold ms-1">Entries</div>
                 <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                    <app-drop-down-button [buttonText]="'More Options'"
-                        [dropDownItems]="['Stack/Unstack','Confirm All', 'Delete All']"
-                        (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle()">
+                        Stack/Unstack
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success ms-2" (click)="confirmAll()">
+                        Confirm All
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll()">
+                        Delete All
+                    </button>
                     <div class="vr mx-2"></div>
                     <app-page-input [pageInputDefinition]="pageInputDefinition"
                         (pageInputDefinitionChange)="loadData()" />
@@ -35,7 +41,7 @@
                         (valueChange)="onUserInput()" />
                 </div>
                 <div *ngIf="!useUnstackedViewer">
-                    <div class="app-table-container">
+                    <div class="app-table-container" style="max-height: 50vh;">
                         <table class="table table-hover table-sm">
                             <thead>
                                 <tr>
@@ -72,8 +78,7 @@
                                     <td>{{ obsEntry.observation.comment }}</td>
                                     <td>
                                         <div class="d-flex flex-wrap gap-1">
-                                            <span
-                                                *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed; let j = index"
+                                            <span *ngFor="let qcTestLogItem of obsEntry.qcTestsFailed; let j = index"
                                                 class="badge app-cursor-pointer" [ngClass]="{
                                                     'bg-primary': qcTestLogItem.qcTestType === 'range_threshold',
                                                     'bg-info': qcTestLogItem.qcTestType === 'flat_line',
@@ -89,15 +94,13 @@
                                         <div class="d-flex gap-2">
                                             <button type="button" class="btn btn-sm"
                                                 [ngClass]="obsEntry.confirmAsCorrect ? 'btn-success' : 'btn-outline-success'"
-                                                [disabled]="obsEntry.delete"
-                                                title="Confirm as Correct"
+                                                [disabled]="obsEntry.delete" title="Confirm as Correct"
                                                 (click)="onUserConfirmAsCorrectClick(obsEntry)">
                                                 <i class="bi bi-check-circle"></i>
                                             </button>
                                             <button type="button" class="btn btn-sm"
                                                 [ngClass]="obsEntry.delete ? 'btn-danger' : 'btn-outline-danger'"
-                                                [disabled]="obsEntry.confirmAsCorrect"
-                                                title="Delete"
+                                                [disabled]="obsEntry.confirmAsCorrect" title="Delete"
                                                 (click)="onUserDeleteClick(obsEntry)">
                                                 <i class="bi bi-trash"></i>
                                             </button>

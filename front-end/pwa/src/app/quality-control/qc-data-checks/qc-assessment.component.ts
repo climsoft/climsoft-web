@@ -10,7 +10,6 @@ import { DateUtils } from 'src/app/shared/utils/date.utils';
 import { CachedMetadataService } from 'src/app/metadata/metadata-updates/cached-metadata.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ObservationsService } from 'src/app/data-ingestion/services/observations.service';
-import { QCAssessmentsService } from 'src/app/quality-control/services/qc-assessments.service';
 import { QCStatusEnum } from 'src/app/data-ingestion/models/qc-status.enum';
 import { DeleteObservationModel } from 'src/app/data-ingestion/models/delete-observation.model';
 import { ObservationEntry } from 'src/app/observations/models/observation-entry.model';
@@ -47,7 +46,6 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     private pagesDataService: PagesDataService,
     private cachedMetadataSearchService: CachedMetadataService,
     private observationService: ObservationsService,
-    private qcAssessmentsService: QCAssessmentsService,
   ) {
     this.pagesDataService.setPageHeader('QC Assessment');
 
@@ -164,28 +162,24 @@ export class QCAssessmentComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected onOptionsSelected(optionSlected: 'Stack/Unstack' | 'Confirm All' | 'Delete All'): void {
-    switch (optionSlected) {
-      case 'Stack/Unstack':
-        this.useUnstackedViewer = !this.useUnstackedViewer;
-        break;
-      case 'Confirm All':
-        for (const entry of this.observationsEntries) {
-          entry.confirmAsCorrect = true;
-          entry.delete = false;
-        }
-        this.changedCount = this.observationsEntries.length;
-        break;
-      case 'Delete All':
-        for (const entry of this.observationsEntries) {
-          entry.confirmAsCorrect = false;
-          entry.delete = true;
-        }
-        this.changedCount = this.observationsEntries.length;
-        break;
-      default:
-        throw new Error("Developer error. Option not supported");
+  protected stackToggle(): void {
+    this.useUnstackedViewer = !this.useUnstackedViewer;
+  }
+
+  protected confirmAll(): void {
+    for (const entry of this.observationsEntries) {
+      entry.confirmAsCorrect = true;
+      entry.delete = false;
     }
+    this.changedCount = this.observationsEntries.length;
+  }
+
+  protected deleteAll(): void {
+    for (const entry of this.observationsEntries) {
+      entry.confirmAsCorrect = false;
+      entry.delete = true;
+    }
+    this.changedCount = this.observationsEntries.length;
   }
 
   protected onUserInput() {

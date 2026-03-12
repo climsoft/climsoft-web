@@ -170,17 +170,12 @@ export class DataCorrectionComponent implements OnInit, OnDestroy {
     });
   }
 
-  protected onOptionsSelected(optionSelected: 'Stack/Unstack' | 'Delete All'): void {
-    switch (optionSelected) {
-      case 'Stack/Unstack':
-        this.useUnstackedViewer = !this.useUnstackedViewer;
-        break;
-      case 'Delete All':
-        this.dlgDeleteAllConfirm.openDialog();
-        break;
-      default:
-        throw new Error("Developer error. Option not supported");
-    }
+  protected stackToggle(): void {
+    this.useUnstackedViewer = !this.useUnstackedViewer;
+  }
+
+  protected deleteAll(): void {
+    this.dlgDeleteAllConfirm.openDialog();
   }
 
   protected onDeleteAllConfirm(): void {

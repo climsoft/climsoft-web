@@ -7,8 +7,12 @@
         <div class="card-header d-flex justify-content-between px-0 py-1 align-items-center">
             <div class="fw-bold ms-1">Entries</div>
             <div *ngIf="pageInputDefinition.totalRowCount" class="d-flex">
-                <app-drop-down-button [buttonText]="'More Options'" [dropDownItems]="['Stack/Unstack','Delete All']"
-                    (dropDownOptionClick)="onOptionsSelected($event)" [offSetRight]="false" />
+                <button type="button" class="btn btn-sm btn-outline-secondary" (click)="stackToggle( )">
+                    Stack/Unstack
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" (click)="deleteAll( )">
+                    Delete All
+                </button>
                 <div class="vr mx-2"></div>
                 <app-page-input [pageInputDefinition]="pageInputDefinition" (pageInputDefinitionChange)="loadData()" />
                 <div *ngIf="changedCount" class="d-flex align-items-center">
@@ -49,8 +53,8 @@
 
 </div>
 
-<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'" [deleteButtonLabel]="'Ok'"
-    (deleteConfirmed)="onDeleteAllConfirm()" />
+<app-delete-confirmation-dialog #dlgDeleteAllConfirm [itemName]="'All'" [itemType]="'observations'"
+    [deleteButtonLabel]="'Ok'" (deleteConfirmed)="onDeleteAllConfirm()" />
 
 <ng-container *ngIf="saveConfirmOpen">
     <app-dialog [(open)]="saveConfirmOpen" [title]="'Confirm Changes'" [okButtonLabel]="'Confirm'"
